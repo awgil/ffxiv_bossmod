@@ -53,7 +53,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
 
         res.Define(Track.Requiescat).As<BuffsStrategy>("Req.", "Requiescat", 165)
             .AddOption(BuffsStrategy.Automatic, "Automatically use Requiescat on cooldown")
-            .AddOption(BuffsStrategy.Together, "Automatically use Requiescat only with Fight or Flight - will delay in attempt to align itself with Fight or Flight", 60, 20, ActionTargets.Self, 68)
+            .AddOption(BuffsStrategy.Together, "Automatically use Requiescat only with Fight or Flight - will delay in attempt to align itself with Fight or Flight if misaligned", 60, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.Force, "Force Requiescat (if available)", 60, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.ForceWeave, "Force Requiescat inside the next possible weave window (if available)", 60, 20, ActionTargets.Self, 68)
             .AddOption(BuffsStrategy.Delay, "Do not use Requiescat", 0, 0, ActionTargets.None, 68)
@@ -166,7 +166,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         _ => false
     };
 
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget) 
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         Opener = CombatTimer <= 10 ? LastComboAction == AID.RoyalAuthority : ComboTimer > 10;
         var bladesTarget = GetBestTarget(primaryTarget, 25, IsSplashTarget).Best?.Actor;
@@ -194,7 +194,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             AOEStrategy.ForceAOEBreak => (NextAOECombo(false), Player),
             _ => (AID.None, null)
         };
-        if (aoeTarget != null && (wantAOE ? In5y(aoeTarget) : In3y(aoeTarget)))
+        if (aoeTarget != null && (wantAOE ? In5y(stTarget) : In3y(stTarget)))
             QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
 
         var fof = strategy.Option(Track.FightOrFlight);
@@ -299,23 +299,27 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
         var dmh = strategy.Option(Track.Holy);
         var dmhStrat = dmh.As<HolyStrategy>();
         var useAOE = wantAOE || dmhStrat is HolyStrategy.OnlyCircle or HolyStrategy.ForceCircle;
-        var dmhTarget = useAOE ? Player : SingleTargetChoice(mainTarget, dmh);
-        var hsReady = Unlocked(AID.HolySpirit) && MP >= 1000;
-        var hsMinimum = dmhTarget != null && !dmacHold && DMstatus > GCD && hsReady && In25y(dmhTarget);
-        var hcMinimum = dmhTarget != null && !dmacHold && DMstatus > GCD && Unlocked(AID.HolyCircle) && MP >= 1000 && In5y(dmhTarget);
+        var dmhSingleTarget = SingleTargetChoice(mainTarget, dmh);
+        var dmhTarget = useAOE ? Player : dmhSingleTarget;
+        var hsReady = Unlocked(AID.HolySpirit) && MP >= 1000 && In25y(dmhSingleTarget);
+        var hcReady = Unlocked(AID.HolyCircle) && MP >= 1000 && In5y(dmhSingleTarget);
+        var dmhReady = dmhTarget != null && !dmacHold && DMstatus > GCD;
+        var dmhsMinimum = dmhReady && hsReady;
+        var dmhcMinimum = Unlocked(AID.HolyCircle) ? (dmhReady && hcReady) : dmhsMinimum;
         var dmhFirst = (fofStrat != BuffsStrategy.Delay && FOFstatus is > 0 and <= 2.5f && SUPstatus <= GCD && SEPstatus <= GCD) || DMstatus is > 0 and <= 2.5f;
-        var bestHoly = useAOE ? BestHolyCircle : AID.HolySpirit;
+        var bestCondition = useAOE ? dmhcMinimum : dmhsMinimum;
+        var bestAction = useAOE ? BestHolyCircle : AID.HolySpirit;
         var bestPrio = dmhFirst ? GCDPriority.Average + 1 : GCDPriority.Average - 1;
         var (dmhCondition, dmhAction, dmhPrio) = dmhStrat switch
         {
-            HolyStrategy.Automatic => (hsMinimum, bestHoly, bestPrio),
-            HolyStrategy.Early => (hsMinimum, bestHoly, GCDPriority.Average + 1),
-            HolyStrategy.Late => (hsMinimum, bestHoly, GCDPriority.Average - 1),
-            HolyStrategy.VeryLate => (hsMinimum && (LastComboAction is AID.RiotBlade || DMstatus is > 0 and <= 3), bestHoly, GCDPriority.Average + 1),
-            HolyStrategy.OnlySpirit => (hsMinimum, AID.HolySpirit, bestPrio),
-            HolyStrategy.OnlyCircle => (hcMinimum, AID.HolyCircle, bestPrio),
-            HolyStrategy.ForceSpirit => (hsMinimum, AID.HolySpirit, GCDPriority.Low + 2),
-            HolyStrategy.ForceCircle => (hcMinimum, AID.HolyCircle, GCDPriority.Low + 2),
+            HolyStrategy.Automatic => (bestCondition, bestAction, bestPrio),
+            HolyStrategy.Early => (bestCondition, bestAction, GCDPriority.Average + 1),
+            HolyStrategy.Late => (bestCondition, bestAction, GCDPriority.Average - 1),
+            HolyStrategy.VeryLate => (bestCondition && (LastComboAction is AID.RiotBlade or AID.TotalEclipse || DMstatus is > 0 and <= 3), bestAction, GCDPriority.Average + 1),
+            HolyStrategy.OnlySpirit => (dmhsMinimum, AID.HolySpirit, bestPrio),
+            HolyStrategy.OnlyCircle => (dmhcMinimum, AID.HolyCircle, bestPrio),
+            HolyStrategy.ForceSpirit => (hsReady, AID.HolySpirit, GCDPriority.Low + 2),
+            HolyStrategy.ForceCircle => (hcReady, AID.HolyCircle, GCDPriority.Low + 2),
             _ => (false, AID.None, GCDPriority.None)
         };
         if (dmhCondition)
