@@ -61,7 +61,7 @@ sealed class Discordance(BossModule module) : Components.RaidwideCast(module, (u
 sealed class ElementalCascadeElements(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.ElementalCascadeFire, (uint)AID.ElementalCascadePoison,
     (uint)AID.ElementalCascadeLightning, (uint)AID.ElementalCascadeLight, (uint)AID.ElementalCascadeIce ], new AOEShapeCircle(6.0f));
 sealed class StunningSheen(BossModule module) : Components.CastGaze(module, (uint)AID.StunningSheen);
-sealed class Dissipate(BossModule module) : Components.Voidzone(module, 6.0f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7)) {
+sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.0f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7)) {
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
         var aoes = new List<AOEInstance>();
         foreach (var source in Sources(Module)) {
