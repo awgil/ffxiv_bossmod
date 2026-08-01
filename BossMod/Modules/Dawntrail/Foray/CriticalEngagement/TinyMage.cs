@@ -15,5 +15,5 @@ class TinyMageStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14795)]
-public class TinyMage(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+public class TinyMage(WorldState ws, Actor primary) : BossModule(ws, primary, new(152, 716), new ArenaBoundsCircle(20));
 
