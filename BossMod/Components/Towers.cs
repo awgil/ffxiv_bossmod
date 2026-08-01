@@ -301,7 +301,7 @@ public class GenericTowers(BossModule module, uint aid = default, bool prioritiz
                 }
             }
         }
-        hints.AddPredictedDamage(mask, Towers.Ref(0).Activation, DamageType);
+        hints.AddPredictedDamage(mask, towers[0].Activation, DamageType);
     }
 }
 

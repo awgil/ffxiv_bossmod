@@ -97,7 +97,7 @@ public sealed class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> parts)
     public PolygonShapeRelation PolygonDirectionalRectIntersection(in WDir originOffset, in WDir direction, float lenFront, float lenBack, float halfWidth)
     {
         var idx = GetPolygonIndex(this);
-        return idx.ClassifyDirectionalRectangle(originOffset, direction, halfWidth, lenFront, lenBack);
+        return idx.ClassifyDirectionalRectangle(originOffset, direction, lenFront, lenBack, halfWidth);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
