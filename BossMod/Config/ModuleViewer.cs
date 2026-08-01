@@ -295,6 +295,11 @@ public sealed class ModuleViewer : IDisposable
                     {
                         foreach (var mod in group.Modules)
                         {
+                            if (mod.Info.Maturity == BossModuleInfo.Maturity.Dummy)
+                            {
+                                continue;
+                            }
+
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
                             {
                                 if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"{mod.Info.ModuleType.FullName}_cfg"))

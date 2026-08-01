@@ -22,9 +22,7 @@ sealed class DebugGraphics
     private Angle _overlayRotation = new(0);
     private float _placedOffset = 4.0f; // for placing a drawn shape on overlay.
     private float _placedWidth = 0.5f; // width of drawn shape on overlay. Used  as radius in circles.
-    private float _placedHeight = 0.5f;
-
-
+    //private readonly float _placedHeight = 0.5f;
 
     public unsafe void DrawSceneTree()
     {

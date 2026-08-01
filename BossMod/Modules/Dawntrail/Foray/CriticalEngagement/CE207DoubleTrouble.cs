@@ -1,6 +1,7 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE204ConjuredCalofisteri;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE207DoubleTrouble;
 
-public enum OID : uint {
+public enum OID : uint
+{
     ConjuredCalofisteri = 0x4BB8,
     Helper = 0x233C,
     LitheLock = 0x4BBA, // R1.000, x0 (spawn during fight)
@@ -9,11 +10,13 @@ public enum OID : uint {
     RedIcon = 0x4BBC, // R1.000, x0 (spawn during fight)
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Fetters = 5349, // Entanglement->player, extra=0xEC4
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50122, // ConjuredCalofisteri->player, no cast, single-target
     AuraBurst = 47079, // ConjuredCalofisteri->self, 5.0s cast, single-target
     AuraBurstVisual = 47080, // Helper->self, no cast, ???
@@ -60,30 +63,38 @@ sealed class DashingCut(BossModule module) : Components.SimpleChargeAOEGroups(mo
 sealed class HairShearsCross(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HairShearsCross, new AOEShapeCross(60.0f, 2.0f));
 sealed class HairShearsCircle(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HairShearsCircle, new AOEShapeCircle(10.0f));
 
-sealed class DualCut(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+sealed class DualCut(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new(60.0f, 90.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.DualCut or (uint)AID.DualCut1) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.DualCut or (uint)AID.DualCut1)
+        {
             aoes.Add(new(shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.DualCut or (uint)AID.DualCut1) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.DualCut or (uint)AID.DualCut1)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        int show = 0;
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var show = 0;
 
         var incomingAOEs = aoes.OrderBy(aoe => aoe.Activation).ToList();
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs))
+        {
             aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
             aoe.Risky = show == 0;
             show++;
@@ -94,8 +105,10 @@ sealed class DualCut(BossModule module) : Components.GenericAOEs(module) {
 }
 
 [SkipLocalsInit]
-sealed class ConjuredCalofisteriStates : StateMachineBuilder {
-    public ConjuredCalofisteriStates(BossModule module) : base(module) {
+sealed class ConjuredCalofisteriStates : StateMachineBuilder
+{
+    public ConjuredCalofisteriStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<AuraBurst>()
             .ActivateOnEnter<DualCut>()
@@ -124,8 +137,10 @@ sealed class ConjuredCalofisteriStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class ConjuredCalofisteri(WorldState ws, Actor primary) : BossModule(ws, primary, new(-215.200f, -65.000f), new ArenaBoundsCircle(22f)) {
-    protected override void DrawEnemies(int pcSlot, Actor pc) {
+public sealed class ConjuredCalofisteri(WorldState ws, Actor primary) : BossModule(ws, primary, new(-215.200f, -65.000f), new ArenaBoundsCircle(22f))
+{
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
         Arena.Actor(PrimaryActor);
         Arena.Actors(Enemies((uint)OID.Entanglement));
     }

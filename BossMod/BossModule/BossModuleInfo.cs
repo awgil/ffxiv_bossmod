@@ -5,6 +5,9 @@ public static class BossModuleInfo
 {
     public enum Maturity
     {
+        [PropertyDisplay("Dummy modules, dev work only.")]
+        Dummy,
+
         [PropertyDisplay("Work in progress; might be incomplete or have severe bugs.")]
         WIP,
 
