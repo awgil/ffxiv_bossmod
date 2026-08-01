@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201Arbatel;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE209ForbiddenFolios;
 
 public enum OID : uint
 {
@@ -41,28 +41,28 @@ public enum AID : uint
 
     // 2 casters to circumvent 32 player aoe limit
     PrimeKnowledgeLevelDeathCast = 47318, // Page512->self, 11.0s cast, single-target
-    PrimeKnowledgeLevelDeath180Cast1 = 50561, // Helper->self, 11.0s cast, range 25 180-degree cone
-    PrimeKnowledgeLevelDeath180Cast2 = 49879, // Helper->self, 11.0s cast, range 25 180-degree cone
-    PrimeKnowledgeLevelDeath120Cast1 = 50560, // Helper->self, 11.0s cast, range 25 120-degree cone
-    PrimeKnowledgeLevelDeath120Cast2 = 47314, // Helper->self, 11.0s cast, range 25 120-degree cone
+    PrimeKnowledgeLevelDeath180Caster1 = 50561, // Helper->self, 11.0s cast, range 25 180-degree cone
+    PrimeKnowledgeLevelDeath180Caster2 = 49879, // Helper->self, 11.0s cast, range 25 180-degree cone
+    PrimeKnowledgeLevelDeath120Caster1 = 50560, // Helper->self, 11.0s cast, range 25 120-degree cone
+    PrimeKnowledgeLevelDeath120Caster2 = 47314, // Helper->self, 11.0s cast, range 25 120-degree cone
 
     KnowledgeLevel3FlareCast = 47316, // Page16->self, 11.0s cast, single-target
-    KnowledgeLevel3Flare180Cast1 = 50555, // Helper->self, 11.0s cast, range 25 180-degree cone
-    KnowledgeLevel3Flare180Cast2 = 47309, // Helper->self, 11.0s cast, range 25 180-degree cone
-    KnowledgeLevel3Flare120Cast1 = 50558, // Helper->self, 11.0s cast, range 25 120-degree cone
-    KnowledgeLevel3Flare120Cast2 = 47312, // Helper->self, 11.0s cast, range 25 120-degree cone
+    KnowledgeLevel3Flare180Caster1 = 50555, // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel3Flare180Caster2 = 47309, // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel3Flare120Caster1 = 50558, // Helper->self, 11.0s cast, range 25 120-degree cone
+    KnowledgeLevel3Flare120Caster2 = 47312, // Helper->self, 11.0s cast, range 25 120-degree cone
 
     KnowledgeLevel4HolyCast = 47317, // Page8->self, 11.0s cast, single-target
-    KnowledgeLevel4Holy120Cast1 = 50559, // Helper->self, 11.0s cast, range 25 120-degree cone
-    KnowledgeLevel4Holy120Cast2 = 47313, // Helper->self, 11.0s cast, range 25 120-degree cone
-    KnowledgeLevel4Holy180Cast1 = 50556, // Helper->self, 11.0s cast, range 25 180-degree cone
-    KnowledgeLevel4Holy180Cast2 = 47310, // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel4Holy120Caster1 = 50559, // Helper->self, 11.0s cast, range 25 120-degree cone
+    KnowledgeLevel4Holy120Caster2 = 47313, // Helper->self, 11.0s cast, range 25 120-degree cone
+    KnowledgeLevel4Holy180Caster1 = 50556, // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel4Holy180Caster2 = 47310, // Helper->self, 11.0s cast, range 25 180-degree cone
 
     KnowledgeLevel5DeathCast = 47315, // Page64->self, 11.0s cast, single-target
-    KnowledgeLevel5Death120Cast1 = 50557, // Helper->self, 11.0s cast, range 25 120-degree cone
-    KnowledgeLevel5Death120Cast2 = 47311, // Helper->self, 11.0s cast, range 25 120-degree cone
-    KnowledgeLevel5Death180Cast1 = 50554, // Helper->self, 11.0s cast, range 25 180-degree cone
-    KnowledgeLevel5Death180Cast2 = 47308 // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel5Death120Caster1 = 50557, // Helper->self, 11.0s cast, range 25 120-degree cone
+    KnowledgeLevel5Death120Caster2 = 47311, // Helper->self, 11.0s cast, range 25 120-degree cone
+    KnowledgeLevel5Death180Caster1 = 50554, // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel5Death180Caster2 = 47315 // Helper->self, 11.0s cast, range 25 180-degree cone
 }
 
 public enum SID : uint
@@ -84,7 +84,7 @@ sealed class Marginalia(BossModule module) : Components.RaidwideCast(module, (ui
 [SkipLocalsInit]
 sealed class UnboundInk(BossModule module) : Components.SimpleAOEs(module, (uint)AID.UnboundInk, 9f);
 [SkipLocalsInit]
-sealed class BookDrop(BossModule module) : Components.CastTowersOpenWorld(module, (uint)AID.BookDrop, 3f, 3, 5);
+sealed class BookDrop(BossModule module) : Components.CastTowers(module, (uint)AID.BookDrop, 3f, 3);
 [SkipLocalsInit]
 sealed class ThunderII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ThunderII, new AOEShapeRect(50f, 2.5f), 10);
 [SkipLocalsInit]
@@ -175,16 +175,16 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        (AOEShape shape, ulong actorID)? data = spell.Action.ID switch
+        (AOEShape shape, ulong actorID)? data = spell.Action.ID switch // caster2 only seems to cast once, caster1 seems to cast twice, so caster2 seems ideal to not have duplicate aoes
         {
-            (uint)AID.PrimeKnowledgeLevelDeath180Cast2 => (shapeHalf, 1ul),
-            (uint)AID.PrimeKnowledgeLevelDeath120Cast2 => (shapeThird, 1ul),
-            (uint)AID.KnowledgeLevel3Flare180Cast2 => (shapeHalf, 3ul),
-            (uint)AID.KnowledgeLevel3Flare120Cast2 => (shapeThird, 3ul),
-            (uint)AID.KnowledgeLevel4Holy180Cast2 => (shapeHalf, 4ul),
-            (uint)AID.KnowledgeLevel4Holy120Cast2 => (shapeThird, 4ul),
-            (uint)AID.KnowledgeLevel5Death120Cast2 => (shapeThird, 5ul),
-            (uint)AID.KnowledgeLevel5Death180Cast2 => (shapeHalf, 5ul),
+            (uint)AID.PrimeKnowledgeLevelDeath180Caster2 => (shapeHalf, 1ul),
+            (uint)AID.PrimeKnowledgeLevelDeath120Caster2 => (shapeThird, 1ul),
+            (uint)AID.KnowledgeLevel3Flare180Caster2 => (shapeHalf, 3ul),
+            (uint)AID.KnowledgeLevel3Flare120Caster2 => (shapeThird, 3ul),
+            (uint)AID.KnowledgeLevel4Holy180Caster2 => (shapeHalf, 4ul),
+            (uint)AID.KnowledgeLevel4Holy120Caster2 => (shapeThird, 4ul),
+            (uint)AID.KnowledgeLevel5Death120Caster2 => (shapeThird, 5ul),
+            (uint)AID.KnowledgeLevel5Death180Caster2 => (shapeHalf, 5ul),
             _ => null
         };
 
@@ -199,8 +199,8 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.PrimeKnowledgeLevelDeath180Cast2 or (uint)AID.PrimeKnowledgeLevelDeath120Cast2 or (uint)AID.KnowledgeLevel3Flare180Cast2 or
-        (uint)AID.KnowledgeLevel3Flare120Cast2 or (uint)AID.KnowledgeLevel4Holy180Cast2 or (uint)AID.KnowledgeLevel4Holy120Cast2 or (uint)AID.KnowledgeLevel5Death120Cast2 or (uint)AID.KnowledgeLevel5Death180Cast2)
+        if (spell.Action.ID is (uint)AID.PrimeKnowledgeLevelDeath180Caster2 or (uint)AID.PrimeKnowledgeLevelDeath120Caster2 or (uint)AID.KnowledgeLevel3Flare180Caster2 or
+        (uint)AID.KnowledgeLevel3Flare120Caster2 or (uint)AID.KnowledgeLevel4Holy180Caster2 or (uint)AID.KnowledgeLevel4Holy120Caster2 or (uint)AID.KnowledgeLevel5Death120Caster2 or (uint)AID.KnowledgeLevel5Death180Caster2)
         {
             _aoes.Clear();
         }
@@ -215,14 +215,12 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
             return aoes;
         }
 
-        playerDebuffs.TryGetValue(actor.InstanceID, out var playerdebuff);
-
-        var playerActingLevel = playerdebuff + actor.ForayInfo.Level;
+        var playerActingLevel = playerDebuffs[actor.InstanceID] + actor.ForayInfo.Level;
         var write = 0;
 
         for (var read = 0; read < len; ++read)
         {
-            if (!IsRisky((uint)aoes[read].ActorID))
+            if (!IsRisky(aoes[read]))
             {
                 continue;
             }
@@ -237,19 +235,19 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
 
         return aoes[..write];
 
-        bool IsRisky(uint actorID)
+        bool IsRisky(in AOEInstance aoe)
         {
             var level = playerActingLevel;
 
-            return actorID == 1u ? level.IsPrime() : level.IsDivisible(actorID);
+            return aoe.ActorID == 1 ? level.IsPrime() : level.IsDivisible((uint)aoe.ActorID);
         }
     }
 }
 
 [SkipLocalsInit]
-sealed class ArbatelStates : StateMachineBuilder
+sealed class ForbiddenFoliosStates : StateMachineBuilder
 {
-    public ArbatelStates(BossModule module) : base(module)
+    public ForbiddenFoliosStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<KnowledgeLevelCorrection>()
@@ -269,7 +267,7 @@ sealed class ArbatelStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(ArbatelStates),
+    StatesType = typeof(ForbiddenFoliosStates),
     ConfigType = null, // replace null with typeof(ArbatelConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -286,4 +284,4 @@ sealed class ArbatelStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Arbatel(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f));
+public sealed class ForbiddenFolios(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f));
