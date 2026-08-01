@@ -103,10 +103,16 @@ class TendonRipper(BossModule module) : Components.GenericAOEs(module, AID.Tendo
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var isKB = actor.PendingKnockbacks.Count > 0 || Module.FindComponent<Buffet>()?.Sources(slot, actor).Any() == true;
+        DateTime knockbackAt;
+        if (actor.PendingKnockbacks.Count > 0)
+            knockbackAt = default;
+        else if (Module.FindComponent<Buffet>() is { } b && b.Sources(slot, actor).FirstOrNull() is { } kb)
+            knockbackAt = kb.Activation;
+        else
+            knockbackAt = WorldState.FutureTime(100);
 
         foreach (var p in _predicted)
-            yield return p with { Risky = !isKB };
+            yield return p with { Risky = p.Activation < knockbackAt };
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
