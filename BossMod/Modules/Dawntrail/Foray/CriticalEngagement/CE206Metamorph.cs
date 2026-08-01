@@ -1,19 +1,11 @@
 ﻿namespace BossMod.Foray.CriticalEngagement.CE206Metamorph;
 
-// TODO was made with ARR support
-//  Status:
-//      2. Double check the wind sphere aoe size
-//      3. double check these timers for the aoes after the first ones - ShapeshiftingSupercell
-
 public enum OID : uint {
     Metamorph = 0x4C77,
     Helper = 0x233C,
     Metamorph1 = 0x4DFD, // R1.000, x1
     Arrow = 0x1EC09B, // R0.500, x0 (spawn during fight), EventObj type
     WindSphere = 0x1EC09C, // R0.500, x0 (spawn during fight), EventObj type
-
-    _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
-    _Gen_Actor1ec09a = 0x1EC09A, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint {
@@ -59,8 +51,8 @@ public enum AID : uint {
     CycloneCrossing = 48365, // Metamorph->self, 10.5+1.0s cast, single-target
     CycloneCrossing1 = 48366, // Helper->self, 11.5s cast, range 60 width 16 cross
 
-    _Spell_ = 48367, // 4DFD->self, no cast, range ?-30 donut
-    _Weaponskill_4 = 48353, // Metamorph->self, no cast, single-target
+    MapAreanChange = 48367, // 4DFD->self, no cast, range ?-30 donut - guessed this is the map arena change
+    Weaponskill = 48353, // Metamorph->self, no cast, single-target
 }
 
 public enum SID : uint {
@@ -172,14 +164,15 @@ sealed class HellishBreath(BossModule module) : Components.GenericAOEs(module) {
     private List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new AOEShapeCone(60.0f, 30.0f.Degrees());
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID is (uint)AID.HellishBreathVisual1 or (uint)AID.HellishBreathVisual2 or (uint)AID.HellishBreathVisual3) {
-            aoes.Add(new(shape, caster.Position, caster.Rotation));
+            aoes.Add(new(shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
         if (spell.Action.ID is (uint)AID.HellishBreathCast1 or (uint)AID.HellishBreathCast2 or (uint)AID.HellishBreathCast3) {
+            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
             if (aoes.Count > 0) {
                 aoes.RemoveAt(0);
             }
@@ -188,7 +181,7 @@ sealed class HellishBreath(BossModule module) : Components.GenericAOEs(module) {
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
         int show = 0;
-        var incomingAOEs = aoes.Take(2).ToList();
+        var incomingAOEs = aoes.OrderBy(aoe => aoe.Activation).Take(2).ToList();
         foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
             aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
             aoe.Risky = show == 0;
@@ -335,8 +328,8 @@ sealed class MetamorphStates : StateMachineBuilder {
     StatesType = typeof(MetamorphStates),
     ConfigType = null, // replace null with typeof(MetamorphConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
-    StatusIDType = null, // replace null with typeof(SID) if applicable
+    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
+    StatusIDType = typeof(SID), // replace null with typeof(SID) if applicable
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.Metamorph,
@@ -349,4 +342,4 @@ sealed class MetamorphStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Metamorph(WorldState ws, Actor primary) : BossModule(ws, primary, new(499.000f, -310.000f), new ArenaBoundsCircle(25f));
+public sealed class Metamorph(WorldState ws, Actor primary) : BossModule(ws, primary, new(500.000f, -310.000f), new ArenaBoundsCircle(25f));
