@@ -227,6 +227,39 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return ClipAndTriangulate([startOffset + side, startOffset - side, endOffset - side, endOffset + side]);
     }
 
+    public List<RelTriangle> TriangulateRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
+    {
+        var side = halfWidth * direction.OrthoR();
+        var front = originOffset + lenFront * direction;
+        var back = originOffset - lenBack * direction;
+        return Triangulate(new([front + side, front - side, back - side, back + side]));
+    }
+
+    public List<RelTriangle> TriangulateRect(WDir originOffset, Angle direction, float lenFront, float lenBack, float halfWidth)
+        => TriangulateRect(originOffset, direction.ToDirection(), lenFront, lenBack, halfWidth);
+
+    public List<RelTriangle> TriangulateRect(WDir startOffset, WDir endOffset, float halfWidth)
+    {
+        var dir = (endOffset - startOffset).Normalized();
+        var side = halfWidth * dir.OrthoR();
+        return Triangulate(new([startOffset + side, startOffset - side, endOffset - side, endOffset + side]));
+    }
+
+    public RelSimplifiedComplexPolygon RectPolygon(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
+    {
+        var side = halfWidth * direction.OrthoR();
+        var front = originOffset + lenFront * direction;
+        var back = originOffset - lenBack * direction;
+        return new([front + side, front - side, back - side, back + side]);
+    }
+
+    public RelSimplifiedComplexPolygon RectPolygon(WDir startOffset, WDir endOffset, float halfWidth)
+    {
+        var dir = (endOffset - startOffset).Normalized();
+        var side = halfWidth * dir.OrthoR();
+        return new([startOffset + side, startOffset - side, endOffset - side, endOffset + side]);
+    }
+
     public RelSimplifiedComplexPolygon ClipRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
     {
         var side = halfWidth * direction.OrthoR();
@@ -248,6 +281,19 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
     public RelSimplifiedComplexPolygon CirclePolygon(WPos center, WPos ArenaCenter, float radius)
     {
         var points = CurveApprox.Circle(radius, MaxApproxError);
+        var len = points.Length;
+        var offset = center - ArenaCenter;
+        List<WDir> pointsO = [with(len)];
+        for (var i = 0; i < len; ++i)
+        {
+            pointsO.Add(points[i] + offset);
+        }
+        return new(pointsO);
+    }
+
+    public RelSimplifiedComplexPolygon DonutPolygon(WPos center, WPos ArenaCenter, float innerRadius, float outerRadius)
+    {
+        var points = CurveApprox.Donut(innerRadius, outerRadius, MaxApproxError);
         var len = points.Length;
         var offset = center - ArenaCenter;
         List<WDir> pointsO = [with(len)];

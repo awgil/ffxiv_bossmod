@@ -62,7 +62,7 @@ public enum AID : uint
     KnowledgeLevel5Death120Cast1 = 50557, // Helper->self, 11.0s cast, range 25 120-degree cone
     KnowledgeLevel5Death120Cast2 = 47311, // Helper->self, 11.0s cast, range 25 120-degree cone
     KnowledgeLevel5Death180Cast1 = 50554, // Helper->self, 11.0s cast, range 25 180-degree cone
-    KnowledgeLevel5Death180Cast2 = 47315 // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel5Death180Cast2 = 47308 // Helper->self, 11.0s cast, range 25 180-degree cone
 }
 
 public enum SID : uint
@@ -177,29 +177,20 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
     {
         (AOEShape shape, ulong actorID)? data = spell.Action.ID switch
         {
-            (uint)AID.PrimeKnowledgeLevelDeath180Cast1 => (shapeHalf, 1ul),
-            (uint)AID.PrimeKnowledgeLevelDeath120Cast1 => (shapeThird, 1ul),
-            (uint)AID.KnowledgeLevel3Flare180Cast1 => (shapeHalf, 3ul),
-            (uint)AID.KnowledgeLevel3Flare120Cast1 => (shapeThird, 3ul),
-            (uint)AID.KnowledgeLevel4Holy180Cast1 => (shapeHalf, 4ul),
-            (uint)AID.KnowledgeLevel4Holy120Cast1 => (shapeThird, 4ul),
-            (uint)AID.KnowledgeLevel5Death120Cast1 => (shapeThird, 5ul),
-            (uint)AID.KnowledgeLevel5Death180Cast1 => (shapeHalf, 5ul),
+            (uint)AID.PrimeKnowledgeLevelDeath180Cast2 => (shapeHalf, 1ul),
+            (uint)AID.PrimeKnowledgeLevelDeath120Cast2 => (shapeThird, 1ul),
+            (uint)AID.KnowledgeLevel3Flare180Cast2 => (shapeHalf, 3ul),
+            (uint)AID.KnowledgeLevel3Flare120Cast2 => (shapeThird, 3ul),
+            (uint)AID.KnowledgeLevel4Holy180Cast2 => (shapeHalf, 4ul),
+            (uint)AID.KnowledgeLevel4Holy120Cast2 => (shapeThird, 4ul),
+            (uint)AID.KnowledgeLevel5Death120Cast2 => (shapeThird, 5ul),
+            (uint)AID.KnowledgeLevel5Death180Cast2 => (shapeHalf, 5ul),
             _ => null
         };
 
         if (data is (AOEShape, ulong) d)
         {
-            var count = _aoes.Count;
-            var aoes = CollectionsMarshal.AsSpan(_aoes);
             var loc = spell.LocXZ;
-            for (var i = 0; i < count; ++i)
-            {
-                if (aoes[i].Origin == loc) // cast1 happens twice, while cast2 happens once but sometimes creates a fake cast in the wrong angle?
-                {
-                    return;
-                }
-            }
             var rot = spell.Rotation;
             var shape = d.shape;
             _aoes.Add(new(shape, loc, rot, Module.CastFinishAt(spell), actorID: d.actorID, shapeDistance: shape.Distance(loc, rot)));

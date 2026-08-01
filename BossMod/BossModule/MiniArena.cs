@@ -268,6 +268,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneCone(WPos center, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle, uint color)
     {
         ref var tri = ref _triCache.Get(1, center, innerRadius, outerRadius, centerDirection, halfAngle);
+
         tri ??= _bounds.ClipAndTriangulateCone(center - _center, innerRadius, outerRadius, centerDirection, halfAngle);
         Zone(tri, color);
     }
@@ -278,22 +279,13 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         if (tri == null)
         {
             var offset = center - _center;
-            var bounds = _bounds.ShapeSimplified;
-            if ((bounds.ClosestPointOnBoundary(offset) - offset).LengthSq() >= radius * radius) // circle is farther than it's radius away from boundary 
+
+            tri = _bounds.ShapeSimplified.PolygonCircleIntersection(offset, radius) switch
             {
-                if (bounds.Contains(offset)) // no need for clipping if circle is fully inside polygon
-                {
-                    tri = _bounds.Triangulate(_bounds.CirclePolygon(center, _center, radius));
-                }
-                else // circle is fully outside of polygon, don't create at all
-                {
-                    tri = [];
-                }
-            }
-            else
-            {
-                tri = _bounds.ClipAndTriangulateCircle(center - _center, radius);
-            }
+                PolygonShapeRelation.Inside => _bounds.Triangulate(_bounds.CirclePolygon(center, _center, radius)),
+                PolygonShapeRelation.Outside => [],
+                _ => _bounds.ClipAndTriangulateCircle(offset, radius),
+            };
         }
         Zone(tri, color);
     }
@@ -301,7 +293,17 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneDonut(WPos center, float innerRadius, float outerRadius, uint color)
     {
         ref var tri = ref _triCache.Get(3, center, innerRadius, outerRadius);
-        tri ??= _bounds.ClipAndTriangulateDonut(center - _center, innerRadius, outerRadius);
+        if (tri == null)
+        {
+            var offset = center - _center;
+
+            tri = _bounds.ShapeSimplified.PolygonDonutIntersection(offset, innerRadius, outerRadius) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.Triangulate(_bounds.DonutPolygon(center, _center, innerRadius, outerRadius)),
+                PolygonShapeRelation.Outside => [],
+                _ => _bounds.ClipAndTriangulateDonut(offset, innerRadius, outerRadius),
+            };
+        }
         Zone(tri, color);
     }
 
@@ -329,21 +331,50 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color)
     {
         ref var tri = ref _triCache.Get(7, origin, direction, lenFront, lenBack, halfWidth);
-        tri ??= _bounds.ClipAndTriangulateRect(origin - _center, direction, lenFront, lenBack, halfWidth);
+        if (tri == null)
+        {
+            var offset = origin - _center;
+            tri = _bounds.ShapeSimplified.PolygonDirectionalRectIntersection(offset, direction, lenFront, lenBack, halfWidth) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.TriangulateRect(offset, direction, lenFront, lenBack, halfWidth),
+                PolygonShapeRelation.Outside => [],
+                _ => _bounds.ClipAndTriangulateRect(offset, direction, lenFront, lenBack, halfWidth)
+            };
+        }
         Zone(tri, color);
     }
 
     public void ZoneRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color)
     {
         ref var tri = ref _triCache.Get(8, origin, direction, lenFront, lenBack, halfWidth);
-        tri ??= _bounds.ClipAndTriangulateRect(origin - _center, direction, lenFront, lenBack, halfWidth);
+        if (tri == null)
+        {
+            var offset = origin - _center;
+            tri = _bounds.ShapeSimplified.PolygonDirectionalRectIntersection(offset, direction.ToDirection(), lenFront, lenBack, halfWidth) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.TriangulateRect(offset, direction, lenFront, lenBack, halfWidth),
+                PolygonShapeRelation.Outside => [],
+                _ => _bounds.ClipAndTriangulateRect(offset, direction, lenFront, lenBack, halfWidth)
+            };
+        }
         Zone(tri, color);
     }
 
     public void ZoneRect(WPos start, WPos end, float halfWidth, uint color)
     {
         ref var tri = ref _triCache.Get(9, start, end, halfWidth);
-        tri ??= _bounds.ClipAndTriangulateRect(start - _center, end - _center, halfWidth);
+        if (tri == null)
+        {
+            var offset = start - _center;
+            var offset2 = end - _center;
+            var dir = end - start;
+            tri = _bounds.ShapeSimplified.PolygonRectIntersection(offset, dir, halfWidth, dir.Length()) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.TriangulateRect(offset, offset2, halfWidth),
+                PolygonShapeRelation.Outside => [],
+                _ => _bounds.ClipAndTriangulateRect(offset, offset2, halfWidth)
+            };
+        }
         Zone(tri, color);
     }
 
@@ -401,22 +432,12 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
         if (poly == null)
         {
             var offset = center - _center;
-            var bounds = _bounds.ShapeSimplified;
-            if ((bounds.ClosestPointOnBoundary(offset) - offset).LengthSq() >= radius * radius) // circle is farther than it's radius away from boundary 
+            poly = _bounds.ShapeSimplified.PolygonCircleIntersection(offset, radius) switch
             {
-                if (bounds.Contains(offset)) // no need for clipping if circle is fully inside polygon
-                {
-                    poly = _bounds.CirclePolygon(center, _center, radius);
-                }
-                else // circle is fully outside of polygon, don't create at all
-                {
-                    poly = new();
-                }
-            }
-            else
-            {
-                poly = _bounds.ClipCircle(center - _center, radius);
-            }
+                PolygonShapeRelation.Inside => _bounds.CirclePolygon(center, _center, radius),
+                PolygonShapeRelation.Outside => new(),
+                _ => _bounds.ClipCircle(offset, radius)
+            };
         }
         AddComplexPolygon(poly, color, thickness);
     }
@@ -431,7 +452,17 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneDonutOutline(WPos center, float innerRadius, float outerRadius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(3, center, innerRadius, outerRadius);
-        poly ??= _bounds.ClipDonut(center - _center, innerRadius, outerRadius);
+        if (poly == null)
+        {
+            var offset = center - _center;
+
+            poly = _bounds.ShapeSimplified.PolygonDonutIntersection(offset, innerRadius, outerRadius) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.DonutPolygon(center, _center, innerRadius, outerRadius),
+                PolygonShapeRelation.Outside => new(),
+                _ => _bounds.ClipDonut(offset, innerRadius, outerRadius),
+            };
+        }
         AddComplexPolygon(poly, color, thickness);
     }
 
@@ -452,21 +483,51 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneRectOutline(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(7, origin, direction, lenFront, lenBack, halfWidth);
-        poly ??= _bounds.ClipRect(origin - _center, direction, lenFront, lenBack, halfWidth);
+        if (poly == null)
+        {
+            var offset = origin - _center;
+            poly = _bounds.ShapeSimplified.PolygonDirectionalRectIntersection(offset, direction, lenFront, lenBack, halfWidth) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.ClipRect(offset, direction, lenFront, lenBack, halfWidth),
+                PolygonShapeRelation.Outside => new(),
+                _ => _bounds.ClipRect(offset, direction, lenFront, lenBack, halfWidth)
+            };
+        }
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(8, origin, direction, lenFront, lenBack, halfWidth);
-        poly ??= _bounds.ClipRect(origin - _center, direction, lenFront, lenBack, halfWidth);
+        if (poly == null)
+        {
+            var offset = origin - _center;
+            var dir = direction.ToDirection();
+            poly = _bounds.ShapeSimplified.PolygonDirectionalRectIntersection(offset, dir, lenFront, lenBack, halfWidth) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.ClipRect(offset, dir, lenFront, lenBack, halfWidth),
+                PolygonShapeRelation.Outside => new(),
+                _ => _bounds.ClipRect(offset, dir, lenFront, lenBack, halfWidth)
+            };
+        }
         AddComplexPolygon(poly, color, thickness);
     }
 
     public void ZoneRectOutline(WPos start, WPos end, float halfWidth, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(9, start, end, halfWidth);
-        poly ??= _bounds.ClipRect(start - _center, end - _center, halfWidth);
+        if (poly == null)
+        {
+            var offset = start - _center;
+            var offset2 = end - _center;
+            var dir = end - start;
+            poly = _bounds.ShapeSimplified.PolygonRectIntersection(offset, dir, halfWidth, dir.Length()) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.RectPolygon(offset, offset2, halfWidth),
+                PolygonShapeRelation.Outside => new(),
+                _ => _bounds.ClipRect(offset, offset2, halfWidth)
+            };
+        }
         AddComplexPolygon(poly, color, thickness);
     }
 
