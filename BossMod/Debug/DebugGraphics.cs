@@ -20,6 +20,11 @@ sealed class DebugGraphics
     private Vector2 _overlayStep = new(2, 2);
     private Vector2 _overlayMaxOffset = new(20, 20);
     private Angle _overlayRotation = new(0);
+    private float _placedOffset = 4.0f; // for placing a drawn shape on overlay.
+    private float _placedWidth = 0.5f; // width of drawn shape on overlay. Used  as radius in circles.
+    private float _placedHeight = 0.5f;
+
+
 
     public unsafe void DrawSceneTree()
     {
@@ -413,8 +418,19 @@ sealed class DebugGraphics
             return;
         }
 
+
         ImGui.Checkbox("Circle", ref _overlayCircle);
         ImGui.DragFloat2("Center", ref _overlayCenter);
+        ImGui.SameLine();
+        // We can place the grid at players feet as long as we check player is not null
+        if (ImGui.Button("Snap center to Player Location"))
+        {
+            if (Service.ObjectTable.LocalPlayer != null)
+            {
+                _overlayCenter.X = Service.ObjectTable.LocalPlayer.Position.X;
+                _overlayCenter.Y = Service.ObjectTable.LocalPlayer.Position.Z;
+            }
+        }
         ImGui.DragFloat2("Step", ref _overlayStep, 0.25f, 1, 10);
         ImGui.DragFloat2("Max offset", ref _overlayMaxOffset);
 
@@ -424,9 +440,11 @@ sealed class DebugGraphics
         ImGui.InputFloat("##RotationInput", ref rotationDegrees, 0.1f, 1, "%.3f");
         _overlayRotation = new Angle(rotationDegrees * Angle.DegToRad);
 
-        var mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
-        var mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
-        var y = Service.ObjectTable.LocalPlayer.Position.Y;
+        // instead of dividing by zero just provide the value.
+        var mx = _overlayStep.X != 0 ? (int)(_overlayMaxOffset.X / _overlayStep.X) : 0;
+        var mz = _overlayStep.Y != 0 ? (int)(_overlayMaxOffset.Y / _overlayStep.Y) : 0;
+        var y = Service.ObjectTable.LocalPlayer!.Position.Y;
+
 
         var rotationMatrix = Matrix3x2.CreateRotation(-_overlayRotation.Rad);
         Vector2 TransformPoint(Vector2 point) => Vector2.Transform(point - _overlayCenter, rotationMatrix) + _overlayCenter;
@@ -443,6 +461,18 @@ sealed class DebugGraphics
                 var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
                 Camera.Instance.DrawWorldLine(center - offset, center + offset, Colors.PC);
             }
+            // Angle Visualizer for circular overlay. Show an angle with vec 3 coordinates.
+            // This is drawing the line to move around and show the angle we are at.
+            // Use the degrees slider to move the angle visualizer around the circle.
+            var pickOffset = (_overlayRotation.ToDirection() * (_overlayMaxOffset.X)).ToVec3();
+            var outsideVec3 = center + pickOffset;
+            Camera.Instance.DrawWorldLine(center, center + pickOffset, Colors.Danger, thickness: 3);
+
+            // Show the coordinates for the outside edge of the polar grid where end of visualizer arm is.
+            ImGui.TextUnformatted("Vec3 coordinates in the center of angle visualizer circle: ");
+            ImGui.TextUnformatted(Utils.Vec3String(outsideVec3));
+
+            InsertShapesIntoOverlay();
         }
         else
         {
@@ -460,6 +490,47 @@ sealed class DebugGraphics
                 var end = TransformPoint(new Vector2(_overlayCenter.X + _overlayMaxOffset.X, z));
                 Camera.Instance.DrawWorldLine(new(start.X, y, start.Y), new(end.X, y, end.Y), Colors.PC);
             }
+        }
+    }
+
+    // Create a method that will let you grab a shape and draw it in the overlay.
+    // It should create boilerplate code for creating that shape in radar.
+    public void InsertShapesIntoOverlay()
+    {
+        var origin = new Vector3(_overlayCenter.X, Service.ObjectTable.LocalPlayer!.Position.Y, _overlayCenter.Y);
+
+        // This will exist even if a shape isn't being drawn. Maybe have it only appear when a shape is up.
+        ImGui.SliderFloat("Placed shape offset", ref _placedOffset, 0f, 30f, "%.3f");
+        var placedOffsetLocation = (_overlayRotation.ToDirection() * _placedOffset).ToVec3();
+
+        // Sometimes shapes can be larger than arena.
+        if (ImGui.CollapsingHeader("Add Circle Shape"))
+        {
+            ImGui.SliderFloat("Placed circle radius", ref _placedWidth, 0, _overlayMaxOffset.X + 10, "%.3f");
+            var placedVec3 = origin + placedOffsetLocation;
+            Camera.Instance!.DrawWorldCircle(placedVec3, _placedWidth, Colors.Danger, thickness: 3);
+
+            // Show the coordinates for the center of the placed shape
+            ImGui.TextUnformatted("Vec3 coordinates in the center of placed shape: ");
+            ImGui.TextUnformatted(Utils.Vec3String(placedVec3));
+
+            // TODO generalize to other shapes later. For now just a circle.
+            CircleString(placedVec3, _placedWidth);
+        }
+    }
+
+    // Outputs the c# code for drawing a circle shape in BossModule.
+    public void CircleString(Vector3 placed, float radius)
+    {
+        WPos pos =  new WPos(placed.X, placed.Z);
+
+        StringBuilder exportedCircle = new StringBuilder($"new Circle(new WPos({placed.X}f, {placed.Z}f), {radius}f);");
+
+        ImGui.TextUnformatted(exportedCircle.ToString());
+
+        if (ImGui.Button("Copy Circle To Clipboard"))
+        {
+            ImGui.SetClipboardText(exportedCircle.ToString());
         }
     }
 

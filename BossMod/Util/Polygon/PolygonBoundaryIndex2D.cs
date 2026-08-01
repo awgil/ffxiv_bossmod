@@ -3,6 +3,13 @@ using System.Runtime.Intrinsics.X86;
 
 namespace BossMod;
 
+public enum PolygonShapeRelation : byte
+{
+    Outside,
+    Inside,
+    Intersecting
+}
+
 [SkipLocalsInit]
 internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 {
@@ -78,11 +85,15 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
     private readonly float _minY, _cellH, _invCellH;
     private readonly float _bbMinX, _bbMinY, _bbMaxX, _bbMaxY;
 
+    // One point on every source contour (exteriors and holes). These are used to
+    // detect source contours completely enclosed by a query polygon without any edge crossing.
+    private readonly WDir[] _contourSamples;
+
     private bool _disposed;
 
     private PolygonBoundaryIndex2D(float* y0, float* y1, float* x0, float* k, float* b, float* minX, float* maxX, float* dx, float* dy, float* invLen2, int total,
         int[] rowOffsets, H[] hEdges, int[] hRowOffsets, int[] hRowIdx, int rows, float minY, float cellH, float invCellH,
-        float bbMinX, float bbMinY, float bbMaxX, float bbMaxY, float[] rowMinX, float[] rowMaxX, void* rawBlock)
+        float bbMinX, float bbMinY, float bbMaxX, float bbMaxY, float[] rowMinX, float[] rowMaxX, WDir[] contourSamples, void* rawBlock)
     {
         _y0 = y0;
         _y1 = y1;
@@ -110,6 +121,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         _rowMinX = rowMinX;
         _rowMaxX = rowMaxX;
         _rawBlock = rawBlock;
+        _contourSamples = contourSamples;
     }
 
     ~PolygonBoundaryIndex2D() => Dispose(false);
@@ -177,6 +189,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         var eList = new List<E>(vertsCount);
         var hList = new List<H>(Math.Max(8, vertsCount / 2));
+        var contourSamples = new List<WDir>(Math.Max(lenP, 4));
 
         for (var i = 0; i < lenP; ++i)
         {
@@ -184,11 +197,19 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             var ext = part.Exterior;
             AccumulateContourBounds(ext, ref bbMinX, ref bbMinY, ref bbMaxX, ref bbMaxY);
             ProcessContour(ext, eList, hList);
-
+            if (ext.Length >= 2)
+            {
+                contourSamples.Add(ext[0]);
+            }
             var countHoles = part.HoleStarts.Count;
             for (var h = 0; h < countHoles; ++h)
             {
-                ProcessContour(part.Interior(h), eList, hList);
+                var interior = part.Interior(h);
+                ProcessContour(interior, eList, hList);
+                if (interior.Length >= 2)
+                {
+                    contourSamples.Add(interior[0]);
+                }
             }
         }
 
@@ -420,7 +441,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         return new PolygonBoundaryIndex2D(y0Ptr, y1Ptr, x0Ptr, kPtr, bPtr, minXPtr, maxXPtr, dxPtr, dyPtr, invL2Ptr, total,
             rowOffsets, hEdges, hRowOffsets, hRowIdx, rows, bbMinY, cellH, invCellH,
-            bbMinX, bbMinY, bbMaxX, bbMaxY, rowMinX, rowMaxX, rawBlock);
+            bbMinX, bbMinY, bbMaxX, bbMaxY, rowMinX, rowMaxX, [.. contourSamples], rawBlock);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static int RoundUp(int v, int m) => (v + (m - 1)) / m * m;
@@ -1714,5 +1735,1282 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
     {
         ref var first = ref Unsafe.AsRef<float>(p);
         return Vector256.LoadUnsafe(ref first, (nuint)index);
+    }
+
+    public PolygonShapeRelation ClassifyComplexPolygon(RelSimplifiedComplexPolygon polygon)
+    {
+
+        var parts = CollectionsMarshal.AsSpan(polygon.Parts);
+        var idx = polygon.GetPolygonIndex(polygon);
+        var hasFilledPart = false;
+        var minX = idx._bbMinX;
+        var minY = idx._bbMinY;
+        var maxX = idx._bbMaxX;
+        var maxY = idx._bbMaxY;
+
+        var lenP = parts.Length;
+        for (var i = 0; i < lenP; ++i)
+        {
+            var part = parts[i];
+            var exterior = part.Exterior;
+            if (exterior.Length < 3)
+            {
+                continue;
+            }
+
+            hasFilledPart = true;
+            break;
+        }
+
+        // Treat an empty/degenerate query as having no overlap.
+        if (!hasFilledPart)
+        {
+            return PolygonShapeRelation.Outside;
+        }
+
+        if (maxX < _bbMinX - Eps || minX > _bbMaxX + Eps || maxY < _bbMinY - Eps || minY > _bbMaxY + Eps)
+        {
+            return PolygonShapeRelation.Outside;
+        }
+
+        if (BoundaryIntersectsComplexPolygon(polygon))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        var anyInside = false;
+        var anyOutside = false;
+
+        for (var i = 0; i < lenP; ++i)
+        {
+            var exterior = parts[i].Exterior;
+            if (exterior.Length < 3)
+            {
+                continue;
+            }
+
+            if (Contains(exterior[0]))
+            {
+                anyInside = true;
+            }
+            else
+            {
+                anyOutside = true;
+            }
+
+            // A disconnected complex polygon can have one part inside and another outside
+            // without either boundary crossing. It is not wholly inside or wholly outside.
+            if (anyInside && anyOutside)
+            {
+                return PolygonShapeRelation.Intersecting;
+            }
+        }
+
+        // No boundaries cross, but this polygon (or one of its hole contours) can still be
+        // completely enclosed by the filled area of the query polygon.
+        var lenS = _contourSamples.Length;
+        for (var i = 0; i < lenS; ++i)
+        {
+            if (polygon.Contains(_contourSamples[i]))
+            {
+                return PolygonShapeRelation.Intersecting;
+            }
+        }
+
+        return anyInside ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    public PolygonShapeRelation ClassifyCircle(in WDir center, float radius)
+    {
+        var closest = ClosestPointOnBoundary(center);
+        var dx = closest.X - center.X;
+        var dz = closest.Z - center.Z;
+        var limit = radius + Eps;
+        if (dx * dx + dz * dz <= limit * limit)
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        return Contains(center) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    public PolygonShapeRelation ClassifyRectangle(in WDir center, in WDir forward, float halfWidth, float halfLength)
+    {
+        NormalizeDirection(forward, out var fx, out var fz);
+        return ClassifyRectangleNormalized(center.X, center.Z, fx, fz, halfWidth, halfLength);
+    }
+
+    public PolygonShapeRelation ClassifyDirectionalRectangle(in WDir origin, in WDir forward, float lengthFront, float lengthBack, float halfWidth)
+    {
+        NormalizeDirection(forward, out var fx, out var fz);
+
+        var halfLength = 0.5f * (lengthFront + lengthBack);
+        var centerOffset = 0.5f * (lengthFront - lengthBack);
+        var cx = origin.X + fx * centerOffset;
+        var cz = origin.Z + fz * centerOffset;
+        return ClassifyRectangleNormalized(cx, cz, fx, fz, halfWidth, halfLength);
+    }
+
+    public PolygonShapeRelation ClassifyDonut(in WDir center, float innerRadius, float outerRadius)
+    {
+        if (innerRadius == 0f)
+        {
+            return ClassifyCircle(center, outerRadius);
+        }
+        var centerX = center.X;
+        var centerZ = center.Z;
+        if (BoundaryIntersectsDonut(centerX, centerZ, innerRadius, outerRadius))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        // An annulus is connected. If no polygon boundary enters it, every point in it has the same classification.
+
+        var sampleRadius = 0.5f * (innerRadius + outerRadius);
+        var sample = new WDir(centerX + sampleRadius, centerZ);
+        return Contains(sample) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    public PolygonShapeRelation ClassifyCone(in WDir origin, in WDir forward, float radius, Angle halfAngle)
+    {
+        NormalizeDirection(forward, out var fx, out var fz);
+        var ha = halfAngle.Rad;
+        if (ha >= MathF.PI)
+        {
+            return ClassifyCircle(origin, radius);
+        }
+        var originX = origin.X;
+        var originZ = origin.Z;
+        if (BoundaryIntersectsCone(originX, originZ, fx, fz, radius, ha))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        // A sector is connected. With no polygon boundary in it, one interior sample classifies the whole shape.
+
+        var sampleDistance = 0.5f * radius;
+        var sample = new WDir(originX + fx * sampleDistance, originZ + fz * sampleDistance);
+        return Contains(sample) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    private PolygonShapeRelation ClassifyRectangleNormalized(float cx, float cz, float fx, float fz, float halfWidth, float halfLength)
+    {
+        if (BoundaryIntersectsRectangle(cx, cz, fx, fz, halfWidth, halfLength))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        var center = new WDir(cx, cz);
+        return Contains(center) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    public PolygonShapeRelation ClassifyDonutSector(in WDir center, in WDir forward, float innerRadius, float outerRadius, Angle halfAngle)
+    {
+        NormalizeDirection(forward, out var fx, out var fz);
+        var hA = halfAngle.Rad;
+        if (hA >= MathF.PI)
+        {
+            return ClassifyDonut(center, innerRadius, outerRadius);
+        }
+        if (innerRadius == 0f)
+        {
+            return ClassifyCone(center, forward, outerRadius, halfAngle);
+        }
+        var centerX = center.X;
+        var centerZ = center.Z;
+        if (BoundaryIntersectsDonutSector(centerX, centerZ, fx, fz, innerRadius, outerRadius, hA))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        // An annular sector is connected. A point on its angular bisector classifies the whole shape.
+        var sampleRadius = 0.5f * (innerRadius + outerRadius);
+        var sample = new WDir(centerX + fx * sampleRadius, centerZ + fz * sampleRadius);
+        return Contains(sample) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    public PolygonShapeRelation ClassifyDonutSector(in WDir center, float innerRadius, float outerRadius, Angle angleStart, Angle angleEnd)
+    {
+        var angularLength = angleEnd - angleStart;
+        var halfAngle = 0.5f * MathF.Abs(angularLength.Rad);
+        var forward = (angleStart + angularLength * 0.5f).ToDirection();
+        return ClassifyDonutSector(center, forward, innerRadius, outerRadius, new(halfAngle));
+    }
+
+    public PolygonShapeRelation ClassifyCapsule(in WDir start, in WDir end, float radius)
+    {
+        var startX = start.X;
+        var startZ = start.Z;
+        var endX = end.X;
+        var endZ = end.Z;
+        var dx = end.X - start.X;
+        var dz = end.Z - start.Z;
+        if (dx * dx + dz * dz <= TinyLen2)
+        {
+            return ClassifyCircle(start, radius);
+        }
+
+        if (BoundaryIntersectsCapsule(startX, startZ, endX, endZ, radius))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        var sample = new WDir(0.5f * (startX + endX), 0.5f * (startZ + endZ));
+        return Contains(sample) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    public PolygonShapeRelation ClassifyDirectionalCapsule(in WDir origin, in WDir forward, float length, float radius)
+    {
+        NormalizeDirection(forward, out var fx, out var fz);
+
+        var end = new WDir(origin.X + fx * length, origin.Z + fz * length);
+        return ClassifyCapsule(origin, end, radius);
+    }
+
+    public PolygonShapeRelation ClassifyArcCapsule(in WDir origin, in WDir toOrbitCenter, Angle angularLength, float radius)
+    {
+        var cxOffset = toOrbitCenter.X;
+        var czOffset = toOrbitCenter.Z;
+        var orbitRadiusSq = cxOffset * cxOffset + czOffset * czOffset;
+
+        var sweep = angularLength.Rad;
+
+        var orbitRadius = MathF.Sqrt(orbitRadiusSq);
+        var originX = origin.X;
+        var originZ = origin.Z;
+        var orbitCenter = new WDir(originX + cxOffset, originZ + czOffset);
+        var innerRadius = orbitRadius - radius;
+        var outerRadius = orbitRadius + radius;
+        var absSweep = Math.Abs(sweep);
+        if (absSweep >= MathF.Tau - Eps)
+        {
+            return ClassifyDonut(orbitCenter, innerRadius, outerRadius);
+        }
+
+        var invOrbitRadius = 1f / orbitRadius;
+        var startRadialX = -cxOffset * invOrbitRadius;
+        var startRadialZ = -czOffset * invOrbitRadius;
+        Rotate(startRadialX, startRadialZ, 0.5f * sweep, out var midX, out var midZ);
+        Rotate(startRadialX, startRadialZ, sweep, out var endRadialX, out var endRadialZ);
+        var orbitCenterX = orbitCenter.X;
+        var orbitCenterZ = orbitCenter.Z;
+        var endX = orbitCenterX + endRadialX * orbitRadius;
+        var endZ = orbitCenterZ + endRadialZ * orbitRadius;
+        var halfAngle = 0.5f * absSweep;
+
+        if (BoundaryIntersectsArcCapsule(originX, originZ, endX, endZ, orbitCenterX, orbitCenterZ, midX, midZ, innerRadius, outerRadius, halfAngle, radius))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        // The swept capsule is connected and the arc start is on its center line.
+        return Contains(origin) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    private PolygonShapeRelation ClassifySimplePolygon(ReadOnlySpan<WDir> vertices, in WDir interiorSample)
+    {
+        if (BoundaryIntersectsSimplePolygon(vertices))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        return Contains(interiorSample) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PolygonShapeRelation ClassifyTriangle(in WDir a, in WDir b, in WDir c)
+    {
+
+        Span<WDir> vertices = [a, b, c];
+        var sample = new WDir((a.X + b.X + c.X) / 3f, (a.Z + b.Z + c.Z) / 3f);
+        return ClassifySimplePolygon(vertices, sample);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PolygonShapeRelation ClassifyTri(in WDir a, in WDir b, in WDir c) => ClassifyTriangle(a, b, c);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PolygonShapeRelation ClassifyIsoscelesTriangle(in WDir apexOffset, in WDir height, in WDir halfBase)
+        => ClassifyTriangle(apexOffset, apexOffset + height + halfBase, apexOffset + height - halfBase);
+
+    public PolygonShapeRelation ClassifyIsoscelesTriangle(in WDir apexOffset, Angle direction, Angle halfAngle, float height)
+    {
+        var halfAngleRad = halfAngle.Rad;
+        var dir = direction.ToDirection();
+        NormalizeDirection(dir, out var fx, out var fz);
+        var normal = new WDir(-fz, fx);
+        var heightOffset = new WDir(fx * height, fz * height);
+        var halfBase = height * MathF.Tan(halfAngleRad) * normal;
+        return ClassifyIsoscelesTriangle(apexOffset, heightOffset, halfBase);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PolygonShapeRelation ClassifyIsoscelesTri(in WDir apexOffset, in WDir height, in WDir halfBase) => ClassifyIsoscelesTriangle(apexOffset, height, halfBase);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public PolygonShapeRelation ClassifyIsoscelesTri(in WDir apexOffset, Angle direction, Angle halfAngle, float height)
+        => ClassifyIsoscelesTriangle(apexOffset, direction, halfAngle, height);
+
+    private static void AccumulateBounds(ReadOnlySpan<WDir> contour, ref float minX, ref float minY, ref float maxX, ref float maxY)
+    {
+        var len = contour.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            var point = contour[i];
+            var pointX = point.X;
+            var pointZ = point.Z;
+            minX = Math.Min(minX, pointX);
+            minY = Math.Min(minY, pointZ);
+            maxX = Math.Max(maxX, pointX);
+            maxY = Math.Max(maxY, pointZ);
+        }
+    }
+
+    private bool BoundaryIntersectsComplexPolygon(RelSimplifiedComplexPolygon polygon)
+    {
+        var parts = CollectionsMarshal.AsSpan(polygon.Parts);
+        for (var i = 0; i < parts.Length; ++i)
+        {
+            var part = parts[i];
+            var exterior = part.Exterior;
+            if (exterior.Length < 3)
+            {
+                continue;
+            }
+
+            if (BoundaryIntersectsContour(exterior))
+            {
+                return true;
+            }
+
+            var holeCount = part.HoleStarts.Count;
+            for (var h = 0; h < holeCount; ++h)
+            {
+                var interior = part.Interior(h);
+                if (interior.Length >= 2 && BoundaryIntersectsContour(interior))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsContour(ReadOnlySpan<WDir> contour)
+    {
+        if (contour.Length < 2)
+        {
+            return false;
+        }
+
+        var previous = contour[^1];
+        var len = contour.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            var current = contour[i];
+            if (BoundaryIntersectsSegment(previous.X, previous.Z, current.X, current.Z))
+            {
+                return true;
+            }
+            previous = current;
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsSegment(float ax, float ay, float bx, float by)
+    {
+        var minX = Math.Min(ax, bx) - Eps;
+        var maxX = Math.Max(ax, bx) + Eps;
+        var minY = Math.Min(ay, by);
+        var maxY = Math.Max(ay, by);
+
+        if (maxX < _bbMinX - Eps || minX > _bbMaxX + Eps || maxY < _bbMinY - Eps || minY > _bbMaxY + Eps || !TryGetRowRange(minY, maxY, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            if (maxX < _rowMinX[row] - Eps || minX > _rowMaxX[row] + Eps)
+            {
+                continue;
+            }
+
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var cy = _y0[i];
+                if (_maxX[i] < minX || _minX[i] > maxX)
+                {
+                    continue;
+                }
+
+                var cx = _x0[i];
+                if (SegmentsIntersect(ax, ay, bx, by, cx, cy, cx + _dx[i], cy + _dy[i]))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+
+                if (edgeMaxX < minX || edgeMinX > maxX)
+                {
+                    continue;
+                }
+
+                var edgeY = edge.y;
+
+                if (SegmentsIntersect(ax, ay, bx, by, edgeMinX, edgeY, edgeMaxX, edgeY))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsSimplePolygon(ReadOnlySpan<WDir> vertices)
+    {
+        if (vertices.Length < 2)
+        {
+            return false;
+        }
+
+        var minX = float.PositiveInfinity;
+        var minY = float.PositiveInfinity;
+        var maxX = float.NegativeInfinity;
+        var maxY = float.NegativeInfinity;
+        var len = vertices.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            var v = vertices[i];
+            minX = Math.Min(minX, v.X);
+            minY = Math.Min(minY, v.Z);
+            maxX = Math.Max(maxX, v.X);
+            maxY = Math.Max(maxY, v.Z);
+        }
+
+        var worldMinX = minX - Eps;
+        var worldMaxX = maxX + Eps;
+        if (!TryGetRowRange(minY, maxY, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+                if (float.IsNaN(ay))
+                {
+                    continue;
+                }
+                if (_maxX[i] < worldMinX || _minX[i] > worldMaxX)
+                {
+                    continue;
+                }
+
+                var ax = _x0[i];
+                var bx = ax + _dx[i];
+                var by = ay + _dy[i];
+                if (SegmentIntersectsFilledSimplePolygon(ax, ay, bx, by, vertices))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+
+                if (edgeMaxX < worldMinX || edgeMinX > worldMaxX)
+                {
+                    continue;
+                }
+                var edgeY = edge.y;
+                if (SegmentIntersectsFilledSimplePolygon(edgeMinX, edgeY, edgeMaxX, edgeY, vertices))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static bool SegmentIntersectsFilledSimplePolygon(float ax, float ay, float bx, float by, ReadOnlySpan<WDir> vertices)
+    {
+        if (PointInSimplePolygon(ax, ay, vertices) || PointInSimplePolygon(bx, by, vertices))
+        {
+            return true;
+        }
+
+        var prev = vertices[^1];
+        var len = vertices.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            var cur = vertices[i];
+            if (SegmentsIntersect(ax, ay, bx, by, prev.X, prev.Z, cur.X, cur.Z))
+            {
+                return true;
+            }
+            prev = cur;
+        }
+
+        return false;
+    }
+
+    private static bool PointInSimplePolygon(float px, float py, ReadOnlySpan<WDir> vertices)
+    {
+        var inside = false;
+        var prev = vertices[^1];
+        var len = vertices.Length;
+        for (var i = 0; i < len; ++i)
+        {
+            var cur = vertices[i];
+            var prevX = prev.X;
+            var prevZ = prev.Z;
+            var curX = cur.X;
+            var curZ = cur.Z;
+            if (PointSegmentDistanceSq(px, py, prevX, prevZ, curX, curZ) <= Eps2)
+            {
+                return true;
+            }
+
+            if ((prevZ > py) != (curZ > py))
+            {
+                var crossingX = prevX + (py - prevZ) * (curX - prevX) / (curZ - prevZ);
+                if (crossingX > px)
+                {
+                    inside = !inside;
+                }
+            }
+            prev = cur;
+        }
+
+        return inside;
+    }
+
+    private bool BoundaryIntersectsDonutSector(float cx, float cz, float fx, float fz, float innerRadius, float outerRadius, float halfAngle)
+    {
+        var reach = outerRadius + Eps;
+        var minX = cx - reach;
+        var maxX = cx + reach;
+
+        if (!TryGetRowRange(cz - reach, cz + reach, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+                if (_maxX[i] < minX || _minX[i] > maxX)
+                {
+                    continue;
+                }
+
+                var ax = _x0[i];
+                var bx = ax + _dx[i];
+                var by = ay + _dy[i];
+                if (SegmentIntersectsAnnularSector(ax, ay, bx, by, cx, cz, fx, fz, innerRadius, outerRadius, halfAngle))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+                if (edgeMaxX < minX || edgeMinX > maxX)
+                {
+                    continue;
+                }
+
+                var edgeY = edge.y;
+                if (SegmentIntersectsAnnularSector(edgeMinX, edgeY, edgeMaxX, edgeY, cx, cz, fx, fz, innerRadius, outerRadius, halfAngle))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsCapsule(float ax, float az, float bx, float bz, float radius)
+    {
+        var reach = radius + Eps;
+        var minX = Math.Min(ax, bx) - reach;
+        var maxX = Math.Max(ax, bx) + reach;
+        var minZ = Math.Min(az, bz) - reach;
+        var maxZ = Math.Max(az, bz) + reach;
+        var reachSq = reach * reach;
+
+        if (!TryGetRowRange(minZ, maxZ, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ey0 = _y0[i];
+
+                if (_maxX[i] < minX || _minX[i] > maxX)
+                {
+                    continue;
+                }
+
+                var ex0 = _x0[i];
+                var ex1 = ex0 + _dx[i];
+                var ey1 = ey0 + _dy[i];
+                if (SegmentSegmentDistanceSq(ax, az, bx, bz, ex0, ey0, ex1, ey1) <= reachSq)
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+                if (edgeMaxX < minX || edgeMinX > maxX)
+                {
+                    continue;
+                }
+
+                var edgeY = edge.y;
+
+                if (SegmentSegmentDistanceSq(ax, az, bx, bz, edgeMinX, edgeY, edgeMaxX, edgeY) <= reachSq)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsArcCapsule(float startX, float startZ, float endX, float endZ, float cx, float cz, float midX, float midZ, float innerRadius, float outerRadius,
+        float halfAngle, float capsuleRadius)
+    {
+        var reach = outerRadius + Eps;
+        var minX = cx - reach;
+        var maxX = cx + reach;
+        var capReach = capsuleRadius + Eps;
+        var capReachSq = capReach * capReach;
+
+        if (!TryGetRowRange(cz - reach, cz + reach, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+
+                if (_maxX[i] < minX || _minX[i] > maxX)
+                {
+                    continue;
+                }
+
+                var ax = _x0[i];
+                var bx = ax + _dx[i];
+                var by = ay + _dy[i];
+                if (PointSegmentDistanceSq(startX, startZ, ax, ay, bx, by) <= capReachSq || PointSegmentDistanceSq(endX, endZ, ax, ay, bx, by) <= capReachSq
+                    || SegmentIntersectsAnnularSector(ax, ay, bx, by, cx, cz, midX, midZ, innerRadius, outerRadius, halfAngle))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+                if (edgeMaxX < minX || edgeMinX > maxX)
+                {
+                    continue;
+                }
+
+                var edgeY = edge.y;
+                if (PointSegmentDistanceSq(startX, startZ, edgeMinX, edgeY, edgeMaxX, edgeY) <= capReachSq
+                    || PointSegmentDistanceSq(endX, endZ, edgeMinX, edgeY, edgeMaxX, edgeY) <= capReachSq
+                    || SegmentIntersectsAnnularSector(edgeMinX, edgeY, edgeMaxX, edgeY, cx, cz, midX, midZ, innerRadius, outerRadius, halfAngle))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsRectangle(float cx, float cz, float fx, float fz, float halfWidth, float halfLength)
+    {
+        // right is forward rotated clockwise by 90 degrees
+
+        var rx = -fz;
+        var rz = fx;
+        var extentX = Math.Abs(rx) * halfWidth + Math.Abs(fx) * halfLength;
+        var extentZ = Math.Abs(rz) * halfWidth + Math.Abs(fz) * halfLength;
+        var worldMinX = cx - extentX - Eps;
+        var worldMaxX = cx + extentX + Eps;
+
+        if (!TryGetRowRange(cz - extentZ, cz + extentZ, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+
+                if (_maxX[i] < worldMinX || _minX[i] > worldMaxX)
+                {
+                    continue;
+                }
+
+                var ax = _x0[i];
+                var bx = ax + _dx[i];
+                var by = ay + _dy[i];
+                if (SegmentIntersectsOrientedRectangle(ax, ay, bx, by, cx, cz, rx, rz, fx, fz, halfWidth, halfLength))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+                if (edgeMaxX < worldMinX || edgeMinX > worldMaxX)
+                {
+                    continue;
+                }
+                var edgeY = edge.y;
+                if (SegmentIntersectsOrientedRectangle(edgeMinX, edgeY, edgeMaxX, edgeY, cx, cz, rx, rz, fx, fz, halfWidth, halfLength))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsDonut(float cx, float cz, float innerRadius, float outerRadius)
+    {
+        var outerExpanded = outerRadius + Eps;
+        var innerShrunk = Math.Max(0f, innerRadius - Eps);
+        var outerSq = outerExpanded * outerExpanded;
+        var innerSq = innerShrunk * innerShrunk;
+        var minX = cx - outerExpanded;
+        var maxX = cx + outerExpanded;
+
+        if (!TryGetRowRange(cz - outerExpanded, cz + outerExpanded, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+                if (_maxX[i] < minX || _minX[i] > maxX)
+                {
+                    continue;
+                }
+
+                var ax = _x0[i];
+                var bx = ax + _dx[i];
+                var by = ay + _dy[i];
+                if (SegmentDistanceRangeOverlapsAnnulus(ax, ay, bx, by, cx, cz, innerSq, outerSq))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+
+                if (edgeMaxX < minX || edgeMinX > maxX)
+                {
+                    continue;
+                }
+                var edgeY = edge.y;
+                if (SegmentDistanceRangeOverlapsAnnulus(edgeMinX, edgeY, edgeMaxX, edgeY, cx, cz, innerSq, outerSq))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool BoundaryIntersectsCone(float ox, float oz, float fx, float fz, float radius, float halfAngle)
+    {
+        var reach = radius + Eps;
+        var minX = ox - reach;
+        var maxX = ox + reach;
+
+        if (!TryGetRowRange(oz - reach, oz + reach, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+                if (_maxX[i] < minX || _minX[i] > maxX)
+                {
+                    continue;
+                }
+
+                var ax = _x0[i];
+                var bx = ax + _dx[i];
+                var by = ay + _dy[i];
+                if (SegmentIntersectsSector(ax, ay, bx, by, ox, oz, fx, fz, radius, halfAngle))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+
+                if (edgeMaxX < minX || edgeMinX > maxX)
+                {
+                    continue;
+                }
+                var edgeY = edge.y;
+                if (SegmentIntersectsSector(edgeMinX, edgeY, edgeMaxX, edgeY, ox, oz, fx, fz, radius, halfAngle))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryGetRowRange(float minY, float maxY, out int row0, out int row1)
+    {
+        // Rows use top-exclusive edge storage, so always include a tiny neighboring band
+        minY -= Eps;
+        maxY += Eps;
+        if (maxY < _bbMinY || minY > _bbMaxY)
+        {
+            row0 = row1 = 0;
+            return false;
+        }
+
+        row0 = ClampRow(minY);
+        row1 = ClampRow(maxY);
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool SegmentIntersectsOrientedRectangle(float ax, float ay, float bx, float by, float cx, float cz, float rx, float rz, float fx, float fz, float halfWidth, float halfLength)
+    {
+        var adx = ax - cx;
+        var adz = ay - cz;
+        var bdx = bx - cx;
+        var bdz = by - cz;
+
+        var localAX = adx * rx + adz * rz;
+        var localAY = adx * fx + adz * fz;
+        var localBX = bdx * rx + bdz * rz;
+        var localBY = bdx * fx + bdz * fz;
+        return SegmentIntersectsAABB(localAX, localAY, localBX, localBY, halfWidth + Eps, halfLength + Eps);
+    }
+
+    private static bool SegmentIntersectsAABB(float ax, float ay, float bx, float by, float halfX, float halfY)
+    {
+        var dx = bx - ax;
+        var dy = by - ay;
+        var tMin = 0f;
+        var tMax = 1f;
+
+        if (!ClipSlab(ax, dx, halfX, ref tMin, ref tMax))
+        {
+            return false;
+        }
+        return ClipSlab(ay, dy, halfY, ref tMin, ref tMax);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool ClipSlab(float origin, float delta, float halfExtent, ref float t0, ref float t1)
+        {
+            if (Math.Abs(delta) <= TinyDen)
+            {
+                return origin >= -halfExtent && origin <= halfExtent;
+            }
+
+            var inv = 1f / delta;
+            var near = (-halfExtent - origin) * inv;
+            var far = (halfExtent - origin) * inv;
+            if (near > far)
+            {
+                (near, far) = (far, near);
+            }
+
+            t0 = Math.Max(t0, near);
+            t1 = Math.Min(t1, far);
+            return t0 <= t1;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool SegmentDistanceRangeOverlapsAnnulus(float ax, float ay, float bx, float by, float cx, float cz, float innerSq, float outerSq)
+    {
+        var daX = ax - cx;
+        var daY = ay - cz;
+        var dbX = bx - cx;
+        var dbY = by - cz;
+        var maxSq = Math.Max(daX * daX + daY * daY, dbX * dbX + dbY * dbY);
+        if (maxSq < innerSq)
+        {
+            return false;
+        }
+
+        var minSq = PointSegmentDistanceSq(cx, cz, ax, ay, bx, by);
+        return minSq <= outerSq;
+    }
+
+    private static bool SegmentIntersectsSector(float ax, float ay, float bx, float by, float ox, float oz, float fx, float fz, float radius, float halfAngle)
+    {
+        if (PointInSector(ax, ay, ox, oz, fx, fz, radius, halfAngle) || PointInSector(bx, by, ox, oz, fx, fz, radius, halfAngle))
+        {
+            return true;
+        }
+
+        var sin = MathF.Sin(halfAngle);
+        var cos = MathF.Cos(halfAngle);
+        var leftX = fx * cos - fz * sin;
+        var leftZ = fx * sin + fz * cos;
+        var rightX = fx * cos + fz * sin;
+        var rightZ = -fx * sin + fz * cos;
+        var sideLength = radius + Eps;
+
+        if (SegmentsIntersect(ax, ay, bx, by, ox, oz, ox + leftX * sideLength, oz + leftZ * sideLength)
+         || SegmentsIntersect(ax, ay, bx, by, ox, oz, ox + rightX * sideLength, oz + rightZ * sideLength))
+        {
+            return true;
+        }
+
+        return SegmentIntersectsSectorArc(ax, ay, bx, by, ox, oz, fx, fz, radius, halfAngle);
+    }
+
+    private static bool SegmentIntersectsAnnularSector(float ax, float ay, float bx, float by, float cx, float cz, float fx, float fz, float innerRadius, float outerRadius, float halfAngle)
+    {
+        var inner = Math.Max(0f, innerRadius - Eps);
+        var outer = outerRadius + Eps;
+        var innerSq = inner * inner;
+        var outerSq = outer * outer;
+
+        if (halfAngle >= MathF.PI)
+        {
+            return SegmentDistanceRangeOverlapsAnnulus(ax, ay, bx, by, cx, cz, innerSq, outerSq);
+        }
+
+        if (PointInAnnularSector(ax, ay, cx, cz, fx, fz, innerSq, outerSq, halfAngle) || PointInAnnularSector(bx, by, cx, cz, fx, fz, innerSq, outerSq, halfAngle))
+        {
+            return true;
+        }
+
+        var sin = MathF.Sin(halfAngle);
+        var cos = MathF.Cos(halfAngle);
+        var leftX = fx * cos - fz * sin;
+        var leftZ = fx * sin + fz * cos;
+        var rightX = fx * cos + fz * sin;
+        var rightZ = -fx * sin + fz * cos;
+
+        if (SegmentsIntersect(ax, ay, bx, by, cx + leftX * inner, cz + leftZ * inner, cx + leftX * outer, cz + leftZ * outer)
+        || SegmentsIntersect(ax, ay, bx, by, cx + rightX * inner, cz + rightZ * inner, cx + rightX * outer, cz + rightZ * outer))
+        {
+            return true;
+        }
+
+        if (SegmentIntersectsCircleArcAtRadius(ax, ay, bx, by, cx, cz, fx, fz, outer, halfAngle))
+        {
+            return true;
+        }
+        return inner > 0f
+            && SegmentIntersectsCircleArcAtRadius(ax, ay, bx, by, cx, cz, fx, fz, inner, halfAngle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool PointInAnnularSector(float px, float py, float cx, float cz, float fx, float fz, float innerSq, float outerSq, float halfAngle)
+    {
+        var dx = px - cx;
+        var dy = py - cz;
+        var distanceSq = dx * dx + dy * dy;
+        return distanceSq >= innerSq && distanceSq <= outerSq && PointWithinConeAngle(px, py, cx, cz, fx, fz, halfAngle);
+    }
+
+    private static bool SegmentIntersectsSectorArc(float ax, float ay, float bx, float by, float ox, float oz, float fx, float fz, float radius, float halfAngle)
+    {
+        var r = radius + Eps;
+        if (r <= 0f)
+        {
+            return PointSegmentDistanceSq(ox, oz, ax, ay, bx, by) <= Eps2;
+        }
+
+        var dx = bx - ax;
+        var dy = by - ay;
+        var relX = ax - ox;
+        var relY = ay - oz;
+        var qa = dx * dx + dy * dy;
+        if (qa <= TinyLen2)
+        {
+            return false;
+        }
+
+        var qb = 2f * (relX * dx + relY * dy);
+        var qc = relX * relX + relY * relY - r * r;
+        var discriminant = qb * qb - 4f * qa * qc;
+        if (discriminant < 0f)
+        {
+            return false;
+        }
+
+        var sqrtD = MathF.Sqrt(Math.Max(0f, discriminant));
+        var inv2A = 0.5f / qa;
+        var t0 = (-qb - sqrtD) * inv2A;
+        var t1 = (-qb + sqrtD) * inv2A;
+        return RootOnArc(t0) || RootOnArc(t1);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool RootOnArc(float t)
+        {
+            if (t is < 0f or > 1f)
+            {
+                return false;
+            }
+            var px = ax + dx * t;
+            var py = ay + dy * t;
+            return PointWithinConeAngle(px, py, ox, oz, fx, fz, halfAngle);
+        }
+    }
+
+    private static bool SegmentIntersectsCircleArcAtRadius(float ax, float ay, float bx, float by, float ox, float oz, float fx, float fz, float radius, float halfAngle)
+    {
+        if (radius <= 0f)
+        {
+            return PointSegmentDistanceSq(ox, oz, ax, ay, bx, by) <= Eps2;
+        }
+
+        var dx = bx - ax;
+        var dy = by - ay;
+        var relX = ax - ox;
+        var relY = ay - oz;
+        var qa = dx * dx + dy * dy;
+        if (qa <= TinyLen2)
+        {
+            return false;
+        }
+
+        var qb = 2f * (relX * dx + relY * dy);
+        var qc = relX * relX + relY * relY - radius * radius;
+        var discriminant = qb * qb - 4f * qa * qc;
+        if (discriminant < 0f)
+        {
+            return false;
+        }
+
+        var sqrtD = MathF.Sqrt(Math.Max(0f, discriminant));
+        var inv2A = 0.5f / qa;
+        var t0 = (-qb - sqrtD) * inv2A;
+        var t1 = (-qb + sqrtD) * inv2A;
+        return RootOnArc(t0) || RootOnArc(t1);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool RootOnArc(float t)
+        {
+            if (t is < 0f or > 1f)
+            {
+                return false;
+            }
+            var px = ax + dx * t;
+            var py = ay + dy * t;
+            return PointWithinConeAngle(px, py, ox, oz, fx, fz, halfAngle);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool PointInSector(float px, float py, float ox, float oz, float fx, float fz, float radius, float halfAngle)
+    {
+        var dx = px - ox;
+        var dy = py - oz;
+        var maxRadius = radius + Eps;
+        var distanceSq = dx * dx + dy * dy;
+        if (distanceSq > maxRadius * maxRadius)
+        {
+            return false;
+        }
+        if (distanceSq <= Eps2)
+        {
+            return true;
+        }
+
+        return PointWithinConeAngle(px, py, ox, oz, fx, fz, halfAngle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool PointWithinConeAngle(float px, float py, float ox, float oz, float fx, float fz, float halfAngle)
+    {
+        var dx = px - ox;
+        var dy = py - oz;
+        var distanceSq = dx * dx + dy * dy;
+        if (distanceSq <= TinyLen2)
+        {
+            return true;
+        }
+
+        var projection = dx * fx + dy * fz;
+        var angularLimit = MathF.Sqrt(distanceSq) * MathF.Cos(halfAngle);
+        return projection >= angularLimit - Eps;
+    }
+
+    private static bool SegmentsIntersect(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
+    {
+        if (Math.Max(ax, bx) + Eps < Math.Min(cx, dx) || Math.Max(cx, dx) + Eps < Math.Min(ax, bx) || Math.Max(ay, by) + Eps < Math.Min(cy, dy) || Math.Max(cy, dy) + Eps < Math.Min(ay, by))
+        {
+            return false;
+        }
+
+        var abX = bx - ax;
+        var abY = by - ay;
+        var cdX = dx - cx;
+        var cdY = dy - cy;
+        var acX = cx - ax;
+        var acY = cy - ay;
+        var adX = dx - ax;
+        var adY = dy - ay;
+        var caX = ax - cx;
+        var caY = ay - cy;
+        var cbX = bx - cx;
+        var cbY = by - cy;
+
+        var c1 = Cross(abX, abY, acX, acY);
+        var c2 = Cross(abX, abY, adX, adY);
+        var c3 = Cross(cdX, cdY, caX, caY);
+        var c4 = Cross(cdX, cdY, cbX, cbY);
+        if ((c1 > 0f && c2 < 0f || c1 < 0f && c2 > 0f) && (c3 > 0f && c4 < 0f || c3 < 0f && c4 > 0f))
+        {
+            return true;
+        }
+
+        return PointSegmentDistanceSq(ax, ay, cx, cy, dx, dy) <= Eps2 || PointSegmentDistanceSq(bx, by, cx, cy, dx, dy) <= Eps2
+        || PointSegmentDistanceSq(cx, cy, ax, ay, bx, by) <= Eps2 || PointSegmentDistanceSq(dx, dy, ax, ay, bx, by) <= Eps2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float PointSegmentDistanceSq(float px, float py, float ax, float ay, float bx, float by)
+    {
+        var dx = bx - ax;
+        var dy = by - ay;
+        var lenSq = dx * dx + dy * dy;
+        if (lenSq <= TinyLen2)
+        {
+            var ex = px - ax;
+            var ey = py - ay;
+            return ex * ex + ey * ey;
+        }
+
+        var t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+        t = Math.Clamp(t, 0f, 1f);
+        var nx = ax + t * dx;
+        var ny = ay + t * dy;
+        var rx = px - nx;
+        var ry = py - ny;
+        return rx * rx + ry * ry;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float SegmentSegmentDistanceSq(float ax, float ay, float bx, float by,
+        float cx, float cy, float dx, float dy)
+    {
+        if (SegmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy))
+        {
+            return 0f;
+        }
+
+        return Math.Min(
+            Math.Min(PointSegmentDistanceSq(ax, ay, cx, cy, dx, dy), PointSegmentDistanceSq(bx, by, cx, cy, dx, dy)),
+            Math.Min(PointSegmentDistanceSq(cx, cy, ax, ay, bx, by), PointSegmentDistanceSq(dx, dy, ax, ay, bx, by)));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Rotate(float x, float z, float angle, out float rotatedX, out float rotatedZ)
+    {
+        var (sin, cos) = ((float, float))Math.SinCos(angle);
+        rotatedX = x * cos - z * sin;
+        rotatedZ = x * sin + z * cos;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float Cross(float ax, float ay, float bx, float by) => ax * by - ay * bx;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void NormalizeDirection(in WDir direction, out float x, out float z)
+    {
+        var dirX = direction.X;
+        var dirZ = direction.Z;
+        var lenSq = dirX * dirX + dirZ;
+        var invLen = 1f / MathF.Sqrt(lenSq);
+        x = dirX * invLen;
+        z = dirZ * invLen;
     }
 }
