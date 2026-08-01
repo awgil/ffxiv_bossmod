@@ -654,7 +654,7 @@ public class GenericTowersOpenWorld(BossModule module, uint aid = default, bool 
                 }
             }
         }
-        hints.AddPredictedDamage(mask, Towers.Ref(0).Activation, DamageType);
+        hints.AddPredictedDamage(mask, towers[0].Activation, DamageType);
     }
 }
 
