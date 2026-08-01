@@ -51,7 +51,9 @@ public abstract class BossModule : IDisposable
 
     // component management: at most one component of any given type can be active at any time
     private readonly List<BossComponent> _components = [];
+#pragma warning disable CA1859 // someone needs to tell Visual Studio that List and IReadOnlyList don't have the same semantics
     public IReadOnlyList<BossComponent> Components => _components;
+#pragma warning restore CA1859
     public T? FindComponent<T>() where T : BossComponent => _components.OfType<T>().FirstOrDefault();
 
     public void ActivateComponent<T>() where T : BossComponent
