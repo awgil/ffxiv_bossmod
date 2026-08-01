@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Execrator;
+namespace BossMod.Dawntrail.Foray.FATE.Execrator;
 
 public enum OID : uint
 {

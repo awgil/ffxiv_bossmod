@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.AdvancedAevis;
+namespace BossMod.Dawntrail.Foray.FATE.AdvancedAevis;
 
 public enum OID : uint
 {

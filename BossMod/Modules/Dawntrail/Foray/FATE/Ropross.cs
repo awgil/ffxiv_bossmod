@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Ropross;
+namespace BossMod.Dawntrail.Foray.FATE.Ropross;
 
 public enum OID : uint
 {

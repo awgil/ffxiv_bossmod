@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Observer;
+namespace BossMod.Dawntrail.Foray.FATE.Observer;
 
 public enum OID : uint
 {

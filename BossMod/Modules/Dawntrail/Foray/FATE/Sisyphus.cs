@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Sisyphus;
+namespace BossMod.Dawntrail.Foray.FATE.Sisyphus;
 
 public enum OID : uint
 {

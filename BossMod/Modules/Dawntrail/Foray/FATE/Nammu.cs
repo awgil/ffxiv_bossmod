@@ -1,4 +1,4 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Nammu;
+namespace BossMod.Dawntrail.Foray.FATE.Nammu;
 
 public enum OID : uint
 {
