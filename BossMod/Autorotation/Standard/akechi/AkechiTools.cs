@@ -123,8 +123,6 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool HasTrueNorth { get; private set; }
     protected bool CanSwiftcast { get; private set; }
     protected bool HasSwiftcast { get; private set; }
-    protected float HPP(Actor? actor = null) => actor == null || actor.IsDead ? 0f : (float)actor.HPMP.CurHP / actor.HPMP.MaxHP * 100;
-    protected float PlayerHPP => HPP(Player);
     protected bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     protected bool Unlocked(TraitID tid) => TraitUnlocked((uint)(object)tid);
     protected AID ComboLastMove => (AID)(object)World.Client.ComboState.Action;
@@ -280,40 +278,59 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         var flags = stackalloc int[] { 0x4000, 0, 0x4000, 0 };
         return !Framework.Instance()->BGCollisionModule->RaycastMaterialFilter(&hit, &sourcePos, &direction, distance, 1, flags);
     }
-    public bool EnemiesTargetingSelf(int numEnemies)
-        => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == Player.InstanceID) >= numEnemies;
-    protected void GetPvPTarget(float range)
+    public int EnemiesTargetingPlayer => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == Player.InstanceID);
+    public int EnemiesTargetingObject(Actor? obj) => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == obj?.InstanceID);
+    protected void GetPvPTarget(float range, bool wantDuosTarget = false)
     {
-        Actor? RetrieveTarget(Func<Enemy, bool> conditions)
-            => Hints.PriorityTargets
-                .Where(x => conditions(x) && HasLOS(x.Actor) && Player.DistanceToHitbox(x.Actor) <= range)
-                .OrderBy(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP)
-                .FirstOrDefault()?.Actor;
+        Enemy? RetrieveTarget(Func<Enemy, bool> conditions) => Hints.PotentialTargets
+            .Where(x => conditions(x) && HasLOS(x.Actor) && Player.DistanceToHitbox(x.Actor) <= range)
+            .OrderBy(x => x.Actor.PendingHPRatio).FirstOrDefault();
 
-        //high priority - full checks for invulnerable/resistant statuses
-        var high = RetrieveTarget(x =>
-            !x.Actor.IsStrikingDummy &&
-            x.Actor.NameID == 0 &&
-            x.Actor.FindStatus(3039) == null &&
-            x.Actor.FindStatus(1302) == null &&
-            x.Actor.FindStatus(1301) == null &&
-            x.Actor.FindStatus(1300) == null &&
-            x.Actor.FindStatus(1978) == null &&
-            x.Actor.FindStatus(1240) == null &&
-            x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null);
+        bool Adds(Actor actor)
+        {
+            //kill these asap
+            if (actor.OID is
+                0x15E8 //small ice
+                or 0xC19 or 0x47BD) //interceptor drones
+                return true;
 
-        //medium priority - only Guard check
-        var medium = RetrieveTarget(x =>
-            !x.Actor.IsStrikingDummy &&
-            x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null);
+            //enemy players currently targeting allegan tomeliths - stop them asap
+            var tomeliths = World.Actors.FirstOrDefault(x => x.OID is
+                0x1E9961 or 0x1E9962 or 0x1E9963 or 0x1E9964 or
+                0x1E9965 or 0x1E9966 or 0x1E9967 or 0x1E9968 or
+                0x1E995A or 0x1E995B or 0x1E995C or 0x1E995D or
+                0x1E995E or 0x1E995F);
+            return tomeliths != null && EnemiesTargetingObject(tomeliths) > 0;
+        }
+
+        //max priority - zone specific stuff for FLs, RWs, etc
+        var max = Hints.PotentialTargets
+            .Where(x => Adds(x.Actor) && HasLOS(x.Actor) && Player.DistanceToHitbox(x.Actor) <= range)
+            .OrderBy(x => x.Actor.PendingHPRatio).FirstOrDefault();
+
+        //high priority - avg + full checks for invulnerable/resistant statuses
+        uint[] immunes = [3039, 1302, 1301, 1300, 1978, 1240];
+        var high = RetrieveTarget(x => !x.Actor.IsStrikingDummy && x.Actor.NameID == 0 && x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null && !immunes.Any(id => x.Actor.FindStatus(id) != null));
+
+        //average priority - low + dummy & Guard check
+        var avg = RetrieveTarget(x => !x.Actor.IsStrikingDummy && x.Actor.FindStatus(ClassShared.SID.GuardPvP) == null);
 
         //low priority - just in range and line of sight
         var low = RetrieveTarget(x => true);
 
+        //MCH: prioritize Wildfire debuffed targets
+        var wfTarget = Player.Class == Class.MCH && Player.FindStatus(MCH.SID.WildfirePlayerPvP) != null
+            ? Hints.PriorityTargets.FirstOrDefault(x => HasLOS(x.Actor) && Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(MCH.SID.WildfireTargetPvP) != null) : null;
+        var bigIce = Hints.PriorityTargets.FirstOrDefault(x => HasLOS(x.Actor) && Player.DistanceToHitbox(x.Actor) <= range && x.Actor.OID == 0x15E7);
+
+        //Focus Target's target - if any enemies are targeting our focus target, prioritize them if the option is enabled; useful in duo-queue scenarios
+        var focusTarget = Service.TargetManager.FocusTarget;
+        var focusTargetsTarget = RetrieveTarget(x => focusTarget?.TargetObjectId == x.Actor.InstanceID);
+
+        var bestTarget = max ?? wfTarget ?? high ?? bigIce ?? avg ?? low;
         Hints.ForcedTarget =
-            (Player.Class == Class.MCH && Player.FindStatus(MCH.SID.WildfirePlayerPvP) != null) //special case for MCH - prioritize Wildfire debuffed targets
-                ? Hints.PriorityTargets.FirstOrDefault(x => HasLOS(x.Actor) && Player.DistanceToHitbox(x.Actor) <= range && x.Actor.FindStatus(MCH.SID.WildfireTargetPvP) != null)?.Actor
-            : high ?? medium ?? low;
+            wantDuosTarget ? (focusTargetsTarget ?? bestTarget)?.Actor
+            : bestTarget?.Actor;
     }
     #endregion
 
