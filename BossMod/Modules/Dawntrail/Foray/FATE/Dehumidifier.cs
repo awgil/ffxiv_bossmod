@@ -1,6 +1,7 @@
 namespace BossMod.Modules.Dawntrail.Foray.FATE.Dehumidifier;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x46B8,
     Helper = 0x233C,
     HotAir = 0x46BA, // R3.200, x0 (spawn during fight)
@@ -9,7 +10,8 @@ public enum OID : uint {
     Dehumidifier1 = 0x46DB, // R0.500, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 39460, // Boss->player, no cast, single-target
     Teleport = 30352, // Boss->location, no cast, single-target
     Ability = 4731, // 46BB->self, no cast, single-target
@@ -34,8 +36,10 @@ class FireBlast(BossModule module) : Components.StandardAOEs(module, AID.FireBla
 class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption, 8.0f);
 class DryCycle(BossModule module) : Components.StandardAOEs(module, AID.DryCycle, new AOEShapeDonut(5, 40));
 
-class DehumidifierStates : StateMachineBuilder {
-    public DehumidifierStates(BossModule module) : base(module) {
+class DehumidifierStates : StateMachineBuilder
+{
+    public DehumidifierStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<FluidSwing>()
             .ActivateOnEnter<HeatVortex>()
