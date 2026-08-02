@@ -47,17 +47,21 @@ sealed class FalseSpellbladeHoly(BossModule module) : Components.RaidwideCast(mo
 
 sealed class OccultAeroIII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultAeroIII, new AOEShapeRect(50.0f, 5.0f));
 
-sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module) {
+sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone cone = new(40.0f, 90.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.LeftRightCombination) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.LeftRightCombination)
+        {
             AddAOE();
             AddAOE(180.0f.Degrees(), 2.2f);
         }
 
-        void AddAOE(Angle offset = default, double delay = default) {
+        void AddAOE(Angle offset = default, double delay = default)
+        {
             var loc = spell.LocXZ;
             var rot = spell.Rotation;
             var pos = delay != default ? loc - 5f * rot.ToDirection() : loc;
@@ -66,11 +70,14 @@ sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(mo
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
         if (aoes.Count is var count && count != 0 && spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.RightLeftCombinationClearout or
-                (uint)AID.LeftRightCombination or (uint)AID.LeftRightCombinationClearout) {
+                (uint)AID.LeftRightCombination or (uint)AID.LeftRightCombinationClearout)
+        {
             aoes.RemoveAt(0);
-            if (count == 2) {
+            if (count == 2)
+            {
                 ref var aoe2 = ref aoes.Ref(0);
                 var rot = aoe2.Rotation;
                 aoe2.Origin -= 5f * rot.ToDirection();

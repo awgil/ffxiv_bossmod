@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE204AppallingBehavior;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Pallmagia = 0x4D8F,
     Helper = 0x233C,
     Pallmagia1 = 0x4D91, // R1.000, x1
@@ -13,7 +14,8 @@ public enum OID : uint {
     _Gen_Actor1ec02b = 0x1EC02B, // R0.500, x0 (spawn during fight), EventObj type
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     ArenaMapChange = 49771, // 4D91->self, no cast, range ?-25 donut
     AutoAttack = 50494, // Pallmagia->player, no cast, single-target
 
@@ -50,11 +52,13 @@ public enum AID : uint {
     _Spell_ = 49799, // Helper->self, 5.0s cast, single-target
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Gen = 2056, // none->Pallmagia/4D90, extra=0x485/0x486/0x490
 }
 
-public enum TetherID : uint {
+public enum TetherID : uint
+{
     IconTether = 14, // 4D90->Pallmagia
     SwapTether = 207, // 4D90->4D90
 }
@@ -64,23 +68,28 @@ sealed class Plaincracker(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class GreatWhirlwind(BossModule module) : Components.RaidwideCast(module, (uint)AID.GreatWhirlwind);
 sealed class LilliputianLyric(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LilliputianLyric, new AOEShapeCone(40.0f, 90.0f.Degrees()));
 
-sealed class OccultMissile : Components.SimpleAOEs {
-    public OccultMissile(BossModule module) : base(module, (uint)AID.OccultMissile, 6.0f, 8) {
+sealed class OccultMissile : Components.SimpleAOEs
+{
+    public OccultMissile(BossModule module) : base(module, (uint)AID.OccultMissile, 6.0f, 8)
+    {
         MaxDangerColor = 4;
     }
 }
 
-sealed class MagicHammer : Components.SimpleAOEs {
-    public MagicHammer(BossModule module) : base(module, (uint)AID.MagicHammer, 8.0f, 8) {
+sealed class MagicHammer : Components.SimpleAOEs
+{
+    public MagicHammer(BossModule module) : base(module, (uint)AID.MagicHammer, 8.0f, 8)
+    {
         MaxDangerColor = 4;
     }
 }
 
 // TODO add spell timers depending on cast version
-sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
-    private readonly AOEShapeCone cone = new AOEShapeCone(50.0f, 50.0f.Degrees());
-    private readonly AOEShapeCircle circle = new AOEShapeCircle((30.0f));
+sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCone cone = new(50.0f, 50.0f.Degrees());
+    private readonly AOEShapeCircle circle = new((30.0f));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -95,30 +104,38 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state) {
-        if (actor.OID == (uint)OID.PallkeeperVFX) {
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.PallkeeperVFX)
+        {
             // the animation comes from a different actor but on the same position
             var pallKeeper = Module.Enemies((uint)OID.Pallkeeper).Closest(actor.Position);
-            if (pallKeeper == null) {
+            if (pallKeeper == null)
+            {
                 return;
             }
 
-            if (state == 65538) {
+            if (state == 65538)
+            {
                 aoes.Add(new(cone, actor.Position, actor.Rotation, actorID: pallKeeper.InstanceID));
             }
 
-            if (state == 1048608) {
+            if (state == 1048608)
+            {
                 aoes.Add(new(circle, actor.Position, actor.Rotation, actorID: pallKeeper.InstanceID));
             }
         }
     }
 
-    public override void OnTethered(Actor source, in ActorTetherInfo tether) {
-        if (tether.ID == (uint)TetherID.SwapTether) {
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.SwapTether)
+        {
             var tetherInfo = tether;
             var pallKeeperSource = aoes.FindIndex(aoe => aoe.ActorID == source.InstanceID);
             var pallKeeperTarget = aoes.FindIndex(aoe => aoe.ActorID == tetherInfo.Target);
-            if (pallKeeperSource < 0 || pallKeeperTarget < 0) {
+            if (pallKeeperSource < 0 || pallKeeperTarget < 0)
+            {
                 return;
             }
 
@@ -130,18 +147,24 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.BadBreathPallkeeper or (uint)AID.PlaincrackerPallkeeper) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.BadBreathPallkeeper or (uint)AID.PlaincrackerPallkeeper)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         int shown = 0;
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes)) {
-            if (shown >= 2) {
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
+        {
+            if (shown >= 2)
+            {
                 break;
             }
 
@@ -154,7 +177,8 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
     }
 }
 
-sealed class Roulette(BossModule module) : BossComponent(module) {
+sealed class Roulette(BossModule module) : BossComponent(module)
+{
 
     /*
      00:09:33.393 | INF | [BossModReborn] actor created 2015276
@@ -173,8 +197,10 @@ sealed class Roulette(BossModule module) : BossComponent(module) {
 }
 
 [SkipLocalsInit]
-sealed class CE204AppallingBehaviorStates : StateMachineBuilder {
-    public CE204AppallingBehaviorStates(BossModule module) : base(module) {
+sealed class CE204AppallingBehaviorStates : StateMachineBuilder
+{
+    public CE204AppallingBehaviorStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<BadBreath>()
             .ActivateOnEnter<Plaincracker>()
@@ -205,6 +231,7 @@ sealed class CE204AppallingBehaviorStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE204AppallingBehavior(WorldState ws, Actor primary) : BossModule(ws, primary, new(807.000f, -562.000f), new ArenaBoundsCircle(20f)) {
+public sealed class CE204AppallingBehavior(WorldState ws, Actor primary) : BossModule(ws, primary, new(807.000f, -562.000f), new ArenaBoundsCircle(20f))
+{
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 20f);
 }
