@@ -107,13 +107,15 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
 
 sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
     public List<AOEInstance> aoes = [];
-    private List<(Actor actor, bool incomingWind)> winds = []; // incomingWind is for when the actor has an active icon
-    private readonly AOEShapeCross cross = new(60.0f, 5.0f);
+    private List<(Actor actor, bool incomingWind, WPos predictedPosition, DateTime activation)> winds = []; // incomingWind is for when the actor has an active icon
+    private readonly AOEShapeCross cross = new(60.0f, 4.2f); // Slightly bigger since the predicted aoes can be like a pixel off
     private readonly AOEShapeCircle circle = new(4.0f);
+    private const float innerCircleAngle = 34.7f;
+    private const float outerCircleAngle = 40.7f;
 
     public override void OnActorCreated(Actor actor) {
         if (actor.OID == (uint)OID.BitingWind) {
-            winds.Add((actor, false));
+            winds.Add((actor, false, default, default));
         }
     }
 
@@ -137,6 +139,12 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
 
             var wind = winds[index];
             wind.incomingWind = true;
+            var circleDistance = actor.Position - Arena.Center;
+            var circleDirection = actor.Rotation.ToDirection();
+            var direction = circleDistance.Cross(circleDirection) > 0f;
+            var length = circleDistance.Length() > 16.0f ? outerCircleAngle : innerCircleAngle; // check which circle (outer or inner)
+            wind.predictedPosition = WPos.RotateAroundOrigin(direction ? length : -length, Arena.Center, actor.Position);
+            wind.activation = WorldState.FutureTime(5.1f);
             winds[index] = wind;
         }
     }
@@ -162,10 +170,14 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
         }
 
         foreach (var wind in winds) {
-            aoes.Add(new(circle, wind.actor.Position, wind.actor.Rotation));
+            var angleDirection = (wind.actor.Position - Arena.Center).Cross(wind.actor.Rotation.ToDirection()) > 0.0f;
+            var length = 4.0f / (wind.actor.Position - Arena.Center).Length();
+            var lengthDirection = (angleDirection ? -length  : length).Radians();
+            aoes.Add(new(new AOEShapeArcCapsule(4.0f, lengthDirection, Arena.Center), wind.actor.Position, wind.actor.Rotation, color: Colors.Danger));
             if (wind.incomingWind == true) {
-                aoes.Add(new(cross, wind.actor.Position, Angle.AnglesIntercardinals[1], WorldState.FutureTime(5.1f)));
-                aoes.Add(new(cross, wind.actor.Position, Angle.AnglesCardinals[1], WorldState.FutureTime(5.1f)));
+                aoes.Add(new(circle, wind.predictedPosition, default, wind.activation));
+                aoes.Add(new(cross, wind.predictedPosition, Angle.AnglesIntercardinals[1], wind.activation));
+                aoes.Add(new(cross, wind.predictedPosition, Angle.AnglesCardinals[1], wind.activation));
             }
         }
 
@@ -188,7 +200,7 @@ sealed class CE211LostontheWindStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(CE211LostontheWindStates),
     ConfigType = null, // replace null with typeof(LostontheWindConfig) if applicable
     ObjectIDType = typeof(OID),

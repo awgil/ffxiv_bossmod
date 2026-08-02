@@ -112,6 +112,7 @@ sealed class TinyQuake(BossModule module) : Components.GenericAOEs(module) {
 
 sealed class DiminutiveDualcast(BossModule module) : Components.GenericAOEs(module) {
     private readonly List<AOEInstance> aoes = [];
+    public bool middleActive = false; // better control logic for the knockback sphere
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.TinyBlizzardIII) {
@@ -120,6 +121,7 @@ sealed class DiminutiveDualcast(BossModule module) : Components.GenericAOEs(modu
 
         if (spell.Action.ID == (uint)AID.TinyFireIII) {
             aoes.Add(new(new AOEShapeCircle(14.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
+            middleActive = true;
         }
     }
 
@@ -127,6 +129,10 @@ sealed class DiminutiveDualcast(BossModule module) : Components.GenericAOEs(modu
         if (spell.Action.ID is (uint)AID.TinyBlizzardIII or (uint)AID.TinyFireIII) {
             if (aoes.Count > 0) {
                 aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
+            }
+
+            if (spell.Action.ID == (uint)AID.TinyFireIII) {
+                middleActive = false;
             }
         }
     }
@@ -370,6 +376,7 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module) {
     private int direction = 0;
     private WPos startPosition = default;
     private DateTime activation = default;
+    private DiminutiveDualcast diminutiveDualcast = module.FindComponent<DiminutiveDualcast>()!;
 
     public override void OnActorCreated(Actor actor) {
         if (actor.OID == (uint)OID.TinyApprentice) {
@@ -462,6 +469,11 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module) {
 
         if (orb.OID == (uint)OID.FlareSphereGrow) {
             hints.AddForbiddenZone(flareShape, target.Position, activation: activation);
+        }
+
+        // If the sphere is a knockback we should wait until the final set of aoes
+        if (diminutiveDualcast.middleActive == true) {
+            return;
         }
 
         if (orb.OID == (uint)OID.HolySphereGrow) {
