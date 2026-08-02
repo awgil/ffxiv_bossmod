@@ -50,16 +50,16 @@ public enum SID : uint
 }
 
 [SkipLocalsInit]
-sealed class ManyMouthstoFeedStates : StateMachineBuilder
+sealed class CE212ManyMouthstoFeedStates : StateMachineBuilder
 {
-    public ManyMouthstoFeedStates(BossModule module) : base(module)
+    public CE212ManyMouthstoFeedStates(BossModule module) : base(module)
     {
         TrivialPhase();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Dummy,
-    StatesType = typeof(ManyMouthstoFeedStates),
+    StatesType = typeof(CE212ManyMouthstoFeedStates),
     ConfigType = null, // replace null with typeof(ManyMouthstoFeedConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -76,4 +76,7 @@ sealed class ManyMouthstoFeedStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class ManyMouthstoFeed(WorldState ws, Actor primary) : BossModule(ws, primary, new(-870f, -560f), new ArenaBoundsCircle(30f));
+public sealed class CE212ManyMouthstoFeed(WorldState ws, Actor primary) : BossModule(ws, primary, new(-870f, -560f), new ArenaBoundsCircle(30f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 30f);
+}

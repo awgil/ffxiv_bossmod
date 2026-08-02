@@ -347,4 +347,6 @@ public sealed class CE213QuarriedAway(WorldState ws, Actor primary) : BossModule
         Arena.Actor(PrimaryActor);
         Arena.Actors(Enemies((uint)OID.LightAether));
     }
+
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 25f);
 }

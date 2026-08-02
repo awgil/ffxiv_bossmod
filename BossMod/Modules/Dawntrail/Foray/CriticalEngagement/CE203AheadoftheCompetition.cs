@@ -228,4 +228,7 @@ sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE203AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f));
+public sealed class CE203AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 20f);
+}

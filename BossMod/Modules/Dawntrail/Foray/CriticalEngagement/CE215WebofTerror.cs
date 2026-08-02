@@ -53,16 +53,16 @@ public enum TetherID : uint
 }
 
 [SkipLocalsInit]
-sealed class WebofTerrorStates : StateMachineBuilder
+sealed class CE215WebofTerrorStates : StateMachineBuilder
 {
-    public WebofTerrorStates(BossModule module) : base(module)
+    public CE215WebofTerrorStates(BossModule module) : base(module)
     {
         TrivialPhase();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Dummy,
-    StatesType = typeof(WebofTerrorStates),
+    StatesType = typeof(CE215WebofTerrorStates),
     ConfigType = null, // replace null with typeof(WebofTerrorConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -79,4 +79,7 @@ sealed class WebofTerrorStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class WebofTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(170f, -136f), new ArenaBoundsCircle(25f));
+public sealed class CE215WebofTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(170f, -136f), new ArenaBoundsCircle(25f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 25f);
+}

@@ -1,13 +1,15 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.NH105EvilSeer;
 
-public enum OID : uint {
+public enum OID : uint
+{
     EvilSeer = 0x4BA7,
     Helper = 0x233C,
     EvilSeer1 = 0x4BAA, // R0.500, x0 (spawn during fight)
     AccursedOrb = 0x4BA8, // R2.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 47146, // EvilSeer->player, no cast, single-target
     Ability = 45338, // EvilSeer->player, no cast, single-target
     AllEyes = 47147, // EvilSeer->self, 3.0+0.5s cast, range 30 circle
@@ -19,14 +21,16 @@ public enum AID : uint {
 }
 
 sealed class AllEyes(BossModule module) : Components.RaidwideCast(module, (uint)AID.AllEyes);
-sealed class Jettatura(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Jettatura, new AOEShapeCircle(8.0f));
+sealed class Jettatura(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Jettatura, 8f);
 sealed class ColdStare(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ColdStare, new AOEShapeCone(40.0f, 45.0f.Degrees()));
 sealed class SeeNoEvil(BossModule module) : Components.CastGaze(module, (uint)AID.SeeNoEvil);
 sealed class SinisterSight(BossModule module) : Components.CastGaze(module, (uint)AID.SinisterSight);
 
 [SkipLocalsInit]
-sealed class EvilSeerStates : StateMachineBuilder {
-    public EvilSeerStates(BossModule module) : base(module) {
+sealed class EvilSeerStates : StateMachineBuilder
+{
+    public EvilSeerStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<AllEyes>()
             .ActivateOnEnter<SeeNoEvil>()

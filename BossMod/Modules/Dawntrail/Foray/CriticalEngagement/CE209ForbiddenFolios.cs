@@ -286,4 +286,7 @@ sealed class CE209ForbiddenFoliosStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE209ForbiddenFolios(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f));
+public sealed class CE209ForbiddenFolios(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 25f);
+}

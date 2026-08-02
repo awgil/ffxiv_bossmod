@@ -53,16 +53,16 @@ public enum SID : uint
 }
 
 [SkipLocalsInit]
-sealed class CursedResurgenceStates : StateMachineBuilder
+sealed class CE205CursedResurgenceStates : StateMachineBuilder
 {
-    public CursedResurgenceStates(BossModule module) : base(module)
+    public CE205CursedResurgenceStates(BossModule module) : base(module)
     {
         TrivialPhase();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Dummy,
-    StatesType = typeof(CursedResurgenceStates),
+    StatesType = typeof(CE205CursedResurgenceStates),
     ConfigType = null, // replace null with typeof(CursedResurgenceConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -79,4 +79,7 @@ sealed class CursedResurgenceStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CursedResurgence(WorldState ws, Actor primary) : BossModule(ws, primary, new(-688f, 150f), new ArenaBoundsSquare(20f));
+public sealed class CE205CursedResurgence(WorldState ws, Actor primary) : BossModule(ws, primary, new(-688f, 150f), new ArenaBoundsSquare(20f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InSquare(Arena.Center, 20f);
+}

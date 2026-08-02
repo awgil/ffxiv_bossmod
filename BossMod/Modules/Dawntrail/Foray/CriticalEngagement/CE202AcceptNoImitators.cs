@@ -403,4 +403,7 @@ sealed class CE202AcceptNoImitatorsStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE202AcceptNoImitators(WorldState ws, Actor primary) : BossModule(ws, primary, new(500.000f, -310.000f), new ArenaBoundsCircle(25f));
+public sealed class CE202AcceptNoImitators(WorldState ws, Actor primary) : BossModule(ws, primary, new(500.000f, -310.000f), new ArenaBoundsCircle(25f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 25f);
+}

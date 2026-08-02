@@ -144,4 +144,6 @@ public sealed class CE207DoubleTrouble(WorldState ws, Actor primary) : BossModul
         Arena.Actor(PrimaryActor);
         Arena.Actors(Enemies((uint)OID.Entanglement));
     }
+
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 22f);
 }

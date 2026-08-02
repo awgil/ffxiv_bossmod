@@ -3,14 +3,16 @@
 // TODO add a way to figure out where he will jump, this will give an extra second to move out of the way, so not really needed
 // TODO if not possible tell the player to go behind the boss I guess?
 
-public enum OID : uint {
+public enum OID : uint
+{
     Stormcaller = 0x4BEC,
     Helper = 0x233C,
     Stormcaller1 = 0x4BED, // R1.000, x0 (spawn during fight)
     BitingWind = 0x4C25, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50854, // Stormcaller->player, no cast, single-target
     Teleport = 45587, // Stormcaller->location, no cast, single-target
     Stormcall = 47580, // Stormcaller->self, 3.0s cast, single-target
@@ -37,18 +39,24 @@ sealed class Windage(BossModule module) : Components.SimpleAOEs(module, (uint)AI
 sealed class BitingScratch(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BitingScratch, new AOEShapeCone(40.0f, 45.0f.Degrees()));
 
 // TODO improve colour display
-sealed class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, _shapes) {
+sealed class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, _shapes)
+{
     private static readonly AOEShape[] _shapes = [new AOEShapeCircle(10f), new AOEShapeDonut(10f, 20f), new AOEShapeDonut(20f, 30f)];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7)
+        {
             AddSequence(spell.LocXZ, Module.CastFinishAt(spell));
         }
     }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell) {
-        if (Sequences.Count != 0) {
-            var order = spell.Action.ID switch {
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (Sequences.Count != 0)
+        {
+            var order = spell.Action.ID switch
+            {
                 (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7 => 0,
                 (uint)AID.FocusedTremor2 or (uint)AID.FocusedTremor5 or (uint)AID.FocusedTremor8 => 1,
                 (uint)AID.FocusedTremor3 or (uint)AID.FocusedTremor6 or (uint)AID.FocusedTremor9 => 2,
@@ -60,8 +68,10 @@ sealed class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module
 }
 
 [SkipLocalsInit]
-sealed class StormcallerStates : StateMachineBuilder {
-    public StormcallerStates(BossModule module) : base(module) {
+sealed class StormcallerStates : StateMachineBuilder
+{
+    public StormcallerStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Windage>()
             .ActivateOnEnter<BitingScratch>()

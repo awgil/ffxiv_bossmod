@@ -71,16 +71,16 @@ public enum IconID : uint
 }
 
 [SkipLocalsInit]
-sealed class ImbalancedDietStates : StateMachineBuilder
+sealed class CE210ImbalancedDietStates : StateMachineBuilder
 {
-    public ImbalancedDietStates(BossModule module) : base(module)
+    public CE210ImbalancedDietStates(BossModule module) : base(module)
     {
         TrivialPhase();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Dummy,
-    StatesType = typeof(ImbalancedDietStates),
+    StatesType = typeof(CE210ImbalancedDietStates),
     ConfigType = null, // replace null with typeof(ImbalancedDietConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -97,4 +97,7 @@ sealed class ImbalancedDietStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class ImbalancedDiet(WorldState ws, Actor primary) : BossModule(ws, primary, new(764f, 0f), new ArenaBoundsCircle(23.9f));
+public sealed class CE210ImbalancedDiet(WorldState ws, Actor primary) : BossModule(ws, primary, new(764f, 0f), new ArenaBoundsCircle(23.9f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 24f);
+}

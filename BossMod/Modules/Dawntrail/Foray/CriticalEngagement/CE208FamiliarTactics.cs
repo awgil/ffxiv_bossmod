@@ -161,4 +161,7 @@ sealed class CE208FamiliarTacticsStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE208FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f));
+public sealed class CE208FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 30f);
+}

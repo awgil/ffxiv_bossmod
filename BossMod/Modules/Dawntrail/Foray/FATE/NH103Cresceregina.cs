@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.NH103Cresceregina;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Cresceregina = 0x4D63,
     Helper = 0x233C,
     Cresceregina1 = 0x4EC4, // R0.500, x0 (spawn during fight)
@@ -10,7 +11,8 @@ public enum OID : uint {
     BallOfLevin = 0x4D64, // R2.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50539, // Cresceregina->player, no cast, single-target
     HighCaterwaul = 49499, // Cresceregina->self, 3.0s cast, single-target
     RegalFulguration = 49494, // Cresceregina->self, 5.0s cast, range 40 180.000-degree cone
@@ -29,52 +31,61 @@ public enum AID : uint {
 }
 
 sealed class RegalFulguration(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.RegalFulguration, (uint)AID.RegalFulguration1], new AOEShapeCone(40.0f, 90.0f.Degrees()));
-sealed class Thunderbolt(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Thunderbolt, new AOEShapeCircle(10.0f));
+sealed class Thunderbolt(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Thunderbolt, 10f);
 sealed class NobleBlaster(BossModule module) : Components.SimpleAOEs(module, (uint)AID.NobleBlaster, new AOEShapeRect(50.0f, 2.5f));
 
-sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        switch ((AID)spell.Action.ID) {
-            case AID.ThunderboltPuddle:
-            case AID.ThunderboltPuddle1:
-            case AID.ThunderboltPuddle2:
-            case AID.ThunderboltPuddle3:
-            case AID.ThunderboltPuddle4:
-            case AID.ThunderboltPuddle5:
-            case AID.ThunderboltPuddle6:
-            case AID.ThunderboltPuddle7:
-            case AID.ThunderboltPuddle8:
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch (spell.Action.ID)
+        {
+            case (uint)AID.ThunderboltPuddle:
+            case (uint)AID.ThunderboltPuddle1:
+            case (uint)AID.ThunderboltPuddle2:
+            case (uint)AID.ThunderboltPuddle3:
+            case (uint)AID.ThunderboltPuddle4:
+            case (uint)AID.ThunderboltPuddle5:
+            case (uint)AID.ThunderboltPuddle6:
+            case (uint)AID.ThunderboltPuddle7:
+            case (uint)AID.ThunderboltPuddle8:
                 aoes.Add(new(new AOEShapeCircle(10.0f), caster.Position, activation: Module.CastFinishAt(spell)));
                 break;
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        switch ((AID)spell.Action.ID) {
-            case AID.ThunderboltPuddle:
-            case AID.ThunderboltPuddle1:
-            case AID.ThunderboltPuddle2:
-            case AID.ThunderboltPuddle3:
-            case AID.ThunderboltPuddle4:
-            case AID.ThunderboltPuddle5:
-            case AID.ThunderboltPuddle6:
-            case AID.ThunderboltPuddle7:
-            case AID.ThunderboltPuddle8:
-                if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch (spell.Action.ID)
+        {
+            case (uint)AID.ThunderboltPuddle:
+            case (uint)AID.ThunderboltPuddle1:
+            case (uint)AID.ThunderboltPuddle2:
+            case (uint)AID.ThunderboltPuddle3:
+            case (uint)AID.ThunderboltPuddle4:
+            case (uint)AID.ThunderboltPuddle5:
+            case (uint)AID.ThunderboltPuddle6:
+            case (uint)AID.ThunderboltPuddle7:
+            case (uint)AID.ThunderboltPuddle8:
+                if (aoes.Count > 0)
+                {
                     aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.5f));
                 }
                 break;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         int show = 0;
 
         aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes)) {
-            if (show == 3) {
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
+        {
+            if (show == 3)
+            {
                 break;
             }
 
@@ -88,7 +99,8 @@ sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(modul
 }
 
 [SkipLocalsInit]
-sealed class CrescereginaStates : StateMachineBuilder {
+sealed class CrescereginaStates : StateMachineBuilder
+{
     public CrescereginaStates(BossModule module) : base(module)
     {
         TrivialPhase()

@@ -46,16 +46,16 @@ public enum SID : uint
 }
 
 [SkipLocalsInit]
-sealed class ABeastUnleashedStates : StateMachineBuilder
+sealed class CE201ABeastUnleashedStates : StateMachineBuilder
 {
-    public ABeastUnleashedStates(BossModule module) : base(module)
+    public CE201ABeastUnleashedStates(BossModule module) : base(module)
     {
         TrivialPhase();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Dummy,
-    StatesType = typeof(ABeastUnleashedStates),
+    StatesType = typeof(CE201ABeastUnleashedStates),
     ConfigType = null, // replace null with typeof(ABeastUnleashedConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -72,4 +72,7 @@ sealed class ABeastUnleashedStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class ABeastUnleashed(WorldState ws, Actor primary) : BossModule(ws, primary, new(238f, 352f), new ArenaBoundsSquare(20f));
+public sealed class CE201ABeastUnleashed(WorldState ws, Actor primary) : BossModule(ws, primary, new(238f, 352f), new ArenaBoundsSquare(20f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InSquare(Arena.Center, 20f);
+}

@@ -570,4 +570,6 @@ public sealed class CE214TinyTerror(WorldState ws, Actor primary) : BossModule(w
         Arena.Actors(Enemies((uint)OID.ArcaneSphereSmall));
         Arena.Actors(Enemies((uint)OID.ArcaneSphereBig));
     }
+
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 20f);
 }

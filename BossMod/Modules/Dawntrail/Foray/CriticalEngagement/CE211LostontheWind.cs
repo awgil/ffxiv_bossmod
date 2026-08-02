@@ -21,16 +21,16 @@ public enum IconID : uint
 }
 
 [SkipLocalsInit]
-sealed class LostontheWindStates : StateMachineBuilder
+sealed class CE211LostontheWindStates : StateMachineBuilder
 {
-    public LostontheWindStates(BossModule module) : base(module)
+    public CE211LostontheWindStates(BossModule module) : base(module)
     {
         TrivialPhase();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Dummy,
-    StatesType = typeof(LostontheWindStates),
+    StatesType = typeof(CE211LostontheWindStates),
     ConfigType = null, // replace null with typeof(LostontheWindConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -47,4 +47,7 @@ sealed class LostontheWindStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class LostontheWind(WorldState ws, Actor primary) : BossModule(ws, primary, new(-150f, -860f), new ArenaBoundsCircle(23.9f));
+public sealed class CE211LostontheWind(WorldState ws, Actor primary) : BossModule(ws, primary, new(-150f, -860f), new ArenaBoundsCircle(23.9f))
+{
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 24f);
+}
