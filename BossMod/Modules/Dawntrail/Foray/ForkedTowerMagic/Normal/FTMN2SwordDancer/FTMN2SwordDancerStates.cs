@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN2SwordDancer;
 
-namespace BossModReborn.Modules.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN2SwordDancer;
-
-internal class FTMN2SwordDancerStates
+[SkipLocalsInit]
+sealed class SwordDancerStates : StateMachineBuilder
 {
+    public SwordDancerStates(BossModule module) : base(module)
+    {
+        TrivialPhase();
+    }
 }

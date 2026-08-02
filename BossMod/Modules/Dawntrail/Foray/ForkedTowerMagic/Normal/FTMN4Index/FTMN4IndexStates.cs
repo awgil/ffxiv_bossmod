@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN4Index;
 
-namespace BossModReborn.Modules.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN4Index;
-
-internal class FTMN4IndexStates
+[SkipLocalsInit]
+sealed class IndexStates : StateMachineBuilder
 {
+    public IndexStates(BossModule module) : base(module)
+    {
+        TrivialPhase();
+    }
 }
