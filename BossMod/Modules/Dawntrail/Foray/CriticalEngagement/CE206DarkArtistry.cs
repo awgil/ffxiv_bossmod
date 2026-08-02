@@ -1,6 +1,7 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE203PhantomNecromancer;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE206DarkArtistry;
 
-public enum OID : uint {
+public enum OID : uint
+{
     PhantomNecromancer = 0x4BC1,
     Helper = 0x233C,
     LongDeadExplorer = 0x4BC2, // R1.000, x0 (spawn during fight)
@@ -12,7 +13,8 @@ public enum OID : uint {
     _Gen_Actor1ebff5 = 0x1EBFF5, // R0.500, x0 (spawn during fight), EventObj type
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50761, // PhantomNecromancer->player, no cast, single-target
     DarkII = 47181, // PhantomNecromancer->self, 5.0s cast, range 50 width 50 rect
     DarkFlareCast = 47182, // PhantomNecromancer->self, 5.0s cast, single-target
@@ -28,7 +30,8 @@ public enum AID : uint {
     _Ability_ = 47173, // 4C75->self, no cast, ???
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     ExplosionTimer = 2056, // none->LongDeadExplorer, extra=0x26B
 }
 
@@ -43,59 +46,88 @@ sealed class LongDeadPirate(BossModule module) : Components.SimpleAOEs(module, (
 // TODO when rewriting this, just add the aoes on status gain, then we can filter by expireAt to get the wave and filter by instanceID on the ones with the
 //  same times
 
-
-sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module, (uint)AID.LongDeadExplorerExplosion) {
-    private List<AOEInstance> aoes = [];
-    private AOEShapeCircle shape = new AOEShapeCircle(8.0f);
+sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module, (uint)AID.LongDeadExplorerExplosion)
+{
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCircle shape = new(8.0f);
     private bool active = false;
     private int waveSize = 0;
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.RiseOfTheFallen) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.RiseOfTheFallen)
+        {
             active = true;
         }
     }
 
-    public override void OnStatusGain(Actor actor, ref ActorStatus status) {
-        if (actor.OID == (uint)OID.LongDeadExplorer && status.ID == (uint)SID.ExplosionTimer) {
+    public override void OnStatusGain(Actor actor, ref ActorStatus status)
+    {
+        if (actor.OID == (uint)OID.LongDeadExplorer && status.ID == (uint)SID.ExplosionTimer)
+        {
             aoes.Add(new(shape, actor.Position, actor.Rotation, status.ExpireAt, actorID: actor.InstanceID));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.LongDeadExplorerExplosion) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.LongDeadExplorerExplosion)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (!active || aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (!active || aoes.Count == 0)
+        {
             active = false;
             waveSize = 0;
             return [];
         }
 
-        var sorted = aoes.OrderBy(a => a.Activation).ToList();
-        if (waveSize == 0) {
-            waveSize = sorted.Count(a => a.Activation < sorted[0].Activation.AddSeconds(0.2));
+        var sorted = new List<AOEInstance>(aoes);
+        sorted.Sort((a, b) => a.Activation.CompareTo(b.Activation));
+        if (waveSize == 0)
+        {
+            var threshold = sorted[0].Activation.AddSeconds(0.2);
+            var count = 0;
+            for (var i = 0; i < sorted.Count; ++i)
+            {
+                if (sorted[i].Activation < threshold)
+                {
+                    ++count;
+                }
+            }
+            waveSize = count;
         }
 
         List<AOEInstance> ordered = [];
         List<AOEInstance> cluster = [];
-        foreach (var aoe in sorted) {
-            if (cluster.Count > 0 && aoe.Activation >= cluster[0].Activation.AddSeconds(0.2)) {
-                ordered.AddRange(cluster.OrderByDescending(a => a.ActorID));
+        foreach (var aoe in sorted)
+        {
+            if (cluster.Count > 0 && aoe.Activation >= cluster[0].Activation.AddSeconds(0.2))
+            {
+                cluster.Sort((a, b) => b.ActorID.CompareTo(a.ActorID));
+                ordered.AddRange(cluster);
                 cluster.Clear();
             }
             cluster.Add(aoe);
         }
-        ordered.AddRange(cluster.OrderByDescending(a => a.ActorID));
+        cluster.Sort((a, b) => b.ActorID.CompareTo(a.ActorID));
+        ordered.AddRange(cluster);
 
-        sorted = ordered.Take(waveSize).ToList();
+        if (ordered.Count > waveSize)
+        {
+            ordered.RemoveRange(waveSize, ordered.Count - waveSize);
+        }
+        sorted = ordered;
         var half = waveSize / 2;
-        for (int i = 0; i < sorted.Count; i++) {
+        for (var i = 0; i < sorted.Count; i++)
+        {
             var aoe = sorted[i];
             aoe.Color = i < half ? Colors.Danger : Colors.AOE;
             aoe.Risky = i < half;
@@ -107,8 +139,10 @@ sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module
 }
 
 [SkipLocalsInit]
-sealed class PhantomNecromancerStates : StateMachineBuilder {
-    public PhantomNecromancerStates(BossModule module) : base(module) {
+sealed class DarkArtistryStates : StateMachineBuilder
+{
+    public DarkArtistryStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<DarkII>()
             .ActivateOnEnter<DarkFlare>()
@@ -119,8 +153,8 @@ sealed class PhantomNecromancerStates : StateMachineBuilder {
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(PhantomNecromancerStates),
-    ConfigType = null, // replace null with typeof(PhantomNecromancerConfig) if applicable
+    StatesType = typeof(DarkArtistryStates),
+    ConfigType = null, // replace null with typeof(DarkArtistryConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = null, // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
@@ -136,4 +170,4 @@ sealed class PhantomNecromancerStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class PhantomNecromancer(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.000f, -860.000f), new ArenaBoundsSquare(20f));
+public sealed class DarkArtistry(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.000f, -860.000f), new ArenaBoundsSquare(20f));

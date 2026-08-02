@@ -1,4 +1,4 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE208AlabasterBlade;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE213QuarriedAway;
 
 // TODO was made with ARR support
 //  Status: ???
@@ -8,7 +8,8 @@
 //          When remaking these do it base on activation time so it always grouped correctly? e.g. dont do set numbers like .take(4)
 //      4. Add start cast for golems aoe - will display it right away instead of waiting for status saves like 2.0 seconds
 
-public enum OID : uint {
+public enum OID : uint
+{
     AlabasterBlade = 0x4BBE,
     Helper = 0x233C,
     AlabasterGolemVisual = 0x4BBF, // R1.650, x4
@@ -18,7 +19,8 @@ public enum OID : uint {
     _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50760, // AlabasterBlade->player, no cast, single-target
     EmbrittlingBlade = 47171, // AlabasterBlade->self, 5.0s cast, single-target
     EmbrittlingBladeVisual = 47172, // Helper->self, no cast, ???
@@ -44,7 +46,8 @@ public enum AID : uint {
     FalseSpellbladeHolyVisual = 47161, // Helper->self, no cast, ???
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     BlueArrow = 2056, // none->4EBD, extra=0x43B/0x43C/0x43D - 0x43B = 3 turns, 0x43C = 2 turns, 0x43D = 1 turn
 }
 
@@ -52,23 +55,30 @@ sealed class EmbrittlingBlade(BossModule module) : Components.RaidwideCast(modul
 sealed class OccultTornado(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultTornado, new AOEShapeCircle(5.0f));
 sealed class FalseSpellbladeHoly(BossModule module) : Components.RaidwideCast(module, (uint)AID.FalseSpellbladeHoly);
 
-sealed class Acclaim(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
-    private readonly AOEShapeCone shape = new AOEShapeCone(40.0f, 45.0f.Degrees());
-    private List<(Actor caster, int turns)> golemCasters = [];
+sealed class Acclaim(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCone shape = new(40.0f, 45.0f.Degrees());
+    private readonly List<(Actor caster, int turns)> golemCasters = [];
     private bool setup = false;
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.AcclaimLong) {
-            if (caster.OID == (uint)OID.AlabasterGolemVisual) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.AcclaimLong)
+        {
+            if (caster.OID == (uint)OID.AlabasterGolemVisual)
+            {
                 aoes.Add(new(shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
             }
         }
     }
 
-    public override void OnStatusGain(Actor actor, ref ActorStatus status) {
-        if (status.ID == (uint)SID.BlueArrow) {
-            switch (status.Extra) {
+    public override void OnStatusGain(Actor actor, ref ActorStatus status)
+    {
+        if (status.ID == (uint)SID.BlueArrow)
+        {
+            switch (status.Extra)
+            {
                 case 0x43B:
                     golemCasters.Add((actor, 3));
                     break;
@@ -82,54 +92,75 @@ sealed class Acclaim(BossModule module) : Components.GenericAOEs(module) {
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.AcclaimLong or (uint)AID.AcclaimShort) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.AcclaimLong or (uint)AID.AcclaimShort)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
                 aoes.RemoveAt(0);
             }
 
-            if (aoes.Count == 0) {
+            if (aoes.Count == 0)
+            {
                 golemCasters.Clear();
                 setup = false;
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             return [];
         }
 
-        var incomingAOEs = aoes.OrderBy(a => a.Activation).Take(golemCasters.Count).ToList();
+        var incomingAOEs = new List<AOEInstance>(aoes);
+        incomingAOEs.Sort((a, b) => a.Activation.CompareTo(b.Activation));
+        var count = golemCasters.Count;
+        if (incomingAOEs.Count > count)
+        {
+            incomingAOEs.RemoveRange(count, incomingAOEs.Count - count);
+        }
         return CollectionsMarshal.AsSpan(incomingAOEs);
     }
 
-    public override void Update() {
+    public override void Update()
+    {
         AddFutureAOEs();
     }
 
-    private void AddFutureAOEs() {
-        if (aoes.Count == 0) {
+    private void AddFutureAOEs()
+    {
+        if (aoes.Count == 0)
+        {
             return;
         }
 
-        if (setup == true || golemCasters.Count == 0) {
+        if (setup == true || golemCasters.Count == 0)
+        {
             return;
         }
 
         List<AOEInstance> incomingAOEs = [];
-        foreach (var golem in golemCasters) {
-            foreach (var aoe in CollectionsMarshal.AsSpan(aoes)) {
-                if (aoe.Origin.AlmostEqual(golem.caster.Position, 0.5f)) {
-                    Angle rotation = aoe.Rotation;
+        foreach (var golem in golemCasters)
+        {
+            foreach (var aoe in CollectionsMarshal.AsSpan(aoes))
+            {
+                if (aoe.Origin.AlmostEqual(golem.caster.Position, 0.5f))
+                {
+                    var rotation = aoe.Rotation;
 
-                    for (int i = 0; i < golem.turns; i++) {
+                    for (var i = 0; i < golem.turns; i++)
+                    {
                         rotation = rotation - 90.0f.Degrees();
-                        incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), WorldState.FutureTime(15.0f + 7.3f * (i+1)), actorID: aoe.ActorID));
+                        incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), WorldState.FutureTime(15.0f + 7.3f * (i + 1)), actorID: aoe.ActorID));
                     }
 
-                    for (int i = 0; i < 3 - golem.turns; i++) {
+                    for (var i = 0; i < 3 - golem.turns; i++)
+                    {
                         incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), WorldState.FutureTime(15.0f + 7.3f * (golem.turns + i + 1)), actorID: aoe.ActorID));
                     }
                 }
@@ -141,33 +172,43 @@ sealed class Acclaim(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-sealed class OccultAeroIII : Components.SimpleAOEs {
-    public OccultAeroIII(BossModule module) : base(module, (uint)AID.OccultAeroIII, new AOEShapeRect(50.0f, 5.0f)) {
+sealed class OccultAeroIII : Components.SimpleAOEs
+{
+    public OccultAeroIII(BossModule module) : base(module, (uint)AID.OccultAeroIII, new AOEShapeRect(50.0f, 5.0f))
+    {
         Color = Colors.Danger;
     }
 }
 
-sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.LeftRightCombination) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.LeftRightCombination)
+        {
             aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
             aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 2.2f)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
         if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.RightLeftCombinationClearout or
-            (uint)AID.LeftRightCombination or (uint)AID.LeftRightCombinationClearout) {
-            if (aoes.Count > 0) {
+            (uint)AID.LeftRightCombination or (uint)AID.LeftRightCombinationClearout)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             return [];
         }
 
@@ -180,33 +221,51 @@ sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(mo
     }
 }
 
-sealed class OccultAero(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+sealed class OccultAero(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeRect shape = new(50.0f, 5.0f);
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.OccultAero) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.OccultAero)
+        {
             aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.OccultAero) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.OccultAero)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             return [];
         }
 
-        var waveTimer = aoes.MinBy(a => a.Activation).Activation.AddSeconds(0.2f);
-        int show = 0;
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes)) {
-            if (aoe.Activation <= waveTimer) {
+        var minActivation = aoes[0].Activation;
+        for (var i = 1; i < aoes.Count; ++i)
+        {
+            if (aoes[i].Activation < minActivation)
+            {
+                minActivation = aoes[i].Activation;
+            }
+        }
+        var waveTimer = minActivation.AddSeconds(0.2f);
+        var show = 0;
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
+        {
+            if (aoe.Activation <= waveTimer)
+            {
                 aoe.Color = Colors.Danger;
                 aoe.Risky = true;
                 show++;
@@ -217,32 +276,50 @@ sealed class OccultAero(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-sealed class OccultStoneII(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+sealed class OccultStoneII(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new(40.0f, 30.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.OccultStoneII) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.OccultStoneII)
+        {
             aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.OccultStoneII) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.OccultStoneII)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             return [];
         }
 
-        var waveTimer = aoes.MinBy(a => a.Activation).Activation.AddSeconds(0.2f);
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes)) {
-            if (aoe.Activation <= waveTimer) {
+        var minActivation = aoes[0].Activation;
+        for (var i = 1; i < aoes.Count; ++i)
+        {
+            if (aoes[i].Activation < minActivation)
+            {
+                minActivation = aoes[i].Activation;
+            }
+        }
+        var waveTimer = minActivation.AddSeconds(0.2f);
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
+        {
+            if (aoe.Activation <= waveTimer)
+            {
                 aoe.Color = Colors.Danger;
                 aoe.Risky = true;
             }
@@ -253,8 +330,10 @@ sealed class OccultStoneII(BossModule module) : Components.GenericAOEs(module) {
 }
 
 [SkipLocalsInit]
-sealed class AlabasterBladeStates : StateMachineBuilder {
-    public AlabasterBladeStates(BossModule module) : base(module) {
+sealed class QuarriedAwayStates : StateMachineBuilder
+{
+    public QuarriedAwayStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<EmbrittlingBlade>()
             .ActivateOnEnter<Acclaim>()
@@ -268,8 +347,8 @@ sealed class AlabasterBladeStates : StateMachineBuilder {
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(AlabasterBladeStates),
-    ConfigType = null, // replace null with typeof(AlabasterBladeConfig) if applicable
+    StatesType = typeof(QuarriedAwayStates),
+    ConfigType = null, // replace null with typeof(QuarriedAwayConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = null, // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
@@ -285,8 +364,10 @@ sealed class AlabasterBladeStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class AlabasterBlade(WorldState ws, Actor primary) : BossModule(ws, primary, new(-519.000f, -641.000f), new ArenaBoundsCircle(25f)) {
-    protected override void DrawEnemies(int pcSlot, Actor pc) {
+public sealed class QuarriedAway(WorldState ws, Actor primary) : BossModule(ws, primary, new(-519.000f, -641.000f), new ArenaBoundsCircle(25f))
+{
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
         Arena.Actor(PrimaryActor);
         Arena.Actors(Enemies((uint)OID.LightAether));
     }
