@@ -108,13 +108,8 @@ sealed class Shock(BossModule module) : Components.GenericAOEs(module)
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var show = 0;
-        var incomingAOEs = new List<AOEInstance>(aoes);
-        incomingAOEs.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        if (incomingAOEs.Count > 2)
-        {
-            incomingAOEs.RemoveRange(2, incomingAOEs.Count - 2);
-        }
+        int show = 0;
+        var incomingAOEs = aoes.OrderBy(a => a.Activation).Take(2).ToList();
         foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs))
         {
             aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
@@ -152,12 +147,8 @@ sealed class ManyHeadedBreath(BossModule module) : Components.GenericAOEs(module
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var show = 0;
-        var incomingAOEs = new List<AOEInstance>(aoes);
-        if (incomingAOEs.Count > 2)
-        {
-            incomingAOEs.RemoveRange(2, incomingAOEs.Count - 2);
-        }
+        int show = 0;
+        var incomingAOEs = aoes.Take(2).ToList();
         foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs))
         {
             aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
@@ -169,25 +160,8 @@ sealed class ManyHeadedBreath(BossModule module) : Components.GenericAOEs(module
     }
 }
 
-sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, GetVoidzones)
+sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7))
 {
-    private static Actor[] GetVoidzones(BossModule module)
-    {
-        var enemies = module.Enemies((uint)OID.PoisonOrb);
-        var count = enemies.Count;
-        if (count == 0)
-            return [];
-
-        var voidzones = new Actor[count];
-        var index = 0;
-        for (var i = 0; i < count; ++i)
-        {
-            var z = enemies[i];
-            if (z.EventState != 7)
-                voidzones[index++] = z;
-        }
-        return voidzones[..index];
-    }
     private bool active = false;
 
     public override void OnActorEAnim(Actor actor, uint state)
@@ -212,16 +186,16 @@ sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, Ge
 
         foreach (var source in Sources(Module))
         {
-            aoes.Add(new(Shape, source.Position, source.Rotation, color: active ? Colors.Danger : Colors.AOE));
+            aoes.Add(new(Shape, source.Position, source.Rotation, color: active ? Colors.Danger : default));
         }
         return CollectionsMarshal.AsSpan(aoes);
     }
 }
 
 [SkipLocalsInit]
-sealed class AheadoftheCompetitionStates : StateMachineBuilder
+sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder
 {
-    public AheadoftheCompetitionStates(BossModule module) : base(module)
+    public CE203AheadoftheCompetitionStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<ElementalCascade>()
@@ -237,7 +211,7 @@ sealed class AheadoftheCompetitionStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(AheadoftheCompetitionStates),
+    StatesType = typeof(CE203AheadoftheCompetitionStates),
     ConfigType = null, // replace null with typeof(PhantomHydraConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
@@ -254,4 +228,4 @@ sealed class AheadoftheCompetitionStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f));
+public sealed class CE203AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f));
