@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN1TwoHeadedAevis;
 
-namespace BossModReborn.Modules.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN1TwoHeadedAevis;
-
-internal class FTMN1TwoHeadedAevisStates
+[SkipLocalsInit]
+sealed class TwoHeadedAevisStates : StateMachineBuilder
 {
+    public TwoHeadedAevisStates(BossModule module) : base(module)
+    {
+        TrivialPhase();
+    }
 }

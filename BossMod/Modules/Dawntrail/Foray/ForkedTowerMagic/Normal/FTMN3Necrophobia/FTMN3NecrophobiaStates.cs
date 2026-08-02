@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace BossMod.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN3Necrophobia;
 
-namespace BossModReborn.Modules.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN3Necrophobia;
-
-internal class FTMN3NecrophobiaStates
+[SkipLocalsInit]
+sealed class NecrophobiaStates : StateMachineBuilder
 {
+    public NecrophobiaStates(BossModule module) : base(module)
+    {
+        TrivialPhase();
+    }
 }
