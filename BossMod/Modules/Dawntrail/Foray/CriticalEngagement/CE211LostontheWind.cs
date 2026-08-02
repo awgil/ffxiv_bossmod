@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE211LostontheWind;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Abductor = 0x4BE1,
     Abductor1 = 0x4BE4, // R1.000, x1
     Helper = 0x233C,
@@ -9,7 +10,8 @@ public enum OID : uint {
     BitingWind = 0x4BE2, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     MapArenaChange = 47435, // 4BE4->self, no cast, range ?-30 donut
     AutoAttack = 47434, // Abductor->player, no cast, single-target
     Teleport = 47433, // Abductor->location, no cast, single-target
@@ -32,46 +34,57 @@ public enum AID : uint {
     TendonRipper1 = 47439, // Helper->self, 1.0s cast, range 60 width 8 cross
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Sprint = 4520, // none->4BE2, extra=0xE4/0x40
 }
 
-public enum IconID : uint {
+public enum IconID : uint
+{
     BitingWindAOE = 506, // 4BE2->self
 }
 
 sealed class WindBlade(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WindBlade, new AOEShapeCone(60.0f, 90.0f.Degrees()));
 sealed class CyclonicRing(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CyclonicRing, new AOEShapeDonut(5.0f, 60.0f));
-sealed class Splinter(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Splinter, new AOEShapeCircle(13.0f));
-sealed class Skydive(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Skydive, new AOEShapeCircle(15.0f));
+sealed class Splinter(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Splinter, 13f);
+sealed class Skydive(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Skydive, 15f);
 sealed class Hurricane(BossModule module) : Components.RaidwideCast(module, (uint)AID.Hurricane);
 
-sealed class Aerosnare : Components.SimpleAOEs {
-    public Aerosnare(BossModule module) : base(module, (uint)AID.Aerosnare, new AOEShapeCone(60.0f, 30.0f.Degrees())) {
+sealed class Aerosnare : Components.SimpleAOEs
+{
+    public Aerosnare(BossModule module) : base(module, (uint)AID.Aerosnare, new AOEShapeCone(60.0f, 30.0f.Degrees()))
+    {
         MaxDangerColor = 3;
     }
 }
 
-sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
-    private List<Knockback> knockbacks = [];
+sealed class Buffet(BossModule module) : Components.GenericKnockback(module)
+{
+    private readonly List<Knockback> knockbacks = [];
     private BuffetWind? _aoe;
 
-    public override void OnActorEAnim(Actor actor, uint state) {
-        if (actor.OID == (uint)OID.BuffetWind && state == 65538) {
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.BuffetWind && state == 65538)
+        {
             knockbacks.Add(new(actor.Position, 24.0f, WorldState.FutureTime(11.1f), direction: actor.Rotation, kind: Kind.DirForward, actorID: actor.InstanceID));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.Buffet) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.Buffet)
+        {
             knockbacks.Clear();
         }
     }
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) => CollectionsMarshal.AsSpan(knockbacks);
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
-        if (knockbacks.Count == 0) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (knockbacks.Count == 0)
+        {
             return;
         }
 
@@ -79,11 +92,13 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
         _aoe ??= Module.FindComponent<BuffetWind>();
 
         var activation = k.Activation;
-        if (!IsImmune(slot, activation)) {
+        if (!IsImmune(slot, activation))
+        {
             var aoes = CollectionsMarshal.AsSpan(_aoe!.aoes);
             var len = aoes.Length;
             var circles = new (WPos origin, float Radius)[len];
-            for (var i = 0; i < len; ++i) {
+            for (var i = 0; i < len; ++i)
+            {
                 ref var aoe = ref aoes[i];
                 circles[i] = (aoe.Origin, 4.0f);
             }
@@ -92,12 +107,15 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) {
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    {
         _aoe ??= Module.FindComponent<BuffetWind>();
         var aoes = CollectionsMarshal.AsSpan(_aoe!.aoes);
         var len = aoes.Length;
-        for (var i = 0; i < len; ++i) {
-            if (aoes[i].Check(pos)) {
+        for (var i = 0; i < len; ++i)
+        {
+            if (aoes[i].Check(pos))
+            {
                 return true;
             }
         }
@@ -105,22 +123,28 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
     }
 }
 
-sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
+sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module)
+{
     public List<AOEInstance> aoes = [];
-    private List<(Actor actor, bool incomingWind)> winds = []; // incomingWind is for when the actor has an active icon
+    private readonly List<(Actor actor, bool incomingWind)> winds = []; // incomingWind is for when the actor has an active icon
     private readonly AOEShapeCross cross = new(60.0f, 5.0f);
     private readonly AOEShapeCircle circle = new(4.0f);
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.BitingWind) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.BitingWind)
+        {
             winds.Add((actor, false));
         }
     }
 
-    public override void OnActorDestroyed(Actor actor) {
-        if (actor.OID == (uint)OID.BitingWind) {
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.BitingWind)
+        {
             var index = winds.FindIndex(windInstance => windInstance.actor.InstanceID == actor.InstanceID);
-            if (index < 0) {
+            if (index < 0)
+            {
                 return;
             }
 
@@ -128,10 +152,13 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID) {
-        if (actor.OID == (uint)OID.BitingWind && iconID == (uint)IconID.BitingWindAOE) {
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (actor.OID == (uint)OID.BitingWind && iconID == (uint)IconID.BitingWindAOE)
+        {
             var index = winds.FindIndex(windInstance => windInstance.actor.InstanceID == actor.InstanceID);
-            if (index < 0) {
+            if (index < 0)
+            {
                 return;
             }
 
@@ -141,10 +168,13 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.TendonRipper) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.TendonRipper)
+        {
             var index = winds.FindIndex(windInstance => windInstance.actor.InstanceID == caster.InstanceID);
-            if (index < 0) {
+            if (index < 0)
+            {
                 return;
             }
 
@@ -154,18 +184,22 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         aoes.Clear();
 
-        if (winds.Count == 0) {
+        if (winds.Count == 0)
+        {
             return [];
         }
 
-        foreach (var wind in winds) {
+        foreach (var wind in winds)
+        {
             aoes.Add(new(circle, wind.actor.Position, wind.actor.Rotation));
-            if (wind.incomingWind == true) {
-                aoes.Add(new(cross, wind.actor.Position, Angle.AnglesIntercardinals[1], WorldState.FutureTime(5.1f)));
-                aoes.Add(new(cross, wind.actor.Position, Angle.AnglesCardinals[1], WorldState.FutureTime(5.1f)));
+            if (wind.incomingWind)
+            {
+                aoes.Add(new(cross, wind.actor.Position, Angle.AnglesIntercardinals[1], WorldState.FutureTime(5.1d)));
+                aoes.Add(new(cross, wind.actor.Position, Angle.AnglesCardinals[1], WorldState.FutureTime(5.1d)));
             }
         }
 
@@ -174,8 +208,10 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
 }
 
 [SkipLocalsInit]
-sealed class CE211LostontheWindStates : StateMachineBuilder {
-    public CE211LostontheWindStates(BossModule module) : base(module) {
+sealed class CE211LostontheWindStates : StateMachineBuilder
+{
+    public CE211LostontheWindStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<WindBlade>()
             .ActivateOnEnter<CyclonicRing>()
@@ -206,6 +242,7 @@ sealed class CE211LostontheWindStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE211LostontheWind(WorldState ws, Actor primary) : BossModule(ws, primary, new(-150f, -860f), new ArenaBoundsCircle(23.9f)) {
+public sealed class CE211LostontheWind(WorldState ws, Actor primary) : BossModule(ws, primary, new(-150f, -860f), new ArenaBoundsCircle(23.9f))
+{
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 24f);
 }

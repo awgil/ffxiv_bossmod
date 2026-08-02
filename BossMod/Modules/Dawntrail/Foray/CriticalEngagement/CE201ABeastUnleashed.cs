@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
 
-public enum OID : uint {
+public enum OID : uint
+{
     AtlasCarbuncle = 0x4C4F, // R9.067, x1
     AtlasCarbuncleHelper = 0x233C, // R0.500, x20, Helper type
     AtlasCarbuncle1 = 0x4D88, // R1.000, x1
@@ -11,7 +12,8 @@ public enum OID : uint {
     Actor1ec046 = 0x1EC046, // R0.500, x2, EventObj type
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50852, // AtlasCarbuncle->player, no cast, single-target
     SonicHowl = 48298, // AtlasCarbuncle->self, 5.0s cast, ???
     SonicHowl1 = 49505, // AtlasCarbuncleHelper->self, no cast, ???
@@ -39,32 +41,41 @@ public enum AID : uint {
     RubyReflection1 = 48286, // AtlasCarbuncleHelper->self, no cast, range 40 width 40 rect
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     DirectionalDisregard = 3808, // none->AtlasCarbuncle, extra=0x0
 }
 
 sealed class SonicHowl(BossModule module) : Components.RaidwideCast(module, (uint)AID.SonicHowl);
 
-sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.TailToClaw) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.TailToClaw)
+        {
             aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
             aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 3.1f)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.TailToClaw or (uint)AID.TailToClaw1) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.TailToClaw or (uint)AID.TailToClaw1)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             return [];
         }
 
@@ -77,15 +88,18 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockback(module) {
-    private List<Knockback> knockbacks = [];
+sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockback(module)
+{
+    private readonly List<Knockback> knockbacks = [];
     private const float knockbackDistanceMiddle = 15.0f;
     private const float knockbackDistanceCircle = 30.0f;
-    private readonly AOEShapeRect rect = new AOEShapeRect(40.0f, 30.0f);
-    private readonly AOEShapeCircle circle = new AOEShapeCircle(60.0f);
+    private readonly AOEShapeRect rect = new(40.0f, 30.0f);
+    private readonly AOEShapeCircle circle = new(60.0f);
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.SpinebreakingStampedeMiddleVisual) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.SpinebreakingStampedeMiddleVisual)
+        {
             var position = caster.Position;
             var rotation = spell.Rotation;
             var offset = 90.0f.Degrees();
@@ -93,21 +107,27 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
             knockbacks.Add(new(position, knockbackDistanceMiddle, default, rect, rotation - offset, Kind.DirForward));
         }
 
-        if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual) {
+        if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual)
+        {
             knockbacks.Add(new(caster.Position, knockbackDistanceCircle, shape: circle));
         }
     }
 
     // TODO if rewritten, take into account that knockback rect is done twice as each knockback is on either side
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.SpinebreakingStampedeMiddle) {
-            if (knockbacks.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.SpinebreakingStampedeMiddle)
+        {
+            if (knockbacks.Count > 0)
+            {
                 knockbacks.RemoveAll(knockback => knockback.Shape is AOEShapeRect);
             }
         }
 
-        if (spell.Action.ID is (uint)AID.SpinebreakingStampedeCircle) {
-            if (knockbacks.Count > 0) {
+        if (spell.Action.ID is (uint)AID.SpinebreakingStampedeCircle)
+        {
+            if (knockbacks.Count > 0)
+            {
                 knockbacks.RemoveAll(knockback => knockback.Shape is AOEShapeCircle);
             }
         }
@@ -117,8 +137,10 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
 }
 
 [SkipLocalsInit]
-sealed class CE201ABeastUnleashedStates : StateMachineBuilder {
-    public CE201ABeastUnleashedStates(BossModule module) : base(module) {
+sealed class CE201ABeastUnleashedStates : StateMachineBuilder
+{
+    public CE201ABeastUnleashedStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<SonicHowl>()
             .ActivateOnEnter<TailToClaw>()
@@ -144,6 +166,7 @@ sealed class CE201ABeastUnleashedStates : StateMachineBuilder {
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE201ABeastUnleashed(WorldState ws, Actor primary) : BossModule(ws, primary, new(238f, 352f), new ArenaBoundsSquare(20f)) {
+public sealed class CE201ABeastUnleashed(WorldState ws, Actor primary) : BossModule(ws, primary, new(238f, 352f), new ArenaBoundsSquare(20f))
+{
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InSquare(Arena.Center, 20f);
 }
