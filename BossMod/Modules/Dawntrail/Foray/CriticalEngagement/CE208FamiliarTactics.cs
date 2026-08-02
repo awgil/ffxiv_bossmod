@@ -112,13 +112,8 @@ sealed class InspiritedImpact(BossModule module) : Components.GenericAOEs(module
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var show = 0;
-        var incomingAOEs = new List<AOEInstance>(aoes);
-        incomingAOEs.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        if (incomingAOEs.Count > 3)
-        {
-            incomingAOEs.RemoveRange(3, incomingAOEs.Count - 3);
-        }
+        int show = 0;
+        var incomingAOEs = aoes.OrderBy(a => a.Activation).Take(3).ToList();
         foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs))
         {
             aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
@@ -131,9 +126,9 @@ sealed class InspiritedImpact(BossModule module) : Components.GenericAOEs(module
 }
 
 [SkipLocalsInit]
-sealed class FamiliarTacticsStates : StateMachineBuilder
+sealed class CE208FamiliarTacticsStates : StateMachineBuilder
 {
-    public FamiliarTacticsStates(BossModule module) : base(module)
+    public CE208FamiliarTacticsStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AncientAeroIII>()
@@ -149,11 +144,11 @@ sealed class FamiliarTacticsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(FamiliarTacticsStates),
-    ConfigType = null, // replace null with typeof(FamiliarTacticsConfig) if applicable
+    StatesType = typeof(CE208FamiliarTacticsStates),
+    ConfigType = null, // replace null with typeof(ElmGigasConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
-    StatusIDType = null, // replace null with typeof(SID) if applicable
+    ActionIDType = typeof(AID),
+    StatusIDType = typeof(SID),
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.ElmGigas,
@@ -166,4 +161,4 @@ sealed class FamiliarTacticsStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f));
+public sealed class CE208FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f));
