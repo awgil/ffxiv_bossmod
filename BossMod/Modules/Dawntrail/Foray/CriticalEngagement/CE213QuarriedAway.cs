@@ -45,53 +45,41 @@ sealed class EmbrittlingBlade(BossModule module) : Components.RaidwideCast(modul
 sealed class OccultTornado(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultTornado, new AOEShapeCircle(5.0f));
 sealed class FalseSpellbladeHoly(BossModule module) : Components.RaidwideCast(module, (uint)AID.FalseSpellbladeHoly);
 
-sealed class OccultAeroIII : Components.SimpleAOEs
-{
-    public OccultAeroIII(BossModule module) : base(module, (uint)AID.OccultAeroIII, new AOEShapeRect(50.0f, 5.0f))
-    {
-        Color = Colors.Danger;
-    }
-}
+sealed class OccultAeroIII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultAeroIII, new AOEShapeRect(50.0f, 5.0f));
 
-sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module)
-{
+sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module) {
     private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCone cone = new(40.0f, 90.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.LeftRightCombination)
-        {
-            aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 2.2f)));
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.LeftRightCombination) {
+            AddAOE();
+            AddAOE(180.0f.Degrees(), 2.2f);
+        }
+
+        void AddAOE(Angle offset = default, double delay = default) {
+            var loc = spell.LocXZ;
+            var rot = spell.Rotation;
+            var pos = delay != default ? loc - 5f * rot.ToDirection() : loc;
+            var rot2 = rot + offset;
+            aoes.Add(new(cone, pos, rot2, Module.CastFinishAt(spell, delay), shapeDistance: cone.Distance(pos, rot2)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.RightLeftCombinationClearout or
-            (uint)AID.LeftRightCombination or (uint)AID.LeftRightCombinationClearout)
-        {
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAt(0);
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (aoes.Count is var count && count != 0 && spell.Action.ID is (uint)AID.RightLeftCombination or (uint)AID.RightLeftCombinationClearout or
+                (uint)AID.LeftRightCombination or (uint)AID.LeftRightCombinationClearout) {
+            aoes.RemoveAt(0);
+            if (count == 2) {
+                ref var aoe2 = ref aoes.Ref(0);
+                var rot = aoe2.Rotation;
+                aoe2.Origin -= 5f * rot.ToDirection();
+                aoe2.ShapeDistance = cone.Distance(aoe2.Origin, rot);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (aoes.Count == 0)
-        {
-            return [];
-        }
-
-        var aoe = aoes[0];
-        aoe.Color = Colors.Danger;
-        aoe.Risky = true;
-        aoes[0] = aoe;
-
-        return CollectionsMarshal.AsSpan(aoes);
-    }
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(aoes);
 }
 
 sealed class OccultAero(BossModule module) : Components.GenericAOEs(module)
