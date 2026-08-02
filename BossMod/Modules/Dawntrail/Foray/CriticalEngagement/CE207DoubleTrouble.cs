@@ -105,9 +105,9 @@ sealed class DualCut(BossModule module) : Components.GenericAOEs(module)
 }
 
 [SkipLocalsInit]
-sealed class ConjuredCalofisteriStates : StateMachineBuilder
+sealed class CE207DoubleTroubleStates : StateMachineBuilder
 {
-    public ConjuredCalofisteriStates(BossModule module) : base(module)
+    public CE207DoubleTroubleStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AuraBurst>()
@@ -120,11 +120,11 @@ sealed class ConjuredCalofisteriStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(ConjuredCalofisteriStates),
+    StatesType = typeof(CE207DoubleTroubleStates),
     ConfigType = null, // replace null with typeof(ConjuredCalofisteriConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
-    StatusIDType = typeof(SID), // replace null with typeof(SID) if applicable
+    ActionIDType = typeof(AID),
+    StatusIDType = typeof(SID),
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.ConjuredCalofisteri,
@@ -137,7 +137,7 @@ sealed class ConjuredCalofisteriStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class ConjuredCalofisteri(WorldState ws, Actor primary) : BossModule(ws, primary, new(-215.200f, -65.000f), new ArenaBoundsCircle(22f))
+public sealed class CE207DoubleTrouble(WorldState ws, Actor primary) : BossModule(ws, primary, new(-215.200f, -65.000f), new ArenaBoundsCircle(22f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

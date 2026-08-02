@@ -7,27 +7,21 @@ public enum OID : uint
     LongDeadExplorer = 0x4BC2, // R1.000, x0 (spawn during fight)
     LongDeadPirate = 0x4BC3, // R2.600, x0 (spawn during fight)
     PhantomNecromancer1 = 0x4C75, // R1.000, x1
-
-    _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
-    _Gen_Actor1ebfc1 = 0x1EBFC1, // R0.500, x1, EventObj type
-    _Gen_Actor1ebff5 = 0x1EBFF5, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint
 {
     AutoAttack = 50761, // PhantomNecromancer->player, no cast, single-target
+    Ability = 47173, // 4C75->self, no cast, ???
     DarkII = 47181, // PhantomNecromancer->self, 5.0s cast, range 50 width 50 rect
     DarkFlareCast = 47182, // PhantomNecromancer->self, 5.0s cast, single-target
     DarkFlare = 47183, // Helper->self, no cast, ???
+    ArcaneRevelation = 47179, // PhantomNecromancer->self, 3.0s cast, single-target
+    Necrosurge = 47180, // Helper->self, 7.0s cast, range 70 width 12 rect
 
     RiseOfTheFallen = 47174, // PhantomNecromancer->self, 3.0s cast, single-target
     LongDeadExplorerExplosion = 47175, // 4BC2->self, 2.0s cast, range 8 circle
     LongDeadPirateExplosion = 47176, // 4BC3->self, 4.0s cast, range 80 width 7 cross
-
-    ArcaneRevelation = 47179, // PhantomNecromancer->self, 3.0s cast, single-target
-    Necrosurge = 47180, // Helper->self, 7.0s cast, range 70 width 12 rect
-
-    _Ability_ = 47173, // 4C75->self, no cast, ???
 }
 
 public enum SID : uint
@@ -39,33 +33,29 @@ sealed class DarkII(BossModule module) : Components.SimpleAOEs(module, (uint)AID
 sealed class DarkFlare(BossModule module) : Components.RaidwideCast(module, (uint)AID.DarkFlareCast);
 sealed class Necrosurge(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Necrosurge, new AOEShapeRect(70.0f, 6.0f));
 
-// TODO try and find a way to show these earlier maybe? actors spawn way earlier, but 8 spawn at the same time, how to tell the difference between them?
-sealed class LongDeadPirate(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LongDeadPirateExplosion, new AOEShapeCross(80.0f, 3.5f));
-
-// TODO clean up - instead when status gain is done add it to a wave of similar times instead of creating multiple lists
-// TODO when rewriting this, just add the aoes on status gain, then we can filter by expireAt to get the wave and filter by instanceID on the ones with the
-//  same times
-
-sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module, (uint)AID.LongDeadExplorerExplosion)
+sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCircle shape = new(8.0f);
-    private bool active = false;
-    private int waveSize = 0;
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID == (uint)AID.RiseOfTheFallen)
-        {
-            active = true;
-        }
-    }
+    private readonly List<Actor> longDeadExplorerWave = []; // Actors waiting to be sorted in order of activation
+    private int? waveSize;
+    private DateTime pendingExpireAt; // last expireAt SID timer
+    private DateTime lastWaveAdded; // So we add the final wave
+    private DateTime? nextActivation; // without this waves can overlap - note the cast timers for each actor seem to be different, so this is the only way to order
+    public bool active = false;
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (actor.OID == (uint)OID.LongDeadExplorer && status.ID == (uint)SID.ExplosionTimer)
+        if (status.ID == (uint)SID.ExplosionTimer && actor.OID == (uint)OID.LongDeadExplorer)
         {
-            aoes.Add(new(shape, actor.Position, actor.Rotation, status.ExpireAt, actorID: actor.InstanceID));
+            if (longDeadExplorerWave.Count > 0 && (status.ExpireAt - pendingExpireAt).Duration() > TimeSpan.FromSeconds(1.0f))
+            {
+                SetupWave();
+            }
+
+            longDeadExplorerWave.Add(actor);
+            pendingExpireAt = status.ExpireAt;
+            lastWaveAdded = WorldState.CurrentTime;
         }
     }
 
@@ -75,8 +65,31 @@ sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module
         {
             if (aoes.Count > 0)
             {
-                aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
+                aoes.RemoveAll(a => a.ActorID == caster.InstanceID);
             }
+
+            if (aoes.Count == 0)
+            {
+                active = false;
+                waveSize = null;
+                nextActivation = null;
+            }
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.RiseOfTheFallen)
+        {
+            active = true;
+        }
+    }
+
+    public override void Update()
+    {
+        if (longDeadExplorerWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded) > TimeSpan.FromSeconds(2.0f))
+        {
+            SetupWave();
         }
     }
 
@@ -85,63 +98,155 @@ sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module
         if (!active || aoes.Count == 0)
         {
             active = false;
-            waveSize = 0;
             return [];
         }
 
-        var sorted = new List<AOEInstance>(aoes);
-        sorted.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        if (waveSize == 0)
+        if (waveSize == null)
         {
-            var threshold = sorted[0].Activation.AddSeconds(0.2);
-            var count = 0;
-            for (var i = 0; i < sorted.Count; ++i)
+            return [];
+        }
+
+        var incomingAOEs = aoes.OrderBy(aoe => aoe.Activation).Take(waveSize.Value * 2).ToList();
+        for (int i = 0; i < incomingAOEs.Count; i++)
+        {
+            var aoeInstance = incomingAOEs[i];
+            aoeInstance.Color = i < waveSize ? Colors.Danger : Colors.AOE;
+            incomingAOEs[i] = aoeInstance;
+        }
+
+        return CollectionsMarshal.AsSpan(incomingAOEs);
+    }
+
+    private void SetupWave()
+    {
+        if (longDeadExplorerWave.Count == 0)
+        {
+            return;
+        }
+
+        var sort = longDeadExplorerWave.OrderByDescending(actor => actor.InstanceID).ToList();
+        waveSize ??= sort.Count / 2;
+        nextActivation ??= pendingExpireAt;
+
+        foreach (var aoe in sort.Take(waveSize.Value))
+        {
+            aoes.Add(new(shape, aoe.Position, aoe.Rotation, nextActivation.Value, actorID: aoe.InstanceID));
+        }
+
+        nextActivation = nextActivation.Value + TimeSpan.FromSeconds(3.0f);
+        if (sort.Count > waveSize.Value)
+        {
+            foreach (var aoe in sort.Skip(waveSize.Value))
             {
-                if (sorted[i].Activation < threshold)
-                {
-                    ++count;
-                }
+                aoes.Add(new(shape, aoe.Position, aoe.Rotation, nextActivation.Value, actorID: aoe.InstanceID));
             }
-            waveSize = count;
+            nextActivation = nextActivation.Value + TimeSpan.FromSeconds(3.0f);
         }
 
-        List<AOEInstance> ordered = [];
-        List<AOEInstance> cluster = [];
-        foreach (var aoe in sorted)
+        longDeadExplorerWave.Clear();
+    }
+}
+
+sealed class LongDeadPirate(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCross shape = new(80.0f, 3.5f);
+    private readonly List<Actor> longDeadPirateWave = []; // Actors waiting to be sorted in order of activation
+    private DateTime lastWaveAdded; // So we add the final wave
+    private int? waveSize;
+    private readonly LongDeadExplorer longDeadExplorer = module.FindComponent<LongDeadExplorer>()!;
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.LongDeadPirate)
         {
-            if (cluster.Count > 0 && aoe.Activation >= cluster[0].Activation.AddSeconds(0.2))
+            if (longDeadPirateWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded).Duration() > TimeSpan.FromSeconds(1.0f))
             {
-                cluster.Sort((a, b) => b.ActorID.CompareTo(a.ActorID));
-                ordered.AddRange(cluster);
-                cluster.Clear();
+                SetupWave();
             }
-            cluster.Add(aoe);
-        }
-        cluster.Sort((a, b) => b.ActorID.CompareTo(a.ActorID));
-        ordered.AddRange(cluster);
 
-        if (ordered.Count > waveSize)
-        {
-            ordered.RemoveRange(waveSize, ordered.Count - waveSize);
+            longDeadPirateWave.Add(actor);
+            lastWaveAdded = WorldState.CurrentTime;
         }
-        sorted = ordered;
-        var half = waveSize / 2;
-        for (var i = 0; i < sorted.Count; i++)
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.LongDeadPirateExplosion)
         {
-            var aoe = sorted[i];
-            aoe.Color = i < half ? Colors.Danger : Colors.AOE;
-            aoe.Risky = i < half;
-            sorted[i] = aoe;
+            if (aoes.Count > 0)
+            {
+                aoes.RemoveAll(a => a.ActorID == caster.InstanceID);
+            }
+
+            if (aoes.Count == 0)
+            {
+                waveSize = null;
+            }
+        }
+    }
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (longDeadExplorer.active || aoes.Count == 0)
+        {
+            return [];
         }
 
-        return CollectionsMarshal.AsSpan(sorted);
+        return CollectionsMarshal.AsSpan(aoes.OrderBy(aoe => aoe.Activation).Take(4).ToList());
+    }
+
+    public override void Update()
+    {
+        if (longDeadPirateWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded) > TimeSpan.FromSeconds(2.0f))
+        {
+            SetupWave();
+        }
+    }
+
+    private void SetupWave()
+    {
+        if (longDeadPirateWave.Count == 0)
+        {
+            return;
+        }
+
+        var sort = longDeadPirateWave.OrderByDescending(actor => actor.InstanceID).ToList();
+        waveSize ??= sort.Count / 2;
+        var now = WorldState.CurrentTime;
+
+        // Case: 8 actors created at the same time
+        if (sort.Count > waveSize.Value)
+        {
+            // Always 21.4f from spawn time
+            foreach (var pirate in sort.Take(waveSize.Value))
+            {
+                aoes.Add(new(shape, pirate.Position, pirate.Rotation, now + TimeSpan.FromSeconds(21.4f), actorID: pirate.InstanceID));
+            }
+
+            // Always 32.9f from spawn time
+            foreach (var pirate in sort.Skip(waveSize.Value))
+            {
+                aoes.Add(new(shape, pirate.Position, pirate.Rotation, now + TimeSpan.FromSeconds(32.9f), actorID: pirate.InstanceID));
+            }
+        }
+        else
+        {
+            // Case single wave - always 32.0f from spawn time (these spawn later on compared to the others)
+            foreach (var pirate in sort)
+            {
+                aoes.Add(new(shape, pirate.Position, pirate.Rotation, now + TimeSpan.FromSeconds(32.0f), actorID: pirate.InstanceID));
+            }
+        }
+
+        longDeadPirateWave.Clear();
     }
 }
 
 [SkipLocalsInit]
-sealed class DarkArtistryStates : StateMachineBuilder
+sealed class CE206DarkArtistryStates : StateMachineBuilder
 {
-    public DarkArtistryStates(BossModule module) : base(module)
+    public CE206DarkArtistryStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<DarkII>()
@@ -153,11 +258,11 @@ sealed class DarkArtistryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(DarkArtistryStates),
-    ConfigType = null, // replace null with typeof(DarkArtistryConfig) if applicable
+    StatesType = typeof(CE206DarkArtistryStates),
+    ConfigType = null, // replace null with typeof(PhantomNecromancerConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
-    StatusIDType = null, // replace null with typeof(SID) if applicable
+    ActionIDType = typeof(AID),
+    StatusIDType = typeof(SID),
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.PhantomNecromancer,
@@ -170,4 +275,4 @@ sealed class DarkArtistryStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class DarkArtistry(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.000f, -860.000f), new ArenaBoundsSquare(20f));
+public sealed class CE206DarkArtistry(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.000f, -860.000f), new ArenaBoundsSquare(20f));
