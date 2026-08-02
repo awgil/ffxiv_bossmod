@@ -125,41 +125,36 @@ public static class CurveApprox
     // for angles, we use standard FF convention: 0 is 'south'/down/(0, -r), and then increases clockwise
     private static WDir PolarToCartesian(float r, Angle phi) => r * phi.ToDirection();
 
-    public static WDir[] Capsule(WDir dir, float length, float radius, float maxError)
+    public static List<WDir> Capsule(WDir centerOffset, WDir dir, float length, float radius, float maxError)
     {
+        dir = dir.Normalized();
+
         var p0 = default(WDir);
         var p1 = length * dir;
-        var dirPerp = dir.OrthoL();
+        var offset = centerOffset;
         var angleDir = Angle.FromDirection(dir);
         var a90 = 90f.Degrees();
-        var angleStartP1 = angleDir - a90;
-        var angleEnd = angleDir + a90;
-        var angleEndP0 = angleDir + 270f.Degrees();
-        var radiusDirPerp = radius * dirPerp;
 
-        var arcP1 = CircleArc(radius, angleStartP1, angleEnd, maxError);
-        var arcP0 = CircleArc(radius, angleEnd, angleEndP0, maxError);
-
-        var arcP0Length = arcP0.Length;
-        var arcP1Length = arcP1.Length;
-        var totalPoints = 4 + arcP0Length + arcP1Length;
-        var points = new WDir[totalPoints];
-        var index = 0;
-
-        points[index++] = p0 + radiusDirPerp;
-        points[index++] = p1 + radiusDirPerp;
-
-        for (var i = 0; i < arcP1Length; ++i)
+        // Start at the +OrthoL side, go around the forward end to -OrthoL.
+        var p1AngleStart = angleDir + a90;
+        var lengthP1 = angleDir - a90 - p1AngleStart;
+        var _radius = radius;
+        var numSegments = CalculateCircleSegments(_radius, lengthP1.Abs(), maxError);
+        var angleIncrement = lengthP1 / numSegments;
+        var points = new List<WDir>((numSegments + 1) * 2);
+        for (var i = 0; i <= numSegments; ++i)
         {
-            points[index++] = p1 + arcP1[i];
+            var angle = p1AngleStart + i * angleIncrement;
+            points.Add(p1 + radius * angle.ToDirection() + offset);
         }
 
-        points[index++] = p1 - radiusDirPerp;
-        points[index++] = p0 - radiusDirPerp;
+        // Start at the -OrthoL side, go around the rear end to +OrthoL.
+        var p2AngleStart = angleDir - a90;
 
-        for (var i = 0; i < arcP0Length; ++i)
+        for (var i = 0; i <= numSegments; ++i)
         {
-            points[index++] = p0 + arcP0[i];
+            var angle = p2AngleStart + i * angleIncrement;
+            points.Add(p0 + radius * angle.ToDirection() + offset);
         }
 
         return points;

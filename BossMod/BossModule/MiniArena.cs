@@ -282,7 +282,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
 
             tri = _bounds.ShapeSimplified.PolygonCircleIntersection(offset, radius) switch
             {
-                PolygonShapeRelation.Inside => _bounds.Triangulate(_bounds.CirclePolygon(center, _center, radius)),
+                PolygonShapeRelation.Inside => _bounds.Triangulate(_bounds.CirclePolygon(offset, radius)),
                 PolygonShapeRelation.Outside => [],
                 _ => _bounds.ClipAndTriangulateCircle(offset, radius),
             };
@@ -299,7 +299,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
 
             tri = _bounds.ShapeSimplified.PolygonDonutIntersection(offset, innerRadius, outerRadius) switch
             {
-                PolygonShapeRelation.Inside => _bounds.Triangulate(_bounds.DonutPolygon(center, _center, innerRadius, outerRadius)),
+                PolygonShapeRelation.Inside => _bounds.Triangulate(_bounds.DonutPolygon(offset, innerRadius, outerRadius)),
                 PolygonShapeRelation.Outside => [],
                 _ => _bounds.ClipAndTriangulateDonut(offset, innerRadius, outerRadius),
             };
@@ -404,7 +404,16 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneCapsule(WPos start, WDir direction, float radius, float length, uint color)
     {
         ref var tri = ref _triCache.Get(11, start, direction, radius, length);
-        tri ??= _bounds.ClipAndTriangulateCapsule(start - _center, direction, radius, length);
+        if (tri == null)
+        {
+            var offset = start - _center;
+            tri = _bounds.ShapeSimplified.PolygonCapsuleIntersection(offset, direction, radius, length) switch
+            {
+                PolygonShapeRelation.Inside => _bounds.TriangulateCapsule(offset, direction, radius, length),
+                PolygonShapeRelation.Outside => [],
+                _ => _bounds.ClipAndTriangulateCapsule(offset, direction, radius, length)
+            };
+        }
         Zone(tri, color);
     }
 
@@ -434,7 +443,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
             var offset = center - _center;
             poly = _bounds.ShapeSimplified.PolygonCircleIntersection(offset, radius) switch
             {
-                PolygonShapeRelation.Inside => _bounds.CirclePolygon(center, _center, radius),
+                PolygonShapeRelation.Inside => _bounds.CirclePolygon(offset, radius),
                 PolygonShapeRelation.Outside => new(),
                 _ => _bounds.ClipCircle(offset, radius)
             };
@@ -445,7 +454,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     public void ZoneCircleOutlineUnclipped(WPos center, float radius, uint color = default, float thickness = 1f)
     {
         ref var poly = ref _polyCache.Get(14, center, radius);
-        poly ??= _bounds.CirclePolygon(center, _center, radius);
+        poly ??= _bounds.CirclePolygon(center - _center, radius);
         AddComplexPolygon(poly, color, thickness);
     }
 
@@ -458,7 +467,7 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
 
             poly = _bounds.ShapeSimplified.PolygonDonutIntersection(offset, innerRadius, outerRadius) switch
             {
-                PolygonShapeRelation.Inside => _bounds.DonutPolygon(center, _center, innerRadius, outerRadius),
+                PolygonShapeRelation.Inside => _bounds.DonutPolygon(offset, innerRadius, outerRadius),
                 PolygonShapeRelation.Outside => new(),
                 _ => _bounds.ClipDonut(offset, innerRadius, outerRadius),
             };

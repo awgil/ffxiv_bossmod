@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Raid.M12NLindwurm;
 
-sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
+sealed class FleshTele(BossModule module) : Components.GenericKnockback(module, stopAfterWall: true)
 {
     private readonly RavenousReach _reach = module.FindComponent<RavenousReach>()!;
     private readonly Burst _burst = module.FindComponent<Burst>()!;
@@ -18,31 +18,17 @@ sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
         return [];
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action.ID == (uint)AID.Shockwave)
-        {
-            _activation = default;
-        }
-    }
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (iconID == (uint)IconID.FleshTimer && _activation == default)
-        {
-            _activation = WorldState.FutureTime(5d);
-        }
-    }
-
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
         switch (status.ID)
         {
             case (uint)SID.FleshForward:
                 forwardKb.Set(Raid.FindSlot(actor.InstanceID));
+                _activation = status.ExpireAt;
                 break;
             case (uint)SID.FleshBack:
                 backwardKb.Set(Raid.FindSlot(actor.InstanceID));
+                _activation = status.ExpireAt;
                 break;
         }
     }
@@ -64,7 +50,6 @@ sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
     {
         if (actor == Module.PrimaryActor)
         {
-            _activation = default;
             forwardKb.Reset();
             backwardKb.Reset();
         }
@@ -82,6 +67,7 @@ sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
         var len = aoes.Length;
         var rot = actor.Rotation;
         var pos = actor.Position;
+
         var moveDir = (forwardKb[slot] ? rot : rot + 180f.Degrees()).ToDirection();
         const float distSq = 15f * 15f;
         const float radiusSq = 12f * 12f;
@@ -102,7 +88,7 @@ sealed class FleshTele(BossModule module) : Components.GenericKnockback(module)
             hints.ForbiddenDirections.Add(new(Angle.Atan2(sideways, forward), Angle.Acos((dist * dist + distSqRadiusSq) / (2f * dist * 15f)), act));
         }
 
-        Arena.Bounds.ShapeSimplified.AddForbiddenDirections(actor, Arena.Center, hints, _activation, 15f, 1f);
+        Arena.Bounds.ShapeSimplified.AddForbiddenDirections(actor.Position - Arena.Center, forwardKb[slot] ? default : 180f.Degrees(), hints, _activation, 15f, 1f);
 
         // probably not needed since the cone resolves a long time after the knockback
         // if (_reach.ActiveCasters is var aoe && aoe.Length != 0 && _reach.Shape is AOEShapeCone cone)

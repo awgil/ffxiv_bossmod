@@ -22,9 +22,6 @@ sealed class DebugGraphics
     private Angle _overlayRotation = new(0);
     private float _placedOffset = 4.0f; // for placing a drawn shape on overlay.
     private float _placedWidth = 0.5f; // width of drawn shape on overlay. Used  as radius in circles.
-    private float _placedHeight = 0.5f;
-
-
 
     public unsafe void DrawSceneTree()
     {
@@ -418,7 +415,6 @@ sealed class DebugGraphics
             return;
         }
 
-
         ImGui.Checkbox("Circle", ref _overlayCircle);
         ImGui.DragFloat2("Center", ref _overlayCenter);
         ImGui.SameLine();
@@ -444,7 +440,6 @@ sealed class DebugGraphics
         var mx = _overlayStep.X != 0 ? (int)(_overlayMaxOffset.X / _overlayStep.X) : 0;
         var mz = _overlayStep.Y != 0 ? (int)(_overlayMaxOffset.Y / _overlayStep.Y) : 0;
         var y = Service.ObjectTable.LocalPlayer!.Position.Y;
-
 
         var rotationMatrix = Matrix3x2.CreateRotation(-_overlayRotation.Rad);
         Vector2 TransformPoint(Vector2 point) => Vector2.Transform(point - _overlayCenter, rotationMatrix) + _overlayCenter;
@@ -522,9 +517,7 @@ sealed class DebugGraphics
     // Outputs the c# code for drawing a circle shape in BossModule.
     public void CircleString(Vector3 placed, float radius)
     {
-        WPos pos =  new WPos(placed.X, placed.Z);
-
-        StringBuilder exportedCircle = new StringBuilder($"new Circle(new WPos({placed.X}f, {placed.Z}f), {radius}f);");
+        var exportedCircle = new StringBuilder($"new Circle(new WPos({placed.X}f, {placed.Z}f), {radius}f);");
 
         ImGui.TextUnformatted(exportedCircle.ToString());
 

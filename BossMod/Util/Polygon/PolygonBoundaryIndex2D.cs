@@ -73,7 +73,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             this.fz = fz;
             this.radius = radius + Eps;
             radiusSq = this.radius * this.radius;
-            var (sin, cos) = MathF.SinCos(halfAngle);
+            var (sin, cos) = ((float, float))Math.SinCos(halfAngle);
             cosHalfAngle = cos;
             leftX = ox + (fx * cos - fz * sin) * this.radius;
             leftZ = oz + (fx * sin + fz * cos) * this.radius;
@@ -101,7 +101,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             innerSq = inner * inner;
             outerSq = outer * outer;
 
-            var (sin, cos) = MathF.SinCos(halfAngle);
+            var (sin, cos) = ((float, float))Math.SinCos(halfAngle);
             cosHalfAngle = cos;
             var leftDirX = fx * cos - fz * sin;
             var leftDirZ = fx * sin + fz * cos;
@@ -115,6 +115,41 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             rightInnerZ = cz + rightDirZ * inner;
             rightOuterX = cx + rightDirX * outer;
             rightOuterZ = cz + rightDirZ * outer;
+        }
+    }
+
+    private readonly struct TriangleGeometry
+    {
+        public readonly float ax, ay, bx, by, cx, cy;
+        public readonly float minX, minY, maxX, maxY;
+        public readonly float e0x, e0y, e0Len2; // c -> a
+        public readonly float e1x, e1y, e1Len2; // a -> b
+        public readonly float e2x, e2y, e2Len2; // b -> c
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TriangleGeometry(in WDir a, in WDir b, in WDir c)
+        {
+            ax = a.X;
+            ay = a.Z;
+            bx = b.X;
+            by = b.Z;
+            cx = c.X;
+            cy = c.Z;
+
+            minX = Math.Min(ax, Math.Min(bx, cx));
+            minY = Math.Min(ay, Math.Min(by, cy));
+            maxX = Math.Max(ax, Math.Max(bx, cx));
+            maxY = Math.Max(ay, Math.Max(by, cy));
+
+            e0x = ax - cx;
+            e0y = ay - cy;
+            e0Len2 = e0x * e0x + e0y * e0y;
+            e1x = bx - ax;
+            e1y = by - ay;
+            e1Len2 = e1x * e1x + e1y * e1y;
+            e2x = cx - bx;
+            e2y = cy - by;
+            e2Len2 = e2x * e2x + e2y * e2y;
         }
     }
 
@@ -336,14 +371,12 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         // prefix sums with padding
         var rowOffsets = new int[rows + 1]; // padded offsets
         var rowEnds = new int[rows]; // actual ends, excluding SIMD padding
-        var paddedCounts = new int[rows];
         var total = 0;
         for (var r = 0; r < rows; ++r)
         {
             rowOffsets[r] = total;
             var c = counts[r];
             var pc = padWidth == 1 ? c : RoundUp(c, padWidth);
-            paddedCounts[r] = pc;
             rowEnds[r] = total + c;
             total += pc;
         }
@@ -461,7 +494,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         {
             var start = rowOffsets[r];
             var endActual = start + counts[r];
-            var endPad = start + paddedCounts[r];
+            var endPad = rowOffsets[r + 1];
             for (var i = endActual; i < endPad; ++i)
             {
                 y0Ptr[i] = float.NaN; // makes span/den comparisons false
@@ -589,6 +622,10 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         }
 
         var row = ClampRow(py);
+        if (px < _rowMinX[row] - Eps || px > _rowMaxX[row] + Eps)
+        {
+            return false;
+        }
 
         int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
         for (var i = hs; i < he; ++i)
@@ -598,11 +635,6 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             {
                 return true;
             }
-        }
-
-        if (px < _rowMinX[row] - Eps || px > _rowMaxX[row] + Eps)
-        {
-            return false;
         }
 
         int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
@@ -745,7 +777,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             var best = float.MaxValue;
             var t0 = Math.Max(0f, tmin);
 
-            int es = _rowOffsets[row], ee = _rowOffsets[row + 1];
+            int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
                 float y0 = _y0[i], y1 = _y1[i];
@@ -1098,92 +1130,240 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         return outPts;
     }
 
-    public void AddForbiddenDirections(Actor actor, WPos center, RelSimplifiedComplexPolygon polygon, AIHints hints, DateTime act, float forbiddenDist)
+    internal void AddForbiddenDirections(WDir centerOffset, Angle offset, RelSimplifiedComplexPolygon polygon, AIHints hints, DateTime act, float forbiddenDist)
     {
-        var origin = actor.Position - center;
-        var angs = CollectUniqueAngles(origin, polygon);
-        var count = angs.Count;
-        if (count == 0)
+        var parts = CollectionsMarshal.AsSpan(polygon.Parts);
+
+        var lenP = parts.Length;
+        var blocked = new List<(double start, double end)>(Math.Max(8, lenP * 4));
+        var fullCircle = false;
+        var radius = forbiddenDist + Eps; // keep the same boundary-inclusive convention as Raycast/Contains
+
+        for (var i = 0; !fullCircle && i < lenP; ++i)
         {
+            var part = parts[i];
+            CollectForbiddenDirectionIntervals(part.Exterior, centerOffset, radius, blocked, ref fullCircle);
+
+            var holes = part.HoleStarts.Count;
+            for (var h = 0; !fullCircle && h < holes; ++h)
+            {
+                CollectForbiddenDirectionIntervals(part.Interior(h), centerOffset, radius, blocked, ref fullCircle);
+            }
+        }
+
+        if (fullCircle)
+        {
+            // The actor is on (or numerically indistinguishable from) a boundary. Every ray intersects it at t ~= 0.
             return;
         }
-
-        var blocked = new List<(double start, double end)>(count * 2);
-
-        for (var i = 0; i < count; ++i)
-        {
-            var a0 = angs[i];
-            var a1 = (i + 1 < count) ? angs[i + 1] : angs[0] + Math.Tau;
-            CollectBlockedIntervals(origin, a0, a1, forbiddenDist, blocked, 0);
-        }
-
-        var countB = blocked.Count;
-
-        if (countB == 0)
+        if (blocked.Count == 0)
         {
             return;
         }
 
         MergeAngleIntervals(blocked);
-        countB = blocked.Count;
+        MergeCircularAngleSeam(blocked);
+        var countB = blocked.Count;
         for (var i = 0; i < countB; ++i)
         {
-            var block = blocked[i];
-            var start = block.start;
-            var end = block.end;
-            var width = AngleDiffCCW(start, end);
-            if (width <= 1e-7)
+            var interval = blocked[i];
+            var iStart = interval.start;
+            var width = interval.end - iStart;
+            if (width <= 1e-9)
             {
                 continue;
             }
 
-            var centerA = NormalizeAngle(start + 0.5d * width);
+            var centerMath = iStart + 0.5d * width;
+            var (sin, cos) = Math.SinCos(centerMath);
+            var centerDir = new WDir((float)cos, (float)sin);
 
-            hints.ForbiddenDirections.Add(new(new((float)centerA), new(0.5f * (float)width), act));
+            hints.ForbiddenDirections.Add((Angle.FromDirection(centerDir) + offset, new(0.5f * (float)Math.Min(width, Math.Tau)), act));
         }
     }
 
-    private void CollectBlockedIntervals(in WDir origin, double a0, double a1, float forbiddenDist, List<(double start, double end)> blocked, int depth)
+    private static void CollectForbiddenDirectionIntervals(ReadOnlySpan<WDir> contour, in WDir origin, float radius, List<(double start, double end)> blocked, ref bool fullCircle)
     {
-        var d = AngleDiffCCW(a0, a1);
-        if (d <= 1e-9)
-            return;
-
-        var eps = Math.Min(1e-4, 0.2d * d);
-        var left = NormalizeAngle(a0 + eps);
-        var right = NormalizeAngle(a1 - eps);
-        var mid = NormalizeAngle(a0 + 0.5d * d);
-
-        var sL = IsBlocked(origin, left, forbiddenDist);
-        var sM = IsBlocked(origin, mid, forbiddenDist);
-        var sR = IsBlocked(origin, right, forbiddenDist);
-
-        if (sL == sM && sM == sR)
+        var count = contour.Length;
+        if (count < 2)
         {
-            if (sM)
-            {
-                blocked.Add((a0, a1));
-            }
             return;
         }
 
-        if (depth >= 10 || d <= 0.25d * (Math.PI / 180d))
+        var previous = contour[count - 1] - origin;
+        for (var i = 0; i < count; ++i)
         {
-            if (sL || sM || sR)
+            var current = contour[i] - origin;
+            if (CollectForbiddenDirectionInterval(previous.X, previous.Z, current.X, current.Z, radius, blocked))
             {
-                blocked.Add((a0, a1));
+                fullCircle = true;
+                return;
             }
-            return;
+            previous = current;
         }
-
-        var am = a0 + 0.5 * d;
-        CollectBlockedIntervals(origin, a0, am, forbiddenDist, blocked, depth + 1);
-        CollectBlockedIntervals(origin, am, a1, forbiddenDist, blocked, depth + 1);
     }
 
-    private bool IsBlocked(in WDir origin, double angle, float forbiddenDist)
+    // Returns true when the segment passes through the ray origin, in which case every direction intersects at t ~= 0.
+    private static bool CollectForbiddenDirectionInterval(float ax, float ay, float bx, float by, float radius, List<(double start, double end)> blocked)
     {
-        return RayAt(origin, angle, out _, out var t) && t <= forbiddenDist;
+        const double originTolerance = 1e-5d;
+        const double angularTolerance = 1e-12d;
+
+        var dax = (double)ax;
+        var day = (double)ay;
+        var dbx = (double)bx;
+        var dby = (double)by;
+        var sdx = dbx - dax;
+        var sdy = dby - day;
+        var segmentLenSq = sdx * sdx + sdy * sdy;
+
+        double distanceSq;
+        if (segmentLenSq <= 1e-24d)
+        {
+            distanceSq = dax * dax + day * day;
+        }
+        else
+        {
+            var t = Math.Clamp(-(dax * sdx + day * sdy) / segmentLenSq, 0d, 1d);
+            var closestX = dax + t * sdx;
+            var closestY = day + t * sdy;
+            distanceSq = closestX * closestX + closestY * closestY;
+        }
+
+        if (distanceSq <= originTolerance * originTolerance)
+        {
+            return true;
+        }
+
+        if (!ClipSegmentToDisk(dax, day, dbx, dby, radius, out var x0, out var y0, out var x1, out var y1))
+        {
+            return false;
+        }
+
+        // Along a segment that does not contain the origin, polar angle is monotonic and its extrema
+        // are the clipped endpoints. There are two circular arcs between those endpoint angles; choose
+        // the one containing an interior point of the clipped segment. This remains stable when the
+        // endpoint directions are almost opposite, where cross-product sign alone can flip.
+        var a0 = NormalizeAngle(Math.Atan2(y0, x0));
+        var a1 = NormalizeAngle(Math.Atan2(y1, x1));
+        var ccwWidth = AngleDiffCCW(a0, a1);
+        if (ccwWidth <= angularTolerance || Math.Tau - ccwWidth <= angularTolerance)
+        {
+            return false; // radial/tangent point: zero-measure direction range
+        }
+
+        // Use the farther quarter-point rather than the midpoint: for a segment passing close to the
+        // origin, the midpoint can be almost zero and therefore have a numerically unstable angle.
+        var q0x = 0.75d * x0 + 0.25d * x1;
+        var q0y = 0.75d * y0 + 0.25d * y1;
+        var q1x = 0.25d * x0 + 0.75d * x1;
+        var q1y = 0.25d * y0 + 0.75d * y1;
+        var q0LenSq = q0x * q0x + q0y * q0y;
+        var q1LenSq = q1x * q1x + q1y * q1y;
+        var sampleAngle = q0LenSq >= q1LenSq ? Math.Atan2(q0y, q0x) : Math.Atan2(q1y, q1x);
+        sampleAngle = NormalizeAngle(sampleAngle);
+
+        var sampleFromA0 = AngleDiffCCW(a0, sampleAngle);
+        if (sampleFromA0 <= ccwWidth + angularTolerance)
+        {
+            AddCircularInterval(blocked, a0, ccwWidth);
+        }
+        else
+        {
+            AddCircularInterval(blocked, a1, Math.Tau - ccwWidth);
+        }
+        return false;
+    }
+
+    private static bool ClipSegmentToDisk(double ax, double ay, double bx, double by, double radius, out double x0, out double y0, out double x1, out double y1)
+    {
+        var dx = bx - ax;
+        var dy = by - ay;
+        var qa = dx * dx + dy * dy;
+        var radiusSq = radius * radius;
+
+        if (qa <= 1e-24)
+        {
+            if (ax * ax + ay * ay > radiusSq)
+            {
+                x0 = y0 = x1 = y1 = 0d;
+                return false;
+            }
+            x0 = x1 = ax;
+            y0 = y1 = ay;
+            return true;
+        }
+
+        var qb = 2d * (ax * dx + ay * dy);
+        var qc = ax * ax + ay * ay - radiusSq;
+        var discriminant = qb * qb - 4d * qa * qc;
+        if (discriminant < 0d)
+        {
+            x0 = y0 = x1 = y1 = 0d;
+            return false;
+        }
+
+        var sqrtDiscriminant = Math.Sqrt(Math.Max(0d, discriminant));
+        var inv2A = 0.5d / qa;
+        var root0 = (-qb - sqrtDiscriminant) * inv2A;
+        var root1 = (-qb + sqrtDiscriminant) * inv2A;
+        var t0 = Math.Max(0d, Math.Min(root0, root1));
+        var t1 = Math.Min(1d, Math.Max(root0, root1));
+        if (t1 < t0)
+        {
+            x0 = y0 = x1 = y1 = 0d;
+            return false;
+        }
+
+        x0 = ax + t0 * dx;
+        y0 = ay + t0 * dy;
+        x1 = ax + t1 * dx;
+        y1 = ay + t1 * dy;
+        return true;
+    }
+
+    private static void AddCircularInterval(List<(double start, double end)> intervals, double start, double width)
+    {
+        if (width <= 1e-12)
+        {
+            return;
+        }
+        if (width >= Math.Tau - 1e-12)
+        {
+            intervals.Clear();
+            intervals.Add((0d, Math.Tau));
+            return;
+        }
+
+        start = NormalizeAngle(start);
+        var end = start + width;
+        if (end <= Math.Tau)
+        {
+            intervals.Add((start, end));
+        }
+        else
+        {
+            intervals.Add((start, Math.Tau));
+            intervals.Add((0d, end - Math.Tau));
+        }
+    }
+
+    private static void MergeCircularAngleSeam(List<(double start, double end)> intervals)
+    {
+        var count = intervals.Count;
+        if (count < 2)
+        {
+            return;
+        }
+
+        const double mergeTolerance = 1e-7d;
+        var first = intervals[0];
+        var last = intervals[count - 1];
+        if (first.start <= mergeTolerance && last.end >= Math.Tau - mergeTolerance)
+        {
+            intervals[0] = (last.start, first.end + Math.Tau);
+            intervals.RemoveAt(count - 1);
+        }
     }
 
     public static void MergeAngleIntervals(List<(double start, double end)> intervals)
@@ -1196,8 +1376,8 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         intervals.Sort(static (x, y) => x.start.CompareTo(y.start));
 
-        var cur = intervals[0];
         var write = 0;
+        var cur = intervals[0];
 
         for (var i = 1; i < count; ++i)
         {
@@ -1217,13 +1397,13 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             }
         }
 
-        intervals[write++] = cur;
         if (write < count)
         {
             intervals.RemoveRange(write, count - write);
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double NormalizeAngle(double a)
     {
         a %= Math.Tau;
@@ -1342,14 +1522,17 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         {
             return;
         }
+
         const float eps = 1e-6f;
-        var tmp = new List<(WDir pt, float t)>(countP);
+        var first = pts[0].pt;
+        var a = pts[countP - 1].pt;
+        var b = first;
+        var write = 0;
 
         for (var i = 0; i < countP; ++i)
         {
-            var a = pts[(i - 1 + countP) % countP].pt;
-            var b = pts[i].pt;
-            var c = pts[(i + 1) % countP].pt;
+            var current = pts[i];
+            var c = i + 1 < countP ? pts[i + 1].pt : first;
             var abx = b.X - a.X;
             var abz = b.Z - a.Z;
             var bcx = c.X - b.X;
@@ -1358,12 +1541,17 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             var scale = Math.Abs(abx) + Math.Abs(abz) + Math.Abs(bcx) + Math.Abs(bcz);
             if (cross > eps * scale)
             {
-                tmp.Add(pts[i]); // keep only if not near-collinear
+                pts[write++] = current; // compact in place; avoid a temporary list allocation
             }
+
+            a = b;
+            b = c;
         }
 
-        pts.Clear();
-        pts.AddRange(tmp);
+        if (write < countP)
+        {
+            pts.RemoveRange(write, countP - write);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1539,15 +1727,21 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             var validDen = Vector512.GreaterThan(Vector512.Abs(den), v_tiny);
             var invDen = Avx512F.Divide(v_one, den);
 
-            // t_num = wox*dy - woz*dxE,  u_num = wox*dz - woz*dx
+            // t_num = wox*dy - woz*dxE
             var t_num = Avx512F.FusedMultiplySubtract(wox, dy, Avx512F.Multiply(woz, dxE));
-            var u_num = Avx512F.FusedMultiplySubtract(wox, v_dz, Avx512F.Multiply(woz, v_dx));
             var t = Avx512F.Multiply(t_num, invDen);
-            var u = Avx512F.Multiply(u_num, invDen);
-
-            var valid = validDen
+            var tCandidate = validDen
                 & Vector512.GreaterThanOrEqual(t, v_tMin)
-                & Vector512.LessThanOrEqual(t, v_tMax)
+                & Vector512.LessThanOrEqual(t, v_tMax);
+            if (tCandidate.ExtractMostSignificantBits() == 0ul)
+            {
+                continue;
+            }
+
+            // Only calculate u for blocks with a t candidate in range.
+            var u_num = Avx512F.FusedMultiplySubtract(wox, v_dz, Avx512F.Multiply(woz, v_dx));
+            var u = Avx512F.Multiply(u_num, invDen);
+            var valid = tCandidate
                 & Vector512.GreaterThanOrEqual(u, v_zero)
                 & Vector512.LessThan(u, v_one);
 
@@ -1591,16 +1785,18 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             var t = HasFMA ? Fma.MultiplySubtract(wox, dy, Avx.Multiply(woz, dxE)) : Avx.Subtract(Avx.Multiply(wox, dy), Avx.Multiply(woz, dxE));
             t = Avx.Multiply(t, invDen);
 
-            // early range gate on t to avoid useless u work
-            var tValid = Vector256.BitwiseAnd(
-                Vector256.GreaterThanOrEqual(t, v_tMin),
-                Vector256.LessThanOrEqual(t, v_tMax));
+            // Gate before calculating u; most blocks have no intersection in the active t range.
+            var tCandidate = validDen & Vector256.GreaterThanOrEqual(t, v_tMin) & Vector256.LessThanOrEqual(t, v_tMax);
+            if (tCandidate.ExtractMostSignificantBits() == 0u)
+            {
+                continue;
+            }
 
             // u = (wox*dz - woz*dx) / den
             var u = HasFMA ? Fma.MultiplySubtract(wox, v_dz, Avx.Multiply(woz, v_dx)) : Avx.Subtract(Avx.Multiply(wox, v_dz), Avx.Multiply(woz, v_dx));
             u = Avx.Multiply(u, invDen);
 
-            var valid = validDen & tValid & Vector256.GreaterThanOrEqual(u, v_zero) & Vector256.LessThan(u, v_one);
+            var valid = tCandidate & Vector256.GreaterThanOrEqual(u, v_zero) & Vector256.LessThan(u, v_one);
 
             var mask = valid.ExtractMostSignificantBits();
             if (mask != 0u)
@@ -1676,6 +1872,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         var v_py = Vector512.Create(py);
         var v_one = Vector512<float>.One;
         var v_zero = Vector512<float>.Zero;
+        var v_bestSq = Vector512.Create(bestSq);
 
         for (var i = es; i + 16 <= ee; i += 16)
         {
@@ -1701,11 +1898,12 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             // d2 = dxp*dxp + dyp*dyp
             var d2 = Avx512F.FusedMultiplyAdd(dxp, dxp, Avx512F.Multiply(dyp, dyp));
 
-            var mask = Vector512.LessThan(d2, Vector512.Create(bestSq)).ExtractMostSignificantBits();
+            var mask = Vector512.LessThan(d2, v_bestSq).ExtractMostSignificantBits();
             if (mask != 0ul)
             {
                 // update best and carry back the lane's (nx, ny)
                 UpdateClosestFromMask(d2, nx, ny, mask, ref bestSq, ref bestX, ref bestY);
+                v_bestSq = Vector512.Create(bestSq);
             }
         }
     }
@@ -1717,6 +1915,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         var v_py = Vector256.Create(py);
         var v_one = Vector256<float>.One;
         var v_zero = Vector256<float>.Zero;
+        var v_bestSq = Vector256.Create(bestSq);
 
         for (var i = es; i + 8 <= ee; i += 8)
         {
@@ -1741,11 +1940,12 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             var dyp = Avx.Subtract(ny, v_py);
             var d2 = HasFMA ? Fma.MultiplyAdd(dxp, dxp, Avx.Multiply(dyp, dyp)) : Avx.Add(Avx.Multiply(dxp, dxp), Avx.Multiply(dyp, dyp));
 
-            var mask = Vector256.LessThan(d2, Vector256.Create(bestSq)).ExtractMostSignificantBits();
+            var mask = Vector256.LessThan(d2, v_bestSq).ExtractMostSignificantBits();
             if (mask != 0u)
             {
                 // update best and carry back the lane's (nx, ny)
                 UpdateClosestFromMask(d2, nx, ny, mask, ref bestSq, ref bestX, ref bestY);
+                v_bestSq = Vector256.Create(bestSq);
             }
         }
     }
@@ -1889,10 +2089,17 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
     public PolygonShapeRelation ClassifyCircle(in WDir center, float radius)
     {
-        var closest = ClosestPointOnBoundary(center);
-        var dx = closest.X - center.X;
-        var dz = closest.Z - center.Z;
+        var centerX = center.X;
+        var centerZ = center.Z;
         var limit = radius + Eps;
+        if (limit >= 0f && (centerX + limit < _bbMinX || centerX - limit > _bbMaxX || centerZ + limit < _bbMinY || centerZ - limit > _bbMaxY))
+        {
+            return PolygonShapeRelation.Outside;
+        }
+
+        var closest = ClosestPointOnBoundary(center);
+        var dx = closest.X - centerX;
+        var dz = closest.Z - centerZ;
         if (dx * dx + dz * dz <= limit * limit)
         {
             return PolygonShapeRelation.Intersecting;
@@ -2087,14 +2294,21 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public PolygonShapeRelation ClassifyTriangle(in WDir a, in WDir b, in WDir c)
     {
+        var triangle = new TriangleGeometry(a, b, c);
+        if (triangle.maxX < _bbMinX - Eps || triangle.minX > _bbMaxX + Eps || triangle.maxY < _bbMinY - Eps || triangle.minY > _bbMaxY + Eps)
+        {
+            return PolygonShapeRelation.Outside;
+        }
 
-        Span<WDir> vertices = [a, b, c];
-        var sample = new WDir((a.X + b.X + c.X) / 3f, (a.Z + b.Z + c.Z) / 3f);
-        return ClassifySimplePolygon(vertices, sample);
+        if (BoundaryIntersectsTriangle(triangle))
+        {
+            return PolygonShapeRelation.Intersecting;
+        }
+
+        const float OneThird = 1f / 3f;
+        var sample = new WDir((a.X + b.X + c.X) * OneThird, (a.Z + b.Z + c.Z) * OneThird);
+        return Contains(sample) ? PolygonShapeRelation.Inside : PolygonShapeRelation.Outside;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public PolygonShapeRelation ClassifyTri(in WDir a, in WDir b, in WDir c) => ClassifyTriangle(a, b, c);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public PolygonShapeRelation ClassifyIsoscelesTriangle(in WDir apexOffset, in WDir height, in WDir halfBase)
@@ -2209,6 +2423,10 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
             for (var i = es; i < ee; ++i)
             {
                 var cy = _y0[i];
+                if (!IsFirstOverlappingCopy(row, row0, cy))
+                {
+                    continue;
+                }
                 if (_maxX[i] < minX || _minX[i] > maxX)
                 {
                     continue;
@@ -2276,6 +2494,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (worldMaxX < _rowMinX[row] || worldMinX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -2342,6 +2565,146 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         return false;
     }
 
+    private bool BoundaryIntersectsTriangle(in TriangleGeometry triangle)
+    {
+        var worldMinX = triangle.minX - Eps;
+        var worldMaxX = triangle.maxX + Eps;
+        if (!TryGetRowRange(triangle.minY, triangle.maxY, out var row0, out var row1))
+        {
+            return false;
+        }
+
+        for (var row = row0; row <= row1; ++row)
+        {
+            if (worldMaxX < _rowMinX[row] || worldMinX > _rowMaxX[row])
+            {
+                continue;
+            }
+
+            int es = _rowOffsets[row], ee = _rowEnds[row];
+            for (var i = es; i < ee; ++i)
+            {
+                var ay = _y0[i];
+                if (!IsFirstOverlappingCopy(row, row0, ay)
+                 || _maxX[i] < worldMinX || _minX[i] > worldMaxX)
+                {
+                    continue;
+                }
+                var ax = _x0[i];
+                if (SegmentIntersectsFilledTriangle(ax, ay, ax + _dx[i], ay + _dy[i], triangle))
+                {
+                    return true;
+                }
+            }
+
+            int hs = _hRowOffsets[row], he = _hRowOffsets[row + 1];
+            for (var h = hs; h < he; ++h)
+            {
+                ref readonly var edge = ref _hEdges[_hRowIdx[h]];
+                var edgeMinX = edge.minX;
+                var edgeMaxX = edge.maxX;
+
+                if (edgeMaxX < worldMinX || edgeMinX > worldMaxX)
+                {
+                    continue;
+                }
+                var edgeY = edge.y;
+
+                if (SegmentIntersectsFilledTriangle(edgeMinX, edgeY, edgeMaxX, edgeY, triangle))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool SegmentIntersectsFilledTriangle(float ax, float ay, float bx, float by, in TriangleGeometry triangle)
+    {
+        if (Math.Max(ax, bx) + Eps < triangle.minX || triangle.maxX + Eps < Math.Min(ax, bx)
+         || Math.Max(ay, by) + Eps < triangle.minY || triangle.maxY + Eps < Math.Min(ay, by))
+        {
+            return false;
+        }
+
+        if (PointInTriangle(ax, ay, triangle) || PointInTriangle(bx, by, triangle))
+        {
+            return true;
+        }
+
+        // Same boundary-inclusive semantics as the generic simple-polygon path,
+        // but fully unrolled for the fixed three-edge case.
+        return SegmentsIntersect(ax, ay, bx, by, triangle.cx, triangle.cy, triangle.ax, triangle.ay)
+           || SegmentsIntersect(ax, ay, bx, by, triangle.ax, triangle.ay, triangle.bx, triangle.by)
+            || SegmentsIntersect(ax, ay, bx, by, triangle.bx, triangle.by, triangle.cx, triangle.cy);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool PointInTriangle(float px, float py, in TriangleGeometry triangle)
+    {
+        var cx = triangle.cx;
+        var cy = triangle.cy;
+        var e0x = triangle.e0x;
+        var e0y = triangle.e0y;
+        var ax = triangle.ax;
+        var ay = triangle.ay;
+        var e1x = triangle.e1x;
+        var e1y = triangle.e1y;
+        var bx = triangle.bx;
+        var by = triangle.by;
+        var e2x = triangle.e2x;
+        var e2y = triangle.e2y;
+        if (PointSegmentDistanceSqKnownEdge(px, py, cx, cy, e0x, e0y, triangle.e0Len2) <= Eps2
+         || PointSegmentDistanceSqKnownEdge(px, py, ax, ay, e1x, e1y, triangle.e1Len2) <= Eps2
+         || PointSegmentDistanceSqKnownEdge(px, py, bx, by, e2x, e2y, triangle.e2Len2) <= Eps2)
+        {
+            return true;
+        }
+
+        var inside = false;
+        if ((cy > py) != (ay > py))
+        {
+            var crossingX = cx + (py - cy) * e0x / e0y;
+            inside = crossingX > px;
+        }
+        if ((ay > py) != (by > py))
+        {
+            var crossingX = ax + (py - ay) * e1x / e1y;
+            if (crossingX > px)
+            {
+                inside = !inside;
+            }
+        }
+        if ((by > py) != (cy > py))
+        {
+            var crossingX = bx + (py - by) * e2x / e2y;
+            if (crossingX > px)
+            {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float PointSegmentDistanceSqKnownEdge(float px, float py, float ax, float ay, float dx, float dy, float lenSq)
+    {
+        if (lenSq <= TinyLen2)
+        {
+            var ex = px - ax;
+            var ey = py - ay;
+            return ex * ex + ey * ey;
+        }
+
+        var t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+        t = Math.Clamp(t, 0f, 1f);
+        var rx = px - (ax + t * dx);
+        var ry = py - (ay + t * dy);
+        return rx * rx + ry * ry;
+    }
+
     private static bool PointInSimplePolygon(float px, float py, ReadOnlySpan<WDir> vertices)
     {
         var inside = false;
@@ -2387,6 +2750,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (maxX < _rowMinX[row] || minX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -2447,6 +2815,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (maxX < _rowMinX[row] || minX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -2510,6 +2883,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (maxX < _rowMinX[row] || minX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -2576,6 +2954,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (worldMaxX < _rowMinX[row] || worldMinX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -2636,6 +3019,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (maxX < _rowMinX[row] || minX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -2694,6 +3082,11 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
 
         for (var row = row0; row <= row1; ++row)
         {
+            if (maxX < _rowMinX[row] || minX > _rowMaxX[row])
+            {
+                continue;
+            }
+
             int es = _rowOffsets[row], ee = _rowEnds[row];
             for (var i = es; i < ee; ++i)
             {
@@ -3014,37 +3407,38 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         return projection >= angularLimit - Eps;
     }
 
-    private static bool SegmentsIntersect(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
-    {
-        if (Math.Max(ax, bx) + Eps < Math.Min(cx, dx) || Math.Max(cx, dx) + Eps < Math.Min(ax, bx) || Math.Max(ay, by) + Eps < Math.Min(cy, dy) || Math.Max(cy, dy) + Eps < Math.Min(ay, by))
-        {
-            return false;
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool SegmentBoundsOverlap(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
+        => Math.Max(ax, bx) + Eps >= Math.Min(cx, dx) && Math.Max(cx, dx) + Eps >= Math.Min(ax, bx)
+        && Math.Max(ay, by) + Eps >= Math.Min(cy, dy) && Math.Max(cy, dy) + Eps >= Math.Min(ay, by);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool SegmentsProperlyIntersect(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
+    {
         var abX = bx - ax;
         var abY = by - ay;
         var cdX = dx - cx;
         var cdY = dy - cy;
-        var acX = cx - ax;
-        var acY = cy - ay;
-        var adX = dx - ax;
-        var adY = dy - ay;
-        var caX = ax - cx;
-        var caY = ay - cy;
-        var cbX = bx - cx;
-        var cbY = by - cy;
+        var c1 = Cross(abX, abY, cx - ax, cy - ay);
+        var c2 = Cross(abX, abY, dx - ax, dy - ay);
+        var c3 = Cross(cdX, cdY, ax - cx, ay - cy);
+        var c4 = Cross(cdX, cdY, bx - cx, by - cy);
+        return (c1 > 0f && c2 < 0f || c1 < 0f && c2 > 0f) && (c3 > 0f && c4 < 0f || c3 < 0f && c4 > 0f);
+    }
 
-        var c1 = Cross(abX, abY, acX, acY);
-        var c2 = Cross(abX, abY, adX, adY);
-        var c3 = Cross(cdX, cdY, caX, caY);
-        var c4 = Cross(cdX, cdY, cbX, cbY);
-        if ((c1 > 0f && c2 < 0f || c1 < 0f && c2 > 0f) && (c3 > 0f && c4 < 0f || c3 < 0f && c4 > 0f))
+    private static bool SegmentsIntersect(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy)
+    {
+        if (!SegmentBoundsOverlap(ax, ay, bx, by, cx, cy, dx, dy))
+        {
+            return false;
+        }
+        if (SegmentsProperlyIntersect(ax, ay, bx, by, cx, cy, dx, dy))
         {
             return true;
         }
 
         return PointSegmentDistanceSq(ax, ay, cx, cy, dx, dy) <= Eps2 || PointSegmentDistanceSq(bx, by, cx, cy, dx, dy) <= Eps2
-        || PointSegmentDistanceSq(cx, cy, ax, ay, bx, by) <= Eps2 || PointSegmentDistanceSq(dx, dy, ax, ay, bx, by) <= Eps2;
+            || PointSegmentDistanceSq(cx, cy, ax, ay, bx, by) <= Eps2 || PointSegmentDistanceSq(dx, dy, ax, ay, bx, by) <= Eps2;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -3073,14 +3467,15 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
     private static float SegmentSegmentDistanceSq(float ax, float ay, float bx, float by,
         float cx, float cy, float dx, float dy)
     {
-        if (SegmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy))
+        if (SegmentBoundsOverlap(ax, ay, bx, by, cx, cy, dx, dy) && SegmentsProperlyIntersect(ax, ay, bx, by, cx, cy, dx, dy))
         {
             return 0f;
         }
 
-        return Math.Min(
+        var distanceSq = Math.Min(
             Math.Min(PointSegmentDistanceSq(ax, ay, cx, cy, dx, dy), PointSegmentDistanceSq(bx, by, cx, cy, dx, dy)),
             Math.Min(PointSegmentDistanceSq(cx, cy, ax, ay, bx, by), PointSegmentDistanceSq(dx, dy, ax, ay, bx, by)));
+        return distanceSq <= Eps2 ? 0f : distanceSq;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

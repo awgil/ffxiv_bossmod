@@ -61,10 +61,10 @@ public sealed class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> parts)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // useful for knockbacks that have the player as origin to block all angles that intersect the polygon (doesn't matter if outside or inside polygon)
-    public void AddForbiddenDirections(Actor actor, WPos center, AIHints hints, DateTime activation, float forbiddenDist, float safetyMargin = 1f)
+    public void AddForbiddenDirections(in WDir centerOffset, Angle offset, AIHints hints, DateTime activation, float forbiddenDist, float safetyMargin = 1f)
     {
         var idx = GetPolygonIndex(this);
-        idx.AddForbiddenDirections(actor, center, this, hints, activation, forbiddenDist + safetyMargin);
+        idx.AddForbiddenDirections(centerOffset, offset, this, hints, activation, forbiddenDist + safetyMargin);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -98,6 +98,12 @@ public sealed class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> parts)
     {
         var idx = GetPolygonIndex(this);
         return idx.ClassifyDirectionalRectangle(originOffset, direction, lenFront, lenBack, halfWidth);
+    }
+
+    public PolygonShapeRelation PolygonCapsuleIntersection(in WDir originOffset, in WDir direction, float length, float radius)
+    {
+        var idx = GetPolygonIndex(this);
+        return idx.ClassifyDirectionalCapsule(originOffset, direction, length, radius);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
