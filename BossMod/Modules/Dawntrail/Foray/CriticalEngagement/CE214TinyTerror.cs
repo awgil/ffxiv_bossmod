@@ -111,14 +111,8 @@ sealed class TinyQuake(BossModule module) : Components.GenericAOEs(module)
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var show = 0;
-        var aoes = new List<AOEInstance>(storedAOEs);
-        aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        if (aoes.Count > 2)
-        {
-            aoes.RemoveRange(2, aoes.Count - 2);
-        }
-
+        int show = 0;
+        var aoes = storedAOEs.OrderBy(a => a.Activation).Take(2).ToList();
         foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
         {
             aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
@@ -160,26 +154,8 @@ sealed class DiminutiveDualcast(BossModule module) : Components.GenericAOEs(modu
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var aoes = new List<AOEInstance>(storedAOEs);
-        if (aoes.Count == 0)
-        {
-            return [];
-        }
-        aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        if (aoes.Count > 4)
-        {
-            aoes.RemoveRange(4, aoes.Count - 4);
-        }
-
-        var minActivation = aoes[0].Activation;
-        for (var i = 1; i < aoes.Count; ++i)
-        {
-            if (aoes[i].Activation < minActivation)
-            {
-                minActivation = aoes[i].Activation;
-            }
-        }
-        var waveTimer = minActivation.AddSeconds(0.2f);
+        var aoes = storedAOEs.OrderBy(a => a.Activation).Take(4).ToList();
+        var waveTimer = aoes.MinBy(a => a.Activation).Activation.AddSeconds(0.2f);
 
         foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
         {
@@ -219,20 +195,7 @@ sealed class TinyMeteor(BossModule module) : Components.GenericAOEs(module, (uin
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (aoes.Count == 0)
-        {
-            return [];
-        }
-
-        var minActivation = aoes[0].Activation;
-        for (var i = 1; i < aoes.Count; ++i)
-        {
-            if (aoes[i].Activation < minActivation)
-            {
-                minActivation = aoes[i].Activation;
-            }
-        }
-        var waveTimer = minActivation.AddSeconds(0.2f);
+        var waveTimer = aoes.MinBy(a => a.Activation).Activation.AddSeconds(0.2f);
 
         foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
         {
@@ -302,16 +265,11 @@ sealed class Comet(BossModule module) : BossComponent(module)
             return;
         }
 
-        var firstArcaneSphere = arcaneSpheres[0];
-        for (var i = 1; i < arcaneSpheres.Count; ++i)
+        var firstArcaneSphere = arcaneSpheres.MaxBy(a => a.tethers);
+        if (firstArcaneSphere != null)
         {
-            if (arcaneSpheres[i].tethers > firstArcaneSphere.tethers)
-            {
-                firstArcaneSphere = arcaneSpheres[i];
-            }
+            Arena.ZoneCircleOutline(firstArcaneSphere.arcaneSphere.Position, 2.0f, Colors.Safe, 2.0f);
         }
-
-        Arena.ZoneCircleOutline(firstArcaneSphere.arcaneSphere.Position, 2.0f, Colors.Safe, 2.0f);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -365,14 +323,9 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module)
             return;
         }
 
-        var nextCombinations = new List<MergeCombination>(mergeCombinations);
-        nextCombinations.Sort((a, b) => a.Distance.CompareTo(b.Distance));
-        if (nextCombinations.Count > 2)
-        {
-            nextCombinations.RemoveRange(2, nextCombinations.Count - 2);
-        }
+        var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
 
-        for (var i = 0; i < nextCombinations.Count; i++)
+        for (int i = 0; i < nextCombinations.Count; i++)
         {
             var combination = nextCombinations[i];
             if (combination.IsFlare)
@@ -395,12 +348,7 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module)
             return;
         }
 
-        var nextCombinations = new List<MergeCombination>(mergeCombinations);
-        nextCombinations.Sort((a, b) => a.Distance.CompareTo(b.Distance));
-        if (nextCombinations.Count > 2)
-        {
-            nextCombinations.RemoveRange(2, nextCombinations.Count - 2);
-        }
+        var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
 
         foreach (var combination in nextCombinations)
         {
@@ -418,13 +366,7 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module)
             return;
         }
 
-        var nextCombinations = new List<MergeCombination>(mergeCombinations);
-        nextCombinations.Sort((a, b) => a.Distance.CompareTo(b.Distance));
-        if (nextCombinations.Count > 2)
-        {
-            nextCombinations.RemoveRange(2, nextCombinations.Count - 2);
-        }
-
+        var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
         foreach (var combination in nextCombinations)
         {
             if (combination.IsFlare && flareShape.Check(actor.Position, combination.Origin, default))
@@ -587,9 +529,9 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module)
 }
 
 [SkipLocalsInit]
-sealed class TinyMageStates : StateMachineBuilder
+sealed class CE214TinyTerrorStates : StateMachineBuilder
 {
-    public TinyMageStates(BossModule module) : base(module)
+    public CE214TinyTerrorStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<TinyThunderIII>()
@@ -603,12 +545,12 @@ sealed class TinyMageStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(TinyMageStates),
+    StatesType = typeof(CE214TinyTerror),
     ConfigType = null, // replace null with typeof(TinyMageConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
-    StatusIDType = null, // replace null with typeof(SID) if applicable
-    TetherIDType = null, // replace null with typeof(TetherID) if applicable
+    ActionIDType = typeof(AID),
+    StatusIDType = typeof(SID),
+    TetherIDType = typeof(TetherID),
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.TinyMage,
     Contributors = "Equilius",
@@ -620,7 +562,7 @@ sealed class TinyMageStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class TinyMage(WorldState ws, Actor primary) : BossModule(ws, primary, new(152.000f, 716.000f), new ArenaBoundsCircle(20f))
+public sealed class CE214TinyTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(152.000f, 716.000f), new ArenaBoundsCircle(20f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

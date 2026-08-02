@@ -247,9 +247,9 @@ sealed class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
 }
 
 [SkipLocalsInit]
-sealed class ArbatelStates : StateMachineBuilder
+sealed class CE209ForbiddenFoliosStates : StateMachineBuilder
 {
-    public ArbatelStates(BossModule module) : base(module)
+    public CE209ForbiddenFoliosStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<KnowledgeLevelCorrection>()
@@ -269,7 +269,7 @@ sealed class ArbatelStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(ArbatelStates),
+    StatesType = typeof(CE209ForbiddenFoliosStates),
     ConfigType = null, // replace null with typeof(ArbatelConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -286,4 +286,4 @@ sealed class ArbatelStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Arbatel(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f));
+public sealed class CE209ForbiddenFolios(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f));
