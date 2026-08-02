@@ -87,7 +87,9 @@ public sealed class Plugin : IAsyncDalamudPlugin
             Service.Config.Initialize();
             Service.Config.LoadFromFile(_dalamud.ConfigFile);
 
-            _rotationDB = new(new(_dalamud.ConfigDirectory.FullName + "/autorot"), new(_dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+            _rotationDB = new(new(_dalamud.ConfigDirectory.FullName + "/autorot"),
+                new(_dalamud.AssemblyLocation.DirectoryName! + "/RebornPresets.json"),
+                new(_dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
         }, cancellationToken);
 
         await Service.Framework.RunOnFrameworkThread(InitOnFrameworkThread);

@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "payload": [
+    {
+      "Name": "Movement Only",
+      "Modules": {
+        "BossMod.Autorotation.MiscAI.StayCloseToTarget": [],
+        "BossMod.Autorotation.MiscAI.StayWithinLeylines": [
+          {
+            "Track": "Use Between The Lines",
+            "Option": "Yes"
+          },
+          {
+            "Track": "Use Retrace",
+            "Option": "Yes"
+          }
+        ],
+        "BossMod.Autorotation.MiscAI.GoToPositional": [],
+        "BossMod.Autorotation.MiscAI.StayCloseToPartyRole": [
+          {
+            "Track": "range",
+            "Option": "20"
+          }
+        ],
+        "BossMod.Autorotation.MiscAI.NormalMovement": [
+          {
+            "Track": "Destination",
+            "Option": "Pathfind"
+          }
+        ]
+      }
+    }
+  ]
+}
