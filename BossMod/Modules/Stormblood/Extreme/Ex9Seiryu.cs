@@ -34,11 +34,20 @@ public enum AID : uint
     GreatTyphoonDonut2 = 14330, // Helper->self, donut (part of the Great Typhoon rings)
     GreatTyphoonDonut3 = 14331, // Helper->self, donut (part of the Great Typhoon rings)
     YamaKagura = 15393, // TenNoShiki->self, range 60 width 6 line AoE
+    OnmyoSigil = 14849, // Helper->self, 3.0s cast, circle R12 - stay OUT (paired with Serpent-eye Sigil donut 14850, stay IN)
+    Handprint1 = 14311, // Helper->self, 4.5s cast, half-arena slam (semicircle R20, phase 1); applies Blunt Resistance Down
+    Handprint2 = 14312, // Helper->self, 4.5s cast, half-arena slam (semicircle R40, phase 2); applies Blunt Resistance Down
+    ForceOfNatureAOE = 14314, // Helper->self, 5.0s cast, circle R5 (center damage)
+    ForceOfNatureKnockback = 14315, // Helper->self, 5.0s cast, R21 knockback away from center - can push players off the island
+    CoursingRiverHit1 = 14325, // BlueOrochi->player, 5.0s cast, single-target (likely per-player knockback application)
+    CoursingRiverHit2 = 14626, // BlueOrochi->player, 5.0s cast, single-target
+    CoursingRiverHit3 = 14627, // BlueOrochi->player, 5.0s cast, single-target
+    CoursingRiverCircle = 14326, // BlueOrochi->self, 7.5s cast, circle R21 - damage zone, not the tracked knockback
+    CoursingRiverLine = 14327, // BlueOrochi->self, 7.5s cast, rect 90 wide - directional "river current" push along the snake's facing
 }
 
 // after Dragon's Wake the arena expands from the phase-1 island to a larger circle, with only the central island being safe;
 // the surrounding water is not instantly lethal but increases damage taken and prevents casting, so it must be avoided
-// TODO: confirm EX arena geometry matches normal (phase-1 R20 island, phase-2 R38 arena with R20 safe island)
 class Phase2Water(BossModule module) : BossComponent(module)
 {
     public bool Active { get; private set; }
@@ -83,9 +92,24 @@ class ExplosionNuma(BossModule module) : Components.RaidwideCast(module, AID.Exp
 class ExplosionDoro(BossModule module) : Components.RaidwideCast(module, AID.ExplosionDoro);
 // Serpent Ascending (14300) is the instant boss wind-up; the spreads land as Serpent Descending (14301, R5 targeted circles)
 class SerpentDescending(BossModule module) : Components.SpreadFromCastTargets(module, AID.SerpentDescending, 5);
+class OnmyoSigil(BossModule module) : Components.StandardAOEs(module, AID.OnmyoSigil, 12);
+// Handprint slams one half of the arena (semicircle) in the direction the raised fist points; caster rotation picks the half
+class Handprint1(BossModule module) : Components.StandardAOEs(module, AID.Handprint1, new AOEShapeCone(20, 90.Degrees()));
+class Handprint2(BossModule module) : Components.StandardAOEs(module, AID.Handprint2, new AOEShapeCone(40, 90.Degrees()));
 
-// TODO: Great Typhoon (14328 cone + 14330/14331 donuts) needs replay confirmation of the donut inner radii and the resolution order before it can be drawn accurately.
-// TODO: no "Coursing River" / Blue Orochi push action appeared in the EX action list - confirm whether the knockback exists in EX.
+// Force of Nature resolves as a center R5 circle plus an R21 knockback away from center (both cast simultaneously) - avoid the center circle without being flung off the island
+class ForceOfNatureAOE(BossModule module) : Components.StandardAOEs(module, AID.ForceOfNatureAOE, 5);
+class ForceOfNature(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ForceOfNatureKnockback, 10, shape: new AOEShapeCircle(21))
+{
+    // safe area is the island, not the full (water-filled) phase-2 arena bounds
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, Ex9Seiryu.IslandRadius);
+}
+
+// Coursing River is the Blue Orochi "river current" push: a directional knockback along the snake's facing that can fling players off the island
+class CoursingRiverLine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiverLine, 25, shape: new AOEShapeRect(90, 45), kind: Components.Knockback.Kind.DirForward)
+{
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, Ex9Seiryu.IslandRadius);
+}
 
 class Ex9SeiryuStates : StateMachineBuilder
 {
@@ -103,7 +127,13 @@ class Ex9SeiryuStates : StateMachineBuilder
             .ActivateOnEnter<RedRush>()
             .ActivateOnEnter<ExplosionNuma>()
             .ActivateOnEnter<ExplosionDoro>()
-            .ActivateOnEnter<SerpentDescending>();
+            .ActivateOnEnter<SerpentDescending>()
+            .ActivateOnEnter<OnmyoSigil>()
+            .ActivateOnEnter<Handprint1>()
+            .ActivateOnEnter<Handprint2>()
+            .ActivateOnEnter<ForceOfNatureAOE>()
+            .ActivateOnEnter<ForceOfNature>()
+            .ActivateOnEnter<CoursingRiverLine>();
     }
 }
 

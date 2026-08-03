@@ -1,9 +1,9 @@
-﻿namespace BossMod.Stormblood.Trial.WreathOfSnakes.T09Seiryu;
+namespace BossMod.Stormblood.Trial.WreathOfSnakes.T09Seiryu;
 
 public enum OID : uint
 {
     Boss = 0x25F4, // actual boss target
-    AoNoShiki = 0x233C, // R0.500, x?, Helper type
+    invisible_helpers = 0x233C, // R0.500, Helper type
     AkaNoShiki = 0x2786, // R2.600, x?
     AoNoShiki1 = 0x2787, // R3.000, x?
     IwaNoShiki = 0x2788, // R4.000, x?
@@ -25,6 +25,8 @@ public enum AID : uint
     HundredTonzeSwing = 15390, // IwaNoShiki->self, circle R16 AoE
     Kanabo = 15391, // IwaNoShiki->self, range 40 60-degree cone AoE (aimed toward players)
     YamaKagura = 14355, // TenNoShiki->self, range 60 width 6 line AoE
+    KujiKiri = 14305, // Boss->self, no-shape parent cast; spawns the Fortune-blade Sigil grid (cast by 0x233C helpers)
+    FortuneBladeSigil = 14342, // Helper->self, range 50 width 4 line AoE forming the Kuji-kiri grid
 }
 
 // phase 2 (after Dragon's Wake) the arena expands from the phase-1 island to a larger circle, with only the central island being safe;
@@ -74,6 +76,7 @@ class InfirmSoul(BossModule module) : Components.SingleTargetCast(module, AID.In
 class HundredTonzeSwing(BossModule module) : Components.StandardAOEs(module, AID.HundredTonzeSwing, 16);
 class Kanabo(BossModule module) : Components.StandardAOEs(module, AID.Kanabo, new AOEShapeCone(40, 30.Degrees()));
 class YamaKagura(BossModule module) : Components.StandardAOEs(module, AID.YamaKagura, new AOEShapeRect(60, 3));
+class KujiKiri(BossModule module) : Components.StandardAOEs(module, AID.FortuneBladeSigil, new AOEShapeRect(50, 2));
 
 class T09SeiryuStates : StateMachineBuilder
 {
@@ -86,7 +89,8 @@ class T09SeiryuStates : StateMachineBuilder
             .ActivateOnEnter<InfirmSoul>()
             .ActivateOnEnter<HundredTonzeSwing>()
             .ActivateOnEnter<Kanabo>()
-            .ActivateOnEnter<YamaKagura>();
+            .ActivateOnEnter<YamaKagura>()
+            .ActivateOnEnter<KujiKiri>();
     }
 }
 
