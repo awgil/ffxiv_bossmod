@@ -18,8 +18,12 @@ public enum OID : uint
 
 public enum AID : uint
 {
+    FifthElement = 14334, // Boss->self, room-wide raidwide (circle R100)
+    InfirmSoul = 14333, // Boss->player, tankbuster (circle R4 around target)
     DragonsWake = 14336, // Boss->self, transitions the arena to phase 2 (island surrounded by water)
     CoursingRiver = 14350, // BlueOrochi->self, directional knockback ("river current") covering the whole platform - can push players off the island into the water
+    HundredTonzeSwing = 15390, // IwaNoShiki->self, circle R16 AoE
+    Kanabo = 15391, // IwaNoShiki->self, range 40 60-degree cone AoE (aimed toward players)
 }
 
 // phase 2 (after Dragon's Wake) the arena expands from the phase-1 island to a larger circle, with only the central island being safe;
@@ -64,13 +68,22 @@ class CoursingRiver(BossModule module) : Components.KnockbackFromCastTarget(modu
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, T09Seiryu.IslandRadius);
 }
 
+class FifthElement(BossModule module) : Components.RaidwideCast(module, AID.FifthElement);
+class InfirmSoul(BossModule module) : Components.SingleTargetCast(module, AID.InfirmSoul);
+class HundredTonzeSwing(BossModule module) : Components.StandardAOEs(module, AID.HundredTonzeSwing, 16);
+class Kanabo(BossModule module) : Components.StandardAOEs(module, AID.Kanabo, new AOEShapeCone(40, 30.Degrees()));
+
 class T09SeiryuStates : StateMachineBuilder
 {
     public T09SeiryuStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Phase2Water>()
-            .ActivateOnEnter<CoursingRiver>();
+            .ActivateOnEnter<CoursingRiver>()
+            .ActivateOnEnter<FifthElement>()
+            .ActivateOnEnter<InfirmSoul>()
+            .ActivateOnEnter<HundredTonzeSwing>()
+            .ActivateOnEnter<Kanabo>();
     }
 }
 
