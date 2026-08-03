@@ -270,16 +270,37 @@ public sealed class D173Tyrant : BossModule
                 new Circle(ArenaCenter, 20f)
             ],
         [
-            new PolygonCustom(shape3),
-            new PolygonCustom(shape4), new PolygonCustom(shape5), new PolygonCustom(shape6),
-            new PolygonCustom(shape7), new PolygonCustom(shape9), new PolygonCustom(shape10),
-            new PolygonCustom(shape11), new PolygonCustom(shape12), new PolygonCustom(holeShape1), new PolygonCustom(holeShape2),
             .._shapes, new Rectangle(new(-0f, -20.0f), 4.45f, 0.5f, -0f.Degrees()),
             new Rectangle(new(0f, 20.0f), 4.45f, 0.5f, 0f.Degrees()),
+            new Rectangle(new WPos(8.1f, 18.2f), 1.8f, 1f, 30.Degrees()), // first pipe box that connects to pipe column from south ccw
+            new Circle(new WPos(9.5f, 16.5f), 1f), new Rectangle(new WPos(10f, 17.3f), 1f, 1f, 30f.Degrees()), //verified
+            new Rectangle(new WPos(18.5f, 7.5f), 1f, 0.75f, 65f.Degrees()), //verified
+            new Circle(new WPos(19f, 2.5f), 1f), new Rectangle(new WPos(19.8f, 2.6f), 1f, 1f, 1f.Degrees()), //verified
+            new Rectangle(new WPos(20f, 0f), 1f, 0.75f), //verified
+            new Circle(new WPos(18.8f, -2.6f), 1f), new Rectangle(new WPos(19.8f, -2.8f), 1f, 1f, 6f.Degrees()), //verified
+            new Square(new WPos(18.5f, -7.7f), 0.75f, 26f.Degrees()),
+            new Rectangle(new WPos(11.7f, -16.2f), 1.8f, 1f, -30f.Degrees()), //verified
+            new Circle(new WPos(9.5f, -16.5f), 1f), new Rectangle(new WPos(10.0f, -17.3f), 1f, 1f, 60f.Degrees()), //verified
+            new Rectangle(new WPos(-18.25f, -7.0f), 1.8f, 1f, -105f.Degrees()), //verified
+            new Circle(new WPos(-18.4f, -4.9f), 1f), new Rectangle(new WPos(-19.3f, -5.2f), 1f, 1f, -106.5f.Degrees()), //verified
+            new Circle(new WPos(-18.8f, -2.6f), 1f), new Rectangle(new WPos(-19.8f, -2.8f), 1f, 1f, -90.5f.Degrees()), //verified
+            new Square(new WPos(-20f, 0f), 0.75f),
+            new Circle(new WPos(-18.8f, 2.6f), 1f), new Rectangle(new WPos(-19.8f, 2.7f), 1f, 1f, 3f.Degrees()),
+            new Square(new WPos(-18.5f, 7.7f), 0.75f, 25f.Degrees()),
+
+        ]);
 
 
-        ]
-            );
+        /*
+         * Vertices differences shapes
+         *
+         *
+         *
+           new PolygonCustom(shape3),
+           new PolygonCustom(shape4), new PolygonCustom(shape5), new PolygonCustom(shape6),
+           new PolygonCustom(shape7), new PolygonCustom(shape9), new PolygonCustom(shape10),
+           new PolygonCustom(shape11), new PolygonCustom(shape12), new PolygonCustom(holeShape1), new PolygonCustom(holeShape2),
+         */
         /*[
             new Rectangle(new(-0f, -20.0f), 4.45f, 0.5f, -0f.Degrees()),
             new Rectangle(new(0f, 20.0f), 4.45f, 0.5f, 0f.Degrees()), new PolygonCustom(shape1), new PolygonCustom(shape2), new PolygonCustom(shape3), new PolygonCustom(shape3), new PolygonCustom(shape4), new PolygonCustom(shape5), new PolygonCustom(shape6), new PolygonCustom(shape7), new PolygonCustom(shape8), new PolygonCustom(shape9), new PolygonCustom(shape10), new PolygonCustom(shape11), new PolygonCustom(shape12),
