@@ -79,7 +79,7 @@ sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(modul
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        int show = 0;
+        var show = 0;
 
         aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
         foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
@@ -111,7 +111,7 @@ sealed class CrescereginaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CrescereginaStates),
     ConfigType = null, // replace null with typeof(CrescereginaConfig) if applicable
     ObjectIDType = typeof(OID),

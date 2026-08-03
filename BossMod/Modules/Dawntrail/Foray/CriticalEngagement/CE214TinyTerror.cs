@@ -629,7 +629,7 @@ sealed class CE214TinyTerrorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(CE214TinyTerrorStates),
     ConfigType = null, // replace null with typeof(TinyMageConfig) if applicable
     ObjectIDType = typeof(OID),

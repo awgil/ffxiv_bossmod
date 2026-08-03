@@ -150,7 +150,7 @@ sealed class ArchKelpieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(ArchKelpieStates),
     ConfigType = null, // replace null with typeof(ArchKelpieConfig) if applicable
     ObjectIDType = typeof(OID),

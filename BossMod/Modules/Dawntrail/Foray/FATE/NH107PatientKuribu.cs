@@ -59,7 +59,7 @@ sealed class PatientKuribuStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(PatientKuribuStates),
     ConfigType = null, // replace null with typeof(PatientKuribuConfig) if applicable
     ObjectIDType = typeof(OID),

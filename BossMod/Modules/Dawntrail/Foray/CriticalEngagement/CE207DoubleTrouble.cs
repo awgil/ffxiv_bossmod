@@ -119,7 +119,8 @@ sealed class CE207DoubleTroubleStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+//TODO: Add AI Hint to move closer to the middle of the cleaves to make dodging easier- can be marked as verified after implemented
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(CE207DoubleTroubleStates),
     ConfigType = null, // replace null with typeof(ConjuredCalofisteriConfig) if applicable
     ObjectIDType = typeof(OID),
