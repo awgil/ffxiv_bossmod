@@ -143,7 +143,8 @@ sealed class CE208FamiliarTacticsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+//TODO: Needs extended moving AOE support- once implemented can be moved to Verified after testing
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(CE208FamiliarTacticsStates),
     ConfigType = null, // replace null with typeof(ElmGigasConfig) if applicable
     ObjectIDType = typeof(OID),

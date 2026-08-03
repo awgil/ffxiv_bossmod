@@ -317,7 +317,7 @@ sealed class CE213QuarriedAwayStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE213QuarriedAwayStates),
     ConfigType = null, // replace null with typeof(AlabasterBladeConfig) if applicable
     ObjectIDType = typeof(OID),

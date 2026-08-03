@@ -210,7 +210,7 @@ sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE203AheadoftheCompetitionStates),
     ConfigType = null, // replace null with typeof(PhantomHydraConfig) if applicable
     ObjectIDType = typeof(OID),
