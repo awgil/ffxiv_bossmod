@@ -1,7 +1,6 @@
-﻿namespace BossMod.Dawntrail.Foray.FATE.NH109DemiMedusa;
+﻿namespace BossMod.Dawntrail.Foray.FATE.ScaleModel;
 
-public enum OID : uint
-{
+public enum OID : uint {
     DemiMedusa = 0x4C6A,
     Helper = 0x233C,
     DefectiveLamia = 0x4DD8, // R2.500, x0 (spawn during fight)
@@ -18,8 +17,7 @@ public enum OID : uint
     DefectiveLamia7 = 0x4D51, // R2.500, x0 (spawn during fight)
 }
 
-public enum AID : uint
-{
+public enum AID : uint {
     AutoAttack = 50538, // DemiMedusa->player, no cast, single-target
     Summon = 48300, // DemiMedusa->self, 3.0s cast, single-target
     CursedSight = 48252, // DemiMedusa->self, 5.0s cast, range 60 60.000-degree cone
@@ -35,10 +33,8 @@ sealed class LamianLesion(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class Dark(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Dark, 6f);
 
 [SkipLocalsInit]
-sealed class DemiMedusaStates : StateMachineBuilder
-{
-    public DemiMedusaStates(BossModule module) : base(module)
-    {
+sealed class ScaleModelStates : StateMachineBuilder {
+    public ScaleModelStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<CursedSight>()
             .ActivateOnEnter<LamianLesion>()
@@ -46,11 +42,11 @@ sealed class DemiMedusaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified,
-    StatesType = typeof(DemiMedusaStates),
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
+    StatesType = typeof(ScaleModelStates),
     ConfigType = null, // replace null with typeof(DemiMedusaConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
+    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
@@ -61,7 +57,7 @@ sealed class DemiMedusaStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1093u,
     NameID = 14736u,
-    SortOrder = 1,
+    SortOrder = 26,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class DemiMedusa(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

@@ -1,15 +1,12 @@
-﻿namespace BossMod.Dawntrail.Foray.FATE.NH102SensualSandy;
+﻿namespace BossMod.Dawntrail.Foray.FATE.AllureOfTheOccult;
 
-public enum OID : uint
-{
+public enum OID : uint {
     SensualSandy = 0x4D56,
     Helper = 0x233C,
     PoisonCloud = 0x4D57, // R1.700, x0 (spawn during fight)
-    LilithLavatera = 0x0, // R0.500, x0 (spawn during fight), None type
 }
 
-public enum AID : uint
-{
+public enum AID : uint {
     AutoAttack = 50535, // SensualSandy->player, no cast, single-target
     PutridBreath = 48944, // SensualSandy->self, 5.0s cast, range 25 130.000-degree cone
     PutridBreath1 = 48952, // SensualSandy->self, 3.0s cast, range 25 130.000-degree cone
@@ -27,10 +24,8 @@ sealed class WildWildBreath(BossModule module) : Components.SimpleAOEGroups(modu
 sealed class Burst(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Burst, 10f);
 
 [SkipLocalsInit]
-sealed class SensualSandyStates : StateMachineBuilder
-{
-    public SensualSandyStates(BossModule module) : base(module)
-    {
+sealed class AllureOfTheOccultStates : StateMachineBuilder {
+    public AllureOfTheOccultStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<PutridBreath>()
             .ActivateOnEnter<WildWildBreath>()
@@ -38,11 +33,11 @@ sealed class SensualSandyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified,
-    StatesType = typeof(SensualSandyStates),
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
+    StatesType = typeof(AllureOfTheOccultStates),
     ConfigType = null, // replace null with typeof(SensualSandyConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
+    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
@@ -53,7 +48,7 @@ sealed class SensualSandyStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1093u,
     NameID = 14738u,
-    SortOrder = 1,
+    SortOrder = 21,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class SensualSandy(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
+public sealed class AllureOfTheOccult(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

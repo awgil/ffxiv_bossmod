@@ -1,15 +1,13 @@
-﻿namespace BossMod.Dawntrail.Foray.FATE.NH105EvilSeer;
+﻿namespace BossMod.Dawntrail.Foray.FATE.EyeToEye;
 
-public enum OID : uint
-{
+public enum OID : uint {
     EvilSeer = 0x4BA7,
     Helper = 0x233C,
-    EvilSeer1 = 0x4BAA, // R0.500, x0 (spawn during fight)
+    EvilSeerHelper = 0x4BAA, // R0.500, x0 (spawn during fight)
     AccursedOrb = 0x4BA8, // R2.000, x0 (spawn during fight)
 }
 
-public enum AID : uint
-{
+public enum AID : uint {
     AutoAttack = 47146, // EvilSeer->player, no cast, single-target
     Ability = 45338, // EvilSeer->player, no cast, single-target
     AllEyes = 47147, // EvilSeer->self, 3.0+0.5s cast, range 30 circle
@@ -27,10 +25,8 @@ sealed class SeeNoEvil(BossModule module) : Components.CastGaze(module, (uint)AI
 sealed class SinisterSight(BossModule module) : Components.CastGaze(module, (uint)AID.SinisterSight);
 
 [SkipLocalsInit]
-sealed class EvilSeerStates : StateMachineBuilder
-{
-    public EvilSeerStates(BossModule module) : base(module)
-    {
+sealed class EyeToEyeStates : StateMachineBuilder {
+    public EyeToEyeStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<AllEyes>()
             .ActivateOnEnter<SeeNoEvil>()
@@ -40,11 +36,11 @@ sealed class EvilSeerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified,
-    StatesType = typeof(EvilSeerStates),
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
+    StatesType = typeof(EyeToEyeStates),
     ConfigType = null, // replace null with typeof(EvilSeerConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
+    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
@@ -55,7 +51,7 @@ sealed class EvilSeerStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1093u,
     NameID = 14726u,
-    SortOrder = 1,
+    SortOrder = 22,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class EvilSeer(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
+public sealed class EyeToEye(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
