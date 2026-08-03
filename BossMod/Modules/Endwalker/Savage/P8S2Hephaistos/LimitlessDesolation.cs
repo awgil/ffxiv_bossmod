@@ -35,7 +35,7 @@ class LimitlessDesolation : Components.UniformStackSpread
 
         var towerIndex = _towerAssignments[pcSlot];
         if (towerIndex >= 0)
-            Arena.AddCircle(Arena.Center + _towerOffsets[towerIndex], _towerRadius, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(Arena.Center + _towerOffsets[towerIndex], _towerRadius, Colors.Safe, 2f);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

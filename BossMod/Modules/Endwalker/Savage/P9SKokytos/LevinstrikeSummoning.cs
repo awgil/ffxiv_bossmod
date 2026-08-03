@@ -121,7 +121,7 @@ class LevinstrikeSummoningShock(BossModule module) : Components.GenericAOEs(modu
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (NumTowers < NumCasts)
-            Arena.AddCircle(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? Colors.Safe : 0, 2f);
+            Arena.ZoneCircleOutline(_explodeOrder[NumTowers], 3, _soakerOrder[NumTowers] == pc ? Colors.Safe : 0, 2f);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

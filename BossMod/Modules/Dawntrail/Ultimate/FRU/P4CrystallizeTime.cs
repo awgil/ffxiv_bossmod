@@ -151,7 +151,7 @@ sealed class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(modu
             Arena.Actor(h.head, Colors.Object, true);
             var interceptor = FindInterceptor(h.head, h.side);
             if (interceptor != null)
-                Arena.AddCircle(interceptor.Position, 12f);
+                Arena.ZoneCircleOutline(interceptor.Position, 12f);
         }
     }
 
@@ -556,7 +556,7 @@ sealed class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
     {
         var safeOffset = CalculateHint(pcSlot).offset;
         if (safeOffset != default)
-            Arena.AddCircle(Arena.Center + safeOffset, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + safeOffset, 1f, Colors.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -722,10 +722,10 @@ sealed class P4CrystallizeTimeRewind(BossModule module) : Components.GenericKnoc
         if (!RewindDone && _exalines != null)
         {
             var midpoint = SafeCorner();
-            Arena.AddCircle(midpoint, 1f);
+            Arena.ZoneCircleOutline(midpoint, 1f);
             var offset = AssignedPositionOffset(pc, Service.Config.Get<PartyRolesConfig>()[Raid.Members[pcSlot].ContentId]);
             if (offset != default)
-                Arena.AddCircle(midpoint + offset, 1, Colors.Safe);
+                Arena.ZoneCircleOutline(midpoint + offset, 1, Colors.Safe);
         }
     }
 

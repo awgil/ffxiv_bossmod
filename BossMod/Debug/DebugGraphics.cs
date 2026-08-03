@@ -1,0 +1,586 @@
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+
+namespace BossMod;
+
+sealed class DebugGraphics
+{
+    private class WatchedRenderObject
+    {
+        public List<uint> Data = [];
+        public List<(int, int)> Modifications = [];
+        public bool Live;
+    }
+
+    private bool _showGraphicsLeafCharactersOnly = true;
+    private readonly Dictionary<IntPtr, WatchedRenderObject> _watchedRenderObjects = [];
+    private bool _overlayCircle;
+    private Vector2 _overlayCenter = new(100, 100);
+    private Vector2 _overlayStep = new(2, 2);
+    private Vector2 _overlayMaxOffset = new(20, 20);
+    private Angle _overlayRotation = new(0);
+    private float _placedOffset = 4.0f; // for placing a drawn shape on overlay.
+    private float _placedWidth = 0.5f; // width of drawn shape on overlay. Used  as radius in circles.
+
+    public unsafe void DrawSceneTree()
+    {
+        ImGui.Checkbox("Show only leafs of Character type", ref _showGraphicsLeafCharactersOnly);
+        var root = FindSceneRoot();
+        if (root != null)
+        {
+            DrawSceneNode(root);
+        }
+    }
+
+    private unsafe void DrawSceneNode(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
+    {
+        var start = o;
+        do
+        {
+            var nodeText = $"{SceneNodeText(o)}###{(IntPtr)o}";
+            var nodeFlags = (o->ChildObject != null ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf) | ImGuiTreeNodeFlags.OpenOnArrow;
+            var showNode = !_showGraphicsLeafCharactersOnly || o->ChildObject != null || o->GetObjectType() == ObjectType.CharacterBase;
+            if (showNode && ImGui.TreeNodeEx(nodeText, nodeFlags))
+            {
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                {
+                    var watched = _watchedRenderObjects.ContainsKey((IntPtr)o);
+                    if (!watched)
+                    {
+                        var size = 0x80;
+                        switch (o->GetObjectType())
+                        {
+                            case ObjectType.CharacterBase:
+                                size = 0x8F0;
+                                break;
+                            case ObjectType.VfxObject:
+                                size = 0x1C8;
+                                break;
+                        }
+                        WatchObject(o, size);
+                    }
+                    else
+                    {
+                        _watchedRenderObjects.Remove((IntPtr)o);
+                    }
+                }
+
+                if (o->ChildObject != null)
+                {
+                    DrawSceneNode(o->ChildObject);
+                }
+
+                ImGui.TreePop();
+            }
+            o = o->NextSiblingObject;
+        }
+        while (o != start);
+    }
+
+    public unsafe void DrawWatchedMods()
+    {
+        if (ImGui.Button("Clear watch list"))
+        {
+            _watchedRenderObjects.Clear();
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Clear modifications"))
+        {
+            foreach (var v in _watchedRenderObjects)
+            {
+                v.Value.Modifications.Clear();
+            }
+        }
+
+        if (_watchedRenderObjects.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var v in _watchedRenderObjects)
+        {
+            v.Value.Live = false;
+        }
+
+        var root = FindSceneRoot();
+        if (root != null)
+        {
+            UpdateWatchedMods(root);
+        }
+
+        List<IntPtr> del = [];
+        foreach (var v in _watchedRenderObjects)
+        {
+            if (!v.Value.Live)
+            {
+                del.Add(v.Key);
+            }
+        }
+
+        foreach (var v in del)
+        {
+            _watchedRenderObjects.Remove(v);
+        }
+
+        ImGui.BeginTable("watched_graphics", 2);
+        ImGui.TableSetupColumn("Ptr", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Data");
+        ImGui.TableHeadersRow();
+        foreach (var v in _watchedRenderObjects)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"0x{v.Key:X}");
+            ImGui.TableNextColumn();
+            DrawMods(v.Value);
+        }
+        ImGui.EndTable();
+
+        foreach (var v in _watchedRenderObjects)
+        {
+            var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
+            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, Colors.TextColor3);
+        }
+    }
+
+    public unsafe void WatchObject(void* o, int size)
+    {
+        if (_watchedRenderObjects.ContainsKey((IntPtr)o))
+        {
+            return;
+        }
+
+        var w = new WatchedRenderObject();
+        for (var i = 0; i < size / 4; ++i)
+        {
+            w.Data.Add(((uint*)o)[i]);
+        }
+
+        _watchedRenderObjects.Add((IntPtr)o, w);
+    }
+
+    private unsafe void UpdateWatchedMods(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
+    {
+        var start = o;
+        do
+        {
+            var watch = _watchedRenderObjects.GetValueOrDefault((IntPtr)o);
+            if (watch != null)
+            {
+                UpdateWatchedMod(o, watch);
+            }
+
+            if (o->ChildObject != null)
+            {
+                UpdateWatchedMods(o->ChildObject);
+            }
+
+            o = o->NextSiblingObject;
+        }
+        while (o != start);
+    }
+
+    private unsafe void UpdateWatchedMod(void* o, WatchedRenderObject w)
+    {
+        w.Live = true;
+
+        var start = 0;
+        for (var i = 0; i < w.Modifications.Count; ++i)
+        {
+            (var end, var nextStart) = w.Modifications[i];
+            var mods = CheckUnmodRange((uint*)o, w, start, end);
+            if (mods != null)
+            {
+                w.Modifications.InsertRange(i, mods);
+                i += mods.Count;
+            }
+            start = nextStart;
+        }
+
+        var endMods = CheckUnmodRange((uint*)o, w, start, w.Data.Count);
+        if (endMods != null)
+        {
+            w.Modifications.AddRange(endMods);
+        }
+
+        for (var i = 0; i < w.Data.Count; ++i)
+        {
+            w.Data[i] = ((uint*)o)[i];
+        }
+    }
+
+    private unsafe List<(int, int)>? CheckUnmodRange(uint* o, WatchedRenderObject w, int start, int end)
+    {
+        while (start < end && o[start] == w.Data[start])
+        {
+            ++start;
+        }
+
+        if (start == end)
+        {
+            return null; // nothing changed
+        }
+
+        List<(int, int)> res = [];
+        while (start < end)
+        {
+            var m = start + 1;
+            while (m < end && o[m] != w.Data[m])
+            {
+                ++m;
+            }
+
+            res.Add((start, m));
+            start = m;
+            while (start < end && o[start] == w.Data[start])
+            {
+                ++start;
+            }
+        }
+        return res;
+    }
+
+    private void DrawMods(WatchedRenderObject w)
+    {
+        var start = 0;
+        var sb = new StringBuilder();
+        foreach ((var end, var nextStart) in w.Modifications)
+        {
+            DrawHexString(w, ref start, end, Colors.PlayerGeneric, sb);
+            DrawHexString(w, ref start, nextStart, Colors.TextColor3, sb);
+        }
+        sb.Clear();
+        DrawHexString(w, ref start, w.Data.Count, Colors.PlayerGeneric, sb);
+    }
+
+    private void DrawHexString(WatchedRenderObject w, ref int start, int end, uint color, StringBuilder sb)
+    {
+        sb.Clear();
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+        while (start < end)
+        {
+            if (sb.Length > 0)
+            {
+                sb.Append(' ');
+            }
+
+            sb.AppendFormat("{0:X8}", w.Data[start++]);
+
+            if ((start & 15) == 0)
+            {
+                ImGui.TextUnformatted(sb.ToString());
+                sb.Clear();
+            }
+        }
+        ImGui.TextUnformatted(sb.ToString());
+        ImGui.SameLine();
+        ImGui.PopStyleColor();
+    }
+
+    public unsafe void DrawMatrices()
+    {
+        var camera = CameraManager.Instance()->CurrentCamera;
+        if (camera == null)
+        {
+            return;
+        }
+
+        using var table = ImRaii.Table("matrices", 2);
+        if (!table)
+        {
+            return;
+        }
+
+        ImGui.TableSetupColumn("Name");
+        ImGui.TableSetupColumn("Value");
+        ImGui.TableHeadersRow();
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("VP");
+        ImGui.TableNextColumn();
+        DrawMatrix(camera->ViewMatrix * camera->RenderCamera->ProjectionMatrix);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("P");
+        ImGui.TableNextColumn();
+        DrawMatrix(camera->RenderCamera->ProjectionMatrix);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("P2");
+        ImGui.TableNextColumn();
+        DrawMatrix(camera->RenderCamera->ProjectionMatrix2);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("V");
+        ImGui.TableNextColumn();
+        DrawMatrix(camera->ViewMatrix);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("V2");
+        ImGui.TableNextColumn();
+        DrawMatrix(camera->RenderCamera->ViewMatrix);
+
+        var altitude = MathF.Asin(camera->ViewMatrix.M23);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Camera Altitude");
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(altitude.Radians().ToString());
+
+        var azimuth = MathF.Atan2(camera->ViewMatrix.M13, camera->ViewMatrix.M33);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Camera Azimuth");
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(azimuth.Radians().ToString());
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Origin");
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(Utils.Vec3String(camera->RenderCamera->Origin));
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Near/far/aspect");
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted($"{camera->RenderCamera->NearPlane} / {camera->RenderCamera->FarPlane} / {camera->RenderCamera->AspectRatio}");
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Projection flags");
+        ImGui.TableNextColumn();
+        if (ImGui.Button(camera->RenderCamera->IsOrtho ? $"ortho ({camera->RenderCamera->OrthoHeight})" : "perspective"))
+        {
+            camera->RenderCamera->IsOrtho ^= true;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button(camera->RenderCamera->StandardZ ? "standard-z" : "reverse-z"))
+        {
+            camera->RenderCamera->StandardZ ^= true;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button(camera->RenderCamera->FiniteFarPlane ? "finite-far" : "infinite-far"))
+        {
+            camera->RenderCamera->FiniteFarPlane ^= true;
+        }
+
+        var view = camera->ViewMatrix;
+        var lx = new Vector3(view.M11, view.M21, view.M31);
+        var ly = new Vector3(view.M12, view.M22, view.M32);
+        var lz = new Vector3(view.M13, view.M23, view.M33);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("View handedness");
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted($"{Vector3.Dot(lz, Vector3.Cross(lx, ly))}");
+
+        view.M44 = 1;
+        FFXIVClientStructs.FFXIV.Common.Math.Matrix4x4.Invert(view, out var world);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("W");
+        ImGui.TableNextColumn();
+        DrawMatrix(world);
+
+        var device = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.Instance();
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Viewport size");
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted($"{device->Width:f6} {device->Height:f6}");
+    }
+
+    private void DrawMatrix(FFXIVClientStructs.FFXIV.Common.Math.Matrix4x4 mtx)
+    {
+        ImGui.TextUnformatted($"{mtx[0]:f6} {mtx[1]:f6} {mtx[2]:f6} {mtx[3]:f6}");
+        ImGui.TextUnformatted($"{mtx[4]:f6} {mtx[5]:f6} {mtx[6]:f6} {mtx[7]:f6}");
+        ImGui.TextUnformatted($"{mtx[8]:f6} {mtx[9]:f6} {mtx[10]:f6} {mtx[11]:f6}");
+        ImGui.TextUnformatted($"{mtx[12]:f6} {mtx[13]:f6} {mtx[14]:f6} {mtx[15]:f6}");
+    }
+
+    public void DrawOverlay()
+    {
+        if (Camera.Instance == null || Service.ObjectTable.LocalPlayer == null)
+        {
+            return;
+        }
+
+        ImGui.Checkbox("Circle", ref _overlayCircle);
+        ImGui.DragFloat2("Center", ref _overlayCenter);
+        ImGui.SameLine();
+        // We can place the grid at players feet as long as we check player is not null
+        if (ImGui.Button("Snap center to Player Location"))
+        {
+            if (Service.ObjectTable.LocalPlayer != null)
+            {
+                _overlayCenter.X = Service.ObjectTable.LocalPlayer.Position.X;
+                _overlayCenter.Y = Service.ObjectTable.LocalPlayer.Position.Z;
+            }
+        }
+        ImGui.DragFloat2("Step", ref _overlayStep, 0.25f, 1, 10);
+        ImGui.DragFloat2("Max offset", ref _overlayMaxOffset);
+
+        var rotationDegrees = _overlayRotation.Deg;
+        ImGui.SliderFloat("Rotation (Degrees)", ref rotationDegrees, -180, 180, "%.3f");
+        ImGui.SameLine();
+        ImGui.InputFloat("##RotationInput", ref rotationDegrees, 0.1f, 1, "%.3f");
+        _overlayRotation = new Angle(rotationDegrees * Angle.DegToRad);
+
+        // instead of dividing by zero just provide the value.
+        var mx = _overlayStep.X != 0 ? (int)(_overlayMaxOffset.X / _overlayStep.X) : 0;
+        var mz = _overlayStep.Y != 0 ? (int)(_overlayMaxOffset.Y / _overlayStep.Y) : 0;
+        var y = Service.ObjectTable.LocalPlayer!.Position.Y;
+
+        var rotationMatrix = Matrix3x2.CreateRotation(-_overlayRotation.Rad);
+        Vector2 TransformPoint(Vector2 point) => Vector2.Transform(point - _overlayCenter, rotationMatrix) + _overlayCenter;
+
+        if (_overlayCircle)
+        {
+            var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
+            for (var ir = 0; ir <= mx; ++ir)
+            {
+                Camera.Instance.DrawWorldCircle(center, ir * _overlayStep.X, Colors.PC);
+            }
+            for (var ia = 0; ia < 8; ++ia)
+            {
+                var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
+                Camera.Instance.DrawWorldLine(center - offset, center + offset, Colors.PC);
+            }
+            // Angle Visualizer for circular overlay. Show an angle with vec 3 coordinates.
+            // This is drawing the line to move around and show the angle we are at.
+            // Use the degrees slider to move the angle visualizer around the circle.
+            var pickOffset = (_overlayRotation.ToDirection() * (_overlayMaxOffset.X)).ToVec3();
+            var outsideVec3 = center + pickOffset;
+            Camera.Instance.DrawWorldLine(center, center + pickOffset, Colors.Danger, thickness: 3);
+
+            // Show the coordinates for the outside edge of the polar grid where end of visualizer arm is.
+            ImGui.TextUnformatted("Vec3 coordinates in the center of angle visualizer circle: ");
+            ImGui.TextUnformatted(Utils.Vec3String(outsideVec3));
+
+            InsertShapesIntoOverlay();
+        }
+        else
+        {
+            for (var ix = -mx; ix <= mx; ++ix)
+            {
+                var x = _overlayCenter.X + ix * _overlayStep.X;
+                var start = TransformPoint(new Vector2(x, _overlayCenter.Y - _overlayMaxOffset.Y));
+                var end = TransformPoint(new Vector2(x, _overlayCenter.Y + _overlayMaxOffset.Y));
+                Camera.Instance.DrawWorldLine(new(start.X, y, start.Y), new(end.X, y, end.Y), Colors.PC);
+            }
+            for (var iz = -mz; iz <= mz; ++iz)
+            {
+                var z = _overlayCenter.Y + iz * _overlayStep.Y;
+                var start = TransformPoint(new Vector2(_overlayCenter.X - _overlayMaxOffset.X, z));
+                var end = TransformPoint(new Vector2(_overlayCenter.X + _overlayMaxOffset.X, z));
+                Camera.Instance.DrawWorldLine(new(start.X, y, start.Y), new(end.X, y, end.Y), Colors.PC);
+            }
+        }
+    }
+
+    // Create a method that will let you grab a shape and draw it in the overlay.
+    // It should create boilerplate code for creating that shape in radar.
+    public void InsertShapesIntoOverlay()
+    {
+        var origin = new Vector3(_overlayCenter.X, Service.ObjectTable.LocalPlayer!.Position.Y, _overlayCenter.Y);
+
+        // This will exist even if a shape isn't being drawn. Maybe have it only appear when a shape is up.
+        ImGui.SliderFloat("Placed shape offset", ref _placedOffset, 0f, 30f, "%.3f");
+        var placedOffsetLocation = (_overlayRotation.ToDirection() * _placedOffset).ToVec3();
+
+        // Sometimes shapes can be larger than arena.
+        if (ImGui.CollapsingHeader("Add Circle Shape"))
+        {
+            ImGui.SliderFloat("Placed circle radius", ref _placedWidth, 0, _overlayMaxOffset.X + 10, "%.3f");
+            var placedVec3 = origin + placedOffsetLocation;
+            Camera.Instance!.DrawWorldCircle(placedVec3, _placedWidth, Colors.Danger, thickness: 3);
+
+            // Show the coordinates for the center of the placed shape
+            ImGui.TextUnformatted("Vec3 coordinates in the center of placed shape: ");
+            ImGui.TextUnformatted(Utils.Vec3String(placedVec3));
+
+            // TODO generalize to other shapes later. For now just a circle.
+            CircleString(placedVec3, _placedWidth);
+        }
+    }
+
+    // Outputs the c# code for drawing a circle shape in BossModule.
+    public void CircleString(Vector3 placed, float radius)
+    {
+        var exportedCircle = new StringBuilder($"new Circle(new WPos({placed.X}f, {placed.Z}f), {radius}f);");
+
+        ImGui.TextUnformatted(exportedCircle.ToString());
+
+        if (ImGui.Button("Copy Circle To Clipboard"))
+        {
+            ImGui.SetClipboardText(exportedCircle.ToString());
+        }
+    }
+
+    public static unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* FindSceneRoot()
+    {
+        var player = Utils.GameObjectInternal(Service.ObjectTable.LocalPlayer);
+        if (player == null || player->DrawObject == null)
+        {
+            return null;
+        }
+
+        var obj = &player->DrawObject->Object;
+        while (obj->ParentObject != null)
+        {
+            obj = obj->ParentObject;
+        }
+
+        return obj;
+    }
+
+    public static unsafe void DumpScene()
+    {
+        var res = new StringBuilder("--- graphics scene dump ---");
+        var root = FindSceneRoot();
+        if (root != null)
+        {
+            DumpSceneNode(res, root, "");
+        }
+        Service.Log(res.ToString());
+    }
+
+    private static unsafe void DumpSceneNode(StringBuilder res, FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o, string prefix)
+    {
+        var start = o;
+        do
+        {
+            res.Append($"\n{prefix} {SceneNodeText(o)}");
+            if (o->ChildObject != null)
+            {
+                DumpSceneNode(res, o->ChildObject, prefix + "-");
+            }
+
+            o = o->NextSiblingObject;
+        }
+        while (o != start);
+    }
+
+    private static unsafe string SceneNodeText(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object* o)
+    {
+        var t = o->GetObjectType();
+        var s = $"0x{(IntPtr)o:X}: t={t}, flags={Utils.SceneObjectFlags(o):X}, pos={Utils.Vec3String(o->Position)}, rot={Utils.QuatString(o->Rotation)}, scale={Utils.Vec3String(o->Scale)}";
+        switch (t)
+        {
+            case ObjectType.VfxObject:
+                s += $", ac={Utils.ReadField<int>(o, 0x128):X}, at={Utils.ReadField<int>(o, 0x130):X}, sc={Utils.ReadField<int>(o, 0x1B8):X}, st={Utils.ReadField<int>(o, 0x1C0)}:X";
+                break;
+        }
+        return s;
+    }
+}

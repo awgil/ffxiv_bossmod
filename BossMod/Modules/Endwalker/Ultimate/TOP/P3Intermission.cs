@@ -18,7 +18,7 @@ sealed class P3SniperCannon(BossModule module) : Components.UniformStackSpread(m
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var s in EnumerateSafeSpots(pcSlot))
-            Arena.AddCircle(s, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(s, 1f, Colors.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

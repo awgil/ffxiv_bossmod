@@ -37,7 +37,7 @@ sealed class P6WrothFlames : Components.GenericAOEs
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (ShowStartingSpot)
-            Arena.AddCircle(_startingSpot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(_startingSpot, 1f, Colors.Safe);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -122,7 +122,7 @@ sealed class P6SpreadingEntangledFlames(BossModule module) : Components.UniformS
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var p in SafeSpots(pc))
-            Arena.AddCircle(p, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

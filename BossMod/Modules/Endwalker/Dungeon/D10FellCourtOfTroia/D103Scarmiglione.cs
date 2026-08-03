@@ -324,7 +324,7 @@ sealed class RottenRampageSpread(BossModule module) : Components.SpreadFromCastT
         for (var i = 0; i < count; ++i)
         {
             var a = walls[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 

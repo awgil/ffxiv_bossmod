@@ -25,7 +25,11 @@ public class Voidzone(BossModule module, float radius, Func<BossModule, IEnumera
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var hasSources = false;
-        foreach (var _ in Sources(Module)) { hasSources = true; break; }
+        foreach (var _ in Sources(Module))
+        {
+            hasSources = true;
+            break;
+        }
         if (!hasSources)
         {
             return;
@@ -215,7 +219,11 @@ public class PersistentInvertibleVoidzone(BossModule module, float radius, Func<
         var inVoidzone = false;
         foreach (var s in Sources(Module))
         {
-            if (Shape.Check(actor.Position, s)) { inVoidzone = true; break; }
+            if (Shape.Check(actor.Position, s))
+            {
+                inVoidzone = true;
+                break;
+            }
         }
 
         if (Inverted)

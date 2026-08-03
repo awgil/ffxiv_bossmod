@@ -12,7 +12,7 @@ sealed class P5WrathOfTheHeavensSkywardLeap(BossModule module) : Components.Unif
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (IsSpreadTarget(pc) && SafeSpot() is var safespot && safespot != default)
-            Arena.AddCircle(safespot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1f, Colors.Safe);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -50,7 +50,7 @@ sealed class P5WrathOfTheHeavensSpiralPierce(BossModule module) : Components.Bai
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (SafeSpot(pc) is var safespot && safespot != default)
-            Arena.AddCircle(safespot, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot, 1, Colors.Safe);
     }
 
     private WPos SafeSpot(Actor actor)
@@ -169,7 +169,7 @@ sealed class P5WrathOfTheHeavensCauterizeBait(BossModule module) : BossComponent
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_target == pc)
-            Arena.AddCircle(SafeSpot(), 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(SafeSpot(), 1f, Colors.Safe);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -205,7 +205,7 @@ sealed class P5WrathOfTheHeavensEmptyDimension(BossModule module) : Components.S
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Casters.Count == 0 && KnowPosition)
-            Arena.AddCircle(_predicted, 6f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(_predicted, 6f, Colors.Safe, 2f);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

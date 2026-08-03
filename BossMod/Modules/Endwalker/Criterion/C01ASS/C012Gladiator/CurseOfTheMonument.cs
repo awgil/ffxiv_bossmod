@@ -24,7 +24,7 @@ sealed class ScreamOfTheFallen(BossModule module) : Components.UniformStackSprea
         base.DrawArenaForeground(pcSlot, pc);
         if (!IsSpreadTarget(pc))
             foreach (var t in ActiveTowers(_second[pcSlot]))
-                Arena.AddCircle(t.Position, _towerRadius, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(t.Position, _towerRadius, Colors.Safe, 2f);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

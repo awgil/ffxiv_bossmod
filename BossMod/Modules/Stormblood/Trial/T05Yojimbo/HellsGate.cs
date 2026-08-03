@@ -45,7 +45,7 @@ class HellsGate(BossModule module) : BossComponent(module)
     {
         foreach (var chain in _ironChains)
         {
-            Arena.AddCircle(chain.Position, 1.5f, Colors.Danger, 1.5f);
+            Arena.ZoneCircleOutline(chain.Position, 1.5f, Colors.Danger, 1.5f);
             Arena.Actor(chain, Colors.Enemy);
         }
     }

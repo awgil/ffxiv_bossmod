@@ -57,7 +57,7 @@ sealed class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
                 dir -= 60f.Degrees();
             var offset = 12f * (Module.PrimaryActor.Rotation + dir).ToDirection();
             var pos = group == 1 ? Arena.Center + offset : Arena.Center - offset;
-            Arena.AddCircle(pos, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(pos, 1f, Colors.Safe);
         }
     }
 
@@ -128,7 +128,7 @@ sealed class P1Pantokrator(BossModule module) : P1CommonAssignments(module)
             var order = PlayerStates[i].Order;
             if (order == spreadOrder)
             {
-                Arena.AddCircle(p.Position, _spreadRadius, i == pcSlot ? Colors.Safe : Colors.Danger);
+                Arena.ZoneCircleOutline(p.Position, _spreadRadius, i == pcSlot ? Colors.Safe : Colors.Danger);
             }
             else if (order == stackOrder)
             {

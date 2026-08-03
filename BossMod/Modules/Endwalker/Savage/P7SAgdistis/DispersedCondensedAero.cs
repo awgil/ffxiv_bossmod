@@ -48,12 +48,12 @@ class DispersedCondensedAero(BossModule module) : BossComponent(module)
         {
             var tank = WorldState.Actors.Find(Module.PrimaryActor.TargetID);
             if (tank != null)
-                Arena.AddCircle(tank.Position, _radiusCondensed, Colors.Danger);
+                Arena.ZoneCircleOutline(tank.Position, _radiusCondensed, Colors.Danger);
         }
         else
         {
             foreach (var tank in Raid.WithoutSlot(false, true, true).Where(a => a.Role == Role.Tank))
-                Arena.AddCircle(tank.Position, _radiusDispersed, Colors.Danger);
+                Arena.ZoneCircleOutline(tank.Position, _radiusDispersed, Colors.Danger);
         }
     }
 

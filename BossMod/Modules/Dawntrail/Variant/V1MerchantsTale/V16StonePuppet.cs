@@ -94,7 +94,7 @@ sealed class RockHints(BossModule module) : BossComponent(module)
             var count = rocks.Count;
             for (var i = 0; i < count; ++i)
             {
-                Arena.AddCircle(rocks[i].Position, 4f, Colors.Safe);
+                Arena.ZoneCircleOutline(rocks[i].Position, 4f, Colors.Safe);
             }
         }
     }

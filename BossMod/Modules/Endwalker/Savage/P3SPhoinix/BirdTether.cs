@@ -130,7 +130,7 @@ class BirdTether(BossModule module) : BossComponent(module)
                     if (bird.Position != Arena.Center)
                     {
                         var safespot = bird.Position + (Arena.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
-                        Arena.AddCircle(safespot, 1, Colors.Safe);
+                        Arena.ZoneCircleOutline(safespot, 1, Colors.Safe);
                     }
                 }
                 // else: don't care, charge to pc already happened
@@ -143,7 +143,7 @@ class BirdTether(BossModule module) : BossComponent(module)
                     Arena.AddLine(bird.Position, p1.Position, (bird.Tether.ID == (uint)TetherID.LargeBirdFar) ? Colors.Safe : Colors.Danger);
                     Arena.AddLine(p1.Position, pc.Position, (p1.Tether.ID == (uint)TetherID.LargeBirdFar) ? Colors.Safe : Colors.Danger);
 
-                    Arena.AddCircle(bird.Position, 1, Colors.Safe); // draw safespot near bird
+                    Arena.ZoneCircleOutline(bird.Position, 1, Colors.Safe); // draw safespot near bird
                 }
                 else
                 {
@@ -152,7 +152,7 @@ class BirdTether(BossModule module) : BossComponent(module)
                     if (bird.Position != Arena.Center)
                     {
                         var safespot = bird.Position + (Arena.Center - bird.Position).Normalized() * _chargeMinSafeDistance;
-                        Arena.AddCircle(safespot, 1, Colors.Safe);
+                        Arena.ZoneCircleOutline(safespot, 1, Colors.Safe);
                     }
                 }
             }

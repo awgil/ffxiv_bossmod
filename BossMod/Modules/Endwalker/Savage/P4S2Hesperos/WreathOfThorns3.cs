@@ -93,7 +93,7 @@ class WreathOfThorns3(BossModule module) : BossComponent(module)
         if (CurState != State.Done)
         {
             foreach (var tower in CurState == State.RangedTowers ? RangedTowers : MeleeTowers)
-                Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, Colors.Safe);
+                Arena.ZoneCircleOutline(tower.Position, P4S2.WreathTowerRadius, Colors.Safe);
         }
 
         if (NumCones != NumJumps)
@@ -105,7 +105,7 @@ class WreathOfThorns3(BossModule module) : BossComponent(module)
         else if (_jumpTarget != null)
         {
             Arena.Actor(_jumpTarget, Colors.Danger);
-            Arena.AddCircle(_jumpTarget.Position, _jumpAOERadius, Colors.Danger);
+            Arena.ZoneCircleOutline(_jumpTarget.Position, _jumpAOERadius, Colors.Danger);
         }
     }
 

@@ -98,7 +98,7 @@ class MagitekPulsePlayer(BossModule module) : BossComponent(module)
         {
             var turret = turrets[i];
             if (turret.IsTargetable)
-                Arena.AddCircle(turret.Position, 3f, Colors.Safe);
+                Arena.ZoneCircleOutline(turret.Position, 3f, Colors.Safe);
         }
     }
 }

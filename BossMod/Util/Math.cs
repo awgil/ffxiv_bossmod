@@ -1,9 +1,9 @@
 namespace BossMod;
 
 [SkipLocalsInit]
-public static class MathExtension
+public static class UIntExtensions
 {
-    public static bool IsPrime(uint number)
+    public static bool IsPrime(this uint number)
     {
         if (number <= 1u)
         {
@@ -15,15 +15,23 @@ public static class MathExtension
             return true;
         }
 
-        for (var i = 2u; i <= Math.Sqrt(number); ++i)
+        if ((number & 1u) == 0u)
         {
-            if (number % i == default)
+            return false;
+        }
+
+        var limit = (uint)Math.Sqrt(number);
+
+        for (var i = 3u; i <= limit; i += 2u)
+        {
+            if (number % i == 0u)
             {
                 return false;
             }
         }
+
         return true;
     }
 
-    public static bool IsDivisible(uint dividend, uint divisor) => dividend % divisor == default;
+    public static bool IsDivisible(this uint dividend, uint divisor) => dividend % divisor == 0f;
 }

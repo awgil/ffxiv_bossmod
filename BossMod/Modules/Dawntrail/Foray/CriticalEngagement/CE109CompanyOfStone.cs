@@ -68,7 +68,7 @@ sealed class KnuckleCrusher : Components.SimpleAOEs
     {
         if (midpoint != default && NumCasts < 2)
         {
-            Arena.AddCircle(midpoint, 2f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(midpoint, 2f, Colors.Safe, 2f);
         }
     }
 
@@ -164,7 +164,7 @@ sealed class SpinningSiege(BossModule module) : Components.GenericRotatingAOE(mo
     {
         if (Sequences.Count == 4 && NumCasts < 20)
         {
-            Arena.AddCircle(midpoint, 4f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(midpoint, 4f, Colors.Safe, 2f);
         }
     }
 

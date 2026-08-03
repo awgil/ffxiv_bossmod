@@ -37,7 +37,7 @@ class Aetheroplasm(BossModule module) : BossComponent(module)
         foreach (var orb in Module.Enemies((uint)OID.Aetheroplasm).Where(a => !_explodedOrbs.Contains(a.InstanceID)))
         {
             Arena.Actor(orb, Colors.Object, true);
-            Arena.AddCircle(orb.Position, _explosionRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(orb.Position, _explosionRadius, Colors.Danger);
             var kiter = MostLikelyKiter(orb);
             if (kiter != null)
                 Arena.AddLine(orb.Position, kiter.Position, Colors.Danger);

@@ -100,9 +100,9 @@ class Shackles(BossModule module) : BossComponent(module)
 
             // draw explosion circles that hit me
             if (_blueExplosionMatrix[pcSlot, i])
-                Arena.AddCircle(actor.Position, _blueExplosionRadius, Colors.Danger);
+                Arena.ZoneCircleOutline(actor.Position, _blueExplosionRadius, Colors.Danger);
             if (_redExplosionMatrix[pcSlot, i])
-                Arena.AddCircle(actor.Position, _redExplosionRadius, Colors.Danger);
+                Arena.ZoneCircleOutline(actor.Position, _redExplosionRadius, Colors.Danger);
 
             drawBlueAroundMe |= _blueExplosionMatrix[i, pcSlot];
             drawRedAroundMe |= _redExplosionMatrix[i, pcSlot];
@@ -110,13 +110,13 @@ class Shackles(BossModule module) : BossComponent(module)
 
         // draw explosion circles if I hit anyone
         if (drawBlueAroundMe)
-            Arena.AddCircle(pc.Position, _blueExplosionRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(pc.Position, _blueExplosionRadius, Colors.Danger);
         if (drawRedAroundMe)
-            Arena.AddCircle(pc.Position, _redExplosionRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(pc.Position, _redExplosionRadius, Colors.Danger);
 
         // draw assigned spot, if any
         if (_preferredPositions[pcSlot] != new WPos())
-            Arena.AddCircle(_preferredPositions[pcSlot], 2, Colors.Safe);
+            Arena.ZoneCircleOutline(_preferredPositions[pcSlot], 2, Colors.Safe);
 
     }
 

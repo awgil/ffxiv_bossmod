@@ -18,7 +18,7 @@ sealed class SlimeExplosion(BossModule module) : Components.GenericStackSpread(m
     {
         if (!Module.PrimaryActor.IsDead)
         {
-            Arena.AddCircle(Module.PrimaryActor.Position, 7.6f);
+            Arena.ZoneCircleOutline(Module.PrimaryActor.Position, 7.6f);
         }
     }
 

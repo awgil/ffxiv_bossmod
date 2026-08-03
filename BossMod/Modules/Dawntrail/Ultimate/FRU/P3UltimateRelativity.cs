@@ -100,7 +100,7 @@ sealed class P3UltimateRelativity(BossModule module) : Components.CastCounter(mo
         if (assignedDir != default && NumCasts < 6)
         {
             Arena.AddLine(Arena.Center, Arena.Center + 20f * assignedDir, Colors.Safe);
-            Arena.AddCircle(SafeSpot(pcSlot, RangeHint(States[pcSlot], pc.Class.IsSupport(), NumCasts)), 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(SafeSpot(pcSlot, RangeHint(States[pcSlot], pc.Class.IsSupport(), NumCasts)), 1f, Colors.Safe);
         }
     }
 

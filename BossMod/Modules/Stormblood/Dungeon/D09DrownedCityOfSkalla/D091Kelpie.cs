@@ -32,7 +32,6 @@ public enum TetherID : uint
     HydrosphereTether = 3, // Hydrosphere->player/3F75/40C0
 }
 
-
 sealed class RisingSeas(BossModule module) : Components.RaidwideCast(module, (uint)AID.RisingSeas);
 
 sealed class HydroPull(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.HydroPull, 20f, kind: Kind.DirBackward)
@@ -70,14 +69,13 @@ sealed class HydroPush(BossModule module) : Components.SimpleKnockbacks(module, 
     }
 }
 
-sealed class BloodyPuddle(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(4f),
-    (uint)IconID.BloodyPuddleBaitIcon, (uint)AID.BloodyPuddle1, 0f, true)
+sealed class BloodyPuddle(BossModule module) : Components.BaitAwayIcon(module, 4f, (uint)IconID.BloodyPuddleBaitIcon, (uint)AID.BloodyPuddle1, 0f, true)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var _activation = WorldState.FutureTime(5.0f);
         // We want to path to the corner if we have a puddle bait.
-        WPos[] corners = [new (-207f, -9f), new (-233f, -9f), new (-233f, 17f), new (-207f, 17f)];
+        WPos[] corners = [new(-207f, -9f), new(-233f, -9f), new(-233f, 17f), new(-207f, 17f)];
         var count = corners.Length;
         if (count != 0 && ActiveBaits.Count > 0)
         {
@@ -149,14 +147,13 @@ sealed class WaterPuddles(BossModule module) : BossComponent(module)
         for (var i = 0; i < count; ++i)
         {
             // TODO would be nice if these only draw the portion inside arena bounds.
-            Arena.AddCircleFilled(orbs[i].Position, 7f, Colors.Danger);
+            Arena.ZoneCircle(orbs[i].Position, 7f, Colors.Danger);
         }
     }
 }
 
 // Show the tether object
 class BloodyBurstTether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(6f), (uint)TetherID.HydrosphereTether, (uint)AID.BubbleBurst, enemyOID: (uint)OID.Hydrosphere);
-
 
 [SkipLocalsInit]
 sealed class KelpieStates : StateMachineBuilder
@@ -178,7 +175,6 @@ sealed class KelpieStates : StateMachineBuilder
             ;
     }
 }
-
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(KelpieStates),

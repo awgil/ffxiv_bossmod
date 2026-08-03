@@ -11,7 +11,7 @@ class P4UltimateAnnihilation(BossModule module) : BossComponent(module)
         foreach (var orb in _orbs.Where(o => !o.IsDead))
         {
             Arena.Actor(orb, Colors.Object, true);
-            Arena.AddCircle(orb.Position, _radius, Colors.Object);
+            Arena.ZoneCircleOutline(orb.Position, _radius, Colors.Object);
         }
     }
 }

@@ -67,7 +67,7 @@ class Crystallize : BossComponent
                     if (player.Role == Role.Healer)
                     {
                         Arena.Actor(player, Colors.Danger);
-                        Arena.AddCircle(player.Position, _waterRadius, Colors.Safe);
+                        Arena.ZoneCircleOutline(player.Position, _waterRadius, Colors.Safe);
                     }
                     else
                     {
@@ -76,12 +76,12 @@ class Crystallize : BossComponent
                 }
                 break;
             case Element.Earth:
-                Arena.AddCircle(pc.Position, _earthRadius, Colors.Safe);
+                Arena.ZoneCircleOutline(pc.Position, _earthRadius, Colors.Safe);
                 foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
                     Arena.Actor(player, player.Position.InCircle(pc.Position, _earthRadius) ? Colors.PlayerInteresting : Colors.PlayerGeneric);
                 break;
             case Element.Ice:
-                Arena.AddCircle(pc.Position, _iceRadius, Colors.Danger);
+                Arena.ZoneCircleOutline(pc.Position, _iceRadius, Colors.Danger);
                 foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
                     Arena.Actor(player, player.Position.InCircle(pc.Position, _iceRadius) ? Colors.PlayerInteresting : Colors.PlayerGeneric);
                 break;

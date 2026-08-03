@@ -291,9 +291,9 @@ sealed class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module
     {
         foreach (var safespot in MovementHintOffsets(pcSlot).Take(1))
         {
-            Arena.AddCircle(Arena.Center + safespot, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + safespot, 1f, Colors.Safe);
             if (_groupEast.None())
-                Arena.AddCircle(Arena.Center - safespot, 1f, Colors.Safe); // if there are no valid assignments, draw spots for both groups
+                Arena.ZoneCircleOutline(Arena.Center - safespot, 1f, Colors.Safe); // if there are no valid assignments, draw spots for both groups
         }
     }
 

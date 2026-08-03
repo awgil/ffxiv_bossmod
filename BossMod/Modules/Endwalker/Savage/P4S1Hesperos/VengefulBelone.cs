@@ -70,7 +70,7 @@ class VengefulBelone(BossModule module) : BossComponent(module)
             }
 
             var goodToExplode = goodInRange == 2 && badInRange == 0;
-            Arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(orb.Position, _burstRadius, goodToExplode ? Colors.Safe : Colors.Danger);
         }
 
         foreach ((var i, var player) in Raid.WithSlot(false, true, true))

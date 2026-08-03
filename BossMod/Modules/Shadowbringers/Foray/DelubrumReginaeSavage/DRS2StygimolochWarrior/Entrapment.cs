@@ -171,7 +171,7 @@ class Entrapment : Components.CastCounter
             if (background)
                 Arena.ZoneCircle(pos, 2.5f, safe ? Colors.SafeFromAOE : Colors.AOE);
             else
-                Arena.AddCircle(pos, 2.5f, safe ? Colors.Safe : 0);
+                Arena.ZoneCircleOutline(pos, 2.5f, safe ? Colors.Safe : 0);
         }
     }
 

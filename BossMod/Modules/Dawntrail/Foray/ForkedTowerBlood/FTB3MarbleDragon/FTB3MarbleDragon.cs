@@ -7,9 +7,71 @@ sealed class WickedWater(BossModule module) : Components.RaidwideCastDelay(modul
 sealed class ImitationIcicle(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ImitationIcicle, 8f);
 sealed class DreadDeluge(BossModule module) : Components.SingleTargetCast(module, (uint)AID.DreadDeluge);
 
-sealed class FrigidTwister(BossModule module) : Components.Voidzone(module, 5.5f, GetIcewinds, 3f)
+[SkipLocalsInit]
+sealed class FrigidTwister(BossModule module) : Components.GenericAOEs(module)
 {
-    private static List<Actor> GetIcewinds(BossModule module) => module.Enemies((uint)OID.Icewind);
+    private readonly List<Actor> voidzones = module.Enemies((uint)OID.Icewind);
+    private readonly AOEShapeCircle circle = new(5f);
+    private readonly AOEShapeArcCapsule arcCW = new(5f, 25f.Degrees(), module.Arena.Center), arcCCW = new(5f, -25f.Degrees(), module.Arena.Center);
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var count = voidzones.Count;
+        if (count == 0)
+        {
+            return [];
+        }
+        var aoes = new AOEInstance[count];
+        var center = Arena.Center;
+        for (var i = 0; i < count; ++i)
+        {
+            var vz = voidzones[i];
+            var pos = vz.Position;
+            if (vz.LastFrameMovement == default)
+            {
+                aoes[i] = new(circle, pos.Quantized());
+            }
+            else
+            {
+                var dir = pos - center;
+                var ccw = vz.Rotation.ToDirection().OrthoR().Dot(dir) < 0f;
+                aoes[i] = new(ccw ? arcCCW : arcCW, pos.Quantized());
+            }
+        }
+        return aoes;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var count = voidzones.Count;
+        if (count == 0)
+        {
+            return;
+        }
+        var forbiddenNearFuture = WorldState.FutureTime(1.1d);
+        var forbiddenSoon = WorldState.FutureTime(3d);
+        var forbiddenFarFuture = DateTime.MaxValue;
+        var center = Arena.Center;
+        var a15 = 15f.Degrees();
+        var a25 = 25f.Degrees();
+        var a35 = 35f.Degrees();
+        for (var i = 0; i < count; ++i)
+        {
+            var vz = voidzones[i];
+            var pos = vz.Position;
+            var dir = pos - center;
+            var ccw = vz.Rotation.ToDirection().OrthoR().Dot(dir) < 0f;
+            var mult = ccw ? -1f : 1f;
+            var mov = vz.LastFrameMovement != default;
+            if (mov)
+            {
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a15, 5f), forbiddenNearFuture);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a25, 5f), forbiddenSoon);
+                hints.AddForbiddenZone(new SDArcCapsule(pos, center, mult * a35, 5f), forbiddenFarFuture);
+            }
+            hints.TemporaryObstacles.Add(new SDCircle(pos.Quantized(), mov ? 5f : 6f));
+        }
+    }
 }
 sealed class FrigidDive(BossModule module) : Components.SimpleAOEs(module, (uint)AID.FrigidDive, new AOEShapeRect(60f, 10f));
 sealed class GelidGaol(BossModule module) : Components.Adds(module, (uint)OID.GelidGaol, 1);

@@ -37,7 +37,7 @@ class WreathOfThorns5(BossModule module) : BossComponent(module)
     {
         var order = _playersOrder.IndexOf(pc.InstanceID);
         if (order >= _castsDone && order < _towersOrder.Count)
-            Arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, Colors.Safe);
+            Arena.ZoneCircleOutline(_towersOrder[order].Position, P4S2.WreathTowerRadius, Colors.Safe);
 
         var pcTetherTarget = WorldState.Actors.Find(pc.Tether.Target);
         if (pcTetherTarget != null)
@@ -47,7 +47,7 @@ class WreathOfThorns5(BossModule module) : BossComponent(module)
 
         if (_playersOrder.Count < 8)
         {
-            Arena.AddCircle(pc.Position, _impulseAOERadius, Colors.Danger);
+            Arena.ZoneCircleOutline(pc.Position, _impulseAOERadius, Colors.Danger);
             foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
                 Arena.Actor(player, player.Position.InCircle(pc.Position, _impulseAOERadius) ? Colors.PlayerInteresting : Colors.PlayerGeneric);
         }

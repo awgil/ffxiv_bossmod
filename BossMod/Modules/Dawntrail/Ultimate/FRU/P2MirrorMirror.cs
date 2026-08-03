@@ -37,7 +37,7 @@ sealed class P2MirrorMirrorReflectedScytheKickBlue : Components.GenericAOEs
             {
                 // draw preposition hint
                 var distance = _rangedSpots[pcSlot] ? 19f : -11f;
-                Arena.AddCircle(Arena.Center + distance * _blueMirror, 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(Arena.Center + distance * _blueMirror, 1f, Colors.Safe);
             }
         }
     }

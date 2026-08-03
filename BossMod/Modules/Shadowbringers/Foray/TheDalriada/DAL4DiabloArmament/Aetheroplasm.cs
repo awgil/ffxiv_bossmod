@@ -49,7 +49,7 @@ sealed class Aetheroplasm(BossModule module) : BossComponent(module)
         var count = orbs.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(orbs[i].Position, 1.5f, Colors.Safe);
+            Arena.ZoneCircleOutline(orbs[i].Position, 1.5f, Colors.Safe);
         }
     }
 }

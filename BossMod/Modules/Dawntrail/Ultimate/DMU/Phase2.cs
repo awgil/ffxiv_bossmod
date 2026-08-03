@@ -637,12 +637,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
             {
                 if (shape == ForsakenShapes.Shape.Stack)
                 {
-                    Arena.AddCircle(swPosition + (-towardSW * 0.5f) + (-newSouth * 1.0f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition + (-towardSW * 0.5f) + (-newSouth * 1.0f), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (shape == ForsakenShapes.Shape.Cone)
                 {
-                    Arena.AddCircle(swPosition + (newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition + (newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
                 }
             }
 
@@ -656,12 +656,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
 
                 if (shape == ForsakenShapes.Shape.Stack)
                 {
-                    Arena.AddCircle(swPosition + 1.0f * toCenter + 0.5f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition + 1.0f * toCenter + 0.5f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (shape == ForsakenShapes.Shape.Cone)
                 {
-                    Arena.AddCircle(swPosition - 3.0f * toCenter, 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition - 3.0f * toCenter, 1.0f, colourCircle, 2.0f);
                 }
             }
         }
@@ -677,12 +677,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
             {
                 if (assignment is PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2)
                 {
-                    Arena.AddCircle(swPosition + (newSouth * 4.5f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition + (newSouth * 4.5f), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
                 {
-                    Arena.AddCircle(swPosition + (-towardSW * 3.0f) + (-newSouth * 4.0f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition + (-towardSW * 3.0f) + (-newSouth * 4.0f), 1.0f, colourCircle, 2.0f);
                 }
             }
 
@@ -696,12 +696,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
 
                 if (assignment is PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2)
                 {
-                    Arena.AddCircle(swPosition - 4.5f * toCenter, 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition - 4.5f * toCenter, 1.0f, colourCircle, 2.0f);
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
                 {
-                    Arena.AddCircle(swPosition + 4.5f * toCenter + 0.5f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(swPosition + 4.5f * toCenter + 0.5f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
                 }
             }
         }
@@ -717,12 +717,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
             {
                 if (shape == ForsakenShapes.Shape.Stack)
                 {
-                    Arena.AddCircle(sePosition + (-towardSE * 2.5f) + (newSouth * 2.5f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + (-towardSE * 2.5f) + (newSouth * 2.5f), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (shape == ForsakenShapes.Shape.Spread)
                 {
-                    Arena.AddCircle(sePosition + (towardSE * 2.0f) + (-newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + (towardSE * 2.0f) + (-newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
                 }
             }
 
@@ -736,12 +736,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
 
                 if (shape == ForsakenShapes.Shape.Stack)
                 {
-                    Arena.AddCircle(sePosition + 3.0f * toCenter - 2.0f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + 3.0f * toCenter - 2.0f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (shape == ForsakenShapes.Shape.Spread)
                 {
-                    Arena.AddCircle(sePosition - 2.5f * toCenter + 2.5f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition - 2.5f * toCenter + 2.5f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
                 }
             }
         }
@@ -757,12 +757,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
             {
                 if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
                 {
-                    Arena.AddCircle(sePosition + (-towardSE * 4.0f) + (newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + (-towardSE * 4.0f) + (newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2)
                 {
-                    Arena.AddCircle(sePosition + (-towardSE * 4.0f) + (newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + (-towardSE * 4.0f) + (newSouth * 3.0f), 1.0f, colourCircle, 2.0f);
                 }
             }
 
@@ -776,12 +776,12 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
 
                 if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
                 {
-                    Arena.AddCircle(sePosition + 4.5f * toCenter - 1.0f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + 4.5f * toCenter - 1.0f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2)
                 {
-                    Arena.AddCircle(sePosition + 4.5f * toCenter - 1.0f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
+                    Arena.ZoneCircleOutline(sePosition + 4.5f * toCenter - 1.0f * toCenter.Rotate(90f.Degrees()), 1.0f, colourCircle, 2.0f);
                 }
             }
         }
@@ -867,19 +867,19 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
             {
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Cone)
                 {
-                    Arena.AddCircle(swPosition + toCenter.Normalized() * 3.5f, 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(swPosition + toCenter.Normalized() * 3.5f, 0.75f, Colors.Safe, 1.0f);
                 }
 
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Spread)
                 {
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_Markerless)
                     {
-                        Arena.AddCircle(swPosition + (-toCenter.Normalized()) * 3.5f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(swPosition + (-toCenter.Normalized()) * 3.5f, 0.75f, Colors.Safe, 1.0f);
                     }
 
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_DN_ZENITH_Markers)
                     {
-                        Arena.AddCircle(swPosition + (-toCenter).Rotate(34f.Degrees()).Normalized() * 3.57f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(swPosition + (-toCenter).Rotate(34f.Degrees()).Normalized() * 3.57f, 0.75f, Colors.Safe, 1.0f);
                     }
                 }
             }
@@ -888,12 +888,12 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
             {
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Cone)
                 {
-                    Arena.AddCircle(swPosition + 3.0f * toCenter + 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(swPosition + 3.0f * toCenter + 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
 
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Spread)
                 {
-                    Arena.AddCircle(swPosition - 3.0f * toCenter - 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(swPosition - 3.0f * toCenter - 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
             }
         }
@@ -917,18 +917,18 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
                 {
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_Markerless)
                     {
-                        Arena.AddCircle(swPosition + toCenter.Rotate(90f.Degrees()).Normalized() * 4.5f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(swPosition + toCenter.Rotate(90f.Degrees()).Normalized() * 4.5f, 0.75f, Colors.Safe, 1.0f);
                     }
 
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_DN_ZENITH_Markers)
                     {
-                        Arena.AddCircle(swPosition + toCenter.Rotate(82f.Degrees()).Normalized() * 7.07f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(swPosition + toCenter.Rotate(82f.Degrees()).Normalized() * 7.07f, 0.75f, Colors.Safe, 1.0f);
                     }
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
                 {
-                    Arena.AddCircle(swPosition + toCenter.Rotate(35.0f.Degrees()).Normalized() * 11.5f, 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(swPosition + toCenter.Rotate(35.0f.Degrees()).Normalized() * 11.5f, 0.75f, Colors.Safe, 1.0f);
                 }
             }
 
@@ -936,12 +936,12 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
             {
                 if (assignment is PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2)
                 {
-                    Arena.AddCircle(swPosition + 1.0f * toCenter + 7.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(swPosition + 1.0f * toCenter + 7.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
                 {
-                    Arena.AddCircle(swPosition + 9.0f * toCenter + 6.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(swPosition + 9.0f * toCenter + 6.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
             }
         }
@@ -963,19 +963,19 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
             {
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Cone)
                 {
-                    Arena.AddCircle(sePosition + toCenter.Normalized() * 3.5f, 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(sePosition + toCenter.Normalized() * 3.5f, 0.75f, Colors.Safe, 1.0f);
                 }
 
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Spread)
                 {
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_Markerless)
                     {
-                        Arena.AddCircle(sePosition + (-toCenter.Normalized()) * 3.5f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(sePosition + (-toCenter.Normalized()) * 3.5f, 0.75f, Colors.Safe, 1.0f);
                     }
 
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_DN_ZENITH_Markers)
                     {
-                        Arena.AddCircle(sePosition + (-toCenter).Rotate(-26f.Degrees()).Normalized() * 3.6f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(sePosition + (-toCenter).Rotate(-26f.Degrees()).Normalized() * 3.6f, 0.75f, Colors.Safe, 1.0f);
                     }
                 }
             }
@@ -984,12 +984,12 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
             {
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Cone)
                 {
-                    Arena.AddCircle(sePosition + 3.0f * toCenter - 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(sePosition + 3.0f * toCenter - 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
 
                 if (shapes.shapes[pcSlot] == ForsakenShapes.Shape.Spread)
                 {
-                    Arena.AddCircle(sePosition - 3.0f * toCenter + 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(sePosition - 3.0f * toCenter + 2.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
             }
         }
@@ -1013,18 +1013,18 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
                 {
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_Markerless)
                     {
-                        Arena.AddCircle(sePosition + toCenter.Rotate(-90f.Degrees()).Normalized() * 4.5f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(sePosition + toCenter.Rotate(-90f.Degrees()).Normalized() * 4.5f, 0.75f, Colors.Safe, 1.0f);
                     }
 
                     if (dmuConfig.P2Forsaken == DMUConfig.P2ForsakenStrategy.Meow_DN_ZENITH_Markers)
                     {
-                        Arena.AddCircle(sePosition + toCenter.Rotate(-82f.Degrees()).Normalized() * 7.07f, 0.75f, Colors.Safe, 1.0f);
+                        Arena.ZoneCircleOutline(sePosition + toCenter.Rotate(-82f.Degrees()).Normalized() * 7.07f, 0.75f, Colors.Safe, 1.0f);
                     }
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
                 {
-                    Arena.AddCircle(sePosition + toCenter.Rotate(-35.0f.Degrees()).Normalized() * 11.5f, 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(sePosition + toCenter.Rotate(-35.0f.Degrees()).Normalized() * 11.5f, 0.75f, Colors.Safe, 1.0f);
                 }
             }
 
@@ -1032,12 +1032,12 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
             {
                 if (assignment is PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2)
                 {
-                    Arena.AddCircle(sePosition + 1.0f * toCenter - 7.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(sePosition + 1.0f * toCenter - 7.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
 
                 if (assignment is PartyRolesConfig.Assignment.M1 or PartyRolesConfig.Assignment.M2)
                 {
-                    Arena.AddCircle(sePosition + 9.0f * toCenter - 6.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
+                    Arena.ZoneCircleOutline(sePosition + 9.0f * toCenter - 6.0f * toCenter.Rotate(90f.Degrees()), 0.75f, Colors.Safe, 1.0f);
                 }
             }
         }
@@ -1225,7 +1225,7 @@ sealed class Trine(BossModule module) : Components.GenericAOEs(module, (uint)AID
 
         if (assignment is not PartyRolesConfig.Assignment.MT and not PartyRolesConfig.Assignment.OT)
         {
-            Arena.AddCircle(firstWave[0], 1f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(firstWave[0], 1f, Colors.Safe, 2f);
             return;
         }
 
@@ -1238,7 +1238,7 @@ sealed class Trine(BossModule module) : Components.GenericAOEs(module, (uint)AID
         var ccwSpot = firstWave.MinBy(p => (waymark1Angle - (p - Arena.Center).ToAngle()).Normalized().Deg)!;
         if (assignment == PartyRolesConfig.Assignment.OT)
         {
-            Arena.AddCircle(Arena.Center + (ccwSpot - Arena.Center).Normalized() * Arena.Bounds.Radius, 1f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(Arena.Center + (ccwSpot - Arena.Center).Normalized() * Arena.Bounds.Radius, 1f, Colors.Safe, 2f);
         }
 
         WPos closestSpot = ccwSpot;
@@ -1264,7 +1264,7 @@ sealed class Trine(BossModule module) : Components.GenericAOEs(module, (uint)AID
 
         if (assignment == PartyRolesConfig.Assignment.MT)
         {
-            Arena.AddCircle(closestSpot, 1f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(closestSpot, 1f, Colors.Safe, 2f);
         }
     }
 }

@@ -1,5 +1,6 @@
 namespace BossMod.Shadowbringers.Alliance.A32HanselGretel;
 
+[SkipLocalsInit]
 sealed class Explosion(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(11)];

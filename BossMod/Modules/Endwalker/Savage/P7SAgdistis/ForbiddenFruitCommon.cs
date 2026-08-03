@@ -78,7 +78,7 @@ class ForbiddenFruitCommon(BossModule module, uint watchedAction) : Components.G
             Arena.AddLine(tetherSource.Position, pc.Position, TetherColor(tetherSource));
 
         foreach (var platform in SafePlatforms[pcSlot].SetBits())
-            Arena.AddCircle(Arena.Center + PlatformDirection(platform).ToDirection() * 16.5f, 10f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + PlatformDirection(platform).ToDirection() * 16.5f, 10f, Colors.Safe);
     }
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)

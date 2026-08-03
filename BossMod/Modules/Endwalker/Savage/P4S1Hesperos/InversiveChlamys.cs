@@ -114,7 +114,7 @@ class InversiveChlamys(BossModule module) : BossComponent(module)
             if (player.Tether.ID == (uint)TetherID.Chlamys)
             {
                 Arena.AddLine(player.Position, Module.PrimaryActor.Position, failing ? Colors.Danger : Colors.Safe);
-                Arena.AddCircle(player.Position, _aoeRange, Colors.Danger);
+                Arena.ZoneCircleOutline(player.Position, _aoeRange, Colors.Danger);
             }
         }
     }

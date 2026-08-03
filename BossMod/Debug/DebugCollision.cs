@@ -853,7 +853,7 @@ public sealed unsafe class DebugCollision() : IDisposable
 
         // mesh & streamed are containers; material filtering happens per-triangle when drawing/exporting
         // Never drop them here just because their object-level material doesn't match
-        if (type == ColliderType.Mesh || type == ColliderType.Streamed)
+        if (type is ColliderType.Mesh or ColliderType.Streamed)
         {
             return true;
         }
@@ -1138,7 +1138,8 @@ public sealed unsafe class DebugCollision() : IDisposable
                         _meshSelection.Remove(ptr);
                     }
                 }
-                ImGui.SameLine(); ImGui.TextDisabled("pick");
+                ImGui.SameLine();
+                ImGui.TextDisabled("pick");
             }
         }
         if (ImGui.BeginPopupContextItem($"###{(nint)coll:X}"))
@@ -1701,7 +1702,6 @@ public sealed unsafe class DebugCollision() : IDisposable
         }
 
         var rad = MathF.Atan2(x, z);
-        var deg = rad * (180f / MathF.PI);
         return new Angle(rad).Normalized();
     }
 

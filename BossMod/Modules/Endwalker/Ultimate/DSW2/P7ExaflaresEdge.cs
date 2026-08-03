@@ -10,7 +10,7 @@ sealed class P7ExaflaresEdge : Components.Exaflare
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in SafeSpots())
-            Arena.AddCircle(p, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -67,7 +67,7 @@ class DeepestPit(BossModule module) : Components.GenericAOEs(module)
         {
             var count = _targets.Count;
             for (var i = 0; i < count; ++i)
-                Arena.AddCircle(_targets[i].Position, _shape.Radius);
+                Arena.ZoneCircleOutline(_targets[i].Position, _shape.Radius);
         }
     }
 

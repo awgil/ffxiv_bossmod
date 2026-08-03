@@ -66,7 +66,7 @@ sealed class PortalsWave(BossModule module) : BossComponent(module)
             for (var i = 0; i < _portals.Count; ++i)
             {
                 var p = _portals[i];
-                Arena.AddCircle(dir > 0 ? p.s : p.n, 1, Colors.Safe, 2f);
+                Arena.ZoneCircleOutline(dir > 0 ? p.s : p.n, 1, Colors.Safe, 2f);
             }
         }
     }

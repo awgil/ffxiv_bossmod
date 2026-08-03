@@ -55,7 +55,7 @@ sealed class ClamorousChaseBait(BossModule module) : Components.GenericBaitAway(
         var spot = GetPositionHint(order[pcSlot]);
         if (spot is WPos s)
         {
-            Arena.AddCircle(s, 2f, Colors.Safe, 2f);
+            Arena.ZoneCircleOutline(s, 2f, Colors.Safe, 2f);
         }
     }
 

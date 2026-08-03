@@ -8,7 +8,7 @@ sealed class ThornyVine(BossModule module) : Components.Chains(module, (uint)Tet
     {
         if (!TethersAssigned && _emblazon.WedgeCenterDirection != default)
         {
-            Arena.AddCircle(Arena.Center - 5f * _emblazon.WedgeCenterDirection, 3f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center - 5f * _emblazon.WedgeCenterDirection, 3f, Colors.Safe);
         }
         base.DrawArenaForeground(pcSlot, pc);
     }

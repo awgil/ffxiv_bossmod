@@ -56,7 +56,7 @@ class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, (uin
         {
             var loc = new WPos(107, 107);
             var circle = new SDCircle(loc, 2f);
-            Arena.AddCircle(loc, 2f, circle.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(loc, 2f, circle.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
         }
     }
 

@@ -34,7 +34,7 @@ sealed class P6MortalVow : Components.UniformStackSpread
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (_vow != null && _target != null && (pc == _vow || pc == _target))
-            Arena.AddCircle(Arena.Center, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center, 1f, Colors.Safe);
     }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)

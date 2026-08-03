@@ -205,7 +205,7 @@ class BurningBright(BossModule module) : Components.BaitAwayCast(module, (uint)A
             for (var i = 0; i < count; ++i)
             {
                 var a = walls[i];
-                Arena.AddCircle(a.Position, a.HitboxRadius, Colors.Danger);
+                Arena.ZoneCircleOutline(a.Position, a.HitboxRadius, Colors.Danger);
             }
         }
     }
@@ -354,7 +354,7 @@ class CloudCall(BossModule module) : Components.GenericBaitAway(module, centerAt
             for (var i = 0; i < count; ++i)
             {
                 var a = walls[i];
-                Arena.AddCircle(a.Position, a.HitboxRadius);
+                Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
             }
         }
     }

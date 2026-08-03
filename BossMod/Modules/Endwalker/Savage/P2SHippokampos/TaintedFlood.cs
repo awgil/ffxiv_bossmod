@@ -45,12 +45,12 @@ class TaintedFlood : Components.CastCounter
             foreach ((_, var actor) in Raid.WithSlot(false, true, true).ExcludedFromMask(_ignoredTargets))
             {
                 Arena.Actor(actor, Colors.Danger);
-                Arena.AddCircle(actor.Position, _radius, Colors.Danger);
+                Arena.ZoneCircleOutline(actor.Position, _radius, Colors.Danger);
             }
         }
         else
         {
-            Arena.AddCircle(pc.Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(pc.Position, _radius, Colors.Danger);
             foreach (var player in Raid.WithoutSlot(false, true, true).Exclude(pc))
                 Arena.Actor(player, player.Position.InCircle(pc.Position, _radius) ? Colors.PlayerInteresting : Colors.PlayerGeneric);
         }

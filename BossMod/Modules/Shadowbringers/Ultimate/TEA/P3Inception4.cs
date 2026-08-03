@@ -78,7 +78,7 @@ class P3Inception4Hints(BossModule module) : BossComponent(module)
         if (_safespots != null)
         {
             foreach (var spot in _safespots[pcSlot])
-                Arena.AddCircle(spot, 1f, Colors.Safe);
+                Arena.ZoneCircleOutline(spot, 1f, Colors.Safe);
         }
     }
 

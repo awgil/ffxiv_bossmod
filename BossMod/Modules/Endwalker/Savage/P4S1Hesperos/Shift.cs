@@ -30,7 +30,7 @@ class Shift(BossModule module) : BossComponent(module)
     {
         if (_cloakCaster != null)
         {
-            Arena.AddCircle(_cloakCaster.Position, 5, Colors.Safe);
+            Arena.ZoneCircleOutline(_cloakCaster.Position, 5, Colors.Safe);
 
             var adjPos = Components.GenericKnockback.AwayFromSource(pc.Position, _cloakCaster, _knockbackRange);
             if (adjPos != pc.Position)

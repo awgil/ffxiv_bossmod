@@ -119,7 +119,7 @@ sealed class P3Inception3EarlyHints(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_safespots != null)
-            Arena.AddCircle(_safespots[pcSlot], 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(_safespots[pcSlot], 1f, Colors.Safe);
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)

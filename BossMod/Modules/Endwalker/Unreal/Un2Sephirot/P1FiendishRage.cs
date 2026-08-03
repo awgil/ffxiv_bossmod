@@ -33,7 +33,7 @@ class P1FiendishRage(BossModule module) : Components.CastCounter(module, (uint)A
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var target in Raid.WithSlot(true, true, true).IncludedInMask(_targets))
-            Arena.AddCircle(target.Item2.Position, _range, Colors.Danger);
+            Arena.ZoneCircleOutline(target.Item2.Position, _range, Colors.Danger);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

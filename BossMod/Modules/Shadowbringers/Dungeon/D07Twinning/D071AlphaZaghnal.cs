@@ -85,7 +85,7 @@ sealed class PounceErrant(BossModule module) : Components.GenericStackSpread(mod
         for (var i = 0; i < count; ++i)
         {
             var a = cages[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 
@@ -181,7 +181,7 @@ sealed class ForlornImpact(BossModule module) : Components.GenericBaitAway(modul
         for (var i = 0; i < count; ++i)
         {
             var a = cages[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 

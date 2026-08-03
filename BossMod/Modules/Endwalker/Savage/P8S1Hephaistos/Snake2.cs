@@ -79,11 +79,11 @@ class Snake2(BossModule module) : PetrifactionCommon(module)
         {
             // show circle around assigned snake
             if (_players[pcSlot].AssignedSnake >= 0)
-                Arena.AddCircle(ActiveGorgons[_players[pcSlot].AssignedSnake].caster.Position, 2f, Colors.Safe);
+                Arena.ZoneCircleOutline(ActiveGorgons[_players[pcSlot].AssignedSnake].caster.Position, 2f, Colors.Safe);
 
             foreach (var (slot, player) in Raid.WithSlot(false, true, true))
                 if (_players[slot].HasBreath)
-                    Arena.AddCircle(player.Position, _breathRadius, Colors.Safe);
+                    Arena.ZoneCircleOutline(player.Position, _breathRadius, Colors.Safe);
         }
     }
 

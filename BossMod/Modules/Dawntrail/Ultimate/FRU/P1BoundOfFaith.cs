@@ -35,7 +35,7 @@ sealed class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(m
         base.DrawArenaForeground(pcSlot, pc);
         if (AssignedGroups[pcSlot] != 0 && SafeSide.X != 0)
         {
-            Arena.AddCircle(Arena.Center + SafeSide * 18.2f + AssignedLane(pcSlot), 1, Colors.Safe);
+            Arena.ZoneCircleOutline(Arena.Center + SafeSide * 18.2f + AssignedLane(pcSlot), 1, Colors.Safe);
         }
     }
 

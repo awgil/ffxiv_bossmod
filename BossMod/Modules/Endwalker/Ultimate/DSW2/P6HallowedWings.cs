@@ -110,7 +110,7 @@ abstract class P6HallowedPlume(BossModule module) : Components.GenericBaitAway(m
     {
         base.DrawArenaForeground(pcSlot, pc);
         foreach (var p in SafeSpots(pc))
-            Arena.AddCircle(p, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(p, 1f, Colors.Safe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -90,7 +90,7 @@ sealed class GrotesquerieCurtainCall(BossModule module) : Components.UniformStac
             var timeUntilChains = (_chainActivationTime - WorldState.CurrentTime).TotalSeconds;
             if (timeUntilChains > 0 && timeUntilChains <= ChainGroupUpWindow)
             {
-                Arena.AddCircle(Module.Center, 2f, Colors.Safe);
+                Arena.ZoneCircleOutline(Module.Center, 2f, Colors.Safe);
             }
         }
 
@@ -123,7 +123,7 @@ sealed class GrotesquerieCurtainCall(BossModule module) : Components.UniformStac
             breakPos = Arena.ClampToBounds(breakPos);
 
             var isInPosition = pc.Position.InCircle(breakPos, 2f);
-            Arena.AddCircle(breakPos, 1f, isInPosition ? Colors.Danger : Colors.Safe);
+            Arena.ZoneCircleOutline(breakPos, 1f, isInPosition ? Colors.Danger : Colors.Safe);
             break;
         }
     }

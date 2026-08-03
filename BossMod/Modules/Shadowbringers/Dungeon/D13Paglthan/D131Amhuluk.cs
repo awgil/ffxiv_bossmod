@@ -125,7 +125,7 @@ sealed class LightningBolt(BossModule module) : Components.GenericBaitAway(modul
         var count = freeRods.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(freeRods[i].Position, 4f, Colors.Safe);
+            Arena.ZoneCircleOutline(freeRods[i].Position, 4f, Colors.Safe);
         }
     }
 }

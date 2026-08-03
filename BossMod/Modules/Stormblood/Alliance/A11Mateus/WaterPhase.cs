@@ -108,7 +108,7 @@ class Snowpierce(BossModule module) : Components.BaitAwayChargeCast(module, (uin
         for (var i = 0; i < count; ++i)
         {
             var a = froth[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 

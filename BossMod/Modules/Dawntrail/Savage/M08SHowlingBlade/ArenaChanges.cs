@@ -222,7 +222,7 @@ sealed class Teleporters(BossModule module) : BossComponent(module)
         var count = activeTeleporters.Count;
         for (var i = 0; i < count; ++i)
         {
-            Arena.AddCircle(activeTeleporters[i], 1f, Colors.Object, 2f);
+            Arena.ZoneCircleOutline(activeTeleporters[i], 1f, Colors.Object, 2f);
         }
     }
 

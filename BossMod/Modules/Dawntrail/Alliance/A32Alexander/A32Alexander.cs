@@ -1,7 +1,4 @@
-﻿
-using BossMod.Endwalker.VariantCriterion.C01ASS.C010Trash1;
-
-namespace BossMod.Dawntrail.Alliance.A32Alexander;
+﻿namespace BossMod.Dawntrail.Alliance.A32Alexander;
 
 sealed class BanishgaIV(BossModule module) : Components.RaidwideCast(module, (uint)AID.BanishgaIV);
 sealed class HolyII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HolyII, new AOEShapeCircle(6f));
@@ -35,15 +32,15 @@ sealed class RadiantSacrament(BossModule module) : Components.GenericAOEs(module
             var ix = index - 0x14;
             var row = ix % 5;
             var col = ix / 5;
-            var wd = new WDir(10 * col, 10 * row) + (Arena.Center - new WDir(20, 20));
-            _aoes.Add(new(new AOEShapeRect(5, 5, 5), wd, default, WorldState.FutureTime(8.1f)));
+            var wd = new WDir(10f * col, 10f * row) + (Arena.Center - new WDir(20f, 20f));
+            _aoes.Add(new(new AOEShapeRect(5f, 5f, 5f), wd, default, WorldState.FutureTime(8.1d)));
         }
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == WatchedAction)
         {
-            NumCasts++;
+            ++NumCasts;
             _aoes.RemoveAt(0);
         }
     }
@@ -78,7 +75,7 @@ sealed class MegaHoly(BossModule module) : Components.StackWithIcon(module, (uin
 class GordiusSystem(BossModule module) : Components.Adds(module, (uint)OID.GordiusSystem, 1);
 
 sealed class Activate(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Activate, 3f);
-class PerfectDefense(BossModule module) : Components.InvincibleStatus(module, (uint)SID.PerfectDefense2, priority: -4);
+class PerfectDefense(BossModule module) : Components.InvincibleStatus(module, (uint)SID.PerfectDefense2);
 class HolyFlame(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HolyFlame, 5f);
 class Shock(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Shock, 7f);
 class CircuitShock(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CircuitShock, new AOEShapeDonut(7, 18));
@@ -117,8 +114,7 @@ class Electrify(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-sealed class DivineBolt(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(60f, 3f), (uint)IconID.DivineBolt, (uint)AID.DivineBolt1, tankbuster: true, damageType:AIHints.PredictedDamageType.Tankbuster);
-
+sealed class DivineBolt(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(60f, 3f), (uint)IconID.DivineBolt, (uint)AID.DivineBolt1, tankbuster: true, damageType: AIHints.PredictedDamageType.Tankbuster);
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "The Combat Reborn Team, HerStolenLight, Some logic borrowed from Xan", PrimaryActorOID = (uint)OID.AlexanderResurrected, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117u, NameID = 14529u, Category = BossModuleInfo.Category.Alliance, Expansion = BossModuleInfo.Expansion.Dawntrail, SortOrder = 3)]
 public sealed class A32Alexander(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(25f))

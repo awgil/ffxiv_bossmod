@@ -79,7 +79,6 @@ public enum IconID : uint
     ShareStackIcon = 161, // player->self : targeted a dps some sort of stack
 }
 
-
 sealed class BrightSabbath(BossModule module) : Components.RaidwideCast(module, (uint)AID.BrightSabbath);
 
 sealed class PhantomRune(BossModule module)
@@ -102,7 +101,7 @@ sealed class WarAndPease(BossModule module) : Components.BaitAwayCast(module, (u
 
 sealed class PucksBreath(BossModule module) : Components.StackWithCastTargets(module, (uint)AID.PucksBreath, 6f);
 
-sealed class PucksCaprice(BossModule module) : Components.RaidwideCast(module,  (uint)AID.PucksCaprice);
+sealed class PucksCaprice(BossModule module) : Components.RaidwideCast(module, (uint)AID.PucksCaprice);
 
 sealed class BeingMortal1(BossModule module) : Components.RaidwideCast(module, (uint)AID.BeingMortal1);
 
@@ -125,7 +124,7 @@ sealed class PucksRebuke1(BossModule module) : Components.SimpleKnockbacks(modul
     }
 }
 
-sealed class PucksRebuke2(BossModule module) : Components.SimpleAOEs(module,  (uint)AID.PucksRebuke2, new AOEShapeCircle(5f));
+sealed class PucksRebuke2(BossModule module) : Components.SimpleAOEs(module, (uint)AID.PucksRebuke2, new AOEShapeCircle(5f));
 
 // The roots that grow across the arena in a star pattern
 // If somebody has a solution that shows the aoe growing along with the animation that would be cool.
@@ -253,7 +252,7 @@ sealed class WaterPuddles(BossModule module) : BossComponent(module)
         var count = orbs.Count;
         for (var i = 0; i < count; ++i)
             if (_fireCasting)
-                Arena.AddCircleFilled(orbs[i].Position, 5f, Colors.SafeFromAOE);
+                Arena.ZoneCircle(orbs[i].Position, 5f, Colors.SafeFromAOE);
     }
 }
 
@@ -285,7 +284,7 @@ sealed class WaterTowers(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-sealed class FlameRune(BossModule module) : Components.StackWithIcon(module,(uint)IconID.FireStackIcon, (uint)AID.FlameHammer, 5f, 3d, 8, 8);
+sealed class FlameRune(BossModule module) : Components.StackWithIcon(module, (uint)IconID.FireStackIcon, (uint)AID.FlameHammer, 5f, 3d, 8, 8);
 
 
 [SkipLocalsInit]

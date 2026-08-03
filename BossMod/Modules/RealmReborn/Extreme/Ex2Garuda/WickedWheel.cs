@@ -21,7 +21,7 @@ class WickedWheel(BossModule module) : Components.CastCounter(module, (uint)AID.
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (_expectedNext != default && (_expectedNext - WorldState.CurrentTime).TotalSeconds < 3d)
-            Arena.AddCircle(Module.PrimaryActor.Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(Module.PrimaryActor.Position, _radius, Colors.Danger);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

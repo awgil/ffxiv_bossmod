@@ -96,7 +96,7 @@ sealed class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Gen
             return;
 
         foreach (var hint in PositionHints(pcSlot))
-            Arena.AddCircle(hint, 1, Colors.Safe);
+            Arena.ZoneCircleOutline(hint, 1, Colors.Safe);
 
         var partner = FindTetheredPartner(pcSlot);
         if (partner >= 0)
@@ -105,7 +105,7 @@ sealed class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Gen
         DrawKnockback(pc, _playerAdjustedPositions[pcSlot], Arena);
 
         foreach (var (slot, _) in Raid.WithSlot(false, true, true).Exclude(pc))
-            Arena.AddCircle(_playerAdjustedPositions[slot], _aoeRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(_playerAdjustedPositions[slot], _aoeRadius, Colors.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

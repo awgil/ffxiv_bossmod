@@ -136,7 +136,7 @@ sealed class ThunderIII(BossModule module) : Components.BaitAwayCast(module, (ui
         for (var i = 0; i < count; ++i)
         {
             var a = rocks[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 
@@ -182,7 +182,7 @@ sealed class RayOfLightning(BossModule module) : Components.LineStack(module, ic
         for (var i = 0; i < count; ++i)
         {
             var a = rocks[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius);
         }
     }
 
@@ -254,7 +254,7 @@ sealed class ThunderIISpread(BossModule module) : Components.SpreadFromCastTarge
                     goto skip;
                 }
             }
-            Arena.AddCircle(pos, r.HitboxRadius);
+            Arena.ZoneCircleOutline(pos, r.HitboxRadius);
         skip:
             ;
         }

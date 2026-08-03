@@ -105,7 +105,7 @@ class AethericBoom(BossModule module) : Components.CastHint(module, (uint)AID.Ae
         foreach (var orb in _activeOrbs)
         {
             Arena.Actor(orb, Colors.Object, true);
-            Arena.AddCircle(orb.Position, _explosionRadius);
+            Arena.ZoneCircleOutline(orb.Position, _explosionRadius);
         }
     }
 

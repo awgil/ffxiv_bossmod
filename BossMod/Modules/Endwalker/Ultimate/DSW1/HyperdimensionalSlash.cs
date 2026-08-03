@@ -81,7 +81,7 @@ sealed class HyperdimensionalSlash(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         for (var i = 0; i < _tears.Count; ++i)
-            Arena.AddCircle(_tears[i].Pos, _linkRadius, _riskyTears[i] ? default : Colors.Safe);
+            Arena.ZoneCircleOutline(_tears[i].Pos, _linkRadius, _riskyTears[i] ? default : Colors.Safe);
 
         if (_laserTargets[pcSlot])
             Arena.AddLine(Arena.Center, TearPosition(pc));

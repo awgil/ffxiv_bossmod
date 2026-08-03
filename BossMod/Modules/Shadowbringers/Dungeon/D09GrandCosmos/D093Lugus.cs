@@ -125,7 +125,7 @@ class MortalFlame(BossModule module) : BossComponent(module)
             for (var i = 0; i < count; ++i)
             {
                 var a = furniture[i];
-                Arena.AddCircle(a.Position, a.HitboxRadius, Colors.Safe);
+                Arena.ZoneCircleOutline(a.Position, a.HitboxRadius, Colors.Safe);
             }
         }
     }
@@ -191,7 +191,7 @@ class BlackFlame(BossModule module) : Components.GenericBaitAway(module, centerA
         for (var i = 0; i < count; ++i)
         {
             var a = furniture[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius, Colors.Danger);
         }
     }
 
@@ -313,7 +313,7 @@ class FiresIreBait(BossModule module) : Components.GenericBaitAway(module)
         for (var i = 0; i < countF; ++i)
         {
             var a = furniture[i];
-            Arena.AddCircle(a.Position, a.HitboxRadius, Colors.Danger);
+            Arena.ZoneCircleOutline(a.Position, a.HitboxRadius, Colors.Danger);
         }
 
         cone.Outline(Arena, pc.Position - (pc.HitboxRadius + Module.PrimaryActor.HitboxRadius) * Module.PrimaryActor.DirectionTo(pc), bait.Ref(0).Rotation);

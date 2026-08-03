@@ -40,7 +40,7 @@ sealed class P2IntermissionHawkBlaster(BossModule module) : Components.GenericAO
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (SafeSpotHint(pcSlot) is var safespot && safespot != null)
-            Arena.AddCircle(safespot.Value, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(safespot.Value, 1f, Colors.Safe);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

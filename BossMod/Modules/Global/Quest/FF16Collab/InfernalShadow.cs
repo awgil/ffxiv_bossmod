@@ -186,7 +186,7 @@ class BurningStrike(BossModule module) : BossComponent(module)
         if (clive == null)
             return;
         if (clive.IsTargetable)
-            Arena.AddCircle(clive.Position, 1.4f, Colors.Safe);
+            Arena.ZoneCircleOutline(clive.Position, 1.4f, Colors.Safe);
     }
 }
 

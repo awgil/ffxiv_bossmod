@@ -1,6 +1,8 @@
-﻿namespace BossMod.Dawntrail.Raid.M12NLindwurm;
+﻿
+namespace BossMod.Dawntrail.Raid.M12NLindwurm;
 
-sealed class CruelCoil(BossModule module) : BossComponent(module)
+[SkipLocalsInit]
+sealed class CruelCoil(BossModule module) : Components.GenericAOEs(module, warningText: "Run out of snek!")
 {
     // 1st time does skinsplitter x4 then cruel coil
     // 2nd time around same except only 3 skinsplitter
@@ -11,26 +13,49 @@ sealed class CruelCoil(BossModule module) : BossComponent(module)
     // mapeffects don't fire on the 1st skinsplitter after succ, only subsequent ones
     // coils have 13f radius; make 13f AOE, diff a 12.9f ring in the middle with small connecting platform to rest of arena for pathfinding
 
-    private bool _active = false;
-    private readonly AOEShapeCircle skincoil = new(13f);
+    private bool _active;
+    private readonly AOEShapeCircle circle = new(13f);
+    private AOEInstance[] _aoe = [];
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_aoe.Length != 0)
+        {
+            ref var aoe = ref _aoe[0];
+            aoe.Risky = _active;
+        }
+        return _aoe;
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.ConstrictorVisual3)
+        {
+            _aoe = [new(circle, Arena.Center.Quantized(), activation: Module.CastFinishAt(spell), risky: false)];
+        }
+    }
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID == (uint)SID._Gen_Bind)
+        if (status.ID == (uint)SID.Bind)
+        {
             UpdateArena();
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID.SkinsplitterVisual)
+        var id = spell.Action.ID;
+        if (id == (uint)AID.SkinsplitterVisual)
         {
             _active = false;
             UpdateArena();
         }
-        else if (spell.Action.ID == (uint)AID.Constrictor)
+        else if (id == (uint)AID.Constrictor)
         {
             _active = false;
-            Arena.Bounds = M12NLindwurm.ArenaBounds;
+            _aoe = [];
+            Arena.Bounds = new ArenaBoundsRect(20f, 15f);
         }
     }
 
@@ -38,13 +63,9 @@ sealed class CruelCoil(BossModule module) : BossComponent(module)
     {
         if (index == 0x0A)
         {
-            if (state == 0x00010001u)
-                _active = false;
-            else
-                _active = true;
+            _active = state != 0x00010001u;
         }
-
-        if (index is >= 0x02 and <= 0x09)
+        else if (index is >= 0x02 and <= 0x09)
         {
             // state 0x00010001 is "open" section, or "reset" if 0x0A
             // 0x09 = NW, 0x07 = SW, 0x05 = SE, 0x03 = NE
@@ -54,31 +75,6 @@ sealed class CruelCoil(BossModule module) : BossComponent(module)
                 _active = true;
                 UpdateArena(index);
             }
-        }
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        if (_active)
-        {
-            Arena.AddCircleFilled(Arena.Center, 13f, Colors.AOE);
-        }
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_active)
-        {
-            if (skincoil.Check(actor.Position, Arena.Center))
-                hints.Add("Run out of snek!");
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_active)
-        {
-            hints.AddForbiddenZone(skincoil, Arena.Center);
         }
     }
 

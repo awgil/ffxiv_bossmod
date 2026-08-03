@@ -40,8 +40,8 @@ class DarkenedFire(BossModule module) : BossComponent(module)
         }
 
         // draw circles around pc
-        Arena.AddCircle(pc.Position, _minRange, Colors.Danger);
-        Arena.AddCircle(pc.Position, _maxRange, Colors.Safe);
+        Arena.ZoneCircleOutline(pc.Position, _minRange, Colors.Danger);
+        Arena.ZoneCircleOutline(pc.Position, _maxRange, Colors.Safe);
     }
 
     private bool CanBothBeTargets(Actor one, Actor two)

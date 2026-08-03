@@ -29,7 +29,7 @@ class EntanglingWebHints(BossModule module) : BossComponent(module)
     {
         Arena.Actors(_pillars, Colors.Object, true);
         for (var i = 0; i < _targets.Count; ++i)
-            Arena.AddCircle(_targets[i].Position, _radius, Colors.Danger);
+            Arena.ZoneCircleOutline(_targets[i].Position, _radius, Colors.Danger);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -104,7 +104,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
         var isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
         if (isTowerSoaker && CurState != State.Done)
             foreach (var tower in (CurState == State.SecondSet ? SecondSet : FirstSet).Where(IsTower))
-                Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ? default : Colors.Safe);
+                Arena.ZoneCircleOutline(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ? default : Colors.Safe);
 
         // draw circles around next imminent fire explosion
         if (CurState != State.DarkDesign)
@@ -112,8 +112,8 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
             var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != default) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != default) ? _fireDD : (null, null));
             if (curFirePair.Item1 != null)
             {
-                Arena.AddCircle(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? default : Colors.Safe);
-                Arena.AddCircle(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? default : Colors.Safe);
+                Arena.ZoneCircleOutline(curFirePair.Item1!.Position, _fireExplosionRadius, isTowerSoaker ? default : Colors.Safe);
+                Arena.ZoneCircleOutline(curFirePair.Item2!.Position, _fireExplosionRadius, isTowerSoaker ? default : Colors.Safe);
             }
         }
     }

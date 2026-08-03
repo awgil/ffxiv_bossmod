@@ -118,19 +118,19 @@ sealed class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
                     _ => (0, PlayerRole.None)
                 };
                 if (radius != 0)
-                    Arena.AddCircle(p.Position, radius, pcRole == share ? Colors.Safe : Colors.Danger);
+                    Arena.ZoneCircleOutline(p.Position, radius, pcRole == share ? Colors.Safe : Colors.Danger);
             }
 
             // draw safespots for next towers
             foreach (var p in PositionsForTowers(pcSlot))
-                Arena.AddCircle(p, 1, Colors.Safe);
+                Arena.ZoneCircleOutline(p, 1, Colors.Safe);
         }
         else if (NumRotExplodes < NumCasts)
         {
             // draw rot 'spreads' (rots will explode on players who used to have defamation/stack role and thus now have one of the tether roles)
             foreach (var (i, p) in Raid.WithSlot(true, true, true))
                 if (PendingRot(i))
-                    Arena.AddCircle(p.Position, 5, Colors.Danger);
+                    Arena.ZoneCircleOutline(p.Position, 5, Colors.Danger);
         }
 
         if (NumTetherBreaks < 16)

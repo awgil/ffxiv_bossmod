@@ -57,7 +57,7 @@ sealed class HeavensflameKnockback(BossModule module) : Components.SimpleKnockba
 
         foreach (var hint in PositionHints(pcSlot))
         {
-            Arena.AddCircle(hint, 1f, Colors.Safe);
+            Arena.ZoneCircleOutline(hint, 1f, Colors.Safe);
             //var dir = Vector3.Normalize(pos.Value - _knockbackSource.Position);
             //var adjPos = Arena.ClampToBounds(_knockbackSource.Position + 50 * dir);
             //Arena.AddLine(Arena.Center, adjPos, Colors.Safe);
@@ -70,7 +70,7 @@ sealed class HeavensflameKnockback(BossModule module) : Components.SimpleKnockba
         DrawKnockback(pc, _playerAdjustedPositions[pcSlot], Arena);
 
         foreach (var (slot, _) in Raid.WithSlot(false, true, true).Exclude(pc))
-            Arena.AddCircle(_playerAdjustedPositions[slot], _aoeRadius);
+            Arena.ZoneCircleOutline(_playerAdjustedPositions[slot], _aoeRadius);
     }
 
     public override void OnUntethered(Actor source, in ActorTetherInfo tether)

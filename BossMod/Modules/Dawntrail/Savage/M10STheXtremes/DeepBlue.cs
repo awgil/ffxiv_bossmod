@@ -240,7 +240,7 @@ sealed class AlleyOopWater(BossModule module) : Components.GenericBaitAway(modul
             var targetRot = rotation - group * 45f.Degrees();
             var targetPos = deepblue.Position + targetRot.ToDirection() * (deepblue.HitboxRadius + 1.5f);
             var targetSd = new SDCircle(targetPos, radius);
-            Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
         }
         else if (CurrentState == State.Snaking)
         {
@@ -287,7 +287,7 @@ sealed class AlleyOopWater(BossModule module) : Components.GenericBaitAway(modul
             // shift a little so circle isn't right on arena bound
             targetPos += new WDir(1f, 0f);
             var targetSd = new SDCircle(targetPos, radius);
-            Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger, 2f);
+            Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger, 2f);
         }
         else if (CurrentState == State.SplitArena)
         {
@@ -333,7 +333,7 @@ sealed class AlleyOopWater(BossModule module) : Components.GenericBaitAway(modul
             }
 
             var targetSd = new SDCircle(targetPos, radius);
-            Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
         }
         else
         {
@@ -342,7 +342,7 @@ sealed class AlleyOopWater(BossModule module) : Components.GenericBaitAway(modul
             var targetRot = north - group * 45f.Degrees();
             var targetPos = Arena.Center + targetRot.ToDirection() * (group % 2 == 0 ? 18f : 25.5f);
             var targetSd = new SDCircle(targetPos, radius);
-            Arena.AddCircle(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
+            Arena.ZoneCircleOutline(targetPos, radius, targetSd.Contains(pc.Position) ? Colors.Safe : Colors.Danger);
         }
     }
 }

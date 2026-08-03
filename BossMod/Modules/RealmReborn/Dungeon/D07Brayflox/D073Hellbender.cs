@@ -51,7 +51,7 @@ class PlayerBound(BossModule module) : BossComponent(module)
             // assign actor and add circle around them.
             var actor = Raid[slot];
             if (actor != null)
-                Arena.AddCircle(actor.Position, 1.5f, Colors.PlayerInteresting, 1.5f);
+                Arena.ZoneCircleOutline(actor.Position, 1.5f, Colors.PlayerInteresting, 1.5f);
         }
     }
 

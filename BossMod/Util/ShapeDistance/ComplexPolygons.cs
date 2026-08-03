@@ -35,54 +35,48 @@ public readonly struct SDPolygonWithHolesBase
         var vertsCount = 0;
         for (var i = 0; i < countP; ++i)
         {
-            vertsCount += parts[i].VerticesCount;
+            vertsCount += parts[i].Vertices.Count;
         }
 
         _edges = new Edge[vertsCount];
         var edgeIndex = 0;
+
         for (var i = 0; i < countP; ++i)
         {
             var part = polygon.Parts[i];
-            var exteriorEdges = GetEdges(part.Exterior, origin);
-            var exteriorCount = exteriorEdges.Length;
-            Array.Copy(exteriorEdges, 0, _edges, edgeIndex, exteriorCount);
-            edgeIndex += exteriorCount;
-            var lenPolygonHoles = part.Holes.Length;
-            for (var j = 0; j < lenPolygonHoles; ++j)
+            edgeIndex = AppendEdges(_edges, edgeIndex, part.Exterior, origin);
+            var countH = part.HoleStarts.Count;
+            for (var j = 0; j < countH; ++j)
             {
-                var holeEdges = GetEdges(part.Interior(j), origin);
-                var holeEdgesCount = holeEdges.Length;
-                Array.Copy(holeEdges, 0, _edges, edgeIndex, holeEdgesCount);
-                edgeIndex += holeEdgesCount;
+                edgeIndex = AppendEdges(_edges, edgeIndex, part.Interior(j), origin);
             }
         }
         _spatialIndex = new(_edges);
 
-        static Edge[] GetEdges(ReadOnlySpan<WDir> vertices, WPos origin)
+        static int AppendEdges(Edge[] destination, int index, ReadOnlySpan<WDir> vertices, WPos origin)
         {
             var count = vertices.Length;
-
             if (count == 0)
-            {
-                return [];
-            }
+                return index;
 
-            var edges = new Edge[count];
-
-            var prev = vertices[count - 1];
             var originX = origin.X;
             var originZ = origin.Z;
+
+            var prev = vertices[count - 1];
 
             for (var i = 0; i < count; ++i)
             {
                 var curr = vertices[i];
+
                 var prevX = prev.X;
                 var prevZ = prev.Z;
-                edges[i] = new(originX + prevX, originZ + prevZ, curr.X - prevX, curr.Z - prevZ);
+
+                destination[index++] = new(originX + prevX, originZ + prevZ, curr.X - prevX, curr.Z - prevZ);
+
                 prev = curr;
             }
 
-            return edges;
+            return index;
         }
     }
 

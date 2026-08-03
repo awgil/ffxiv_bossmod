@@ -38,15 +38,15 @@ class VenomSquallSurge(BossModule module) : BossComponent(module)
         switch (NextMechanic)
         {
             case Mechanic.Rain: // spreads
-                Arena.AddCircle(pc.Position, _radius, Colors.Danger);
+                Arena.ZoneCircleOutline(pc.Position, _radius, Colors.Danger);
                 break;
             case Mechanic.Drops: // bait
                 foreach (var p in Raid.WithoutSlot(false, true, true))
-                    Arena.AddCircle(p.Position, _radius, Colors.Danger);
+                    Arena.ZoneCircleOutline(p.Position, _radius, Colors.Danger);
                 break;
             case Mechanic.Pool: // party stacks
                 foreach (var p in Raid.WithoutSlot(false, true, true).Where(p => p.Role == Role.Healer))
-                    Arena.AddCircle(p.Position, _radius, Colors.Danger);
+                    Arena.ZoneCircleOutline(p.Position, _radius, Colors.Danger);
                 break;
         }
     }
