@@ -24,6 +24,7 @@ public enum AID : uint
     CoursingRiver = 14350, // BlueOrochi->self, directional knockback ("river current") covering the whole platform - can push players off the island into the water
     HundredTonzeSwing = 15390, // IwaNoShiki->self, circle R16 AoE
     Kanabo = 15391, // IwaNoShiki->self, range 40 60-degree cone AoE (aimed toward players)
+    YamaKagura = 14355, // TenNoShiki->self, range 60 width 6 line AoE
 }
 
 // phase 2 (after Dragon's Wake) the arena expands from the phase-1 island to a larger circle, with only the central island being safe;
@@ -72,6 +73,7 @@ class FifthElement(BossModule module) : Components.RaidwideCast(module, AID.Fift
 class InfirmSoul(BossModule module) : Components.SingleTargetCast(module, AID.InfirmSoul);
 class HundredTonzeSwing(BossModule module) : Components.StandardAOEs(module, AID.HundredTonzeSwing, 16);
 class Kanabo(BossModule module) : Components.StandardAOEs(module, AID.Kanabo, new AOEShapeCone(40, 30.Degrees()));
+class YamaKagura(BossModule module) : Components.StandardAOEs(module, AID.YamaKagura, new AOEShapeRect(60, 3));
 
 class T09SeiryuStates : StateMachineBuilder
 {
@@ -83,7 +85,8 @@ class T09SeiryuStates : StateMachineBuilder
             .ActivateOnEnter<FifthElement>()
             .ActivateOnEnter<InfirmSoul>()
             .ActivateOnEnter<HundredTonzeSwing>()
-            .ActivateOnEnter<Kanabo>();
+            .ActivateOnEnter<Kanabo>()
+            .ActivateOnEnter<YamaKagura>();
     }
 }
 
