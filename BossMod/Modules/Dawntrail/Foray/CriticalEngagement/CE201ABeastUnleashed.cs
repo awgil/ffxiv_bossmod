@@ -1,4 +1,6 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
 
 public enum OID : uint
 {
@@ -29,7 +31,8 @@ public enum AID : uint
     SpinebreakingStampedeTeleport1 = 48292, // AtlasCarbuncle->location, no cast, ???
 
     UnknownAbility = 49104, // AtlasCarbuncle1->self, no cast, ???
-    ClawToTail = 48296, // AtlasCarbuncle->self, no cast, range 40 ?-degree cone
+    ClawToTail = 48294, // AtlasCarbuncle->self, 6.0s cast, range 40 180.000-degree cone
+    ClawToTail1 = 48296, // AtlasCarbuncle->self, no cast, range 45 ?-degree cone
     TopazStones = 48280, // AtlasCarbuncle->self, 3.0s cast, single-target
     TopazRay1 = 48281, // TopazStone->self, 3.0s cast, range 4 circle
     TopazRay2 = 48282, // TopazStone->self, 3.0s cast, range 4 circle
@@ -39,6 +42,7 @@ public enum AID : uint
     ReflectiveCoat = 50418, // AtlasCarbuncle->self, 3.0s cast, single-target
     RubyReflection = 48287, // AtlasCarbuncleHelper->self, no cast, range 40 width 40 rect
     RubyReflection1 = 48286, // AtlasCarbuncleHelper->self, no cast, range 40 width 40 rect
+    RubyReflection2 = 48285, // Helper->self, no cast, range 20 width 20 rect
 }
 
 public enum SID : uint
@@ -51,23 +55,35 @@ sealed class SonicHowl(BossModule module) : Components.RaidwideCast(module, (uin
 sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
+    private static readonly AOEShapeCone cone = new(45f, 90f.Degrees());
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.TailToClaw)
+        switch (spell.Action.ID)
         {
-            aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeCone(40.0f, 90.0f.Degrees()), caster.Position, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 3.1f)));
+            case (uint)AID.ClawToTail:
+                aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
+                aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d)));
+                break;
+            case (uint)AID.TailToClaw:
+                aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell)));
+                aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell, 3.1d)));
+                break;
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.TailToClaw or (uint)AID.TailToClaw1)
+        if (aoes.Count != 0)
         {
-            if (aoes.Count > 0)
+            switch (spell.Action.ID)
             {
-                aoes.RemoveAt(0);
+                case (uint)AID.TailToClaw:
+                case (uint)AID.TailToClaw1:
+                case (uint)AID.ClawToTail:
+                case (uint)AID.ClawToTail1:
+                    aoes.RemoveAt(0);
+                    break;
             }
         }
     }
@@ -88,52 +104,220 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
+{
+    public readonly List<Actor> Actors = [];
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        List<AOEInstance> aoes = [];
+        var count = Actors.Count;
+        for (var i = 0; i < count; i++)
+        {
+            ref var topaz = ref Actors.Ref(i);
+            aoes.Add(new(new AOEShapeCircle(4f), topaz.Position));
+        }
+        return CollectionsMarshal.AsSpan(aoes);
+    }
+
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if (actor.OID == (uint)OID.TopazStone && id == 0x2489)
+        {
+            Actors.Add(actor);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.TopazRay1 or (uint)AID.TopazRay2)
+        {
+            Actors.Clear();
+        }
+    }
+}
+
+sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly TopazRay TopazComponent = module.FindComponent<TopazRay>()!;
+    private readonly List<AOEInstance> aoes = [];
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        return CollectionsMarshal.AsSpan(aoes);
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.Actor1ec045)
+        {
+            if (state == 0x00010002)
+            {
+                var quadCount = Quadrants.Length;
+                var topaz = CollectionsMarshal.AsSpan(TopazComponent.Actors);
+                var topazCount = topaz.Length;
+                for (var i = 0; i < topazCount; i++)
+                {
+                    for (var j = 0; j < quadCount; j++)
+                    {
+                        var quad = Quadrants[j];
+                        var t = topaz[i];
+                        var p = Arena.ClampToBounds(t.Position + (t.Rotation + 180f.Degrees()).ToDirection() * 3f);
+                        if (quad.InSquare(t.Position, 10f) && !quad.InSquare(p, 10f))
+                        {
+                            aoes.Add(new(new AOEShapeRect(10f, 10f, 10f), quad));
+                        }
+                    }
+                }
+            }
+        }
+        else if (actor.OID == (uint)OID.Actor1ec046)
+        {
+            if (state is 0x00100020 or 0x01000200)
+            {
+                var shapes = state == 0x00100020 ? Reflection2Zero : Reflection1Zero;
+                var rubyRot = actor.Rotation;
+                var shapeCount = shapes.Length;
+                var topaz = CollectionsMarshal.AsSpan(TopazComponent.Actors);
+                var topazCount = topaz.Length;
+                for (var i = 0; i < topazCount; i++)
+                {
+                    for (var j = 0; j < shapeCount; j++)
+                    {
+                        var shape = shapes[j];
+                        shape.Polygon = shape.GetCombinedPolygon(Arena.Center).Transform(default, rubyRot.ToDirection());
+                        var t = topaz[i];
+                        var p = Arena.ClampToBounds(t.Position + (t.Rotation + 180f.Degrees()).ToDirection() * 3f);
+                        if (shape.Check(t.Position, Arena.Center, default) && !shape.Check(p, Arena.Center, default))
+                        {
+                            aoes.Add(new(shape, Arena.Center));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (aoes.Count != 0)
+        {
+            switch (spell.Action.ID)
+            {
+                case (uint)AID.RubyReflection:
+                case (uint)AID.RubyReflection1:
+                case (uint)AID.RubyReflection2:
+                    aoes.Clear();
+                    break;
+            }
+        }
+    }
+
+    private readonly WPos[] Quadrants = [new(228f, 342f), new(248f, 342f), new(228f, 362f), new(248f, 362f)];
+    private readonly AOEShapeCustom[] Reflection1Zero = [
+        new([new Square(new(223f, 337f), 5f), new Square(new(233f, 337f), 5f), new Square(new(233f, 347f), 5f), new Square(new(233f, 357f), 5f),]),
+        new([new Square(new(223f, 347f), 5f), new Square(new(223f, 357f), 5f), new Square(new(223f, 367f), 5f), new Square(new(233f, 367f), 5f),]),
+        new([new Square(new(243f, 337f), 5f), new Square(new(253f, 337f), 5f), new Square(new(253f, 347f), 5f), new Square(new(253f, 357f), 5f),]),
+        new([new Square(new(243f, 347f), 5f), new Square(new(243f, 357f), 5f), new Square(new(243f, 367f), 5f), new Square(new(253f, 367f), 5f),]),
+    ];
+    private readonly AOEShapeCustom[] Reflection2Zero = [
+        new([new Square(new(223f, 337f), 5f), new Square(new(223f, 347f), 5f), new Square(new(233f, 347f), 5f), new Square(new(243f, 347f), 5f)]),
+        new([new Square(new(233f, 337f), 5f), new Square(new(243f, 337f), 5f), new Square(new(253f, 337f), 5f), new Square(new(253f, 347f), 5f)]),
+        new([new Square(new(223f, 357f), 5f), new Square(new(223f, 367f), 5f), new Square(new(233f, 367f), 5f), new Square(new(243f, 367f), 5f)]),
+        new([new Square(new(233f, 357f), 5f), new Square(new(243f, 357f), 5f), new Square(new(253f, 357f), 5f), new Square(new(253f, 367f), 5f)]),
+    ];
+}
+
 sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockback(module)
 {
-    private readonly List<Knockback> knockbacks = [];
-    private const float knockbackDistanceMiddle = 15.0f;
-    private const float knockbackDistanceCircle = 30.0f;
-    private readonly AOEShapeRect rect = new(40.0f, 30.0f);
-    private readonly AOEShapeCircle circle = new(60.0f);
+    private readonly List<Knockback> knockbacks = [with(2)];
+    private readonly TopazRay TopazComponent = module.FindComponent<TopazRay>()!;
+    private readonly AOEShapeRect rect = new(40f, 30f);
+    private bool isAlongZAxis = false;
+    private Angle direction = default;
+    public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
+    {
+        var kbs = CollectionsMarshal.AsSpan(knockbacks);
+        var count = kbs.Length;
+
+        for (var i = 0; i < count; i++)
+        {
+            ref var kb = ref kbs[i];
+            if (kb.Origin.AlmostEqual(Arena.Center, 0.1f))
+            {
+                var pos = actor.Position;
+                var p = isAlongZAxis ? pos.Z : pos.X;
+                var a = isAlongZAxis ? Arena.Center.Z : Arena.Center.X;
+                var dir = p < a ? direction : direction + 180f.Degrees();
+                knockbacks[i] = new(Arena.Center, 15f, kb.Activation, kb.Shape, dir, Kind.DirForward);
+            }
+        }
+
+        return kbs;
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.SpinebreakingStampedeMiddleVisual)
         {
-            var position = caster.Position;
-            var rotation = spell.Rotation;
-            var offset = 90.0f.Degrees();
-            knockbacks.Add(new(position, knockbackDistanceMiddle, default, rect, rotation + offset, Kind.DirForward));
-            knockbacks.Add(new(position, knockbackDistanceMiddle, default, rect, rotation - offset, Kind.DirForward));
+            var rot = spell.Rotation;
+            var offset = 90f.Degrees();
+            var rot1 = rot + offset;
+            isAlongZAxis = rot1.AlmostEqual(default, Angle.DegToRad) || rot1.AlmostEqual(180f.Degrees(), Angle.DegToRad);
         }
-
-        if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual)
+        else if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual)
         {
-            knockbacks.Add(new(caster.Position, knockbackDistanceCircle, shape: circle));
+            //5.2d, 8.5d
+            direction = (caster.Position - Arena.Center).ToAngle();
+            knockbacks.Add(new(Arena.Center, 15f, Module.CastFinishAt(spell, 5.2d), null, default, Kind.None));
+
+            var act = Module.CastFinishAt(spell, 8.5d);
+            var pos = caster.Position;
+            knockbacks.Add(new(pos, 30f, act));
         }
     }
 
-    // TODO if rewritten, take into account that knockback rect is done twice as each knockback is on either side
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.SpinebreakingStampedeMiddle)
+        if (knockbacks.Count != 0)
         {
-            if (knockbacks.Count > 0)
+            switch (spell.Action.ID)
             {
-                knockbacks.RemoveAll(knockback => knockback.Shape is AOEShapeRect);
-            }
-        }
-
-        if (spell.Action.ID is (uint)AID.SpinebreakingStampedeCircle)
-        {
-            if (knockbacks.Count > 0)
-            {
-                knockbacks.RemoveAll(knockback => knockback.Shape is AOEShapeCircle);
+                // use jump instead of actual kb since helper casts each twice
+                case (uint)AID.SpinebreakingStampedeCast:
+                case (uint)AID.SpinebreakingStampedeTeleport1:
+                    knockbacks.RemoveAt(0);
+                    break;
             }
         }
     }
 
-    public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) => CollectionsMarshal.AsSpan(knockbacks);
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var count = knockbacks.Count;
+        if (count != 0)
+        {
+            ref readonly var kb = ref knockbacks.Ref(0);
+            var act = kb.Activation;
+
+            if (kb.Origin.AlmostEqual(Arena.Center, 0.1f))
+            {
+                hints.AddForbiddenZone(rect, Arena.Center, direction + 180f.Degrees(), act);
+                hints.AddForbiddenZone(new AOEShapeDonut(3f, 40f), Arena.Center, activation: act);
+            }
+            else
+            {
+                var topaz = TopazComponent.ActiveAOEs(slot, actor);
+                var topazCount = topaz.Length;
+                WPos[] topazPos = new WPos[topazCount];
+                for (var i = 0; i < topazCount; i++)
+                {
+                    topazPos[i] = topaz[i].Origin;
+                }
+                // smaller AOE size, enough time to run out of AOE if inside
+                hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOriginPlusAOECircles(Arena.Center, kb.Origin, 30f, 18f, topazPos, 4f, count), act);
+            }
+        }
+    }
 }
 
 [SkipLocalsInit]
@@ -143,12 +327,14 @@ sealed class CE201ABeastUnleashedStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<SonicHowl>()
+            .ActivateOnEnter<TopazRay>()
+            .ActivateOnEnter<RubyReflection>()
             .ActivateOnEnter<TailToClaw>()
             .ActivateOnEnter<SpinebreakingStampede>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(CE201ABeastUnleashedStates),
     ConfigType = null, // replace null with typeof(ABeastUnleashedConfig) if applicable
     ObjectIDType = typeof(OID),

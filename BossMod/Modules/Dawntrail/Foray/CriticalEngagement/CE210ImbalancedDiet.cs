@@ -70,16 +70,90 @@ public enum IconID : uint
     Icon_d1004turning_right_c0p = 167, // Algol->self
 }
 
+sealed class CursedScreech(BossModule module) : Components.RaidwideCast(module, (uint)AID.CursedScreech);
+sealed class ShrillPeal(BossModule module) : Components.RaidwideCast(module, (uint)AID.ShrillPeal);
+sealed class Inhale(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Inhale2, new AOEShapeCone(60f, 15f.Degrees()));
+sealed class DevourShort(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Devour, new AOEShapeCone(8f, 60f.Degrees()));
+sealed class RottenOnion(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.RottenOnion, (uint)AID.RottenOnion1], new AOEShapeCone(60f, 15f.Degrees()));
+sealed class RottenTomato(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.RottenTomato, (uint)AID.RottenTomato1], new AOEShapeRect(50f, 3f));
+sealed class DevourLong(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.Devour2, (uint)AID.Devour3], new AOEShapeCone(12f, 60f.Degrees()));
+sealed class DigestedJuice(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.DigestedJuice, (uint)AID.DigestedJuice2], new AOEShapeRect(40f, 25f));
+sealed class Malady(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Malady1, 11f);
+sealed class SpinningInhaleRest(BossModule module) : Components.GenericAOEs(module)
+{
+    // always starts at 0deg rotation? boss starting pos/rot not exact match with helper
+    // SpinningInhale 1-3 happens same time (2 = mobs hit, 1/3 = players hit?)
+    // starting at center with 0deg rotation, fires inhale every -15deg every 0.21s
+    // unknown inner radius of donut, use 7.5f boss hitbox?
+
+    private readonly List<AOEInstance> aoes = [with(25)];
+    private static readonly AOEShapeCone sector = new(30f, 15f.Degrees());
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var count = aoes.Count;
+        if (count == 0)
+            return [];
+        var max = count > 10 ? 10 : count;
+        var span = CollectionsMarshal.AsSpan(aoes);
+        if (count > 1)
+        {
+            ref var aoe0 = ref span[0];
+            aoe0.Color = Colors.Danger;
+        }
+        return span[..max];
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.SpinningInhale)
+        {
+            var activation = Module.CastFinishAt(spell, 1.5d);
+            for (var i = 0; i < 25; i++)
+            {
+                aoes.Add(new(sector, Arena.Center, (i * -15f).Degrees(), activation.AddSeconds(i * 0.21d)));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (aoes.Count > 0 && spell.Action.ID == (uint)AID.SpinningInhale2)
+        {
+            aoes.RemoveAt(0);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (aoes.Count > 0)
+        {
+            hints.AddForbiddenZone(new AOEShapeDonut(4f, 50f), Arena.Center);
+        }
+    }
+}
+
 [SkipLocalsInit]
 sealed class CE210ImbalancedDietStates : StateMachineBuilder
 {
     public CE210ImbalancedDietStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<CursedScreech>()
+            .ActivateOnEnter<ShrillPeal>()
+            .ActivateOnEnter<Inhale>()
+            .ActivateOnEnter<DevourShort>()
+            .ActivateOnEnter<RottenOnion>()
+            .ActivateOnEnter<RottenTomato>()
+            .ActivateOnEnter<DevourLong>()
+            .ActivateOnEnter<DigestedJuice>()
+            .ActivateOnEnter<Malady>()
+            .ActivateOnEnter<SpinningInhaleRest>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(CE210ImbalancedDietStates),
     ConfigType = null, // replace null with typeof(ImbalancedDietConfig) if applicable
     ObjectIDType = typeof(OID),
