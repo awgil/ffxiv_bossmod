@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-
-namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
 
 public enum OID : uint
 {
