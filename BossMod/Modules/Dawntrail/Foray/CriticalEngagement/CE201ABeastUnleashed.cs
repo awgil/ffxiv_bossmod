@@ -61,11 +61,11 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
         {
             case (uint)AID.ClawToTail:
                 aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-                aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d)));
+                aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d), risky: false));
                 break;
             case (uint)AID.TailToClaw:
                 aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell)));
-                aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell, 3.1d)));
+                aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell, 3.1d), risky: false));
                 break;
         }
     }
@@ -150,6 +150,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
         {
             if (state == 0x00010002)
             {
+                var act = WorldState.FutureTime(11.8d);
                 var quadCount = Quadrants.Length;
                 var topaz = CollectionsMarshal.AsSpan(TopazComponent.Actors);
                 var topazCount = topaz.Length;
@@ -162,7 +163,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                         var p = Arena.ClampToBounds(t.Position + (t.Rotation + 180f.Degrees()).ToDirection() * 3f);
                         if (quad.InSquare(t.Position, 10f) && !quad.InSquare(p, 10f))
                         {
-                            aoes.Add(new(new AOEShapeRect(10f, 10f, 10f), quad));
+                            aoes.Add(new(new AOEShapeRect(10f, 10f, 10f), quad, activation: act));
                         }
                     }
                 }
@@ -172,6 +173,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
         {
             if (state is 0x00100020 or 0x01000200)
             {
+                var act = WorldState.FutureTime(14.8d);
                 var shapes = state == 0x00100020 ? Reflection2Zero : Reflection1Zero;
                 var rubyRot = actor.Rotation;
                 var shapeCount = shapes.Length;
@@ -187,7 +189,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                         var p = Arena.ClampToBounds(t.Position + (t.Rotation + 180f.Degrees()).ToDirection() * 3f);
                         if (shape.Check(t.Position, Arena.Center, default) && !shape.Check(p, Arena.Center, default))
                         {
-                            aoes.Add(new(shape, Arena.Center));
+                            aoes.Add(new(shape, Arena.Center, activation: act));
                         }
                     }
                 }
@@ -243,10 +245,20 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
             if (kb.Origin.AlmostEqual(Arena.Center, 0.1f))
             {
                 var pos = actor.Position;
-                var p = isAlongZAxis ? pos.Z : pos.X;
-                var a = isAlongZAxis ? Arena.Center.Z : Arena.Center.X;
-                var dir = p < a ? direction : direction + 180f.Degrees();
-                knockbacks[i] = new(Arena.Center, 15f, kb.Activation, kb.Shape, dir, Kind.DirForward);
+                if (isAlongZAxis)
+                {
+                    var p = pos.Z;
+                    var a = Arena.Center.Z;
+                    var dir = p < a ? -180f.Degrees() : 0f.Degrees();
+                    knockbacks[i] = new(Arena.Center, 15f, kb.Activation, kb.Shape, dir, Kind.DirForward);
+                }
+                else
+                {
+                    var p = pos.X;
+                    var a = Arena.Center.X;
+                    var dir = p < a ? -90f.Degrees() : 90f.Degrees();
+                    knockbacks[i] = new(Arena.Center, 15f, kb.Activation, kb.Shape, dir, Kind.DirForward);
+                }
             }
         }
 
