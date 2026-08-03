@@ -228,12 +228,12 @@ public sealed class MiniArena(WPos center, ArenaBounds bounds)
     }
 
     // draw clipped & triangulated zone
-    public void Zone(List<RelTriangle> triangulation, uint color = default)
+    public void Zone(RelTriangle[] triangulation, uint color = default)
     {
         var drawlist = ImGui.GetWindowDrawList();
         var restoreFlags = drawlist.Flags;
         drawlist.Flags &= ~ImDrawListFlags.AntiAliasedFill;
-        var triangles = CollectionsMarshal.AsSpan(triangulation);
+        var triangles = triangulation;
         var len = triangles.Length;
         var col = color != default ? color : Colors.AOE;
         var center = ScreenCenter;

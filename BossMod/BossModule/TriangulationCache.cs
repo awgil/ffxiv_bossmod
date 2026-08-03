@@ -7,7 +7,7 @@ public sealed class TriangulationCache
 {
     private struct CacheEntry
     {
-        public List<RelTriangle>? Triangulation;
+        public RelTriangle[]? Triangulation;
         public int LastSeenFrame;
     }
 
@@ -15,7 +15,7 @@ public sealed class TriangulationCache
     private int _frame;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref List<RelTriangle>? GetByHash(int keyHash)
+    public ref RelTriangle[]? GetByHash(int keyHash)
     {
         ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(_cache, keyHash, out var exists);
         if (!exists)
@@ -54,27 +54,27 @@ public sealed class TriangulationCache
         => HashCode.Combine(keyType, p1, p2, p3, p4, p5);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref List<RelTriangle>? Get<T1>(int keyType, T1 p1)
+    public ref RelTriangle[]? Get<T1>(int keyType, T1 p1)
         where T1 : notnull
         => ref GetByHash(GetKeyHash(keyType, p1));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref List<RelTriangle>? Get<T1, T2>(int keyType, T1 p1, T2 p2)
+    public ref RelTriangle[]? Get<T1, T2>(int keyType, T1 p1, T2 p2)
         where T1 : notnull where T2 : notnull
         => ref GetByHash(GetKeyHash(keyType, p1, p2));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref List<RelTriangle>? Get<T1, T2, T3>(int keyType, T1 p1, T2 p2, T3 p3)
+    public ref RelTriangle[]? Get<T1, T2, T3>(int keyType, T1 p1, T2 p2, T3 p3)
         where T1 : notnull where T2 : notnull where T3 : notnull
         => ref GetByHash(GetKeyHash(keyType, p1, p2, p3));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref List<RelTriangle>? Get<T1, T2, T3, T4>(int keyType, T1 p1, T2 p2, T3 p3, T4 p4)
+    public ref RelTriangle[]? Get<T1, T2, T3, T4>(int keyType, T1 p1, T2 p2, T3 p3, T4 p4)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull
         => ref GetByHash(GetKeyHash(keyType, p1, p2, p3, p4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref List<RelTriangle>? Get<T1, T2, T3, T4, T5>(int keyType, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5)
+    public ref RelTriangle[]? Get<T1, T2, T3, T4, T5>(int keyType, T1 p1, T2 p2, T3 p3, T4 p4, T5 p5)
         where T1 : notnull where T2 : notnull where T3 : notnull where T4 : notnull where T5 : notnull
         => ref GetByHash(GetKeyHash(keyType, p1, p2, p3, p4, p5));
 
