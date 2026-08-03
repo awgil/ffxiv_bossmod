@@ -65,8 +65,7 @@ internal sealed class EarCut
     private const int StackTriangulationScratchWords = 1024; // keep dynamic stack use below roughly 14 KiB
     private const int StackTriangulationHoles = 64;
 
-    // 24 bytes. Morton ordering is stored in contiguous scratch buffers instead of topology
-    // links, so three fields disappear compared with the linked-Z implementation.
+    // 24 bytes. Morton ordering is stored in contiguous scratch buffers instead of topology links, so three fields disappear compared with the linked-Z implementation
     private struct TriangulationNode
     {
         public int SourceIndex;
@@ -248,8 +247,8 @@ internal sealed class EarCut
                 _valid = false;
                 return;
             }
-
-            var bucket = XBucket(arena.Node(nodeIndex).X);
+            ref var node = ref arena.Node(nodeIndex);
+            var bucket = XBucket(node.X);
             ref var vertexNode = ref MemoryMarshal.GetReference(_vertexNode);
             ref var vertexNext = ref MemoryMarshal.GetReference(_vertexNext);
             ref var xHeads = ref MemoryMarshal.GetReference(_xHeads);
@@ -460,7 +459,7 @@ internal sealed class EarCut
 
                     ref var node = ref arena.Node(point);
                     var nodeX = node.X;
-                    if (hx < nodeX || node.X < mx || Math.Abs(hx - nodeX) <= Eps || !PointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, nodeX, node.Y)
+                    if (hx < nodeX || nodeX < mx || Math.Abs(hx - nodeX) <= Eps || !PointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, nodeX, node.Y)
                     || !LocallyInsideTriangulation(point, hole, ref arena))
                     {
                         continue;
@@ -1014,7 +1013,8 @@ internal sealed class EarCut
         ref TriangulationArena arena, ref TriangulationMortonIndex morton, ref TriangulationBridgeIndex bridgeIndex, ref TriangulationWriter writer)
     {
         var outerNode = TriangulationLinkedList(points, 0, outerLength, true, ref arena);
-        if (outerNode == NoTriangulationNode || arena.Node(outerNode).Next == arena.Node(outerNode).Prev)
+        ref var nodeO = ref arena.Node(outerNode);
+        if (outerNode == NoTriangulationNode || nodeO.Next == nodeO.Prev)
         {
             return true;
         }
@@ -1041,10 +1041,12 @@ internal sealed class EarCut
         do
         {
             ref var node = ref arena.Node(point);
-            minX = Math.Min(minX, node.X);
-            minY = Math.Min(minY, node.Y);
-            maxX = Math.Max(maxX, node.X);
-            maxY = Math.Max(maxY, node.Y);
+            var nodeX = node.X;
+            var nodeY = node.Y;
+            minX = Math.Min(minX, nodeX);
+            minY = Math.Min(minY, nodeY);
+            maxX = Math.Max(maxX, nodeX);
+            maxY = Math.Max(maxY, nodeY);
             ++count;
             point = node.Next;
         }
@@ -1087,10 +1089,10 @@ internal sealed class EarCut
                 last = InsertTriangulationNode(i, points[i], last, ref arena);
             }
         }
-
-        if (last != NoTriangulationNode && TriangulationNodesEqual(last, arena.Node(last).Next, ref arena))
+        ref var node = ref arena.Node(last);
+        if (last != NoTriangulationNode && TriangulationNodesEqual(last, node.Next, ref arena))
         {
-            var next = arena.Node(last).Next;
+            var next = node.Next;
             RemoveTriangulationNode(last, ref arena);
             last = next;
         }
@@ -1109,11 +1111,12 @@ internal sealed class EarCut
         }
         else
         {
-            var first = arena.Node(last).Next;
+            ref var nodeL = ref arena.Node(last);
+            var first = nodeL.Next;
             node.Next = first;
             node.Prev = last;
             arena.Node(first).Prev = nodeIndex;
-            arena.Node(last).Next = nodeIndex;
+            nodeL.Next = nodeIndex;
         }
         return nodeIndex;
     }
@@ -1124,6 +1127,7 @@ internal sealed class EarCut
         ref var node = ref arena.Node(nodeIndex);
         var prev = node.Prev;
         var next = node.Next;
+
         arena.Node(next).Prev = prev;
         arena.Node(prev).Next = next;
         arena.DeactivateMorton(ref node);
@@ -1152,7 +1156,7 @@ internal sealed class EarCut
             {
                 RemoveTriangulationNode(point, ref arena);
                 point = end = prev;
-                if (arena.Node(point).Next == point)
+                if (node.Next == point)
                 {
                     return NoTriangulationNode;
                 }
@@ -1190,7 +1194,7 @@ internal sealed class EarCut
                 RemoveTriangulationNode(point, ref arena);
                 bridgeIndex.AddEdge(prev, next, ref arena);
                 point = end = prev;
-                if (arena.Node(point).Next == point)
+                if (node.Next == point)
                 {
                     return NoTriangulationNode;
                 }
@@ -1241,8 +1245,7 @@ internal sealed class EarCut
                 RemoveTriangulationNode(ear, ref arena);
 
                 // Skipping one node reduces sliver formation and mirrors the original earcut traversal
-                ref var node = ref arena.Node(next);
-                ear = node.Next;
+                ear = arena.Node(next).Next;
                 stop = ear;
                 continue;
             }
@@ -1337,8 +1340,7 @@ internal sealed class EarCut
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool PointInTriangulationEarCCW(float ax, float ay, float bx, float by, float cx, float cy, float px, float py)
     {
-        // EarcutLinked only calls this after proving that a-b-c is a CCW ear in standard
-        // cross-product convention, so the opposite-orientation half of the generic test is dead.
+        // EarcutLinked only calls this after proving that a-b-c is a CCW ear in standard cross-product convention, so the opposite-orientation half of the generic test is dead
         var ab = (bx - ax) * (py - ay) - (by - ay) * (px - ax);
         var bc = (cx - bx) * (py - by) - (cy - by) * (px - bx);
         var ca = (ax - cx) * (py - cy) - (ay - cy) * (px - cx);
@@ -1430,9 +1432,10 @@ internal sealed class EarCut
             {
                 continue;
             }
-            if (list == arena.Node(list).Next)
+            ref var node = ref arena.Node(list);
+            if (list == node.Next)
             {
-                arena.Node(list).SourceIndex |= int.MinValue;
+                node.SourceIndex |= int.MinValue;
             }
             queue[queueCount++] = GetTriangulationLeftmost(list, ref arena);
         }
@@ -1500,7 +1503,7 @@ internal sealed class EarCut
                 }
             }
 
-            // Recurse into the smaller partition and iterate over the larger one, bounding stack depth.
+            // Recurse into the smaller partition and iterate over the larger one, bounding stack depth
             if (right - lo < hi - left)
             {
                 if (lo < right)
@@ -1548,7 +1551,8 @@ internal sealed class EarCut
             return outerNode;
         }
 
-        var oldBridgeNext = arena.Node(bridge).Next;
+        ref var nodeB = ref arena.Node(bridge);
+        var oldBridgeNext = nodeB.Next;
         var oldHolePrev = arena.Node(hole).Prev;
         if (bridgeIndex.Enabled)
         {
@@ -1572,7 +1576,7 @@ internal sealed class EarCut
             bridgeIndex.AddEdge(bridgeReverse, bridgeCopy, ref arena);
         }
 
-        FilterTriangulationPointsIndexed(bridge, arena.Node(bridge).Next, ref arena, ref bridgeIndex);
+        FilterTriangulationPointsIndexed(bridge, nodeB.Next, ref arena, ref bridgeIndex);
         FilterTriangulationPointsIndexed(bridgeReverse, arena.Node(bridgeReverse).Next, ref arena, ref bridgeIndex);
         return outerNode;
     }
@@ -1604,8 +1608,9 @@ internal sealed class EarCut
     private static int FindTriangulationHoleBridgeScalar(int hole, int outerNode, ref TriangulationArena arena)
     {
         var point = outerNode;
-        var hx = arena.Node(hole).X;
-        var hy = arena.Node(hole).Y;
+        ref var nodeH = ref arena.Node(hole);
+        var hx = nodeH.X;
+        var hy = nodeH.Y;
         var qx = float.NegativeInfinity;
         var bridge = NoTriangulationNode;
 
@@ -1672,8 +1677,7 @@ internal sealed class EarCut
             if (hx >= nodeX && nodeX >= mx && Math.Abs(hx - nodeX) > Eps && PointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, nodeX, nodeY))
             {
                 var tan = Math.Abs(hy - nodeY) / (hx - nodeX);
-                ref var bN = ref arena.Node(bridge);
-                var bNX = bN.X;
+                var bNX = arena.Node(bridge).X;
                 if (LocallyInsideTriangulation(point, hole, ref arena) && (tan < tanMin || Math.Abs(tan - tanMin) <= Eps
                         && (nodeX > bNX || Math.Abs(node.X - bNX) <= Eps && SectorContainsTriangulationSector(bridge, point, ref arena))))
                 {
@@ -1719,8 +1723,7 @@ internal sealed class EarCut
             ref var nodePoint = ref arena.Node(point);
             var pointNext = nodePoint.Next;
             var a = nodePoint.Prev;
-            ref var nodepointNext = ref arena.Node(pointNext);
-            var b = nodepointNext.Next;
+            var b = arena.Node(pointNext).Next;
             if (!TriangulationNodesEqual(a, b, ref arena) && TriangulationSegmentsIntersect(a, point, pointNext, b, ref arena)
                 && LocallyInsideTriangulation(a, b, ref arena) && LocallyInsideTriangulation(b, a, ref arena))
             {
@@ -1729,8 +1732,7 @@ internal sealed class EarCut
                 RemoveTriangulationNode(pointNext, ref arena);
                 point = start = b;
             }
-            ref var nP = ref arena.Node(point);
-            point = nP.Next;
+            point = arena.Node(point).Next;
         }
         while (point != start);
         return FilterTriangulationPoints(point, NoTriangulationNode, ref arena);
@@ -2044,8 +2046,7 @@ internal sealed class EarCut
             {
                 return false;
             }
-            ref var node = ref arena.Node(point);
-            point = node.Next;
+            point = arena.Node(point).Next;
         }
         while (point != start);
 
@@ -2153,8 +2154,9 @@ internal sealed class EarCut
         {
             var prev = i == 0 ? count - 1 : i - 1;
             var next = i + 1 == count ? 0 : i + 1;
-            var prevAbove = transformedY[prev] > transformedY[i];
-            var nextAbove = transformedY[next] > transformedY[i];
+            var tY = transformedY[i];
+            var prevAbove = transformedY[prev] > tY;
+            var nextAbove = transformedY[next] > tY;
             var cross = TriangulationCross(prev, i, next, transformedX, transformedY);
             if (cross == 0d)
             {
@@ -2162,7 +2164,8 @@ internal sealed class EarCut
             }
 
             var convex = cross > 0d;
-            vertexTypes[i] = !prevAbove && !nextAbove ? convex ? TriangulationVertexStart : TriangulationVertexSplit : prevAbove && nextAbove ? convex ? TriangulationVertexEnd : TriangulationVertexMerge : TriangulationVertexRegular;
+            vertexTypes[i] = !prevAbove && !nextAbove ? convex ? TriangulationVertexStart : TriangulationVertexSplit
+            : prevAbove && nextAbove ? convex ? TriangulationVertexEnd : TriangulationVertexMerge : TriangulationVertexRegular;
         }
 
         var status = new TriangulationSweepStatus(treapLeft, treapRight, treapParent, helpers, transformedX, transformedY, count);
@@ -2374,7 +2377,7 @@ internal sealed class EarCut
                 continue;
             }
 
-            double area2 = 0d;
+            var area2 = 0d;
             for (var i = 0; i < faceCount; ++i)
             {
                 var a = face[i];
@@ -2387,8 +2390,7 @@ internal sealed class EarCut
             }
 
             ++positiveFaces;
-            if (!TriangulateMonotoneFace(face[..faceCount], nodeIds, transformedX, transformedY,
-                chain[..faceCount], faceOrder[..faceCount], stack[..faceCount], ref arena, ref writer))
+            if (!TriangulateMonotoneFace(face[..faceCount], nodeIds, transformedX, transformedY, chain[..faceCount], faceOrder[..faceCount], stack[..faceCount], ref arena, ref writer))
             {
                 writer.Count = writerStart;
                 return false;
@@ -2443,8 +2445,7 @@ internal sealed class EarCut
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool AddTriangulationMonotoneDiagonal(int a, int b, Span<int> diagonalA, Span<int> diagonalB,
-        ref int count, int vertexCount)
+    private static bool AddTriangulationMonotoneDiagonal(int a, int b, Span<int> diagonalA, Span<int> diagonalB, ref int count, int vertexCount)
     {
         if (a == b || (a + 1 == vertexCount ? 0 : a + 1) == b || (b + 1 == vertexCount ? 0 : b + 1) == a || count >= diagonalA.Length)
         {
@@ -2458,7 +2459,11 @@ internal sealed class EarCut
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static double TriangulationCross(int a, int b, int c, ReadOnlySpan<double> x, ReadOnlySpan<double> y)
-        => (x[b] - x[a]) * (y[c] - y[b]) - (y[b] - y[a]) * (x[c] - x[b]);
+    {
+        var yb = y[b];
+        var xb = x[b];
+        return (xb - x[a]) * (y[c] - yb) - (yb - y[a]) * (x[c] - xb);
+    }
 
     private static void AddTriangulationGraphEdge(int edge, int a, int b, Span<ulong> adjacency, Span<int> cursor)
     {
@@ -2617,7 +2622,8 @@ internal sealed class EarCut
         ref var na = ref arena.Node(a);
         ref var nb = ref arena.Node(b);
         ref var nc = ref arena.Node(c);
-        var cross = ((double)nb.X - na.X) * ((double)nc.Y - na.Y) - ((double)nb.Y - na.Y) * ((double)nc.X - na.X);
+        var naX = na.X;
+        var cross = ((double)nb.X - naX) * ((double)nc.Y - na.Y) - ((double)nb.Y - na.Y) * ((double)nc.X - naX);
         if (Math.Abs(cross) <= Eps)
         {
             return false;
@@ -2890,8 +2896,7 @@ internal sealed class EarCut
         do
         {
             ref var nodeA = ref arena.Node(a);
-            ref var nodeANext = ref arena.Node(nodeA.Next);
-            var b = nodeANext.Next;
+            var b = arena.Node(nodeA.Next).Next;
             while (b != nodeA.Prev)
             {
                 ref var nodeB = ref arena.Node(b);
@@ -2902,9 +2907,9 @@ internal sealed class EarCut
                     {
                         return;
                     }
-                    ref var nodeC = ref arena.Node(c);
+
                     var aFiltered = FilterTriangulationPoints(a, nodeA.Next, ref arena);
-                    var cFiltered = FilterTriangulationPoints(c, nodeC.Next, ref arena);
+                    var cFiltered = FilterTriangulationPoints(c, arena.Node(c).Next, ref arena);
                     EarcutLinked(aFiltered, ref arena, ref morton, ref writer, minX, minY, invSize, 0);
                     EarcutLinked(cFiltered, ref arena, ref morton, ref writer, minX, minY, invSize, 0);
                     return;
@@ -2934,8 +2939,7 @@ internal sealed class EarCut
         var point = a;
         do
         {
-            ref var node = ref arena.Node(point);
-            var next = node.Next;
+            var next = arena.Node(point).Next;
             if (point != a && next != a && point != b && next != b && TriangulationSegmentsIntersect(point, next, a, b, ref arena))
             {
                 return true;
@@ -3010,17 +3014,15 @@ internal sealed class EarCut
         bNode.Prev = a;
 
         ref var a2Node = ref arena.Node(a2);
-        ref var anNode = ref arena.Node(an);
         ref var b2Node = ref arena.Node(b2);
-        ref var bpNode = ref arena.Node(bp);
 
         a2Node.Next = an;
-        anNode.Prev = a2;
+        arena.Node(an).Prev = a2;
 
         b2Node.Next = a2;
         a2Node.Prev = b2;
 
-        bpNode.Next = b2;
+        arena.Node(bp).Next = b2;
         b2Node.Prev = bp;
 
         return b2;
@@ -3028,8 +3030,11 @@ internal sealed class EarCut
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool SectorContainsTriangulationSector(int m, int p, ref TriangulationArena arena)
-        => TriangulationArea(arena.Node(m).Prev, m, arena.Node(p).Prev, ref arena) < 0f
-            && TriangulationArea(arena.Node(p).Next, m, arena.Node(m).Next, ref arena) < 0f;
+    {
+        ref var nodeM = ref arena.Node(m);
+        ref var nodeP = ref arena.Node(p);
+        return TriangulationArea(nodeM.Prev, m, nodeP.Prev, ref arena) < 0f && TriangulationArea(nodeP.Next, m, nodeM.Next, ref arena) < 0f;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TriangulationSegmentsIntersect(int p1, int q1, int p2, int q2, ref TriangulationArena arena)
