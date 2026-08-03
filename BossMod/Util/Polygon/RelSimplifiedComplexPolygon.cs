@@ -16,15 +16,9 @@ public sealed class RelSimplifiedComplexPolygon(List<RelPolygonWithHoles> parts)
     public RelSimplifiedComplexPolygon(List<WDir> simpleVertices) : this([new RelPolygonWithHoles(simpleVertices)]) { }
 
     // build a triangulation of the polygon
-    public List<RelTriangle> Triangulate()
+    public RelTriangle[] Triangulate()
     {
-        List<RelTriangle> result = [];
-        var count = Parts.Count;
-        for (var i = 0; i < count; ++i)
-        {
-            Parts[i].Triangulate(result);
-        }
-        return result;
+        return EarCut.Triangulate(this);
     }
 
     // build a new polygon by transformation

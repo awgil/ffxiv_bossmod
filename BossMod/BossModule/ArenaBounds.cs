@@ -20,7 +20,7 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
     public readonly PolygonClipper Clipper = new();
     public float MaxApproxError;
     public RelSimplifiedComplexPolygon ShapeSimplified = new();
-    public List<RelTriangle> ShapeTriangulation = [];
+    public RelTriangle[] ShapeTriangulation = [];
     private readonly PolygonClipper.Operand _clipOperand = new();
 
     public float ScreenHalfSize
@@ -47,9 +47,9 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
     public abstract WDir ClampToBounds(in WDir offset);
 
     // functions for clipping various shapes to bounds; all shapes are expected to be defined relative to bounds center
-    public List<RelTriangle> ClipAndTriangulate(ReadOnlySpan<WDir> poly) => Clipper.Intersect(new PolygonClipper.Operand(poly), _clipOperand).Triangulate();
-    public List<RelTriangle> ClipAndTriangulate(RelSimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
-    public List<RelTriangle> Triangulate(RelSimplifiedComplexPolygon poly) => poly.Triangulate();
+    public RelTriangle[] ClipAndTriangulate(ReadOnlySpan<WDir> poly) => Clipper.Intersect(new PolygonClipper.Operand(poly), _clipOperand).Triangulate();
+    public RelTriangle[] ClipAndTriangulate(RelSimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
+    public RelTriangle[] Triangulate(RelSimplifiedComplexPolygon poly) => poly.Triangulate();
     public RelSimplifiedComplexPolygon Clip(ReadOnlySpan<WDir> poly) => Clipper.Intersect(new PolygonClipper.Operand(poly), _clipOperand);
     public RelSimplifiedComplexPolygon Clip(RelSimplifiedComplexPolygon poly) => Clipper.Intersect(new(poly), _clipOperand);
 
@@ -79,7 +79,7 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return points;
     }
 
-    public List<RelTriangle> ClipAndTriangulateCone(WDir centerOffset, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
+    public RelTriangle[] ClipAndTriangulateCone(WDir centerOffset, float innerRadius, float outerRadius, Angle centerDirection, Angle halfAngle)
     {
         return ClipAndTriangulate(ConeVertices(centerOffset, innerRadius, outerRadius, centerDirection, halfAngle));
     }
@@ -101,7 +101,7 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return points;
     }
 
-    public List<RelTriangle> ClipAndTriangulateCircle(WDir centerOffset, float radius)
+    public RelTriangle[] ClipAndTriangulateCircle(WDir centerOffset, float radius)
     {
 
         return ClipAndTriangulate(CircleVertices(centerOffset, radius));
@@ -135,17 +135,17 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return points;
     }
 
-    public List<RelTriangle> ClipAndTriangulateCapsule(WDir centerOffset, WDir direction, float radius, float length)
+    public RelTriangle[] ClipAndTriangulateCapsule(WDir centerOffset, WDir direction, float radius, float length)
     {
         return ClipAndTriangulate(CollectionsMarshal.AsSpan(CapsuleVertices(centerOffset, direction, radius, length)));
     }
 
-    public List<RelTriangle> TriangulateCapsule(WDir centerOffset, WDir direction, float radius, float length)
+    public RelTriangle[] TriangulateCapsule(WDir centerOffset, WDir direction, float radius, float length)
     {
         return Triangulate(CapsulePolygon(centerOffset, direction, radius, length));
     }
 
-    public List<RelTriangle> ClipAndTriangulateArcCapsule(WDir startOffset, WDir toOrbitCenter, Angle angularLength, float radius)
+    public RelTriangle[] ClipAndTriangulateArcCapsule(WDir startOffset, WDir toOrbitCenter, Angle angularLength, float radius)
     {
         return ClipAndTriangulate(ArcCapsuleVertices(startOffset, toOrbitCenter, angularLength, radius));
     }
@@ -176,7 +176,7 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return [];
     }
 
-    public List<RelTriangle> ClipAndTriangulateDonut(WDir centerOffset, float innerRadius, float outerRadius)
+    public RelTriangle[] ClipAndTriangulateDonut(WDir centerOffset, float innerRadius, float outerRadius)
     {
         return ClipAndTriangulate(DonutVertices(centerOffset, innerRadius, outerRadius));
     }
@@ -186,13 +186,13 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return Clip(DonutVertices(centerOffset, innerRadius, outerRadius));
     }
 
-    public List<RelTriangle> ClipAndTriangulateTri(WDir oa, WDir ob, WDir oc)
+    public RelTriangle[] ClipAndTriangulateTri(WDir oa, WDir ob, WDir oc)
         => ClipAndTriangulate([oa, ob, oc]);
 
-    public List<RelTriangle> ClipAndTriangulateIsoscelesTri(WDir apexOffset, WDir height, WDir halfBase)
+    public RelTriangle[] ClipAndTriangulateIsoscelesTri(WDir apexOffset, WDir height, WDir halfBase)
         => ClipAndTriangulateTri(apexOffset, apexOffset + height + halfBase, apexOffset + height - halfBase);
 
-    public List<RelTriangle> ClipAndTriangulateIsoscelesTri(WDir apexOffset, Angle direction, Angle halfAngle, float height)
+    public RelTriangle[] ClipAndTriangulateIsoscelesTri(WDir apexOffset, Angle direction, Angle halfAngle, float height)
     {
         var dir = direction.ToDirection();
         var normal = dir.OrthoL();
@@ -212,7 +212,7 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return ClipIsoscelesTri(apexOffset, height * dir, height * halfAngle.Tan() * normal);
     }
 
-    public List<RelTriangle> ClipAndTriangulateRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
+    public RelTriangle[] ClipAndTriangulateRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
     {
         var side = halfWidth * direction.OrthoR();
         var front = originOffset + lenFront * direction;
@@ -220,17 +220,17 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return ClipAndTriangulate([front + side, front - side, back - side, back + side]);
     }
 
-    public List<RelTriangle> ClipAndTriangulateRect(WDir originOffset, Angle direction, float lenFront, float lenBack, float halfWidth)
+    public RelTriangle[] ClipAndTriangulateRect(WDir originOffset, Angle direction, float lenFront, float lenBack, float halfWidth)
         => ClipAndTriangulateRect(originOffset, direction.ToDirection(), lenFront, lenBack, halfWidth);
 
-    public List<RelTriangle> ClipAndTriangulateRect(WDir startOffset, WDir endOffset, float halfWidth)
+    public RelTriangle[] ClipAndTriangulateRect(WDir startOffset, WDir endOffset, float halfWidth)
     {
         var dir = (endOffset - startOffset).Normalized();
         var side = halfWidth * dir.OrthoR();
         return ClipAndTriangulate([startOffset + side, startOffset - side, endOffset - side, endOffset + side]);
     }
 
-    public List<RelTriangle> TriangulateRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
+    public RelTriangle[] TriangulateRect(WDir originOffset, WDir direction, float lenFront, float lenBack, float halfWidth)
     {
         var side = halfWidth * direction.OrthoR();
         var front = originOffset + lenFront * direction;
@@ -238,10 +238,10 @@ public abstract class ArenaBounds(float radius, float mapResolution, float scale
         return Triangulate(new([front + side, front - side, back - side, back + side]));
     }
 
-    public List<RelTriangle> TriangulateRect(WDir originOffset, Angle direction, float lenFront, float lenBack, float halfWidth)
+    public RelTriangle[] TriangulateRect(WDir originOffset, Angle direction, float lenFront, float lenBack, float halfWidth)
         => TriangulateRect(originOffset, direction.ToDirection(), lenFront, lenBack, halfWidth);
 
-    public List<RelTriangle> TriangulateRect(WDir startOffset, WDir endOffset, float halfWidth)
+    public RelTriangle[] TriangulateRect(WDir startOffset, WDir endOffset, float halfWidth)
     {
         var dir = (endOffset - startOffset).Normalized();
         var side = halfWidth * dir.OrthoR();

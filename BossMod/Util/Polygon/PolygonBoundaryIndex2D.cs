@@ -54,7 +54,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         public readonly float y = ay, minX = Math.Min(ax, bx), maxX = Math.Max(ax, bx);
     }
 
-    private readonly struct SectorGeometry
+    private readonly ref struct SectorGeometry
     {
         public readonly float ox, oz, fx, fz;
         public readonly float radius, radiusSq, cosHalfAngle;
@@ -105,7 +105,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         }
     }
 
-    private readonly struct AnnularSectorGeometry
+    private readonly ref struct AnnularSectorGeometry
     {
         public readonly float cx, cz, fx, fz;
         public readonly float inner, outer, innerSq, outerSq, cosHalfAngle;
@@ -167,7 +167,7 @@ internal sealed unsafe class PolygonBoundaryIndex2D : IDisposable
         }
     }
 
-    private readonly struct TriangleGeometry
+    private readonly ref struct TriangleGeometry
     {
         public readonly float ax, ay, bx, by, cx, cy;
         public readonly float minX, minY, maxX, maxY;
