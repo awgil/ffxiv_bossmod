@@ -24,7 +24,7 @@ public sealed class PresetDatabase
             for (var i = 0; i < countD; ++i)
             {
                 var def = DefaultPresets[i];
-                if (def.HiddenByDefault == _cfg.HideDefaultPresets || def.Name == "VBM Multibox")
+                if (def.HiddenByDefault == _cfg.HideDefaultPresets || def.Name == "VBM Multibox" || def.Name == "Movement Only")
                 {
                     presets.Add(def);
                 }
