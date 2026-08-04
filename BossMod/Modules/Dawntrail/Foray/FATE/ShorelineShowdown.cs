@@ -35,7 +35,6 @@ public enum IconID : uint {
 }
 
 sealed class TheRamsVoice(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TheRamsVoice, new AOEShapeCircle(9.0f));
-sealed class GlacipotentOrb(BossModule module) : Components.Voidzone(module, 12.0f, module => module.Enemies((uint)OID.GlacipotentOrb).Where(z => z.EventState != 7));
 sealed class TheDragonsVoice(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.TheDragonsVoice, (uint)AID.TheDragonsVoice1],
     new AOEShapeDonut(8.0f, 30.0f));
 sealed class Cacophony(BossModule module) : Components.Voidzone(module, 6.0f, module => module.Enemies((uint)OID.Cacophony).Where(z => z.EventState != 7));
@@ -117,6 +116,47 @@ sealed class Breath(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
+sealed class GlacipotentOrb(BossModule module) : Components.GenericAOEs(module) {
+    private List<Actor> iceOrbs = [];
+    private readonly AOEShapeCircle shape = new(12.0f);
+    private bool active = false;
+
+    public override void OnActorCreated(Actor actor) {
+        if (actor.OID == (uint)OID.GlacipotentOrb) {
+            iceOrbs.Add(actor);
+        }
+    }
+
+    public override void OnActorDeath(Actor actor) {
+        if (actor.OID == (uint)OID.GlacipotentOrb) {
+            iceOrbs.Remove(actor);
+
+            if (iceOrbs.Count == 0) {
+                active = false;
+            }
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.TheRamsVoice) {
+            active = true;
+        }
+    }
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        if (iceOrbs.Count == 0 || active == false) {
+            return [];
+        }
+
+        List<AOEInstance> aoes = [];
+        foreach (var orb in iceOrbs) {
+            aoes.Add(new(shape, orb.Position, orb.Rotation));
+        }
+
+        return CollectionsMarshal.AsSpan(aoes);
+    }
+}
+
 [SkipLocalsInit]
 sealed class RegnantChimeraStates : StateMachineBuilder {
     public RegnantChimeraStates(BossModule module) : base(module) {
@@ -129,7 +169,7 @@ sealed class RegnantChimeraStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(RegnantChimeraStates),
     ConfigType = null, // replace null with typeof(RegnantChimeraConfig) if applicable
     ObjectIDType = typeof(OID),
