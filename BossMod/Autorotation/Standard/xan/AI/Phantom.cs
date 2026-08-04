@@ -196,7 +196,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
                 UseAction(PhantomID.OccultRaise, tar, prio);
         }
 
-        if (strategy.WHMSelfHeal.IsEnabled() && Player.InCombat && !MidCombo && Player.Class.IsDD() && Player.PendingHPRatio < 0.6f && !World.Party.WithoutSlot().Any(p => p.Role == Role.Healer))
+        if (strategy.WHMSelfHeal.IsEnabled() && Player.InCombat && !MidCombo && Player.Class.IsDD() && Player.PendingHPRatio < 0.6f && !World.Party.WithoutSlot().Any(p => p.Role == Role.Healer) && Player.HPMP.CurMP >= 1500)
             UseAction(PhantomID.OccultWHMCureII, Player, strategy.WHMSelfHeal.Priority(ActionQueue.Priority.VeryHigh), 1.5f);
     }
 
