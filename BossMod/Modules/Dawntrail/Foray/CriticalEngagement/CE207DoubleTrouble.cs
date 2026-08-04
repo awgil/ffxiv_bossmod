@@ -102,6 +102,17 @@ sealed class DualCut(BossModule module) : Components.GenericAOEs(module)
 
         return CollectionsMarshal.AsSpan(incomingAOEs);
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (aoes.Count == 0) {
+            return;
+        }
+
+        var nextAOE = aoes.MinBy(aoe => aoe.Activation);
+        var distance = nextAOE.Shape.Distance(nextAOE.Origin, nextAOE.Rotation);
+        hints.GoalZones.Add(p => distance.Distance(p) is > 0.0f and <= 1.0f ? 100.0f : 0.0f);
+    }
 }
 
 [SkipLocalsInit]

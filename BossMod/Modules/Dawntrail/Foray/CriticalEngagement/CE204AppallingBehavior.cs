@@ -292,7 +292,7 @@ sealed class CE204AppallingBehaviorStates : StateMachineBuilder
     TetherIDType = typeof(TetherID), // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.Pallmagia,
-    Contributors = "Equilius",
+    Contributors = "Gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
     GroupType = BossModuleInfo.GroupType.CFC,
