@@ -57,6 +57,13 @@ public enum SID : uint
     AreaOfInfluenceUp = 1909, // none->Helper, extra=0x1/0x2/0x3/0x4/0x5/0x6/0x7
 }
 
+public enum IconID : uint
+{
+    Tankbuster = 198, // player->self
+    TurningRight = 546, // Boss->self
+    TurningLeft = 547, // Boss->self
+}
+
 class BlackenedRain(BossModule module) : Components.RaidwideCastDelay(module, AID.BlackenedRainCast, AID.BlackenedRain, 1.1f);
 class DarkDealing(BossModule module) : Components.SingleTargetCast(module, AID.DarkDealing);
 
@@ -64,12 +71,31 @@ class CyclonicRing(BossModule module) : Components.StandardAOEs(module, AID.Cycl
 
 class ShapeshiftingSupercellCone(BossModule module) : Components.GenericRotatingAOE(module)
 {
+    Angle _nextRotation;
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).Select(a => a with { Color = ArenaColor.AOE });
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.ShapeshiftingSupercellConeSlow)
-            Sequences.Add(new(new AOEShapeCone(60, 45.Degrees()), spell.LocXZ, spell.Rotation, 30.Degrees(), Module.CastFinishAt(spell), 2.4f, 6, 1));
+            Sequences.Add(new(new AOEShapeCone(60, 45.Degrees()), spell.LocXZ, spell.Rotation, _nextRotation, Module.CastFinishAt(spell), 2.4f, 6, 1));
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        switch ((IconID)iconID)
+        {
+            case IconID.TurningRight:
+                _nextRotation = -30.Degrees();
+                if (Sequences.Count > 0)
+                    Sequences.Ref(0).Increment = _nextRotation;
+                break;
+            case IconID.TurningLeft:
+                _nextRotation = 30.Degrees();
+                if (Sequences.Count > 0)
+                    Sequences.Ref(0).Increment = _nextRotation;
+                break;
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -166,6 +192,11 @@ class HellwardBound(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
+    public override void OnActorDestroyed(Actor actor)
+    {
+        _arrows.Remove(actor);
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.HellwardBoundFirst)
@@ -189,11 +220,11 @@ class HellwardBound(BossModule module) : Components.GenericAOEs(module)
 
         try
         {
-            var a1 = _arrows.First(a => a.Position.InRect(Module.PrimaryActor.Position, pDir.ToAngle(), 90, 0, 6));
+            var a1 = _arrows.First(a => a.Position.InRect(Module.PrimaryActor.Position, pDir.ToAngle(), 90, 0, 3));
             _arrows.Remove(a1);
-            var a2 = _arrows.First(a => a.Position.InRect(a1.Position, a1.Rotation, 90, 0, 6));
+            var a2 = _arrows.First(a => a.Position.InRect(a1.Position, a1.Rotation, 90, 0, 3));
             _arrows.Remove(a2);
-            var a3 = _arrows[0];
+            var a3 = _arrows.First(a => a.Position.InRect(a2.Position, a2.Rotation, 90, 0, 3));
 
             void dash(WPos start, WPos finish, DateTime activation)
             {
