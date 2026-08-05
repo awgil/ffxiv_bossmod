@@ -3,7 +3,7 @@ namespace BossMod.Stormblood.Trial.WreathOfSnakes.T09Seiryu;
 public enum OID : uint
 {
     Boss = 0x25F4, // actual boss target
-    invisible_helpers = 0x233C, // R0.500, Helper type
+    Helper = 0x233C, // R0.500, Helper type
     AkaNoShiki = 0x2786, // R2.600, x?
     AoNoShiki1 = 0x2787, // R3.000, x?
     IwaNoShiki = 0x2788, // R4.000, x?
