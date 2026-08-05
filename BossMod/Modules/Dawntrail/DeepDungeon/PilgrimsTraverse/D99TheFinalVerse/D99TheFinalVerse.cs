@@ -239,14 +239,14 @@ class DrainAether(BossModule module) : Components.CastCounterMulti(module, [AID.
                 // avoid moving into other zone
                 var badShape = LightDark.OppositeColorShape(nextColor);
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(p => badShape.Contains(p - ctr), deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(Sdf.Discrete(p => badShape.Contains(p - ctr)), deadline.AddSeconds(-1));
             }
             else
             {
                 // move to correct zone
                 var targetShape = LightDark.ColorShape(nextColor);
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(p => !targetShape.Contains(p - ctr), deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(Sdf.Discrete(p => !targetShape.Contains(p - ctr)), deadline.AddSeconds(-1));
             }
         }
     }
@@ -343,7 +343,7 @@ class BoundsOfSinCollision(BossModule module) : BossComponent(module)
         foreach (var bit in Icicles.SetBits())
         {
             var angle = (180 - bit * 30).Degrees();
-            var c = ShapeContains.Circle(Arena.Center + angle.ToDirection() * 7, 3);
+            var c = ShapeDistance.Circle(Arena.Center + angle.ToDirection() * 7, 3);
             hints.TemporaryObstacles.Add(c);
         }
     }

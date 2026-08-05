@@ -45,7 +45,7 @@ class Bloom1AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (Spreads.Count > 0)
-            hints.AddForbiddenZone(_tiles.TileShape(), Spreads[0].Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(_tiles.TileShape()), Spreads[0].Activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

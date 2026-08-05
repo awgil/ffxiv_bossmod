@@ -49,7 +49,7 @@ class FlameFloater(BossModule module) : Components.GenericAOEs(module)
         if (BaitOn(slot) is { } bait)
         {
             var origin = BaitOrigin(bait);
-            hints.AddForbiddenZone(ShapeContains.Circle(origin, 16), bait.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(origin, 16), bait.Activation);
         }
     }
 

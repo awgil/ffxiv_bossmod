@@ -43,8 +43,8 @@ class LineOfFire(BossModule module) : Components.GroupedAOEs(module, [AID.LineOf
 
         if (NumCasts < 4 && Casters.Count > 0)
         {
-            var invRect = ShapeContains.Rect(Arena.Center, 45.Degrees(), 8, 8, 8);
-            hints.AddForbiddenZone(p => !invRect(p), Module.CastFinishAt(Casters[0].CastInfo));
+            var invRect = ShapeDistance.InvertedRect(Arena.Center, 45.Degrees(), 8, 8, 8);
+            hints.AddForbiddenZone(invRect, Module.CastFinishAt(Casters[0].CastInfo));
         }
     }
 }
@@ -56,7 +56,7 @@ class KnuckleCrusher(BossModule module) : Components.StandardAOEs(module, AID.Kn
             base.AddAIHints(slot, actor, assignment, hints);
 
         if (NumCasts == 0 && Casters.Count > 2)
-            hints.AddForbiddenZone(ShapeContains.Donut(Casters[1].Position, 17, 60), Module.CastFinishAt(Casters[0].CastInfo));
+            hints.AddForbiddenZone(ShapeDistance.Donut(Casters[1].Position, 17, 60), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
 
@@ -107,7 +107,7 @@ class SpinningSiege(BossModule module) : Components.GenericRotatingAOE(module)
             {
                 var dirCenter = (Arena.Center - seq.Origin).Normalized();
                 var dirSweep = seq.Increment.Rad > 0 ? dirCenter.OrthoL() : dirCenter.OrthoR();
-                hints.AddForbiddenZone(ShapeContains.Cone(seq.Origin, 50, Angle.FromDirection(dirSweep), 90.Degrees()), seq.NextActivation);
+                hints.AddForbiddenZone(ShapeDistance.Cone(seq.Origin, 50, Angle.FromDirection(dirSweep), 90.Degrees()), seq.NextActivation);
             }
         }
     }
@@ -126,9 +126,9 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
 
     private readonly CageOfFire _cage = module.FindComponent<CageOfFire>()!;
 
-    private Func<WPos, bool> HitByRect() => ShapeContains.Union([.. _cage.ActiveCasters.Select(c => ShapeContains.Rect(c.Position, c.Rotation, 60, 0, 4))]);
+    private Func<WPos, float> HitByRect() => ShapeDistance.Union([.. _cage.ActiveCasters.Select(c => ShapeDistance.Rect(c.Position, c.Rotation, 60, 0, 4))]);
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, 20) || HitByRect()(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, 20) || HitByRect()(pos) < 0;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -138,7 +138,7 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
             if (IsImmune(slot, activation))
                 return;
 
-            hints.AddForbiddenZone(ShapeContains.Donut(caster.Position, 5, 40), Module.CastFinishAt(caster.CastInfo));
+            hints.AddForbiddenZone(ShapeDistance.Donut(caster.Position, 5, 40), Module.CastFinishAt(caster.CastInfo));
 
             var hitRectShape = HitByRect();
             var center = Arena.Center;

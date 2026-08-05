@@ -137,7 +137,7 @@ public sealed class AIHints
 
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
-    public List<(Func<WPos, bool> containsFn, DateTime activation, ulong Source)> ForbiddenZones = [];
+    public List<(Sdf shape, DateTime activation, ulong Source)> ForbiddenZones = [];
 
     // positioning: list of goal functions
     // AI will try to move to reach non-forbidden point with highest goal value (sum of values returned by all functions)
@@ -145,8 +145,13 @@ public sealed class AIHints
     // other parts of the code can return small (e.g. 0.01) values to slightly (de)prioritize some positions, or large (e.g. 1000) values to effectively soft-override target position (but still utilize pathfinding)
     public List<Func<WPos, float>> GoalZones = [];
 
+    public class TempObstaclesList : List<Sdf>
+    {
+        public void Add(Func<WPos, float> c) => Add(Sdf.Continuous(c));
+    }
+
     // AI will treat the pixels inside these shapes as unreachable and not try to pathfind through them (unlike imminent forbidden zones)
-    public List<Func<WPos, bool>> TemporaryObstacles = [];
+    public TempObstaclesList TemporaryObstacles = [];
     // teleporters for pathfind
     public List<(WPos from, float fromRadius, WPos to)> Portals = [];
 
@@ -250,8 +255,9 @@ public sealed class AIHints
     public void InteractWithOID(WorldState ws, uint oid) => InteractWithTarget = ws.Actors.FirstOrDefault(a => a.OID == oid && a.IsTargetable);
     public void InteractWithOID<OID>(WorldState ws, OID oid) where OID : Enum => InteractWithOID(ws, (uint)(object)oid);
 
-    public void AddForbiddenZone(Func<WPos, bool> containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((containsFn, activation, source));
-    public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((shape.CheckFn(origin, rot), activation, source));
+    public void AddForbiddenZone(Func<WPos, float> containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((Sdf.Continuous(containsFn), activation, source));
+    public void AddForbiddenZone(Sdf sdf, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((sdf, activation, source));
+    public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((shape.GetSdf(origin, rot), activation, source));
 
     public void AddPredictedDamage(BitMask players, DateTime activation, PredictedDamageType type = PredictedDamageType.Raidwide) => PredictedDamage.Add(new(players, activation, type));
 

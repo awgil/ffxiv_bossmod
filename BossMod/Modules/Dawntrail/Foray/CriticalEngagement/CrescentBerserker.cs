@@ -119,7 +119,7 @@ class HoppingMad(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (_predicted.Count > 0 && _predicted[0].Shape is AOEShapeCircle circle)
-            hints.AddForbiddenZone(ShapeContains.Donut(_predicted[0].Origin, circle.Radius + 2, 60), _predicted[0].Activation.AddSeconds(2));
+            hints.AddForbiddenZone(ShapeDistance.Donut(_predicted[0].Origin, circle.Radius + 2, 60), _predicted[0].Activation.AddSeconds(2));
     }
 }
 

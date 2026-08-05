@@ -65,7 +65,7 @@ class HydroPush(BossModule module) : Components.KnockbackFromCastTarget(module, 
         foreach (var src in Sources(slot, actor).Where(s => !IsImmune(slot, s.Activation)))
         {
             var safeCenter = Arena.Center - src.Direction.ToDirection() * src.Distance;
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(safeCenter, new WDir(0, 1), 15, 15, 15), src.Activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(safeCenter, new WDir(0, 1), 15, 15, 15), src.Activation);
         }
     }
 }
@@ -76,7 +76,7 @@ class BloodyPuddleSpread(BossModule module) : Components.SpreadFromIcon(module, 
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (IsSpreadTarget(actor))
-            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, 0.Degrees(), 11, 11, 11), Spreads[0].Activation);
+            hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, 0.Degrees(), 11, 11, 11), Spreads[0].Activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

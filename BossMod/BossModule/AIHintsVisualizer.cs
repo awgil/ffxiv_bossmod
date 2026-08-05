@@ -33,7 +33,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
             {
                 foreach (var _2 in tree.Node($"[{i}] activated at {Math.Max(0, (hints.ForbiddenZones[i].activation - ws.CurrentTime).TotalSeconds):f3}"))
                 {
-                    _zoneVisualizers[i] ??= BuildZoneVisualizer(hints.ForbiddenZones[i].containsFn);
+                    _zoneVisualizers[i] ??= BuildZoneVisualizer(hints.ForbiddenZones[i].shape);
                     _zoneVisualizers[i]!.Draw();
                 }
             }
@@ -70,7 +70,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         }
     }
 
-    private MapVisualizer BuildZoneVisualizer(Func<WPos, bool> shape)
+    private MapVisualizer BuildZoneVisualizer(Sdf shape)
     {
         var map = new Map();
         hints.InitPathfindMap(map);

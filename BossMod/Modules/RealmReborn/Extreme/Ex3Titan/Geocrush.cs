@@ -15,7 +15,7 @@ class Geocrush(BossModule module, float radius) : Components.CastCounter(module,
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var ring = ShapeContains.Donut(Module.Center, _radius - _ringWidth, _radius);
+        var ring = ShapeDistance.Donut(Module.Center, _radius - _ringWidth, _radius);
         hints.AddForbiddenZone(p => !ring(p));
         hints.AddPredictedDamage(Raid.WithSlot().Mask(), default);
     }

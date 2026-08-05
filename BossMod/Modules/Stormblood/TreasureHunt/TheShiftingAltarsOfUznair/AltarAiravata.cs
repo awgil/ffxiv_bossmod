@@ -71,7 +71,7 @@ class Buffet(BossModule module) : Components.KnockbackFromCastTarget(module, AID
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (target == actor && targeted)
-            hints.AddForbiddenZone(ShapeContains.Circle(Module.Center, 18));
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.Center, 18));
     }
 }
 

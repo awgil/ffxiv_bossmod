@@ -97,10 +97,10 @@ class EraseGravity : Components.StandardAOEs
 
         var shouldLevitate = _config.PlayerAlliance.Group2() == 2;
 
-        var zones = Casters.Select(c => ShapeContains.Circle(c.CastInfo!.LocXZ, 4)).ToList();
+        var zones = Casters.Select(c => ShapeDistance.Circle(c.CastInfo!.LocXZ, 4)).ToList();
         if (zones.Count > 0)
         {
-            var union = ShapeContains.Union(zones);
+            var union = ShapeDistance.Union(zones);
             if (shouldLevitate)
                 hints.AddForbiddenZone(p => !union(p), Module.CastFinishAt(Casters[0].CastInfo));
             else

@@ -275,7 +275,7 @@ class Air2Baits : AirBaits
 
         if (CurrentBaits.FirstOrNull(b => !b.ForbiddenTargets[slot]) is { } b)
             // prevent dash shenanigans from ruining proximity baits
-            hints.AddForbiddenZone(ShapeContains.Donut(b.Origin, 10, 100), b.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Donut(b.Origin, 10, 100), b.Activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

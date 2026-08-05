@@ -112,7 +112,7 @@ class OrbitalWind(BossModule module) : Components.GenericAOEs(module)
         foreach (var aoe in ActiveAOEs(slot, actor))
         {
             hints.AddForbiddenZone(aoe.Shape, aoe.Origin);
-            hints.AddForbiddenZone(ShapeContains.Capsule(aoe.Origin, aoe.Rotation, 8, 3), WorldState.FutureTime(2));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(aoe.Origin, aoe.Rotation, 8, 3), WorldState.FutureTime(2));
         }
     }
 

@@ -102,7 +102,7 @@ class Blocks(BossModule module) : Components.GenericAOEs(module, AID.BlockSpawn)
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var b in BlockCenters)
-            hints.TemporaryObstacles.Add(ShapeContains.Rect(b, new WDir(0, 1), 4.5f, 4.5f, 4.5f));
+            hints.TemporaryObstacles.Add(ShapeDistance.Rect(b, new WDir(0, 1), 4.5f, 4.5f, 4.5f));
     }
 }
 class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge)
@@ -132,7 +132,7 @@ class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge)
     {
         if (_casters.FirstOrDefault() is { } source && !IsImmune(slot, Module.CastFinishAt(source.CastInfo)))
         {
-            var safeRects = ShapeContains.Union([.. _blocks.BlockCenters.Select(c => ShapeContains.Rect(c, source.Rotation + 180.Degrees(), 60, 0, 4))]);
+            var safeRects = ShapeDistance.Union([.. _blocks.BlockCenters.Select(c => ShapeDistance.Rect(c, source.Rotation + 180.Degrees(), 60, 0, 4))]);
             hints.AddForbiddenZone(p => !safeRects(p), Module.CastFinishAt(source.CastInfo));
         }
     }

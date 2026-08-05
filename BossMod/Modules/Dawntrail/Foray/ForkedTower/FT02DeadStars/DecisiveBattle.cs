@@ -70,7 +70,7 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
         if (_config.PlayerAlliance == ForkedTowerConfig.Alliance.None && _casters.Any(c => c != null))
         {
             var active = _casters.Where(c => c != null).Select(c => c!).ToList();
-            hints.AddForbiddenZone(p => active.Count(a => p.InCircle(a.Position, 35)) != 1, Module.CastFinishAt(active[0].CastInfo));
+            hints.AddForbiddenZone(Sdf.Discrete(p => active.Count(a => p.InCircle(a.Position, 35)) != 1), Module.CastFinishAt(active[0].CastInfo));
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);

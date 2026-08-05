@@ -123,16 +123,16 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
 
         if (BaitSource(actor) is { } source)
         {
-            hints.AddForbiddenZone(ShapeContains.Circle(source.Position, StretchDistance), _next);
+            hints.AddForbiddenZone(ShapeDistance.Circle(source.Position, StretchDistance), _next);
             // we need to bait to arena edge, otherwise allies won't have room to stretch tether
-            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 18), _next);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 18), _next);
 
             // hit or avoid bubble depending on color
             if (Module.Enemies(OID.WateryGrave).FirstOrDefault() is { } bubble)
             {
-                var clipCone = ShapeContains.Cone(source.Position, 100, source.AngleTo(bubble), Angle.Asin(8 / (bubble.Position - source.Position).Length()));
+                var clipCone = ShapeDistance.Cone(source.Position, 100, source.AngleTo(bubble), Angle.Asin(8 / (bubble.Position - source.Position).Length()));
                 if (actor == TargetRed)
-                    hints.AddForbiddenZone(p => !clipCone(p), _next);
+                    hints.AddForbiddenZone(p => -clipCone(p), _next);
                 else
                     hints.AddForbiddenZone(clipCone, _next);
             }

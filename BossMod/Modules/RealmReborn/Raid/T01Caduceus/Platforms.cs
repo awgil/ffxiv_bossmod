@@ -35,8 +35,8 @@ class Platforms(BossModule module) : BossComponent(module)
         new(0, -HexaPlatformSide)
     ];
 
-    public static readonly Func<WPos, bool>[] PlatformShapes = [.. Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeContains.ConvexPolygon(PlatformPoly(i), true))];
-    public static readonly Func<WPos, bool>[] HighEdgeShapes = [.. HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeContains.Rect(e.Item1, e.Item2, 0))];
+    public static readonly Func<WPos, bool>[] PlatformShapes = [.. Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true))];
+    public static readonly Func<WPos, bool>[] HighEdgeShapes = [.. HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0))];
     public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments = [.. JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length()))];
 
     public static IEnumerable<WPos> HexaPoly(WPos center) => HexaCornerOffsets.Select(off => center + off);

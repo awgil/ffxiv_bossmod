@@ -10,6 +10,11 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
             var res = Shape.Check(pos, Origin, Rotation);
             return Inverted ? !res : res;
         }
+        public readonly float Distance(WPos pos)
+        {
+            var res = Shape.GetSdf(Origin, Rotation).Distance(pos);
+            return Inverted ? -res : res;
+        }
     }
 
     public string WarningText = warningText;
@@ -29,7 +34,7 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
     {
         foreach (var c in ActiveAOEs(slot, actor))
             if (c.Risky)
-                hints.AddForbiddenZone(c.Check, c.Activation);
+                hints.AddForbiddenZone(c.Distance, c.Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

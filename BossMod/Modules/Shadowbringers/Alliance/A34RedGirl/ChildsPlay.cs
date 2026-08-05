@@ -83,8 +83,8 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
             var dangerWallCenter = Arena.Center + dir * 20;
 
             // prevent walking into death wall
-            hints.AddForbiddenZone(ShapeContains.Rect(dangerWallCenter, dangerWallCenter - march, 20), state.PendingMoves[0].activation);
-            hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, Arena.Center - march, 2.5f), state.PendingMoves[0].activation);
+            hints.AddForbiddenZone(ShapeDistance.Rect(dangerWallCenter, dangerWallCenter - march, 20), state.PendingMoves[0].activation);
+            hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, Arena.Center - march, 2.5f), state.PendingMoves[0].activation);
         }
     }
 }

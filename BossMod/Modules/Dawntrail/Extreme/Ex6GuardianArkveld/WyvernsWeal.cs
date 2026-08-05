@@ -130,7 +130,7 @@ class WyvernsWeal(BossModule module) : Components.GenericAOEs(module, null)
 
         // forbid the side of the arena we started on
         if (_baits.FirstOrDefault() is { } b && b.Target == actor && b.StartRotation != default)
-            hints.AddForbiddenZone(ShapeContains.Rect(Module.PrimaryActor.Position, b.StartRotation, 60, 3, 60), b.FinalCast);
+            hints.AddForbiddenZone(ShapeDistance.Rect(Module.PrimaryActor.Position, b.StartRotation, 60, 3, 60), b.FinalCast);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

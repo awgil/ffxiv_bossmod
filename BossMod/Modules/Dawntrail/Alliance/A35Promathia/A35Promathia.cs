@@ -227,7 +227,7 @@ class DeadlyRebirthKB(BossModule module) : Components.Knockback(module, AID.Dead
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var src in Sources(slot, actor))
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center - new WDir(0, 20), 25), src.Activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center - new WDir(0, 20), 25), src.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

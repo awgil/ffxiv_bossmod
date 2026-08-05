@@ -18,7 +18,7 @@ class Upheaval(BossModule module) : Components.Knockback(module, AID.Upheaval)
             // stack just behind boss, this is a good place to bait imminent landslide correctly
             var dirToCenter = (Module.Center - Module.PrimaryActor.Position).Normalized();
             var pos = Module.PrimaryActor.Position + 2 * dirToCenter;
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(pos, 1.5f), _remainInPosition);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, 1.5f), _remainInPosition);
         }
     }
 

@@ -98,7 +98,7 @@ class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(mod
             return;
 
         List<Func<WPos, bool>> funcs = [
-            ShapeContains.InvertedCircle(Module.Center, 20),
+            ShapeDistance.InvertedCircle(Module.Center, 20),
         ];
 
         if (storm?.ActiveCasters.FirstOrDefault() is Actor st)

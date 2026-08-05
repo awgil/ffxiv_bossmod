@@ -124,7 +124,7 @@ class Combination(BossModule module) : Components.GenericAOEs(module)
         if (_seq == 1 && _predicted.Count > 0)
         {
             var aoe = _predicted[0];
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(aoe.Origin, aoe.Rotation, 2, 2, 40), aoe.Activation.AddSeconds(2.1f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(aoe.Origin, aoe.Rotation, 2, 2, 40), aoe.Activation.AddSeconds(2.1f));
         }
     }
 

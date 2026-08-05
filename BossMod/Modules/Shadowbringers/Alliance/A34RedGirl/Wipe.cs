@@ -9,6 +9,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         public override bool Check(WPos position, WPos origin, Angle rotation) => position.InTri(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation));
         public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.ZoneTri(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation), color);
         public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.AddTriangle(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation), color);
+        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Tri(origin, new(A, B, C));
     }
 
     record class Meteor(Actor Caster, Shade Shade, List<WPos> Blockers);

@@ -25,7 +25,7 @@ class Repel(BossModule module) : Components.KnockbackFromCastTarget(module, AID.
         // custom hint: stay in narrow zone in center
         if (Casters.Count > 0)
         {
-            var safe = ShapeContains.Rect(Module.PrimaryActor.Position, 0.Degrees(), 50, -2, 1);
+            var safe = ShapeDistance.Rect(Module.PrimaryActor.Position, 0.Degrees(), 50, -2, 1);
             hints.AddForbiddenZone(p => !safe(p));
         }
     }

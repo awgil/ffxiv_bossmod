@@ -141,17 +141,17 @@ class ClamorousBait(BossModule module) : Components.CastCounterMulti(module, [AI
             if (cleaveSrc == actor)
             {
                 // TODO: do we need to add a hint to prevent cleaving the party...
-                hints.AddForbiddenZone(ShapeContains.Circle(_source, TetherLength), _nextJump);
+                hints.AddForbiddenZone(ShapeDistance.Circle(_source, TetherLength), _nextJump);
                 foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeContains.Circle(p.Position, 6), _nextJump);
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 6), _nextJump);
             }
             else
             {
-                hints.AddForbiddenZone(ShapeContains.Circle(cleaveSrc.Position, 6), _nextJump);
-                hints.AddForbiddenZone(ShapeContains.Cone(cleaveSrc.Position, 40, rotation, 90.Degrees()), NextCleave);
+                hints.AddForbiddenZone(ShapeDistance.Circle(cleaveSrc.Position, 6), _nextJump);
+                hints.AddForbiddenZone(ShapeDistance.Cone(cleaveSrc.Position, 40, rotation, 90.Degrees()), NextCleave);
 
                 if (_order[slot] == _nextBait + 1)
-                    hints.AddForbiddenZone(ShapeContains.Circle(cleaveSrc.Position, TetherLength), NextCleave.AddSeconds(1));
+                    hints.AddForbiddenZone(ShapeDistance.Circle(cleaveSrc.Position, TetherLength), NextCleave.AddSeconds(1));
             }
         }
     }

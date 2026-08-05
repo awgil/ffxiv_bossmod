@@ -122,7 +122,7 @@ class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(
     {
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(ShapeContains.Donut(Arena.Center, 3, 20), src.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Donut(Arena.Center, 3, 20), src.Activation);
     }
 }
 

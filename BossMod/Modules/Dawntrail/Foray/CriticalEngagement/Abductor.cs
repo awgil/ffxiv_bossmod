@@ -73,7 +73,7 @@ class Buffet(BossModule module) : Components.Knockback(module)
             if (!IsImmune(slot, src.Activation))
             {
                 var safeCenter = Arena.Center - src.Direction.ToDirection() * 24;
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(safeCenter, Arena.Bounds.Radius), src.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(safeCenter, Arena.Bounds.Radius), src.Activation);
             }
     }
 

@@ -42,7 +42,7 @@ class FlatlinerArena(BossModule module) : Components.GenericAOEs(module, AID.Fla
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (_activation != default)
-            hints.TemporaryObstacles.Add(ShapeContains.InvertedRect(Arena.Center, default(Angle), 20, 20, 20));
+            hints.TemporaryObstacles.Add(ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -141,7 +141,7 @@ class FireBreathMeteowrath : Components.GenericBaitAway
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (EnableHints && ActiveBaitsOn(actor).FirstOrNull(b => b.Shape == WrathShape) is { } tetherBait)
-            hints.AddForbiddenZone(ShapeContains.Circle(tetherBait.Source.Position, 48), tetherBait.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(tetherBait.Source.Position, 48), tetherBait.Activation);
     }
 
     public override void OnTethered(Actor source, ActorTetherInfo tether)

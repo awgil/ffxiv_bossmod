@@ -78,18 +78,18 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
                     if (farthest != null)
                     {
                         var stack = GetAOEForTarget(Source.Position, farthest.Position);
-                        hints.AddForbiddenZone(ShapeContains.InvertedCone(stack.origin, 100, stack.dir.ToAngle(), Angle.Asin(HalfWidth / (Source.Position - farthest.Position).Length())), Activation);
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCone(stack.origin, 100, stack.dir.ToAngle(), Angle.Asin(HalfWidth / (Source.Position - farthest.Position).Length())), Activation);
                     }
                 }
                 break;
             case PlayerRole.Share: // TODO: some hint to be first in line...
             case PlayerRole.ShareNotFirst:
                 foreach (var aoe in EnumerateAOEs())
-                    hints.AddForbiddenZone(ShapeContains.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
                 break;
             case PlayerRole.Avoid:
                 foreach (var aoe in EnumerateAOEs())
-                    hints.AddForbiddenZone(ShapeContains.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
+                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth), Activation);
                 break;
         }
 
@@ -199,7 +199,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
 
     public readonly List<Stack> Stacks = [];
 
-    private Func<WPos, bool> ShapeFn(Stack s) => ShapeContains.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+    private Func<WPos, float> ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -279,7 +279,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
             else
             {
                 var zones = group.Select(ShapeFn).ToList();
-                hints.AddForbiddenZone(p => zones.Count(f => f(p)) != 1, group.First().Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => zones.Count(f => f(p) < 0) != 1), group.First().Activation);
             }
         }
     }

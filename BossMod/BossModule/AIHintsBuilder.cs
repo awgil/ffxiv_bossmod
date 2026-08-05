@@ -218,14 +218,14 @@ public sealed class AIHintsBuilder : IDisposable
             {
                 // ignore charge AOEs that target player, as they presumably can't be avoided
                 if (aoe.Target != player)
-                    hints.AddForbiddenZone(ShapeContains.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
+                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
             }
             else if (aoe.Shape is AOEShapeCone cone)
             {
                 // not sure how best to adjust cone shape distance to account for quantization error - we just pretend it is being cast from MaxError units "behind" the reported position and increase radius similarly
                 var adjustedSourcePos = targetPos + rot.ToDirection() * -MaxError;
                 var adjustedRadius = cone.Radius + MaxError * 2;
-                hints.AddForbiddenZone(ShapeContains.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
+                hints.AddForbiddenZone(ShapeDistance.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
             }
             else
             {

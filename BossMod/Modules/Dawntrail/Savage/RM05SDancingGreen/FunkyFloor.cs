@@ -191,8 +191,8 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
     {
         if (Imminent(slot))
         {
-            var tiles = GetSafeTiles(slot).Select(t => ShapeContains.Circle(FunkyFloor.GetTilePos(t), 2.5f)).ToList();
-            var all = ShapeContains.Union(tiles);
+            var tiles = GetSafeTiles(slot).Select(t => ShapeDistance.Circle(FunkyFloor.GetTilePos(t), 2.5f)).ToList();
+            var all = ShapeDistance.Union(tiles);
             hints.AddForbiddenZone(p => !all(p), Timers[slot]);
         }
     }

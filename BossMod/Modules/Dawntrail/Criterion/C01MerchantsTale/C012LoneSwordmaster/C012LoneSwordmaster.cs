@@ -652,7 +652,7 @@ class EchoesBait(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_activation != default)
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center, 1), _activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 1), _activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

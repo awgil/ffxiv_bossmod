@@ -75,7 +75,7 @@ class MortalRay(BossModule module) : BossComponent(module)
             var target = ActivePlatform;
             if (target != null)
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(target.Position, _platformShape.Radius), actor.FindStatus(SID.Doom)!.Value.ExpireAt);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(target.Position, _platformShape.Radius), actor.FindStatus(SID.Doom)!.Value.ExpireAt);
             }
         }
     }

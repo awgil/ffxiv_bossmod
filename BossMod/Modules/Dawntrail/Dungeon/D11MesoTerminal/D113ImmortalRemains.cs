@@ -46,7 +46,7 @@ class ImpressionKnockback(BossModule module) : Components.KnockbackFromCastTarge
 {
     private Bombardment? _bomb;
 
-    private readonly List<Func<WPos, bool>> _safeSpots = [];
+    private readonly List<Func<WPos, float>> _safeSpots = [];
 
     public override void Update()
     {
@@ -66,7 +66,7 @@ class ImpressionKnockback(BossModule module) : Components.KnockbackFromCastTarge
             {
                 var toCorner = (45 + 90 * i).Degrees();
                 if (!largeAOEs.Any(l => l.InCone(Arena.Center, toCorner, 20.Degrees())))
-                    _safeSpots.Add(ShapeContains.Donut(Arena.Center + toCorner.ToDirection() * 12, 2, 100));
+                    _safeSpots.Add(ShapeDistance.Donut(Arena.Center + toCorner.ToDirection() * 12, 2, 100));
             }
         }
     }
@@ -83,7 +83,7 @@ class ImpressionKnockback(BossModule module) : Components.KnockbackFromCastTarge
     {
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation) && _safeSpots.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Intersection(_safeSpots), src.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Intersection(_safeSpots), src.Activation);
     }
 }
 

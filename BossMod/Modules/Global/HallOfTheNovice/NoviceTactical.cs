@@ -166,7 +166,7 @@ class StartingPositions(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (readyPos is WPos { } pos)
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(pos, radius));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos, radius));
     }
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -280,11 +280,11 @@ class NA01ScorchingStreak1(BossModule module) : Components.BaitAwayIcon(module, 
         {
             if (actor.Role is Role.Tank)
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(new WPos(0f, -15f), 3));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new WPos(0f, -15f), 3));
             }
             else
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(new WPos(0f, 15f), 3));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new WPos(0f, 15f), 3));
             }
         }
     }
@@ -303,7 +303,7 @@ class NA01PiercingStone1(BossModule module) : Components.StandardChasingAOEs(mod
         base.AddAIHints(slot, actor, assignment, hints);
         if (Chasers.Count > 0)
         {
-            hints.AddForbiddenZone(ShapeContains.Circle(new WPos(0f, 13f), 30));
+            hints.AddForbiddenZone(ShapeDistance.Circle(new WPos(0f, 13f), 30));
         }
     }
 }
@@ -314,7 +314,7 @@ class NA01PiercingStone2(BossModule module) : Components.StandardChasingAOEs(mod
         base.AddAIHints(slot, actor, assignment, hints);
         if (Chasers.Count > 0)
         {
-            hints.AddForbiddenZone(ShapeContains.DonutSector(new WPos(0f, 0f), 13, 20, 45.Degrees(), 135.Degrees()));
+            hints.AddForbiddenZone(ShapeDistance.DonutSector(new WPos(0f, 0f), 13, 20, 45.Degrees(), 135.Degrees()));
         }
     }
 }
@@ -356,10 +356,10 @@ class NA01FrigidRing(BossModule module) : Components.GenericAOEs(module)
     {
         if (aoes.Count > 1)
         {
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(new WPos(0, 0), 9f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new WPos(0, 0), 9f));
         }
         else if (aoes.Count == 1)
-            hints.AddForbiddenZone(ShapeContains.Circle(new WPos(0, 0), 11f));
+            hints.AddForbiddenZone(ShapeDistance.Circle(new WPos(0, 0), 11f));
     }
 }
 class NA01Fireflood(BossModule module) : Components.StandardAOEs(module, AID.NA01Fireflood, 15f);
@@ -378,7 +378,7 @@ class NA02RogueWave(BossModule module) : Components.KnockbackFromCastTarget(modu
         {
             foreach (var caster in Casters)
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(caster.Position, 3));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(caster.Position, 3));
             }
         }
     }
@@ -394,7 +394,7 @@ class NA02RogueWave2(BossModule module) : Components.KnockbackFromCastTarget(mod
         {
             foreach (var caster in Casters)
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCone(caster.Position, 3, 90.Degrees(), 40.Degrees()));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCone(caster.Position, 3, 90.Degrees(), 40.Degrees()));
             }
         }
     }
@@ -428,7 +428,7 @@ class NA02UpwellKnockback(BossModule module) : Components.KnockbackFromCastTarge
         {
             foreach (var caster in Casters)
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCone(caster.Position, 8, 270.Degrees(), 30.Degrees()));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCone(caster.Position, 8, 270.Degrees(), 30.Degrees()));
             }
         }
     }
@@ -468,7 +468,7 @@ class NA03TetherIntercept(BossModule module) : BossComponent(module)
             var distance = Module.PrimaryActor.Position - bomb.Position;
             var halfLength = distance.Length() / 2 / 3 * 2;
 
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.Center - distance.Scaled(0.5f), distance.ToAngle(), halfLength, halfLength, 1f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center - distance.Scaled(0.5f), distance.ToAngle(), halfLength, halfLength, 1f));
         }
     }
 

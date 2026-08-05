@@ -64,7 +64,7 @@ public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
         {
             // turtles do 60k autos that apply vuln, but are much slower than the player
             if (tar.TargetID == player.InstanceID && (tar.CastInfo == null || tar.CastInfo.RemainingTime < 1))
-                hints.AddForbiddenZone(ShapeContains.Circle(tar.Position, tar.HitboxRadius + 5.5f));
+                hints.AddForbiddenZone(ShapeDistance.Circle(tar.Position, tar.HitboxRadius + 5.5f));
 
             // TODO: add a separate forbidden zone for sight cone if turtle is out of combat
         }

@@ -158,7 +158,7 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
             if (nextClosest != null)
             {
                 var dist = (nextClosest.Position - Module.PrimaryActor.Position).Length();
-                hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, dist + 0.5f), _nextActivation);
+                hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, dist + 0.5f), _nextActivation);
             }
         }
         else

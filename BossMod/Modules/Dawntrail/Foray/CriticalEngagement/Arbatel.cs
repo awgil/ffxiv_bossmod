@@ -185,7 +185,7 @@ class CoverToCover(BossModule module) : Components.GenericAOEs(module)
         if (seq == 1 && _predicted.Count > 0)
         {
             var p = _predicted[0];
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(p.Origin, p.Rotation, 2, 2, 40), p.Activation.AddSeconds(4.3f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(p.Origin, p.Rotation, 2, 2, 40), p.Activation.AddSeconds(4.3f));
         }
     }
 
@@ -234,7 +234,7 @@ class ArcaneRule(BossModule module) : Components.GenericAOEs(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var i in _imminent)
-            hints.AddForbiddenZone(i.Shape.CheckFn(i.Origin, i.Rotation), i.Activation);
+            hints.AddForbiddenZone(i.Shape.Distance(i.Origin, i.Rotation), i.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -55,10 +55,11 @@ class LeapingCleave(BossModule module) : Components.KnockbackFromCastTarget(modu
             if (!IsImmune(slot, src.Activation))
             {
                 var center = Arena.Center;
+                var sf = ShapeDistance.InvertedRect(center, default(Angle), 20, 20, 25);
                 hints.AddForbiddenZone(p =>
                 {
                     var kb = (p - center).Normalized() * 22;
-                    return !(p + kb).InRect(center, default(Angle), 20, 20, 25);
+                    return sf(p + kb);
                 }, src.Activation);
             }
     }

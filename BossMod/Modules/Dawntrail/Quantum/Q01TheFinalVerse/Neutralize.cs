@@ -46,18 +46,18 @@ class Neutralize(BossModule module) : BossComponent(module)
     {
         if (_colors[slot] != default)
         {
-            List<Func<WPos, bool>> _partners = [];
+            List<Func<WPos, float>> _partners = [];
 
             foreach (var (s, a) in Raid.WithSlot().Exclude(actor))
             {
                 if (_colors[s] != _colors[slot])
-                    _partners.Add(ShapeContains.Donut(a.Position, Radius, 60));
+                    _partners.Add(ShapeDistance.Donut(a.Position, Radius, 60));
                 else
-                    hints.AddForbiddenZone(ShapeContains.Circle(a.Position, Radius), _resolve);
+                    hints.AddForbiddenZone(ShapeDistance.Circle(a.Position, Radius), _resolve);
             }
 
             if (_partners.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Intersection(_partners), _resolve);
+                hints.AddForbiddenZone(ShapeDistance.Intersection(_partners), _resolve);
         }
     }
 

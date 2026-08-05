@@ -18,7 +18,7 @@ class DawnOfAnAge(BossModule module) : Components.RaidwideCast(module, AID.DawnO
         // While the cast is up, forbid everything outside the post-shrink diamond so ranged jobs
         // pull in toward center before the platform collapses around them.
         foreach (var c in Casters)
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(Module.Center, 45.Degrees(), 20, 20, 20), Module.CastFinishAt(c.CastInfo));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Module.Center, 45.Degrees(), 20, 20, 20), Module.CastFinishAt(c.CastInfo));
     }
 
     // Cardinal extents of the rotated-45° diamonds: corners sit at half-extent × √2 from center.

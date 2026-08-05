@@ -168,7 +168,7 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
         foreach (var spreadFrom in CurrentBaits.Where(s => s.IsSpread && !s.Targets[slot]))
         {
             foreach (var t in PossibleTargets(spreadFrom).Exclude(actor))
-                hints.AddForbiddenZone(spreadFrom.Shape.CheckFn(spreadFrom.Position(t), spreadFrom.Angle(t)), spreadFrom.Activation);
+                hints.AddForbiddenZone(spreadFrom.Shape.Distance(spreadFrom.Position(t), spreadFrom.Angle(t)), spreadFrom.Activation);
         }
 
         var actorSpreadN = CurrentBaits.Where(s => s.IsSpread && s.Targets[slot]).FirstOrNull();
@@ -176,13 +176,13 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
         {
             var forbiddenTargets = actorSpread.CanOverlap ? Raid.WithSlot().ExcludedFromMask(actorSpread.Targets) : Raid.WithSlot().Exclude(actor);
             foreach (var (_, target) in forbiddenTargets)
-                hints.AddForbiddenZone(actorSpread.Shape.CheckFn(actorSpread.Position(target), actorSpread.Angle(target)), actorSpread.Activation);
+                hints.AddForbiddenZone(actorSpread.Shape.Distance(actorSpread.Position(target), actorSpread.Angle(target)), actorSpread.Activation);
         }
 
         foreach (var avoid in CurrentBaits.Where(s => s.IsStack && s.ForbiddenTargets[slot]))
         {
             foreach (var t in PossibleTargets(avoid))
-                hints.AddForbiddenZone(avoid.Shape.CheckFn(avoid.Position(t), avoid.Angle(t)), avoid.Activation);
+                hints.AddForbiddenZone(avoid.Shape.Distance(avoid.Position(t), avoid.Angle(t)), avoid.Activation);
         }
 
         if (CurrentBaits.Where(s => s.IsStack && s.Targets[slot]).FirstOrNull() is { } actorStack)
@@ -192,14 +192,14 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
             foreach (var stackWith in CurrentBaits.Where(s => s.IsStack && IsDifferentTarget(s, slot)))
             {
                 foreach (var t in PossibleTargets(stackWith).Exclude(actor))
-                    hints.AddForbiddenZone(stackWith.Shape.CheckFn(stackWith.Position(t), stackWith.Angle(t)), stackWith.Activation);
+                    hints.AddForbiddenZone(stackWith.Shape.Distance(stackWith.Position(t), stackWith.Angle(t)), stackWith.Activation);
             }
 
             // stack with closest player who is either baiting the same aoe as us, or not baiting anything
             var closest = Raid.WithSlot().Exclude(actor).ExcludedFromMask(actorStack.ForbiddenTargets).WhereSlot(p => !IsDifferentTarget(actorStack, p) || !IsStackTarget(p) && !IsSpreadTarget(p)).Select(p => p.Item2).Closest(actor.Position);
             if (closest != null)
             {
-                bool cf(WPos p) => !actorStack.Shape.Check(p, actorStack.Position(closest), actorStack.Angle(closest));
+                float cf(WPos p) => -actorStack.Shape.Distance(actorStack.Position(closest), actorStack.Angle(closest))(p);
                 hints.AddForbiddenZone(cf, actorStack.Activation);
             }
         }
@@ -208,7 +208,7 @@ class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounter(modul
             var closestStack = CurrentBaits.Where(s => !s.ForbiddenTargets[slot] && s.IsStack).SelectMany(b => PossibleTargets(b).Where(t => numOthersInside(b, t) < b.StackSize).Select(t => (t, b))).MinBy(t => (t.t.Position - actor.Position).LengthSq());
             if (closestStack.t != null)
             {
-                bool cf2(WPos p) => !closestStack.b.Shape.Check(p, closestStack.b.Position(closestStack.t), closestStack.b.Angle(closestStack.t));
+                float cf2(WPos p) => -closestStack.b.Shape.Distance(closestStack.b.Position(closestStack.t), closestStack.b.Angle(closestStack.t))(p);
                 hints.AddForbiddenZone(cf2, closestStack.b.Activation);
             }
         }

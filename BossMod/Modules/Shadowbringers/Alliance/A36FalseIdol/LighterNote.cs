@@ -114,10 +114,10 @@ class LighterNoteSpread(BossModule module) : BossComponent(module)
             switch ((OID)i.OID)
             {
                 case OID.LighterNoteEW:
-                    hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, 90.Degrees(), 30, 30, 18), _spawn.AddSeconds(LighterNote.LockInDelay));
+                    hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, 90.Degrees(), 30, 30, 18), _spawn.AddSeconds(LighterNote.LockInDelay));
                     break;
                 case OID.LighterNoteNS:
-                    hints.AddForbiddenZone(ShapeContains.Rect(Arena.Center, default(Angle), 30, 30, 18), _spawn.AddSeconds(LighterNote.LockInDelay));
+                    hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, default(Angle), 30, 30, 18), _spawn.AddSeconds(LighterNote.LockInDelay));
                     break;
             }
         }

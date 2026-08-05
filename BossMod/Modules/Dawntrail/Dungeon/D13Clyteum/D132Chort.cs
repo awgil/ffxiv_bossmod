@@ -44,7 +44,7 @@ class BodyweightExorcismKnockback(BossModule module) : Components.KnockbackFromC
     {
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(src.Origin, 7), src.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(src.Origin, 7), src.Activation);
     }
 }
 class BodyweightExorcismTower(BossModule module) : Components.CastTowers(module, AID.BodyweightExorcismTower, 4, minSoakers: 4, maxSoakers: 4);

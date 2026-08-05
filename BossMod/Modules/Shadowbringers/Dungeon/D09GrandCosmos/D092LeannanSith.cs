@@ -114,12 +114,12 @@ class DirectSeeding(BossModule module) : BossComponent(module)
             List<Func<WPos, bool>> tiledist = [];
             foreach (var t in TileCenters)
             {
-                tiledist.Add(ShapeContains.Rect(t - off, default(Angle), 5, 5, 5));
+                tiledist.Add(ShapeDistance.Rect(t - off, default(Angle), 5, 5, 5));
                 // tile is at edge of arena; seed can't be pushed out of it, it will just hit the wall
                 if (!Module.Arena.InBounds(t + off))
-                    tiledist.Add(ShapeContains.Rect(t, default(Angle), 5, 5, 5));
+                    tiledist.Add(ShapeDistance.Rect(t, default(Angle), 5, 5, 5));
             }
-            var zone = ShapeContains.Union(tiledist);
+            var zone = ShapeDistance.Union(tiledist);
 
             if (!zone(actor.Position))
             {

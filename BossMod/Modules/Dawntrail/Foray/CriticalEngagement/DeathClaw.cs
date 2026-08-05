@@ -116,7 +116,7 @@ class Crosshatch(BossModule module) : Components.GenericAOEs(module, AID.RakingS
         if (_predicted.Count == 4)
         {
             // preposition along edge of aoe to make subsequent dodge easier
-            var cross = ShapeContains.Cross(Arena.Center, 45.Degrees(), 50, 3);
+            var cross = ShapeDistance.Cross(Arena.Center, 45.Degrees(), 50, 3);
             hints.AddForbiddenZone(p => !cross(p), _predicted[0].Activation.AddSeconds(2));
         }
     }

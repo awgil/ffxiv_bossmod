@@ -346,7 +346,7 @@ class AquaSpearVoidzone(BossModule module) : Components.GenericAOEs(module)
 class AlluringOrder(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
     public List<(Angle dir, float duration, DateTime activation)> PendingMoves = [];
-    private static readonly Func<WPos, bool> arenaBounds = ShapeContains.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
+    private static readonly Func<WPos, bool> arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
@@ -393,7 +393,7 @@ class BigWave(BossModule module) : Components.Knockback(module, AID.BigWaveKnock
     {
         if (_sources.Count >= 1)
         {
-            var arenaBounds = ShapeContains.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
+            var arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
 
             bool kbSafe(WPos playerPos)
             {

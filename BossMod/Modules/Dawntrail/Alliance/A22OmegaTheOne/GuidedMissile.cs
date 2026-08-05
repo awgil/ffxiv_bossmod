@@ -62,20 +62,20 @@ class GuidedMissileBait(BossModule module) : Components.CastCounter(module, AID.
     {
         if (_baits.FirstOrNull(b => b.Target == actor) is { } thisBait)
         {
-            List<Func<WPos, bool>> selfShape = [];
+            List<Func<WPos, float>> selfShape = [];
             foreach (var r in Raid.WithoutSlot().Exclude(actor))
-                selfShape.Add(ShapeContains.Circle(r.Position - thisBait.Offset, 6));
+                selfShape.Add(ShapeDistance.Circle(r.Position - thisBait.Offset, 6));
 
             if (selfShape.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Union(selfShape), thisBait.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Union(selfShape), thisBait.Activation);
         }
 
-        List<Func<WPos, bool>> othersShape = [];
+        List<Func<WPos, float>> othersShape = [];
         foreach (var b in _baits.Where(b => b.Target != actor))
-            othersShape.Add(ShapeContains.Circle(b.Target.Position + b.Offset, 6));
+            othersShape.Add(ShapeDistance.Circle(b.Target.Position + b.Offset, 6));
 
         if (othersShape.Count > 0)
-            hints.AddForbiddenZone(ShapeContains.Union(othersShape), _baits[0].Activation);
+            hints.AddForbiddenZone(ShapeDistance.Union(othersShape), _baits[0].Activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

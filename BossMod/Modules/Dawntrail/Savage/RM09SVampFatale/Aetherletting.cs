@@ -10,7 +10,7 @@ class AetherlettingSpread(BossModule module) : Components.SpreadFromCastTargets(
 
         if (Spreads.FirstOrNull(s => s.Target == actor) is { } s)
             // encourage autorot to not dash to center while spread is active
-            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 18), s.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 18), s.Activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

@@ -82,7 +82,7 @@ internal class Bounds(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Bridge)
-            hints.AddForbiddenZone(ShapeContains.Donut(Module.PrimaryActor.Position, 1, 100));
+            hints.AddForbiddenZone(ShapeDistance.Donut(Module.PrimaryActor.Position, 1, 100));
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)

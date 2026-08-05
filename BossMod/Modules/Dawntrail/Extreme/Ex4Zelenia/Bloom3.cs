@@ -24,7 +24,7 @@ class Bloom3Emblazon(BossModule module) : Emblazon(module)
         if (Baiters[slot])
         {
             var mask = _tiles.Mask;
-            hints.AddForbiddenZone(p => DangerTile(mask, Tiles.GetTile(p)), Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(p => DangerTile(mask, Tiles.GetTile(p))), Activation);
         }
     }
 
@@ -105,7 +105,7 @@ class TileExplosion(BossModule module) : Components.CastCounter(module, AID.Tile
         var ts = _tiles.TileShape();
         var soakers = _forbiddenSoakers;
 
-        hints.AddForbiddenZone(p => soakers[slot] ? ts(p) : !ts(p), Activation);
+        hints.AddForbiddenZone(Sdf.Discrete(p => soakers[slot] ? ts(p) : !ts(p)), Activation);
 
         hints.AddPredictedDamage(Raid.WithSlot().Where(r => ts(r.Item2.Position)).Mask(), Activation);
     }

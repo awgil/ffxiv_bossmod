@@ -34,7 +34,7 @@ class Skinflayer(BossModule module) : Components.KnockbackFromCastTarget(module,
     {
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(ShapeContains.Rect(src.Origin + src.Direction.ToDirection() * 10, src.Direction, 50, 0, 25), src.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Rect(src.Origin + src.Direction.ToDirection() * 10, src.Direction, 50, 0, 25), src.Activation);
     }
 }
 

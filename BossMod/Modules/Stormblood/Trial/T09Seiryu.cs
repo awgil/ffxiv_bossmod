@@ -59,7 +59,7 @@ class Phase2Water(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Active)
-            hints.AddForbiddenZone(ShapeContains.Donut(Arena.Center, T09Seiryu.IslandRadius, T09Seiryu.ArenaRadius));
+            hints.AddForbiddenZone(ShapeDistance.Donut(Arena.Center, T09Seiryu.IslandRadius, T09Seiryu.ArenaRadius));
     }
 }
 

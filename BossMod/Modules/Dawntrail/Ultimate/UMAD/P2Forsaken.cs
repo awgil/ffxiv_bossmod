@@ -160,7 +160,7 @@ class P2Shapes : Components.CastCounterMulti
         {
             hints.ForbiddenZones.Clear();
 
-            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _nextDeadline);
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _nextDeadline);
         }
     }
 
@@ -717,7 +717,7 @@ class P2AllThingsEndingBait(BossModule module) : BossComponent(module)
     {
         if (Draw)
             foreach (var p in GetSafeSpot())
-                hints.AddForbiddenZone(ShapeContains.PrecisePosition(p, new(0, 1), 0.5f, actor.Position, 0.1f), _activation);
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(p, new(0, 1), 0.5f, actor.Position, 0.1f), _activation);
     }
 
     public override void AddGlobalHints(GlobalHints hints)

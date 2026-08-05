@@ -186,7 +186,7 @@ class P1FlagrantFireIII(BossModule module) : Components.UniformStackSpread(modul
             mySpot += dirToStatue.Normalized() * P1PulseWave.Distance * factor;
         }
 
-        hints.AddForbiddenZone(ShapeContains.InvertedCircle(mySpot, isSpread ? 1 : 4), kbAt);
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(mySpot, isSpread ? 1 : 4), kbAt);
 
     }
 

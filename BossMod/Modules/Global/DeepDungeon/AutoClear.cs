@@ -345,13 +345,13 @@ public abstract partial class AutoClear : ZoneModule
             return;
 
         foreach (var (w, rot) in Walls)
-            hints.TemporaryObstacles.Add(ShapeContains.Rect(w.Position, (rot ? 90f : 0f).Degrees(), w.Depth, w.Depth, 20));
+            hints.TemporaryObstacles.Add(ShapeDistance.Rect(w.Position, (rot ? 90f : 0f).Degrees(), w.Depth, w.Depth, 20));
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.InCircle(player.Position, 30)).Select(f => ShapeContains.Circle(f, 2)).ToList();
+            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.InCircle(player.Position, 30)).Select(f => ShapeDistance.Circle(f, 2)).ToList();
             if (tshape.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Union(tshape));
+                hints.AddForbiddenZone(ShapeDistance.Union(tshape));
         }
 
         DrawAOEs(playerSlot, player, hints);
@@ -420,7 +420,7 @@ public abstract partial class AutoClear : ZoneModule
                 passage = a;
 
             if (RevealedTrapOIDs.Contains(a.OID))
-                revealedTraps.Add(ShapeContains.Circle(a.Position, 2));
+                revealedTraps.Add(ShapeDistance.Circle(a.Position, 2));
         }
 
         var fullClear = false;
@@ -485,7 +485,7 @@ public abstract partial class AutoClear : ZoneModule
         }
 
         if (revealedTraps.Count > 0)
-            hints.AddForbiddenZone(ShapeContains.Union(revealedTraps));
+            hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
         if (!IsPlayerTransformed(player) && canNavigate && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
             hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));

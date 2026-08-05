@@ -89,21 +89,21 @@ class FeedingTime(BossModule module) : BossComponent(module)
             {
                 zones.Clear();
                 // don't move away
-                zones.Add(ShapeContains.InvertedRect(src.Position, Module.PrimaryActor.Position, 2));
+                zones.Add(ShapeDistance.InvertedRect(src.Position, Module.PrimaryActor.Position, 2));
                 break;
             }
             else if (!target.IsAlly)
-                zones.Add(ShapeContains.InvertedRect(src.Position, target.Position, 1));
+                zones.Add(ShapeDistance.InvertedRect(src.Position, target.Position, 1));
         }
 
         if (zones.Count > 0)
         {
-            hints.AddForbiddenZone(ShapeContains.Intersection(zones), _deadline);
+            hints.AddForbiddenZone(ShapeDistance.Intersection(zones), _deadline);
 
             // the boss gets the tether if you stand in its hitbox
-            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius), _deadline);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius), _deadline);
             // stay at least 2y away from saplings or something i guess
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Arena.Center, 18), _deadline);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 18), _deadline);
         }
     }
 }

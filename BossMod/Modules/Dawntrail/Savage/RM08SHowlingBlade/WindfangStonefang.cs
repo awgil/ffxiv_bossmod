@@ -99,18 +99,18 @@ class WindfangStonefangAI(BossModule module) : BossComponent(module)
         if (_intercard)
             assignedDirection += 45.Degrees();
 
-        hints.AddForbiddenZone(ShapeContains.InvertedCone(Module.PrimaryActor.Position, 12, assignedDirection, 45.Degrees()), _ws.Activation);
+        hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.PrimaryActor.Position, 12, assignedDirection, 45.Degrees()), _ws.Activation);
 
         var closestPartner = Module.Raid.WithoutSlot().Where(p => p.Class.IsSupport() != isSupport).Closest(actor.Position);
         if (closestPartner == null)
             return;
 
-        var partnerShape = ShapeContains.Cone(Module.PrimaryActor.Position, 12, Module.PrimaryActor.AngleTo(closestPartner), 15.Degrees());
+        var partnerShape = ShapeDistance.Cone(Module.PrimaryActor.Position, 12, Module.PrimaryActor.AngleTo(closestPartner), 15.Degrees());
 
         if (_ws.Activation < WorldState.FutureTime(0.5f))
         {
             var stack = _ws.Stack;
-            hints.AddForbiddenZone(p => stack ? !partnerShape(p) : partnerShape(p), _ws.Activation);
+            hints.AddForbiddenZone(p => stack ? -partnerShape(p) : partnerShape(p), _ws.Activation);
         }
     }
 }

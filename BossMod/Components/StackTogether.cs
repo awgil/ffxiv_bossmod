@@ -46,7 +46,7 @@ public class StackTogether(BossModule module, uint iconId, float activationDelay
         if (!Targets[slot])
             return;
 
-        var otherTargets = ShapeContains.Intersection([.. OtherTargets(slot, actor).Select(t => ShapeContains.Donut(t.Position, radius, 100))]);
+        var otherTargets = ShapeDistance.Intersection([.. OtherTargets(slot, actor).Select(t => ShapeDistance.Donut(t.Position, radius, 100))]);
         hints.AddForbiddenZone(otherTargets, Activation);
     }
 }

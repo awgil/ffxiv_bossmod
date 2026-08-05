@@ -127,7 +127,7 @@ class BoundsOfIndulgence(BossModule module) : BossComponent(module)
     {
         foreach (var halo in _halos)
         {
-            hints.AddForbiddenZone(ShapeContains.Circle(halo.Position, 4));
+            hints.AddForbiddenZone(ShapeDistance.Circle(halo.Position, 4));
 
             if (halo.LastFrameMovement != default)
             {
@@ -135,10 +135,10 @@ class BoundsOfIndulgence(BossModule module) : BossComponent(module)
                 var dist = fromCenterDir.Length();
                 var cw = halo.Rotation.ToDirection().OrthoR().Dot(fromCenterDir) > 0;
 
-                hints.AddForbiddenZone(ShapeContains.DonutSector(Arena.Center, dist - 4, dist + 4, fromCenterDir.ToAngle() + (cw ? 20.Degrees() : -20.Degrees()), 20.Degrees()), WorldState.FutureTime(2));
+                hints.AddForbiddenZone(ShapeDistance.DonutSector(Arena.Center, dist - 4, dist + 4, fromCenterDir.ToAngle() + (cw ? 20.Degrees() : -20.Degrees()), 20.Degrees()), WorldState.FutureTime(2));
 
                 var capsuleEndDir = (fromCenterDir.ToAngle() + (cw ? 40.Degrees() : -40.Degrees())).ToDirection() * dist;
-                hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center + capsuleEndDir, 4), WorldState.FutureTime(2));
+                hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center + capsuleEndDir, 4), WorldState.FutureTime(2));
             }
         }
     }

@@ -54,7 +54,7 @@ class Prey(BossModule module) : BossComponent(module)
         else
         {
             // prevent premature swap, even though it doesn't really matter, because the debuff generally falls off with plenty of time left
-            hints.AddForbiddenZone(ShapeContains.Circle(partner.Position, 5), WorldState.FutureTime(1));
+            hints.AddForbiddenZone(ShapeDistance.Circle(partner.Position, 5), WorldState.FutureTime(1));
 
             if (Module.PrimaryActor.IsTargetable)
                 hints.AddForbiddenZone(Cleave.CheckFn(Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(partner)), WorldState.FutureTime(1));

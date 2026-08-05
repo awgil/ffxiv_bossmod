@@ -68,11 +68,11 @@ class Gunblade(BossModule module) : Components.Knockback(module, AID.Gunblade, s
         if (caster == null)
             return;
 
-        var voidzones = Module.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7).Select(v => ShapeContains.Circle(v.Position, 5)).ToList();
+        var voidzones = Module.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7).Select(v => ShapeDistance.Circle(v.Position, 5)).ToList();
         if (voidzones.Count == 0)
             return;
 
-        var combined = ShapeContains.Union(voidzones);
+        var combined = ShapeDistance.Union(voidzones);
 
         bool projectedDist(WPos pos)
         {

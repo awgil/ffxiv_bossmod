@@ -21,7 +21,7 @@ class CruelCoil(BossModule module) : Components.GenericAOEs(module)
 
         if (_active)
         {
-            hints.TemporaryObstacles.Add(CoilShape.CheckFn(Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + 180.Degrees()));
+            hints.TemporaryObstacles.Add(CoilShape.Distance(Module.PrimaryActor.Position, Module.PrimaryActor.Rotation + 180.Degrees()));
         }
     }
 
@@ -244,7 +244,7 @@ class Act2CellChains(BossModule module) : Components.Chains(module, (uint)Tether
         {
             var partner = _assignments.PartnerSlot(slot);
             if (Raid[partner] is { } p)
-                hints.AddForbiddenZone(ShapeContains.Donut(p.Position, 2, 60), deadline);
+                hints.AddForbiddenZone(ShapeDistance.Donut(p.Position, 2, 60), deadline);
             return;
         }
 

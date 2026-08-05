@@ -38,7 +38,7 @@ class SphereShatter(BossModule module) : Components.StandardAOEs(module, AID.Sph
             (uint)OID.Petrifog4 or (uint)OID.Petrifog5 or (uint)OID.Petrifog6).ToList();
         foreach (var petrifog in petrifogs.Where(a => !a.IsDead && a.CastInfo == null))
         {
-            hints.AddForbiddenZone(ShapeContains.Capsule(petrifog.Position, petrifog.Rotation.ToDirection(), 7.0f, 4.0f), WorldState.FutureTime(5.0f));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(petrifog.Position, petrifog.Rotation.ToDirection(), 7.0f, 4.0f), WorldState.FutureTime(5.0f));
         }
     }
 }

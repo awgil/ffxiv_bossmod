@@ -11,7 +11,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
     // 0 = north, 1 = south
     record struct Charge(WPos Source, WPos Target, DateTime Activation, int Snowball, int Order)
     {
-        public readonly Func<WPos, bool> ShapeFn => ShapeContains.Rect(Source, Target, 5);
+        public readonly Func<WPos, bool> ShapeFn => ShapeDistance.Rect(Source, Target, 5);
     }
 
     private readonly List<Charge> _charges = [];
@@ -75,7 +75,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
     {
         if (_charges.Count(c => IsAssigned(slot, c)) > 1)
         {
-            var anyCharge = ShapeContains.Union([.. _charges.Select(c => c.ShapeFn)]);
+            var anyCharge = ShapeDistance.Union([.. _charges.Select(c => c.ShapeFn)]);
             hints.AddForbiddenZone(p => !anyCharge(p), _charges[0].Activation);
             return;
         }

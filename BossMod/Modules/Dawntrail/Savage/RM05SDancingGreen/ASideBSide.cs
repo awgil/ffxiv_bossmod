@@ -96,9 +96,9 @@ class PlayASide(BossModule module) : BossComponent(module)
 
         hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
 
-        var cones = DifferentRole(actor).Select(p => ShapeContains.Cone(Module.PrimaryActor.Position, 60, Module.PrimaryActor.AngleTo(p), 22.5f.Degrees())).ToList();
+        var cones = DifferentRole(actor).Select(p => ShapeDistance.Cone(Module.PrimaryActor.Position, 60, Module.PrimaryActor.AngleTo(p), 22.5f.Degrees())).ToList();
         if (cones.Count > 0)
-            hints.AddForbiddenZone(ShapeContains.Union(cones), Activation);
+            hints.AddForbiddenZone(ShapeDistance.Union(cones), Activation);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
@@ -159,11 +159,11 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, AID
         if (aoes.Count != 2)
             return;
 
-        var rects = aoes.Select(aoe => ShapeContains.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth)).ToList();
+        var rects = aoes.Select(aoe => ShapeDistance.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth)).ToList();
         var r0 = rects[0];
         var r1 = rects[1];
 
-        hints.AddForbiddenZone(p => r0(p) == r1(p), Activation);
+        hints.AddForbiddenZone(Sdf.Discrete(p => MathF.Sign(r0(p)) == MathF.Sign(r1(p))), Activation);
 
         hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
     }

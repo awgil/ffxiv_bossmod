@@ -41,7 +41,7 @@ class Rocks(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var (rock, radius) in TheRocks)
-            hints.TemporaryObstacles.Add(ShapeContains.Circle(rock.Position, radius + 0.5f));
+            hints.TemporaryObstacles.Add(ShapeDistance.Circle(rock.Position, radius + 0.5f));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -81,7 +81,7 @@ class ThunderIISpread(BossModule module) : Components.SpreadFromCastTargets(modu
 
         if (_rocksComponent.TheRocks.Count is > 0 and < 5 && Spreads.FirstOrNull(s => s.Target == actor) is { } s)
             foreach (var (rock, radius) in _rocksComponent.TheRocks)
-                hints.AddForbiddenZone(ShapeContains.Circle(rock.Position, radius + 5), s.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Circle(rock.Position, radius + 5), s.Activation);
     }
 }
 class ThunderIII(BossModule module) : Components.BaitAwayCast(module, AID.ThunderIII, new AOEShapeCircle(4), true, true);

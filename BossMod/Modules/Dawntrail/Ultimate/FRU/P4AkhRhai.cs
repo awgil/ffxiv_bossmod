@@ -15,8 +15,8 @@ class P4AkhRhai(BossModule module) : Components.GenericAOEs(module, AID.AkhRhaiA
         {
             // preposition for baits - note that this is very arbitrary...
             var off = 10 * 45.Degrees().ToDirection();
-            var p1 = ShapeContains.Circle(Module.Center + off, 1);
-            var p2 = ShapeContains.Circle(Module.Center - off, 1);
+            var p1 = ShapeDistance.Circle(Module.Center + off, 1);
+            var p2 = ShapeDistance.Circle(Module.Center - off, 1);
             hints.AddForbiddenZone(p => !(p1(p) || p2(p)), DateTime.MaxValue);
         }
     }

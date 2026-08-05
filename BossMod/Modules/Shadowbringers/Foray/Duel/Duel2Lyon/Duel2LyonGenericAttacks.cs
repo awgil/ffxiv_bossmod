@@ -61,7 +61,7 @@ class WindsPeakKB(BossModule module) : Components.KnockbackFromCastTarget(module
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var src in Sources(slot, actor))
-            hints.AddForbiddenZone(ShapeContains.Donut(src.Origin, 5, 50), src.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Donut(src.Origin, 5, 50), src.Activation);
     }
 }
 

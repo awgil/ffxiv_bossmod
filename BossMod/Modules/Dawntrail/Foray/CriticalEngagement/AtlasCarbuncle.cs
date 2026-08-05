@@ -82,7 +82,7 @@ class ClawToTail(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (_predicted.Count > 1)
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(_predicted[0].Origin, _predicted[0].Rotation, 2, 2, 40), _predicted[1].Activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(_predicted[0].Origin, _predicted[0].Rotation, 2, 2, 40), _predicted[1].Activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -285,12 +285,12 @@ class SpinebreakingStampede(BossModule module) : Components.Knockback(module)
         if (_sources.Count == 1 || _sources.Count > 1 && IsImmune(slot, _sources[0].Activation) && !IsImmune(slot, _sources[^1].Activation))
         {
             var src = _sources[^1].Origin;
-            var ctr = Arena.Center;
+            var inv = ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20);
             hints.AddForbiddenZone(p =>
             {
                 var dir = (p - src).Normalized();
                 var proj = p + dir * 30;
-                return !proj.AlmostEqual(ctr, 20);
+                return inv(proj);
             }, _sources[^1].Activation);
         }
 
@@ -298,7 +298,7 @@ class SpinebreakingStampede(BossModule module) : Components.Knockback(module)
         if (_sources.Count > 1 && !IsImmune(slot, _sources[0].Activation))
         {
             var dirSafe = (_sources[^1].Origin - Arena.Center).ToAngle();
-            hints.AddForbiddenZone(ShapeContains.InvertedCone(Arena.Center, 4, dirSafe, 90.Degrees()), _sources[0].Activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(Arena.Center, 4, dirSafe, 90.Degrees()), _sources[0].Activation);
         }
 
         if (_sources.Count > 0)

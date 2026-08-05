@@ -163,7 +163,7 @@ class Impact(BossModule module) : Components.Knockback(module)
             AOEs.Clear();
     }
 
-    private Func<WPos, bool> SafeSpotInDirection(WPos origin, WDir dir) => ShapeContains.InvertedCircle(origin + dir * 11, 1);
+    private Func<WPos, bool> SafeSpotInDirection(WPos origin, WDir dir) => ShapeDistance.InvertedCircle(origin + dir * 11, 1);
 }
 
 class DestructiveBuildingHeat(BossModule module) : Components.CastStackSpread(module, AID.BuildingHeat, AID.DestructiveHeat, 6, 6, 4, alwaysShowSpreads: true)
@@ -188,7 +188,7 @@ class DeepThunder(BossModule module) : Components.GenericTowers(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var t in Towers)
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(t.Position, t.Radius));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, t.Radius));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

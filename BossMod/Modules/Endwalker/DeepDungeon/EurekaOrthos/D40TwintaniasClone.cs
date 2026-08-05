@@ -69,8 +69,8 @@ class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, AI
         var source = Sources(slot, actor).FirstOrDefault();
         if (source != default && component != null)
         {
-            forbidden.Add(ShapeContains.InvertedCircle(Arena.Center, 5));
-            forbidden.AddRange(component.Select(c => ShapeContains.Cone(Arena.Center, 20, Angle.FromDirection(c.Origin - Arena.Center), 20.Degrees())));
+            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 5));
+            forbidden.AddRange(component.Select(c => ShapeDistance.Cone(Arena.Center, 20, Angle.FromDirection(c.Origin - Arena.Center), 20.Degrees())));
             if (forbidden.Count > 0)
                 hints.AddForbiddenZone(p => forbidden.Any(f => f(p)), source.Activation);
         }

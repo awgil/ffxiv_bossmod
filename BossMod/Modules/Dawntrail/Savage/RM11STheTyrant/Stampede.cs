@@ -21,7 +21,7 @@ class AtomicImpact(BossModule module) : Components.SpreadFromIcon(module, 30, nu
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (ActiveSpreads.Any(s => s.Target.InstanceID == actor.InstanceID))
-            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 10), DateTime.MaxValue);
     }
 }
 class AtomicImpactPuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.AtomicImpact, m => m.Enemies(OID.AtomicImpact).Where(e => e.EventState != 7), 1);

@@ -56,7 +56,7 @@ class VorpalTrail(BossModule module) : Components.GenericAOEs(module)
             }
             else
             {
-                hints.AddForbiddenZone(aoe.Check, aoe.Activation);
+                hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
             }
         }
         // Inverted strategy: park the AI at arena center and let rect avoidance pull it off when a

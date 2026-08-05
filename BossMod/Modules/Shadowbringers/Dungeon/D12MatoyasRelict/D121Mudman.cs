@@ -158,7 +158,7 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
         var forbidden = new List<Func<WPos, bool>>();
         foreach (var b in ActiveBaitsOn(actor))
             foreach (var h in activeHoles)
-                forbidden.Add(ShapeContains.InvertedRect(b.Source.Position, h, 1));
+                forbidden.Add(ShapeDistance.InvertedRect(b.Source.Position, h, 1));
         if (forbidden.Count > 0)
             hints.AddForbiddenZone(p => forbidden.All(f => f(p)));
     }

@@ -46,7 +46,7 @@ class Comet(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_comets[slot] > WorldState.CurrentTime)
-            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 2.4f), _comets[slot]);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + 2.4f), _comets[slot]);
     }
 }
 

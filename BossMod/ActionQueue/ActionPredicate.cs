@@ -91,6 +91,6 @@ public static class ActionPredicate
                 return false;
         }
 
-        return !hints.ForbiddenZones.Any(d => d.containsFn(to));
+        return !hints.ForbiddenZones.Any(d => d.shape.Distance(to) < 0);
     }
 }

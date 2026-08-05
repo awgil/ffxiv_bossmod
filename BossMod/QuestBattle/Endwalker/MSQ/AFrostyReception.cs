@@ -53,9 +53,9 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
     private static Func<WPos, bool> GetSightCone(Actor p)
     {
         if (p.OID == 0x362A)
-            return ShapeContains.Circle(p.Position, 8.5f + p.HitboxRadius);
+            return ShapeDistance.Circle(p.Position, 8.5f + p.HitboxRadius);
 
-        return ShapeContains.Cone(p.Position, 10 + p.HitboxRadius, p.Rotation, 45.Degrees());
+        return ShapeDistance.Cone(p.Position, 10 + p.HitboxRadius, p.Rotation, 45.Degrees());
     }
 
     private QuestObjective Takedown(Vector3 destination, uint enemyOID) => new QuestObjective(World)

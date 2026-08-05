@@ -165,7 +165,7 @@ class Launchpad(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_pad != null && actor.Position.Z < _pad.Value.Z + Radius)
-            hints.AddForbiddenZone(ShapeContains.Donut(_pad.Value, Radius, 100));
+            hints.AddForbiddenZone(ShapeDistance.Donut(_pad.Value, Radius, 100));
     }
 }
 
@@ -242,7 +242,7 @@ class Breathlight(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
         if (_casts is [(Level.Air, var activate), ..])
             foreach (var p in _car.Portals)
-                hints.AddForbiddenZone(ShapeContains.Circle(p, 1.5f), activate);
+                hints.AddForbiddenZone(ShapeDistance.Circle(p, 1.5f), activate);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

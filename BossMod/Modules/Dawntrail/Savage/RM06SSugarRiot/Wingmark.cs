@@ -39,7 +39,7 @@ class WingmarkKB(BossModule module) : Components.Knockback(module)
     {
         if (_adds?.SafeCorner() is { } p && actor.FindStatus(SID.Wingmark) is { } st)
         {
-            hints.AddForbiddenZone(ShapeContains.Circle(p, 34), st.ExpireAt);
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, 34), st.ExpireAt);
             var angleToCorner = Angle.FromDirection(p - actor.Position);
             hints.ForbiddenDirections.Add((angleToCorner + 180.Degrees(), 178.Degrees(), st.ExpireAt));
         }

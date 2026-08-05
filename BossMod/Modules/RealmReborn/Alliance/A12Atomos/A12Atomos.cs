@@ -140,7 +140,7 @@ class Pad(BossModule module) : BossComponent(module)
 
         var padCount = Raid.WithoutSlot().InRadius(myPad.Position, 4).Exclude(actor);
         if (padCount.Count() < 4)
-            hints.AddForbiddenZone(ShapeContains.Donut(myPad.Position, 4, 500), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeDistance.Donut(myPad.Position, 4, 500), DateTime.MaxValue);
     }
 
     private Actor? GetPadBoss(int platform) => ((A12Atomos)Module).Bosses[(platform + 1) % 3];

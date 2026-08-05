@@ -122,7 +122,7 @@ class BuyersRemorseTurtle(BossModule module) : Components.Knockback(module)
         var t = _activations.BoundSafeAt(slot);
         if (t != default)
         {
-            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), t);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 10), t);
 
             var oo = Arena.Center - actor.Position;
             var center = Angle.FromDirection(oo);

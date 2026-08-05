@@ -156,6 +156,6 @@ class P3UltimaBlasterCharge(BossModule module) : Components.UntelegraphedBait(mo
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var bait in BaitsOn(slot))
-            hints.AddForbiddenZone(ShapeContains.Circle(bait.Origin, 30), bait.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(bait.Origin, 30), bait.Activation);
     }
 }

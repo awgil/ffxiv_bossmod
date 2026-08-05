@@ -65,7 +65,7 @@ class ElectrifyingFlight(BossModule module) : Components.Knockback(module)
             var kbDir = src.Direction;
             var dist = src.Distance;
 
-            hints.AddForbiddenZone(p => p.InRect(orig, kbDir, 20, 0, 20) && !(p + kbDir.ToDirection() * dist).InCircle(orig, 20), src.Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(p => p.InRect(orig, kbDir, 20, 0, 20) && !(p + kbDir.ToDirection() * dist).InCircle(orig, 20)), src.Activation);
         }
     }
 

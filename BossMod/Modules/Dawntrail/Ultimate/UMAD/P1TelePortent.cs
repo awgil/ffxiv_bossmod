@@ -167,7 +167,7 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         var nextSpots = _hintSpots[slot].Where(h => h.Item1 == nextDir.Dir);
 
         foreach (var (_, spot) in nextSpots.Take(1))
-            hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), nextDir.Time);
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), nextDir.Time);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -329,7 +329,7 @@ class P1ArrowsPositioning : BossComponent
                 var offset = cardinal.Value.ToDirection() * 3;
                 var spot = myArrow.Position + (inside ? -offset : offset);
 
-                hints.AddForbiddenZone(ShapeContains.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _deadline);
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(spot, new(0, 1), 0.5f, actor.Position, 0.1f), _deadline);
             }
         }
     }

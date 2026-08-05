@@ -16,7 +16,7 @@ abstract class ResonanceTower : Components.CastTowers
         if (_lastBaitIn != default)
             foreach (var t in Towers)
                 // prevent baits from dropping in the middle 1.5y of each tower - small tower is only 2y and large tower tanks should have plenty of room
-                hints.AddForbiddenZone(ShapeContains.Circle(t.Position, 7.5f), _lastBaitIn);
+                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 7.5f), _lastBaitIn);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

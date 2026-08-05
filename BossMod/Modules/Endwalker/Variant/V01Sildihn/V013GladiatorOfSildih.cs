@@ -85,7 +85,7 @@ class RingOfMight(BossModule module) : Components.GenericAOEs(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (Casters.Count > 1)
-            hints.AddForbiddenZone(ShapeContains.Donut(Casters[0].Caster.Position, ((AOEShapeCircle)Casters[0].Shape).Radius + 2, 60), Module.CastFinishAt(Casters[0].Caster.CastInfo));
+            hints.AddForbiddenZone(ShapeDistance.Donut(Casters[0].Caster.Position, ((AOEShapeCircle)Casters[0].Shape).Radius + 2, 60), Module.CastFinishAt(Casters[0].Caster.CastInfo));
     }
 }
 
@@ -135,7 +135,7 @@ class RushOfMight(BossModule module) : Components.GenericAOEs(module)
         if (Casters.Count > 1)
         {
             var c0 = Casters[0].CastInfo!;
-            hints.AddForbiddenZone(ShapeContains.Cone(c0.LocXZ - c0.Rotation.ToDirection() * 2, 60, c0.Rotation + 180.Degrees(), 90.Degrees()), Module.CastFinishAt(c0));
+            hints.AddForbiddenZone(ShapeDistance.Cone(c0.LocXZ - c0.Rotation.ToDirection() * 2, 60, c0.Rotation + 180.Degrees(), 90.Degrees()), Module.CastFinishAt(c0));
         }
     }
 }

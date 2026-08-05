@@ -100,7 +100,7 @@ class ThunderII(BossModule module) : Components.CastTowers(module, AID.ThunderII
     {
         foreach (var t in Towers.Where(t => !t.ForbiddenSoakers[slot] && (!t.CorrectAmountInside(Module) || t.IsInside(actor))))
         {
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(t.Position, Radius - 0.5f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, Radius - 0.5f));
         }
     }
 };

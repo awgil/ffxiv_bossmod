@@ -116,7 +116,7 @@ class SonicHowl(BossModule module) : Components.StandardAOEs(module, AID.SonicHo
         base.AddAIHints(slot, actor, assignment, hints);
         if (_aiHint)
         {
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Arena.Center, 5f));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Arena.Center, 5f));
         }
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

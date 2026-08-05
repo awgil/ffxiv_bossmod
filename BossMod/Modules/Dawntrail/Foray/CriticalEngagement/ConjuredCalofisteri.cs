@@ -73,7 +73,7 @@ class DualCut(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (_predicted.Count > 1)
-            hints.AddForbiddenZone(ShapeContains.InvertedRect(_predicted[0].Origin, _predicted[0].Rotation, 2, 2, 40), _predicted[1].Activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(_predicted[0].Origin, _predicted[0].Rotation, 2, 2, 40), _predicted[1].Activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

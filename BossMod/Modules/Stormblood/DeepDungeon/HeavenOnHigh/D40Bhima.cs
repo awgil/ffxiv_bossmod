@@ -28,7 +28,7 @@ class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(mod
         foreach (var src in Sources(slot, actor))
         {
             foreach (var w in Module.Enemies(OID.Whirlwind).Where(e => !e.IsDeadOrDestroyed))
-                hints.AddForbiddenZone(ShapeContains.Cone(src.Origin, 25, (w.Position - src.Origin).ToAngle(), WindCone.Radians()), src.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Cone(src.Origin, 25, (w.Position - src.Origin).ToAngle(), WindCone.Radians()), src.Activation);
         }
     }
 }

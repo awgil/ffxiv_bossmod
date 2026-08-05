@@ -77,9 +77,9 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
                     else
                         dest = new(100, 112);
                     if (IsStackTarget(actor))
-                        hints.AddForbiddenZone(ShapeContains.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.5f), a);
+                        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.5f), a);
                     else
-                        hints.AddForbiddenZone(ShapeContains.InvertedCircle(new(100, dest.Z), 4.5f), a);
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(100, dest.Z), 4.5f), a);
                 }
                 else
                     base.AddAIHints(slot, actor, assignment, hints);
@@ -88,9 +88,9 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
 
         if (IsSpreadTarget(actor))
         {
-            var gravity = Module.Enemies(OID.Gravitas).Select(g => ShapeContains.Circle(g.Position, 5 + SpreadRadius + ExtraAISpreadThreshold)).ToList();
+            var gravity = Module.Enemies(OID.Gravitas).Select(g => ShapeDistance.Circle(g.Position, 5 + SpreadRadius + ExtraAISpreadThreshold)).ToList();
             // away from gravity
-            hints.AddForbiddenZone(ShapeContains.Union(gravity), Spreads[0].Activation);
+            hints.AddForbiddenZone(ShapeDistance.Union(gravity), Spreads[0].Activation);
 
             var spreadParty = _config.P1GravityPuddleSpread[assignment];
             // spread on predetermined side, otherwise we confuse our teammates
@@ -157,9 +157,9 @@ class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, A
         // soak all touching puddles that are close to us
         if (Puddles.Closest(actor.Position) is { } p)
         {
-            var others = Puddles.Where(p2 => p2.Position.InCircle(p.Position, 9.5f)).Select(p2 => ShapeContains.InvertedCircle(p2.Position, 5)).ToList();
+            var others = Puddles.Where(p2 => p2.Position.InCircle(p.Position, 9.5f)).Select(p2 => ShapeDistance.InvertedCircle(p2.Position, 5)).ToList();
             if (others.Count > 0)
-                hints.AddForbiddenZone(ShapeContains.Union(others));
+                hints.AddForbiddenZone(ShapeDistance.Union(others));
         }
     }
 

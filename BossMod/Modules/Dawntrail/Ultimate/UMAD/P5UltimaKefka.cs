@@ -164,7 +164,7 @@ class P5MaddeningOrchestraSecond(BossModule module) : Components.GenericBaitAway
             var (_, baiter) = Raid.WithSlot().ExcludedFromMask(ForbiddenPlayers).Farthest(Arena.Center);
             // dont dash in you idiot
             if (baiter != null)
-                hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, (Arena.Center - baiter.Position).Length() + 1), _activation);
+                hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, (Arena.Center - baiter.Position).Length() + 1), _activation);
         }
     }
 

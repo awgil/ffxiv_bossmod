@@ -66,7 +66,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, Enum? aid, float 
         }
         if (BlockersImpassable)
         {
-            var blockers = Blockers.Select(b => ShapeContains.Circle(b.Center, b.Radius)).ToArray();
+            var blockers = Blockers.Select(b => ShapeDistance.Circle(b.Center, b.Radius)).ToArray();
             if (blockers.Length > 0)
                 hints.TemporaryObstacles.Add(p => blockers.Any(b => b(p)));
         }

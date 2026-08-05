@@ -101,14 +101,14 @@ public class Rocks(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var check = RockShape.CheckFn(Arena.Center, default);
+        var check = RockShape.GetSdf(Arena.Center, default);
 
         // movement speed in quicksand is 0.86 x base, so if not currently drowning we have 3.44s of leeway
         // if already drowning, movespeed has already been adjusted on the client so we can let pathfinder do its thing
         var drownTime = _drowning[slot] == default ? WorldState.FutureTime(3.44f) : _drowning[slot];
 
         if (_quicksand)
-            hints.AddForbiddenZone(p => !check(p), drownTime);
+            hints.AddForbiddenZone(check.Inverted(), drownTime);
 
         if (_bitingWind != default && _bitingWind < WorldState.FutureTime(2))
             hints.AddForbiddenZone(check, _bitingWind);
@@ -149,7 +149,7 @@ class PitAmbush(BossModule module) : Components.StandardChasingAOEs(module, new 
 
         // bait away from center of arena so we have a safe zone to run to
         if (slot == _target)
-            hints.AddForbiddenZone(ShapeContains.Circle(Arena.Center, 10), _start);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 10), _start);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

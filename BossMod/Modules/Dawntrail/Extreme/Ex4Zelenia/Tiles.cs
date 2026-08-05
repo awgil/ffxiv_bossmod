@@ -193,12 +193,12 @@ abstract class Emblazon(BossModule module) : Components.CastCounter(module, AID.
     {
         if (Baiters[slot])
         {
-            hints.AddForbiddenZone(_tiles.TileShape(), Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(_tiles.TileShape()), Activation);
 
             foreach (var b in OtherBaits(actor))
             {
                 var t = Tiles.GetTile(b);
-                hints.AddForbiddenZone(p => Tiles.GetTile(p) == t, Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => Tiles.GetTile(p) == t), Activation);
             }
         }
 

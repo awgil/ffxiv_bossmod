@@ -89,28 +89,28 @@ class FearsomeFireball2(BossModule module) : Components.GenericWildCharge(module
         if (Source == null)
             return;
 
-        List<Func<WPos, bool>> zones = [];
+        List<Func<WPos, float>> zones = [];
         switch (PlayerRoles[slot])
         {
             case PlayerRole.Target:
             case PlayerRole.TargetNotFirst:
                 foreach (var c in _cometTracker.Comets)
                 {
-                    var hitCometFn = ShapeContains.InvertedCone(Source.Position, 60, Source.AngleTo(c), Angle.Asin(HalfWidth / (Source.Position - c.Position).Length()));
-                    var hideFn = ShapeContains.Rect(Source.Position, c.Position, HalfWidth);
-                    zones.Add(ShapeContains.Union([hitCometFn, hideFn]));
+                    var hitCometFn = ShapeDistance.InvertedCone(Source.Position, 60, Source.AngleTo(c), Angle.Asin(HalfWidth / (Source.Position - c.Position).Length()));
+                    var hideFn = ShapeDistance.Rect(Source.Position, c.Position, HalfWidth);
+                    zones.Add(ShapeDistance.Union([hitCometFn, hideFn]));
                 }
                 if (zones.Count > 0)
-                    hints.AddForbiddenZone(ShapeContains.Intersection(zones), Activation);
+                    hints.AddForbiddenZone(ShapeDistance.Intersection(zones), Activation);
                 break;
             case PlayerRole.Share:
             case PlayerRole.ShareNotFirst:
                 foreach (var aoe in EnumerateAOEs())
                 {
-                    zones.Add(ShapeContains.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth));
+                    zones.Add(ShapeDistance.InvertedRect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth));
                     if (_cometTracker.Comets.Where(c => InAOE(aoe, c)).Closest(aoe.origin) is { } blocker)
-                        zones.Add(ShapeContains.Rect(aoe.origin, aoe.dir, (blocker.Position - aoe.origin).Dot(aoe.dir), 0, HalfWidth));
-                    hints.AddForbiddenZone(ShapeContains.Union(zones), Activation);
+                        zones.Add(ShapeDistance.Rect(aoe.origin, aoe.dir, (blocker.Position - aoe.origin).Dot(aoe.dir), 0, HalfWidth));
+                    hints.AddForbiddenZone(ShapeDistance.Union(zones), Activation);
                 }
                 break;
         }

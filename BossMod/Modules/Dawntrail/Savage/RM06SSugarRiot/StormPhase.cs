@@ -128,7 +128,7 @@ class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AO
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (CurrentBaits.Count > 0 && !ActiveBaitsOn(actor).Any())
-            hints.AddForbiddenZone(p => !IsOnBridge(p), CurrentBaits[0].Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(p => !IsOnBridge(p)), CurrentBaits[0].Activation);
     }
 
     private static bool IsOnBridge(Actor p) => IsOnBridge(p.Position);

@@ -166,7 +166,7 @@ class MagitekMissile(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var m in Missiles)
-            hints.AddForbiddenZone(ShapeContains.Capsule(m.Position, m.Rotation, 7, Radius), WorldState.FutureTime(1.5f));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(m.Position, m.Rotation, 7, Radius), WorldState.FutureTime(1.5f));
     }
 }
 

@@ -190,9 +190,9 @@ class Burst(BossModule module) : Components.CastCounterMulti(module, [AID.Burst,
             var isMine = b.ClockOrder == _clockOrderPerPlayer[slot] && b.Imminent && _vuln[slot] < WorldState.CurrentTime;
 
             if (isMine)
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(b.Actor.Position, b.Radius), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(b.Actor.Position, b.Radius), DateTime.MaxValue);
             else
-                hints.AddForbiddenZone(ShapeContains.Circle(b.Actor.Position, b.Radius), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.Circle(b.Actor.Position, b.Radius), DateTime.MaxValue);
         }
     }
 

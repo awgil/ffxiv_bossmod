@@ -137,7 +137,7 @@ class Seduction(BossModule module) : Components.Knockback(module)
             return;
 
         foreach (var i in _impCounter.ActiveImps.Where(i => i.Element == _playerStates[slot].Element))
-            hints.AddForbiddenZone(ShapeContains.Circle(i.Source, EffectiveMarchDistance + 8), _playerStates[slot].Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(i.Source, EffectiveMarchDistance + 8), _playerStates[slot].Activation);
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

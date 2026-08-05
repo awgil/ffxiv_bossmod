@@ -112,7 +112,7 @@ class Shackles(BossModule module) : Components.GenericInvincible(module)
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (_cellBlocks[slot] >= 0 && _shackles.Count > 0 && _guards[_cellBlocks[slot]] is { } g)
-            hints.TemporaryObstacles.Add(ShapeContains.Donut(g.Position, 7.5f, 100));
+            hints.TemporaryObstacles.Add(ShapeDistance.Donut(g.Position, 7.5f, 100));
     }
 
     public override void OnStatusGain(Actor actor, ActorStatus status)

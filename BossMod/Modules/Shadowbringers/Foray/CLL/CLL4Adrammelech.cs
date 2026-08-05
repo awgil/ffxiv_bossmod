@@ -167,7 +167,7 @@ class Tornado(BossModule module) : Components.PersistentVoidzoneAtCastTarget(mod
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var z in Sources(Module))
-            hints.AddForbiddenZone(ShapeContains.Capsule(z.Position, z.Rotation.ToDirection(), 3, 6), WorldState.FutureTime(2));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(z.Position, z.Rotation.ToDirection(), 3, 6), WorldState.FutureTime(2));
     }
 }
 

@@ -112,12 +112,12 @@ public class Map
     }
 
     // block all pixels for which function returns value smaller than threshold ('inside' shape + extra cushion)
-    public void BlockPixelsInside(Func<WPos, bool> shape, float maxG)
+    public void BlockPixelsInside(Sdf shape, float maxG)
     {
         MaxG = MathF.Max(MaxG, maxG);
         foreach (var (x, y, center) in EnumeratePixels())
         {
-            if (shape(center))
+            if (shape.Check(center))
             {
                 ref var pixel = ref PixelMaxG[y * Width + x];
                 pixel = MathF.Min(pixel, maxG);

@@ -156,11 +156,11 @@ class WildAnguish2(BossModule module) : BossComponent(module)
     {
         var myStack = Stacks.FindIndex(s => s.Target == actor);
         if (myStack >= 0 && Stacks[myStack].Rubble is { } rock)
-            hints.AddForbiddenZone(ShapeContains.InvertedCircle(rock.Position, 6), _activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(rock.Position, 6), _activation);
 
         if (Stacks.Count > 0)
             foreach (var other in Raid.WithoutSlot(excludeNPCs: true).Exclude(actor))
-                hints.AddForbiddenZone(ShapeContains.Circle(other.Position, 6), _activation);
+                hints.AddForbiddenZone(ShapeDistance.Circle(other.Position, 6), _activation);
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

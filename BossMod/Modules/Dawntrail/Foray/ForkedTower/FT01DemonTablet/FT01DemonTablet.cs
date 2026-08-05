@@ -48,7 +48,7 @@ class BossCollision(BossModule module) : Components.CastCounter(module, AID.Land
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Grounded)
-            hints.TemporaryObstacles.Add(ShapeContains.Rect(Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, 3.5f, 3.5f, 15.5f));
+            hints.TemporaryObstacles.Add(ShapeDistance.Rect(Module.PrimaryActor.Position, Module.PrimaryActor.Rotation, 3.5f, 3.5f, 15.5f));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

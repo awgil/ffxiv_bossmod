@@ -109,7 +109,7 @@ class RawSteel(BossModule module) : Components.BaitAwayChargeCast(module, AID.Ra
     {
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var b in ActiveBaitsOn(actor))
-            hints.AddForbiddenZone(ShapeContains.Circle(b.Source.Position, _safeDistance));
+            hints.AddForbiddenZone(ShapeDistance.Circle(b.Source.Position, _safeDistance));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

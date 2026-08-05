@@ -123,7 +123,7 @@ class RuneAxe(BossModule module) : Components.GenericAOEs(module)
                 foreach (var (off, dir) in FT04Magitaur.Platforms)
                     if (actor.Position.InRect(Arena.Center + off, dir, 10, 10, 10))
                     {
-                        hints.AddForbiddenZone(ShapeContains.InvertedRect(Arena.Center + off, dir, 5, 5, 5), spread.Activation);
+                        hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center + off, dir, 5, 5, 5), spread.Activation);
                         break;
                     }
             }

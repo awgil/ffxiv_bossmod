@@ -115,7 +115,7 @@ class P4CrystallizeTimeDragonHead(BossModule module) : BossComponent(module)
             foreach (var p in _puddles.Where(p => p.puddle.EventState != 7))
             {
                 if (p.soaker != pcAssignment)
-                    hints.AddForbiddenZone(ShapeContains.Circle(p.puddle.Position, 2));
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.puddle.Position, 2));
                 else if (_numMaelstroms >= 6)
                     hints.GoalZones.Add(hints.GoalProximity(p.puddle.Position, 15, 0.25f));
             }
@@ -407,12 +407,12 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             }
             if (hint.hint.HasFlag(Hint.SafespotRough))
             {
-                hints.AddForbiddenZone(ShapeContains.InvertedCircle(Module.Center + hint.offset, 1), DateTime.MaxValue);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Module.Center + hint.offset, 1), DateTime.MaxValue);
             }
             if (hint.hint.HasFlag(Hint.SafespotPrecise))
             {
                 hints.PathfindMapBounds = FRU.PathfindHugBorderBounds;
-                hints.AddForbiddenZone(ShapeContains.PrecisePosition(Module.Center + hint.offset, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.Center + hint.offset, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
             }
             if (hint.hint.HasFlag(Hint.Maelstrom) && _hourglass != null)
             {
@@ -423,14 +423,14 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             {
                 foreach (var h in _heads.Heads)
                     if (_heads.FindInterceptor(h.head, h.side) is var interceptor && interceptor != null && interceptor != actor)
-                        hints.AddForbiddenZone(ShapeContains.Circle(interceptor.Position, 12));
+                        hints.AddForbiddenZone(ShapeDistance.Circle(interceptor.Position, 12));
             }
             if (hint.hint.HasFlag(Hint.Knockback) && _ct != null)
             {
                 var source = _ct.FindPlayerByAssignment(P4CrystallizeTime.Mechanic.ClawAir, _ct.NorthSlowHourglass.X > 0 ? -1 : 1);
                 var dest = Module.Center + SafeOffsetDarknessStack(_ct.NorthSlowHourglass.X > 0 ? 1 : -1);
                 var pos = source != null ? source.Position + 2 * (dest - source.Position).Normalized() : Module.Center + hint.offset;
-                hints.AddForbiddenZone(ShapeContains.PrecisePosition(pos, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(pos, new(0, 1), Module.Bounds.MapResolution, actor.Position, 0.1f));
             }
             if (hint.hint.HasFlag(Hint.Mid) && _hourglass != null && !_hourglass.AOEs.Take(2).Any(aoe => aoe.Check(actor.Position)))
             {
