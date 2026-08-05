@@ -1,6 +1,7 @@
 namespace BossMod.Dawntrail.Foray.FATE.RuinHound;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4D5E,
     Helper = 0x233C,
     IcePillar = 0x4D5F, // R2.000, x0 (spawn during fight)
@@ -8,7 +9,8 @@ public enum OID : uint {
     RuinHound1 = 0x4D60, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50536, // Boss->player, no cast, single-target
     IcePillarCast = 49758, // Boss->self, 3.0s cast, single-target
     IcePillar = 49770, // 4D5F->self, 3.0s cast, range 4 circle
@@ -29,8 +31,10 @@ class AgeOfEndlessFrost(BossModule module) : Components.StandardAOEs(module, AID
 class TheStormWithout(BossModule module) : Components.StandardAOEs(module, AID.TheStormWithout, new AOEShapeDonut(10.0f, 40.0f));
 class TheStormWithin(BossModule module) : Components.StandardAOEs(module, AID.TheStormWithin, 10.0f);
 
-class RuinHoundStates : StateMachineBuilder {
-    public RuinHoundStates(BossModule module) : base(module) {
+class RuinHoundStates : StateMachineBuilder
+{
+    public RuinHoundStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<IcePillar>()
             .ActivateOnEnter<RoaringBlizzard>()

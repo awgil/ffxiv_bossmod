@@ -1,13 +1,15 @@
 namespace BossMod.Dawntrail.Foray.FATE.Stormcaller;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4BEC,
     Helper = 0x233C,
     Stormcaller = 0x4BED, // R1.000, x0 (spawn during fight)
     BitingWind = 0x4C25, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50854, // Boss->player, no cast, single-target
     Teleport = 45587, // Boss->location, no cast, single-target
     Stormcall = 47580, // Boss->self, 3.0s cast, single-target
@@ -32,18 +34,24 @@ public enum AID : uint {
 class Windage(BossModule module) : Components.StandardAOEs(module, AID.Windage, 7.0f);
 class BitingScratch(BossModule module) : Components.StandardAOEs(module, AID.BitingScratch, new AOEShapeCone(40.0f, 45.0f.Degrees()));
 
-class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, shapes) {
+class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, shapes)
+{
     private static readonly AOEShape[] shapes = [new AOEShapeCircle(10f), new AOEShapeDonut(10f, 20f), new AOEShapeDonut(20f, 30f)];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7)
+        {
             AddSequence(spell.LocXZ, Module.CastFinishAt(spell));
         }
     }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell) {
-        if (Sequences.Count != 0) {
-            var order = spell.Action.ID switch {
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (Sequences.Count != 0)
+        {
+            var order = spell.Action.ID switch
+            {
                 (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7 => 0,
                 (uint)AID.FocusedTremor2 or (uint)AID.FocusedTremor5 or (uint)AID.FocusedTremor8 => 1,
                 (uint)AID.FocusedTremor3 or (uint)AID.FocusedTremor6 or (uint)AID.FocusedTremor9 => 2,
@@ -55,8 +63,10 @@ class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, shape
     }
 }
 
-class StormcallerStates : StateMachineBuilder {
-    public StormcallerStates(BossModule module) : base(module) {
+class StormcallerStates : StateMachineBuilder
+{
+    public StormcallerStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Windage>()
             .ActivateOnEnter<BitingScratch>()

@@ -1,12 +1,14 @@
 namespace BossMod.Dawntrail.Foray.FATE.SensualSandy;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4D56,
     Helper = 0x233C,
     PoisonCloud = 0x4D57, // R1.700, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50535, // Boss->player, no cast, single-target
     PutridBreath = 48944, // Boss->self, 5.0s cast, range 25 130-degree cone
     PutridBreath1 = 48952, // Boss->self, 3.0s cast, range 25 130-degree cone
@@ -17,7 +19,8 @@ public enum AID : uint {
     Burst = 48950, // 4D57->self, 5.0s cast, range 10 circle
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Poison = 2104, // 4D57->player, extra=0x0
 }
 
@@ -26,8 +29,10 @@ class WildWildBreath(BossModule module) : Components.GroupedAOEs(module, [AID.Wi
     new AOEShapeCross(30.0f, 3.0f));
 class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, 10.0f);
 
-class SensualSandyStates : StateMachineBuilder {
-    public SensualSandyStates(BossModule module) : base(module) {
+class SensualSandyStates : StateMachineBuilder
+{
+    public SensualSandyStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<PutridBreath>()
             .ActivateOnEnter<WildWildBreath>()

@@ -1,6 +1,7 @@
 namespace BossMod.Dawntrail.Foray.FATE.DemiMedusa;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4C6A,
     Helper = 0x233C,
     DefectiveLamia = 0x4DD8, // R2.500, x0 (spawn during fight)
@@ -17,7 +18,8 @@ public enum OID : uint {
     DefectiveLamia7 = 0x4D51, // R2.500, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50538, // Boss->player, no cast, single-target
     Summon = 48300, // Boss->self, 3.0s cast, single-target
     CursedSight = 48252, // Boss->self, 5.0s cast, range 60 60-degree cone
@@ -27,7 +29,8 @@ public enum AID : uint {
     Dark = 48256, // 4C6C/4CAE/4EC1/4EC2->location, 3.0s cast, range 6 circle
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Gen = 2056, // none->4D53/4D52/4D54/4D51, extra=0xE1
     Petrification = 3007, // 4D52/4D51/4D54/4D53->player, extra=0x0
 }
@@ -36,8 +39,10 @@ class CursedSight(BossModule module) : Components.GroupedAOEs(module, [AID.Curse
 class LamianLesion(BossModule module) : Components.StandardAOEs(module, AID.LamianLesion, new AOEShapeCone(25.0f, 90.0f.Degrees()));
 class Dark(BossModule module) : Components.StandardAOEs(module, AID.Dark, 6.0f);
 
-class DemiMedusaStates : StateMachineBuilder {
-    public DemiMedusaStates(BossModule module) : base(module) {
+class DemiMedusaStates : StateMachineBuilder
+{
+    public DemiMedusaStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<CursedSight>()
             .ActivateOnEnter<LamianLesion>()

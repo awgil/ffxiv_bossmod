@@ -1,12 +1,14 @@
 namespace BossMod.Dawntrail.Foray.FATE.PatientKuribu;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4D61,
     Helper = 0x233C,
     PatientKuribu = 0x4DCC, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50537, // Boss->player, no cast, single-target
     Glory = 49915, // Boss->self, 5.0s cast, range 50 90-degree cone
 
@@ -28,7 +30,8 @@ public enum AID : uint {
     LongswordAndSorcery1 = 50120, // PatientKuribu->self, 5.0s cast, range 10-25 donut
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     EnsorcelledAeroIII = 5374, // Boss->Boss, extra=0x0
     EnsorcelledStoneIII = 5375, // Boss->Boss, extra=0x0
 }
@@ -40,8 +43,10 @@ class Holy(BossModule module) : Components.GroupedAOEs(module, [AID.HolyStart, A
 class ShortswordAndSorcery(BossModule module) : Components.GroupedAOEs(module, [AID.ShortswordAndSorcery, AID.ShortswordAndSorcery1], new AOEShapeCircle(15.0f));
 class LongswordAndSorcery(BossModule module) : Components.GroupedAOEs(module, [AID.LongswordAndSorcery, AID.LongswordAndSorcery1], new AOEShapeDonut(10.0f, 25.0f));
 
-class PatientKuribuStates : StateMachineBuilder {
-    public PatientKuribuStates(BossModule module) : base(module) {
+class PatientKuribuStates : StateMachineBuilder
+{
+    public PatientKuribuStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Glory>()
             .ActivateOnEnter<StoneIII>()

@@ -1,6 +1,7 @@
 namespace BossMod.Dawntrail.Foray.FATE.Machetaur;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4C26,
     Helper = 0x233C,
     Machetaur1 = 0x4C27, // R1.000, x0 (spawn during fight)
@@ -9,7 +10,8 @@ public enum OID : uint {
     Machetaur4 = 0x4EC0, // R0.500, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50534, // Machetaur->player, no cast, single-target
     FocusedTremorCast = 47606, // Machetaur->self, 3.0s cast, single-target
     FocusedTremor = 48374, // Machetaur1->self, 2.2s cast, range 30 circle
@@ -33,78 +35,100 @@ class FocusedTremor(BossModule module) : Components.RaidwideCast(module, AID.Foc
 class BruntOfTheBattlefield(BossModule module) : Components.StandardAOEs(module, AID.BruntOfTheBattlefield, 10.0f);
 class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, 6.0f);
 
-class FocusedTremorCircle(BossModule module) : Components.GenericAOEs(module) {
+class FocusedTremorCircle(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> aoes = [];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.FocusedTremorInner) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.FocusedTremorInner)
+        {
             aoes.Add(new(new AOEShapeCircle(10), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
         }
 
-        if (spell.Action.ID == (uint)AID.FocusedTremorMiddle) {
+        if (spell.Action.ID == (uint)AID.FocusedTremorMiddle)
+        {
             aoes.Add(new(new AOEShapeDonut(10, 20), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
         }
 
-        if (spell.Action.ID == (uint)AID.FocusedTremorOuter) {
+        if (spell.Action.ID == (uint)AID.FocusedTremorOuter)
+        {
             aoes.Add(new(new AOEShapeDonut(20, 30), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.FocusedTremorInner or (uint)AID.FocusedTremorMiddle or (uint)AID.FocusedTremorOuter) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.FocusedTremorInner or (uint)AID.FocusedTremorMiddle or (uint)AID.FocusedTremorOuter)
+        {
             aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-            if (aoes.Count > 0) {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             yield break;
         }
 
         int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2)) {
+        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
+        {
             yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
             show++;
         }
     }
 }
 
-class OctupleSwipe(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new(40.0f, 45.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.OctupleSwipeVisual) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.OctupleSwipeVisual)
+        {
             aoes.Add(new(shape, spell.LocXZ, spell.Rotation));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (aoes.Count == 0) {
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
             yield break;
         }
 
         int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2)) {
+        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
+        {
             yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
             show++;
         }
     }
 }
 
-class MachetaurStates : StateMachineBuilder {
-    public MachetaurStates(BossModule module) : base(module) {
+class MachetaurStates : StateMachineBuilder
+{
+    public MachetaurStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<FocusedTremor>()
             .ActivateOnEnter<BruntOfTheBattlefield>()

@@ -1,13 +1,15 @@
 namespace BossMod.Dawntrail.Foray.FATE.Iambe;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x4C41,
     Helper = 0x233C,
     WinsomeSeed = 0x4C43, // R0.240-0.528, x0 (spawn during fight)
     Iambe = 0x4C42, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50855, // Boss->player, no cast, single-target
     DirectSeeding = 48029, // Boss->self, 3.0s cast, single-target
     GardenersHymnCast = 48031, // Boss->self, 2.5s cast, single-target
@@ -17,7 +19,8 @@ public enum AID : uint {
     IambicMarch = 48035, // Boss->self, 3.0s cast, range 40 circle
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     ForwardMarch = 5142, // Boss->player, extra=0x0
     AboutFace = 5143, // Boss->player, extra=0x0
     ForcedMarch = 1257, // Boss->player, extra=0x2/0x1
@@ -28,35 +31,47 @@ public enum SID : uint {
 class GardenersHymn(BossModule module) : Components.StandardAOEs(module, AID.GardenersHymn, 5.0f);
 class OdeOfTheUnderfoot(BossModule module) : Components.StandardAOEs(module, AID.OdeOfTheUnderfoot, 10.0f);
 
-class Burst(BossModule module) : Components.GenericAOEs(module) {
+class Burst(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> aoes = [];
     private readonly List<Actor> seeds = [];
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.WinsomeSeed) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.WinsomeSeed)
+        {
             seeds.Add(actor);
         }
     }
 
-    public override void OnActorDestroyed(Actor actor) {
-        if (actor.OID == (uint)OID.WinsomeSeed) {
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.WinsomeSeed)
+        {
             seeds.Remove(actor);
         }
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.GardenersHymn) {
-            foreach (var seed in seeds) {
-                if (spell.LocXZ.AlmostEqual(seed.Position, 0.5f)) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.GardenersHymn)
+        {
+            foreach (var seed in seeds)
+            {
+                if (spell.LocXZ.AlmostEqual(seed.Position, 0.5f))
+                {
                     aoes.Add(new(new AOEShapeCircle(15.0f), seed.Position));
                 }
             }
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.Burst) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.Burst)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.5f));
             }
         }
@@ -65,13 +80,16 @@ class Burst(BossModule module) : Components.GenericAOEs(module) {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 }
 
-sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, default, default) {
+sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, default, default)
+{
     private const float aoeCircle = 10.0f;
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
         base.AddAIHints(slot, actor, assignment, hints);
         var state = State.GetValueOrDefault(actor.InstanceID);
-        if (state == null || state.PendingMoves.Count == 0) {
+        if (state == null || state.PendingMoves.Count == 0)
+        {
             return;
         }
 
@@ -80,14 +98,17 @@ sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch
         hints.ForbiddenDirections.Add((requiredFacing + 180.0f.Degrees(), 170.0f.Degrees(), move0.activation));
         var moveDistance = MovementSpeed * move0.duration;
         var unsafeRadius = aoeCircle - moveDistance;
-        if (unsafeRadius > 0.0f) {
+        if (unsafeRadius > 0.0f)
+        {
             hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, unsafeRadius), move0.activation);
         }
     }
 }
 
-class IambeStates : StateMachineBuilder {
-    public IambeStates(BossModule module) : base(module) {
+class IambeStates : StateMachineBuilder
+{
+    public IambeStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<GardenersHymn>()
             .ActivateOnEnter<OdeOfTheUnderfoot>()
