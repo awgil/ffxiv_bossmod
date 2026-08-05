@@ -169,7 +169,9 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
         {
             if (!IsImmune(slot, src.Activation))
             {
-                var currents = Module.FindComponent<ChaoticUndercurrent>()!.ActiveAOEs(slot, actor).Select(a => (a.Origin, a.Rotation)).ToList();
+                var inv = ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20);
+                var rects = Module.FindComponent<ChaoticUndercurrent>()!.ActiveAOEs(slot, actor).Select(a => (Func<WPos, float>)a.Distance).ToList();
+                var rect = rects.Count > 0 ? ShapeDistance.Union(rects) : _ => float.MaxValue;
 
                 var orig = src.Origin;
                 var center = Arena.Center;
@@ -177,7 +179,7 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
                 {
                     var dir = (p - orig).Normalized();
                     var proj = p + dir * 13;
-                    return !proj.AlmostEqual(center, 20) || currents.Any(r => proj.InRect(r.Origin, r.Rotation, 40, 0, 5));
+                    return Math.Min(inv(proj), rect(proj));
                 }, src.Activation);
             }
         }

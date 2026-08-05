@@ -53,11 +53,11 @@ class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(mo
         if (rightBlockers.Count + leftBlockers.Count == 0)
             return;
 
-        hints.AddForbiddenZone(p =>
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
         {
             var blockers = p.X > 400 ? rightBlockers : leftBlockers;
             return !blockers.Any(b => Utils.AlmostEqual(p.Z, b.Z, 5.1f));
-        }, Module.CastFinishAt(Casters[0].CastInfo));
+        }), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
 class BurningBright(BossModule module) : Components.BaitAwayCast(module, AID.BurningBright, new AOEShapeRect(26, 3), endsOnCastEvent: false);

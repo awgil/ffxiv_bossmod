@@ -141,7 +141,7 @@ class Impact(BossModule module) : Components.Knockback(module)
             // knockback to any of the corners
             var c1 = SafeSpotInDirection(origin, (-35).Degrees().ToDirection());
             var c2 = SafeSpotInDirection(origin, 35.Degrees().ToDirection());
-            hints.AddForbiddenZone(p => c1(p) && c2(p), AOEs[0].Activation);
+            hints.AddForbiddenZone(p => Math.Max(c1(p), c2(p)), AOEs[0].Activation);
         }
     }
 
@@ -163,7 +163,7 @@ class Impact(BossModule module) : Components.Knockback(module)
             AOEs.Clear();
     }
 
-    private Func<WPos, bool> SafeSpotInDirection(WPos origin, WDir dir) => ShapeDistance.InvertedCircle(origin + dir * 11, 1);
+    private Func<WPos, float> SafeSpotInDirection(WPos origin, WDir dir) => ShapeDistance.InvertedCircle(origin + dir * 11, 1);
 }
 
 class DestructiveBuildingHeat(BossModule module) : Components.CastStackSpread(module, AID.BuildingHeat, AID.DestructiveHeat, 6, 6, 4, alwaysShowSpreads: true)

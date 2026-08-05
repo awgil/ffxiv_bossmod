@@ -37,7 +37,7 @@ class MistralSongVulcanBurst(BossModule module) : Components.GenericAOEs(module,
         }
         else
         {
-            hints.AddForbiddenZone(_shape.CheckFn(_garuda!.Position, _garuda.Rotation), _resolve);
+            hints.AddForbiddenZone(_shape.Distance(_garuda!.Position, _garuda.Rotation), _resolve);
         }
     }
 

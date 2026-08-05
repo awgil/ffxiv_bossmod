@@ -102,7 +102,7 @@ class EraseGravity : Components.StandardAOEs
         {
             var union = ShapeDistance.Union(zones);
             if (shouldLevitate)
-                hints.AddForbiddenZone(p => !union(p), Module.CastFinishAt(Casters[0].CastInfo));
+                hints.AddForbiddenZone(p => -union(p), Module.CastFinishAt(Casters[0].CastInfo));
             else
                 hints.AddForbiddenZone(p => union(p), Module.CastFinishAt(Casters[0].CastInfo));
         }

@@ -54,7 +54,7 @@ class DousePuddle(BossModule module) : BossComponent(module)
 
             var puddles = Puddles.Select(p => ShapeDistance.Circle(p.Position, effPuddleSize + effTankDist)).ToList();
             var closest = ShapeDistance.Union(puddles);
-            hints.GoalZones.Add(p => !closest(p) ? 1000 : 0);
+            hints.GoalZones.Add(p => closest(p) > 0 ? 1000 : 0);
         }
     }
 }

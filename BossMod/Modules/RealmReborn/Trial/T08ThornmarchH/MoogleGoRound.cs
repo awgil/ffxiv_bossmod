@@ -19,7 +19,7 @@ class MoogleGoRound(BossModule module) : Components.GenericAOEs(module)
         {
             var f1 = ShapeDistance.InvertedCircle(_casters[0].Position, 23);
             var f2 = ShapeDistance.Circle(_casters[2].Position, 10);
-            hints.AddForbiddenZone(p => f1(p) || f2(p), Module.CastFinishAt(_casters[1].CastInfo!));
+            hints.AddForbiddenZone(p => Math.Min(f1(p), f2(p)), Module.CastFinishAt(_casters[1].CastInfo!));
         }
     }
 

@@ -28,8 +28,8 @@ class T01AI(BossModule module) : BossComponent(module)
         else if (activePlatforms.Any())
         {
             bool actorIsSpawner = !cloneSpawned && assignment == (activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
-            Func<WPos, bool> nonAllowedPlatforms = actorIsSpawner
-                ? p => !activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) // inverse union of active
+            Func<WPos, float> nonAllowedPlatforms = actorIsSpawner
+                ? p => -activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) // inverse union of active
                 : p => activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)); // union of active
             hints.AddForbiddenZone(nonAllowedPlatforms, _platforms!.ExplosionAt);
         }
@@ -125,7 +125,7 @@ class T01AI(BossModule module) : BossComponent(module)
     {
         // TODO do we still need to avoid borders
         //Func<WPos, float> nonAllowedPlatforms = p => -allowedPlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) - 1; // inverse union of allowed, slightly reduced to avoid standing on borders
-        bool invAllowed(WPos p) => !Platforms.PlatformShapes[platform](p); // inverted and slightly reduced
+        float invAllowed(WPos p) => -Platforms.PlatformShapes[platform](p); // inverted and slightly reduced
         hints.AddForbiddenZone(invAllowed, DateTime.MaxValue);
     }
 }

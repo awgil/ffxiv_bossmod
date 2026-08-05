@@ -287,7 +287,7 @@ class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackS
             var off = 9 * (_assignments.AssignS[slot] ? 20 : 130).Degrees().ToDirection();
             var p1 = ShapeDistance.Circle(Module.Center + off, 1);
             var p2 = ShapeDistance.Circle(Module.Center + new WDir(-off.X, off.Z), 1);
-            hints.AddForbiddenZone(p => !(p1(p) || p2(p)), Stacks[stack].Activation);
+            hints.AddForbiddenZone(p => -MathF.Min(p1(p), p2(p)), Stacks[stack].Activation);
         }
         else
         {

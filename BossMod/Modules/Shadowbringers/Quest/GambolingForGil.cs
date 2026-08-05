@@ -35,14 +35,14 @@ class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: tr
         if (sources.Count == 0)
             return;
 
-        hints.AddForbiddenZone(p =>
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
         {
             foreach (var s in sources)
                 if (Intersect.RayCircle(source.Position, source.DirectionTo(p), s, 6) < 1000)
                     return true;
 
             return false;
-        }, Module.CastFinishAt(source.CastInfo));
+        }), Module.CastFinishAt(source.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

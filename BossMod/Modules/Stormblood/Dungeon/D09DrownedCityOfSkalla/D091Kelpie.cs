@@ -49,12 +49,13 @@ class HydroPull(BossModule module) : Components.KnockbackFromCastTarget(module, 
             var orig = src.Origin;
             var ctr = Arena.Center;
             var puddles = Module.Enemies(OID.BloodyPuddle).Select(e => e.Position).ToList();
-            hints.AddForbiddenZone(p =>
+            // TODO(SDF)
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = orig - p;
                 var proj = p + dir.Normalized() * Math.Min(20, dir.Length());
                 return !proj.AlmostEqual(ctr, 15) || puddles.Any(p => proj.InCircle(p, 8));
-            }, src.Activation);
+            }), src.Activation);
         }
     }
 }

@@ -431,7 +431,7 @@ class P3ApocalypseAIWater2(BossModule module) : BossComponent(module)
 
         // add imminent apoc aoes
         foreach (var aoe in _apoc.ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.Shape.CheckFn(aoe.Origin, aoe.Rotation), aoe.Activation);
+            hints.AddForbiddenZone(aoe.Shape.Distance(aoe.Origin, aoe.Rotation), aoe.Activation);
 
         ref var state = ref _water.States[slot];
         if (state.AssignedGroup == 0)

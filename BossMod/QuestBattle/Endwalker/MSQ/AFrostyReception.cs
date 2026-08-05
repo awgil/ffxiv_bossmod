@@ -46,11 +46,11 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
         _ai.Execute(player, hints);
 
         // allow interrupting interact to dodge patrols
-        if (hints.ForbiddenZones.Any(z => z.containsFn(player.Position)))
+        if (hints.ForbiddenZones.Any(z => z.shape.Check(player.Position)))
             hints.InteractWithTarget = null;
     }
 
-    private static Func<WPos, bool> GetSightCone(Actor p)
+    private static Func<WPos, float> GetSightCone(Actor p)
     {
         if (p.OID == 0x362A)
             return ShapeDistance.Circle(p.Position, 8.5f + p.HitboxRadius);

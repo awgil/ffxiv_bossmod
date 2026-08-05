@@ -346,7 +346,7 @@ class AquaSpearVoidzone(BossModule module) : Components.GenericAOEs(module)
 class AlluringOrder(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
     public List<(Angle dir, float duration, DateTime activation)> PendingMoves = [];
-    private static readonly Func<WPos, bool> arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
+    private static readonly Func<WPos, float> arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
@@ -359,18 +359,17 @@ class AlluringOrder(BossModule module) : Components.StatusDrivenForcedMarch(modu
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        bool marchUnsafe(WPos playerPos)
+        float marchUnsafe(WPos playerPos)
         {
             var pos = playerPos;
+            var dist = arenaBounds(pos);
 
             foreach (var s in PendingMoves)
             {
                 pos += 24 * s.dir.ToDirection();
-
-                if (!arenaBounds(pos))
-                    return true;
+                dist = MathF.Min(dist, arenaBounds(pos));
             }
-            return false;
+            return dist;
         }
         hints.AddForbiddenZone(marchUnsafe);
         base.AddAIHints(slot, actor, assignment, hints);
@@ -395,16 +394,16 @@ class BigWave(BossModule module) : Components.Knockback(module, AID.BigWaveKnock
         {
             var arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
 
-            bool kbSafe(WPos playerPos)
+            float kbSafe(WPos playerPos)
             {
+                var dist = float.MaxValue;
                 foreach (var source in _sources)
                 {
                     var expected = playerPos + 32 * source.Rotation.ToDirection();
-                    if (!arenaBounds(expected))
-                        return false;
+                    dist = MathF.Min(dist, arenaBounds(expected));
                 }
 
-                return true;
+                return dist;
             }
 
             hints.AddForbiddenZone(kbSafe, _activation);

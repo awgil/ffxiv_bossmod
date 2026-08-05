@@ -57,7 +57,7 @@ class Prey(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.Circle(partner.Position, 5), WorldState.FutureTime(1));
 
             if (Module.PrimaryActor.IsTargetable)
-                hints.AddForbiddenZone(Cleave.CheckFn(Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(partner)), WorldState.FutureTime(1));
+                hints.AddForbiddenZone(Cleave.Distance(Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(partner)), WorldState.FutureTime(1));
         }
     }
 

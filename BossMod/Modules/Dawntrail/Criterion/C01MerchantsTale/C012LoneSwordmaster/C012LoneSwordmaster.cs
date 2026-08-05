@@ -721,7 +721,7 @@ class ResoundingSilence(BossModule module) : Components.SpreadFromIcon(module, (
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (IsSpreadTarget(actor))
-            hints.AddForbiddenZone(_ => true, DateTime.MaxValue);
+            hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
     }
 }
 class ResoundingSilencePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.ResoundingSilenceSpread, m => m.Enemies(0x1EBF73).Where(e => e.EventState != 7), 2);

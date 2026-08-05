@@ -121,7 +121,7 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
                 }
                 return -distanceToSafe;
             }
-            hints.AddForbiddenZone(p => invertedDistanceToSafe(p) <= 0);
+            hints.AddForbiddenZone(invertedDistanceToSafe);
         }
         foreach (var b in ActiveBaits)
         {

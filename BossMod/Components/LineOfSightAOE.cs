@@ -47,7 +47,7 @@ public abstract class GenericLineOfSightAOE(BossModule module, Enum? aid, float 
         {
             // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
-            bool invertedDistanceToSafe(WPos p)
+            float invertedDistanceToSafe(WPos p)
             {
                 var off = p - Origin.Value;
                 var distOrigin = off.Length();
@@ -60,16 +60,13 @@ public abstract class GenericLineOfSightAOE(BossModule module, Enum? aid, float 
                     var distCone = Math.Max(distInnerInv, Math.Max(distLeft, distRight));
                     distanceToSafe = Math.Min(distanceToSafe, distCone);
                 }
-                return distanceToSafe > 0;
+                return -distanceToSafe;
             }
             hints.AddForbiddenZone(invertedDistanceToSafe, NextExplosion);
         }
         if (BlockersImpassable)
-        {
-            var blockers = Blockers.Select(b => ShapeDistance.Circle(b.Center, b.Radius)).ToArray();
-            if (blockers.Length > 0)
-                hints.TemporaryObstacles.Add(p => blockers.Any(b => b(p)));
-        }
+            foreach (var b in Blockers)
+                hints.TemporaryObstacles.Add(ShapeDistance.Circle(b.Center, b.Radius));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

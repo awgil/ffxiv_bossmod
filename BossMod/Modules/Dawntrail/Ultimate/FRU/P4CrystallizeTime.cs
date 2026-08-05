@@ -417,7 +417,7 @@ class P4CrystallizeTimeHints(BossModule module) : BossComponent(module)
             if (hint.hint.HasFlag(Hint.Maelstrom) && _hourglass != null)
             {
                 foreach (var aoe in _hourglass.AOEs.Take(2))
-                    hints.AddForbiddenZone(aoe.Shape.CheckFn(aoe.Origin, aoe.Rotation), aoe.Activation);
+                    hints.AddForbiddenZone(aoe.Shape.Distance(aoe.Origin, aoe.Rotation), aoe.Activation);
             }
             if (hint.hint.HasFlag(Hint.Heads) && _heads != null)
             {

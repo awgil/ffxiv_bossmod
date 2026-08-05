@@ -97,18 +97,18 @@ class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(mod
         if (caster == null)
             return;
 
-        List<Func<WPos, bool>> funcs = [
+        List<Func<WPos, float>> funcs = [
             ShapeDistance.InvertedCircle(Module.Center, 20),
         ];
 
         if (storm?.ActiveCasters.FirstOrDefault() is Actor st)
-            funcs.Add(storm.Shape.CheckFn(st.Position, st.Rotation));
+            funcs.Add(storm.Shape.Distance(st.Position, st.Rotation));
 
-        bool inbounds(WPos pos)
+        float inbounds(WPos pos)
         {
             var dir = (pos - caster.Position).Normalized();
             var proj = pos + 15 * dir;
-            return funcs.Any(f => f(proj));
+            return funcs.Min(f => f(proj));
         }
 
         hints.AddForbiddenZone(inbounds, Module.CastFinishAt(caster.CastInfo));

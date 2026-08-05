@@ -47,7 +47,8 @@ class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(m
             var center = Arena.Center;
             var peacefireSources = _peacefire?.Casters.Select(c => c.CastInfo!.LocXZ).ToList() ?? [];
 
-            hints.AddForbiddenZone(pos =>
+            // TODO: continuous
+            hints.AddForbiddenZone(Sdf.Discrete(pos =>
             {
                 if ((pos - center).Length() > 5)
                     return true;
@@ -59,7 +60,7 @@ class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(m
                         return true;
 
                 return false;
-            }, Module.CastFinishAt(c.CastInfo));
+            }), Module.CastFinishAt(c.CastInfo));
         }
     }
 }

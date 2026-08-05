@@ -381,7 +381,7 @@ public abstract partial class AutoClear : ZoneModule
         Actor? coffer = null;
         Actor? hoardLight = null;
         Actor? passage = null;
-        List<Func<WPos, bool>> revealedTraps = [];
+        List<Func<WPos, float>> revealedTraps = [];
 
         PomanderID? pomanderToUseHere = null;
 
@@ -452,7 +452,7 @@ public abstract partial class AutoClear : ZoneModule
             }
         }
 
-        var playerInAOE = hints.ForbiddenZones.Any(p => p.containsFn(player.Position));
+        var playerInAOE = hints.ForbiddenZones.Any(p => p.shape.Check(player.Position));
 
         if (!isStunned && pomanderToUseHere is PomanderID p2 && player.FindStatus(SID.ItemPenalty) == null && !playerInAOE)
             hints.ActionsToExecute.Push(new ActionID(ActionType.Pomander, (uint)p2), null, ActionQueue.Priority.VeryHigh);
@@ -576,11 +576,11 @@ public abstract partial class AutoClear : ZoneModule
             var origin = dangermap.Item1;
             var map = dangermap.Item2;
 
-            hints.AddForbiddenZone(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var offset = (p - origin) / map.PixelSize;
                 return map[(int)offset.X, (int)offset.Z];
-            }, CastFinishAt(caster));
+            }), CastFinishAt(caster));
         }, d => _losCache.Remove(d.InstanceID));
 
         IterAndExpire(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>

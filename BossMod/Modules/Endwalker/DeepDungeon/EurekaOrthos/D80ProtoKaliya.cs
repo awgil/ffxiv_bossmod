@@ -103,17 +103,18 @@ class Aetheromagnetism(BossModule module) : Components.Knockback(module, ignoreI
         var all = ShapeDistance.Union([barofield, arena, .. cannons]);
 
         var bossPos = Module.PrimaryActor.Position;
-        hints.AddForbiddenZone(p =>
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
         {
             var dir = (p - source.Origin).Normalized();
             var kb = attract ? -dir : dir;
 
             // prevent KB through death zone in center
+            // TODO: figure out how to turn this into SDF, i guess we need to determine the angle delta between the edge of the death zone and player's current trajectory
             if (Intersect.RayCircle(p, kb, bossPos, 5) < 1000)
                 return true;
 
-            return all(p + kb * 10);
-        }, source.Activation);
+            return all(p + kb * 10) < 0;
+        }), source.Activation);
     }
 }
 

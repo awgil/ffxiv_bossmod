@@ -133,7 +133,7 @@ class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge)
         if (_casters.FirstOrDefault() is { } source && !IsImmune(slot, Module.CastFinishAt(source.CastInfo)))
         {
             var safeRects = ShapeDistance.Union([.. _blocks.BlockCenters.Select(c => ShapeDistance.Rect(c, source.Rotation + 180.Degrees(), 60, 0, 4))]);
-            hints.AddForbiddenZone(p => !safeRects(p), Module.CastFinishAt(source.CastInfo));
+            hints.AddForbiddenZone(p => -safeRects(p), Module.CastFinishAt(source.CastInfo));
         }
     }
 

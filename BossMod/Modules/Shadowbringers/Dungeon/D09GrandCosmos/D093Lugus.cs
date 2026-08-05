@@ -96,7 +96,8 @@ class BlackFlame(BossModule module) : BossComponent(module)
         if (targets[slot])
             foreach (var ally in Furniture)
 #pragma warning disable VBM006 // Reference type captured in closure
-                hints.AddForbiddenZone(p => IntersectFurniture(ally, p), activation);
+                // TODO(SDF)
+                hints.AddForbiddenZone(Sdf.Discrete(p => IntersectFurniture(ally, p)), activation);
 #pragma warning restore VBM006 // Reference type captured in closure
     }
 
@@ -236,12 +237,12 @@ class FiresDomain(BossModule module) : BossComponent(module)
         if (order == 0)
         {
             hints.Add("Stretch tether!", (actor.Position - Module.PrimaryActor.Position).Length() < TetherLength);
-            if (Raid.WithoutSlot().Exclude(actor).Any(a => baitAOE(a.Position)))
+            if (Raid.WithoutSlot().Exclude(actor).Any(a => baitAOE(a.Position) < 0))
                 hints.Add("GTFO from raid!");
         }
         else
         {
-            if (baitAOE(actor.Position))
+            if (baitAOE(actor.Position) < 0)
                 hints.Add("GTFO from charge!");
         }
     }

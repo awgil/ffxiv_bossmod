@@ -90,14 +90,14 @@ class CrystalInOut(BossModule module) : Components.GenericAOEs(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var aoes = ActiveAOEs(slot, actor);
-        var shapes = aoes.Select(s => s.Shape.CheckFn(s.Origin, s.Rotation)).ToList();
+        var shapes = aoes.Select(s => s.Shape.Distance(s.Origin, s.Rotation)).ToList();
         if (shapes.Count == 0)
             return;
 
-        bool distance(WPos p)
+        float distance(WPos p)
         {
-            var dist = shapes.Any(s => s(p));
-            return _mechanic == Mechanic.Out ? dist : !dist;
+            var dist = shapes.Min(s => s(p));
+            return _mechanic == Mechanic.Out ? dist : -dist;
         }
         hints.AddForbiddenZone(distance, _activation);
 

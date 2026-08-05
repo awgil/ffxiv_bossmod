@@ -69,7 +69,7 @@ class FaithUnmoving(BossModule module) : Components.KnockbackFromCastTarget(modu
 
             var cl = _forbidden.Clone();
             var center = Arena.Center;
-            hints.AddForbiddenZone(p => cl.Forbidden.Contains(Angle.FromDirection(p - center).Rad), s.Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(p => cl.Forbidden.Contains(Angle.FromDirection(p - center).Rad)), s.Activation);
         }
     }
 }

@@ -66,7 +66,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
                         var lasers = Module.FindComponent<P3UltimateRelativitySinboundMeltdownAOE>();
                         if (lasers != null)
                             foreach (var laser in lasers.ActiveAOEs(slot, actor))
-                                hints.AddForbiddenZone(laser.Shape.CheckFn(laser.Origin, laser.Rotation), laser.Activation);
+                                hints.AddForbiddenZone(laser.Shape.Distance(laser.Origin, laser.Rotation), laser.Activation);
                     }
                     break;
                 case RangeHintLaser:

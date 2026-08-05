@@ -91,11 +91,12 @@ class TornadoAttract(BossModule module) : Components.KnockbackFromCastTarget(mod
     {
         foreach (var s in Sources(slot, actor))
             if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(p =>
+                // TODO(SDF)
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = p - s.Origin;
                     return dir.LengthSq() < 441 || !dir.InRect(new(0, 1), 24, 24, 8) && !dir.InRect(new(1, 0), 24, 24, 8);
-                }, s.Activation);
+                }), s.Activation);
     }
 }
 class TornadoBoss(BossModule module) : Components.StandardAOEs(module, AID.TornadoPuddle, 5);

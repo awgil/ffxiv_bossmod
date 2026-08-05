@@ -92,7 +92,7 @@ class Poison(BossModule module) : BossComponent(module)
         {
             var center = Arena.Center;
             var stage = _poisonStage;
-            hints.AddForbiddenZone(p => !Safe(center, stage, p), DateTime.MaxValue);
+            hints.AddForbiddenZone(Sdf.Discrete(p => !Safe(center, stage, p)), DateTime.MaxValue);
         }
     }
 

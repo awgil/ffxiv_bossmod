@@ -85,7 +85,7 @@ class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastT
         {
             var dist = (p - source).Normalized();
             var proj = clamp(p + dist * 10);
-            return aoes.Any(e => e.Check(proj));
+            return aoes.Min(e => e.Distance(proj));
         }, Module.CastFinishAt(Casters[0].CastInfo));
     }
 }

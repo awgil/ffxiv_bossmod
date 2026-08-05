@@ -74,7 +74,7 @@ class Gunblade(BossModule module) : Components.Knockback(module, AID.Gunblade, s
 
         var combined = ShapeDistance.Union(voidzones);
 
-        bool projectedDist(WPos pos)
+        float projectedDist(WPos pos)
         {
             var direction = (pos - caster.Position).Normalized();
             var projected = pos + 10 * direction;

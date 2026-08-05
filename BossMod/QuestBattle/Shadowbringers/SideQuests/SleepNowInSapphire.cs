@@ -43,7 +43,7 @@ class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
             if (gapCloseDistance > 0.05f)
                 gapCloseTo += Player.DirectionTo(primaryTarget) * gapCloseDistance;
 
-            var gapCloseDanger = Hints.ForbiddenZones.Any(s => s.containsFn(gapCloseTo));
+            var gapCloseDanger = Hints.ForbiddenZones.Any(s => s.shape.Check(gapCloseTo));
 
             if (!gapCloseDanger)
                 UseAction(Roleplay.AID.Aethersaber, primaryTarget);

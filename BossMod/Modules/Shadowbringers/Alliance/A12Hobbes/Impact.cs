@@ -74,7 +74,7 @@ class ConvenientSelfDestruction(BossModule module) : Components.BaitAwayTethers(
             if (playerBaits.Count > 0)
             {
                 var anyPlayerBait = ShapeDistance.Union(playerBaits);
-                hints.AddForbiddenZone(p => !anyPlayerBait(p), Activation);
+                hints.AddForbiddenZone(p => -anyPlayerBait(p), Activation);
                 return;
             }
         }

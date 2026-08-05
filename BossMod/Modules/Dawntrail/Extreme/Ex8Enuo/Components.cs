@@ -28,7 +28,7 @@ class ReturnToNothing(BossModule module) : Components.UntelegraphedBait(module)
 
         // prevent any autorot dashes during this mechanic so we don't fuck up wild charge, i REALLY don't feel like writing proper hints
         if (CurrentBaits.Count > 0 && actor.Class.GetRole2() == Role2.Tank)
-            hints.AddForbiddenZone(_ => true, DateTime.MaxValue);
+            hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
     }
 
     public override void Update()

@@ -184,7 +184,8 @@ class FalseGenesis(BossModule module) : BossComponent(module)
             return;
 
         var center = Arena.Center;
-        hints.AddForbiddenZone(p => !(p.InRect(center + new WDir(0, 13), default(Angle), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(120.Degrees()), 120.Degrees(), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(-120.Degrees()), -120.Degrees(), 6.5f, 6.5f, 6.5f)), _activation);
+        // TODO(SDF)
+        hints.AddForbiddenZone(Sdf.Discrete(p => !(p.InRect(center + new WDir(0, 13), default(Angle), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(120.Degrees()), 120.Degrees(), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(-120.Degrees()), -120.Degrees(), 6.5f, 6.5f, 6.5f))), _activation);
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -345,7 +346,7 @@ class EmptySeed(BossModule module) : Components.KnockbackFromCastTarget(module, 
         {
             var center = src.Origin;
             var safeCorner = 45.Degrees() + PlatformOrientation(center);
-            hints.AddForbiddenZone(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 if (!p.AlmostEqual(center, 10))
                     return false;
@@ -357,7 +358,7 @@ class EmptySeed(BossModule module) : Components.KnockbackFromCastTarget(module, 
                     ad = ad.OrthoR();
                 }
                 return true;
-            }, src.Activation);
+            }), src.Activation);
         }
     }
 }

@@ -26,7 +26,7 @@ class Repel(BossModule module) : Components.KnockbackFromCastTarget(module, AID.
         if (Casters.Count > 0)
         {
             var safe = ShapeDistance.Rect(Module.PrimaryActor.Position, 0.Degrees(), 50, -2, 1);
-            hints.AddForbiddenZone(p => !safe(p));
+            hints.AddForbiddenZone(p => -safe(p));
         }
     }
 }

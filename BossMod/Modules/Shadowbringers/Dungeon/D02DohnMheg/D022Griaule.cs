@@ -81,7 +81,7 @@ class FeedingTime(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        List<Func<WPos, bool>> zones = [];
+        List<Func<WPos, float>> zones = [];
 
         foreach (var (src, target) in _tethers)
         {
