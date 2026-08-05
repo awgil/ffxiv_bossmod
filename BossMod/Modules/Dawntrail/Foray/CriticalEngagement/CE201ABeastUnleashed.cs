@@ -1,7 +1,4 @@
-﻿using BossMod.Autorotation.xan;
-using TerraFX.Interop.DirectX;
-
-namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE201ABeastUnleashed;
 
 public enum OID : uint
 {
