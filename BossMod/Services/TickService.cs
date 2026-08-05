@@ -509,16 +509,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         });
         cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () =>
         {
+            var was = aiConfig.Enabled;
             aiConfig.Enabled = true;
             aiConfig.Modified.Fire();
-            if (aiConfig.ChatConfirmation)
+            if (aiConfig.ChatConfirmation && !was)
                 Service.ChatMessage("AI enabled");
         });
         cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
         {
+            var was = aiConfig.Enabled;
             aiConfig.Enabled = false;
             aiConfig.Modified.Fire();
-            if (aiConfig.ChatConfirmation)
+            if (aiConfig.ChatConfirmation && was)
                 Service.ChatMessage("AI disabled");
         });
         cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
