@@ -13,7 +13,8 @@ public struct NavigationDecision
     // context that allows reusing large memory allocations
     public class Context
     {
-        public float[] Scratch = [];
+        public float[] ScratchG = [];
+        public bool[] ScratchD = [];
         public Map Map = new();
         public ThetaStar ThetaStar = new();
     }
@@ -28,25 +29,24 @@ public struct NavigationDecision
     public TimeSpan PathfindTime;
     public TimeSpan TotalTime;
 
-    public const float ForbiddenZoneCushion = 0; // increase to fatten forbidden zones
+    public const float CushionDepriority = 0.5f; // should be lower than any priority specifically added by rotation modules
 
     // reduce time between now and activation by this value in seconds; increase for more conservativeness
     public static readonly float ActivationTimeCushion = Service.IsDev
         ? ActorCastInfo.NPCFinishDelay + 0.3f
         : 1;
 
-    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
+    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = 0)
     {
         var startTime = DateTime.Now;
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.Scratch);
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
         if (hints.GoalZones.Count > 0)
-            RasterizeGoalZones(ctx.Map, hints.GoalZones);
-
-        if (forbiddenZoneCushion > 0)
-            AvoidForbiddenZone(ctx.Map, forbiddenZoneCushion);
+            RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
+        else if (forbiddenZoneCushion > 0)
+            AddCushion(ctx.Map);
 
         var rasterFinish = DateTime.Now;
 
@@ -59,7 +59,7 @@ public struct NavigationDecision
         return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
     }
 
-    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed = 6, float forbiddenZoneCushion = ForbiddenZoneCushion)
+    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed, float forbiddenZoneCushion)
     {
         var hintsCopy = new AIHints()
         {
@@ -74,30 +74,7 @@ public struct NavigationDecision
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, forbiddenZoneCushion));
     }
 
-    public static void AvoidForbiddenZone(Map map, float forbiddenZoneCushion)
-    {
-        int d = (int)(forbiddenZoneCushion / map.Resolution);
-        map.MaxPriority = -1;
-        foreach (var (x, y, _) in map.EnumeratePixels())
-        {
-            var cellIndex = map.GridToIndex(x, y);
-            if (map.PixelMaxG[cellIndex] == float.MaxValue)
-            {
-                var neighbourhood = new[]
-                {
-                    (x + d, y), (x - d, y), (x, y + d), (x, y - d),
-                    (x + d, y + d), (x - d, y + d), (x + d, y - d), (x - d, y - d)
-                };
-                if (neighbourhood.Any(p => map.PixelMaxG[map.GridToIndex(map.ClampToGrid(p))] != float.MaxValue))
-                {
-                    map.PixelPriority[cellIndex] -= 0.125f;
-                }
-            }
-            map.MaxPriority = Math.Max(map.MaxPriority, map.PixelPriority[cellIndex]);
-        }
-    }
-
-    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] scratch)
+    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Sdf distance, float g)[zones.Count];
@@ -120,8 +97,10 @@ public struct NavigationDecision
         // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
         // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
         map.MaxG = clusterG;
-        if (scratch.Length < map.PixelMaxG.Length)
-            scratch = new float[map.PixelMaxG.Length];
+        if (gScratch.Length < map.PixelMaxG.Length)
+            gScratch = new float[map.PixelMaxG.Length];
+        if (dScratch.Length < map.PixelMaxG.Length)
+            dScratch = new bool[map.PixelMaxG.Length];
         var numBlockedCells = 0;
 
         // see Map.EnumeratePixels, note that we care about corners rather than centers
@@ -133,35 +112,43 @@ public struct NavigationDecision
         for (int y = 0; y < map.Height; ++y)
         {
             var cx = cy;
-            var leftG = CalculateMaxG(zonesFixed, cx);
+            var (leftG, leftD) = CalculateMaxG(zonesFixed, cx, cushion);
             for (int x = 0; x < map.Width; ++x)
             {
                 cx += dx;
-                var rightG = CalculateMaxG(zonesFixed, cx);
-                scratch[iCell++] = Math.Min(leftG, rightG);
+                var (rightG, rightD) = CalculateMaxG(zonesFixed, cx, cushion);
+                dScratch[iCell] = leftD || rightD;
+                gScratch[iCell++] = Math.Min(leftG, rightG);
+                leftD = rightD;
                 leftG = rightG;
             }
             cy += dy;
         }
-        var bleftG = CalculateMaxG(zonesFixed, cy);
+        var (bleftG, bleftD) = CalculateMaxG(zonesFixed, cy, cushion);
         iCell -= map.Width;
         for (int x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
-            var brightG = CalculateMaxG(zonesFixed, cy);
+            var (brightG, brightD) = CalculateMaxG(zonesFixed, cy, cushion);
+            var bottomD = bleftD || brightD;
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
             for (int y = map.Height; y > 0; --y, jCell -= map.Width)
             {
-                var topG = scratch[jCell];
+                var topG = gScratch[jCell];
+                var topD = dScratch[jCell];
                 var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
                 if (cellG != float.MaxValue)
                 {
-                    map.PixelPriority[jCell] = float.MinValue; // mark here, in case we don't have goals
+                    map.PixelPriority[jCell] = float.MinValue;
                     ++numBlockedCells;
                 }
+                else if (bottomD || topD)
+                    map.PixelAvoid[jCell] = true;
+                bottomD = topD;
                 bottomG = topG;
             }
+            bleftD = brightD;
             bleftG = brightG;
         }
 
@@ -183,7 +170,7 @@ public struct NavigationDecision
         }
     }
 
-    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals)
+    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, bool cushion)
     {
         // see Map.EnumeratePixels, note that we care about corners rather than centers
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
@@ -217,6 +204,7 @@ public struct NavigationDecision
                 var topP = map.PixelPriority[jCell];
                 if (map.PixelMaxG[jCell] == float.MaxValue)
                 {
+                    // TODO: is there a way to track whether this pixel has been previously avoided without creating a whole extra array to store that info?
                     var cellP = map.PixelPriority[jCell] = Math.Min(topP, bottomP);
                     map.MaxPriority = Math.Max(map.MaxPriority, cellP);
                 }
@@ -228,16 +216,43 @@ public struct NavigationDecision
             }
             bleftP = brightP;
         }
+
+        if (cushion)
+            AddCushion(map);
+    }
+
+    public static void AddCushion(Map map)
+    {
+        var pMax = float.MinValue;
+        for (var i = 0; i < map.Width * map.Height; i++)
+        {
+            if (map.PixelPriority[i] >= 0 && map.PixelAvoid[i])
+                map.PixelPriority[i] -= CushionDepriority;
+            pMax = Math.Max(map.PixelPriority[i], pMax);
+        }
+        map.MaxPriority = pMax;
     }
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
 
-    private static float CalculateMaxG(Span<(Sdf d, float g)> zones, WPos p)
+    private static (float G, bool D) CalculateMaxG(Span<(Sdf d, float g)> zones, WPos p, float cushion)
     {
+        var g = float.MaxValue;
+        var d = false;
+
         foreach (ref var z in zones)
-            if (z.d.Distance(p) < 0)
-                return z.g;
-        return float.MaxValue;
+        {
+            var dist = z.d.Distance(p);
+            if (dist < 0)
+            {
+                g = z.g;
+                break;
+            }
+
+            if (dist < cushion)
+                d = true;
+        }
+        return (g, d);
     }
 
     public static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)

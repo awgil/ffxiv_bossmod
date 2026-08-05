@@ -2,38 +2,41 @@
 
 namespace BossMod;
 
-public record struct SdfContinuous(Func<WPos, float> F);
-public record struct SdfDiscrete(Func<WPos, bool> F);
-
 // TODO: replace me with union when it gets implemented
 [StructLayout(LayoutKind.Explicit)]
 public struct Sdf
 {
-    [FieldOffset(0)] public bool IsContinuous;
-    [FieldOffset(1)] public SdfContinuous SdfCont;
-    [FieldOffset(1)] public SdfDiscrete SdfDisc;
+    enum SdfType
+    {
+        Continuous,
+        Discrete
+    }
 
-    public static Sdf Continuous(Func<WPos, float> d) => new() { IsContinuous = true, SdfCont = new(d) };
-    public static Sdf Discrete(Func<WPos, bool> b) => new() { IsContinuous = false, SdfDisc = new(b) };
+    [FieldOffset(0)] private Func<WPos, float> SdfCont;
+    [FieldOffset(0)] private Func<WPos, bool> SdfDisc;
+    [FieldOffset(8)] private SdfType Type;
+
+    public static Sdf Continuous(Func<WPos, float> d) => new() { Type = SdfType.Continuous, SdfCont = d };
+    public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = new(b) };
 
     public readonly Sdf Inverted()
     {
-        if (IsContinuous)
+        if (Type == SdfType.Continuous)
         {
-            var fc = SdfCont.F;
+            var fc = SdfCont;
             return Continuous(p => -fc(p));
         }
         else
         {
-            var fd = SdfDisc.F;
+            var fd = SdfDisc;
             return Discrete(p => !fd(p));
         }
     }
 
-    public readonly bool Check(WPos p) => IsContinuous ? SdfCont.F(p) < 0 : SdfDisc.F(p);
-    public readonly float Distance(WPos p) => IsContinuous
-        ? SdfCont.F(p)
-        : SdfDisc.F(p)
+    public readonly bool Check(WPos p) => Type == SdfType.Continuous ? SdfCont(p) < 0 : SdfDisc(p);
+    public readonly float Distance(WPos p) => Type == SdfType.Continuous
+        ? SdfCont(p)
+        : SdfDisc(p)
             ? float.MinValue
             : float.MaxValue;
 }
