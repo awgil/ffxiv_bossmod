@@ -1,111 +1,186 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTowerMagic.Normal.FTMN1TwoHeadedAevis;
 
-sealed class PoisonBreath(BossModule module) : Components.SimpleAOEs(module, (uint)AID.PoisonBreath, 18f);
-sealed class StormsBreath(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.StormsBreathCast, 14f)
-{
-    // on visual cast since there are x2 instances of actual knockback
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID == WatchedAction)
-        {
-            Casters.Add(new(Arena.Center, Distance, Module.CastFinishAt(spell), Shape, spell.Rotation, KnockbackKind, 0, [], caster.InstanceID, IgnoreImmunes));
-        }
-    }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var kbs = ActiveKnockbacks(slot, actor);
-        if (kbs.Length != 0)
-        {
-            var kb = kbs[0];
-            // slightly larger to avoid sus knockback
-            hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOrigin(Arena.Center, kb.Origin, 15f, 17f));
-        }
-    }
-}
-sealed class ThunderfrostTempest(BossModule module) : Components.RaidwideCast(module, (uint)AID.ThunderfrostTempest)
-{
-    // don't show raidwide hint twice
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (Casters.Count == 0)
-        {
-            base.OnCastStarted(caster, spell);
-        }
-    }
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if (Casters.Count != 0)
-        {
-            base.OnCastFinished(caster, spell);
-        }
-    }
-}
-sealed class TwoTerrors(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TwoTerrors, new AOEShapeRect(40f, 5f));
-sealed class IceCluster(BossModule module) : Components.SimpleAOEs(module, (uint)AID.IceCluster, 15f);
-sealed class LightningCluster(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LightningCluster, 15f);
+sealed class ThunderfrostTempest(BossModule module) : Components.RaidwideCast(module, (uint)AID.ThunderfrostTempest);
+sealed class PoisonBreath(BossModule module) : Components.SimpleAOEs(module, (uint)AID.PoisonBreath, new AOEShapeCircle(18.0f));
+sealed class StormsBreath(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.StormsBreath2, 14.0f);
+sealed class TwoTerrors(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TwoTerrors, new AOEShapeRect(40.0f, 5.0f));
 
-sealed class BlazeLoop(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<AOEInstance> _aoes = [];
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var count = _aoes.Count;
-        if (count == 0)
+sealed class HissingReprise(BossModule module) : Components.GenericKnockback(module) {
+    private List<Knockback> knockbacks = [];
+    private enum knockbackType { None, West, East}
+    private (knockbackType type, DateTime expireAt)[] knockbackDebuffs = new (knockbackType, DateTime)[PartyState.MaxPartySize];
+    private const float knockbackDistance = 20.0f;
+
+    public override void OnStatusGain(Actor actor, ref ActorStatus status) {
+        var debuff = status.ID switch {
+            (uint)SID.EasterlyReprise => knockbackType.East,
+            (uint)SID.WesterlyReprise => knockbackType.West,
+            _ => knockbackType.None
+        };
+
+        if (debuff != knockbackType.None) {
+            var slot = Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0 && slot < PartyState.MaxPartySize) {
+                knockbackDebuffs[slot] = (debuff, status.ExpireAt);
+            }
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ref ActorStatus status) {
+        if (status.ID is (uint)SID.EasterlyReprise or (uint)SID.WesterlyReprise) {
+            var slot = Raid.FindSlot(actor.InstanceID);
+            if (slot >= 0 && slot < PartyState.MaxPartySize) {
+                knockbackDebuffs[slot] = (knockbackType.None, default);
+            }
+        }
+    }
+
+    public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) {
+        knockbacks.Clear();
+
+        if (slot > PartyState.MaxPartySize) {
             return [];
-
-        var max = count > 2 ? 2 : count;
-        var aoes = CollectionsMarshal.AsSpan(_aoes);
-        if (count > 1)
-        {
-            ref var aoe0 = ref aoes[0];
-            aoe0.Color = Colors.Danger;
-            aoe0.Risky = true;
         }
-        return aoes[..max];
-    }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID is (uint)AID.Blaze1 or (uint)AID.Blaze2 or (uint)AID.Blaze3)
-        {
-            var act = Module.CastFinishAt(spell);
-            _aoes.Add(new(new AOEShapeCircle(5f), spell.LocXZ, activation: act, risky: false));
-            _aoes.Add(new(new AOEShapeDonut(5f, 20f), spell.LocXZ, activation: act.AddSeconds(2.5d), risky: false));
-        }
-    }
+        foreach (var (i, player) in Raid.WithSlot(false, true, true)) {
+            if (knockbackDebuffs[i].type == knockbackType.East) {
+                knockbacks.Add(new(player.Position, knockbackDistance, knockbackDebuffs[i].expireAt, kind: Kind.DirRight));
+            }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        switch (spell.Action.ID)
-        {
-            case (uint)AID.Blaze1:
-            case (uint)AID.Blaze2:
-            case (uint)AID.Blaze3:
-            case (uint)AID.Blazeloop:
-                _aoes.RemoveAt(0);
-                break;
+            if (knockbackDebuffs[i].type == knockbackType.West) {
+                knockbacks.Add(new(player.Position, knockbackDistance, knockbackDebuffs[i].expireAt, kind: Kind.DirLeft));
+            }
         }
-    }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        // try to position near origin for better dodging
-        var active = ActiveAOEs(slot, actor);
-        var count = active.Length;
-        if (count != 0)
-        {
-            var aoe = active[0];
-            hints.AddForbiddenZone(new AOEShapeDonut(7f, 20f), aoe.Origin, activation: aoe.Activation);
-            base.AddAIHints(slot, actor, assignment, hints);
-        }
+        return CollectionsMarshal.AsSpan(knockbacks);
     }
 }
 
-sealed class ArcaneBeacon(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ArcaneBeacon, new AOEShapeRect(60f, 2.5f), 8);
-sealed class Archaeofury1(BossModule module) : Components.SpreadFromCastTargets(module, (uint)AID.Archaeofury1, 6f);
-sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(module, (uint)AID.Archaeofury2, 6f);
+// TODO figure out cast timers for ones that explode after being hit
+// TODO consider changing the raidwide part to the single cast one + figure out the cast timers for the raidwide difference one as well
+// TODO clean up
+sealed class TwoHeadedAevisCluster(BossModule module) : Components.GenericAOEs(module) {
+    private List<AOEInstance> aoes = [];
+    public List<(Actor actor, bool clusterHit)> orbs = []; // clusterHit is for when the orb is hit by its cluster element attack
+    public readonly AOEShapeCircle shape = new(15.0f);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+    public override void OnActorCreated(Actor actor) {
+        if (actor.OID is (uint)OID.SwirlingOrb or (uint)OID.BallLightning) {
+            orbs.Add((actor, false));
+        }
+    }
+
+    public override void OnActorDeath(Actor actor) {
+        if (actor.OID is (uint)OID.SwirlingOrb or (uint)OID.BallLightning) {
+            orbs.Remove((actor, false));
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID == (uint)AID.Summon)
+        {
+            orbs.Clear();
+            aoes.Clear();
+        }
+
+        if (spell.Action.ID == (uint)AID.IceClusterTeleport) {
+            var aoe = new AOEInstance(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell));
+            aoes.Add(aoe);
+        }
+
+        if (spell.Action.ID == (uint)AID.IceClusterTeleport) {
+            var aoe = new AOEInstance(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell));
+            for (int i = 0; i < orbs.Count; i++) {
+                var orb = orbs[i];
+                if (orb.actor.OID == (uint)OID.SwirlingOrb && aoe.Shape.Check(aoe.Origin, orb.actor.Position, orb.actor.Rotation)) {
+                    aoes.Add(new(shape, orb.actor.Position, orb.actor.Rotation, Module.CastFinishAt(spell, 3.0f)));
+                    orb.clusterHit = true;
+                    orbs[i] = orb;
+                }
+            }
+        }
+
+        if (spell.Action.ID == (uint)AID.LightningClusterTeleport) {
+            var aoe = new AOEInstance(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell));
+            aoes.Add(aoe);
+        }
+
+
+        if (spell.Action.ID == (uint)AID.LightningClusterTeleport) {
+            var aoe = new AOEInstance(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell));
+            for (int i = 0; i < orbs.Count; i++) {
+                var orb = orbs[i];
+                if (orb.actor.OID == (uint)OID.BallLightning && aoe.Shape.Check(aoe.Origin, orb.actor.Position, orb.actor.Rotation)) {
+                    aoes.Add(new(shape, orb.actor.Position, orb.actor.Rotation, Module.CastFinishAt(spell, 3.0f)));
+                    orb.clusterHit = true;
+                    orbs[i] = orb;
+                }
+            }
+        }
+
+        if (spell.Action.ID == (uint)AID.TwoHeadedAevisThunderfrostTempest) { // Uses sinlge cast, so the aoes are not drawn multiple times
+            foreach (var orb in orbs) {
+                if (orb.clusterHit == false) {
+                    aoes.Add(new(shape, orb.actor.Position, orb.actor.Rotation, Module.CastFinishAt(spell, 3.0f)));
+                }
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID is (uint)AID.IceCluster or (uint)AID.HypothermalCombustion or (uint)AID.LightningCluster or (uint)AID.Shock) {
+            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
+            if (aoes.Count > 0) {
+                aoes.RemoveAt(0);
+            }
+        }
+    }
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(aoes);
+}
+
+// TODO confirm spell timers
+sealed class Blaze(BossModule module) : Components.GenericAOEs(module) {
+    private List<AOEInstance> aoes = [];
+    private readonly AOEShapeCircle inner = new(5.0f);
+    private readonly AOEShapeDonut outer = new(5.0f, 60.0f);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        if (spell.Action.ID is (uint)AID.BlazeInner or (uint)AID.BlazeInner1 or (uint)AID.BlazeInner2) {
+            aoes.Add(new(inner, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(outer, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 2.5f)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID is (uint)AID.BlazeInner or (uint)AID.BlazeInner1 or (uint)AID.BlazeInner2 or (uint)AID.BlazeloopOuter) {
+            if (aoes.Count > 0) {
+                aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
+                aoes.RemoveAt(0);
+            }
+        }
+    }
+
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        int show = 0;
+        var incomingAOEs = aoes.OrderBy(a => a.Activation).Take(2).ToList();
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
+            aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
+            aoe.Risky = show == 0;
+            show++;
+        }
+
+        return CollectionsMarshal.AsSpan(incomingAOEs);
+    }
+}
+
+sealed class ArcaneBeacon : Components.SimpleAOEs {
+    public ArcaneBeacon(BossModule module) : base(module, (uint)AID.ArcaneBeacon, new AOEShapeRect(60.0f, 2.5f)) {
+        MaxCasts = 8;
+    }
+}
+
+[ModuleInfo(BossModuleInfo.Maturity.Dummy,
     StatesType = typeof(TwoHeadedAevisStates),
     ConfigType = null, // replace null with typeof(TwoHeadedAevisConfig) if applicable
     ObjectIDType = typeof(OID),
@@ -113,8 +188,8 @@ sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(
     StatusIDType = typeof(SID),
     TetherIDType = typeof(TetherID),
     IconIDType = typeof(IconID),
-    PrimaryActorOID = (uint)OID.GreenHead,
-    Contributors = "gynorhino",
+    PrimaryActorOID = (uint)OID.GreenHead1,
+    Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
     GroupType = BossModuleInfo.GroupType.CFC,
@@ -123,23 +198,5 @@ sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class TwoHeadedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-900f, 700f), new ArenaBoundsSquare(20f))
-{
-    private Actor? _blueHead;
-    public Actor? BlueHead()
-    {
-        return _blueHead;
-    }
-
-    protected override void UpdateModule()
-    {
-        _blueHead ??= GetActor((uint)OID.BlueHead);
-    }
-
-    protected override void DrawEnemies(int pcSlot, Actor pc)
-    {
-        Arena.Actor(PrimaryActor);
-        Arena.Actor(_blueHead);
-    }
-}
+public sealed class TwoHeadedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-900f, 700f), new ArenaBoundsSquare(20f));
 

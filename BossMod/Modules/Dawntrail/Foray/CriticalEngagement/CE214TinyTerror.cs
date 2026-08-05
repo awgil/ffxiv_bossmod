@@ -404,14 +404,15 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module) {
 
             if (!combination.IsFlare) {
                 var activation = combination.Activation;
-                var circles = new (WPos Origin, float Radius)[2];
+                var circles = new WPos[2];
                 for (var k = 0; k < 2 && nextCombinations.Count == 2; ++k) {
                     if (nextCombinations[k].IsFlare) {
-                        circles[k] = (nextCombinations[k].Origin, flareShape.Radius);
+                        circles[k] = nextCombinations[k].Origin;
                     }
                 }
 
-                hints.AddForbiddenZone(new SDKnockbackInAABBSquareAwayFromOriginPlusAOECirclesMixedRadii(Arena.Center, combination.Origin, 20f, 19f, circles, 2), activation);
+                hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOriginPlusAOECircles(Arena.Center, combination.Origin, holyKnockBackDistance, 19.0f,
+                    circles, flareShape.Radius, 2), activation);
                 knockbackSetup = true;
             }
         }

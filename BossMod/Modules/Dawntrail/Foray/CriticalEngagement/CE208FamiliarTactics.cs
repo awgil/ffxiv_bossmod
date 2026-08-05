@@ -1,20 +1,12 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE208FamiliarTactics;
 
-// TODO was made with ARR support
-//  Status: COMPLETED
-//  1. UnbowedSpirit circles don't disappear right away -> check eventcast maybe instead or actor death instead of destroyed?
-
-public enum OID : uint
-{
+public enum OID : uint {
     ElmGigas = 0x4BD9,
     Helper = 0x233C,
     ElmGigasPuddle = 0x4BDA, // R4.000, x0 (spawn during fight)
-
-    _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
 }
 
-public enum AID : uint
-{
+public enum AID : uint {
     AutoAttack = 50851, // ElmGigas->player, no cast, single-target
     AncientAeroIII = 47544, // ElmGigas->self, 3.5+1.5s cast, single-target
     AncientAeroIIIVisual = 48041, // Helper->self, 5.0s cast, ???
@@ -33,8 +25,7 @@ public enum AID : uint
     UnbowedSpirit = 47531, // Helper->self, no cast, range 4 circle
 }
 
-public enum SID : uint
-{
+public enum SID : uint {
     Gen = 2234, // none->4BDA, extra=0xFFAB/0x1E/0xFFE4
 }
 
@@ -46,90 +37,62 @@ sealed class InspiritedHurricaneCircle(BossModule module) : Components.SimpleAOE
 sealed class AncientAero(BossModule module) : Components.SimpleAOEs(module, (uint)AID.AncientAero, new AOEShapeRect(70.0f, 3.0f));
 sealed class InspiritedCyclone(BossModule module) : Components.SimpleAOEs(module, (uint)AID.InspiritedCyclone, new AOEShapeCircle(12.0f));
 
-sealed class UnbowedSpirit(BossModule module) : Components.GenericAOEs(module)
-{
+sealed class UnbowedSpirit(BossModule module) : Components.GenericAOEs(module) {
     private readonly List<AOEInstance> aoes = [];
     private readonly List<Actor> puddles = [];
-    private readonly AOEShapeCircle shape = new(6.0f); // Slightly bigger as they're constantly moving around the map
+    private bool circular = false;
 
-    public override void OnActorCreated(Actor actor)
-    {
-        if (actor.OID == (uint)OID.ElmGigasPuddle)
-        {
+    public override void OnActorCreated(Actor actor) {
+        if (actor.OID == (uint)OID.ElmGigasPuddle) {
+            if (puddles.Count == 0) {
+                var offset = actor.Position - Arena.Center;
+                circular = MathF.Abs(offset.X % 10.0f) > 1.0f || MathF.Abs(offset.Z % 10.0f) > 1.0f;
+            }
+
             puddles.Add(actor);
         }
     }
 
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if (actor.OID == (uint)OID.ElmGigasPuddle)
-        {
-            puddles.Remove(actor);
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        if (spell.Action.ID is (uint)AID.InspiritedCrosswinds or (uint)AID.InspiritedCyclone) {
+            if (puddles.Count > 0) {
+                puddles.RemoveAt(0);
+            }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
         aoes.Clear();
 
-        if (puddles.Count == 0)
-        {
+        if (puddles.Count == 0) {
             return [];
         }
 
-        foreach (var puddle in puddles)
-        {
-            aoes.Add(new(shape, puddle.Position, puddle.Rotation, color: Colors.Danger));
+        foreach (var puddle in puddles) {
+            if (circular == true) {
+                var angleDirection = (puddle.Position - Arena.Center).Cross(puddle.Rotation.ToDirection()) > 0.0f;
+                var length = 4.0f / (puddle.Position - Arena.Center).Length();
+                var lengthDirection = (angleDirection ? -length : length).Radians();
+                aoes.Add(new(new AOEShapeArcCapsule(4.2f, lengthDirection, Arena.Center), puddle.Position, puddle.Rotation, color: Colors.Danger));
+            } else {
+                aoes.Add(new(new AOEShapeCapsule(4.2f, 4.0f), puddle.Position, puddle.Rotation, color: Colors.Danger));
+            }
         }
 
         return CollectionsMarshal.AsSpan(aoes);
     }
 }
 
-sealed class InspiritedImpact(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<AOEInstance> aoes = [];
-    private readonly AOEShapeCircle shape = new(25.0f);
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID == (uint)AID.InspiritedImpact)
-        {
-            aoes.Add(new(shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action.ID == (uint)AID.InspiritedImpact)
-        {
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
-            }
-        }
-    }
-
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        int show = 0;
-        var incomingAOEs = aoes.OrderBy(a => a.Activation).Take(3).ToList();
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs))
-        {
-            aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
-            aoe.Risky = show == 0;
-            show++;
-        }
-
-        return CollectionsMarshal.AsSpan(incomingAOEs);
+sealed class InspiritedImpact : Components.SimpleAOEs {
+    public InspiritedImpact(BossModule module) : base(module, (uint)AID.InspiritedImpact, new AOEShapeCircle(25.0f)) {
+        MaxDangerColor = 3;
+        MaxCasts = 3;
     }
 }
 
 [SkipLocalsInit]
-sealed class CE208FamiliarTacticsStates : StateMachineBuilder
-{
-    public CE208FamiliarTacticsStates(BossModule module) : base(module)
-    {
+sealed class CE208FamiliarTacticsStates : StateMachineBuilder {
+    public CE208FamiliarTacticsStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<AncientAeroIII>()
             .ActivateOnEnter<SpinningSweep>()
@@ -162,7 +125,6 @@ sealed class CE208FamiliarTacticsStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE208FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f))
-{
+public sealed class CE208FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f)) {
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 30f);
 }
