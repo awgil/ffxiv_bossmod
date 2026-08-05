@@ -174,9 +174,12 @@ sealed class IPCProvider : IDisposable
             return predicted.Count == 0 ? 0 : (int)predicted[0].Type;
         });
 
-        // --- Custom OmniDuty Endpoints ---
         Register("Hints.MaxCastTime", () => hints.MaxCastTime);
         Register("Hints.ForceCancelCast", () => hints.ForceCancelCast);
+        Register("Hints.ForceCancelCastAI", () => ai.Controller.ForceCancelCast);
+
+        Register("Movement.IsMoving", () => hints.ForcedMovement != null);
+        Register("Movement.IsMoveRequested", movement.IsMoveRequested);
         Register("Hints.ForbiddenZonesCount", () => hints.ForbiddenZones.Count);
         Register("Hints.ForbiddenZonesNextActivation", () => hints.ForbiddenZones.Count == 0 ? float.MaxValue : (float)(hints.ForbiddenZones[0].activation - DateTime.Now).TotalSeconds);
         Register("Hints.ArenaCenter", () => new Vector2(hints.PathfindMapCenter.X, hints.PathfindMapCenter.Z));
