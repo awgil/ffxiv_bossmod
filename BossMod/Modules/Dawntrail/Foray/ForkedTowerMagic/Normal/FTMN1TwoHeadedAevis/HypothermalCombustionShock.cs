@@ -81,11 +81,24 @@ sealed class HypothermalCombustionShock(BossModule module) : Components.GenericA
                 case (uint)AID.Shock:
                     _aoes.RemoveAt(0);
                     break;
-                case (uint)AID.ThunderfrostTempest:
-                    _aoes.Clear();
-                    actors.Clear();
-                    break;
             }
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        var knockbacks = Module.FindComponent<HissingReprise>();
+        if (knockbacks == null || knockbacks.ActiveKnockbacks(slot, actor).Length == 0)
+        {
+            base.AddHints(slot, actor, hints);
+        }
+    }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var knockbacks = Module.FindComponent<HissingReprise>();
+        if (knockbacks == null || knockbacks.ActiveKnockbacks(slot, actor).Length == 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
         }
     }
 }

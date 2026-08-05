@@ -9,8 +9,8 @@ sealed class HissingReprise(BossModule module) : Components.GenericKnockback(mod
     private DateTime activation = default;
     private BitMask easterly;
     private BitMask westerly;
-    private AOEShapeCircle pShape = new(18f);
-    private AOEShapeCircle cShape = new(15f);
+    private readonly AOEShapeCircle pShape = new(18f);
+    private readonly AOEShapeCircle cShape = new(15f);
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
     {
@@ -97,7 +97,7 @@ sealed class HissingReprise(BossModule module) : Components.GenericKnockback(mod
                 }
                 else
                 {
-                    hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirection(Arena.Center, direction, 21f));
+                    hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirection(Arena.Center, direction, 21f), kb.Activation);
                 }
             }
         }
