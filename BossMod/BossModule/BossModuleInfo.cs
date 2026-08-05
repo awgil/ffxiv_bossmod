@@ -61,6 +61,13 @@ public static class BossModuleInfo
 
     public enum HuntRank : uint { B, A, S, SS }
 
+    public enum BitmapType
+    {
+        Auto,
+        Disabled,
+        Enabled
+    }
+
     // shorthand expansion names
     public static string ShortName(this Expansion e) => e switch
     {
@@ -90,10 +97,10 @@ public sealed class ModuleInfoAttribute() : Attribute
     public BossModuleInfo.Expansion Expansion { get; set; } = BossModuleInfo.Expansion.Count; // default: second namespace level
     public BossModuleInfo.Category Category { get; set; } = BossModuleInfo.Category.Count; // default: third namespace level
     public BossModuleInfo.GroupType GroupType { get; set; } = BossModuleInfo.GroupType.None;
+    public BossModuleInfo.BitmapType BitmapType { get; set; } = BossModuleInfo.BitmapType.Auto;
     public uint GroupID { get; set; }
     public uint NameID { get; set; } // usually BNpcName row, unless GroupType uses it differently
     public int SortOrder { get; set; } // default: first number in type name
     public int PlanLevel { get; set; } // if > 0, module supports plans for this level
     public bool Incomplete { get; set; } // user needs to opt-in to load these modules, they probably don't work (but could be useful for prog, e.g. new ultimates)
-    public bool BitmapDisabled { get; set; } // prevent framework from loading the bitmap for the current zone
 }

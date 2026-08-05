@@ -21,9 +21,15 @@ public class ReplayManagementWindow : UIWindow
     private int _recordingActiveModules; // recording was started automatically, because we've activated N modules
     private string _lastErrorMessage = "";
 
+    private bool _showCull;
+    private List<ReplayFileMeta>? _cullFiles;
+    private float _cullMaxDurationSec = 60;
+    private string _cullDutyKey = ""; // empty = any
+    private string _cullStatus = "";
+
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, DirectoryInfo logDir) : base(_windowID, false, new(300, 200))
+    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
     {
         _ws = ws;
         _logDir = logDir;
@@ -95,6 +101,10 @@ public class ReplayManagementWindow : UIWindow
         if (ImGui.Button("Open Replay Folder") && _logDir != null)
             _lastErrorMessage = OpenDirectory(_logDir);
 
+        ImGui.SameLine();
+        if (ImGui.Button("Cull Options"))
+            _showCull ^= true;
+
         if (_lastErrorMessage.Length > 0)
         {
             ImGui.SameLine();
@@ -102,8 +112,96 @@ public class ReplayManagementWindow : UIWindow
             ImGui.TextUnformatted(_lastErrorMessage);
         }
 
+        if (_showCull)
+        {
+            ImGui.Separator();
+            DrawCull();
+        }
+
         ImGui.Separator();
         _manager.Draw();
+    }
+
+    private void DrawCull()
+    {
+        _cullFiles ??= ReplayFileMeta.Scan(_logDir);
+        var matching = MatchingCullFiles(_cullFiles);
+        var totalBytes = _cullFiles.Sum(f => f.File.Exists ? f.File.Length : 0);
+        var hasFilter = _cullMaxDurationSec > 0 || _cullDutyKey.Length > 0;
+
+        if (ImGui.Button("Refresh"))
+        {
+            _cullFiles = ReplayFileMeta.Scan(_logDir);
+            _cullStatus = "";
+        }
+        ImGui.SameLine();
+        using (ImRaii.Disabled(matching.Count == 0 || !hasFilter))
+        {
+            if (UIMisc.DangerousButton("Delete matching"))
+                DeleteMatching(matching);
+        }
+        if (!hasFilter && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            ImGui.SetTooltip("Set a duration threshold and/or select a duty");
+
+        ImGui.Text($"Replays: {_cullFiles.Count} files, {totalBytes / (1024.0 * 1024.0):f1} MiB | Matched: {matching.Count}");
+
+        ImGui.SetNextItemWidth(100);
+        ImGui.InputFloat("Shorter than (seconds)", ref _cullMaxDurationSec);
+        if (_cullMaxDurationSec < 0)
+            _cullMaxDurationSec = 0;
+
+        var dutyKeys = _cullFiles.GroupBy(f => f.DutyKey).OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase).Select(g => (g.Key, Count: g.Count())).ToList();
+        if (_cullDutyKey.Length > 0 && dutyKeys.All(d => d.Key != _cullDutyKey))
+            _cullDutyKey = "";
+
+        var dutyPreview = _cullDutyKey.Length == 0 ? "(any duty)" : $"{_cullDutyKey} ({dutyKeys.First(d => d.Key == _cullDutyKey).Count})";
+        ImGui.SetNextItemWidth(250);
+        using (var combo = ImRaii.Combo("Duty", dutyPreview))
+        {
+            if (combo)
+            {
+                if (ImGui.Selectable("(any duty)", _cullDutyKey.Length == 0))
+                    _cullDutyKey = "";
+                foreach (var d in dutyKeys)
+                {
+                    if (ImGui.Selectable($"{d.Key} ({d.Count})", _cullDutyKey == d.Key))
+                        _cullDutyKey = d.Key;
+                }
+            }
+        }
+
+        if (_cullStatus.Length > 0)
+            ImGui.Text(_cullStatus);
+    }
+
+    private List<ReplayFileMeta> MatchingCullFiles(List<ReplayFileMeta> files)
+    {
+        return [.. files.Where(f =>
+            (_cullMaxDurationSec <= 0 || f.Duration.TotalSeconds < _cullMaxDurationSec) &&
+            (_cullDutyKey.Length == 0 || f.DutyKey == _cullDutyKey))];
+    }
+
+    private void DeleteMatching(List<ReplayFileMeta> matching)
+    {
+        var deleted = new List<string>();
+        var failed = 0;
+        foreach (var m in matching)
+        {
+            try
+            {
+                m.File.Delete();
+                deleted.Add(m.File.FullName);
+            }
+            catch (Exception ex)
+            {
+                ++failed;
+                Service.Log($"Failed to delete replay {m.File.FullName}: {ex}");
+            }
+        }
+
+        _manager.UnloadPaths(deleted);
+        _cullFiles = ReplayFileMeta.Scan(_logDir);
+        _cullStatus = failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.";
     }
 
     public bool IsRecording() => _recorder != null;

@@ -207,7 +207,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
             _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false, "xan")));
-            _ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
+            //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
         }
     }
 
@@ -286,19 +286,34 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 return;
         }
 
-        // already have an entry, everything is ok
-        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
-        if (entry != null && data != null)
-            return;
-
-        // scorched earth approach: if player is moving at all, assume we can't trust their position
+        // scorched earth approach: if player is moving vertically, assume we can't trust their position
         // this covers jumping and clientpaths, as well as some annoying edge cases that don't show up anywhere else: walking off the boat in ihuykatumu (during which IsJumping() returns false), walking off of any wall-less arena (which puts you into condition 47, not Jumping), etc
-        if (player.PosRot != player.PrevPosRot)
+        if (player.PosRot.Y != player.PrevPosRot.Y)
             return;
 
         // try to do nothing if player is in any state that isn't "standing on the ground"
-        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving))
+        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving, ConditionFlag.Jumping, (ConditionFlag)47, ConditionFlag.DutyRecorderPlayback))
             return;
+
+        var insertAtFront = false;
+
+        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+        if (entry != null && data != null)
+        {
+            var poff = ((player.Position - entry.Origin) / data.PixelSize).Floor();
+            var px = (int)poff.X;
+            var py = (int)poff.Z;
+
+            var playerDeepInObstacle = px >= 0 && py >= 0 && px < data.Width && py < data.Height && data[px, py] && (px == 0 || data[px - 1, py]) && (py == 0 || data[px, py - 1]) && (px == (data.Width - 1) || data[px + 1, py]) && (py == (data.Height - 1) || data[px, py + 1]);
+
+            if (playerDeepInObstacle)
+                // we are probably standing on an isolated landmass that is within the current map's bounding box
+                // we should try to generate a new map from player's current position and make it higher priority (assumption is that this area has a smaller bounding box)
+                insertAtFront = true;
+            else
+                // standing in normal part of map, everything is fine
+                return;
+        }
 
         try
         {
@@ -327,7 +342,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         try
         {
-            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true);
+            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true, insertAtFront);
         }
         catch (Exception ex)
         {
@@ -496,19 +511,22 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             aiConfig.Enabled = true;
             aiConfig.Modified.Fire();
-            Service.ChatMessage("AI enabled");
+            if (aiConfig.ChatConfirmation)
+                Service.ChatMessage("AI enabled");
         });
         cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
         {
             aiConfig.Enabled = false;
             aiConfig.Modified.Fire();
-            Service.ChatMessage("AI disabled");
+            if (aiConfig.ChatConfirmation)
+                Service.ChatMessage("AI disabled");
         });
         cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
         {
             aiConfig.Enabled ^= true;
             aiConfig.Modified.Fire();
-            Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
+            if (aiConfig.ChatConfirmation)
+                Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
         });
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
@@ -516,7 +534,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             if (_ws.Party[masterSlot] != null)
             {
                 _wndAI.SetSlot(masterSlot);
-                Service.ChatMessage($"AI follow slot = {masterSlot}");
+                if (aiConfig.ChatConfirmation)
+                    Service.ChatMessage($"AI follow slot = {masterSlot}");
             }
             else
                 Service.ChatError($"Error: can't find {masterString} in our party");

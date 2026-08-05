@@ -13,6 +13,7 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
 
     public bool Inverted = inverted; // if inverted, player should face eyes instead of averting
     public bool EnableHints = true;
+    public bool DrawEyeRange = true;
 
     private const float _eyeOuterH = 10;
     private const float _eyeOuterV = 6;
@@ -60,7 +61,7 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
                 Arena.PathArcTo(pc.Position, 1, (pc.Rotation + eye.Forward + min.Degrees()).Rad, (pc.Rotation + eye.Forward + max.Degrees()).Rad);
                 Arena.PathStroke(false, ArenaColor.Enemy);
 
-                if (eye.Range < 100)
+                if (eye.Range < 100 && DrawEyeRange)
                     Arena.AddCircle(eye.Position, eye.Range, ArenaColor.Object);
             }
         }

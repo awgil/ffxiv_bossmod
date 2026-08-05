@@ -17,7 +17,7 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi WHM (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.WHM), 100, 30);
+        var res = new RotationModuleDefinition("Akechi WHM (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.WHM), 100, 30, PvP: PvPCompatibility.PvPOnly);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
             .AddOption(TargetingStrategy.Auto, "Automatically select best target")
             .AddOption(TargetingStrategy.FocusTargetsTarget, "Automatically target your current Focus Target's target - if no Focus Target or if Focus Target is hostile, then automatically select best target")

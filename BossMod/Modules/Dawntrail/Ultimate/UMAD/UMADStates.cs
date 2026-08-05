@@ -522,7 +522,7 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P3SlapHappy>(id + 1, 5.8f, s => s.NumCasts > 0, "Slams start");
         ComponentCondition<P3SlapHappy>(id + 2, 2.6f, s => s.NumCasts >= 4)
             .DeactivateOnExit<P3SlapHappy>();
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x10, 0.1f, s => s.Resolved, "Stack(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x10, 0.1f, s => s.Resolved, "Stack/spread")
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
         ComponentCondition<P3Nothingness>(id + 0x100, 7.4f, n => n.NumCasts == 1, "Laser 1")
@@ -554,7 +554,7 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P3SlapHappy>(id + 0x10, 2.1f, s => s.NumCasts > 0, "Slams start");
         ComponentCondition<P3SlapHappy>(id + 0x11, 2.6f, s => s.NumCasts >= 4)
             .DeactivateOnExit<P3SlapHappy>();
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x20, 0.1f, s => s.Resolved, "Stack(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x20, 0.1f, s => s.Resolved, "Stack/spread")
             .DeactivateOnExit<P3SlapHappyShockwave>();
 
         ComponentCondition<P3Nothingness>(id + 0x100, 7.5f, n => n.NumCasts == 6, "Lasers 3");
@@ -598,7 +598,7 @@ class UMADStates : StateMachineBuilder
         ComponentCondition<P3LatLongShockwave>(id + 0x104, 2, p => p.NumCasts == 4, "Front/sides 2")
             .DeactivateOnExit<P3LatLongShockwave>();
 
-        ComponentCondition<P3SlapHappyShockwave>(id + 0x110, 2.3f, p => p.Resolved, "Stack(s)")
+        ComponentCondition<P3SlapHappyShockwave>(id + 0x110, 2.3f, p => p.Resolved, "Stack/spread")
             .ExecOnEnter<P3SlapHappyShockwave>(p => p.EnableHints = true)
             .DeactivateOnExit<P3SlapHappy>()
             .DeactivateOnExit<P3SlapHappyShockwave>();

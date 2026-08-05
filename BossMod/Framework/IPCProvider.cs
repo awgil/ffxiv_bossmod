@@ -220,7 +220,7 @@ sealed class IPCProvider : IDisposable
             return true;
         });
 
-        Register("ObstacleMap.Generate", (Vector3 centerWorld, float radius, bool writeToFile) => obstacles.GenerateMap(centerWorld, radius, writeToFile));
+        Register("ObstacleMap.Generate", (Vector3 centerWorld, float radius, bool writeToFile) => obstacles.GenerateMap(centerWorld, radius, writeToFile, false));
         Register("ObstacleMap.GetGenerationStatus", () => obstacles.GenerationStatus);
         Register("ObstacleMap.HasTempMap", obstacles.HasTempMap);
         Register("ObstacleMap.ClearTempMap", obstacles.ClearTempMap);

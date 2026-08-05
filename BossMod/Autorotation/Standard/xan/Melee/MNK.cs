@@ -463,8 +463,14 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         var prio = strategy.FiresReply.Value switch
         {
-            FRStrategy.Automatic => CurrentForm == Form.Raptor ? GCDPriority.FiresReply : GCDPriority.None,
+            FRStrategy.Automatic => CurrentForm == Form.Raptor // post opo
+                ? GCDPriority.FiresReply
+                : BeastCount == 3 && CurrentForm == Form.None // fire exit
+                    ? GCDPriority.FireRanged
+                    : GCDPriority.None,
+
             FRStrategy.Ranged => CanFitGCD(FiresReplyLeft, 1) ? GCDPriority.FireRanged : GCDPriority.FiresReply,
+
             FRStrategy.Force => GCDPriority.FiresReply,
             _ => GCDPriority.None
         };
@@ -589,7 +595,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         var should = NumBlitzTargets > 0;
         should &= strategy.Blitz.Value switch
         {
-            BlitzStrategy.Automatic => true,
+            BlitzStrategy.Automatic => CurrentForm == Form.Raptor || CurrentForm == Form.None && FormShiftLeft <= GCD,
             BlitzStrategy.RoF => FireLeft > GCD,
             BlitzStrategy.Multi => NumBlitzTargets > 1,
             BlitzStrategy.MultiRoF => FireLeft > GCD && NumBlitzTargets > 1,

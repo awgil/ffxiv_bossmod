@@ -65,7 +65,7 @@ public sealed record class ActionDefinition(ActionID ID)
 {
     public delegate bool ConditionDelegate(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints);
     public delegate Actor? SmartTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
-    public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
+    public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, AIHints hints);
 
     public BitMask AllowedClasses = new(~0ul);
     public int MinLevel;

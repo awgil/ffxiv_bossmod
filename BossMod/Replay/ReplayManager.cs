@@ -130,6 +130,19 @@ public sealed class ReplayManager : IDisposable
         DrawEntriesOperations();
     }
 
+    public void UnloadPaths(IEnumerable<string> paths)
+    {
+        var set = paths.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (set.Count == 0)
+            return;
+
+        foreach (var e in _replayEntries.Where(e => !e.Disposed && set.Contains(e.Path)))
+            e.Dispose();
+        foreach (var a in _analysisEntries.Where(a => !a.Disposed && a.Replays.Any(r => set.Contains(r.Path))))
+            a.Dispose();
+        SaveHistory();
+    }
+
     private void DrawEntries()
     {
         using var table = ImRaii.Table("entries", 3);

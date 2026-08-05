@@ -1,13 +1,15 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Ropross;
+namespace BossMod.Dawntrail.Foray.FATE.Ropross;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x46D7,
     Helper = 0x233C,
     GaleSphere = 0x46D8, // R1.000, x0 (spawn during fight)
     Ropross = 0x46D9, // R0.500, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 42899, // Boss->player, no cast, single-target
     Teleport = 41392, // Boss->location, no cast, single-target
     Teleport2 = 41384, // Boss->location, no cast, single-target
@@ -29,17 +31,22 @@ class BitingScratch(BossModule module) : Components.StandardAOEs(module, AID.Bit
 class FeatherRain(BossModule module) : Components.StandardAOEs(module, AID.FeatherRain, new AOEShapeCircle(11.0f));
 class AeroIV(BossModule module) : Components.RaidwideCast(module, AID.AeroIV);
 
-class Airburst(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+class Airburst(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.GaleSphere) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.GaleSphere)
+        {
             aoes.Add(new(new AOEShapeCircle(11), actor.Position, actor.Rotation, WorldState.FutureTime(9.8f)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.Airburst) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.Airburst)
+        {
             aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.1f));
         }
     }
@@ -47,8 +54,10 @@ class Airburst(BossModule module) : Components.GenericAOEs(module) {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 }
 
-class RoprossStates : StateMachineBuilder {
-    public RoprossStates(BossModule module) : base(module) {
+class RoprossStates : StateMachineBuilder
+{
+    public RoprossStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<GlidingSwoop>()
             .ActivateOnEnter<BitingScratch>()

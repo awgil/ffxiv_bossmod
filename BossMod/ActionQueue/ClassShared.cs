@@ -337,6 +337,12 @@ public sealed class Definitions : Defs
         };
 
         d.Spell(PhantomID.OccultFeatherfoot)!.AllowExecute = ActionPredicate.AllowDashFixed(15);
-        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
+        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
+
+        d.Spell(PhantomID.StepForth)!.AllowExecute = ActionPredicate.AllowDashToPosition;
+        d.Spell(PhantomID.StepForth)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
+
+        // Occult Jump has a ridiculous position lock of almost 2.5s
+        d.Spell(PhantomID.OccultJump)!.AllowExecute = (_, player, _, hints) => !hints.ForbiddenZones.Any(z => z.containsFn(player.Position));
     }
 }
