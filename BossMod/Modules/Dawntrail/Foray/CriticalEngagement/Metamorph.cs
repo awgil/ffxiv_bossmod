@@ -257,7 +257,7 @@ class HellishBreath(BossModule module) : Components.GenericAOEs(module)
     {
         for (var i = 0; i < Math.Min(2, _predicted.Count); i++)
         {
-            yield return _predicted[i] with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
+            yield return _predicted[i] with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE };
         }
     }
 
