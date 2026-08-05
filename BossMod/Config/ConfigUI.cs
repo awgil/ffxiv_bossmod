@@ -159,6 +159,8 @@ public sealed class ConfigUI : IDisposable
         ( "r", "Opens the replay menu." ),
         ( "r on/off", "Starts/stops recording a replay." ),
         ( "gc", "Triggers the garbage collection." ),
+        ( "radar", "toggles radar display" ),
+        ( "radar on/off", "Sets radar display to on or off." ),
         ( "cfg", "Lists all configs." )
     ];
 
@@ -184,7 +186,7 @@ public sealed class ConfigUI : IDisposable
         ImGui.Separator();
         ImGui.Text("Other commands:");
         ImGui.Separator();
-        for (var i = 0; i < 7; ++i)
+        for (var i = 0; i < 9; ++i)
         {
             ref readonly var text = ref _availableOtherCommands[i];
             ImGui.Text($"/bmr {text.Item1}: {text.Item2}");
