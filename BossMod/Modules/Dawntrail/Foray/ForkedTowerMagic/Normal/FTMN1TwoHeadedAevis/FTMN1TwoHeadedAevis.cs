@@ -115,7 +115,7 @@ sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(
     TetherIDType = typeof(TetherID),
     IconIDType = typeof(IconID),
     PrimaryActorOID = (uint)OID.GreenHead,
-    Contributors = "The Combat Reborn Team (LTS)",
+    Contributors = "gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
     GroupType = BossModuleInfo.GroupType.CFC,
