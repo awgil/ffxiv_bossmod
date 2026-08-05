@@ -40,7 +40,7 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
         if (!Utils.IsPlayerSyncedToFate(World))
             return;
 
-        if (strategy.Option(Track.Chocobo).As<Flag>() == Flag.Enabled && World.Client.GetInventoryItemQuantity(ActionDefinitions.IDMiscItemGreens.ID) > 0 && World.Client.ActiveCompanion is { TimeLeft: < 60, Stabled: false })
+        if (strategy.Option(Track.Chocobo).As<Flag>() == Flag.Enabled && World.CurrentCFCID == 0 && World.Client.GetInventoryItemQuantity(ActionDefinitions.IDMiscItemGreens.ID) > 0 && World.Client.ActiveCompanion is { TimeLeft: < 60, Stabled: false })
             Hints.ActionsToExecute.Push(ActionDefinitions.IDMiscItemGreens, Player, ActionQueue.Priority.VeryHigh);
 
         var goal = GetGoal(strategy);

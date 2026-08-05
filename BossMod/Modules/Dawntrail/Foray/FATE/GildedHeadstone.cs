@@ -1,6 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-
-namespace BossMod.Dawntrail.Foray.FATE.GildedHeadstone;
+﻿namespace BossMod.Dawntrail.Foray.FATE.GildedHeadstone;
 
 public enum OID : uint
 {

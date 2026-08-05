@@ -1,6 +1,7 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.MadMudarch;
+namespace BossMod.Dawntrail.Foray.FATE.MadMudarch;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x46BD,
     Helper = 0x233C,
     MadMudarch = 0x46C0, // R0.500, x0 (spawn during fight)
@@ -8,7 +9,8 @@ public enum OID : uint {
     CommonCompost = 0x46BF, // R4.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 39461, // Boss->player, no cast, single-target
     FromMud = 30706, // Boss->self, 3.0s cast, single-target
     FromMud1 = 29809, // Boss->self, 3.0s cast, single-target
@@ -23,7 +25,8 @@ public enum AID : uint {
     Rupture = 29808, // 46BE->self, 2.0s cast, range 16 circle
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Growth = 4221, // 46C0->46BE, extra=0x1/0x2/0x3
     Growth1 = 4222, // 46C0->Boss/46BE, extra=0x2/0x1
     Growth2 = 4223, // 46C0->Boss/46BE, extra=0x0
@@ -36,17 +39,22 @@ class BogBequest(BossModule module) : Components.StandardAOEs(module, AID.BogBeq
 class FeculentFlood(BossModule module) : Components.StandardAOEs(module, AID.FeculentFlood, new AOEShapeCone(40f, 30.Degrees()));
 class RoyalFlush(BossModule module) : Components.StandardAOEs(module, AID.RoyalFlush, 8f);
 
-class Rupture(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+class Rupture(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status) {
-        if (status.ID == (uint)SID.Growth && status.Extra == 0x02) {
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if (status.ID == (uint)SID.Growth && status.Extra == 0x02)
+        {
             aoes.Add(new(new AOEShapeCircle(16f), actor.Position, actor.Rotation, WorldState.FutureTime(7.3f)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.Rupture) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.Rupture)
+        {
             aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.1f));
         }
     }
@@ -54,8 +62,10 @@ class Rupture(BossModule module) : Components.GenericAOEs(module) {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 }
 
-class MadMudarchStates : StateMachineBuilder {
-    public MadMudarchStates(BossModule module) : base(module) {
+class MadMudarchStates : StateMachineBuilder
+{
+    public MadMudarchStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Unshower>()
             .ActivateOnEnter<RockyRoll>()

@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Pathfinding;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
@@ -14,7 +15,6 @@ public abstract class BossModule : IDisposable
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
-    public readonly Pathfinding.ObstacleMapManager Obstacles;
 
     internal void SetPrimaryActor(Actor actor)
     {
@@ -51,7 +51,9 @@ public abstract class BossModule : IDisposable
 
     // component management: at most one component of any given type can be active at any time
     private readonly List<BossComponent> _components = [];
+#pragma warning disable CA1859 // someone needs to tell Visual Studio that List and IReadOnlyList don't have the same semantics
     public IReadOnlyList<BossComponent> Components => _components;
+#pragma warning restore CA1859
     public T? FindComponent<T>() where T : BossComponent => _components.OfType<T>().FirstOrDefault();
 
     public void ActivateComponent<T>() where T : BossComponent
@@ -95,7 +97,6 @@ public abstract class BossModule : IDisposable
 
     protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
     {
-        Obstacles = new(ws);
         WorldState = ws;
         PrimaryActor = primary;
         Arena = new(WindowConfig, center, bounds);
@@ -143,7 +144,6 @@ public abstract class BossModule : IDisposable
         ClearComponents(_ => true);
 
         _subscriptions.Dispose();
-        Obstacles.Dispose();
     }
 
     public void Update()
@@ -257,14 +257,14 @@ public abstract class BossModule : IDisposable
         return hints;
     }
 
-    public void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public void CalculateAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints, ObstacleMapManager obstacles)
     {
         hints.PathfindMapCenter = Center;
         hints.PathfindMapBounds = Bounds;
 
-        if (Info is not { BitmapDisabled: true })
+        if (Info?.BitmapEnabled == true)
         {
-            var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
+            var (entry, bitmap) = obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
             if (entry != null && bitmap != null && bitmap.PixelSize == Bounds.MapResolution)
             {
                 var originCell = (Center - entry.Origin) / bitmap.PixelSize;

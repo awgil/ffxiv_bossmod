@@ -116,7 +116,7 @@ public sealed class ClientState
             ((ulong*)&res)[2] = gauge.High;
         return res;
     }
-    public unsafe T GetGauge<T>() where T : unmanaged => GetGauge<T>(GaugePayload);
+    public T GetGauge<T>() where T : unmanaged => GetGauge<T>(GaugePayload);
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {

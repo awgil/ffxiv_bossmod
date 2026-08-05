@@ -149,7 +149,7 @@ public sealed class Definitions : Defs
         d.RegisterChargeIncreaseTrait(AID.WingedGlide, TraitID.EnhancedWingedGlide);
 
         // elusive jump aiming
-        d.Spell(AID.ElusiveJump)!.TransformAngle = (ws, player, _, _) => _config.ElusiveJump switch
+        d.Spell(AID.ElusiveJump)!.TransformAngle = (ws, player, _) => _config.ElusiveJump switch
         {
             DRGConfig.ElusiveJumpBehavior.CharacterForward => player.Rotation + 180.Degrees(),
             DRGConfig.ElusiveJumpBehavior.CameraBackward => ws.Client.CameraAzimuth + 180.Degrees(),

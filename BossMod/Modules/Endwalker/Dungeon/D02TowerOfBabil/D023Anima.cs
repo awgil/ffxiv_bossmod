@@ -156,7 +156,7 @@ class CoffinScratchBait(BossModule module) : Components.BaitAwayIcon(module, new
             hints.AddForbiddenZone(new AOEShapeRect(17, 17, 17), Arena.Center, default, bait.Activation);
     }
 }
-class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 2, 5);
+class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 1, 5);
 class PhantomPain(BossModule module) : Components.StandardAOEs(module, AID.PhantomPain2, new AOEShapeRect(20, 10));
 class PaterPatriaeAOE(BossModule module) : Components.StandardAOEs(module, AID.PaterPatriaeAOE, new AOEShapeRect(60, 4));
 class CharnelClaw(BossModule module) : Components.StandardAOEs(module, AID.CharnelClaw, new AOEShapeRect(40, 2.5f), 5);

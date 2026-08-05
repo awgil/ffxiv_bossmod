@@ -1,13 +1,15 @@
-namespace BossMod.Modules.Dawntrail.Foray.FATE.Observer;
+namespace BossMod.Dawntrail.Foray.FATE.Observer;
 
-public enum OID : uint {
+public enum OID : uint
+{
     Boss = 0x47DC,
     Helper = 0x233C,
     ObserversEye = 0x47DD, // R0.600, x0 (spawn during fight)
     ObserversEye1 = 0x4818, // R0.600, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 43367, // Boss->player, no cast, single-target
     JumpScare = 43041, // Boss->player, no cast, single-target
 
@@ -21,7 +23,8 @@ public enum AID : uint {
     MarkOfDeath = 43039, // 47DD/4818->self, no cast, range 6 ?-degree cone
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Search = 2552, // 47DD/4818->47DD/4818, extra=0x372
     Prey = 4473, // 4818->player, extra=0x0
     Stun = 4374, // 4818->player, extra=0x0
@@ -31,12 +34,16 @@ class Stare(BossModule module) : Components.GroupedAOEs(module, [AID.Stare, AID.
 class Oogle(BossModule module) : Components.CastGaze(module, AID.Oogle, false);
 class VoidThunderII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderII, 6.0f);
 
-class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOfDeath) {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOfDeath)
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         var observersEyes = WorldState.Actors.Where(a => a.OID is (uint)OID.ObserversEye or (uint)OID.ObserversEye1).ToList();
 
-        foreach (var eye in observersEyes) {
-            if (!eye.IsDead) {
+        foreach (var eye in observersEyes)
+        {
+            if (!eye.IsDead)
+            {
                 yield return new(new AOEShapeCone(8.5f, 60.0f.Degrees()), eye.Position, eye.Rotation);
             }
         }
@@ -44,20 +51,25 @@ class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOf
 
     // Puts a large circle around the enemy since it can turn direction which can cause issues when standing right next to the cone outline
     // so best to just keep away from the enemy a decent distance
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
         base.AddAIHints(slot, actor, assignment, hints);
 
         var observersEyes = WorldState.Actors.Where(a => a.OID is (uint)OID.ObserversEye or (uint)OID.ObserversEye1).ToList();
-        foreach (var eye in observersEyes) {
-            if (!eye.IsDead) {
+        foreach (var eye in observersEyes)
+        {
+            if (!eye.IsDead)
+            {
                 hints.AddForbiddenZone(new AOEShapeCircle(8.5f), eye.Position);
             }
         }
     }
 }
 
-class ObserverStates : StateMachineBuilder {
-    public ObserverStates(BossModule module) : base(module) {
+class ObserverStates : StateMachineBuilder
+{
+    public ObserverStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Stare>()
             .ActivateOnEnter<Oogle>()

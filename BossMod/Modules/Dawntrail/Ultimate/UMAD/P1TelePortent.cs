@@ -88,7 +88,26 @@ class P1TelePortent(BossModule module) : BossComponent(module)
             case UMADConfig.P1ArrowShape.BigBox:
                 var wd = ToWDir(dir.All);
 
-                if (dir.All == dir.D1.Dir)
+                List<(Direction, WPos)> spots;
+
+                // stack spots are 1/3 markers, so we can cut the corner on 2/4 intercards for melee uptime/less movement
+                if (wd == new WDir(-1, -1))
+                {
+                    spots = [(Direction.Up, Arena.Center + new WDir(-6, 12)), (Direction.Left, Arena.Center + new WDir(-6, 6))];
+                    if (dir.D1.Dir == Direction.Left)
+                        spots.Reverse();
+
+                    _hintSpots[slot].AddRange(spots);
+                }
+                else if (wd == new WDir(1, 1))
+                {
+                    spots = [(Direction.Down, Arena.Center + new WDir(6, -12)), (Direction.Right, Arena.Center + new WDir(6, -6))];
+                    if (dir.D1.Dir == Direction.Right)
+                        spots.Reverse();
+
+                    _hintSpots[slot].AddRange(spots);
+                }
+                else if (dir.All == dir.D1.Dir)
                 {
                     // matched arrows
                     var cardinal = wd.OrthoL() * 12;

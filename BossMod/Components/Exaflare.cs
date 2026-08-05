@@ -20,6 +20,8 @@ public class Exaflare(BossModule module, AOEShape shape, Enum? aid = default) : 
     public uint FutureColor = ArenaColor.AOE;
     protected List<Line> Lines = [];
 
+    public bool FutureRisky = true;
+
     public bool Active => Lines.Count > 0;
 
     public Exaflare(BossModule module, float radius, Enum? aid = default) : this(module, new AOEShapeCircle(radius), aid) { }
@@ -27,7 +29,7 @@ public class Exaflare(BossModule module, AOEShape shape, Enum? aid = default) : 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var (c, t, r) in FutureAOEs())
-            yield return new(Shape, c, r, t, FutureColor);
+            yield return new(Shape, c, r, t, FutureColor, FutureRisky);
         foreach (var (c, t, r) in ImminentAOEs())
             yield return new(Shape, c, r, t, ImminentColor);
     }
