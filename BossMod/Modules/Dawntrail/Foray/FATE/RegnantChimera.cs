@@ -27,6 +27,11 @@ public enum AID : uint
 
     Cacophony = 50113, // Boss->self, 4.0s cast, single-target
     ChaoticChorus = 50114, // 4B71->self, 1.5s cast, range 6 circle
+
+    LeftDuobreath = 50111, // Boss->self, 5.0s cast, range 40 180-degree cone
+    TheRamsBreath3 = 50116, // Boss->self, no cast, range 40 180-degree cone
+    RightDuobreath = 50112, // Boss->self, 5.0s cast, range 40 180-degree cone
+    TheDragonsBreath3 = 50115, // Boss->self, no cast, range 40 180-degree cone
 }
 
 public enum SID : uint
@@ -42,8 +47,7 @@ public enum IconID : uint
 }
 
 class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, 9.0f);
-class TheDragonsVoice(BossModule module) : Components.GroupedAOEs(module, [AID.TheDragonsVoice, AID.TheDragonsVoice1], new AOEShapeDonut(8.0f, 30.0f));
-class Cacophony(BossModule module) : Components.PersistentVoidzone(module, 6.0f, module => module.Enemies((uint)OID.Cacophony).Where(z => z.EventState != 7));
+class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice1, new AOEShapeDonut(8.0f, 30.0f));
 
 class Breath(BossModule module) : Components.GenericAOEs(module)
 {
@@ -101,7 +105,7 @@ class Breath(BossModule module) : Components.GenericAOEs(module)
         int show = 0;
         foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
         {
-            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
+            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE };
             show++;
         }
     }
@@ -190,6 +194,162 @@ class GlacipotentOrb(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class TheDragonsVoiceBoss(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8.0f, 30.0f))
+{
+    private readonly List<Actor> orbs = [];
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.FulmipotentOrb)
+        {
+            orbs.Add(actor);
+        }
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.FulmipotentOrb)
+        {
+            orbs.Remove(actor);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Casters.Count == 0)
+        {
+            return;
+        }
+
+        if (orbs.Count <= 2)
+        {
+            return;
+        }
+
+        Actor? singleOrb = null;
+        var bestDistance = float.MinValue;
+        foreach (var orb in orbs)
+        {
+            var distance = orbs.Where(o => o != orb).Min(o => (o.Position - orb.Position).LengthSq());
+            if (distance > bestDistance)
+            {
+                bestDistance = distance;
+                singleOrb = orb;
+            }
+        }
+
+        if (singleOrb == null)
+        {
+            return;
+        }
+
+        var spellInstance = Casters[0].CastInfo;
+        if (spellInstance == null)
+        {
+            return;
+        }
+
+        var distanceToOrb = spellInstance.LocXZ + (singleOrb.Position - spellInstance.LocXZ).Normalized() * 6.0f;
+        hints.GoalZones.Add(hints.GoalProximity(distanceToOrb, 7.8f, 100.0f));
+    }
+}
+
+class Cacophony(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly AOEShapeCircle shape = new(6.0f);
+    private readonly List<Actor> cacophonyOrbs = [];
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.Cacophony)
+        {
+            cacophonyOrbs.Add(actor);
+        }
+    }
+
+    public override void Update()
+    {
+        for (int i = 0; i < cacophonyOrbs.Count; i++)
+        {
+            var orb = cacophonyOrbs[i];
+
+            if (cacophonyOrbs[i].IsDead)
+            {
+                cacophonyOrbs.Remove(orb);
+            }
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (cacophonyOrbs.Count == 0)
+        {
+            yield break;
+        }
+
+        foreach (var orb in cacophonyOrbs)
+        {
+            yield return new AOEInstance(shape, orb.Position, orb.Rotation);
+        }
+    }
+}
+
+class Duobreath(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCone shape = new(40.0f, 90.0f.Degrees());
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath)
+        {
+            aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(shape, spell.LocXZ, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 3.0f)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath or (uint)AID.TheRamsBreath3 or (uint)AID.TheDragonsBreath3)
+        {
+            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
+            if (aoes.Count > 0)
+            {
+                aoes.RemoveAt(0);
+            }
+        }
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (aoes.Count == 0)
+        {
+            yield break;
+        }
+
+        int show = 0;
+        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
+        {
+            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
+            show++;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (aoes.Count == 0)
+        {
+            return;
+        }
+
+        var aoe = aoes.MinBy(aoe => aoe.Activation);
+        var safeRotation = aoe.Rotation + 180.0f.Degrees();
+        hints.AddForbiddenZone(ShapeContains.InvertedRect(aoe.Origin, safeRotation, 2.0f, 0.0f, 40.0f), aoe.Activation);
+    }
+}
+
 class RegnantChimeraStates : StateMachineBuilder
 {
     public RegnantChimeraStates(BossModule module) : base(module)
@@ -199,7 +359,9 @@ class RegnantChimeraStates : StateMachineBuilder
             .ActivateOnEnter<TheDragonsVoice>()
             .ActivateOnEnter<Cacophony>()
             .ActivateOnEnter<Breath>()
-            .ActivateOnEnter<GlacipotentOrb>();
+            .ActivateOnEnter<GlacipotentOrb>()
+            .ActivateOnEnter<TheDragonsVoiceBoss>()
+            .ActivateOnEnter<Duobreath>();
     }
 }
 

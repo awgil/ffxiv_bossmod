@@ -31,7 +31,7 @@ public enum AID : uint
     OctupleSwipe3 = 47602, // Machetaur->self, no cast, range 40 ?-degree cone
 }
 
-class FocusedTremor(BossModule module) : Components.RaidwideCast(module, AID.FocusedTremor);
+class FocusedTremor(BossModule module) : Components.RaidwideCast(module, AID.FocusedTremorCast);
 class BruntOfTheBattlefield(BossModule module) : Components.StandardAOEs(module, AID.BruntOfTheBattlefield, 10.0f);
 class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, 6.0f);
 
