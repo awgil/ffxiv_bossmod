@@ -19,17 +19,42 @@ public enum AID : uint
     AgeOfEndlessFrostCast = 49760, // Boss->self, 3.0s cast, single-target
     AgeOfEndlessFrost = 49761, // 4DA0->self, 3.0s cast, range 40 60-degree cone
     TheStormWithout = 49757, // Boss->self, 5.0s cast, range 10-40 donut
-    TheStormWithout1 = 49767, // 4D60->location, no cast, range ?-40 donut
+    TheStormWithout1 = 49767, // 4D60->location, no cast, range 10-40 donut
     TheStormWithin = 49756, // Boss->self, 5.0s cast, range 10 circle
     TheStormWithin1 = 49766, // 4D60->location, no cast, range 10 circle
 }
 
-class IcePillar(BossModule module) : Components.StandardAOEs(module, AID.IcePillar, 4.0f);
-class RoaringBlizzard(BossModule module) : Components.StandardAOEs(module, AID.RoaringBlizzard, new AOEShapeCone(50.0f, 30.0f.Degrees()));
-class Rush(BossModule module) : Components.StandardAOEs(module, AID.Rush, new AOEShapeRect(80.0f, 2.0f));
-class AgeOfEndlessFrost(BossModule module) : Components.StandardAOEs(module, AID.AgeOfEndlessFrost, new AOEShapeCone(40.0f, 30.0f.Degrees()));
-class TheStormWithout(BossModule module) : Components.StandardAOEs(module, AID.TheStormWithout, new AOEShapeDonut(10.0f, 40.0f));
-class TheStormWithin(BossModule module) : Components.StandardAOEs(module, AID.TheStormWithin, 10.0f);
+class IcePillar(BossModule module) : Components.StandardAOEs(module, AID.IcePillar, 4);
+class RoaringBlizzard(BossModule module) : Components.StandardAOEs(module, AID.RoaringBlizzard, new AOEShapeCone(50, 30.Degrees()));
+class Rush(BossModule module) : Components.StandardAOEs(module, AID.Rush, new AOEShapeRect(80, 2));
+class AgeOfEndlessFrost(BossModule module) : Components.StandardAOEs(module, AID.AgeOfEndlessFrost, new AOEShapeCone(40, 30.Degrees()));
+
+// each aoe hits twice for some stupid reason
+class TheStorm(BossModule module) : Components.GenericAOEs(module)
+{
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.TheStormWithin:
+                _predicted.Add(new(new AOEShapeCircle(10), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+                break;
+            case AID.TheStormWithout:
+                _predicted.Add(new(new AOEShapeDonut(10, 40), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.TheStormWithin1 or AID.TheStormWithout1 && _predicted.Count > 0)
+            _predicted.RemoveAt(0);
+    }
+}
 
 class RuinHoundStates : StateMachineBuilder
 {
@@ -40,10 +65,9 @@ class RuinHoundStates : StateMachineBuilder
             .ActivateOnEnter<RoaringBlizzard>()
             .ActivateOnEnter<Rush>()
             .ActivateOnEnter<AgeOfEndlessFrost>()
-            .ActivateOnEnter<TheStormWithout>()
-            .ActivateOnEnter<TheStormWithin>();
+            .ActivateOnEnter<TheStorm>();
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14762)]
-public class RuinHound(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90.000f, 865.000f), new ArenaBoundsCircle(30));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14762)]
+public class RuinHound(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 865), new ArenaBoundsCircle(30));

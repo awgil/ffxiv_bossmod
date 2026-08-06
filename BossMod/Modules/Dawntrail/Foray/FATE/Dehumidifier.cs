@@ -30,10 +30,10 @@ public enum AID : uint
     DryCycle = 30344, // 46DB->self, 8.0s cast, range 5-40 donut
 }
 
-class FluidSwing(BossModule module) : Components.GroupedAOEs(module, [AID.FluidSwing, AID.FluidSwing1], new AOEShapeCone(60.0f, 45.0f.Degrees()));
-class HeatVortex(BossModule module) : Components.StandardAOEs(module, AID.HeatVortex, 10.0f);
-class FireBlast(BossModule module) : Components.StandardAOEs(module, AID.FireBlast, new AOEShapeRect(25.0f, 3.0f));
-class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption, 8.0f);
+class FluidSwing(BossModule module) : Components.GroupedAOEs(module, [AID.FluidSwing, AID.FluidSwing1], new AOEShapeCone(60, 45.Degrees()));
+class HeatVortex(BossModule module) : Components.StandardAOEs(module, AID.HeatVortex, 10);
+class FireBlast(BossModule module) : Components.StandardAOEs(module, AID.FireBlast, new AOEShapeRect(25, 3));
+class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption, 8);
 class DryCycle(BossModule module) : Components.StandardAOEs(module, AID.DryCycle, new AOEShapeDonut(5, 40));
 
 class DehumidifierStates : StateMachineBuilder
@@ -50,4 +50,4 @@ class DehumidifierStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13819)]
-public class Dehumidifier(WorldState ws, Actor primary) : BossModule(ws, primary, new(-372.0f, 644.0f), new ArenaBoundsCircle(40));
+public class Dehumidifier(WorldState ws, Actor primary) : BossModule(ws, primary, new(-372, 644), new ArenaBoundsCircle(40));

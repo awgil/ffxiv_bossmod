@@ -267,13 +267,13 @@ public sealed class AIHints
             ImminentSpecialMode = (mode, activation);
     }
 
-    public void AddForbiddenDirections(ArcList list, DateTime activation)
+    public void AddForbiddenDirections(ArcList list, DateTime activation, Angle offset = default)
     {
         foreach (var (from, to) in list.Forbidden.Segments)
         {
-            var center = (to + from) * 0.5f;
+            var center = (to + from) * 0.5f + offset.Rad;
             var width = (to - from) * 0.5f;
-            ForbiddenDirections.Add((center.Radians(), width.Radians(), activation));
+            ForbiddenDirections.Add((center.Radians().Normalized(), width.Radians(), activation));
         }
     }
 

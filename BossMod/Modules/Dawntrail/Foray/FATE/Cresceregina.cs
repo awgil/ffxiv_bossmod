@@ -30,70 +30,10 @@ public enum AID : uint
     ThunderboltPuddle8 = 49926, // 4D65->location, 9.0s cast, range 10 circle
 }
 
-class RegalFulguration(BossModule module) : Components.GroupedAOEs(module, [AID.RegalFulguration, AID.RegalFulguration1], new AOEShapeCone(40.0f, 90.0f.Degrees()));
-class Thunderbolt(BossModule module) : Components.StandardAOEs(module, AID.Thunderbolt, 10.0f);
-class NobleBlaster(BossModule module) : Components.StandardAOEs(module, AID.NobleBlaster, new AOEShapeRect(50.0f, 2.5f));
-
-sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<AOEInstance> aoes = [];
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch (spell.Action.ID)
-        {
-            case (uint)AID.ThunderboltPuddle:
-            case (uint)AID.ThunderboltPuddle1:
-            case (uint)AID.ThunderboltPuddle2:
-            case (uint)AID.ThunderboltPuddle3:
-            case (uint)AID.ThunderboltPuddle4:
-            case (uint)AID.ThunderboltPuddle5:
-            case (uint)AID.ThunderboltPuddle6:
-            case (uint)AID.ThunderboltPuddle7:
-            case (uint)AID.ThunderboltPuddle8:
-                aoes.Add(new(new AOEShapeCircle(10.0f), spell.LocXZ, spell.Rotation, Activation: Module.CastFinishAt(spell)));
-                break;
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        switch (spell.Action.ID)
-        {
-            case (uint)AID.ThunderboltPuddle:
-            case (uint)AID.ThunderboltPuddle1:
-            case (uint)AID.ThunderboltPuddle2:
-            case (uint)AID.ThunderboltPuddle3:
-            case (uint)AID.ThunderboltPuddle4:
-            case (uint)AID.ThunderboltPuddle5:
-            case (uint)AID.ThunderboltPuddle6:
-            case (uint)AID.ThunderboltPuddle7:
-            case (uint)AID.ThunderboltPuddle8:
-                aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-                if (aoes.Count > 0)
-                {
-                    aoes.RemoveAt(0);
-                }
-
-                break;
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (aoes.Count == 0)
-        {
-            yield break;
-        }
-
-        int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(8))
-        {
-            yield return aoe with { Color = show <= 2 ? ArenaColor.Danger : ArenaColor.AOE };
-            show++;
-        }
-    }
-}
+class RegalFulguration(BossModule module) : Components.GroupedAOEs(module, [AID.RegalFulguration, AID.RegalFulguration1], new AOEShapeCone(40, 90.Degrees()));
+class Thunderbolt(BossModule module) : Components.StandardAOEs(module, AID.Thunderbolt, 10);
+class NobleBlaster(BossModule module) : Components.StandardAOEs(module, AID.NobleBlaster, new AOEShapeRect(50, 2.5f));
+class ThunderboltPuddle(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderboltPuddle, AID.ThunderboltPuddle1, AID.ThunderboltPuddle2, AID.ThunderboltPuddle3, AID.ThunderboltPuddle4, AID.ThunderboltPuddle5, AID.ThunderboltPuddle6, AID.ThunderboltPuddle7, AID.ThunderboltPuddle8], new AOEShapeCircle(10), 5, true);
 
 class CrescereginaStates : StateMachineBuilder
 {
@@ -107,5 +47,5 @@ class CrescereginaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14785)]
-public class Cresceregina(WorldState ws, Actor primary) : BossModule(ws, primary, new(140.000f, -708.500f), new ArenaBoundsCircle(40));
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14785)]
+public class Cresceregina(WorldState ws, Actor primary) : BossModule(ws, primary, new(140, -708.500f), new ArenaBoundsCircle(40));

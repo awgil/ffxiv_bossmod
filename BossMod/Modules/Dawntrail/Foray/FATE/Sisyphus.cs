@@ -44,10 +44,10 @@ public enum SID : uint
     ThunderousMemory = 4382, // Boss->Boss, extra=0x1/0x2
 }
 
-class ThunderousMemoryCircle(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderousMemoryCircle, AID.ResoundingMemoryCircle], new AOEShapeCircle(10.0f));
-class ThunderousMemoryCone(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderousMemoryCone, AID.ResoundingMemoryCone], new AOEShapeCone(70.0f, 22.5f.Degrees()));
-class ThunderousMemoryDonut(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderousMemoryDonut, AID.ResoundingMemoryDonut], new AOEShapeDonut(10.0f, 30.0f));
-class ThunderII(BossModule module) : Components.StandardAOEs(module, AID.ThunderII, new AOEShapeCircle(6.0f));
+class ThunderousMemoryCircle(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderousMemoryCircle, AID.ResoundingMemoryCircle], new AOEShapeCircle(10));
+class ThunderousMemoryCone(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderousMemoryCone, AID.ResoundingMemoryCone], new AOEShapeCone(70, 22.5f.Degrees()));
+class ThunderousMemoryDonut(BossModule module) : Components.GroupedAOEs(module, [AID.ThunderousMemoryDonut, AID.ResoundingMemoryDonut], new AOEShapeDonut(10, 30));
+class ThunderII(BossModule module) : Components.StandardAOEs(module, AID.ThunderII, new AOEShapeCircle(6));
 class ThunderIV(BossModule module) : Components.RaidwideCast(module, AID.ThunderIV);
 class Trounce(BossModule module) : Components.StandardAOEs(module, AID.Trounce, new AOEShapeCone(40f, 30.Degrees()));
 
@@ -119,4 +119,4 @@ class SisyphusStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13703)]
-public class Sisyphus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-227.0f, 37.0f), new ArenaBoundsCircle(40));
+public class Sisyphus(WorldState ws, Actor primary) : BossModule(ws, primary, new(-227, 37), new ArenaBoundsCircle(40));

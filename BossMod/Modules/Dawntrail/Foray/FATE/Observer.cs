@@ -32,7 +32,7 @@ public enum SID : uint
 
 class Stare(BossModule module) : Components.GroupedAOEs(module, [AID.Stare, AID.Stare1], new AOEShapeRect(60, 4));
 class Oogle(BossModule module) : Components.CastGaze(module, AID.Oogle, false);
-class VoidThunderII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderII, 6.0f);
+class VoidThunderII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderII, 6);
 
 class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOfDeath)
 {
@@ -44,7 +44,7 @@ class MarkOfDeath(BossModule module) : Components.GenericAOEs(module, AID.MarkOf
         {
             if (!eye.IsDead)
             {
-                yield return new(new AOEShapeCone(8.5f, 60.0f.Degrees()), eye.Position, eye.Rotation);
+                yield return new(new AOEShapeCone(8.5f, 60.Degrees()), eye.Position, eye.Rotation);
             }
         }
     }
@@ -79,4 +79,4 @@ class ObserverStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13853)]
-public class Observer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-71.000f, 557.000f), new ArenaBoundsCircle(40));
+public class Observer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-71, 557), new ArenaBoundsCircle(40));

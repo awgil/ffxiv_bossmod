@@ -23,9 +23,9 @@ public enum AID : uint
     SphereShatter = 41273, // 46C2/481F/481E/481D/4822/4821/4820->self, 2.0s cast, range 7 circle
 }
 
-class GaleCannon(BossModule module) : Components.StandardAOEs(module, AID.GaleCannon, new AOEShapeRect(40.0f, 5.0f));
+class GaleCannon(BossModule module) : Components.StandardAOEs(module, AID.GaleCannon, new AOEShapeRect(40, 5));
 
-class SphereShatter(BossModule module) : Components.StandardAOEs(module, AID.SphereShatter, new AOEShapeCircle(7.0f))
+class SphereShatter(BossModule module) : Components.StandardAOEs(module, AID.SphereShatter, new AOEShapeCircle(7))
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -38,7 +38,7 @@ class SphereShatter(BossModule module) : Components.StandardAOEs(module, AID.Sph
             (uint)OID.Petrifog4 or (uint)OID.Petrifog5 or (uint)OID.Petrifog6).ToList();
         foreach (var petrifog in petrifogs.Where(a => !a.IsDead && a.CastInfo == null))
         {
-            hints.AddForbiddenZone(ShapeDistance.Capsule(petrifog.Position, petrifog.Rotation.ToDirection(), 7.0f, 4.0f), WorldState.FutureTime(5.0f));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(petrifog.Position, petrifog.Rotation.ToDirection(), 7, 4), WorldState.FutureTime(5));
         }
     }
 }
@@ -54,4 +54,4 @@ class GiantBirdStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13739)]
-public class GiantBird(WorldState ws, Actor primary) : BossModule(ws, primary, new(-547.0f, -600.0f), new ArenaBoundsCircle(40));
+public class GiantBird(WorldState ws, Actor primary) : BossModule(ws, primary, new(-547, -600), new ArenaBoundsCircle(40));

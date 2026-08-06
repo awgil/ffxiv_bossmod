@@ -31,35 +31,30 @@ public enum AID : uint
     FocusedTremor9 = 47595, // 4BED->location, 15.5s cast, range 20-30 donut
 }
 
-class Windage(BossModule module) : Components.StandardAOEs(module, AID.Windage, 7.0f);
-class BitingScratch(BossModule module) : Components.StandardAOEs(module, AID.BitingScratch, new AOEShapeCone(40.0f, 45.0f.Degrees()));
+class Windage(BossModule module) : Components.StandardAOEs(module, AID.Windage, 7);
+class BitingScratch(BossModule module) : Components.StandardAOEs(module, AID.BitingScratch, new AOEShapeCone(40, 45.Degrees()));
 
-class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, shapes)
+class FocusedTremor(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10f), new AOEShapeDonut(10f, 20f), new AOEShapeDonut(20f, 30f)])
 {
-    private static readonly AOEShape[] shapes = [new AOEShapeCircle(10f), new AOEShapeDonut(10f, 20f), new AOEShapeDonut(20f, 30f)];
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7)
-        {
             AddSequence(spell.LocXZ, Module.CastFinishAt(spell));
-        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (Sequences.Count != 0)
+        var order = spell.Action.ID switch
         {
-            var order = spell.Action.ID switch
-            {
-                (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7 => 0,
-                (uint)AID.FocusedTremor2 or (uint)AID.FocusedTremor5 or (uint)AID.FocusedTremor8 => 1,
-                (uint)AID.FocusedTremor3 or (uint)AID.FocusedTremor6 or (uint)AID.FocusedTremor9 => 2,
-                _ => -1
-            };
+            (uint)AID.FocusedTremor1 or (uint)AID.FocusedTremor4 or (uint)AID.FocusedTremor7 => 0,
+            (uint)AID.FocusedTremor2 or (uint)AID.FocusedTremor5 or (uint)AID.FocusedTremor8 => 1,
+            (uint)AID.FocusedTremor3 or (uint)AID.FocusedTremor6 or (uint)AID.FocusedTremor9 => 2,
+            _ => -1
+        };
 
-            AdvanceSequence(order, spell.LocXZ, WorldState.FutureTime(2.0f));
-        }
+        AdvanceSequence(order, spell.LocXZ, WorldState.FutureTime(2));
+
+        Sequences.RemoveAll(s => s.NumCastsDone >= 3);
     }
 }
 
@@ -74,5 +69,5 @@ class StormcallerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14776)]
-public class Stormcaller(WorldState ws, Actor primary) : BossModule(ws, primary, new(-850.000f, 486.000f), new ArenaBoundsCircle(40));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14776)]
+public class Stormcaller(WorldState ws, Actor primary) : BossModule(ws, primary, new(-850, 486), new ArenaBoundsCircle(40));

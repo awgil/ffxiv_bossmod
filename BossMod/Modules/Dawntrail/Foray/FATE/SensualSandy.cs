@@ -24,10 +24,10 @@ public enum SID : uint
     Poison = 2104, // 4D57->player, extra=0x0
 }
 
-class PutridBreath(BossModule module) : Components.GroupedAOEs(module, [AID.PutridBreath, AID.PutridBreath1], new AOEShapeCone(25.0f, 65.0f.Degrees()));
+class PutridBreath(BossModule module) : Components.GroupedAOEs(module, [AID.PutridBreath, AID.PutridBreath1], new AOEShapeCone(25, 65.Degrees()));
 class WildWildBreath(BossModule module) : Components.GroupedAOEs(module, [AID.WildWildBreath, AID.WildWildWildWildWildBreath, AID.ExtensibleTendrils],
-    new AOEShapeCross(30.0f, 3.0f));
-class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, 10.0f);
+    new AOEShapeCross(30, 3));
+class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, 10);
 
 class SensualSandyStates : StateMachineBuilder
 {
@@ -40,5 +40,5 @@ class SensualSandyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14738)]
-public class SensualSandy(WorldState ws, Actor primary) : BossModule(ws, primary, new(-402.000f, -253.000f), new ArenaBoundsCircle(30));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14738)]
+public class SensualSandy(WorldState ws, Actor primary) : BossModule(ws, primary, new(-402, -253), new ArenaBoundsCircle(30));

@@ -39,7 +39,7 @@ public enum AID : uint
     QuarryLake = 42003, // AdvancedAevis->location, 5.0s cast, range 40 circle
 }
 
-class ZombieScales(BossModule module) : Components.GroupedAOEs(module, [AID.ZombieScales, AID.ZombieScales1], new AOEShapeCone(40.0f, 22.5f.Degrees()), 4, true);
+class ZombieScales(BossModule module) : Components.GroupedAOEs(module, [AID.ZombieScales, AID.ZombieScales1], new AOEShapeCone(40, 22.5f.Degrees()), 4, true);
 class AeroII(BossModule module) : Components.StandardAOEs(module, AID.AeroII, 4f);
 class ZombieBreath(BossModule module) : Components.StandardAOEs(module, AID.ZombieBreath, new AOEShapeCone(40f, 90.Degrees()));
 class BreathWing(BossModule module) : Components.RaidwideCast(module, AID.BreathWing);
@@ -53,16 +53,16 @@ class TripleFlight(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.TripleFlight)
         {
-            aoes.Add(new(new AOEShapeDonut(10.0f, 20.0f), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeCircle(10.0f), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 2.1f), Risky: false));
-            aoes.Add(new(new AOEShapeRect(40.0f, 5.0f, 40.0f), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 4.2f), Risky: false));
+            aoes.Add(new(new AOEShapeDonut(10, 20), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(new AOEShapeCircle(10), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 2.1f), Risky: false));
+            aoes.Add(new(new AOEShapeRect(40, 5, 40), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 4.2f), Risky: false));
         }
 
         if (spell.Action.ID == (uint)AID.Cyclone)
         {
-            aoes.Add(new(new AOEShapeCircle(10.0f), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), Risky: false));
-            aoes.Add(new(new AOEShapeDonut(10.0f, 20.0f), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 2.1f)));
-            aoes.Add(new(new AOEShapeRect(40.0f, 5.0f, 40.0f), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 4.2f), Risky: false));
+            aoes.Add(new(new AOEShapeCircle(10), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), Risky: false));
+            aoes.Add(new(new AOEShapeDonut(10, 20), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 2.1f)));
+            aoes.Add(new(new AOEShapeRect(40, 5, 40), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 4.2f), Risky: false));
         }
     }
 
@@ -103,4 +103,4 @@ class AdvancedAevisStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13704)]
-public class AdvancedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-48.0f, -320.0f), new ArenaBoundsCircle(40));
+public class AdvancedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-48, -320), new ArenaBoundsCircle(40));

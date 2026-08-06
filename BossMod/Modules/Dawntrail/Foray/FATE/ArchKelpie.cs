@@ -21,126 +21,72 @@ public enum AID : uint
     StormWaveNext = 47388, // 4B5B->location, no cast, range 50 width 5 rect
 }
 
-class WaveWhistle(BossModule module) : Components.StandardAOEs(module, AID.WaveWhistle, new AOEShapeRect(25.0f, 25.0f));
+class WaveWhistle(BossModule module) : Components.StandardAOEs(module, AID.WaveWhistle, new AOEShapeRect(25, 25));
 class WaterIV(BossModule module) : Components.RaidwideCast(module, AID.WaterIV);
 
-class BloodyPuddle : Components.StandardAOEs
+class BloodyPuddle(BossModule module) : Components.StandardAOEs(module, AID.BloodyPuddle, 8);
+
+class StormWave : Components.Exaflare
 {
-    public BloodyPuddle(BossModule module) : base(module, AID.BloodyPuddle, 8.0f)
+    public StormWave(BossModule module) : base(module, new AOEShapeRect(50, 2.5f))
     {
-        Color = ArenaColor.Danger;
-    }
-}
-
-class StormWaveStart : Components.StandardAOEs
-{
-    public StormWaveStart(BossModule module) : base(module, AID.StormWaveStart, new AOEShapeRect(50.0f, 5.0f))
-    {
-        Color = ArenaColor.Danger;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        var shape = Shape;
-
-        foreach (var caster in ActiveCasters)
-        {
-            var spellInstance = caster.CastInfo;
-            if (spellInstance == null)
-            {
-                continue;
-            }
-
-            var rotation = spellInstance.Rotation;
-            var right = spellInstance.LocXZ + rotation.ToDirection().OrthoR() * 1.5f;
-            var left = spellInstance.LocXZ + rotation.ToDirection().OrthoL() * 1.5f;
-            hints.GoalZones.Add(p => shape.Check(p, right, rotation) || shape.Check(p, left, rotation) ? 100.0f : 0.0f);
-        }
-    }
-}
-
-class StormWave(BossModule module) : Components.Exaflare(module, new AOEShapeRect(25.0f, 2.5f, 25.0f))
-{
-    private readonly Dictionary<ulong, (WaveLine right, WaveLine left)> pendingWaves = [];
-
-    private class WaveLine : Line
-    {
-        public bool started;
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var (c, t, r) in FutureAOEs())
-        {
-            yield return new(Shape, c, r, t, FutureColor, Risky: false);
-        }
-
-        foreach (var l in Lines.Where(l => l.ExplosionsLeft > 0))
-        {
-            var started = l is WaveLine { started: true };
-            yield return new(Shape, l.Next, l.Rotation, l.NextExplosion, started ? ImminentColor : FutureColor, started);
-        }
+        FutureRisky = false;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.StormWaveStart)
         {
-            var directionRight = caster.Rotation.ToDirection().OrthoR() * 5.0f;
-            var directionLeft = caster.Rotation.ToDirection().OrthoL() * 5.0f;
+            var origin = spell.LocXZ;
+            var rotation = spell.Rotation;
 
-            var rightLine = new WaveLine
+            // both helpers cast from the same position but face opposite directions...
+            Lines.Add(new()
             {
-                Next = caster.Position + directionRight + directionRight / 2,
-                Advance = directionRight,
-                Rotation = caster.Rotation,
-                NextExplosion = Module.CastFinishAt(spell, 2.0f),
-                TimeToMove = 2.0f,
-                ExplosionsLeft = 4,
+                Next = origin + rotation.ToDirection().OrthoR() * 2.5f,
+                Advance = rotation.ToDirection().OrthoR() * 5,
+                Rotation = rotation,
+                NextExplosion = Module.CastFinishAt(spell),
+                TimeToMove = 2.1f,
+                ExplosionsLeft = 5,
                 MaxShownExplosions = 2
-            };
-
-            var leftLine = new WaveLine
+            });
+            Lines.Add(new()
             {
-                Next = caster.Position + directionLeft + directionLeft / 2,
-                Advance = directionLeft,
-                Rotation = caster.Rotation,
-                NextExplosion = Module.CastFinishAt(spell, 2.0f),
-                TimeToMove = 2.0f,
-                ExplosionsLeft = 4,
+                Next = origin + rotation.ToDirection() * 50 + rotation.ToDirection().OrthoL() * 2.5f,
+                Advance = rotation.ToDirection().OrthoL() * 5,
+                Rotation = rotation + 180.Degrees(),
+                NextExplosion = Module.CastFinishAt(spell),
+                TimeToMove = 2.1f,
+                ExplosionsLeft = 5,
                 MaxShownExplosions = 2
-            };
-
-            Lines.Add(rightLine);
-            Lines.Add(leftLine);
-            pendingWaves[caster.InstanceID] = (rightLine, leftLine);
+            });
         }
     }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (spell.Action.ID == (uint)AID.StormWaveStart && pendingWaves.Remove(caster.InstanceID, out var wave))
-        {
-            wave.right.started = true;
-            wave.left.started = true;
-        }
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        foreach (var l in Lines.Where(l => l.ExplosionsLeft == 5))
+            hints.GoalZones.Add(p => p.InRect(l.Next, l.Rotation, 50, 0, 4) ? 0.5f : 0);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.StormWaveStart or AID.StormWaveNext)
+        if ((AID)spell.Action.ID == AID.StormWaveStart)
         {
-            var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position + l.Advance / 2, 1.0f));
-            if (ix >= 0)
-            {
-                AdvanceLine(Lines[ix], caster.Position + Lines[ix].Advance / 2);
-                if (Lines[ix].ExplosionsLeft <= 0)
-                {
-                    Lines.RemoveAt(ix);
-                }
-            }
+            foreach (var l in Lines)
+                if (l.Rotation.AlmostEqual(spell.Rotation, 0.1f) || l.Rotation.AlmostEqual(spell.Rotation + 180.Degrees(), 0.1f))
+                    AdvanceLine(l, l.Next);
         }
+
+        if ((AID)spell.Action.ID == AID.StormWaveNext)
+            foreach (var l in Lines)
+                if (l.Rotation.AlmostEqual(spell.Rotation, 0.1f))
+                    AdvanceLine(l, l.Next);
+
+        Lines.RemoveAll(l => l.ExplosionsLeft <= 0);
     }
 }
 
@@ -152,10 +98,9 @@ class ArchKelpieStates : StateMachineBuilder
             .ActivateOnEnter<WaveWhistle>()
             .ActivateOnEnter<WaterIV>()
             .ActivateOnEnter<BloodyPuddle>()
-            .ActivateOnEnter<StormWaveStart>()
             .ActivateOnEnter<StormWave>();
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14728)]
-public class ArchKelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(330.000f, -250.000f), new ArenaBoundsCircle(30));
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14728)]
+public class ArchKelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(330, -250), new ArenaBoundsCircle(30));

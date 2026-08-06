@@ -75,7 +75,7 @@ class TidelineStart(BossModule module) : Components.StandardAOEs(module, AID.Tid
         var rotation = spellInstance.Rotation;
         var right = spellInstance.LocXZ + rotation.ToDirection().OrthoR() * 1f;
         var left = spellInstance.LocXZ + rotation.ToDirection().OrthoL() * 1f;
-        hints.GoalZones.Add(p => shapeInstance.Check(p, right, rotation) || shapeInstance.Check(p, left, rotation) ? 100.0f : 0);
+        hints.GoalZones.Add(p => shapeInstance.Check(p, right, rotation) || shapeInstance.Check(p, left, rotation) ? 100 : 0);
     }
 
     // We change this to draw to the foreground as the exaflares casts overlap with the first one, and it can look confusing where is exactly safe
@@ -92,7 +92,7 @@ class TidelineStart(BossModule module) : Components.StandardAOEs(module, AID.Tid
     }
 }
 
-class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOEShapeRect(25.0f, 2.5f, 25.0f))
+class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOEShapeRect(25, 2.5f, 25))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -115,8 +115,8 @@ class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOES
             return;
         }
 
-        var directionRight = caster.Rotation.ToDirection().OrthoR() * 5.0f;
-        var directionLeft = caster.Rotation.ToDirection().OrthoL() * 5.0f;
+        var directionRight = caster.Rotation.ToDirection().OrthoR() * 5;
+        var directionLeft = caster.Rotation.ToDirection().OrthoL() * 5;
 
         if ((AID)spell.Action.ID == AID.TidelineStart)
         {
@@ -125,8 +125,8 @@ class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOES
                 Next = caster.Position + directionRight + directionRight / 2,
                 Advance = directionRight,
                 Rotation = caster.Rotation.ToDirection().ToAngle(),
-                NextExplosion = Module.CastFinishAt(spell, 2.0f),
-                TimeToMove = 2.0f,
+                NextExplosion = Module.CastFinishAt(spell, 2),
+                TimeToMove = 2,
                 ExplosionsLeft = 4,
                 MaxShownExplosions = 2
             });
@@ -136,8 +136,8 @@ class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOES
                 Next = caster.Position + directionLeft + directionLeft / 2,
                 Advance = directionLeft,
                 Rotation = caster.Rotation.ToDirection().ToAngle(),
-                NextExplosion = Module.CastFinishAt(spell, 2.0f),
-                TimeToMove = 2.0f,
+                NextExplosion = Module.CastFinishAt(spell, 2),
+                TimeToMove = 2,
                 ExplosionsLeft = 4,
                 MaxShownExplosions = 2
             });
@@ -148,7 +148,7 @@ class TidelineExaFlare(BossModule module) : Components.Exaflare(module, new AOES
     {
         if ((AID)spell.Action.ID is AID.TidelineStart or AID.TidelineNext)
         {
-            var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position + l.Advance / 2, 1.0f));
+            var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position + l.Advance / 2, 1));
             if (ix >= 0)
             {
                 AdvanceLine(Lines[ix], caster.Position + Lines[ix].Advance / 2);
@@ -175,13 +175,13 @@ class TwinTides(BossModule module) : Components.GenericAOEs(module)
         if (spell.Action.ID == (uint)AID.RecedingTwinTides)
         {
             aoes.Add(new(new AOEShapeCircle(10), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell, 2.0f), Risky: false));
+            aoes.Add(new(new AOEShapeDonut(10, 40), caster.Position, caster.Rotation, Module.CastFinishAt(spell, 2), Risky: false));
         }
 
         if (spell.Action.ID == (uint)AID.EncroachingTwinTides)
         {
-            aoes.Add(new(new AOEShapeDonut(10.0f, 40.0f), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(new AOEShapeCircle(10), caster.Position, caster.Rotation, Module.CastFinishAt(spell, 2.0f), Risky: false));
+            aoes.Add(new(new AOEShapeDonut(10, 40), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(new AOEShapeCircle(10), caster.Position, caster.Rotation, Module.CastFinishAt(spell, 2), Risky: false));
         }
     }
 
@@ -215,14 +215,14 @@ class TwinTentacle(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.LeftTwinTentacleFirst)
         {
-            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoL().ToAngle(), Module.CastFinishAt(spell), Color: ArenaColor.Danger, Risky: true));
-            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoR().ToAngle(), Module.CastFinishAt(spell, 2.0f), Color: ArenaColor.Danger, Risky: true));
+            aoes.Add(new(new AOEShapeCone(60, 90.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoL().ToAngle(), Module.CastFinishAt(spell), Color: ArenaColor.Danger, Risky: true));
+            aoes.Add(new(new AOEShapeCone(60, 90.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoR().ToAngle(), Module.CastFinishAt(spell, 2), Color: ArenaColor.Danger, Risky: true));
         }
 
         if (spell.Action.ID == (uint)AID.RightTwinTentacleFirst)
         {
-            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoR().ToAngle(), Module.CastFinishAt(spell), Color: ArenaColor.Danger, Risky: true));
-            aoes.Add(new(new AOEShapeCone(60.0f, 90.0f.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoL().ToAngle(), Module.CastFinishAt(spell, 2.0f), Color: ArenaColor.Danger, Risky: true));
+            aoes.Add(new(new AOEShapeCone(60, 90.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoR().ToAngle(), Module.CastFinishAt(spell), Color: ArenaColor.Danger, Risky: true));
+            aoes.Add(new(new AOEShapeCone(60, 90.Degrees()), caster.Position, caster.Rotation.ToDirection().OrthoL().ToAngle(), Module.CastFinishAt(spell, 2), Color: ArenaColor.Danger, Risky: true));
         }
     }
 

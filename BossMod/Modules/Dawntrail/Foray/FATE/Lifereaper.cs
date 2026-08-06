@@ -29,15 +29,15 @@ public enum AID : uint
     DismalRoar = 42185, // Lifereaper->self, 5.0s cast, range 60 circle
 }
 
-class SoulSweep(BossModule module) : Components.GroupedAOEs(module, [AID.SoulSweep, AID.SweepingChargeCone], new AOEShapeCone(60.0f, 65.0f.Degrees()));
-class Menace(BossModule module) : Components.StandardAOEs(module, AID.Menace, new AOEShapeCircle(20.0f));
-class HallOfSorrow(BossModule module) : Components.StandardAOEs(module, AID.HallOfSorrow1, 10.0f, highlightImminent: true);
+class SoulSweep(BossModule module) : Components.GroupedAOEs(module, [AID.SoulSweep, AID.SweepingChargeCone], new AOEShapeCone(60, 65.Degrees()));
+class Menace(BossModule module) : Components.StandardAOEs(module, AID.Menace, new AOEShapeCircle(20));
+class HallOfSorrow(BossModule module) : Components.StandardAOEs(module, AID.HallOfSorrow1, 10, highlightImminent: true);
 class DismalRoar(BossModule module) : Components.RaidwideCast(module, AID.DismalRoar);
-class MenacingCharge(BossModule module) : Components.ChargeAOEs(module, AID.MenacingChargeCast, 4.0f);
+class MenacingCharge(BossModule module) : Components.ChargeAOEs(module, AID.MenacingChargeCast, 4);
 
 // SweepingChargeCone doesn't seem to be a fixed angle turn, but rather certain points in how the boss will turn
 // easier to tell the player to just follow the charge or not
-class SweepingCharge(BossModule module) : Components.ChargeAOEs(module, AID.SweepingChargeCast, 4.0f)
+class SweepingCharge(BossModule module) : Components.ChargeAOEs(module, AID.SweepingChargeCast, 4)
 {
     private bool active;
     private ActorCastInfo? sweepingChargeSpell;
@@ -67,7 +67,7 @@ class SweepingCharge(BossModule module) : Components.ChargeAOEs(module, AID.Swee
         base.AddAIHints(slot, actor, assignment, hints);
         if (active && sweepingChargeSpell != null)
         {
-            hints.GoalZones.Add(hints.GoalProximity(sweepingChargeSpell.LocXZ, 4.0f, 100.0f));
+            hints.GoalZones.Add(hints.GoalProximity(sweepingChargeSpell.LocXZ, 4, 100));
         }
     }
 
@@ -81,7 +81,7 @@ class SweepingCharge(BossModule module) : Components.ChargeAOEs(module, AID.Swee
     }
 }
 
-class MenacingChargeAOE(BossModule module) : Components.StandardAOEs(module, AID.MenaceChargeAOE, 20.0f)
+class MenacingChargeAOE(BossModule module) : Components.StandardAOEs(module, AID.MenaceChargeAOE, 20)
 {
     private readonly List<AOEInstance> aoes = [];
 
@@ -89,7 +89,7 @@ class MenacingChargeAOE(BossModule module) : Components.StandardAOEs(module, AID
     {
         if (spell.Action.ID == (uint)AID.MenacingChargeCast)
         {
-            aoes.Add(new(new AOEShapeCircle(20.0f), spell.LocXZ, spell.Rotation, Module.WorldState.CurrentTime.AddSeconds(13.2f)));
+            aoes.Add(new(new AOEShapeCircle(20), spell.LocXZ, spell.Rotation, Module.WorldState.CurrentTime.AddSeconds(13.2f)));
         }
     }
 
@@ -130,4 +130,4 @@ class LifereaperStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13741)]
-public class Lifereaper(WorldState ws, Actor primary) : BossModule(ws, primary, new(416.2f, -10.0f), new ArenaBoundsCircle(40));
+public class Lifereaper(WorldState ws, Actor primary) : BossModule(ws, primary, new(416.2f, -10), new ArenaBoundsCircle(40));

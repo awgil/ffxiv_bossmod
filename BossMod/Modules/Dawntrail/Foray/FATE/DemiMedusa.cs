@@ -35,9 +35,9 @@ public enum SID : uint
     Petrification = 3007, // 4D52/4D51/4D54/4D53->player, extra=0x0
 }
 
-class CursedSight(BossModule module) : Components.GroupedAOEs(module, [AID.CursedSight, AID.CursedSight1], new AOEShapeCone(60.0f, 30.0f.Degrees()));
-class LamianLesion(BossModule module) : Components.StandardAOEs(module, AID.LamianLesion, new AOEShapeCone(25.0f, 90.0f.Degrees()));
-class Dark(BossModule module) : Components.StandardAOEs(module, AID.Dark, 6.0f);
+class CursedSight(BossModule module) : Components.GroupedAOEs(module, [AID.CursedSight, AID.CursedSight1], new AOEShapeCone(60, 30.Degrees()));
+class LamianLesion(BossModule module) : Components.StandardAOEs(module, AID.LamianLesion, new AOEShapeCone(25, 90.Degrees()));
+class Dark(BossModule module) : Components.StandardAOEs(module, AID.Dark, 6);
 
 class DemiMedusaStates : StateMachineBuilder
 {
@@ -50,5 +50,5 @@ class DemiMedusaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14736)]
-public class DemiMedusa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-661.000f, -54.000f), new ArenaBoundsCircle(40));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14736)]
+public class DemiMedusa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-661, -54), new ArenaBoundsCircle(40));

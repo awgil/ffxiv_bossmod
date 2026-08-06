@@ -28,81 +28,77 @@ public enum SID : uint
     Gen1 = 5107, // 4C42->4C43/Boss, extra=0x1
 }
 
-class GardenersHymn(BossModule module) : Components.StandardAOEs(module, AID.GardenersHymn, 5.0f);
-class OdeOfTheUnderfoot(BossModule module) : Components.StandardAOEs(module, AID.OdeOfTheUnderfoot, 10.0f);
+class GardenersHymn(BossModule module) : Components.StandardAOEs(module, AID.GardenersHymn, 5);
+class OdeOfTheUnderfoot(BossModule module) : Components.StandardAOEs(module, AID.OdeOfTheUnderfoot, 10)
+{
+    BitMask _marching;
+
+    public override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID.ForwardMarch or SID.AboutFace && Raid.TryFindSlot(actor, out var slot))
+            _marching.Set(slot);
+    }
+
+    public override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if ((SID)status.ID is SID.ForwardMarch or SID.AboutFace && Raid.TryFindSlot(actor, out var slot))
+            _marching.Clear(slot);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!_marching[slot])
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!_marching[slot])
+            base.AddHints(slot, actor, hints);
+    }
+}
 
 class Burst(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> aoes = [];
-    private readonly List<Actor> seeds = [];
+    private readonly List<(Actor seed, DateTime activation)> seeds = [];
 
-    public override void OnActorCreated(Actor actor)
-    {
-        if (actor.OID == (uint)OID.WinsomeSeed)
-        {
-            seeds.Add(actor);
-        }
-    }
-
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if (actor.OID == (uint)OID.WinsomeSeed)
-        {
-            seeds.Remove(actor);
-        }
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => seeds.Select(s => new AOEInstance(new AOEShapeCircle(15), s.seed.Position, default, s.activation));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.GardenersHymn)
+        if ((AID)spell.Action.ID == AID.GardenersHymn)
+            seeds.AddRange(Module.Enemies(OID.WinsomeSeed).InRadius(spell.LocXZ, 5).Select(s => (s, Module.CastFinishAt(spell, 3.6f))));
+
+        if ((AID)spell.Action.ID == AID.Burst)
         {
-            foreach (var seed in seeds)
-            {
-                if (spell.LocXZ.AlmostEqual(seed.Position, 0.5f))
-                {
-                    aoes.Add(new(new AOEShapeCircle(15.0f), seed.Position));
-                }
-            }
+            var i = seeds.FindIndex(s => s.seed == caster);
+            if (i >= 0)
+                seeds.Ref(i).activation = Module.CastFinishAt(spell);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID == (uint)AID.Burst)
-        {
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.5f));
-            }
-        }
+        if ((AID)spell.Action.ID == AID.Burst)
+            seeds.RemoveAll(s => s.seed == caster);
     }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes;
 }
 
-sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, default, default)
+class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 2, (uint)SID.ForwardMarch, (uint)SID.AboutFace, default, default)
 {
-    private const float aoeCircle = 10.0f;
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        var state = State.GetValueOrDefault(actor.InstanceID);
-        if (state == null || state.PendingMoves.Count == 0)
-        {
-            return;
-        }
 
-        var move0 = state.PendingMoves[0];
-        var requiredFacing = Angle.FromDirection((actor.Position - Module.PrimaryActor.Position).Normalized()) - move0.dir;
-        hints.ForbiddenDirections.Add((requiredFacing + 180.0f.Degrees(), 170.0f.Degrees(), move0.activation));
-        var moveDistance = MovementSpeed * move0.duration;
-        var unsafeRadius = aoeCircle - moveDistance;
-        if (unsafeRadius > 0.0f)
+        if (Module.PrimaryActor.CastInfo is { } ci && State.TryGetValue(actor.InstanceID, out var state) && ci.IsSpell(AID.OdeOfTheUnderfoot) && state.PendingMoves is [var move, ..])
         {
-            hints.AddForbiddenZone(ShapeContains.Circle(Module.PrimaryActor.Position, unsafeRadius), move0.activation);
+            var al = new ArcList(actor.Position, 12);
+            al.ForbidCircle(ci.LocXZ, 10);
+            hints.AddForbiddenDirections(al, move.activation, move.dir);
         }
     }
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.PrimaryActor.CastInfo is { } ci && ci.IsSpell(AID.OdeOfTheUnderfoot) && pos.InCircle(ci.LocXZ, 10);
 }
 
 class IambeStates : StateMachineBuilder
@@ -117,5 +113,5 @@ class IambeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14765)]
-public class Iambe(WorldState ws, Actor primary) : BossModule(ws, primary, new(-175.000f, -500.000f), new ArenaBoundsCircle(40));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14765)]
+public class Iambe(WorldState ws, Actor primary) : BossModule(ws, primary, new(-175, -500), new ArenaBoundsCircle(40));

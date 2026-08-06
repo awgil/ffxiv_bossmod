@@ -28,8 +28,8 @@ public enum AID : uint
 
 class ArmOfPurgatory(BossModule module) : Components.StandardAOEs(module, AID.ArmOfPurgatory, 20f);
 class VoidFireIII(BossModule module) : Components.StandardAOEs(module, AID.VoidFireIII, 10f);
-class DarkMist(BossModule module) : Components.StandardAOEs(module, AID.DarkMist, 22.0f);
-class Mini(BossModule module) : Components.StandardAOEs(module, AID.Mini, new AOEShapeCone(30f, 60.0f.Degrees()));
+class DarkMist(BossModule module) : Components.StandardAOEs(module, AID.DarkMist, 22);
+class Mini(BossModule module) : Components.StandardAOEs(module, AID.Mini, new AOEShapeCone(30f, 60.Degrees()));
 
 class ExecratorStates : StateMachineBuilder
 {
@@ -44,7 +44,7 @@ class ExecratorStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13855)]
-public class Execrator(WorldState ws, Actor primary) : BossModule(ws, primary, new(79.0f, 278.0f), new ArenaBoundsCircle(40))
+public class Execrator(WorldState ws, Actor primary) : BossModule(ws, primary, new(79, 278), new ArenaBoundsCircle(40))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

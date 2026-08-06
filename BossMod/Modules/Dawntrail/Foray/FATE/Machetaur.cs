@@ -25,16 +25,16 @@ public enum AID : uint
     Uplift = 47611, // Machetaur2/Machetaur3/Machetaur1/Machetaur4->location, 3.0s cast, range 6 circle
 
     OctupleSwipe = 47600, // Machetaur->self, 10.0s cast, single-target
-    OctupleSwipeVisual = 47601, // Machetaur1->self, 1.0s cast, range 40 ?-degree cone
-    OctupleSwipe1 = 47604, // Machetaur->self, no cast, range 40 ?-degree cone
-    OctupleSwipe2 = 47605, // Machetaur->self, no cast, range 40 ?-degree cone
-    OctupleSwipe3 = 47602, // Machetaur->self, no cast, range 40 ?-degree cone
-    OctupleSwipe4 = 47603, // Boss->self, no cast, range 40 ?-degree cone
+    OctupleSwipeVisual = 47601, // Machetaur1->self, 1.0s cast, range 40 90-degree cone
+    OctupleSwipe1 = 47604, // Machetaur->self, no cast, range 40 90-degree cone
+    OctupleSwipe2 = 47605, // Machetaur->self, no cast, range 40 90-degree cone
+    OctupleSwipe3 = 47602, // Machetaur->self, no cast, range 40 90-degree cone
+    OctupleSwipe4 = 47603, // Boss->self, no cast, range 40 90-degree cone
 }
 
 class FocusedTremor(BossModule module) : Components.RaidwideCast(module, AID.FocusedTremorCast);
-class BruntOfTheBattlefield(BossModule module) : Components.StandardAOEs(module, AID.BruntOfTheBattlefield, 10.0f);
-class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, 6.0f);
+class BruntOfTheBattlefield(BossModule module) : Components.StandardAOEs(module, AID.BruntOfTheBattlefield, 10);
+class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, 6);
 
 class FocusedTremorCircle(BossModule module) : Components.GenericAOEs(module)
 {
@@ -42,87 +42,58 @@ class FocusedTremorCircle(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.FocusedTremorInner)
+        AOEShape? shape = (AID)spell.Action.ID switch
         {
-            aoes.Add(new(new AOEShapeCircle(10), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
-        }
+            AID.FocusedTremorInner => new AOEShapeCircle(10),
+            AID.FocusedTremorMiddle => new AOEShapeDonut(10, 20),
+            AID.FocusedTremorOuter => new AOEShapeDonut(20, 30),
+            _ => null
+        };
 
-        if (spell.Action.ID == (uint)AID.FocusedTremorMiddle)
+        if (shape != null)
         {
-            aoes.Add(new(new AOEShapeDonut(10, 20), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
-        }
-
-        if (spell.Action.ID == (uint)AID.FocusedTremorOuter)
-        {
-            aoes.Add(new(new AOEShapeDonut(20, 30), spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            aoes.SortBy(a => a.Activation);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.FocusedTremorInner or (uint)AID.FocusedTremorMiddle or (uint)AID.FocusedTremorOuter)
-        {
-            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAt(0);
-            }
-        }
+        if ((AID)spell.Action.ID is AID.FocusedTremorInner or AID.FocusedTremorMiddle or AID.FocusedTremorOuter && aoes.Count > 0)
+            aoes.RemoveAt(0);
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (aoes.Count == 0)
-        {
-            yield break;
-        }
-
-        int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
-        {
-            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
-            show++;
-        }
+        foreach (var (i, aoe) in aoes.Take(2).Select((a, i) => (i, a)))
+            yield return aoe with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
     }
 }
 
 class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
-    private readonly AOEShapeCone shape = new(40.0f, 45.0f.Degrees());
+    private readonly AOEShapeCone shape = new(40, 45.Degrees());
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.OctupleSwipeVisual)
+        if ((AID)spell.Action.ID == AID.OctupleSwipeVisual)
         {
-            aoes.Add(new(shape, spell.LocXZ, spell.Rotation));
+            var next = aoes.Count > 0 ? aoes[^1].Activation.AddSeconds(2.1f) : Module.CastFinishAt(spell, 7.3f);
+            aoes.Add(new(shape, spell.LocXZ, spell.Rotation, next));
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3 or (uint)AID.OctupleSwipe4)
-        {
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAt(0);
-            }
-        }
+        if ((AID)spell.Action.ID is AID.OctupleSwipe1 or AID.OctupleSwipe2 or AID.OctupleSwipe3 or AID.OctupleSwipe4 && aoes.Count > 0)
+            aoes.RemoveAt(0);
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (aoes.Count == 0)
-        {
-            yield break;
-        }
-
-        int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
-        {
-            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
-            show++;
-        }
+        foreach (var (i, aoe) in aoes.Take(2).Select((a, i) => (i, a)))
+            yield return aoe with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
     }
 }
 
@@ -139,5 +110,5 @@ class MachetaurStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14735)]
-public class Machetaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(724.000f, 220.000f), new ArenaBoundsCircle(30));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14735)]
+public class Machetaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(724, 220), new ArenaBoundsCircle(30));

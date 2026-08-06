@@ -36,12 +36,12 @@ public enum SID : uint
     EnsorcelledStoneIII = 5375, // Boss->Boss, extra=0x0
 }
 
-class Glory(BossModule module) : Components.StandardAOEs(module, AID.Glory, new AOEShapeCone(50.0f, 45.0f.Degrees()));
-class StoneIII(BossModule module) : Components.GroupedAOEs(module, [AID.StoneIII, AID.StoneIII1], new AOEShapeCone(40.0f, 22.5f.Degrees()));
-class AeroIII(BossModule module) : Components.GroupedAOEs(module, [AID.AeroIII, AID.AeroIII1], new AOEShapeRect(40.0f, 4.0f));
-class Holy(BossModule module) : Components.GroupedAOEs(module, [AID.HolyStart, AID.HolyNext], new AOEShapeCircle(6.0f));
-class ShortswordAndSorcery(BossModule module) : Components.GroupedAOEs(module, [AID.ShortswordAndSorcery, AID.ShortswordAndSorcery1], new AOEShapeCircle(15.0f));
-class LongswordAndSorcery(BossModule module) : Components.GroupedAOEs(module, [AID.LongswordAndSorcery, AID.LongswordAndSorcery1], new AOEShapeDonut(10.0f, 25.0f));
+class Glory(BossModule module) : Components.StandardAOEs(module, AID.Glory, new AOEShapeCone(50, 45.Degrees()));
+class StoneIII(BossModule module) : Components.GroupedAOEs(module, [AID.StoneIII, AID.StoneIII1], new AOEShapeCone(40, 22.5f.Degrees()));
+class AeroIII(BossModule module) : Components.GroupedAOEs(module, [AID.AeroIII, AID.AeroIII1], new AOEShapeRect(40, 4));
+class Holy(BossModule module) : Components.GroupedAOEs(module, [AID.HolyStart, AID.HolyNext], new AOEShapeCircle(6));
+class ShortswordAndSorcery(BossModule module) : Components.GroupedAOEs(module, [AID.ShortswordAndSorcery, AID.ShortswordAndSorcery1], new AOEShapeCircle(15));
+class LongswordAndSorcery(BossModule module) : Components.GroupedAOEs(module, [AID.LongswordAndSorcery, AID.LongswordAndSorcery1], new AOEShapeDonut(10, 25));
 
 class PatientKuribuStates : StateMachineBuilder
 {
@@ -57,5 +57,5 @@ class PatientKuribuStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14764)]
-public class PatientKuribu(WorldState ws, Actor primary) : BossModule(ws, primary, new(-440.000f, -790.000f), new ArenaBoundsCircle(30));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14764)]
+public class PatientKuribu(WorldState ws, Actor primary) : BossModule(ws, primary, new(-440, -790), new ArenaBoundsCircle(30));

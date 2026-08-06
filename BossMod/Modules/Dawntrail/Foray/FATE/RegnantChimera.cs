@@ -46,307 +46,133 @@ public enum IconID : uint
     TurnRight = 546, // Boss->self
 }
 
-class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, 9.0f);
-class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice1, new AOEShapeDonut(8.0f, 30.0f));
+class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, 9, highlightImminent: true);
+class TheDragonsVoice(BossModule module) : Components.GroupedAOEs(module, [AID.TheDragonsVoice, AID.TheDragonsVoice1], new AOEShapeDonut(8, 30));
 
-class Breath(BossModule module) : Components.GenericAOEs(module)
+class Breath(BossModule module) : Components.GenericRotatingAOE(module)
 {
-    private readonly List<AOEInstance> aoes = [];
-    private readonly List<AOEInstance> aoeCasters = [];
-    private readonly AOEShapeCone shape = new(30.0f, 60.0f.Degrees());
-    private int direction; // -1 = right, 1 = left
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (iconID == (uint)IconID.TurnRight)
-        {
-            direction = -1;
-        }
-
-        if (iconID == (uint)IconID.TurnLeft)
-        {
-            direction = 1;
-        }
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID is (uint)AID.TheRamsBreath or (uint)AID.TheDragonsBreath)
+        switch ((AID)spell.Action.ID)
         {
-            aoeCasters.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            case AID.TheRamsBreath:
+                Sequences.Add(new(new AOEShapeCone(30, 60.Degrees()), spell.LocXZ, spell.Rotation, 120.Degrees(), Module.CastFinishAt(spell), 2.7f, 3));
+                break;
+            case AID.TheDragonsBreath:
+                Sequences.Add(new(new AOEShapeCone(30, 60.Degrees()), spell.LocXZ, spell.Rotation, -120.Degrees(), Module.CastFinishAt(spell), 2.7f, 3));
+                break;
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.TheRamsBreath or (uint)AID.TheRamsBreath1 or (uint)AID.TheRamsBreath2 or
-            (uint)AID.TheDragonsBreath or (uint)AID.TheDragonsBreath1 or (uint)AID.TheDragonsBreath2)
-        {
-            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAt(0);
-            }
-
-            if (aoes.Count == 0)
-            {
-                direction = 0;
-            }
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (aoes.Count == 0)
-        {
-            yield break;
-        }
-
-        int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
-        {
-            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE };
-            show++;
-        }
-    }
-
-    public override void Update()
-    {
-        AddFutureAOEs();
-    }
-
-    private void AddFutureAOEs()
-    {
-        if (aoeCasters.Count == 0 || direction == 0)
-        {
-            return;
-        }
-
-        List<AOEInstance> futureAOEs = [];
-        var processedAOEsCount = aoeCasters.Count;
-        for (int i = 0; i < processedAOEsCount; i++)
-        {
-            var aoe = aoeCasters[i];
-            futureAOEs.Add(new(shape, aoe.Origin, aoe.Rotation, aoe.Activation));
-            futureAOEs.Add(new(shape, aoe.Origin, (aoe.Rotation + 120.0f.Degrees() * direction).Normalized(), aoe.Activation.AddSeconds(2.7f)));
-            futureAOEs.Add(new(shape, aoe.Origin, (aoe.Rotation + 240.0f.Degrees() * direction).Normalized(), aoe.Activation.AddSeconds(5.4f)));
-        }
-
-        aoeCasters.RemoveRange(0, processedAOEsCount);
-        if (futureAOEs.Count > 0)
-        {
-            aoes.AddRange(futureAOEs);
-        }
+        if ((AID)spell.Action.ID is AID.TheRamsBreath or AID.TheRamsBreath1 or AID.TheRamsBreath2 or AID.TheDragonsBreath or AID.TheDragonsBreath1 or AID.TheDragonsBreath2)
+            AdvanceSequence(0, WorldState.CurrentTime);
     }
 }
 
 class GlacipotentOrb(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<Actor> iceOrbs = [];
-    private readonly AOEShapeCircle shape = new(12.0f);
-    private bool active;
+    readonly List<AOEInstance> _predicted = [];
 
-    public override void OnActorCreated(Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (actor.OID == (uint)OID.GlacipotentOrb)
-        {
-            iceOrbs.Add(actor);
-        }
-    }
+        if (_predicted.Count == 0)
+            yield break;
 
-    public override void Update()
-    {
-        for (int i = 0; i < iceOrbs.Count; i++)
-        {
-            var orb = iceOrbs[i];
+        var first = _predicted[0].Activation.AddSeconds(0.5f);
 
-            if (iceOrbs[i].IsDead)
-            {
-                iceOrbs.Remove(orb);
-            }
-        }
+        foreach (var aoe in _predicted.Where(a => a.Activation > first && a.Activation < first.AddSeconds(2)))
+            yield return aoe;
 
-        if (iceOrbs.Count == 0)
-        {
-            active = false;
-        }
+        foreach (var aoe in _predicted.Where(a => a.Activation <= first))
+            yield return aoe with { Color = ArenaColor.Danger };
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.TheRamsVoice)
+        if ((AID)spell.Action.ID == AID.TheRamsVoice)
         {
-            active = true;
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (iceOrbs.Count == 0 || !active)
-        {
-            yield break;
-        }
-
-        foreach (var orb in iceOrbs)
-        {
-            yield return new AOEInstance(shape, orb.Position, orb.Rotation);
-        }
-    }
-}
-
-class TheDragonsVoiceBoss(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8.0f, 30.0f))
-{
-    private readonly List<Actor> orbs = [];
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if (actor.OID == (uint)OID.FulmipotentOrb)
-        {
-            orbs.Add(actor);
-        }
-    }
-
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if (actor.OID == (uint)OID.FulmipotentOrb)
-        {
-            orbs.Remove(actor);
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (Casters.Count == 0)
-        {
-            return;
-        }
-
-        if (orbs.Count <= 2)
-        {
-            return;
-        }
-
-        Actor? singleOrb = null;
-        var bestDistance = float.MinValue;
-        foreach (var orb in orbs)
-        {
-            var distance = orbs.Where(o => o != orb).Min(o => (o.Position - orb.Position).LengthSq());
-            if (distance > bestDistance)
+            var allOrbs = Module.Enemies(OID.GlacipotentOrb).ToList();
+            List<(WPos, float)> sources = [(spell.LocXZ, 9)];
+            var next = Module.CastFinishAt(spell, 2);
+            while (true)
             {
-                bestDistance = distance;
-                singleOrb = orb;
+                var nextOrbs = allOrbs.Drain(o => sources.Any(s => o.Position.InCircle(s.Item1, s.Item2))).ToList();
+                if (nextOrbs.Count == 0)
+                    break;
+
+                _predicted.AddRange(nextOrbs.Select(o => new AOEInstance(new AOEShapeCircle(12), o.Position, default, next)));
+                next = next.AddSeconds(1);
+                sources.Clear();
+                sources.AddRange(nextOrbs.Select(o => (o.Position, _predicted.Count <= 2 ? 11f : 12f)));
             }
         }
 
-        if (singleOrb == null)
+        if ((AID)spell.Action.ID == AID.TheRamsVoice1)
         {
-            return;
-        }
-
-        var spellInstance = Casters[0].CastInfo;
-        if (spellInstance == null)
-        {
-            return;
-        }
-
-        var distanceToOrb = spellInstance.LocXZ + (singleOrb.Position - spellInstance.LocXZ).Normalized() * 6.0f;
-        hints.GoalZones.Add(hints.GoalProximity(distanceToOrb, 7.8f, 100.0f));
-    }
-}
-
-class Cacophony(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly AOEShapeCircle shape = new(6.0f);
-    private readonly List<Actor> cacophonyOrbs = [];
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if (actor.OID == (uint)OID.Cacophony)
-        {
-            cacophonyOrbs.Add(actor);
-        }
-    }
-
-    public override void Update()
-    {
-        for (int i = 0; i < cacophonyOrbs.Count; i++)
-        {
-            var orb = cacophonyOrbs[i];
-
-            if (cacophonyOrbs[i].IsDead)
-            {
-                cacophonyOrbs.Remove(orb);
-            }
-        }
-    }
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (cacophonyOrbs.Count == 0)
-        {
-            yield break;
-        }
-
-        foreach (var orb in cacophonyOrbs)
-        {
-            yield return new AOEInstance(shape, orb.Position, orb.Rotation);
-        }
-    }
-}
-
-class Duobreath(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<AOEInstance> aoes = [];
-    private readonly AOEShapeCone shape = new(40.0f, 90.0f.Degrees());
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath)
-        {
-            aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
-            aoes.Add(new(shape, spell.LocXZ, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 3.0f)));
+            var ix = _predicted.FindIndex(p => p.Origin.AlmostEqual(caster.Position, 0.5f));
+            if (ix >= 0)
+                _predicted.Ref(ix).Activation = Module.CastFinishAt(spell);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath or (uint)AID.TheRamsBreath3 or (uint)AID.TheDragonsBreath3)
+        if ((AID)spell.Action.ID == AID.TheRamsVoice1)
+            _predicted.RemoveAll(p => p.Origin.AlmostEqual(caster.Position, 0.5f));
+    }
+}
+
+class Cacophony(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<Actor> orbs = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => orbs.Select(o => new AOEInstance(new AOEShapeCircle(6), o.Position, default, WorldState.FutureTime(1.5f)));
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.Cacophony)
+            orbs.Add(actor);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ChaoticChorus)
+            orbs.Remove(caster);
+    }
+}
+
+class ChaoticChorus(BossModule module) : Components.StandardAOEs(module, AID.ChaoticChorus, 6);
+
+class Duobreath(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeCone shape = new(40, 90.Degrees());
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => aoes.Take(1);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.LeftDuobreath or AID.RightDuobreath)
         {
-            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-            if (aoes.Count > 0)
-            {
-                aoes.RemoveAt(0);
-            }
+            aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            aoes.Add(new(shape, spell.LocXZ, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, 3)));
         }
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (aoes.Count == 0)
-        {
-            yield break;
-        }
-
-        int show = 0;
-        foreach (var aoe in aoes.OrderBy(aoe => aoe.Activation).Take(2))
-        {
-            yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };
-            show++;
-        }
+        if ((AID)spell.Action.ID is AID.LeftDuobreath or AID.RightDuobreath or AID.TheRamsBreath3 or AID.TheDragonsBreath3 && aoes.Count > 0)
+            aoes.RemoveAt(0);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (aoes.Count == 0)
-        {
-            return;
-        }
 
-        var aoe = aoes.MinBy(aoe => aoe.Activation);
-        var safeRotation = aoe.Rotation + 180.0f.Degrees();
-        hints.AddForbiddenZone(ShapeContains.InvertedRect(aoe.Origin, safeRotation, 2.0f, 0.0f, 40.0f), aoe.Activation);
+        if (aoes.Count == 2)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(aoes[0].Origin, aoes[0].Rotation, 2, 2, 40), aoes[1].Activation);
     }
 }
 
@@ -355,15 +181,15 @@ class RegnantChimeraStates : StateMachineBuilder
     public RegnantChimeraStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<TheRamsVoice>()
-            .ActivateOnEnter<TheDragonsVoice>()
             .ActivateOnEnter<Cacophony>()
+            .ActivateOnEnter<ChaoticChorus>()
             .ActivateOnEnter<Breath>()
             .ActivateOnEnter<GlacipotentOrb>()
-            .ActivateOnEnter<TheDragonsVoiceBoss>()
+            .ActivateOnEnter<TheDragonsVoice>()
+            .ActivateOnEnter<TheRamsVoice>()
             .ActivateOnEnter<Duobreath>();
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14767)]
-public class RegnantChimera(WorldState ws, Actor primary) : BossModule(ws, primary, new(95.000f, 470.000f), new ArenaBoundsCircle(30));
+[ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14767)]
+public class RegnantChimera(WorldState ws, Actor primary) : BossModule(ws, primary, new(95, 470), new ArenaBoundsCircle(30));

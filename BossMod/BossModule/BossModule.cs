@@ -333,7 +333,10 @@ public abstract class BossModule : IDisposable
             {
                 tooltip.Add(actor.ToString());
                 if (actor.CastInfo is { } ci)
+                {
                     tooltip.Add($"> {ci}");
+                    Arena.AddLine(actor.Position, ci.LocXZ, Color.FromComponents(0, 255, 255).ABGR);
+                }
             }
         }
 
