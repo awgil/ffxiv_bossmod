@@ -380,7 +380,7 @@ sealed class DuologyOfImplements(BossModule module) : Components.GenericAOEs(mod
         {
             case (uint)AID.Iainuki:
             case (uint)AID.WindSlash:
-                _aoes.Add(new(_cone, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+                _aoes.Add(new(_cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
                 break;
         }
     }

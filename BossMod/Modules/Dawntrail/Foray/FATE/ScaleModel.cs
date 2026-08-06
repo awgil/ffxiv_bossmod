@@ -42,7 +42,7 @@ sealed class ScaleModelStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(ScaleModelStates),
     ConfigType = null, // replace null with typeof(DemiMedusaConfig) if applicable
     ObjectIDType = typeof(OID),

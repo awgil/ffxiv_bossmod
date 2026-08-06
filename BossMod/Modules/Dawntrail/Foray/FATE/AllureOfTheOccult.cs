@@ -33,7 +33,7 @@ sealed class AllureOfTheOccultStates : StateMachineBuilder {
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(AllureOfTheOccultStates),
     ConfigType = null, // replace null with typeof(SensualSandyConfig) if applicable
     ObjectIDType = typeof(OID),

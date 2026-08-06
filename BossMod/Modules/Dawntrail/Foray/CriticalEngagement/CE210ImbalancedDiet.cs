@@ -153,7 +153,7 @@ sealed class CE210ImbalancedDietStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(CE210ImbalancedDietStates),
     ConfigType = null, // replace null with typeof(ImbalancedDietConfig) if applicable
     ObjectIDType = typeof(OID),
