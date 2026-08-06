@@ -54,19 +54,17 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
     private static readonly AOEShapeCone cone = new(45f, 90f.Degrees());
+    private Actor? _caster;
+    private bool isFront = false;
+    private DateTime act;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch (spell.Action.ID)
+        if (spell.Action.ID is (uint)AID.ClawToTail or (uint)AID.TailToClaw)
         {
-            case (uint)AID.ClawToTail:
-                aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-                aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d), risky: false));
-                break;
-            case (uint)AID.TailToClaw:
-                aoes.Add(new(cone, caster.Position, caster.Rotation + 180f.Degrees(), Module.CastFinishAt(spell)));
-                aoes.Add(new(cone, caster.Position, caster.Rotation, Module.CastFinishAt(spell, 3.1d), risky: false));
-                break;
+            act = Module.CastFinishAt(spell);
+            _caster = caster;
+            isFront = spell.Action.ID == (uint)AID.ClawToTail;
         }
     }
 
@@ -99,6 +97,24 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
         aoes[0] = aoe;
 
         return CollectionsMarshal.AsSpan(aoes);
+    }
+
+    public override void Update()
+    {
+        if (_caster != null && _caster.LastFrameMovementVec4 == default)
+        {
+            if (isFront)
+            {
+                aoes.Add(new(cone, _caster.Position, _caster.Rotation, act));
+                aoes.Add(new(cone, _caster.Position, _caster.Rotation + 180f.Degrees(), act.AddSeconds(3.1d), risky: false));
+            }
+            else
+            {
+                aoes.Add(new(cone, _caster.Position, _caster.Rotation + 180f.Degrees(), act));
+                aoes.Add(new(cone, _caster.Position, _caster.Rotation, act.AddSeconds(3.1d), risky: false));
+            }
+            _caster = null;
+        }
     }
 }
 
