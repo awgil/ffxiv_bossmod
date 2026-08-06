@@ -254,7 +254,7 @@ sealed class CE211LostontheWindStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(CE211LostontheWindStates),
     ConfigType = null, // replace null with typeof(LostontheWindConfig) if applicable
     ObjectIDType = typeof(OID),
