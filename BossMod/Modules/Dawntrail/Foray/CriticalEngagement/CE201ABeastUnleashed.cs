@@ -54,17 +54,19 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
     private static readonly AOEShapeCone cone = new(45f, 90f.Degrees());
-    private Actor? _caster;
-    private bool isFront = false;
-    private DateTime act;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.ClawToTail or (uint)AID.TailToClaw)
         {
-            act = Module.CastFinishAt(spell);
-            _caster = caster;
-            isFront = spell.Action.ID == (uint)AID.ClawToTail;
+            switch (spell.Action.ID)
+            {
+                case (uint)AID.ClawToTail:
+                case (uint)AID.TailToClaw:
+                    aoes.Add(new(cone, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+                    aoes.Add(new(cone, spell.LocXZ, spell.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d)));
+                    break;
+            }
         }
     }
 
@@ -98,24 +100,6 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 
         return CollectionsMarshal.AsSpan(aoes);
     }
-
-    public override void Update()
-    {
-        if (_caster != null && _caster.LastFrameMovementVec4 == default)
-        {
-            if (isFront)
-            {
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation, act));
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation + 180f.Degrees(), act.AddSeconds(3.1d), risky: false));
-            }
-            else
-            {
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation + 180f.Degrees(), act));
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation, act.AddSeconds(3.1d), risky: false));
-            }
-            _caster = null;
-        }
-    }
 }
 
 sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
@@ -146,6 +130,36 @@ sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
         if (spell.Action.ID is (uint)AID.TopazRay1 or (uint)AID.TopazRay2)
         {
             Actors.Clear();
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // ignore topaz zones during knockback to avoid hitting wall
+        // for ruby reflection AI sometimes gets stuck moving to safe L
+        // bad Ls shown on map, forbidden zones, and pathfinding says it's trying to reach safe L
+        // try ignoring topaz until player inside safe L, see if that fixes it
+        var knockbacks = Module.FindComponent<SpinebreakingStampede>();
+        var rubys = Module.FindComponent<RubyReflection>();
+
+        var doAI = knockbacks?.ActiveKnockbacks(slot, actor).Length == 0;
+        var count = rubys?.ActiveAOEs(slot, actor).Length;
+        if (doAI && count == 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        var aoes = Module.FindComponent<RubyReflection>()!.ActiveAOEs(slot, actor);
+        for (var i = 0; i < count; i++)
+        {
+            var aoe = aoes[i];
+            doAI = doAI && !aoe.Check(actor.Position);
+        }
+
+        if (doAI)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
         }
     }
 }
@@ -192,6 +206,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                 var act = WorldState.FutureTime(14.8d);
                 var shapes = state == 0x00100020 ? Reflection2Zero : Reflection1Zero;
                 var rubyRot = actor.Rotation;
+
                 var shapeCount = shapes.Length;
                 var topaz = CollectionsMarshal.AsSpan(TopazComponent.Actors);
                 var topazCount = topaz.Length;
@@ -250,6 +265,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
     private readonly AOEShapeRect rect = new(40f, 30f);
     private bool isAlongZAxis = false;
     private Angle direction = default;
+    private bool first = true;
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
     {
         var kbs = CollectionsMarshal.AsSpan(knockbacks);
@@ -292,12 +308,11 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
         }
         else if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual)
         {
-            //5.2d, 8.5d
-            direction = (caster.Position - Arena.Center).ToAngle();
-            knockbacks.Add(new(Arena.Center, 15f, Module.CastFinishAt(spell, 5.2d), null, default, Kind.None));
+            direction = (spell.LocXZ - Arena.Center).ToAngle();
+            knockbacks.Add(new(Arena.Center, 15f, Module.CastFinishAt(spell, 2.5d), null, default, Kind.None));
 
-            var act = Module.CastFinishAt(spell, 8.5d);
-            var pos = caster.Position;
+            var act = Module.CastFinishAt(spell, 6d);
+            var pos = spell.LocXZ;
             knockbacks.Add(new(pos, 30f, act));
         }
     }
@@ -306,12 +321,22 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
     {
         if (knockbacks.Count != 0)
         {
+            // use actual knockback so AI doesn't freak out before 2nd knockback resolves
             switch (spell.Action.ID)
             {
-                // use jump instead of actual kb since helper casts each twice
-                case (uint)AID.SpinebreakingStampedeCast:
-                case (uint)AID.SpinebreakingStampedeTeleport1:
-                    knockbacks.RemoveAt(0);
+                case (uint)AID.SpinebreakingStampedeMiddle:
+                    if (first)
+                    {
+                        first = false;
+                        knockbacks.RemoveAt(0);
+                    }
+                    break;
+                case (uint)AID.SpinebreakingStampedeCircle:
+                    if (!first)
+                    {
+                        first = true;
+                        knockbacks.RemoveAt(0);
+                    }
                     break;
             }
         }
@@ -340,7 +365,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
                     topazPos[i] = topaz[i].Origin;
                 }
                 // smaller AOE size, enough time to run out of AOE if inside
-                hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOriginPlusAOECircles(Arena.Center, kb.Origin, 30f, 18f, topazPos, 4f, count), act);
+                hints.AddForbiddenZone(new SDKnockbackInAABBSquareAwayFromOriginPlusAOECircles(Arena.Center, kb.Origin, 30f, 19f, topazPos, 4f, count), act);
             }
         }
     }
