@@ -54,20 +54,19 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
     private static readonly AOEShapeCone cone = new(45f, 90f.Degrees());
-    //private Actor? _caster;
-    //private bool isFront = false;
-    //private DateTime act;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.ClawToTail or (uint)AID.TailToClaw)
         {
-            /*
-            act = Module.CastFinishAt(spell);
-            _caster = caster;
-            isFront = spell.Action.ID == (uint)AID.ClawToTail;
-            */
-            aoes.Add(new(cone, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            switch (spell.Action.ID)
+            {
+                case (uint)AID.ClawToTail:
+                case (uint)AID.TailToClaw:
+                    aoes.Add(new(cone, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+                    aoes.Add(new(cone, spell.LocXZ, spell.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d)));
+                    break;
+            }
         }
     }
 
@@ -101,25 +100,6 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 
         return CollectionsMarshal.AsSpan(aoes);
     }
-    /*
-    public override void Update()
-    {
-        if (_caster != null && _caster.LastFrameMovementVec4 == default)
-        {
-            if (isFront)
-            {
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation, act));
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation + 180f.Degrees(), act.AddSeconds(3.1d), risky: false));
-            }
-            else
-            {
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation + 180f.Degrees(), act));
-                aoes.Add(new(cone, _caster.Position, _caster.Rotation, act.AddSeconds(3.1d), risky: false));
-            }
-            _caster = null;
-        }
-    }
-    */
 }
 
 sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
@@ -327,11 +307,10 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
         }
         else if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual)
         {
-            //5.2d, 8.5d
             direction = (spell.LocXZ - Arena.Center).ToAngle();
-            knockbacks.Add(new(Arena.Center, 15f, Module.CastFinishAt(spell, 5.2d), null, default, Kind.None));
+            knockbacks.Add(new(Arena.Center, 15f, Module.CastFinishAt(spell, 2.5d), null, default, Kind.None));
 
-            var act = Module.CastFinishAt(spell, 8.5d);
+            var act = Module.CastFinishAt(spell, 6d);
             var pos = spell.LocXZ;
             knockbacks.Add(new(pos, 30f, act));
         }
