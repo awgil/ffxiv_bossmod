@@ -79,7 +79,7 @@ class Dissipate(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var (orb, d) in _orbs)
-            yield return new(new AOEShapeCircle(8.5f), orb.Position, default, d);
+            yield return new(new AOEShapeCircle(9), orb.Position, default, d);
 
         foreach (var (orb, d) in _orbs)
         {
