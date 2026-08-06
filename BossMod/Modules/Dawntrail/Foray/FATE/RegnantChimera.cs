@@ -66,7 +66,7 @@ class Breath(BossModule module) : Components.GenericRotatingAOE(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.TheRamsBreath or AID.TheRamsBreath1 or AID.TheRamsBreath2 or AID.TheDragonsBreath or AID.TheDragonsBreath1 or AID.TheDragonsBreath2)
+        if ((AID)spell.Action.ID is AID.TheRamsBreath or AID.TheRamsBreath1 or AID.TheRamsBreath2 or AID.TheDragonsBreath or AID.TheDragonsBreath1 or AID.TheDragonsBreath2 && Sequences.Count > 0)
             AdvanceSequence(0, WorldState.CurrentTime);
     }
 }
