@@ -125,8 +125,8 @@ class TendonRipper(BossModule module) : Components.GenericAOEs(module, AID.Tendo
                 advance = -advance;
 
             var srcPredicted = Arena.Center + (-toCenter).Rotate(advance);
-            _predicted.Add(new(new AOEShapeCross(60, 4), srcPredicted, default, WorldState.FutureTime(10)));
-            _predicted.Add(new(new AOEShapeCross(60, 4), srcPredicted, 45.Degrees(), WorldState.FutureTime(10)));
+            _predicted.Add(new(new AOEShapeCross(60, 4), srcPredicted, default, WorldState.FutureTime(5.1f)));
+            _predicted.Add(new(new AOEShapeCross(60, 4), srcPredicted, 45.Degrees(), WorldState.FutureTime(5.1f)));
         }
     }
 
