@@ -265,6 +265,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
     private readonly AOEShapeRect rect = new(40f, 30f);
     private bool isAlongZAxis = false;
     private Angle direction = default;
+    private bool first = true;
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
     {
         var kbs = CollectionsMarshal.AsSpan(knockbacks);
@@ -320,12 +321,22 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
     {
         if (knockbacks.Count != 0)
         {
+            // use actual knockback so AI doesn't freak out before 2nd knockback resolves
             switch (spell.Action.ID)
             {
-                // use jump instead of actual kb since helper casts each twice
-                case (uint)AID.SpinebreakingStampedeCast:
-                case (uint)AID.SpinebreakingStampedeTeleport1:
-                    knockbacks.RemoveAt(0);
+                case (uint)AID.SpinebreakingStampedeMiddle:
+                    if (first)
+                    {
+                        first = false;
+                        knockbacks.RemoveAt(0);
+                    }
+                    break;
+                case (uint)AID.SpinebreakingStampedeCircle:
+                    if (!first)
+                    {
+                        first = true;
+                        knockbacks.RemoveAt(0);
+                    }
                     break;
             }
         }
