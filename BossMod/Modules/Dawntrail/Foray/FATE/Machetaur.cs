@@ -29,6 +29,7 @@ public enum AID : uint
     OctupleSwipe1 = 47604, // Machetaur->self, no cast, range 40 ?-degree cone
     OctupleSwipe2 = 47605, // Machetaur->self, no cast, range 40 ?-degree cone
     OctupleSwipe3 = 47602, // Machetaur->self, no cast, range 40 ?-degree cone
+    OctupleSwipe4 = 47603, // Boss->self, no cast, range 40 ?-degree cone
 }
 
 class FocusedTremor(BossModule module) : Components.RaidwideCast(module, AID.FocusedTremorCast);
@@ -100,7 +101,7 @@ class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3)
+        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3 or (uint)AID.OctupleSwipe4)
         {
             if (aoes.Count > 0)
             {
