@@ -54,17 +54,20 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> aoes = [];
     private static readonly AOEShapeCone cone = new(45f, 90f.Degrees());
-    private Actor? _caster;
-    private bool isFront = false;
-    private DateTime act;
+    //private Actor? _caster;
+    //private bool isFront = false;
+    //private DateTime act;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.ClawToTail or (uint)AID.TailToClaw)
         {
+            /*
             act = Module.CastFinishAt(spell);
             _caster = caster;
             isFront = spell.Action.ID == (uint)AID.ClawToTail;
+            */
+            aoes.Add(new(cone, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
         }
     }
 
@@ -98,7 +101,7 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 
         return CollectionsMarshal.AsSpan(aoes);
     }
-
+    /*
     public override void Update()
     {
         if (_caster != null && _caster.LastFrameMovementVec4 == default)
@@ -116,6 +119,7 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
             _caster = null;
         }
     }
+    */
 }
 
 sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
@@ -146,6 +150,36 @@ sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
         if (spell.Action.ID is (uint)AID.TopazRay1 or (uint)AID.TopazRay2)
         {
             Actors.Clear();
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // ignore topaz zones during knockback to avoid hitting wall
+        // for ruby reflection AI sometimes gets stuck moving to safe L
+        // bad Ls shown on map, forbidden zones, and pathfinding says it's trying to reach safe L
+        // try ignoring topaz until player inside safe L, see if that fixes it
+        var knockbacks = Module.FindComponent<SpinebreakingStampede>();
+        var rubys = Module.FindComponent<RubyReflection>();
+
+        var doAI = knockbacks?.ActiveKnockbacks(slot, actor).Length == 0;
+        var count = rubys?.ActiveAOEs(slot, actor).Length;
+        if (doAI && count == 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        var aoes = Module.FindComponent<RubyReflection>()!.ActiveAOEs(slot, actor);
+        for (var i = 0; i < count; i++)
+        {
+            var aoe = aoes[i];
+            doAI = doAI && !aoe.Check(actor.Position);
+        }
+
+        if (doAI)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
         }
     }
 }
@@ -192,6 +226,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                 var act = WorldState.FutureTime(14.8d);
                 var shapes = state == 0x00100020 ? Reflection2Zero : Reflection1Zero;
                 var rubyRot = actor.Rotation;
+
                 var shapeCount = shapes.Length;
                 var topaz = CollectionsMarshal.AsSpan(TopazComponent.Actors);
                 var topazCount = topaz.Length;
@@ -293,11 +328,11 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
         else if (spell.Action.ID == (uint)AID.SpinebreakingStampedeCircleVisual)
         {
             //5.2d, 8.5d
-            direction = (caster.Position - Arena.Center).ToAngle();
+            direction = (spell.LocXZ - Arena.Center).ToAngle();
             knockbacks.Add(new(Arena.Center, 15f, Module.CastFinishAt(spell, 5.2d), null, default, Kind.None));
 
             var act = Module.CastFinishAt(spell, 8.5d);
-            var pos = caster.Position;
+            var pos = spell.LocXZ;
             knockbacks.Add(new(pos, 30f, act));
         }
     }
@@ -340,7 +375,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
                     topazPos[i] = topaz[i].Origin;
                 }
                 // smaller AOE size, enough time to run out of AOE if inside
-                hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOriginPlusAOECircles(Arena.Center, kb.Origin, 30f, 18f, topazPos, 4f, count), act);
+                hints.AddForbiddenZone(new SDKnockbackInAABBSquareAwayFromOriginPlusAOECircles(Arena.Center, kb.Origin, 30f, 19f, topazPos, 4f, count), act);
             }
         }
     }

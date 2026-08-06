@@ -390,7 +390,7 @@ sealed class CE202AcceptNoImitatorsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Contributed,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE202AcceptNoImitatorsStates),
     ConfigType = null, // replace null with typeof(MetamorphConfig) if applicable
     ObjectIDType = typeof(OID),

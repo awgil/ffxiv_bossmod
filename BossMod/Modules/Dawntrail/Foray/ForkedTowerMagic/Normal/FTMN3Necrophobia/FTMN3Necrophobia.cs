@@ -44,9 +44,9 @@ sealed class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
         {
             //2.1s between casts
             var act = Module.CastFinishAt(spell);
-            var position = caster.Position;
-            var rotation = caster.Rotation;
-            var dir = caster.Rotation.ToDirection().OrthoL().Normalized();
+            var position = spell.LocXZ;
+            var rotation = spell.Rotation;
+            var dir = rotation.ToDirection().OrthoL().Normalized();
             var distance = 10f;
             _aoes.Add(new(_rect, position, rotation, act, risky: true));
 
