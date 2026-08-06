@@ -5,6 +5,16 @@ sealed class NecrophobiaStates : StateMachineBuilder
 {
     public NecrophobiaStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<HailOfHellflares>()
+            .ActivateOnEnter<AncientFire>()
+            .ActivateOnEnter<AncientBlizzard>()
+            .ActivateOnEnter<CorpseMangler>()
+            .ActivateOnEnter<AncientThunder>()
+            //.ActivateOnEnter<DarkCurrent1>()
+            //.ActivateOnEnter<DarkCurrent2>()
+            .ActivateOnEnter<DarkCurrent>()
+            .ActivateOnEnter<DeathlyRay>()
+            .ActivateOnEnter<VacuumWave>();
     }
 }

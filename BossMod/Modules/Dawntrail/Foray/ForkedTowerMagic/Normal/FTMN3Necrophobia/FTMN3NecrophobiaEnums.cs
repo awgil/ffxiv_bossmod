@@ -53,7 +53,7 @@ public enum AID : uint
     UnknownAbility1 = 47454, // Necrophobia2->self, no cast, range ?-30 donut
     UnknownAbility2 = 47450, // Necrophobia->location, no cast, single-target
     UnknownAbility3 = 47462, // SeveringHead->location, no cast, single-target
-    UnknownAbility4 = 47464, // SeveringHead->location, no cast, single-target
+    HeadsRollMove = 47464, // SeveringHead->location, no cast, single-target, heads moving after Heads Roll
     UnknownAbility5 = 47472, // SeveringHead->location, no cast, single-target
 
     VacuumWave = 47473, // Necrophobia->self, 4.0s cast, range 30 180.000-degree cone
@@ -61,10 +61,10 @@ public enum AID : uint
 public enum SID : uint
 {
     Invincibility = 1570, // none->player, extra=0x0
-    UnknownStatus1 = 2552, // none->Necrophobia, extra=0x45A/0x45B/0x45C
+    UnknownStatus1 = 2552, // none->Necrophobia, extra=0x45A/0x45B/0x45C, 0x45A = fire, 0x45B = ice, 0x45C = lightning, happens 0.1s before severed fire/ice cast starts
     VulnerabilityUp = 2347, // Necrophobia/SeveringHead/NecrophobiaHelper->player, extra=0x1/0x2/0x3
     UnknownStatus2 = 4956, // none->SeveringHead, extra=0x2C4
-    UnknownStatus3 = 3558, // none->SeveringHead, extra=0x47C/0x47D/0x47E
+    UnknownStatus3 = 3558, // none->SeveringHead, extra=0x47C/0x47D/0x47E, 0x47C = fire, 0x47D = ice, 0x47E = lightning
 
 }
 public enum IconID : uint
@@ -73,7 +73,7 @@ public enum IconID : uint
 }
 public enum TetherID : uint
 {
-    Tether_chn_m0475_mr_c0x = 400, // SeveringHead->Necrophobia
-    Tether_chn_m0475_mr_c1x = 401, // SeveringHead->Necrophobia
-    Tether_chn_m0475_mr_c2x = 402, // SeveringHead->Necrophobia
+    Tether_chn_m0475_mr_c0x = 400, // SeveringHead->Necrophobia, fire
+    Tether_chn_m0475_mr_c1x = 401, // SeveringHead->Necrophobia, ice
+    Tether_chn_m0475_mr_c2x = 402, // SeveringHead->Necrophobia, lightning
 }
