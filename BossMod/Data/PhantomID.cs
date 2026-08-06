@@ -84,6 +84,13 @@ public enum PhantomID : uint
     OccultMageMasher = 41624,
     OccultQuick = 41625,
 
+    // summoner
+    Hellfire = 49080,
+    JudgmentBolt = 49081,
+    EarthenWall = 49082,
+    Thunderstorm = 49083,
+    Megaflare = 49084,
+
     // blue mage
     OccultAero = 49085,
     OccultMissile = 49086,

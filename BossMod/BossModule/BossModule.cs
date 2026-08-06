@@ -322,7 +322,7 @@ public abstract class BossModule : IDisposable
 
     private void DrawDebug()
     {
-        List<Actor> highlighted = [];
+        List<string> tooltip = [];
         var cursor = ImGui.GetMousePos();
 
         foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly || !a.IsTargetable).Exclude(PrimaryActor))
@@ -330,11 +330,15 @@ public abstract class BossModule : IDisposable
             Arena.ActorInsideBounds(actor.Position, actor.Rotation, ArenaColor.Object);
             var s = Arena.WorldPositionToScreenPosition(actor.Position);
             if ((s - cursor).LengthSquared() < 100)
-                highlighted.Add(actor);
+            {
+                tooltip.Add(actor.ToString());
+                if (actor.CastInfo is { } ci)
+                    tooltip.Add($"> {ci}");
+            }
         }
 
-        if (highlighted.Count > 0)
-            ImGui.SetTooltip(string.Join("\n", highlighted));
+        if (tooltip.Count > 0)
+            ImGui.SetTooltip(string.Join("\n", tooltip));
     }
 
     private void DrawGlobalHints(BossComponent.GlobalHints hints)

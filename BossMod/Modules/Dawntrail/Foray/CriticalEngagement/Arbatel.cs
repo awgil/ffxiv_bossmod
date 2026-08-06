@@ -57,7 +57,7 @@ public enum AID : uint
     KnowledgeLevel5Death120Cast1 = 50557, // Helper->self, 11.0s cast, range 25 120-degree cone
     KnowledgeLevel5Death120Cast2 = 47311, // Helper->self, 11.0s cast, range 25 120-degree cone
     KnowledgeLevel5Death180Cast1 = 50554, // Helper->self, 11.0s cast, range 25 180-degree cone
-    KnowledgeLevel5Death180Cast2 = 47315 // Helper->self, 11.0s cast, range 25 180-degree cone
+    KnowledgeLevel5Death180Cast2 = 47308 // Helper->self, 11.0s cast, range 25 180-degree cone
 }
 
 public enum SID : uint
@@ -133,13 +133,23 @@ class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
         };
 
         if (adj > 0 && Raid.TryFindSlot(actor, out var slot))
-            _adjusted[slot] = adj;
+            _adjusted[slot] += adj;
     }
 
     public override void OnStatusLose(Actor actor, ActorStatus status)
     {
-        if ((SID)status.ID is SID.Correction1 or SID.Correction2 or SID.Correction3 or SID.Correction4 or SID.Correction5 && Raid.TryFindSlot(actor, out var slot))
-            _adjusted[slot] = 0;
+        var adj = (SID)status.ID switch
+        {
+            SID.Correction1 => 1,
+            SID.Correction2 => 2,
+            SID.Correction3 => 3,
+            SID.Correction4 => 4,
+            SID.Correction5 => 5,
+            _ => 0
+        };
+
+        if (adj > 0 && Raid.TryFindSlot(actor, out var slot))
+            _adjusted[slot] -= adj;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -83,7 +83,7 @@ class Dissipate(BossModule module) : Components.GenericAOEs(module)
 
         foreach (var (orb, d) in _orbs)
         {
-            var radius = Math.Clamp((8.9 - (d - WorldState.CurrentTime).TotalSeconds) / 8.9, 0, 1) * 7.5f + 1;
+            var radius = Math.Clamp((8.9 - (d - WorldState.CurrentTime).TotalSeconds) / 8.9, 0, 1) * 8 + 1;
             yield return new(new AOEShapeCircle((float)radius), orb.Position, default, default, ArenaColor.Danger);
         }
     }

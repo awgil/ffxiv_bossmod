@@ -62,6 +62,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         [Track("Black Mage: DPS", Actions = [PhantomID.OccultFireIII, PhantomID.OccultBlizzardIII, PhantomID.OccultThunderIII, PhantomID.OccultToad, PhantomID.OccultFlare])]
         public Track<EnabledByDefault> BlackMage;
+
+        [Track("Summoner: DPS", Actions = [PhantomID.Hellfire, PhantomID.JudgmentBolt, PhantomID.Thunderstorm, PhantomID.Megaflare])]
+        public Track<EnabledByDefault> Summoner;
     }
 
     public enum RaiseStrategy
@@ -182,9 +185,24 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         PNin(strategy, primaryTarget);
         PWhm(strategy, primaryTarget);
         PBlm(strategy, primaryTarget);
+        PSmn(strategy, primaryTarget);
 
         if (DesiredRange < float.MaxValue && primaryTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
+    }
+
+    private void PSmn(Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.Summoner.IsEnabled() || primaryTarget is not { IsAlly: false } || MidCombo)
+            return;
+
+        var prio = strategy.Summoner.Priority(PGCDPriority);
+        var weakness = FindWeakness(primaryTarget);
+
+        UseAction(PhantomID.Hellfire, primaryTarget, prio + (weakness == ActionAspect.Fire ? 1 : 0), 4);
+        UseAction(PhantomID.JudgmentBolt, primaryTarget, prio + (weakness == ActionAspect.Thunder ? 1 : 0), 4);
+        UseAction(PhantomID.Thunderstorm, primaryTarget, prio + (weakness == ActionAspect.Wind ? 1 : 0), 4);
+        UseAction(PhantomID.Megaflare, primaryTarget, prio + 2, 4);
     }
 
     private void PBlm(Strategy strategy, Actor? primaryTarget)
@@ -552,7 +570,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         var action = ActionID.MakeSpell(pid);
         var cd = IsTransformedAction(pid) ? 0 : DutyActionCD(action);
 
-        if (HaveSwift)
+        if (HaveSwift && pid is not (PhantomID.Hellfire or PhantomID.JudgmentBolt or PhantomID.EarthenWall or PhantomID.Thunderstorm or PhantomID.Megaflare))
             castTime = 0;
 
         if (cd <= GCD)
@@ -569,9 +587,10 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
     public static readonly uint[] BreakableComboStatus = [
         (uint)BossMod.NIN.SID.Mudra,
         (uint)BossMod.NIN.SID.TenChiJin,
-        (uint)BossMod.RDM.SID.Dualcast,
+        //(uint)BossMod.RDM.SID.Dualcast,
         (uint)BossMod.DRG.SID.DraconianFire,
-        (uint)BossMod.RPR.SID.SoulReaver
+        (uint)BossMod.RPR.SID.SoulReaver,
+        (uint)BossMod.RPR.SID.Executioner
     ];
 
     private bool CheckMidCombo()
