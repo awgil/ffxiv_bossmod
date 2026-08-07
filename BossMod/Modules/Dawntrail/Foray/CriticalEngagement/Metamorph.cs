@@ -87,13 +87,13 @@ class ShapeshiftingSupercellCone(BossModule module) : Components.GenericRotating
         {
             case IconID.TurningRight:
                 _nextRotation = -30.Degrees();
-                if (Sequences.Count > 0)
-                    Sequences.Ref(0).Increment = _nextRotation;
+                for (var i = 0; i < Sequences.Count; i++)
+                    Sequences.Ref(i).Increment = _nextRotation;
                 break;
             case IconID.TurningLeft:
                 _nextRotation = 30.Degrees();
-                if (Sequences.Count > 0)
-                    Sequences.Ref(0).Increment = _nextRotation;
+                for (var i = 0; i < Sequences.Count; i++)
+                    Sequences.Ref(i).Increment = _nextRotation;
                 break;
         }
     }
