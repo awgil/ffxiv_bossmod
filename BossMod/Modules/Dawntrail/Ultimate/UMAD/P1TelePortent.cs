@@ -86,12 +86,14 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         switch (_config.P1Arrows)
         {
             case UMADConfig.P1ArrowShape.BigBox:
+            case UMADConfig.P1ArrowShape.BigBoxUptime:
                 var wd = ToWDir(dir.All);
+                var uptime = _config.P1Arrows == UMADConfig.P1ArrowShape.BigBoxUptime;
 
                 List<(Direction, WPos)> spots;
 
                 // stack spots are 1/3 markers, so we can cut the corner on 2/4 intercards for melee uptime/less movement
-                if (wd == new WDir(-1, -1))
+                if (uptime && wd == new WDir(-1, -1))
                 {
                     spots = [(Direction.Up, Arena.Center + new WDir(-6, 12)), (Direction.Left, Arena.Center + new WDir(-6, 6))];
                     if (dir.D1.Dir == Direction.Left)
@@ -99,7 +101,7 @@ class P1TelePortent(BossModule module) : BossComponent(module)
 
                     _hintSpots[slot].AddRange(spots);
                 }
-                else if (wd == new WDir(1, 1))
+                else if (uptime && wd == new WDir(1, 1))
                 {
                     spots = [(Direction.Down, Arena.Center + new WDir(6, -12)), (Direction.Right, Arena.Center + new WDir(6, -6))];
                     if (dir.D1.Dir == Direction.Right)
