@@ -70,7 +70,7 @@ class TinyThunderIII(BossModule module) : Components.RaidwideCastDelay(module, A
 
 class RelayFlare(BossModule module) : Components.GenericAOEs(module, AID.TinyFlare)
 {
-    AOEInstance? _predicted = null;
+    AOEInstance? _predicted;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted);
 

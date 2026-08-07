@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.ClaretDragon;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Foray.CriticalEngagement.ClaretDragon;
 
 public enum OID : uint
 {

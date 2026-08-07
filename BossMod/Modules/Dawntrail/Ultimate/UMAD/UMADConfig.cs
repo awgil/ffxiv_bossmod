@@ -13,6 +13,8 @@ public class UMADConfig : ConfigNode
         None,
         [PropertyDisplay("Big box (CW)")]
         BigBox,
+        [PropertyDisplay("Big box (CW) with uptime arrows NE/SW")]
+        BigBoxUptime
     }
 
     [PropertyDisplay("P1 Tele-Portent: arrow placement hints")]

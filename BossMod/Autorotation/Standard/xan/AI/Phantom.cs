@@ -68,6 +68,12 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         [Track("Blue Mage: DPS", Actions = [PhantomID.OccultAero, PhantomID.OccultAquaBreath])]
         public Track<EnabledByDefault> BlueMage;
+
+        [Track("Red Mage: DPS, Libra", Actions = [PhantomID.OccultFireII, PhantomID.OccultBlizzardII, PhantomID.OccultLibra, PhantomID.OccultThunderII])]
+        public Track<EnabledByDefault> RedMage;
+
+        [Track("Red Mage: Self-heal (DPS only)", Action = PhantomID.OccultRDMCureII)]
+        public Track<EnabledByDefault> RDMSelfHeal;
     }
 
     public enum RaiseStrategy
@@ -113,6 +119,16 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         MP,
         [Option("Never")]
         Disabled
+    }
+
+    [Flags]
+    enum Element
+    {
+        None,
+        Fire = 1,
+        Ice = 2,
+        Thunder = 4,
+        Wind = 8
     }
 
     public static RotationModuleDefinition Definition()
@@ -190,9 +206,32 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         PBlm(strategy, primaryTarget);
         PSmn(strategy, primaryTarget);
         PBlu(strategy, primaryTarget);
+        PRdm(strategy, primaryTarget);
 
         if (DesiredRange < float.MaxValue && primaryTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
+    }
+
+    private void PRdm(Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.RedMage.IsEnabled() && primaryTarget?.IsAlly == false && !MidCombo)
+        {
+            var castTime = 1.5f * SpellHaste();
+            var prio = strategy.RedMage.Priority(PGCDPriority);
+            var (weakness, expire) = FindWeakness(primaryTarget);
+
+            if (FindDutyActionSlot(PhantomID.OccultLibra) >= 0 && expire < World.FutureTime(GCD))
+                UseAction(PhantomID.OccultLibra, primaryTarget, ActionQueue.Priority.High);
+            else
+            {
+                UseAction(PhantomID.OccultFireII, primaryTarget, prio + (weakness.HasFlag(Element.Fire) ? 1 : 0), castTime);
+                UseAction(PhantomID.OccultBlizzardII, primaryTarget, prio + (weakness.HasFlag(Element.Ice) ? 1 : 0), castTime);
+                UseAction(PhantomID.OccultThunderII, primaryTarget, prio + (weakness.HasFlag(Element.Thunder) ? 1 : 0), castTime);
+            }
+        }
+
+        if (strategy.RDMSelfHeal.IsEnabled() && Player.InCombat && !MidCombo && Player.Class.IsDD() && Player.PendingHPRatio < 0.6f && !World.Party.WithoutSlot().Any(p => p.Role == Role.Healer) && Player.HPMP.CurMP >= 1500)
+            UseAction(PhantomID.OccultRDMCureII, Player, strategy.RDMSelfHeal.Priority(PGCDPriority), 1.5f * SpellHaste());
     }
 
     private void PBlu(Strategy strategy, Actor? primaryTarget)
@@ -204,6 +243,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         var haste = SpellHaste();
 
         UseAction(PhantomID.OccultAero, primaryTarget, prio, 1.5f * haste);
+        UseAction(PhantomID.OccultAeroII, primaryTarget, prio, 1.5f * haste);
         UseAction(PhantomID.OccultAquaBreath, primaryTarget, prio, 1.5f * haste);
     }
 
@@ -213,11 +253,11 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
             return;
 
         var prio = strategy.Summoner.Priority(PGCDPriority);
-        var weakness = FindWeakness(primaryTarget);
+        var (weakness, _) = FindWeakness(primaryTarget);
 
-        UseAction(PhantomID.Hellfire, primaryTarget, prio + (weakness == ActionAspect.Fire ? 1 : 0), 4);
-        UseAction(PhantomID.JudgmentBolt, primaryTarget, prio + (weakness == ActionAspect.Thunder ? 1 : 0), 4);
-        UseAction(PhantomID.Thunderstorm, primaryTarget, prio + (weakness == ActionAspect.Wind ? 1 : 0), 4);
+        UseAction(PhantomID.Hellfire, primaryTarget, prio + (weakness.HasFlag(Element.Fire) ? 1 : 0), 4);
+        UseAction(PhantomID.JudgmentBolt, primaryTarget, prio + (weakness.HasFlag(Element.Thunder) ? 1 : 0), 4);
+        UseAction(PhantomID.Thunderstorm, primaryTarget, prio + (weakness.HasFlag(Element.Wind) ? 1 : 0), 4);
         UseAction(PhantomID.Megaflare, primaryTarget, prio + 2, 4);
     }
 
@@ -226,15 +266,13 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         if (!strategy.BlackMage.IsEnabled() || primaryTarget is not { IsAlly: false } || MidCombo)
             return;
 
-        var weakness = FindWeakness(primaryTarget);
-
         var haste = SpellHaste();
-
         var prio = strategy.BlackMage.Priority(PGCDPriority);
+        var (weakness, _) = FindWeakness(primaryTarget);
 
-        UseAction(PhantomID.OccultFireIII, primaryTarget, prio + (weakness == ActionAspect.Fire ? 1 : 0), 1.5f * haste);
-        UseAction(PhantomID.OccultBlizzardIII, primaryTarget, prio + (weakness == ActionAspect.Ice ? 1 : 0), 1.5f * haste);
-        UseAction(PhantomID.OccultThunderIII, primaryTarget, prio + (weakness == ActionAspect.Thunder ? 1 : 0), 1.5f * haste);
+        UseAction(PhantomID.OccultFireIII, primaryTarget, prio + (weakness.HasFlag(Element.Fire) ? 1 : 0), 1.5f * haste);
+        UseAction(PhantomID.OccultBlizzardIII, primaryTarget, prio + (weakness.HasFlag(Element.Ice) ? 1 : 0), 1.5f * haste);
+        UseAction(PhantomID.OccultThunderIII, primaryTarget, prio + (weakness.HasFlag(Element.Thunder) ? 1 : 0), 1.5f * haste);
         UseAction(PhantomID.OccultFlare, primaryTarget, prio + 2, 2.3f * haste);
     }
 
@@ -615,24 +653,30 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
     }
 
     private float SpellHaste() => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level) / 2.5f;
-    //private float SkillHaste() => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level) / 2.5f;
 
-    private static ActionAspect FindWeakness(Actor target)
+    private static (Element, DateTime) FindWeakness(Actor target)
     {
-        foreach (var s in target.Statuses)
+        var weakness = Element.None;
+        DateTime? expires = null;
+
+        foreach (var status in target.Statuses)
         {
-            var a = s.ID switch
+            var element = status.ID switch
             {
-                5322 => ActionAspect.Fire,
-                5323 => ActionAspect.Ice,
-                5324 => ActionAspect.Thunder,
-                5325 => ActionAspect.Wind,
+                5322 => Element.Fire,
+                5323 => Element.Ice,
+                5324 => Element.Thunder,
+                5325 => Element.Wind,
                 _ => default
             };
-            if (a != default)
-                return a;
+            if (element != default)
+            {
+                weakness |= element;
+                if (expires == null || status.ExpireAt < expires)
+                    expires = status.ExpireAt;
+            }
         }
 
-        return default;
+        return (weakness, expires ?? DateTime.MinValue);
     }
 }

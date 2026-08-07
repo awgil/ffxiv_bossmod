@@ -93,6 +93,7 @@ public enum PhantomID : uint
 
     // blue mage
     OccultAero = 49085,
+    OccultAeroII = 49089,
     OccultMissile = 49086,
     OccultAquaBreath = 49087,
     OccultMightyGuard = 49088,

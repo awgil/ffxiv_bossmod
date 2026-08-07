@@ -12,7 +12,7 @@ class PathfindingTest : TestWindow
     private Vector2 _mapCenter;
     private Vector2 _mapHalfSize = new(20, 20);
     private float _mapRotationDeg;
-    private float _cushion = 0;
+    private float _cushion;
 
     private Vector2 _startingPos = new(15, 0);
     private Vector2 _targetPos = new(-15, 0);
