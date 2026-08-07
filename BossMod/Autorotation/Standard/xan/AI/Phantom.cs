@@ -220,7 +220,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
             var prio = strategy.RedMage.Priority(PGCDPriority);
             var (weakness, expire) = FindWeakness(primaryTarget);
 
-            if (FindDutyActionSlot(PhantomID.OccultLibra) >= 0 && expire < World.FutureTime(GCD))
+            if (FindDutyActionSlot(PhantomID.OccultLibra) >= 0 && expire < World.FutureTime(GCD) && !primaryTarget.IsStrikingDummy)
                 UseAction(PhantomID.OccultLibra, primaryTarget, ActionQueue.Priority.High);
             else
             {

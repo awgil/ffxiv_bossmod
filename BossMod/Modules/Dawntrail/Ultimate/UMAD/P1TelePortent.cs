@@ -215,7 +215,8 @@ class P1Arrow(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var positions = _arrows.Select(r => ShapeDistance.Circle(r.Position, 2)).ToList();
-        hints.AddForbiddenZone(ShapeDistance.Union(positions));
+        if (positions.Count > 0)
+            hints.AddForbiddenZone(ShapeDistance.Union(positions));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
