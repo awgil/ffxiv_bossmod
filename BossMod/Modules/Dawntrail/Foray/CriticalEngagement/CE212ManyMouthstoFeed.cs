@@ -6,7 +6,7 @@ public enum OID : uint
     PelekysHelper = 0x233C, // R0.500, x40, Helper type
     Pelekys = 0x4BCA, // R7.000, x1
     Pelekys1 = 0x4BCC, // R0.500, x1
-    Actor1ebfed = 0x1EBFED, // R0.500, x4, EventObj type
+    Venom = 0x1EBFED, // R0.500, x4, EventObj type
     Actor1ec007 = 0x1EC007, // R0.500, x1, EventObj type
     UnknownActor = 0x4BCD, // R2.000, x0 (spawn during fight)
 }
@@ -49,16 +49,159 @@ public enum SID : uint
     QuickerStep = 4799, // none->player, extra=0x0
 }
 
+sealed class AcridRain(BossModule module) : Components.RaidwideCast(module, (uint)AID.AcridRain1, "Raidwide + poison");
+sealed class CentralGardening(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CentralGardening2, new AOEShapeRect(52f, 5f));
+sealed class SideGardening(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.SideGardening2, (uint)AID.SideGardening3], new AOEShapeCone(26f, 90f.Degrees()));
+sealed class Venom(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Venom, 2f)
+{
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        // remove on eanim so no blip between this and growing puddle
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.Venom && state == 0x00010002)
+        {
+            var count = Casters.Count;
+            var aoes = CollectionsMarshal.AsSpan(Casters);
+            for (var i = 0; i < count; ++i)
+            {
+                if (aoes[i].Origin.AlmostEqual(actor.Position, 0.1f))
+                {
+                    Casters.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+    }
+}
+sealed class VenomGrow(BossModule module) : Components.GenericAOEs(module)
+{
+    // showing max size cause AI to run straight to next safe zone
+    // can AI dodge puddle? or use growing circle forbidden zones?
+    private readonly List<VenomZone> _venom = [];
+    private readonly float _maxRadius = 22f;
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var aoes = CreateAOEs(2f, _maxRadius);
+        var count = aoes.Count;
+        if (count == 0)
+            return [];
+
+        var max = count > 2 ? 2 : count;
+        return CollectionsMarshal.AsSpan(aoes)[..max];
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.Venom)
+        {
+            var position = actor.Position;
+            if (state == 0x00010002)
+            {
+                _venom.Add(new(position));
+            }
+            else if (state == 0x00040008)
+            {
+                var count = _venom.Count;
+                for (var i = 0; i < count; i++)
+                {
+                    var venom = _venom[i];
+                    if (venom.Position.AlmostEqual(position, 0.1f))
+                    {
+                        venom.StartTime = WorldState.CurrentTime;
+                    }
+                }
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (_venom.Count != 0 && spell.Action.ID == (uint)AID.Venom1)
+        {
+            var position = caster.Position;
+            var count = _venom.Count;
+            for (var i = 0; i < count; i++)
+            {
+                var venom = _venom[i];
+                if (venom.Position.AlmostEqual(position, 0.1f))
+                {
+                    venom.NumCasts++;
+                    if (venom.NumCasts == 8)
+                    {
+                        _venom.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // small buffer to avoid growing puddle
+        var aoes = CreateAOEs(4f, _maxRadius);
+        var count = aoes.Count;
+        if (count != 0)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                ref var aoe = ref aoes.Ref(i);
+                hints.AddForbiddenZone(aoe.Shape, aoe.Origin);
+            }
+        }
+    }
+
+    private List<AOEInstance> CreateAOEs(float min, float max)
+    {
+        var aoes = new List<AOEInstance>();
+        var venoms = CollectionsMarshal.AsSpan(_venom);
+        var count = venoms.Length;
+
+        for (var i = 0; i < count; i++)
+        {
+            ref var venom = ref venoms[i];
+            var position = venom.Position;
+            var startTime = venom.StartTime;
+            var radius = startTime == default ? min : min + (float)((WorldState.CurrentTime - startTime).TotalMilliseconds / 400);
+            radius = radius > max ? max : radius;
+            aoes.Add(new(new AOEShapeCircle(radius), position));
+        }
+
+        return aoes;
+    }
+
+    private class VenomZone(WPos position)
+    {
+        public WPos Position = position;
+        public DateTime StartTime;
+        public int NumCasts;
+    }
+}
+sealed class Devour(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Devour, 10f);
+sealed class PoisonHeart(BossModule module) : Components.SimpleAOEs(module, (uint)AID.PoisonHeart2, 5f);
+sealed class VenomMist(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.VenomMist2, (uint)AID.VenomMist3, (uint)AID.VenomMist4, (uint)AID.VenomMist6], new AOEShapeCone(30f, 45f.Degrees()));
+
 [SkipLocalsInit]
 sealed class CE212ManyMouthstoFeedStates : StateMachineBuilder
 {
     public CE212ManyMouthstoFeedStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<AcridRain>()
+            .ActivateOnEnter<CentralGardening>()
+            .ActivateOnEnter<SideGardening>()
+            .ActivateOnEnter<Venom>()
+            .ActivateOnEnter<VenomGrow>()
+            .ActivateOnEnter<Devour>()
+            .ActivateOnEnter<PoisonHeart>()
+            .ActivateOnEnter<VenomMist>();
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(CE212ManyMouthstoFeedStates),
     ConfigType = null, // replace null with typeof(ManyMouthstoFeedConfig) if applicable
     ObjectIDType = typeof(OID),
@@ -67,7 +210,7 @@ sealed class CE212ManyMouthstoFeedStates : StateMachineBuilder
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.Pelekys,
-    Contributors = "The Combat Reborn Team (LTS)",
+    Contributors = "gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
     GroupType = BossModuleInfo.GroupType.CFC,
@@ -76,7 +219,7 @@ sealed class CE212ManyMouthstoFeedStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE212ManyMouthstoFeed(WorldState ws, Actor primary) : BossModule(ws, primary, new(-870f, -560f), new ArenaBoundsCircle(30f))
+public sealed class CE212ManyMouthstoFeed(WorldState ws, Actor primary) : BossModule(ws, primary, new(-870f, -560f), new ArenaBoundsCircle(25f))
 {
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 30f);
 }
