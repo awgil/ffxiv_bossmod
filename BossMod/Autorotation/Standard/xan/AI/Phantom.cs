@@ -65,6 +65,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         [Track("Summoner: DPS", Actions = [PhantomID.Hellfire, PhantomID.JudgmentBolt, PhantomID.Thunderstorm, PhantomID.Megaflare])]
         public Track<EnabledByDefault> Summoner;
+
+        [Track("Blue Mage: DPS", Actions = [PhantomID.OccultAero, PhantomID.OccultAquaBreath])]
+        public Track<EnabledByDefault> BlueMage;
     }
 
     public enum RaiseStrategy
@@ -186,9 +189,22 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         PWhm(strategy, primaryTarget);
         PBlm(strategy, primaryTarget);
         PSmn(strategy, primaryTarget);
+        PBlu(strategy, primaryTarget);
 
         if (DesiredRange < float.MaxValue && primaryTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
+    }
+
+    private void PBlu(Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.BlueMage.IsEnabled() || primaryTarget is not { IsAlly: false } || MidCombo)
+            return;
+
+        var prio = strategy.BlueMage.Priority(PGCDPriority);
+        var haste = SpellHaste();
+
+        UseAction(PhantomID.OccultAero, primaryTarget, prio, 1.5f * haste);
+        UseAction(PhantomID.OccultAquaBreath, primaryTarget, prio, 1.5f * haste);
     }
 
     private void PSmn(Strategy strategy, Actor? primaryTarget)
