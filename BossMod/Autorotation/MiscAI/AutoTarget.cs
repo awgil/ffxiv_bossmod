@@ -4,7 +4,7 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class AutoTarget(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
-    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything, CollectFATE, Treasure, MaxTargets }
+    public enum Track { General, Retarget, QuestBattle, DeepDungeon, EpicEcho, Hunt, FATE, Everything, CollectFATE, Treasure, MaxTargets, Zodiac }
     public enum GeneralStrategy { Aggressive, Passive }
     public enum RetargetStrategy { NoTarget, Hostiles, Always, Never }
     public enum Flag { Disabled, Enabled }
@@ -56,6 +56,10 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             .AddOption(Flag.Enabled);
 
         res.DefineInt(Track.MaxTargets, "Maximum targets to pull (0 = no max)", minValue: 0, maxValue: 30, uiPriority: -120);
+
+        res.Define(Track.Zodiac).As<Flag>("Zodiac", "Prioritize mobs in the current Zodiac Book", renderer: typeof(DefaultOffRenderer), uiPriority: -95)
+            .AddOption(Flag.Disabled)
+            .AddOption(Flag.Enabled);
 
         return res;
     }
@@ -126,6 +130,8 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 targetFateMobs |= World.Client.ActiveFate.HandInCount < FateUtils.TurnInGoldReq && World.Client.GetInventoryItemQuantity(turnin) < FateUtils.TurnInGoldReq;
         }
 
+        var targetZodiac = strategy.Option(Track.Zodiac).As<Flag>() == Flag.Enabled;
+
         // first deal with pulling new enemies
         foreach (var target in Hints.PotentialTargets)
         {
@@ -153,6 +159,12 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                     prioritize(target, 0);
                     continue;
                 }
+            }
+
+            if (targetZodiac && IsRelicTarget(target.Actor))
+            {
+                prioritize(target, 0);
+                continue;
             }
 
             // add all other targets to potential targets list (e.g. if modules modify out-of-combat mob priority)
@@ -183,5 +195,30 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         // if we have target to switch to, do that
         if (changeTarget)
             primaryTarget = Hints.ForcedTarget = bestTarget;
+    }
+
+    // TODO: this shouldn't be here
+    private unsafe bool IsRelicTarget(Actor a)
+    {
+        if (Service.IsMock)
+            return false;
+
+        var mgr = FFXIVClientStructs.FFXIV.Client.Game.UI.RelicNote.Instance();
+        if (Service.LuminaRow<Lumina.Excel.Sheets.RelicNote>(mgr->RelicNoteId) is not { } book)
+            return false;
+
+        if (book.Fate[0].RowId == 0)
+            return false;
+
+        var i = 0;
+        foreach (var mon in book.MonsterNoteTargetCommon)
+        {
+            var monster = mon.Value;
+            if (mgr->GetMonsterProgress(i) < 3 && a.NameID == monster.BNpcName.RowId)
+                return true;
+            i++;
+        }
+
+        return false;
     }
 }
