@@ -50,7 +50,7 @@ sealed class Buffet(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (slot < PartyState.MaxAllianceSize && AssignedBoss[slot] is var assignedSlot && assignedSlot != null)
+        if (slot < PartyState.MaxAllianceSize && AssignedBoss[slot] is var assignedSlot && assignedSlot != null && WorldState.Actors.Find(actor.TargetID) is Actor target)
         {
             var count = hints.PotentialTargets.Count;
             for (var i = 0; i < count; ++i)
@@ -60,6 +60,11 @@ sealed class Buffet(BossModule module) : BossComponent(module)
                 {
                     enemy.Priority = AIHints.Enemy.PriorityInvincible;
                 }
+            }
+
+            if (target != assignedSlot)
+            {
+                hints.ForcedTarget = assignedSlot;
             }
         }
     }

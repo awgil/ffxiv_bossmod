@@ -10,7 +10,7 @@ sealed class DarkCurrent2(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
-    private readonly AOEShapeRect _rect = new(30f, 5f, 30f);
+    private readonly AOEShapeRect _rect = new(60f, 5f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
