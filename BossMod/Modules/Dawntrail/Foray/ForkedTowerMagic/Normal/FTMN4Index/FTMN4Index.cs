@@ -132,11 +132,20 @@ sealed class ElementaryEvocation(BossModule module) : Components.GenericAOEs(mod
     {
         var count = _aoes.Count;
         if (count == 0)
+        {
             return [];
+        }
 
-        var max = count > 2 ? 2 : count;
         SortHelpers.SortAOEByActivation(_aoes);
         var aoes = CollectionsMarshal.AsSpan(_aoes);
+        var max = count > 4 ? 4 : count;
+
+        for (var i = 0; i < max; i++)
+        {
+            ref var aoe = ref aoes[i];
+            aoe.Color = i < 2 ? Colors.Danger : default;
+        }
+
         return aoes[..max];
     }
 
@@ -211,10 +220,19 @@ sealed class ElementaryExpansion(BossModule module) : Components.GenericAOEs(mod
     {
         var count = _aoes.Count;
         if (count == 0)
+        {
             return [];
+        }
 
-        var max = count > 2 ? 2 : count;
+        SortHelpers.SortAOEByActivation(_aoes);
         var aoes = CollectionsMarshal.AsSpan(_aoes);
+        var max = count > 4 ? 4 : count;
+
+        for (var i = 0; i < max; i++)
+        {
+            ref var aoe = ref aoes[i];
+            aoe.Color = i < 2 ? Colors.Danger : default;
+        }
 
         return aoes[..max];
     }
@@ -508,7 +526,7 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
     Category = BossModuleInfo.Category.Foray,
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1093u,
-    NameID = 14503u,
+    NameID = 14717u,
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
