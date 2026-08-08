@@ -771,6 +771,11 @@ sealed class WorldStateGameSync : IWorldStateGameSync
                 _ws.Execute(new ClientState.OpMoveSpeedChange(speed));
         }
 
+        // TODO: use CS?
+        var isFlying = Service.Condition.Any(ConditionFlag.InFlight, ConditionFlag.Diving);
+        if (isFlying != _ws.Client.Flying)
+            _ws.Execute(new ClientState.OpFlyingChange(isFlying));
+
         Span<Cooldown> cooldowns = stackalloc Cooldown[_ws.Client.Cooldowns.Length];
         _amex.GetCooldowns(cooldowns);
         if (!MemoryExtensions.SequenceEqual(_ws.Client.Cooldowns.AsSpan(), cooldowns))

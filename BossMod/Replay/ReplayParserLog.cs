@@ -353,6 +353,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLCB"u8)] = ParseClientCombo,
             [new("CLST"u8)] = ParseClientPlayerStats,
             [new("CLMV"u8)] = ParseClientMovespeed,
+            [new("FLY+"u8)] = () => new ClientState.OpFlyingChange(true),
+            [new("FLY-"u8)] = () => new ClientState.OpFlyingChange(false),
             [new("CLCD"u8)] = ParseClientCooldown,
             [new("CLDA"u8)] = ParseClientDutyActions,
             [new("CLBH"u8)] = ParseClientBozjaHolster,

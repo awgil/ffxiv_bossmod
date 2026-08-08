@@ -99,6 +99,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         if (Hints.ForcedMovement != null)
             return;
 
+        // lots of assumptions made in this module are broken by being in flight (or diving)
+        // e.g. being inside an obstacle is fine, AOEs may not reach the player depending on vertical distance, etc
+        if (World.Client.Flying)
+            return;
+
         var castOpt = strategy.Option(Track.Cast);
         var castStrategy = castOpt.As<CastStrategy>();
         if (castStrategy is CastStrategy.FinishInstants or CastStrategy.DropInstants)
@@ -294,7 +299,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 // TODO: maybe just check a single closest grid cell that we would intersect if we go forward?..
                 allowMovement = CalculateUnobstructedPathLength(World.Client.ForcedMovementDirection) >= Math.Min(4, distSq);
             }
-            Hints.ForcedMovement = allowMovement ? World.Client.ForcedMovementDirection.ToDirection().ToVec3(Player.PosRot.Y) : default;
+            Hints.ForcedMovement = allowMovement ? World.Client.ForcedMovementDirection.ToDirection().ToVec3() : default;
 
             //var halfThreshold = Hints.MisdirectionThreshold; // even much smaller threshold seems to work fine in practice (TODO: reconsider...)
             //var idealDir = Angle.FromDirection(dir);
@@ -314,7 +319,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         {
             // fine to move if we won't interrupt cast (or are explicitly allowed to)
             var allowMovement = Player.CastInfo == null || Player.CastInfo.EventHappened || castStrategy is CastStrategy.DropMove or CastStrategy.DropInstants;
-            Hints.ForcedMovement = allowMovement ? dir.ToVec3(Player.PosRot.Y) : default;
+            Hints.ForcedMovement = allowMovement ? dir.ToVec3() : default;
         }
 
         var maxCastTime = castStrategy switch
@@ -333,7 +338,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             {
                 Hints.ForceCancelCast = true;
                 // no leeway, cast might have been initiated by user, keep moving
-                Hints.ForcedMovement = dir.ToVec3(Player.PosRot.Y);
+                Hints.ForcedMovement = dir.ToVec3();
             }
         }
     }
