@@ -2,7 +2,7 @@
 
 // generic 'directional parry' component that shows actors and sides it's forbidden to attack them from
 // uses common status + custom prediction
-public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPriority = AIHints.Enemy.PriorityForbidden) : Adds(module, actorOID)
+public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPriority = AIHints.Enemy.PriorityForbidden, int normalPriority = 0) : Adds(module, actorOID)
 {
     [Flags]
     public enum Side
@@ -49,7 +49,12 @@ public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPri
             if (target == null)
                 continue;
 
-            void forbidDirection(Angle offset) => hints.AddForbiddenZone(new AOEShapeCone(100, 45.Degrees()), target.Position, target.Rotation + offset, DateTime.MaxValue, target.InstanceID);
+            void allowDirection(Angle offset)
+            {
+                var orig = target.Position;
+                var dir = target.Rotation + offset;
+                hints.GoalZones.Add(p => p.InCone(orig, dir, 45.Degrees()) ? 1 : 0);
+            }
 
             var forbiddenSides = ActiveSides(targetState);
             var attackDir = (actor.Position - target.Position).Normalized();
@@ -62,27 +67,31 @@ public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPri
             };
 
             if (attackingFromForbidden)
-            {
                 hints.SetPriority(target, ForbiddenPriority);
+            else if (normalPriority >= 0)
+                hints.SetPriority(target, normalPriority);
 
-                // make AI move to an area where it can attack target safely
-                if (actor.TargetID == id)
-                {
-                    if (forbiddenSides.HasFlag(Side.Front))
-                        forbidDirection(default);
-                    if (forbiddenSides.HasFlag(Side.Left))
-                        forbidDirection(90.Degrees());
-                    if (forbiddenSides.HasFlag(Side.Back))
-                        forbidDirection(180.Degrees());
-                    if (forbiddenSides.HasFlag(Side.Right))
-                        forbidDirection(270.Degrees());
-                }
+            var forbiddenForGoal = forbiddenSides | ImminentSides(targetState);
+
+            if (actor.TargetID == id && forbiddenForGoal != default)
+            {
+                var allowedSides = Side.All & ~forbiddenForGoal;
+                if (allowedSides.HasFlag(Side.Front))
+                    allowDirection(default);
+                if (allowedSides.HasFlag(Side.Left))
+                    allowDirection(90.Degrees());
+                if (allowedSides.HasFlag(Side.Back))
+                    allowDirection(180.Degrees());
+                if (allowedSides.HasFlag(Side.Right))
+                    allowDirection(270.Degrees());
             }
         }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
+        base.DrawArenaForeground(pcSlot, pc);
+
         foreach (var a in ActiveActors)
         {
             if (_actorStates.TryGetValue(a.InstanceID, out var aState))
