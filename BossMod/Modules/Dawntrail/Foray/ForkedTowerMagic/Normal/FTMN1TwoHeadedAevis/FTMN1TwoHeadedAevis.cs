@@ -128,7 +128,7 @@ sealed class BlazeLoop(BossModule module) : Components.GenericAOEs(module)
         {
             var act = Module.CastFinishAt(spell);
             _aoes.Add(new(new AOEShapeCircle(5f), spell.LocXZ, activation: act, risky: false));
-            _aoes.Add(new(new AOEShapeDonut(5f, 20f), spell.LocXZ, activation: act.AddSeconds(2.5d), risky: false));
+            _aoes.Add(new(new AOEShapeDonut(5f, 60f), spell.LocXZ, activation: act.AddSeconds(2.5d), risky: false));
         }
     }
 
@@ -153,7 +153,7 @@ sealed class BlazeLoop(BossModule module) : Components.GenericAOEs(module)
         if (count != 0)
         {
             var aoe = active[0];
-            hints.AddForbiddenZone(new AOEShapeDonut(7f, 20f), aoe.Origin, activation: aoe.Activation);
+            hints.AddForbiddenZone(new AOEShapeDonut(7f, 60f), aoe.Origin, activation: aoe.Activation);
             base.AddAIHints(slot, actor, assignment, hints);
         }
     }

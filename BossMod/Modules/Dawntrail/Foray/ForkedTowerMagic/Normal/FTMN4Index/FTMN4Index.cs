@@ -54,8 +54,7 @@ sealed class Bombs(BossModule module) : Components.Adds(module, (uint)OID.Summon
 {
     public override void AddGlobalHints(GlobalHints hints)
     {
-        var actors = CollectionsMarshal.AsSpan(ActiveActors);
-        if (actors.Length != 0)
+        if (ActiveActors.Count != 0)
         {
             hints.Add("Kill the Bombs!");
         }
@@ -70,6 +69,15 @@ sealed class Bombs(BossModule module) : Components.Adds(module, (uint)OID.Summon
         {
             ref var actor = ref actors[i];
             Arena.ZoneCircleOutline(actor.Position, 2f);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (ActiveActors.Count != 0)
+        {
+            hints.PrioritizeTargetsByOID((uint)OID.SummonedBomb, 1);
+            hints.ForcedTarget = ActiveActors.MinBy(actor.DistanceToHitbox);
         }
     }
 }
@@ -303,6 +311,7 @@ sealed class Shockwave(BossModule module) : Components.SimpleKnockbacks(module, 
 
     private void AddHints(int slot, Actor actor, TextHints? textHints, AIHints? aiHints)
     {
+        // what happens when player stands in intersecting circle of 2 spears/knockbacks?
         var kbs = ActiveKnockbacks(slot, actor);
         if (kbs.Length != 0)
         {
@@ -464,6 +473,23 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
         if (actor.OID == (uint)OID.ForetoldPhenomenon)
         {
             _tethered.Clear();
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_aoes.Count != 0)
+        {
+            var aoes = CollectionsMarshal.AsSpan(_aoes);
+            var count = aoes.Length;
+            for (var i = 0; i < count; i++)
+            {
+                ref var aoe = ref aoes[i];
+                if (aoe.Shape is AOEShapeDonut)
+                {
+                    hints.GoalZones.Add(AIHints.GoalProximity(aoe.Origin, 3.5f, 1f));
+                }
+            }
         }
     }
 }
