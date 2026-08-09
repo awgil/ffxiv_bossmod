@@ -240,7 +240,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
 
         if (strategy.Delirium.Value switch
         {
-            OffensiveStrategy.Automatic => Player.InCombat && (CanFitGCD(RaidBuffsLeft, 2) || RaidBuffsIn <= GCD || CombatTimer > 30),
+            OffensiveStrategy.Automatic => Player.InCombat && (CanFitGCD(RaidBuffsLeft, 2) || RaidBuffsIn <= GCD || RaidBuffsIn > 9000 || CombatTimer > 30),
             OffensiveStrategy.Force => true,
             _ => false
         })
