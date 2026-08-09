@@ -4,13 +4,14 @@ namespace BossMod.Autorotation.MiscAI;
 
 public sealed class NormalMovement : RotationModule
 {
-    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion, DelayMovement }
+    public enum Track { Destination, Range, Cast, SpecialModes, ForbiddenZoneCushion, DelayMovement, SeparateDodgeDelay, DodgeDelayMovement }
     public enum DestinationStrategy { None, Pathfind, Explicit }
     public enum RangeStrategy { Any, MaxRange, GreedGCDExplicit, GreedLastMomentExplicit, GreedAutomatic }
     public enum CastStrategy { Leeway, Explicit, Greedy, FinishMove, DropMove, FinishInstants, DropInstants }
     public enum ForbiddenZoneCushionStrategy { None, Small, Medium, Large }
     public enum SpecialModesStrategy { Automatic, Ignore }
     public enum DelayMovementStrategy { None, Short, Long }
+    public enum SeparateDodgeDelayStrategy { Disabled, Enabled }
 
     public const float GreedTolerance = 0.15f;
 
@@ -64,6 +65,13 @@ public sealed class NormalMovement : RotationModule
             .AddOption(DelayMovementStrategy.None, "Do not delay movement")
             .AddOption(DelayMovementStrategy.Short, "Delay movement by 0.5s")
             .AddOption(DelayMovementStrategy.Long, "Delay movement by 1s");
+        res.Define(Track.SeparateDodgeDelay).As<SeparateDodgeDelayStrategy>("SeparateDodgeDelay", "Separate Dodge Delay", 8)
+            .AddOption(SeparateDodgeDelayStrategy.Disabled, "Use Delay Movement for all movement (including dodges)")
+            .AddOption(SeparateDodgeDelayStrategy.Enabled, "Use Delay Movement for non-dodge movement; use Dodge Delay Movement for dodges");
+        res.Define(Track.DodgeDelayMovement).As<DelayMovementStrategy>("DodgeDelayMovement", "Dodge Delay Movement", 7)
+            .AddOption(DelayMovementStrategy.None, "Do not delay dodge movement")
+            .AddOption(DelayMovementStrategy.Short, "Delay dodge movement by 0.5s")
+            .AddOption(DelayMovementStrategy.Long, "Delay dodge movement by 1s");
         return res;
     }
 
@@ -76,12 +84,19 @@ public sealed class NormalMovement : RotationModule
     private NavigationDecision _lastDecision;
 
     private DateTime? TimeToMove;
+    private bool? _delayMovementIsDodge;
+
+    private static float DelaySeconds(DelayMovementStrategy strategy) => strategy switch
+    {
+        DelayMovementStrategy.Short => 0.5f,
+        DelayMovementStrategy.Long => 1.0f,
+        _ => 0f
+    };
+
     private NavigationDecision GetDecision(float speed, float cushionSize)
     {
         if (_decisionTask.IsCompletedSuccessfully)
-        {
             _lastDecision = _decisionTask.Result;
-            }
 
         if (_decisionTask.IsCompleted)
         {
@@ -157,12 +172,9 @@ public sealed class NormalMovement : RotationModule
             ForbiddenZoneCushionStrategy.Large => 3.0f,
             _ => 0f
         };
-        var delay = strategy.Option(Track.DelayMovement).As<DelayMovementStrategy>() switch
-        {
-            DelayMovementStrategy.Short => 0.5f,
-            DelayMovementStrategy.Long => 1.0f,
-            _ => 0f
-        };
+        var movementDelay = DelaySeconds(strategy.Option(Track.DelayMovement).As<DelayMovementStrategy>());
+        var separateDodgeDelay = strategy.Option(Track.SeparateDodgeDelay).As<SeparateDodgeDelayStrategy>() == SeparateDodgeDelayStrategy.Enabled;
+        var dodgeDelay = DelaySeconds(strategy.Option(Track.DodgeDelayMovement).As<DelayMovementStrategy>());
         NavigationDecision navi = default;
         var resetStats = true;
         switch (destinationStrategy)
@@ -170,8 +182,19 @@ public sealed class NormalMovement : RotationModule
             case DestinationStrategy.Pathfind:
                 navi = GetDecision(speed, cushionSize);
                 resetStats = false;
-                if (delay > 0)
+                var isDodge = navi.LeewaySeconds < float.MaxValue;
+                var delay = separateDodgeDelay
+                    ? (isDodge ? dodgeDelay : movementDelay)
+                    : movementDelay;
+                if (separateDodgeDelay && _delayMovementIsDodge != isDodge)
+                {
+                    _delayMovementIsDodge = isDodge;
+                    TimeToMove = delay > 0 ? World.FutureTime(delay) : null;
+                }
+                else if (delay > 0)
                     TimeToMove ??= World.FutureTime(delay);
+                else
+                    TimeToMove = null;
                 break;
             case DestinationStrategy.Explicit:
                 navi = new() { Destination = ResolveTargetLocation(destinationOpt.Value), TimeToGoal = destinationOpt.Value.ExpireIn };
@@ -195,6 +218,7 @@ public sealed class NormalMovement : RotationModule
         if (navi.Destination == null)
         {
             TimeToMove = null;
+            _delayMovementIsDodge = null;
             return; // nothing to do
         }
 
