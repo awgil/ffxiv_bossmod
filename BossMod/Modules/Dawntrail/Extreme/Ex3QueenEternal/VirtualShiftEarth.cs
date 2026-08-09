@@ -270,10 +270,14 @@ sealed class WeightyBlow(BossModule module) : Components.CastCounter(module, (ui
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (!_activeBaits)
+        {
             return;
+        }
 
         if (_virtualShift != null && _virtualShift.Flying[slot])
+        {
             hints.Add("Go to ground!");
+        }
 
         var origin = BaitSource(actor);
         var count = _boulders.Count;
@@ -302,7 +306,9 @@ sealed class WeightyBlow(BossModule module) : Components.CastCounter(module, (ui
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.WeightyBlow)
+        {
             _activeBaits = true;
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -321,5 +327,5 @@ sealed class WeightyBlow(BossModule module) : Components.CastCounter(module, (ui
         }
     }
 
-    private WPos BaitSource(Actor player) => new(player.PosRot.X < Ex3QueenEternal.ArenaCenter.X ? 92f : 108f, 79.5f);
+    private WPos BaitSource(Actor player) => new(player.PosRot.X < 100f ? 92f : 108f, 79.5f);
 }

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
-class CloudToGround(BossModule module) : Components.Exaflare(module, 6f)
+sealed class CloudToGround(BossModule module) : Components.Exaflare(module, 6f)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

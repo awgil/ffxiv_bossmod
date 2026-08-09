@@ -41,9 +41,9 @@ class CarGeometry : BossComponent
 
     // Define the shapes of lower and upper decks so we can define map outlines and custom aoeshapes for each car.
     // Groundshape allows us to define the shape of a rail car without the platforms.
-    public AOEShape GroundShape { get; private set; } = new AOEShapeRect(CarHeight, 10, CarHeight);
+    public AOEShape GroundShape = new AOEShapeRect(CarHeight, 10f, CarHeight);
     // Airshape allows us to define the shape of the upper deck platforms.
-    public AOEShape AirShape { get; private set; } = new AOEShapeRect(CarHeight, 10, CarHeight);
+    public AOEShape AirShape = new AOEShapeRect(CarHeight, 10f, CarHeight);
 
     public CarGeometry(BossModule module) : base(module)
     {
@@ -57,10 +57,10 @@ class CarGeometry : BossComponent
         switch (Car)
         {
             case 3:
-                AirShape.Outline(Arena, new WPos(100, 200), default, Colors.Border);
+                AirShape.Outline(Arena, new WPos(100f, 200f), default, Colors.Border);
                 break;
             case 5:
-                AirShape.Outline(Arena, new WPos(100, 300), default, Colors.Border);
+                AirShape.Outline(Arena, new WPos(100f, 300f), default, Colors.Border);
                 break;
         }
     }
@@ -71,10 +71,10 @@ class CarGeometry : BossComponent
         switch (Car)
         {
             case 3:
-                WPos carThreeLeftEntrance = new WPos(96.1f, 204.9f);
-                WPos carThreeLeftExit = new WPos(92.4f, 204.9f);
-                WPos carThreeRightEntrance = new WPos(104.1f, 204.9f);
-                WPos carThreeRightExit = new WPos(107.6f, 204.9f);
+                var carThreeLeftEntrance = new WPos(96.1f, 204.9f);
+                var carThreeLeftExit = new WPos(92.4f, 204.9f);
+                var carThreeRightEntrance = new WPos(104.1f, 204.9f);
+                var carThreeRightExit = new WPos(107.6f, 204.9f);
 
                 hints.Teleporters.Add(new(carThreeLeftEntrance, carThreeLeftExit, 1f, false));
                 hints.Teleporters.Add(new(carThreeRightEntrance, carThreeRightExit, 1f, false));
@@ -99,15 +99,15 @@ class CarGeometry : BossComponent
                 }
                 break;
             case 5:
-                WPos carFiveLeftEntrance = new WPos(96.1f, 310f);
-                WPos carFiveLeftExit = new WPos(92.4f, 310f);
-                WPos carFiveRightEntrance = new WPos(104.1f, 300f);
-                WPos carFiveRightExit = new WPos(107.6f, 300f);
+                var carFiveLeftEntrance = new WPos(96.1f, 310f);
+                var carFiveLeftExit = new WPos(92.4f, 310f);
+                var carFiveRightEntrance = new WPos(104.1f, 300f);
+                var carFiveRightExit = new WPos(107.6f, 300f);
 
                 hints.Teleporters.Add(new(carFiveLeftEntrance, carFiveLeftExit, 1f, false));
                 hints.Teleporters.Add(new(carFiveRightEntrance, carFiveRightExit, 1f, false));
                 //Set temporary obstacles to pathfinding if you are on ground floor.
-                if (actor.PosRot.Y < 4)
+                if (actor.PosRot.Y < 4f)
                 {
                     // Space between the blocks is left in place so teleporter exit can be navigated.
                     // Intentionally extra wide to prevent pc from squeezing between teleport and platform and having a seizure.
@@ -137,16 +137,16 @@ class CarGeometry : BossComponent
         switch (Car)
         {
             case 3:
-                WPos carThreeLeftEntrance = new WPos(96.1f, 204.9f);
-                WPos carThreeRightEntrance = new WPos(104.1f, 204.9f);
+                var carThreeLeftEntrance = new WPos(96.1f, 204.9f);
+                var carThreeRightEntrance = new WPos(104.1f, 204.9f);
 
                 Arena.ZoneCircle(carThreeRightEntrance, 1f, color);
                 Arena.ZoneCircle(carThreeLeftEntrance, 1f, color);
                 break;
 
             case 5:
-                WPos carFiveLeftEntrance = new WPos(96.1f, 310f);
-                WPos carFiveRightEntrance = new WPos(104.1f, 300f);
+                var carFiveLeftEntrance = new WPos(96.1f, 310f);
+                var carFiveRightEntrance = new WPos(104.1f, 300f);
 
                 Arena.ZoneCircle(carFiveRightEntrance, 1f, color);
                 Arena.ZoneCircle(carFiveLeftEntrance, 1f, color);
@@ -156,50 +156,50 @@ class CarGeometry : BossComponent
 
     void Car2()
     {
-        WPos carTwoCenter = new WPos(100, 150);
+        var carTwoCenter = new WPos(100f, 150f);
         Shape[] carOutline = [new Rectangle(carTwoCenter, 10f, 15f)];
         Shape[] carTwoCrates = [new Square(new(102.5f, 147.5f), 2.5f), new Square(new(97.5f, 157.5f), 2.5f)];
 
         ArenaBoundsCustom carTwo = new(carOutline, carTwoCrates);
 
-        Module.Arena.Center = new(100, 150);
-        Module.Arena.Bounds = carTwo;
+        Arena.Center = new(100f, 150f);
+        Arena.Bounds = carTwo;
     }
 
     void Car3()
     {
         // Car3 has a platform on the right and left side.  Each with a portal
         // to jump up
-        WPos carThreeCenter = new WPos(100, 200);
+        var carThreeCenter = new WPos(100f, 200f);
         Shape[] carOutline = [new Rectangle(carThreeCenter, 10f, 15f)];
         //blocking shapes on ground level for platforms
         Platforms = [new Rectangle(new(92.5f, 205f), 2.4f, 10f), new Rectangle(new(107.5f, 205f), 2.4f, 10f)];
 
         // AOE shape for an AOE that would cover the car three lower deck.
         // used for head on emission (lower)
-        GroundShape = new AOEShapeCustom(carOutline, Platforms);
+        GroundShape = new AOEShapeCustom(carThreeCenter, carOutline, Platforms);
 
         // AOE shape that covers both right and left platforms
         // Used for head on emission (upper)
-        AirShape = new AOEShapeCustom(Platforms);
+        AirShape = new AOEShapeCustom(carThreeCenter, Platforms);
 
         //This arena bounds draws the lower deck and upper deck, but treats the platforms as unpassable holes.
         ArenaBoundsCustom carThreeOutline = new(carOutline, null);
 
-        Module.Arena.Center = new(100, 200);
-        Module.Arena.Bounds = carThreeOutline;
+        Arena.Center = carThreeCenter;
+        Arena.Bounds = carThreeOutline;
     }
 
     void Car4()
     {
         Arena.Bounds = new ArenaBoundsRect(10f, 14.6f);
-        Arena.Center = new(100, 250);
+        Arena.Center = new(100f, 250f);
     }
 
     void Car5()
     {
         //car 5 has platforms on right and left placed slightly off from each other
-        WPos carFiveCenter = new WPos(100, 300);
+        var carFiveCenter = new WPos(100f, 300f);
         Shape[] carOutline = [new Rectangle(carFiveCenter, 10f, 15f)];
 
         // upper deck should have rectangles in the same size as platforms.
@@ -209,13 +209,13 @@ class CarGeometry : BossComponent
 
         // AOE shape for an AOE that would cover car five lower deck.
         // used for head on emission (lower)
-        GroundShape = new AOEShapeCustom(carOutline, Platforms);
+        GroundShape = new AOEShapeCustom(carFiveCenter, carOutline, Platforms);
         // AOE shape that covers both right and left platforms
         // Used for head on emission (upper)
-        AirShape = new AOEShapeCustom(Platforms);
+        AirShape = new AOEShapeCustom(carFiveCenter, Platforms);
 
         ArenaBoundsCustom carFiveOutline = new(carOutline);
-        Module.Arena.Center = new(100, 300);
-        Module.Arena.Bounds = carFiveOutline;
+        Arena.Center = carFiveCenter;
+        Arena.Bounds = carFiveOutline;
     }
 }

@@ -3,14 +3,16 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRN6Queen;
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
+    public readonly AOEShapeDonut donut = new(25f, 43f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.EmpyreanIniquity && Arena.Bounds.Radius > 25f)
+        if (spell.Action.ID == (uint)AID.EmpyreanIniquity && Arena.Bounds.Radius > 26f)
         {
-            _aoe = [new(Queen.ArenaChange, Arena.Center, default, Module.CastFinishAt(spell, 4.8d))];
+            var center = Arena.Center;
+            _aoe = [new(donut, center, default, Module.CastFinishAt(spell, 4.8d), shapeDistance: donut.Distance(center, default))];
         }
     }
 
@@ -20,7 +22,7 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
         {
             if (state is 0x00020001u or 0x00400001u)
             {
-                Arena.Bounds = Queen.DefaultArena;
+                Arena.Bounds = Queen.GetDefaultArena();
                 _aoe = [];
             }
             else if (state == 0x00200010u)

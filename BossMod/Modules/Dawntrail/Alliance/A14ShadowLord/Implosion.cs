@@ -4,7 +4,7 @@ sealed class Implosion(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(4)];
 
-    private static readonly AOEShapeCone _shapeSmall = new(12f, 90f.Degrees()), _shapeLarge = new(90f, 90f.Degrees());
+    private readonly AOEShapeCone _shapeSmall = new(12f, 90f.Degrees()), _shapeLarge = new(90f, 90f.Degrees());
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => Module.FindComponent<GigaSlash>()?.AOEs.Count == 0 ? CollectionsMarshal.AsSpan(_aoes) : [];
 
@@ -29,10 +29,11 @@ sealed class Implosion(BossModule module) : Components.GenericAOEs(module)
             ++NumCasts;
             var count = _aoes.Count;
             var aoes = CollectionsMarshal.AsSpan(_aoes);
+            var id = caster.InstanceID;
             for (var i = 0; i < count; ++i)
             {
                 ref var aoe = ref aoes[i];
-                if (aoe.ActorID == caster.InstanceID)
+                if (aoe.ActorID == id)
                 {
                     _aoes.RemoveAt(i);
                     return;

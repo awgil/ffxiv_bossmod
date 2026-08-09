@@ -44,16 +44,17 @@ public enum AID : uint
 
 sealed class PsychicWaveArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom rect = new([new Rectangle(D053Ambrose.ArenaCenter, 33f, 24f)], [new Rectangle(D053Ambrose.ArenaCenter, 15f, 19.5f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.PsychicWave && Arena.Bounds == D053Ambrose.StartingBounds)
+        if (spell.Action.ID == (uint)AID.PsychicWave && Arena.Bounds.Radius > 30f)
         {
-            _aoe = [new(rect, Arena.Center, default, Module.CastFinishAt(spell, 0.7d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Rectangle(center, 32.5f, 23.5f)], [new Rectangle(center, 15f, 19.5f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.7d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -61,7 +62,7 @@ sealed class PsychicWaveArenaChange(BossModule module) : Components.GenericAOEs(
     {
         if (index == 0x28 && state == 0x00020001u)
         {
-            Arena.Bounds = D053Ambrose.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsRect(15f, 19.5f);
             _aoe = [];
         }
     }
@@ -73,8 +74,8 @@ sealed class Psychokinesis(BossModule module) : Components.SimpleAOEs(module, (u
 sealed class ExtrasensoryExpulsion(BossModule module) : Components.GenericKnockback(module, maxCasts: 1)
 {
     public readonly List<Knockback> KBs = [with(4)];
-    public static readonly AOEShapeRect RectNS = new(20f, 7.5f);
-    public static readonly AOEShapeRect RectEW = new(15f, 10f);
+    public readonly AOEShapeRect RectNS = new(20f, 7.5f);
+    public readonly AOEShapeRect RectEW = new(15f, 10f);
     private OverwhelmingCharge? _aoe;
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) => CollectionsMarshal.AsSpan(KBs);
@@ -141,11 +142,11 @@ sealed class VoltaicSlash(BossModule module) : Components.SingleTargetCast(modul
 sealed class OverwhelmingCharge(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly ExtrasensoryExpulsion _kb = module.FindComponent<ExtrasensoryExpulsion>()!;
-    private static readonly AOEShapeCone cone = new(26f, 90f.Degrees());
-    private static readonly AOEShapeRect rectAdj = new(19f, 7f); // the knockback rectangles are placed poorly with significant error from visuals plus half height of the arena is smaller than 20 knockback distance
+    private readonly AOEShapeCone cone = new(26f, 90f.Degrees());
+    private readonly AOEShapeRect rectAdj = new(19f, 7f); // the knockback rectangles are placed poorly with significant error from visuals plus half height of the arena is smaller than 20 knockback distance
 
     public AOEInstance[] AOE = [];
-    private static readonly Angle a180 = 180f.Degrees();
+    private readonly Angle a180 = 180f.Degrees();
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -160,7 +161,7 @@ sealed class OverwhelmingCharge(BossModule module) : Components.GenericAOEs(modu
                 ref var aoe = ref AOE[0];
                 for (var i = 0; i < count; ++i)
                 {
-                    ref var kb = ref kbs[i];
+                    ref readonly var kb = ref kbs[i];
                     if (aoe.Rotation.AlmostEqual(kb.Direction + a180, Angle.DegToRad))
                     {
                         return new AOEInstance[1] { new(rectAdj, kb.Origin, kb.Direction, kb.Activation, Colors.SafeFromAOE, false) };
@@ -178,7 +179,7 @@ sealed class OverwhelmingCharge(BossModule module) : Components.GenericAOEs(modu
             for (var i = 0; i < count; ++i)
             {
                 ref var recti = ref kbs[i];
-                if (recti.Shape is AOEShapeRect rect && rect == ExtrasensoryExpulsion.RectNS)
+                if (recti.Shape is AOEShapeRect rect && rect.LengthFront == 20f)
                 {
                     return new AOEInstance[1] { new(rectAdj, recti.Origin, recti.Direction, recti.Activation, Colors.SafeFromAOE, false) };
                 }
@@ -245,14 +246,16 @@ sealed class WhorlOfTheMind(BossModule module) : Components.SpreadFromCastTarget
 
 sealed class Rush(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeRect rect = new(33f, 5f);
+    private readonly AOEShapeRect rect = new(33f, 5f);
     private readonly List<AOEInstance> _aoes = [with(7)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var count = _aoes.Count;
         if (count == 0)
+        {
             return [];
+        }
         var aoes = CollectionsMarshal.AsSpan(_aoes);
         if (count > 1)
         {
@@ -306,11 +309,8 @@ sealed class D053AmbroseStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 825u, NameID = 12695u, SortOrder = 4)]
-public sealed class D053Ambrose(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingBounds)
+public sealed class D053Ambrose(WorldState ws, Actor primary) : BossModule(ws, primary, new(190f, 0f), new ArenaBoundsRect(32.5f, 24f))
 {
-    public static readonly WPos ArenaCenter = new(190f, default);
-    public static readonly ArenaBoundsRect StartingBounds = new(32.5f, 24f);
-    public static readonly ArenaBoundsRect DefaultBounds = new(15f, 19.5f);
     private static readonly uint[] adds = [(uint)OID.Superfluity, (uint)OID.OrigenicsEyeborg];
 
     protected override void DrawEnemies(int pcSlot, Actor pc)

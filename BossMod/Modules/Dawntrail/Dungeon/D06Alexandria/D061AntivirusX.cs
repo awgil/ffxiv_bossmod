@@ -36,16 +36,17 @@ public enum IconID : uint
 
 sealed class ImmuneResponseArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly AOEShapeCustom rect = new([new Rectangle(D061AntivirusX.ArenaCenter, 23f, 18f)], [new Rectangle(D061AntivirusX.ArenaCenter, 20f, 15f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.ImmuneResponseVisualSmall && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.ImmuneResponseVisualSmall && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(rect, Arena.Center, default, Module.CastFinishAt(spell, 0.8d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Rectangle(center, 22.5f, 17.5f)], [new Rectangle(center, 20f, 15f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -227,8 +228,5 @@ sealed class D061AntivirusXStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS), erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827, NameID = 12844)]
-public sealed class D061AntivirusX(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsRect(22.5f, 17.5f))
-{
-    public static readonly WPos ArenaCenter = new(852f, 823f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS), erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827u, NameID = 12844u)]
+public sealed class D061AntivirusX(WorldState ws, Actor primary) : BossModule(ws, primary, new(852f, 823f), new ArenaBoundsRect(22.5f, 17.5f));

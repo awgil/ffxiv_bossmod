@@ -88,7 +88,7 @@ sealed class FleshTele(BossModule module) : Components.GenericKnockback(module, 
             hints.ForbiddenDirections.Add(new(Angle.Atan2(sideways, forward), Angle.Acos((dist * dist + distSqRadiusSq) / (2f * dist * 15f)), act));
         }
 
-        Arena.Bounds.ShapeSimplified.AddForbiddenDirections(actor.Position - Arena.Center, forwardKb[slot] ? default : 180f.Degrees(), hints, _activation, 15f, 1f);
+        Arena.Bounds.Shape.AddForbiddenDirections(actor.Position - Arena.Center, forwardKb[slot] ? default : 180f.Degrees(), hints, _activation, 15f, 1f);
 
         // probably not needed since the cone resolves a long time after the knockback
         // if (_reach.ActiveCasters is var aoe && aoe.Length != 0 && _reach.Shape is AOEShapeCone cone)

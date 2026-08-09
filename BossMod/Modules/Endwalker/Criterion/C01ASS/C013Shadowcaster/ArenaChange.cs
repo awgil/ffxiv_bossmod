@@ -10,7 +10,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID is (uint)AID.NShowOfStrength or (uint)AID.SShowOfStrength && Arena.Bounds.Radius > 20f)
         {
-            _aoe = [new(V1SildihnSubterrane.V14ZelessGah.VCZelessGah.Rect, Arena.Center, default, Module.CastFinishAt(spell, 0.8d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Rectangle(center, 25f, 30f)], [new Rectangle(center, 15f, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 

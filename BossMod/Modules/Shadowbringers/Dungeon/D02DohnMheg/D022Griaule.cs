@@ -19,7 +19,7 @@ public enum AID : uint
     CoilingIvy = 8901 // Boss->self, 3.0s cast, single-target
 }
 
-class FeedingTime(BossModule module) : Components.InterceptTether(module, (uint)AID.FeedingTime)
+sealed class FeedingTime(BossModule module) : Components.InterceptTether(module, (uint)AID.FeedingTime)
 {
     private DateTime _activation;
     public override void OnActorCreated(Actor actor)
@@ -39,8 +39,8 @@ class FeedingTime(BossModule module) : Components.InterceptTether(module, (uint)
     }
 }
 
-class Tiiimbeeer(BossModule module) : Components.RaidwideCast(module, (uint)AID.Tiiimbeeer);
-class Swinge(BossModule module) : Components.GenericAOEs(module)
+sealed class Tiiimbeeer(BossModule module) : Components.RaidwideCast(module, (uint)AID.Tiiimbeeer);
+sealed class Swinge(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
 
@@ -63,7 +63,7 @@ class Swinge(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class D022GriauleStates : StateMachineBuilder
+sealed class D022GriauleStates : StateMachineBuilder
 {
     public D022GriauleStates(BossModule module) : base(module)
     {
@@ -75,9 +75,17 @@ class D022GriauleStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8143)]
-public class D022Griaule(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+public sealed class D022Griaule : BossModule
 {
-    private static readonly ArenaBoundsCustom arena = new([new Polygon(new(7.156f, -339.132f), 24.5f * CosPI.Pi32th, 32)], [new Rectangle(new(7f, -363.5f), 20f, 1.1f), new Rectangle(new(7f, -315), 20f, 0.75f)]);
+    public D022Griaule(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D022Griaule(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(7.156f, -339.132f), 24.5f * CosPI.Pi32th, 32)], [new Rectangle(new(7f, -363.5f), 20f, 1.1f), new Rectangle(new(7f, -315), 20f, 0.75f)]);
+        return (arena.Center, arena);
+    }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

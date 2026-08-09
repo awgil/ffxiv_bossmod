@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class A34EulogiaStates : StateMachineBuilder
+sealed class A34EulogiaStates : StateMachineBuilder
 {
     public A34EulogiaStates(BossModule module) : base(module)
     {

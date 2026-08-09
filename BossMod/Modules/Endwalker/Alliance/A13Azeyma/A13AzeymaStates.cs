@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-public class A13AzeymaStates : StateMachineBuilder
+public sealed class A13AzeymaStates : StateMachineBuilder
 {
     public A13AzeymaStates(BossModule module) : base(module)
     {

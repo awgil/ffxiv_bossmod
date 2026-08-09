@@ -5,7 +5,7 @@ sealed class PrimordialChaos(BossModule module) : Components.GenericAOEs(module)
     private readonly List<AOEInstance>[] _aoesPerPlayer = new List<AOEInstance>[PartyState.MaxPartySize];
     private readonly int[] playerTemperatures = new int[PartyState.MaxPartySize];
     private readonly List<Polygon> circlesRed = [with(3)], circlesBlue = [with(3)];
-    private static readonly AOEShapeCircle circle = new(22f);
+    private readonly AOEShapeCircle circle = new(22f);
     public int NumTelegraphCasts;
     private bool isInit;
 
@@ -53,9 +53,11 @@ sealed class PrimordialChaos(BossModule module) : Components.GenericAOEs(module)
             var color = Colors.SafeFromAOE;
             var blue0 = circlesBlue[0];
             var red0 = circlesRed[0];
-            List<AOEInstance> isFire = [new(new AOEShapeCustom([blue0], [red0], invertForbiddenZone: true), center, default, act, color)];
-            List<AOEInstance> isIce = [new(new AOEShapeCustom([red0], [blue0], invertForbiddenZone: true), center, default, act, color)];
-            List<AOEInstance> rest = [new(circle, blue0.Center, default, act), new(circle, red0.Center, default, act)];
+            var fire = new AOEShapeCustom(center, [blue0], [red0], invertForbiddenZone: true);
+            var ice = new AOEShapeCustom(center, [red0], [blue0], invertForbiddenZone: true);
+            List<AOEInstance> isFire = [new(fire, center, default, act, color, shapeDistance: fire.Distance(center, default))];
+            List<AOEInstance> isIce = [new(ice, center, default, act, color, shapeDistance: ice.Distance(center, default))];
+            List<AOEInstance> rest = [new(circle, blue0.Center, default, act, shapeDistance: circle.Distance(blue0.Center, default)), new(circle, red0.Center, default, act, shapeDistance: circle.Distance(red0.Center, default))];
             for (var i = 0; i < 8; ++i)
             {
                 var temp = playerTemperatures[i];
@@ -102,9 +104,9 @@ sealed class PrimordialChaos(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (slot < PartyState.MaxPartySize && playerTemperatures[slot] != 0 && _aoesPerPlayer[slot] != default)
+        if (slot < PartyState.MaxPartySize && playerTemperatures[slot] != 0 && _aoesPerPlayer[slot] is var aoe && aoe != default)
         {
-            hints.Add("Get hit by AOE of correct temperature!", !_aoesPerPlayer[slot][0].Check(actor.Position));
+            hints.Add("Get hit by AOE of correct temperature!", !aoe[0].Check(actor.Position));
         }
         else
         {

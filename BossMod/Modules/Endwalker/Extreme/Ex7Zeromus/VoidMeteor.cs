@@ -61,7 +61,7 @@ sealed class MeteorImpactCharge(BossModule module) : Components.GenericAOEs(modu
                 {
                     polygons.Add(new PolygonCustom(BuildShadowPolygon(pos - center, _meteors[i] - center, error)));
                 }
-                var aoe = new AOEShapeCustom([.. polygons]);
+                var aoe = new AOEShapeCustom(center, [.. polygons]);
                 _aoe = [new(aoe, center, shapeDistance: aoe.Distance(center, default))];
             }
         }

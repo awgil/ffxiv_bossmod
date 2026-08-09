@@ -47,6 +47,7 @@ public enum SID : uint
 sealed class ImpactArenaChange(BossModule module) : BossComponent(module)
 {
     private bool active;
+    private readonly GhostlyGuise ghost = module.FindComponent<GhostlyGuise>()!;
 
     public override void OnMapEffect(byte index, uint state)
     {
@@ -59,14 +60,20 @@ sealed class ImpactArenaChange(BossModule module) : BossComponent(module)
             else if (state == 0x00080004u)
             {
                 active = false;
-                Arena.Bounds = D083Träumerei.DefaultBounds;
+                Arena.Bounds = new ArenaBoundsSquare(19.5f);
             }
         }
     }
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (active)
-            Arena.Bounds = GhostlyGuise.IsGhostly(pc) ? D083Träumerei.DefaultBounds : D083Träumerei.CrossBounds;
+        {
+            var isSquare = Arena.Bounds is ArenaBoundsSquare;
+            var ghostly = ghost.Ghostly[pcSlot];
+            Arena.Bounds = ghostly && !isSquare ? new ArenaBoundsSquare(19.5f)
+            : !ghostly && isSquare ? new ArenaBoundsCustom([new Square(Arena.Center, 19.5f)], [new Cross(Arena.Center, 20f, 1.5f)])  // for some reason the obstacle cross is smaller than the AOE;
+            : Arena.Bounds;
+        }
     }
 }
 
@@ -75,88 +82,144 @@ sealed class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
     private readonly Ghostduster _avoid = module.FindComponent<Ghostduster>()!;
     private readonly IllIntentMaliciousMist _seek = module.FindComponent<IllIntentMaliciousMist>()!;
 
-    private static readonly WPos[] positions = [new(137.5f, -443.5f), new(158.5f, -443.5f), new(137.5f, -422.5f), new(158.5f, -422.5f)];
-    private static readonly Circle[] circles = GenerateCircles();
-    private static readonly AOEShapeCustom circlesInverted = new(circles, invertForbiddenZone: true);
-    private static readonly AOEShapeCustom circlesAvoid = new(circles);
+    private readonly AOEShapeCircle circle = new(3f);
     private bool activated;
-    private (bool isActive, DateTime activation) fleshbuster;
-
-    private const string GhostHint = "Turn into a ghost!";
-    private const string FleshHint = "Turn into flesh!";
-
-    private static Circle[] GenerateCircles()
-    {
-        var circles = new Circle[4];
-        for (var i = 0; i < 4; ++i)
-        {
-            circles[i] = new Circle(positions[i], 3f);
-        }
-        return circles;
-    }
-
-    public static bool IsGhostly(Actor actor) => actor.FindStatus((uint)SID.GhostlyGuise) != null;
+    private bool isFleshbuster;
+    private DateTime activationFleshbuster;
+    private readonly AOEInstance[] circles = new AOEInstance[4];
+    public BitMask Ghostly;
+    private bool risky;
+    private DateTime activation;
+    private SDIntersection shapeDistances;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (!activated)
+        {
             return [];
-
-        var shape = circlesAvoid;
-        DateTime activation = default;
-
-        if (_avoid.ActiveSpreads.Count != 0)
-        {
-            shape = IsGhostly(actor) ? circlesInverted : circlesAvoid;
-            activation = _avoid.ActiveSpreads[0].Activation;
         }
-        else if (fleshbuster.isActive)
-        {
-            shape = IsGhostly(actor) ? circlesAvoid : circlesInverted;
-            activation = fleshbuster.activation;
-        }
-        else if (_seek.ActiveBaits.Count != 0)
-            shape = IsGhostly(actor) ? circlesAvoid : circlesInverted;
 
-        return new AOEInstance[1] { new(shape, Arena.Center, default, activation, shape == circlesInverted ? Colors.SafeFromAOE : default) };
+        if (_avoid.Spreads.Count != 0)
+        {
+            risky = !Ghostly[slot];
+            activation = _avoid.Spreads.Ref(0).Activation;
+        }
+        else if (isFleshbuster)
+        {
+            risky = Ghostly[slot];
+            activation = activationFleshbuster;
+        }
+        else if (_seek.CurrentBaits.Count != 0)
+        {
+            risky = Ghostly[slot];
+        }
+        return circles;
+    }
+
+    public override void Update()
+    {
+        if (!activated)
+        {
+            return;
+        }
+        var color = risky ? Colors.SafeFromAOE : default;
+        for (var i = 0; i < 4; ++i)
+        {
+            ref var aoe = ref circles[i];
+            aoe.Color = color;
+            aoe.Activation = activation;
+        }
     }
 
     public override void OnMapEffect(byte index, uint state)
     {
         if (state == 0x00020001u && index == 0x0Cu) // 0x0C, 0x0D, 0x0E, 0xOF happen at the same time, one for each platform
+        {
             activated = true;
+            WPos[] positions = [new(137.5f, -443.5f), new(158.5f, -443.5f), new(137.5f, -422.5f), new(158.5f, -422.5f)];
+            ShapeDistance[] distances = new ShapeDistance[4];
+            for (var i = 0; i < 4; ++i)
+            {
+                var pos = positions[i];
+                circles[i] = new(circle, pos);
+
+                distances[i] = new SDInvertedCircle(pos, 3f);
+            }
+            shapeDistances = new SDIntersection(distances);
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Fleshbuster)
-            fleshbuster = (true, Module.CastFinishAt(spell));
+        {
+            isFleshbuster = true;
+            activationFleshbuster = Module.CastFinishAt(spell);
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, ref ActorStatus status)
+    {
+        if (status.ID == (uint)SID.GhostlyGuise)
+        {
+            Ghostly.Set(Raid.FindSlot(actor.InstanceID));
+        }
+    }
+
+    public override void OnStatusLose(Actor actor, ref ActorStatus status)
+    {
+        if (status.ID == (uint)SID.GhostlyGuise)
+        {
+            Ghostly.Clear(Raid.FindSlot(actor.InstanceID));
+        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Fleshbuster)
-            fleshbuster = default;
+        {
+            isFleshbuster = false;
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var isGhostly = IsGhostly(actor);
-        if (fleshbuster.isActive || _seek.ActiveBaits.Count != 0)
-            hints.Add(GhostHint, !isGhostly);
-        else if (_avoid.ActiveSpreads.Count != 0)
-            hints.Add(FleshHint, isGhostly);
+        if (isFleshbuster || _seek.CurrentBaits.Count != 0)
+        {
+            hints.Add("Turn into a ghost!", !Ghostly[slot]);
+        }
+        else if (_avoid.Spreads.Count != 0)
+        {
+            hints.Add("Turn into flesh!", Ghostly[slot]);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!risky)
+        {
+            hints.AddForbiddenZone(shapeDistances, activation);
+        }
+        else
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+        }
     }
 }
 
 sealed class MaliciousMistRaidwide(BossModule module) : Components.RaidwideCast(module, (uint)AID.MaliciousMistRaidwide);
 sealed class IllIntentMaliciousMist(BossModule module) : Components.StretchTetherDuo(module, 20f, 10f)
 {
+    private GhostlyGuise? ghost;
+
     // ill intent seems to break after 17, malicious mist after 20, not worth the effort to differentiate
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (GhostlyGuise.IsGhostly(actor))
+        ghost ??= Module.FindComponent<GhostlyGuise>();
+        if (ghost!.Ghostly[slot])
+        {
             base.AddAIHints(slot, actor, assignment, hints);
+        }
     }
 }
 
@@ -167,10 +230,15 @@ sealed class Impact(BossModule module) : Components.SimpleAOEs(module, (uint)AID
 sealed class Ghostcrusher(BossModule module) : Components.LineStack(module, aidMarker: (uint)AID.GhostcrusherMarker, (uint)AID.Ghostcrusher, 5d, 80f, maxStackSize: 4);
 sealed class Ghostduster(BossModule module) : Components.SpreadFromCastTargets(module, (uint)AID.Ghostduster, 8f)
 {
+    private GhostlyGuise? ghost;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!GhostlyGuise.IsGhostly(actor))
+        ghost ??= Module.FindComponent<GhostlyGuise>();
+        if (!ghost!.Ghostly[slot])
+        {
             base.AddAIHints(slot, actor, assignment, hints);
+        }
     }
 }
 
@@ -179,12 +247,12 @@ sealed class D083TräumereiStates : StateMachineBuilder
     public D083TräumereiStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<GhostlyGuise>()
             .ActivateOnEnter<ImpactArenaChange>()
             .ActivateOnEnter<Ghostcrusher>()
             .ActivateOnEnter<MaliciousMistRaidwide>()
             .ActivateOnEnter<IllIntentMaliciousMist>()
             .ActivateOnEnter<Ghostduster>()
-            .ActivateOnEnter<GhostlyGuise>()
             .ActivateOnEnter<Impact>()
             .ActivateOnEnter<BitterRegret1>()
             .ActivateOnEnter<BitterRegret2>()
@@ -192,10 +260,5 @@ sealed class D083TräumereiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 12763)]
-public sealed class D083Träumerei(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(19.5f))
-{
-    public static readonly WPos ArenaCenter = new(148f, -433f);
-    public static readonly ArenaBoundsSquare DefaultBounds = new(19.5f);
-    public static readonly ArenaBoundsCustom CrossBounds = new([new Square(ArenaCenter, 19.5f)], [new Cross(ArenaCenter, 20f, 1.5f)]); // for some reason the obstacle cross is smaller than the AOE
-}
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981u, NameID = 12763u)]
+public sealed class D083Träumerei(WorldState ws, Actor primary) : BossModule(ws, primary, new(148f, -433f), new ArenaBoundsSquare(19.5f));

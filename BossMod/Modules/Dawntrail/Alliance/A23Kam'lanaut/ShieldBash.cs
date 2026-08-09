@@ -15,7 +15,7 @@ sealed class ShieldBash(BossModule module) : Components.SimpleKnockbacks(module,
             {
                 if (!PolygonInit)
                 {
-                    Polygon = A23Kamlanaut.P2ArenaWithBridges.Polygon.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
+                    Polygon = Arena.Bounds.Shape.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
                     PolygonInit = true;
                 }
 

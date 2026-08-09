@@ -2,12 +2,7 @@ namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
 {
-    public static readonly WPos Center = new(945f, -945f);
-    private static readonly ArenaBoundsSquare squareBounds = new(24f);
-    private static readonly ArenaBoundsCircle smallerBounds = new(30f);
-    public static readonly ArenaBoundsCircle BigBounds = new(35f);
-    private static readonly AOEShapeCustom transitionSquare = new([new Square(Center, 30f)], [new Square(Center, 24f)]);
-    private static readonly AOEShapeDonut transitionSmallerBounds = new(30f, 35f);
+    private readonly AOEShapeDonut transitionSmallerBounds = new(30f, 35f);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -18,11 +13,11 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         {
             if (state == 0x00080004u)
             {
-                Arena.Bounds = BigBounds;
+                Arena.Bounds = new ArenaBoundsCircle(35f);
             }
             else if (state == 0x00100001u)
             {
-                Arena.Bounds = smallerBounds;
+                Arena.Bounds = new ArenaBoundsCircle(30f);
             }
         }
     }
@@ -32,11 +27,16 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         var id = spell.Action.ID;
         if (id == (uint)AID.Hieroglyphika)
         {
-            _aoe = [new(transitionSquare, Center, default, Module.CastFinishAt(spell))];
+            var center = Arena.Center;
+            AddAOE(new AOEShapeCustom(center, [new Square(center, 30f)], [new Square(center, 24f)]), center);
         }
         else if (id == (uint)AID.Whorl)
         {
-            _aoe = [new(transitionSmallerBounds, Center, default, Module.CastFinishAt(spell))];
+            AddAOE(transitionSmallerBounds, Arena.Center);
+        }
+        void AddAOE(AOEShape shape, WPos center)
+        {
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell), shapeDistance: transitionSmallerBounds.Distance(center, default))];
         }
     }
 
@@ -45,12 +45,12 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         var id = spell.Action.ID;
         if (id == (uint)AID.Hieroglyphika)
         {
-            Arena.Bounds = squareBounds;
+            Arena.Bounds = new ArenaBoundsSquare(24f);
             _aoe = [];
         }
         else if (id == (uint)AID.Whorl)
         {
-            Arena.Bounds = smallerBounds;
+            Arena.Bounds = new ArenaBoundsCircle(30f);
             _aoe = [];
         }
     }
@@ -65,4 +65,4 @@ sealed class SoaringMinuet(BossModule module) : Components.SimpleAOEs(module, (u
 sealed class EudaimonEorzea(BossModule module) : Components.CastCounter(module, (uint)AID.EudaimonEorzeaAOE);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962u, NameID = 11301u, SortOrder = 7, PlanLevel = 90)]
-public sealed class A34Eulogia(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaChanges.Center, ArenaChanges.BigBounds);
+public sealed class A34Eulogia(WorldState ws, Actor primary) : BossModule(ws, primary, new(945f, -945f), new ArenaBoundsCircle(35f));

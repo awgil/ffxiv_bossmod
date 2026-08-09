@@ -1,10 +1,10 @@
 namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class Quintessence(BossModule module) : Components.GenericAOEs(module)
+sealed class Quintessence(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(3)];
-    private static readonly AOEShapeCone cone = new(50f, 90f.Degrees());
-    private static readonly AOEShapeDonut donut = new(8f, 60f);
+    private readonly AOEShapeCone cone = new(50f, 90f.Degrees());
+    private readonly AOEShapeDonut donut = new(8f, 60f);
     private byte _index;
     private WPos position;
     private uint cast;

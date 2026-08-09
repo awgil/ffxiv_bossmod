@@ -35,32 +35,16 @@ sealed class TranscendentUnion(BossModule module) : Components.RaidwideCastDelay
 sealed class EnspiritedSwordplayShockwave(BossModule module) : Components.RaidwideCasts(module, [(uint)AID.EnspiritedSwordplay, (uint)AID.Shockwave]);
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus)", PrimaryActorOID = (uint)OID.Kamlanaut, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1058u, NameID = 14043u, Category = BossModuleInfo.Category.Alliance, Expansion = BossModuleInfo.Expansion.Dawntrail, SortOrder = 6)]
-public sealed class A23Kamlanaut(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, P1Arena)
+public sealed class A23Kamlanaut : BossModule
 {
-    public static readonly WPos ArenaCenter = new(-200f, 150f);
-    private static readonly Polygon[] p1Circle = [new(ArenaCenter, 29.5f, 128)]; // arena circle actually got 512 vertices, but 128 is a good enough approximation for this use case
-    private static readonly Polygon[] p2Circle = [new(ArenaCenter, 20f, 128)];
-    private static readonly Polygon[] voidzone = [new(ArenaCenter, 5f, 64)];
-    public static readonly ArenaBoundsCustom P1Arena = new(p1Circle);
-    public static readonly ArenaBoundsCustom P2Arena = new(p2Circle);
-    public static readonly ArenaBoundsCustom P1ArenaDonut = new(p1Circle, voidzone);
+    public A23Kamlanaut(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
 
-    private static readonly Rectangle[] bridges = GenerateBridges();
-    private static Rectangle[] GenerateBridges()
+    private A23Kamlanaut(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    public static Polygon[] BuildP1Circle() => [new(new(-200f, 150f), 29.5f, 128)]; // arena circle actually got 512 vertices, but 128 is a good enough approximation for this use case;
+    public static (WPos center, ArenaBoundsCustom arena) BuildArena()
     {
-        var northCenter = new WDir(default, -20f);
-        var rects = new Rectangle[3];
-        var a120 = 120f.Degrees();
-        for (var i = 0; i < 3; ++i)
-        {
-            var angle = a120 * i;
-            rects[i] = new(ArenaCenter + northCenter.Rotate(angle), 5f, 20f, angle);
-        }
-        return rects;
+        var arena = new ArenaBoundsCustom(BuildP1Circle());
+        return (arena.Center, arena);
     }
-
-    private static readonly Shape[] p2ArenaShapes = [.. p2Circle, .. bridges];
-    public static readonly ArenaBoundsCustom P2ArenaWithBridges = new(p2ArenaShapes, ScaleFactor: 1.15f);
-    public static readonly AOEShapeCustom P1p2transition = new(p1Circle, p2ArenaShapes);
-    public static readonly ArenaBoundsCustom P2ArenaWithBridgesDonut = new(p2ArenaShapes, voidzone, ScaleFactor: 1.15f);
 }

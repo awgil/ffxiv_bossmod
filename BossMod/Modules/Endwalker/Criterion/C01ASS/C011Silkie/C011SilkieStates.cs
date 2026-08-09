@@ -55,7 +55,7 @@ abstract class C011SilkieStates : StateMachineBuilder
             .ActivateOnEnter<SFizzlingDusterPuff>(_savage)
             .DeactivateOnExit<ChillingDusterPuff>()
             .DeactivateOnExit<BracingDusterPuff>()
-            .DeactivateOnExit<FizzlingDusterPuff>();
+            .DeactivateOnExit<FizzlingDuster>();
     }
 
     private void FizzlingSuds(uint id, float delay)

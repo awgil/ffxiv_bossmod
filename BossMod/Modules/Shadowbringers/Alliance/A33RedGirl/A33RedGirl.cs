@@ -13,41 +13,8 @@ sealed class GenerateBarrier4(BossModule module) : Components.SimpleAOEs(module,
 sealed class Explosion(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Explosion, 9f, riskyWithSecondsLeft: 5d);
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9920, SortOrder = 4)]
-public sealed class A33RedGirl(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingArena)
+public sealed class A33RedGirl(WorldState ws, Actor primary) : BossModule(ws, primary, new(845f, -851f), new ArenaBoundsSquare(24.5f))
 {
-    public static readonly WPos ArenaCenter = new(845f, -851f);
-    public static readonly ArenaBoundsSquare StartingArena = new(24.5f);
-    public static readonly PolygonCustom InnerSquare = new([new(847.5f, -848.5f), new(847.5f, -853.5f), new(842.5f, -853.5f), new(842.49945f, -848.50018f)]); // one vertice of the inner square is slightly misplaced. since it kills instantly we prefer perfection.
-    public static readonly Square[] BigSquare = [new(ArenaCenter, 24.5f)];
-    public static readonly Square[] DefaultSquare = [new(ArenaCenter, 20f)];
-    public static readonly AOEShapeCustom ArenaTransition = new(BigSquare, DefaultSquare, [InnerSquare]);
-    public static readonly ArenaBoundsCustom DefaultArena = new(DefaultSquare, [InnerSquare]);
-    public static readonly PolygonCustom[] VirusArena1 = [new([new(6f, 856f), new(-6f, 856f), new(-6f, 868f), new(-1.5f, 868f), new(-1.5f, 880f),
-    new(-8f, 880f), new(-8f, 882f), new(-12f, 882f), new(-12f, 884f), new(-14f, 884f),
-    new(-14f, 886f), new(-16f, 886f), new(-16f, 888f), new(-18f, 888f), new(-18f, 892f),
-    new(-20f, 892f), new(-20f, 908f), new(-18f, 908f), new(-18f, 912f), new(-16f, 912f),
-    new(-16f, 914f), new(-14f, 914f), new(-14f, 916f), new(-12f, 916f), new(-12f, 918f),
-    new(-8f, 918f), new(-8f, 920f), new(-1.5f, 920f), new(-1.5f, 932f), new(-6f, 932f),
-    new(-6f, 944f), new(6f, 944f), new(6f, 932f), new(1.5f, 932f), new(1.5f, 920f),
-    new(8f, 920f), new(8f, 918f), new(12f, 918f), new(12f, 916f), new(14f, 916f),
-    new(14f, 914f), new(16f, 914f), new(16f, 912f), new(18f, 912f), new(18f, 908f),
-    new(20f, 908f), new(20f, 892f), new(18f, 892f), new(18f, 888f), new(16f, 888f),
-    new(16f, 886f), new(14f, 886f), new(14f, 884f), new(12f, 884f), new(12f, 882f),
-    new(8f, 882f), new(8f, 880f), new(1.5f, 880f), new(1.5f, 868f), new(6f, 868f)])];
-    public static readonly PolygonCustom[] VirusArena2 = GenerateVirusArena(new(default, -500f));
-    public static readonly PolygonCustom[] VirusArena3 = GenerateVirusArena(new(default, -1000f));
-    private static PolygonCustom[] GenerateVirusArena(WDir offset)
-    {
-        var vertices = new WPos[60];
-        var o = offset;
-        var vertices1 = VirusArena1[0].Vertices;
-        for (var i = 0; i < 60; ++i)
-        {
-            vertices[i] = vertices1[i] + o;
-        }
-        return [new(vertices)];
-    }
-
     public Actor? BossP2;
     public Actor? RedSphere;
 

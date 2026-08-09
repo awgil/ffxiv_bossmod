@@ -36,7 +36,9 @@ sealed class SewageDeluge(BossModule module) : Components.GenericAOEs(module)
                 }
                 if (seenEvents > 1)
                 {
-                    _aoe = [new(new AOEShapeCustom([new Rectangle(new(100f, 100f), 17.5f, 22.5f)], shapes), Arena.Center, activation: WorldState.FutureTime(7.9d))];
+                    var center = Arena.Center;
+                    var shape = new AOEShapeCustom(center, [new Rectangle(new(100f, 100f), 17.5f, 22.5f)], shapes);
+                    _aoe = [new(shape, center, activation: WorldState.FutureTime(7.9d), shapeDistance: shape.Distance(center, default))];
                 }
                 break;
             case 0x0020001u:

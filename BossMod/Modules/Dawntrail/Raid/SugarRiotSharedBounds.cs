@@ -1,11 +1,13 @@
-namespace BossMod.Dawntrail.Raid.SugarRiotSharedBounds;
+namespace BossMod.Dawntrail.Raid;
 
-public static class SugarRiotSharedBounds
+public abstract class SugarRiotSharedBounds : BossModule
 {
-    public static readonly WPos ArenaCenter = new(100f, 100f);
-    public static readonly ArenaBoundsSquare DefaultArena = new(20f);
+    public SugarRiotSharedBounds(WorldState ws, Actor primary) : base(ws, primary, new(100f, 100f), new ArenaBoundsSquare(20f))
+    {
+        jumpEdgeSegments = GenerateSegments();
+    }
 
-    private static readonly PolygonCustom polygonNorth = new([new(100.628f, 79.853f), new(100.525f, 80.108f), new(100.425f, 80.365f), new(100.327f, 80.622f),
+    private readonly PolygonCustom polygonNorth = new([new(100.628f, 79.853f), new(100.525f, 80.108f), new(100.425f, 80.365f), new(100.327f, 80.622f),
     new(100.231f, 80.88f), new(100.138f, 81.139f), new(100.046f, 81.398f), new(99.956f, 81.658f), new(99.869f, 81.919f),
     new(99.784f, 82.181f), new(99.701f, 82.443f), new(99.62f, 82.706f), new(99.541f, 82.97f), new(99.464f, 83.234f),
     new(99.39f, 83.499f), new(99.317f, 83.765f), new(99.247f, 84.031f), new(99.179f, 84.298f), new(99.113f, 84.565f),
@@ -21,7 +23,7 @@ public static class SugarRiotSharedBounds
     new(106.43f, 81.958f), new(106.517f, 81.751f), new(106.605f, 81.544f), new(106.696f, 81.338f), new(106.787f, 81.133f),
     new(106.881f, 80.929f), new(106.976f, 80.725f), new(107.073f, 80.522f), new(107.172f, 80.321f), new(107.272f, 80.119f),
     new(107.374f, 79.919f)]);
-    private static readonly PolygonCustom polygonMiddle = new([new(97.804f, 93.038f), new(97.766f, 93.309f), new(97.717f, 93.579f), new(97.659f, 93.847f),
+    private readonly PolygonCustom polygonMiddle = new([new(97.804f, 93.038f), new(97.766f, 93.309f), new(97.717f, 93.579f), new(97.659f, 93.847f),
     new(97.592f, 94.113f), new(97.517f, 94.376f), new(97.433f, 94.637f), new(97.341f, 94.895f), new(97.24f, 95.15f),
     new(97.131f, 95.402f), new(97.014f, 95.649f), new(96.889f, 95.893f), new(96.756f, 96.133f), new(96.615f, 96.368f),
     new(96.466f, 96.598f), new(96.31f, 96.823f), new(96.147f, 97.044f), new(95.977f, 97.258f), new(95.799f, 97.467f),
@@ -41,7 +43,7 @@ public static class SugarRiotSharedBounds
     new(104.294f, 97.629f), new(104.21f, 97.368f), new(104.135f, 97.104f), new(104.068f, 96.838f), new(104.01f, 96.57f),
     new(103.961f, 96.301f), new(103.921f, 96.03f), new(103.89f, 95.757f), new(103.867f, 95.484f), new(103.854f, 95.21f),
     new(103.849f, 94.936f), new(103.854f, 94.662f), new(103.867f, 94.389f), new(103.89f, 94.115f), new(103.923f, 93.843f)]);
-    private static readonly PolygonCustom polygonEast = new([new(107.338f, 109.518f), new(107.557f, 109.684f), new(107.778f, 109.849f),
+    private readonly PolygonCustom polygonEast = new([new(107.338f, 109.518f), new(107.557f, 109.684f), new(107.778f, 109.849f),
     new(107.999f, 110.012f), new(108.222f, 110.174f), new(108.447f, 110.333f), new(108.673f, 110.49f), new(108.899f, 110.646f),
     new(109.128f, 110.8f), new(109.357f, 110.952f), new(109.588f, 111.102f), new(109.82f, 111.25f), new(110.053f, 111.397f),
     new(110.287f, 111.541f), new(110.523f, 111.684f), new(110.759f, 111.824f), new(110.997f, 111.963f), new(111.236f, 112.099f),
@@ -62,7 +64,7 @@ public static class SugarRiotSharedBounds
     new(112.93f, 105.919f), new(112.742f, 105.796f), new(112.554f, 105.672f), new(112.368f, 105.546f), new(112.182f, 105.419f),
     new(111.998f, 105.291f), new(111.815f, 105.16f), new(111.633f, 105.029f), new(111.452f, 104.896f), new(111.272f, 104.761f),
     new(111.093f, 104.625f)]);
-    private static readonly PolygonCustom polygonWest = new([new(88.088f, 101.596f), new(87.834f, 101.703f), new(87.581f, 101.811f), new(87.329f, 101.922f),
+    private readonly PolygonCustom polygonWest = new([new(88.088f, 101.596f), new(87.834f, 101.703f), new(87.581f, 101.811f), new(87.329f, 101.922f),
     new(87.078f, 102.034f), new(86.828f, 102.149f), new(86.579f, 102.265f), new(86.33f, 102.384f), new(86.083f, 102.505f),
     new(85.837f, 102.628f), new(85.591f, 102.752f), new(85.347f, 102.879f), new(85.104f, 103.008f), new(84.861f, 103.138f),
     new(84.62f, 103.271f), new(84.38f, 103.406f), new(84.141f, 103.542f), new(83.904f, 103.681f), new(83.667f, 103.822f),
@@ -82,16 +84,13 @@ public static class SugarRiotSharedBounds
     new(88.21f, 108.342f), new(88.409f, 108.238f), new(88.61f, 108.136f), new(88.811f, 108.036f), new(89.013f, 107.938f),
     new(89.216f, 107.841f), new(89.419f, 107.745f), new(89.623f, 107.652f), new(89.829f, 107.56f), new(90.034f, 107.469f),
     new(90.241f, 107.381f), new(90.448f, 107.294f)]);
-    public static readonly PolygonCustom[] CombinedRiver = [polygonNorth, polygonWest, polygonEast, polygonMiddle];
-    public static readonly AOEShapeCustom RiverAOE = new(CombinedRiver);
-    public static readonly Square[] DefaultSquare = [new(ArenaCenter, 20f)];
-    public static readonly ArenaBoundsCustom RiverArena = new(DefaultSquare, CombinedRiver);
-    public static readonly (WPos, WPos)[] JumpEdges = [(new(97.639f, 93.016f), new(103.923f, 93.843f)), (new(104.243f, 88.842f), new(98.459f, 88.081f)),
+    public PolygonCustom[] GetCombinedRiver() => [polygonNorth, polygonWest, polygonEast, polygonMiddle];
+    private readonly (WPos, WPos)[] jumpEdges = [(new(97.639f, 93.016f), new(103.923f, 93.843f)), (new(104.243f, 88.842f), new(98.459f, 88.081f)),
     (new(94.940f, 105.074f), new(92.739f, 99.759f)), (new(88.216f, 101.905f), new(90.321f, 106.986f)), (new(106.924f, 101.845f), new(103.371f, 106.475f)),
     (new(107.389f, 109.451f), new(111.042f, 104.691f))];
-    private static readonly (WPos p, WDir d, float l)[] jumpEdgeSegments = GenerateSegments();
+    private readonly (WPos p, WDir d, float l)[] jumpEdgeSegments;
 
-    public static bool IntersectJumpEdge(WPos p, WDir d, float l)
+    public bool IntersectJumpEdge(WPos p, WDir d, float l)
     {
         for (var i = 0; i < 6; ++i)
         {
@@ -99,26 +98,32 @@ public static class SugarRiotSharedBounds
             var n = e.d.OrthoL();
             var dirDot = d.Dot(n);
             if (dirDot < 0.05f)
+            {
                 continue;
+            }
 
             var ts = n.Dot(e.p - p) / dirDot;
             if (ts < 0 || ts > l)
+            {
                 continue;
+            }
 
             var te = d.OrthoL().Dot(p - e.p) / e.d.Dot(d.OrthoL());
             if (te >= 0 && te <= e.l)
+            {
                 return true;
+            }
         }
         return false;
     }
 
-    private static (WPos p, WDir d, float l)[] GenerateSegments()
+    private (WPos p, WDir d, float l)[] GenerateSegments()
     {
         var segments = new (WPos p, WDir d, float l)[6];
 
         for (var i = 0; i < 6; ++i)
         {
-            ref readonly var edge = ref JumpEdges[i];
+            ref readonly var edge = ref jumpEdges[i];
             ref readonly var edge1 = ref edge.Item1;
             var edge2M1 = edge.Item2 - edge1;
             var direction = edge2M1.Normalized();

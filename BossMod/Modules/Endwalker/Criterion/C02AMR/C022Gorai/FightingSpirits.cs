@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
 abstract class FightingSpirits(BossModule module, uint aid) : Components.SimpleKnockbacks(module, aid, 16f);
-class NFightingSpirits(BossModule module) : FightingSpirits(module, (uint)AID.NFightingSpiritsAOE);
-class SFightingSpirits(BossModule module) : FightingSpirits(module, (uint)AID.SFightingSpiritsAOE);
+sealed class NFightingSpirits(BossModule module) : FightingSpirits(module, (uint)AID.NFightingSpiritsAOE);
+sealed class SFightingSpirits(BossModule module) : FightingSpirits(module, (uint)AID.SFightingSpiritsAOE);
 
-class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
+sealed class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     private readonly int[] _order = [-1, -1, -1, -1];
 
@@ -58,7 +58,7 @@ class WorldlyPursuitBait(BossModule module) : Components.GenericBaitAway(module,
     }
 }
 
-class WorldlyPursuitLast(BossModule module) : Components.GenericAOEs(module)
+sealed class WorldlyPursuitLast(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly DateTime _activation = module.WorldState.FutureTime(3.1f);
 

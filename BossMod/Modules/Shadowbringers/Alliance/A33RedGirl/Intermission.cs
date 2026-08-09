@@ -5,6 +5,30 @@ sealed class IntermissionArena(BossModule module) : BossComponent(module)
     private readonly List<Rectangle> walls = [with(8)];
     private readonly A33RedGirl bossmod = (A33RedGirl)module;
     private PolygonCustom[] baseArena = [];
+    private readonly PolygonCustom[] virusArena1 = [new([new(6f, 856f), new(-6f, 856f), new(-6f, 868f), new(-1.5f, 868f), new(-1.5f, 880f),
+    new(-8f, 880f), new(-8f, 882f), new(-12f, 882f), new(-12f, 884f), new(-14f, 884f),
+    new(-14f, 886f), new(-16f, 886f), new(-16f, 888f), new(-18f, 888f), new(-18f, 892f),
+    new(-20f, 892f), new(-20f, 908f), new(-18f, 908f), new(-18f, 912f), new(-16f, 912f),
+    new(-16f, 914f), new(-14f, 914f), new(-14f, 916f), new(-12f, 916f), new(-12f, 918f),
+    new(-8f, 918f), new(-8f, 920f), new(-1.5f, 920f), new(-1.5f, 932f), new(-6f, 932f),
+    new(-6f, 944f), new(6f, 944f), new(6f, 932f), new(1.5f, 932f), new(1.5f, 920f),
+    new(8f, 920f), new(8f, 918f), new(12f, 918f), new(12f, 916f), new(14f, 916f),
+    new(14f, 914f), new(16f, 914f), new(16f, 912f), new(18f, 912f), new(18f, 908f),
+    new(20f, 908f), new(20f, 892f), new(18f, 892f), new(18f, 888f), new(16f, 888f),
+    new(16f, 886f), new(14f, 886f), new(14f, 884f), new(12f, 884f), new(12f, 882f),
+    new(8f, 882f), new(8f, 880f), new(1.5f, 880f), new(1.5f, 868f), new(6f, 868f)])];
+
+    private PolygonCustom[] GenerateVirusArena(WDir offset)
+    {
+        var vertices = new WPos[60];
+        var o = offset;
+        var vertices1 = virusArena1[0].Vertices;
+        for (var i = 0; i < 60; ++i)
+        {
+            vertices[i] = vertices1[i] + o;
+        }
+        return [new(vertices)];
+    }
 
     public override void OnActorCreated(Actor actor)
     {
@@ -15,9 +39,9 @@ sealed class IntermissionArena(BossModule module) : BossComponent(module)
             {
                 baseArena = bossmod.RedSphere!.PosRot.Z switch
                 {
-                    900f => A33RedGirl.VirusArena1,
-                    400f => A33RedGirl.VirusArena2,
-                    _ => A33RedGirl.VirusArena3
+                    900f => virusArena1,
+                    400f => GenerateVirusArena(new(0f, -500f)),
+                    _ => GenerateVirusArena(new(0f, -1000f))
                 };
                 ArenaBoundsCustom arena = new(baseArena, [.. walls]);
                 Arena.Bounds = arena;

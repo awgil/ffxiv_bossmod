@@ -7,14 +7,14 @@ namespace BossMod.Endwalker.Alliance.A31Thaliak;
 // XXXX       XXXO
 // OXXX       XXXX
 // the pattern is then rotated CW or CCW, giving 4 possible results
-class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, (uint)AID.HieroglyphikaAOE)
+sealed class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, (uint)AID.HieroglyphikaAOE)
 {
     public bool BindsAssigned;
     public WDir SafeSideDir;
     public readonly List<AOEInstance> AOEs = [with(14)];
 
-    private static readonly AOEShapeRect _shape = new(12f, 6f);
-    private static readonly WDir[] _canonicalSafespots = [new(6f, -18f), new(-18f, 18f)];
+    private readonly AOEShapeRect _shape = new(12f, 6f);
+    private readonly WDir[] _canonicalSafespots = [new(6f, -18f), new(-18f, 18f)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(AOEs);
 

@@ -1,13 +1,13 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C021Shishio;
 
-class NoblePursuit(BossModule module) : Components.GenericAOEs(module)
+sealed class NoblePursuit(BossModule module) : Components.GenericAOEs(module)
 {
     private WPos _posAfterLastCharge;
     private readonly List<AOEInstance> _charges = [];
     private readonly List<AOEInstance> _rings = [];
 
     private const float _chargeHalfWidth = 6f;
-    private static readonly AOEShapeRect _shapeRing = new(5f, 50f, 5f);
+    private readonly AOEShapeRect _shapeRing = new(5f, 50f, 5f);
 
     public bool Active => _charges.Count + _rings.Count > 0;
 

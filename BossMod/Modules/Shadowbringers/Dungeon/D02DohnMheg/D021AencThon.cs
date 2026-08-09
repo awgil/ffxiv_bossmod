@@ -26,15 +26,15 @@ public enum IconID : uint
     Stackmarker = 62 // player
 }
 
-class Landsblood(BossModule module) : Components.RaidwideCast(module, (uint)AID.LandsbloodFirst, "Raidwides + Geysers");
-class CandyCane(BossModule module) : Components.SingleTargetCast(module, (uint)AID.CandyCane);
-class Hydrofall(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Hydrofall, 6f);
-class LaughingLeap(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LaughingLeapAOE, 4f);
-class LaughingLeapStack(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stackmarker, (uint)AID.LaughingLeapStack, 4f, 5.1f, 4, 4);
+sealed class Landsblood(BossModule module) : Components.RaidwideCast(module, (uint)AID.LandsbloodFirst, "Raidwides + Geysers");
+sealed class CandyCane(BossModule module) : Components.SingleTargetCast(module, (uint)AID.CandyCane);
+sealed class Hydrofall(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Hydrofall, 6f);
+sealed class LaughingLeap(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LaughingLeapAOE, 4f);
+sealed class LaughingLeapStack(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stackmarker, (uint)AID.LaughingLeapStack, 4f, 5.1d, 4, 4);
 
-class Geyser(BossModule module) : Components.GenericAOEs(module)
+sealed class Geyser(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCircle circle = new(6f);
+    private readonly AOEShapeCircle circle = new(6f);
     private readonly List<AOEInstance> _aoes = [with(14)];
 
     private readonly WDir[] geysers1 = [new(-9f, 15f), new(default, -16f)];
@@ -44,7 +44,9 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
     {
         var count = _aoes.Count;
         if (count == 0)
+        {
             return [];
+        }
         var aoes = CollectionsMarshal.AsSpan(_aoes);
         var deadline = aoes[0].Activation.AddSeconds(1d);
         var isNotLastSet = aoes[^1].Activation > deadline;
@@ -55,11 +57,15 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
             if (aoe.Activation < deadline)
             {
                 if (isNotLastSet)
+                {
                     aoe.Color = color;
+                }
                 aoe.Risky = true;
             }
             else
+            {
                 aoe.Risky = false;
+            }
         }
         return aoes;
     }
@@ -89,11 +95,13 @@ class Geyser(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (_aoes.Count != 0 && spell.Action.ID == (uint)AID.Geyser)
+        {
             _aoes.RemoveAt(0);
+        }
     }
 }
 
-class D021AencThonStates : StateMachineBuilder
+sealed class D021AencThonStates : StateMachineBuilder
 {
     public D021AencThonStates(BossModule module) : base(module)
     {
@@ -107,8 +115,16 @@ class D021AencThonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8141)]
-public class D021AencThon(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649u, NameID = 8141u)]
+public sealed class D021AencThon : BossModule
 {
-    private static readonly ArenaBoundsCustom arena = new([new Polygon(new(default, 30f), 19.5f * CosPI.Pi32th, 32)], [new Rectangle(new(default, 50f), 20f, 1f), new Rectangle(new(default, 10f), 20f, 1.4f)]);
+    public D021AencThon(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D021AencThon(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(default, 30f), 19.5f * CosPI.Pi32th, 32)], [new Rectangle(new(default, 50f), 20f, 1f), new Rectangle(new(default, 10f), 20f, 1.4f)]);
+        return (arena.Center, arena);
+    }
 }

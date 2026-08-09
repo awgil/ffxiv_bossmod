@@ -2,7 +2,7 @@ namespace BossMod.Dawntrail.Trial.T03QueenEternal;
 
 sealed class PowerfulGustKB(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.PowerfulGust, 20f, kind: Kind.DirForward, stopAfterWall: true)
 {
-    public RelSimplifiedComplexPolygon Polygon = T03QueenEternal.XArena.Polygon.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
+    public RelSimplifiedComplexPolygon Polygon = T03QueenEternal.GetXArena().Polygon.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -20,7 +20,7 @@ sealed class PowerfulGustKB(BossModule module) : Components.SimpleKnockbacks(mod
 
 sealed class DownburstKB(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.Downburst, 10f, stopAfterWall: true)
 {
-    public RelSimplifiedComplexPolygon Polygon = T03QueenEternal.XArena.Polygon.Offset(-0.5f); // pretend polygon is 0.5y smaller than real for less suspect knockbacks
+    public RelSimplifiedComplexPolygon Polygon = T03QueenEternal.GetXArena().Polygon.Offset(-0.5f); // pretend polygon is 0.5y smaller than real for less suspect knockbacks
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

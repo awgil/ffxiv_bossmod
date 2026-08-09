@@ -63,7 +63,7 @@ sealed class ScourgingBlaze(BossModule module) : Components.Exaflare(module, 5f)
                     var c = crystals[i];
                     rects[i] = new(c.Item2, 5f, 40f, c.Item1.ToAngle());
                 }
-                shape = new([new Rectangle(Q1FinalVerse.ArenaCenter, 20f, 15f)], rects);
+                shape = new(Arena.Center, [new Rectangle(Q1FinalVerse.ArenaCenter, 20f, 15f)], rects);
             }
         }
     }

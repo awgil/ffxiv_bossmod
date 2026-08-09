@@ -3,7 +3,7 @@
 sealed class AboveBoard(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(6)];
-    private static readonly AOEShapeCircle circle = new(10f);
+    private readonly AOEShapeCircle circle = new(10f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
@@ -14,7 +14,7 @@ sealed class AboveBoard(BossModule module) : Components.GenericAOEs(module)
             _aoes.Clear();
             var bombs = Module.Enemies((uint)OID.AetherialBurst);
             var count = bombs.Count;
-            var activation = Module.CastFinishAt(spell, 15.1f);
+            var activation = Module.CastFinishAt(spell, 15.1d);
             for (var i = 0; i < count; ++i)
             {
                 _aoes.Add(new(circle, bombs[i].Position.Quantized(), default, activation));

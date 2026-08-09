@@ -2,8 +2,6 @@ namespace BossMod.Endwalker.VariantCriterion.V1SildihnSubterrane.V12Silkie;
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(V12Silkie.ArenaCenter, 30f)], [new Square(V12Silkie.ArenaCenter, 20f)]);
-
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -12,7 +10,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.TotalWash && Arena.Bounds.Radius != 20f)
         {
-            _aoe = [new(square, Arena.Center, default, WorldState.FutureTime(1.8d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 29.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, WorldState.FutureTime(1.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 

@@ -28,16 +28,17 @@ public enum AID : uint
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom rect = new([new Rectangle(D132DamcyanAntlion.ArenaCenter, 19.5f, 25f)], [new Rectangle(D132DamcyanAntlion.ArenaCenter, 19.5f, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.Sandblast && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.Sandblast && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(rect, Arena.Center, default, Module.CastFinishAt(spell))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Rectangle(center, 19.5f, 25f)], [new Rectangle(center, 19.5f, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell), shapeDistance: shape.Distance(center, default))];
         }
     }
     public override void OnMapEffect(byte index, uint state)
@@ -56,7 +57,7 @@ sealed class Landslip(BossModule module) : Components.GenericKnockback(module)
 {
     public bool TowerDanger;
     public readonly List<Knockback> Knockbacks = [with(4)];
-    private static readonly AOEShapeRect rect = new(40f, 5f);
+    private readonly AOEShapeRect rect = new(40f, 5f);
     private Towerfall? _aoe = module.FindComponent<Towerfall>();
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) => CollectionsMarshal.AsSpan(Knockbacks);
@@ -85,8 +86,10 @@ sealed class Landslip(BossModule module) : Components.GenericKnockback(module)
     {
         var count = Knockbacks.Count;
         if (count == 0)
+        {
             return;
-        var length = Arena.Bounds.Radius * 2; // casters are at the border, orthogonal to borders
+        }
+        var length = Arena.Bounds.Radius * 2f; // casters are at the border, orthogonal to borders
         for (var i = 0; i < count; ++i)
         {
             var c = Knockbacks[i];
@@ -118,7 +121,9 @@ sealed class QuicksandVoidzone(BossModule module) : Components.Voidzone(module, 
     {
         var enemies = module.Enemies((uint)OID.QuicksandVoidzone);
         if (enemies.Count != 0 && enemies[0].EventState != 7)
+        {
             return [.. enemies];
+        }
         return [];
     }
 }
@@ -132,7 +137,9 @@ sealed class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
     {
         var count = _aoes.Count;
         if (count == 0)
+        {
             return [];
+        }
         var aoes = CollectionsMarshal.AsSpan(_aoes);
         if (count > 1)
         {
@@ -165,13 +172,15 @@ sealed class Towerfall(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Landslip _kb = module.FindComponent<Landslip>()!;
     private readonly List<AOEInstance> _aoes = [with(2)];
-    private static readonly AOEShapeRect rect = new(40f, 5f);
+    private readonly AOEShapeRect rect = new(40f, 5f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var count = _aoes.Count;
         if (count == 0)
+        {
             return [];
+        }
         var risky = _kb.TowerDanger;
         var aoes = CollectionsMarshal.AsSpan(_aoes);
 
@@ -222,7 +231,9 @@ sealed class Towerfall(BossModule module) : Components.GenericAOEs(module)
             hints.AddForbiddenZone(check ? new SDIntersection(forbidden) : new SDUnion(forbidden), activation);
         }
         else
+        {
             base.AddAIHints(slot, actor, assignment, hints);
+        }
     }
 }
 
@@ -242,8 +253,5 @@ sealed class D132DamcyanAntlionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
-public sealed class D132DamcyanAntlion(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsRect(19.5f, 25f))
-{
-    public static readonly WPos ArenaCenter = new(default, 60f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823u, NameID = 12484u)]
+public sealed class D132DamcyanAntlion(WorldState ws, Actor primary) : BossModule(ws, primary, new(0f, 60f), new ArenaBoundsRect(19.5f, 25f));

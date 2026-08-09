@@ -375,7 +375,11 @@ public class StateMachineBuilder(BossModule module)
             var matchedAid = false;
             for (var ai = 0; ai < aids.Length; ++ai)
             {
-                if (aids[ai] == castInfo.Action.ID) { matchedAid = true; break; }
+                if (aids[ai] == castInfo.Action.ID)
+                {
+                    matchedAid = true;
+                    break;
+                }
             }
 
             if (!matchedAid)

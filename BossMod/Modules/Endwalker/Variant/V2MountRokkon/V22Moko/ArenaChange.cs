@@ -2,17 +2,17 @@ namespace BossMod.Endwalker.VariantCriterion.V2MountRokkon.V22Moko;
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    public static readonly WPos ArenaCenter = new(-700f, 540f);
-    private static readonly AOEShapeCustom square = new([new Square(ArenaCenter, 25f)], [new Square(ArenaCenter, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.KenkiRelease && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.KenkiRelease && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 2.1d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 24.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 2.1d), shapeDistance: shape.Distance(center, default))];
         }
     }
 

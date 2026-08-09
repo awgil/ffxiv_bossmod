@@ -74,6 +74,7 @@ public sealed class DMU(WorldState ws, Actor primary) : BossModule(ws, primary, 
     {
         switch (StateMachine.ActivePhaseIndex)
         {
+            case -1:
             case 0:
                 Arena.Actor(PrimaryActor);
                 break;

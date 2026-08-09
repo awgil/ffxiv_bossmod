@@ -309,7 +309,7 @@ public abstract class BossModule : IDisposable
         // draw borders
         if (WindowConfig.ShowBorder)
         {
-            Arena.AddComplexPolygon(Bounds.ShapeSimplified, haveRisks && WindowConfig.ShowBorderRisk ? Colors.Enemy : Colors.Border, 2f, false);
+            Arena.AddComplexPolygon(Bounds.Shape, haveRisks && WindowConfig.ShowBorderRisk ? Colors.Enemy : Colors.Border, 2f, false);
         }
 
         if (WindowConfig.ShowCardinals)

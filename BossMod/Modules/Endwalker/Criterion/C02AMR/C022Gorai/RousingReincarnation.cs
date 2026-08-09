@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
 abstract class RousingReincarnation(BossModule module, uint aid) : Components.CastCounter(module, aid);
-class NRousingReincarnation(BossModule module) : RousingReincarnation(module, (uint)AID.NRousingReincarnationAOE);
-class SRousingReincarnation(BossModule module) : RousingReincarnation(module, (uint)AID.SRousingReincarnationAOE);
+sealed class NRousingReincarnation(BossModule module) : RousingReincarnation(module, (uint)AID.NRousingReincarnationAOE);
+sealed class SRousingReincarnation(BossModule module) : RousingReincarnation(module, (uint)AID.SRousingReincarnationAOE);
 
 // note on towers: indices are 0-7 CW from N, even (cardinal) are blue, odd (intercardinal) are orange
-class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
+sealed class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
 {
     public int[] OrangeSoakOrder = [-1, -1, -1, -1]; // blue is inferred as (x+2)%4
     private readonly List<int> _towerOrder = [];
@@ -81,7 +81,7 @@ class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
     }
 }
 
-class PointedPurgation : Components.BaitAwayTethers
+sealed class PointedPurgation : Components.BaitAwayTethers
 {
     private BitMask _oddSoakers; // players with 1/3 debuff
 

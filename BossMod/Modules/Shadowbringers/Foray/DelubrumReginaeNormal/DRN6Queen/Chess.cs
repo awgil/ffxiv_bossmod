@@ -4,20 +4,26 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
 {
     public readonly List<AOEInstance>[] AOEs = new List<AOEInstance>[PartyState.MaxAllianceSize];
     private readonly int[] distancesPending = new int[PartyState.MaxAllianceSize];
-    private static readonly AOEShapeRect square = new(5f, 5f, 5f);
+    private readonly AOEShapeRect square = new(5f, 5f, 5f);
     private DateTime _activation;
     private readonly List<WPos> excludeCrosses = [with(2)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (slot is < 0 or > 23)
+        {
             return [];
+        }
         var aoesSlot = AOEs[slot];
         if (aoesSlot != default && aoesSlot.Count != 0)
+        {
             return CollectionsMarshal.AsSpan(aoesSlot);
+        }
         var dist = distancesPending[slot];
         if (dist == default)
+        {
             return [];
+        }
         var tiles = GetSquaresAtManhattanDistance(actor.Position, dist, excludeCrosses);
         var count = tiles.Count;
         var aoes = new List<AOEInstance>(count);
@@ -32,9 +38,8 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
     public static List<WPos> GetSquaresAtManhattanDistance(WPos position, int distance, List<WPos> excluded)
     {
         var positions = new List<WPos>();
-
-        var centerX = Queen.ArenaCenter.X;
-        var centerZ = Queen.ArenaCenter.Z;
+        var centerX = -272f;
+        var centerZ = -415f;
 
         // Align to nearest square center index
         var originI = (int)Math.Round((position.X - centerX) / 10f);
@@ -58,11 +63,15 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
             for (var dy = -5; dy <= 5; ++dy)
             {
                 if (Math.Abs(dx) + Math.Abs(dy) != distance)
+                {
                     continue;
+                }
                 var i = originI + dx;
                 var j = originJ + dy;
                 if (Math.Abs(i) > 2 || Math.Abs(j) > 2)
+                {
                     continue; // 5x5 grid = -2 to +2
+                }
 
                 if (i != originExcludeI1 && i != originExcludeI2 && j != originExcludeJ1 && j != originExcludeJ2)
                 {
@@ -93,7 +102,9 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
         else if (id is >= (uint)SID.MovementEdict2 and <= (uint)SID.MovementEdict4)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot is < 0 or > 23)
+            {
                 return;
+            }
             distancesPending[slot] = id switch
             {
                 (uint)SID.MovementEdict2 => 2,
@@ -106,7 +117,9 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
         else if (id is >= (uint)SID.YourMove2Squares and <= (uint)SID.YourMove4Squares)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot is < 0 or > 23)
+            {
                 return;
+            }
 
             var distance = id switch
             {
@@ -133,13 +146,17 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
         if (id is >= (uint)SID.MovementEdict2 and <= (uint)SID.MovementEdict4)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot is < 0 or > 23)
+            {
                 return;
+            }
             distancesPending[slot] = default;
         }
         else if (id is >= (uint)SID.YourMove2Squares and <= (uint)SID.YourMove4Squares)
         {
             if (Raid.FindSlot(actor.InstanceID) is var slot && slot is < 0 or > 23)
+            {
                 return;
+            }
             AOEs[slot].Clear();
         }
     }
@@ -147,7 +164,9 @@ sealed class Chess(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.EndsKnight or (uint)AID.EndsSoldier or (uint)AID.MeansGunner or (uint)AID.MeansWarrior)
+        {
             excludeCrosses.Clear();
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

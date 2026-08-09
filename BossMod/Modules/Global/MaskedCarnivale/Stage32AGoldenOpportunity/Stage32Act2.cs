@@ -81,13 +81,13 @@ sealed class GoldenBeam(BossModule module) : Components.GenericAOEs(module)
                     ConeV[] conesA = [.. coneskip1];
                     ConeV[] cone0 = [cones[0]];
                     var center = Arena.Center;
-                    AOEShapeCustom intersect = new(cone0, shapes2: conesA, operand: OperandType.Intersection);
-                    AOEShapeCustom xor = new(cone0, shapes2: conesA, operand: OperandType.Xor);
+                    var poly1 = PolygonClipper.GetCombinedPolygon(center, cone0, shapes2: conesA, operandType: OperandType.Xor);
+                    var poly2 = PolygonClipper.GetCombinedPolygon(center, cone0, shapes2: conesA, operandType: OperandType.Intersection);
                     var clipper = new PolygonClipper();
-                    var combinedShapes = clipper.Union(new PolygonClipper.Operand(intersect.GetCombinedPolygon(center)),
-                    new PolygonClipper.Operand(xor.GetCombinedPolygon(center)));
-                    intersect.Polygon = combinedShapes;
-                    _aoe = [new(intersect, center, default, Module.CastFinishAt(spell), shapeDistance: intersect.Distance(center, default))];
+                    var combinedShapes = clipper.Union(new PolygonClipper.Operand(poly2), new PolygonClipper.Operand(poly1));
+                    var shape = new AOEShapeCustom(center, [], skipPolygonInit: true);
+                    shape.ReplacePolygon(combinedShapes, center);
+                    _aoe = [new(shape, center, default, Module.CastFinishAt(spell), shapeDistance: shape.Distance(center, default))];
                 }
             }
         }
@@ -190,9 +190,9 @@ sealed class Hints(BossModule module) : BossComponent(module)
     }
 }
 
-sealed class Stage31Act2States : StateMachineBuilder
+sealed class Stage32Act2States : StateMachineBuilder
 {
-    public Stage31Act2States(BossModule module) : base(module)
+    public Stage32Act2States(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<GoldenCross>()
@@ -213,5 +213,5 @@ sealed class Stage31Act2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 948, NameID = 12471, SortOrder = 2)]
-public sealed class Stage31Act2(WorldState ws, Actor primary) : BossModule(ws, primary, Layouts.ArenaCenter, Layouts.CircleSmall);
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.MaskedCarnivale, GroupID = 948u, NameID = 12471u, SortOrder = 2)]
+public sealed class Stage32Act2(WorldState ws, Actor primary) : BossModule(ws, primary, Layouts.ArenaCenter, Layouts.CircleSmall);

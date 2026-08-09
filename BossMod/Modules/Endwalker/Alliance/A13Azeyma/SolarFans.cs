@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.Alliance.A13Azeyma;
 
-class SolarFans(BossModule module) : Components.ChargeAOEs(module, (uint)AID.SolarFansAOE, 5f);
+sealed class SolarFans(BossModule module) : Components.ChargeAOEs(module, (uint)AID.SolarFansAOE, 5f);
 
-class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, (uint)AID.RadiantFlight)
+sealed class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, (uint)AID.RadiantFlight)
 {
-    private static readonly AOEShapeDonutSector _shape = new(20f, 30f, 45f.Degrees());
+    private readonly AOEShapeDonutSector _shape = new(20f, 30f, 45f.Degrees());
     private readonly List<AOEInstance> _aoes = [with(10)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -34,7 +34,7 @@ class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, (uint)AI
         {
             var activation = Module.CastFinishAt(spell, 7.7d);
             var pattern1 = false;
-            if ((int)spell.LocXZ.Z == -750f)
+            if ((int)spell.LocXZ.Z == -750)
             {
                 pattern1 = true;
             }
@@ -46,32 +46,38 @@ class RadiantRhythm(BossModule module) : Components.GenericAOEs(module, (uint)AI
                 AddAOE(angle + 180f.Degrees(), act);
             }
         }
-        void AddAOE(Angle rotation, DateTime activation) => _aoes.Add(new(_shape, Arena.Center.Quantized(), rotation, activation));
+        void AddAOE(Angle rotation, DateTime activation) => _aoes.Add(new(_shape, new WPos(-750f, -750f).Quantized(), rotation, activation));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
         if (spell.Action.ID == (uint)AID.RadiantFinish)
+        {
             _aoes.Clear();
+        }
         else if (_aoes.Count != 0 && spell.Action.ID == WatchedAction)
+        {
             _aoes.RemoveAt(0);
+        }
     }
 }
 
-class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
+sealed class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
 {
     private int teleportcounter;
-    private static readonly AOEShapeCircle circle = new(25f);
+    private readonly AOEShapeCircle circle = new(25f);
     private readonly List<AOEInstance> _aoes = [with(2)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.SolarFansAOE)
+        if (spell.Action.ID is var id && id == (uint)AID.SolarFansAOE)
+        {
             _aoes.Add(new(circle, spell.LocXZ, default, WorldState.FutureTime(16.6d)));
-        else if (spell.Action.ID == (uint)AID.RadiantFlourish)
+        }
+        else if (id == (uint)AID.RadiantFlourish)
         {
             _aoes.Clear();
             teleportcounter = 0;
@@ -91,7 +97,7 @@ class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
                 AddAOE(_aoes[1].Origin);
                 _aoes.RemoveRange(0, 2);
 
-                void AddAOE(WPos origin) => _aoes.Add(new(circle, WPos.RotateAroundOrigin(90f, A13Azeyma.NormalCenter, origin.Quantized()), default, activation));
+                void AddAOE(WPos origin) => _aoes.Add(new(circle, WPos.RotateAroundOrigin(90f, new(-750f, -750f), origin.Quantized()), default, activation));
             }
         }
     }

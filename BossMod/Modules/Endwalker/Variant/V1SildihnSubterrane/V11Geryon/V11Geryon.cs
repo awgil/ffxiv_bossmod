@@ -37,11 +37,6 @@ sealed class RunawaySludge(BossModule module) : Components.VoidzoneAtCastTarget(
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", PrimaryActorOID = (uint)OID.Geryon, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 868, NameID = 11442, SortOrder = 2, Category = BossModuleInfo.Category.VariantCriterion, Expansion = BossModuleInfo.Expansion.Endwalker)]
-public sealed class V11Geryon(WorldState ws, Actor primary) : BossModule(ws, primary, primary.PosRot.X is var X && X < -150f ? arenaCenter1 : X > 100f ? ArenaCenter3 : default,
-X < -150f ? new ArenaBoundsSquare(24.5f) : new ArenaBoundsSquare(19.5f))
-{
-    private static readonly WPos arenaCenter1 = new(-213f, 101f);
-    public static readonly WPos ArenaCenter3 = new(183f, 177f);
-    public static readonly AOEShapeCustom Square = new([new Square(arenaCenter1, 25f)], [new Square(arenaCenter1, 20f)]);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", PrimaryActorOID = (uint)OID.Geryon, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 868u, NameID = 11442u, SortOrder = 2, Category = BossModuleInfo.Category.VariantCriterion, Expansion = BossModuleInfo.Expansion.Endwalker)]
+public sealed class V11Geryon(WorldState ws, Actor primary) : BossModule(ws, primary, primary.PosRot.X is var X && X < -150f ? new(-213f, 101f) : X > 100f ? new(183f, 177f) : default,
+X < -150f ? new ArenaBoundsSquare(24.5f) : new ArenaBoundsSquare(19.5f));

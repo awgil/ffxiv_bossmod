@@ -4,15 +4,17 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(2)];
     private readonly List<Square> squares = [with(2)];
-    private static readonly AOEShapeRect square = new(10f, 10f, 10f);
+    private readonly AOEShapeRect square = new(10f, 10f, 10f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.ColossalStrike && Arena.Bounds.Radius == 24.5f)
+        if (spell.Action.ID == (uint)AID.ColossalStrike && Arena.Bounds.Radius > 21f)
         {
-            _aoes.Add(new(V11Geryon.Square, Arena.Center, default, WorldState.FutureTime(4d)));
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 24.5f)], [new Square(center, 20f)]);
+            _aoes.Add(new(shape, center, default, WorldState.FutureTime(4d), shapeDistance: shape.Distance(center, default)));
         }
     }
 
@@ -50,7 +52,7 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         else if (state == 0x00080004u && index is >= 0x05 and <= 0x08)
         {
             Arena.Bounds = new ArenaBoundsSquare(19.5f);
-            Arena.Center = V11Geryon.ArenaCenter3;
+            Arena.Center = new(183f, 177f);
         }
     }
 }

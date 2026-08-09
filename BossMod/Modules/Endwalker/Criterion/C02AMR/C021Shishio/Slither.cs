@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C021Shishio;
 
-class Slither(BossModule module) : Components.GenericAOEs(module)
+sealed class Slither(BossModule module) : Components.GenericAOEs(module)
 {
     private Actor? _caster;
     private DateTime _predictedActivation;
 
-    private static readonly AOEShapeCone _shape = new(25f, 45f.Degrees());
+    private readonly AOEShapeCone _shape = new(25f, 45f.Degrees());
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -28,7 +28,7 @@ class Slither(BossModule module) : Components.GenericAOEs(module)
                 break;
             case (uint)AID.NSplittingCry:
             case (uint)AID.SSplittingCry:
-                _predictedActivation = Module.CastFinishAt(spell, 4.2f);
+                _predictedActivation = Module.CastFinishAt(spell, 4.2d);
                 break;
         }
     }

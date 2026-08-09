@@ -10,7 +10,9 @@ sealed class ElementalImpact(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.ElementalImpactVisual1 or (uint)AID.ElementalImpactVisual2)
-            _aoes.Add(new(circle, spell.LocXZ, default, Module.CastFinishAt(spell, 0.3f)));
+        {
+            _aoes.Add(new(circle, spell.LocXZ, default, Module.CastFinishAt(spell, 0.3d)));
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -25,7 +27,7 @@ sealed class ElementalImpact(BossModule module) : Components.GenericAOEs(module)
 sealed class ElementalImpactTemperature(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance>[] _aoes = new List<AOEInstance>[PartyState.MaxAllianceSize];
-    private static readonly AOEShapeCircle circle = new(22f), circleInv = new(22f, true);
+    private readonly AOEShapeCircle circle = new(22f), circleInv = new(22f, true);
     private readonly PlayerTemperatures _temps = module.FindComponent<PlayerTemperatures>()!;
     private readonly List<AOEInstance>?[] aoePerTemp = new List<AOEInstance>?[5];
 
@@ -62,12 +64,22 @@ sealed class ElementalImpactTemperature(BossModule module) : Components.GenericA
                     shape = circleInv;
                 }
                 if (_aoes[i] == null)
+                {
                     _aoes[i] = [with(4)];
-                _aoes[i].Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), color));
+                }
+
+                var loc = spell.LocXZ;
+                _aoes[i].Add(new(shape, loc, default, Module.CastFinishAt(spell), color, shapeDistance: shape.Distance(loc, default)));
+
                 if (_aoes[i].Count != 4)
+                {
                     continue;
+                }
                 if (playertemp == default)
+                {
                     aoePerTemp[playertemp] = _aoes[i];
+                }
+
                 if (playertemp != default)
                 {
                     if (aoePerTemp[playertemp] == null)
@@ -92,20 +104,25 @@ sealed class ElementalImpactTemperature(BossModule module) : Components.GenericA
                         }
                         if (safeShapes.Count == 2)
                         {
-                            AOEShapeCustom xor = new([safeShapes[0]], shapes2: [safeShapes[1]], operand: OperandType.Xor);
-                            AOEShapeCustom difference = new(dangerShapes, invertForbiddenZone: true);
+                            var poly1 = PolygonClipper.GetCombinedPolygon(center, [safeShapes[0]], shapes2: [safeShapes[1]], operandType: OperandType.Xor);
+                            var poly2 = PolygonClipper.GetCombinedPolygon(center, dangerShapes);
+                            AOEShapeCustom shaped = new(center, [], invertForbiddenZone: true, skipPolygonInit: true);
                             var clipper = new PolygonClipper();
-                            var combinedShapes = clipper.Difference(new PolygonClipper.Operand(xor.GetCombinedPolygon(center)),
-                            new PolygonClipper.Operand(difference.GetCombinedPolygon(center)));
-                            difference.Polygon = combinedShapes;
-                            aoePerTemp[playertemp] = [new(difference, center, default, Module.CastFinishAt(spell), safecolor)];
+                            var combinedShapes = clipper.Difference(new PolygonClipper.Operand(poly1), new PolygonClipper.Operand(poly2));
+                            shaped.ReplacePolygon(combinedShapes, center);
+                            AddAOE(shaped);
                         }
                         else
                         {
-                            aoePerTemp[playertemp] = [new(new AOEShapeCustom(safeShapes, dangerShapes, invertForbiddenZone: true), center, default, Module.CastFinishAt(spell), safecolor)];
+                            AddAOE(new AOEShapeCustom(center, safeShapes, dangerShapes, invertForbiddenZone: true));
                         }
                     }
                     _aoes[i] = aoePerTemp[playertemp]!;
+
+                    void AddAOE(AOEShapeCustom shape)
+                    {
+                        aoePerTemp[playertemp] = [new(shape, center, default, Module.CastFinishAt(spell), safecolor, shapeDistance: shape.InvertedDistance(center, default))];
+                    }
                 }
             }
         }

@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
-class Thundercall(BossModule module) : Components.GenericAOEs(module)
+sealed class Thundercall(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _orbs = [];
     private Actor? _safeOrb;
     private Actor? _miniTarget;
     private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShapeCircle _shapeSmall = new(8f);
-    private static readonly AOEShapeCircle _shapeLarge = new(18f);
+    private readonly AOEShapeCircle _shapeSmall = new(8f);
+    private readonly AOEShapeCircle _shapeLarge = new(18f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
@@ -58,7 +58,7 @@ class Thundercall(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Flintlock(BossModule module) : Components.GenericWildCharge(module, 4f)
+sealed class Flintlock(BossModule module) : Components.GenericWildCharge(module, 4f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

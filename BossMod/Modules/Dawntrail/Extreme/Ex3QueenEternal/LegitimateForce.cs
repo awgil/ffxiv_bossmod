@@ -23,17 +23,17 @@ sealed class LegitimateForce(BossModule module) : Components.GenericAOEs(module)
         switch (spell.Action.ID)
         {
             case (uint)AID.LegitimateForceFirstR:
-                AddAOEs(caster, -90f, 90f);
+                AddAOEs(-90f, 90f);
                 break;
             case (uint)AID.LegitimateForceFirstL:
-                AddAOEs(caster, 90f, -90f);
+                AddAOEs(90f, -90f);
                 break;
         }
-        void AddAOEs(Actor caster, float first, float second)
+        void AddAOEs(float first, float second)
         {
             AddAOE(first);
-            AddAOE(second, 3.1f, false);
-            void AddAOE(float offset, float delay = default, bool first = true) => AOEs.Add(new(rect, caster.Position, spell.Rotation + offset.Degrees(), Module.CastFinishAt(spell, delay), first ? Colors.Danger : default, first));
+            AddAOE(second, 3.1d, false); // intentionally caster.Position here, since these are not the actual aoe spell casts
+            void AddAOE(float offset, double delay = default, bool first = true) => AOEs.Add(new(rect, caster.Position, spell.Rotation + offset.Degrees(), Module.CastFinishAt(spell, delay), first ? Colors.Danger : default, first));
         }
     }
 

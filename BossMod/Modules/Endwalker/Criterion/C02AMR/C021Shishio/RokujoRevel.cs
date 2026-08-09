@@ -1,14 +1,14 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C021Shishio;
 
-class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
+sealed class RokujoRevel(BossModule module) : Components.GenericAOEs(module)
 {
     private int _numBreaths;
     private readonly List<Actor> _clouds = [.. module.Enemies((uint)OID.NRaiun), .. module.Enemies((uint)OID.SRaiun)];
     private readonly List<(Angle dir, DateTime activation)> _pendingLines = [];
     private readonly List<(WPos origin, DateTime activation)> _pendingCircles = [];
 
-    private static readonly AOEShapeRect _shapeLine = new(30f, 7f, 30f);
-    private static readonly AOEShapeCircle[] _shapesCircle = [new(8f), new(12f), new(23f)];
+    private readonly AOEShapeRect _shapeLine = new(30f, 7f, 30f);
+    private readonly AOEShapeCircle[] _shapesCircle = [new(8f), new(12f), new(23f)];
 
     private AOEShapeCircle? ShapeCircle => _numBreaths is > 0 and <= 3 ? _shapesCircle[_numBreaths - 1] : null;
 

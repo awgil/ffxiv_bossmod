@@ -37,6 +37,8 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         (new(836f, -850f), am90, null), // 0x37
         (new(836f, -856f), am90, null), // 0x38
     ];
+    private readonly PolygonCustom innerSquare = new([new(847.5f, -848.5f), new(847.5f, -853.5f), new(842.5f, -853.5f), new(842.49945f, -848.50018f)]); // one vertice of the inner square is slightly misplaced. since it kills instantly we prefer perfection.
+
     private bool isDefaultArena;
     public int NumWalls;
 
@@ -52,11 +54,13 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
                     if (state == 0x00020001u)
                     {
                         activation = WorldState.FutureTime(3d);
-                        _aoe = [new(A33RedGirl.ArenaTransition, Arena.Center, default, activation)];
+                        var center1 = Arena.Center;
+                        var shape = new AOEShapeCustom(center1, [new Square(center1, 24.5f)], [new Square(center1, 20f)], [innerSquare]);
+                        _aoe = [new(shape, center1, default, activation, shapeDistance: shape.Distance(center1, default))];
                     }
                     else if (state == 0x00080004u)
                     {
-                        Arena.Bounds = A33RedGirl.StartingArena;
+                        Arena.Bounds = new ArenaBoundsSquare(24.5f);
                         isDefaultArena = false;
                     }
                     break;
@@ -66,7 +70,7 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
                     var differenceShapes = new List<Shape>(17);
                     if (isDefaultArena)
                     {
-                        differenceShapes.Add(A33RedGirl.InnerSquare);
+                        differenceShapes.Add(innerSquare);
                     }
                     NumWalls = 0;
                     for (var i = 0; i < 28; ++i)
@@ -81,7 +85,8 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
 
                     _wipe ??= Module.FindComponent<WipeBlackWhite>();
                     _wipe?.UpdateAOE();
-                    Arena.Bounds = new ArenaBoundsCustom(isDefaultArena ? A33RedGirl.DefaultSquare : A33RedGirl.BigSquare, [.. differenceShapes]);
+                    var center = Arena.Center;
+                    Arena.Bounds = new ArenaBoundsCustom(isDefaultArena ? [new Square(center, 20f)] : [new Square(center, 24.5f)], [.. differenceShapes]);
                     break;
             }
         }
@@ -92,7 +97,8 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         if (_aoe.Length != 0 && activation < WorldState.CurrentTime)
         {
             _aoe = [];
-            Arena.Bounds = A33RedGirl.DefaultArena;
+            var center = Arena.Center;
+            Arena.Bounds = new ArenaBoundsCustom([new Square(center, 20f)], [innerSquare]);
             isDefaultArena = true;
         }
     }

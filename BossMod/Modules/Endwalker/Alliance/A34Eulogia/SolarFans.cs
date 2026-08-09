@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class SolarFans(BossModule module) : Components.ChargeAOEs(module, (uint)AID.SolarFansAOE, 5f);
+sealed class SolarFans(BossModule module) : Components.ChargeAOEs(module, (uint)AID.SolarFansAOE, 5f);
 
-class RadiantRhythm(BossModule module) : Components.GenericAOEs(module)
+sealed class RadiantRhythm(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(8)];
-    private static readonly AOEShapeDonutSector _shape = new(20f, 30f, 45f.Degrees());
+    private readonly AOEShapeDonutSector _shape = new(20f, 30f, 45f.Degrees());
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -64,7 +64,7 @@ class RadiantRhythm(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
+sealed class RadiantFlourish(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(2)];
     private static readonly AOEShapeCircle _shape = new(25f);

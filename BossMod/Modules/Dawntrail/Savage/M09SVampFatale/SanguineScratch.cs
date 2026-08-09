@@ -157,28 +157,21 @@ sealed class BreakdownWing(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
     }
 }
+
 sealed class SanguineScratch(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = [];
+    private readonly List<AOEInstance> _aoes = [with(8)];
+    private readonly AOEShapeCone cone = new(40f, 15f.Degrees());
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_aoes.Count == 0)
-            return [];
-        return CollectionsMarshal.AsSpan(_aoes)[..1];
-    }
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.SanguineScratchFirst)
         {
-            if (_aoes.Count > 0)
-                return;
-
-            for (var i = 0; i < 5; i++)
-            {
-                _aoes.Add(new(CreateScratchCones(caster.Rotation + (22.5f * i).Degrees()), caster.Position, default, Module.CastFinishAt(spell).AddSeconds(2.4d * i)));
-            }
+            var loc = spell.LocXZ;
+            var rot = spell.Rotation;
+            _aoes.Add(new(cone, loc, rot, Module.CastFinishAt(spell), shapeDistance: cone.Distance(loc, rot)));
         }
     }
 
@@ -186,25 +179,24 @@ sealed class SanguineScratch(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID is (uint)AID.SanguineScratchFirst or (uint)AID.SanguineScratchRest)
         {
-            if (_aoes.Count > 0)
+            var count = _aoes.Count;
+            ++NumCasts;
+            if (count > 0)
             {
-                ++NumCasts;
-                if (NumCasts % 8 == 0)
+                if ((NumCasts & 7) == 0)
                 {
-                    _aoes.RemoveAt(0);
+                    var act = WorldState.FutureTime(2.4d);
+                    var a23 = 22.5f.Degrees();
+                    var aoes = CollectionsMarshal.AsSpan(_aoes);
+                    for (var i = 0; i < count; ++i)
+                    {
+                        ref var aoe = ref aoes[i];
+                        aoe.Rotation += a23;
+                        aoe.ShapeDistance = aoe.Shape.Distance(aoe.Origin, aoe.Rotation);
+                        aoe.Activation = act;
+                    }
                 }
             }
         }
-    }
-
-    private AOEShapeCustom CreateScratchCones(Angle rotation)
-    {
-        var cones = new Shape[8];
-        for (var i = 0; i < cones.Length; i++)
-        {
-            cones[i] = new Cone(Arena.Center, 40f, (i * 45f - 15f).Degrees() + rotation, (i * 45f + 15f).Degrees() + rotation);
-        }
-
-        return new AOEShapeCustom(cones);
     }
 }

@@ -29,11 +29,12 @@ sealed class TyrannysGraspTowers(BossModule module) : Components.GenericTowers(m
         {
             ++NumCasts;
 
-            var count = Towers.Count;
+            var lenT = Towers.Count;
             var id = caster.InstanceID;
-            for (var i = 0; i < count; ++i)
+            var towers = CollectionsMarshal.AsSpan(Towers);
+            for (var i = 0; i < lenT; ++i)
             {
-                if (Towers[i].ActorID == id)
+                if (towers[i].ActorID == id)
                 {
                     Towers.RemoveAt(i);
                     break;
@@ -59,9 +60,8 @@ sealed class TyrannysGraspTowers(BossModule module) : Components.GenericTowers(m
                 }
             }
 
-            var towers = CollectionsMarshal.AsSpan(Towers);
-            var len2 = towers.Length;
-            for (var i = 0; i < len2; ++i)
+            lenT = towers.Length;
+            for (var i = 0; i < lenT; ++i)
             {
                 ref var t = ref towers[i];
                 t.ForbiddenSoakers |= forbidden;

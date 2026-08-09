@@ -49,24 +49,51 @@ public enum AID : uint
     Firedamp = 30263 // Helper->player, 5.4s cast, range 5 circle, tankbuster
 }
 
-sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
+sealed class ArenaChanges : Components.GenericAOEs
 {
-    private readonly VacuumWave _kb = module.FindComponent<VacuumWave>()!;
-    public readonly List<Rectangle> SafeWalls = [.. D103Scarmiglione.SafeWalls];
+    public ArenaChanges(BossModule module) : base(module)
+    {
+        var walls = safeWalls = GetSafeWalls();
+        SafeWalls = [with(12), .. walls];
+        _kb = module.FindComponent<VacuumWave>()!;
+    }
+
+    private readonly VacuumWave _kb;
+    public readonly Rectangle[] safeWalls;
+    public readonly List<Rectangle> SafeWalls;
     public readonly List<Rectangle> PendingSafeWalls = [with(4)];
-    private static readonly AOEShapeDonut donut = new(20f, 25f);
-    private static readonly Polygon[] defaultCircle = [new Polygon(D103Scarmiglione.ArenaCenter, 20f, 64)];
+    private readonly AOEShapeDonut donut = new(20f, 25f);
+    private static Polygon[] GetDefaultCircle() => [new Polygon(new(-35f, -298f), 20f, 64)];
+
     private AOEInstance[] _aoe = [];
     private bool outOfBounds;
     private bool defaultArena;
+    private const float HalfWidth = 5f;
+    private const float HalfHeight = 0.95f;
+    public static Rectangle[] GetSafeWalls()
+    => [
+        new(new(-41.511f, -279.09f), HalfWidth, HalfHeight, -19f.Degrees()), // ENVC 0B
+        new(new(-49.142f, -283.858f), HalfWidth, HalfHeight, -45f.Degrees()), // ENVC 0C
+        new(new(-53.91f, -291.489f), HalfWidth, HalfHeight, -71f.Degrees()), // ENVC 0D
+        new(new(-53.91f, -304.511f), HalfWidth, HalfHeight, 71f.Degrees()), // ENVC 0E
+        new(new(-49.142f, -312.142f), HalfWidth, HalfHeight, 45f.Degrees()), // ENVC 0F
+        new(new(-41.511f, -316.91f), HalfWidth, HalfHeight, 19f.Degrees()), // ENVC 10
+        new(new(-28.489f, -316.911f), HalfWidth, HalfHeight, -19f.Degrees()), // ENVC 05
+        new(new(-20.858f, -312.142f), HalfWidth, HalfHeight, -45f.Degrees()), // ENVC 06
+        new(new(-16.09f, -304.511f), HalfWidth, HalfHeight, -71f.Degrees()), // ENVC 07
+        new(new(-16.09f, -291.489f), HalfWidth, HalfHeight, 71f.Degrees()), // ENVC 08
+        new(new(-20.858f, -283.858f), HalfWidth, HalfHeight, 45f.Degrees()), // ENVC 09
+        new(new(-28.489f, -279.09f), HalfWidth, HalfHeight, 19f.Degrees()), // ENVC 0A
+    ];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.RottenRampageSpread && _aoe == null && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.RottenRampageSpread && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(donut, Arena.Center, default, Module.CastFinishAt(spell, -1d))];
+            var center = Arena.Center;
+            _aoe = [new(donut, center, default, Module.CastFinishAt(spell, -1d), shapeDistance: donut.Distance(center, default))];
         }
     }
 
@@ -76,10 +103,9 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         {
             void RemoveSafeWall(int index)
             {
-                PendingSafeWalls.Remove(D103Scarmiglione.SafeWalls[index]);
-                SafeWalls.Remove(D103Scarmiglione.SafeWalls[index]);
-
-                ArenaBoundsCustom arena = new(defaultCircle, [.. SafeWalls]);
+                PendingSafeWalls.Remove(safeWalls[index]);
+                SafeWalls.Remove(safeWalls[index]);
+                ArenaBoundsCustom arena = new(GetDefaultCircle(), [.. SafeWalls]);
                 Arena.Bounds = arena;
                 Arena.Center = arena.Center;
             }
@@ -127,13 +153,15 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         {
             void AddPendingSafeWall(int index, float pos)
             {
-                PendingSafeWalls.Add(D103Scarmiglione.SafeWalls[index]);
-                var count = _kb.safeWalls.Count;
+                PendingSafeWalls.Add(safeWalls[index]);
+                var swalls = _kb.safeWalls;
+                var count = swalls.Count;
+                var safewalls = CollectionsMarshal.AsSpan(swalls);
                 for (var i = 0; i < count; ++i)
                 {
-                    if (_kb.safeWalls[i].Vertex1.X == pos)
+                    if (safewalls[i].Vertex1.X == pos)
                     {
-                        _kb.safeWalls.RemoveAt(i);
+                        swalls.RemoveAt(i);
                         return;
                     }
                 }
@@ -191,14 +219,14 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         if (_aoe.Length == 0 && defaultArena && !Arena.InBounds(player))
         {
             _aoe = [new(donut, Arena.Center)];
-            ArenaBoundsCustom arena = new(D103Scarmiglione.StartingCircle, [.. SafeWalls]);
+            ArenaBoundsCustom arena = new(D103Scarmiglione.GetStartingCircle(), [.. SafeWalls]);
             Arena.Bounds = arena;
             outOfBounds = true;
         }
         else if (outOfBounds && (player - Arena.Center).LengthSq() < 399f)
         {
             _aoe = [];
-            ArenaBoundsCustom arena = new(defaultCircle, [.. SafeWalls]);
+            ArenaBoundsCustom arena = new(GetDefaultCircle(), [.. SafeWalls]);
             Arena.Bounds = arena;
             outOfBounds = false;
         }
@@ -256,27 +284,33 @@ sealed class VacuumWaveHint(BossModule module) : Components.GenericAOEs(module)
         {
             var count = _arena.SafeWalls.Count;
             if (count == 0)
+            {
                 return;
+            }
             var cones = new ConeHA[count - _arena.PendingSafeWalls.Count];
             var index = 0;
             var angle = 7f.Degrees(); // safe wall half angle is 13°, but due to deceleration you slide along the wall, so its not actually safe for the full length of the wall - reducing half angle by a conservative 6°
-
+            var truecenter = new WPos(-35f, -298f);
             for (var i = 0; i < count; ++i)
             {
                 var wall = _arena.SafeWalls[i];
                 if (!_arena.PendingSafeWalls.Contains(wall))
                 {
-                    cones[index++] = new(D103Scarmiglione.ArenaCenter, 20f, Angle.FromDirection(wall.Center - D103Scarmiglione.ArenaCenter), angle);
+                    cones[index++] = new(truecenter, 20f, Angle.FromDirection(wall.Center - truecenter), angle);
                 }
             }
-            _aoe = [new(new AOEShapeCustom(cones, invertForbiddenZone: true), Arena.Center, default, Module.CastFinishAt(spell), Colors.SafeFromAOE)];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, cones, invertForbiddenZone: true);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell), Colors.SafeFromAOE, shapeDistance: shape.InvertedDistance(center, default))];
         }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.VacuumWave)
+        {
             _aoe = [];
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -305,12 +339,18 @@ sealed class RottenRampageSpread(BossModule module) : Components.SpreadFromCastT
             var walls = Module.Enemies((uint)OID.SafewallHitbox);
             var count = walls.Count;
             if (count == 0)
+            {
                 return;
+            }
             var forbidden = new ShapeDistance[count];
             for (var i = 0; i < count; ++i)
+            {
                 forbidden[i] = new SDCircle(walls[i].Position, 7f);
+            }
             if (forbidden.Length != 0)
-                hints.AddForbiddenZone(new SDUnion(forbidden), Spreads[0].Activation);
+            {
+                hints.AddForbiddenZone(new SDUnion(forbidden), Spreads.Ref(0).Activation);
+            }
         }
     }
 
@@ -318,7 +358,9 @@ sealed class RottenRampageSpread(BossModule module) : Components.SpreadFromCastT
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (!IsSpreadTarget(pc))
+        {
             return;
+        }
         var walls = Module.Enemies((uint)OID.SafewallHitbox);
         var count = walls.Count;
         for (var i = 0; i < count; ++i)
@@ -331,7 +373,9 @@ sealed class RottenRampageSpread(BossModule module) : Components.SpreadFromCastT
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (IsSpreadTarget(actor))
+        {
             hints.Add("Spread, avoid intersecting wall hitboxes!");
+        }
     }
 }
 
@@ -375,29 +419,20 @@ sealed class D103ScarmiglioneStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372, SortOrder = 7)]
-public sealed class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, StartingArena.Center, StartingArena)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869u, NameID = 11372u, SortOrder = 7)]
+public sealed class D103Scarmiglione : BossModule
 {
-    public static readonly WPos ArenaCenter = new(-35f, -298f);
-    private const float HalfWidth = 5f;
-    private const float HalfHeight = 0.95f;
-    public static readonly Rectangle[] SafeWalls =
-    [
-        new(new(-41.511f, -279.09f), HalfWidth, HalfHeight, -19f.Degrees()), // ENVC 0B
-        new(new(-49.142f, -283.858f), HalfWidth, HalfHeight, -45f.Degrees()), // ENVC 0C
-        new(new(-53.91f, -291.489f), HalfWidth, HalfHeight, -71f.Degrees()), // ENVC 0D
-        new(new(-53.91f, -304.511f), HalfWidth, HalfHeight, 71f.Degrees()), // ENVC 0E
-        new(new(-49.142f, -312.142f), HalfWidth, HalfHeight, 45f.Degrees()), // ENVC 0F
-        new(new(-41.511f, -316.91f), HalfWidth, HalfHeight, 19f.Degrees()), // ENVC 10
-        new(new(-28.489f, -316.911f), HalfWidth, HalfHeight, -19f.Degrees()), // ENVC 05
-        new(new(-20.858f, -312.142f), HalfWidth, HalfHeight, -45f.Degrees()), // ENVC 06
-        new(new(-16.09f, -304.511f), HalfWidth, HalfHeight, -71f.Degrees()), // ENVC 07
-        new(new(-16.09f, -291.489f), HalfWidth, HalfHeight, 71f.Degrees()), // ENVC 08
-        new(new(-20.858f, -283.858f), HalfWidth, HalfHeight, 45f.Degrees()), // ENVC 09
-        new(new(-28.489f, -279.09f), HalfWidth, HalfHeight, 19f.Degrees()), // ENVC 0A
-    ];
-    public static readonly Polygon[] StartingCircle = [new Polygon(ArenaCenter, 24.5f * CosPI.Pi64th, 64)];
-    public static readonly ArenaBoundsCustom StartingArena = new(StartingCircle, SafeWalls);
+    public D103Scarmiglione(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D103Scarmiglione(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    public static Polygon[] GetStartingCircle() => [new Polygon(new(-35f, -298f), 24.5f * CosPI.Pi64th, 64)];
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom(GetStartingCircle(), ArenaChanges.GetSafeWalls());
+        return (arena.Center, arena);
+    }
 
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

@@ -163,4 +163,4 @@ sealed class D102SoldierS0States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1027u, NameID = 13757u)]
-public sealed class D102SoldierS0(WorldState ws, Actor primary) : BossModule(ws, primary, new(default, -182f), new ArenaBoundsSquare(15.5f));
+public sealed class D102SoldierS0(WorldState ws, Actor primary) : BossModule(ws, primary, new(0f, -182f), new ArenaBoundsSquare(15.5f));

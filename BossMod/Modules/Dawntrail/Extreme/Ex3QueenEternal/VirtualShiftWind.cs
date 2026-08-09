@@ -15,7 +15,9 @@ sealed class WindOfChange(BossModule module) : Components.GenericKnockback(modul
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
     {
         if (_directions[slot] != default)
+        {
             return new Knockback[1] { new(actor.Position, 20f, _activation, null, _directions[slot], Kind.DirForward, ignoreImmunes: true) };
+        }
         return [];
     }
 
@@ -40,7 +42,9 @@ sealed class WindOfChange(BossModule module) : Components.GenericKnockback(modul
         {
             ++NumCasts;
             if (Raid.FindSlot(spell.MainTargetID) is var slot && slot >= 0)
+            {
                 _directions[slot] = default;
+            }
         }
     }
 }
