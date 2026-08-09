@@ -64,7 +64,7 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
                 case (uint)AID.ClawToTail:
                 case (uint)AID.TailToClaw:
                     aoes.Add(new(cone, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
-                    aoes.Add(new(cone, spell.LocXZ, spell.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d)));
+                    aoes.Add(new(cone, spell.LocXZ, spell.Rotation + 180f.Degrees(), Module.CastFinishAt(spell, 3.1d), risky: false));
                     break;
             }
         }

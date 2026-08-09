@@ -2,8 +2,9 @@
 
 sealed class Buffet(BossModule module) : BossComponent(module)
 {
-    public readonly Actor?[] AssignedBoss = new Actor?[PartyState.MaxPartySize];
-    public readonly TwoHeadedAevis bossModule = (TwoHeadedAevis)module;
+    private readonly Actor?[] AssignedBoss = new Actor?[PartyState.MaxPartySize];
+    private readonly TwoHeadedAevis bossModule = (TwoHeadedAevis)module;
+    private readonly TwoHeadedAevisConfig _config = Service.Config.Get<TwoHeadedAevisConfig>();
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
@@ -61,10 +62,20 @@ sealed class Buffet(BossModule module) : BossComponent(module)
                     enemy.Priority = AIHints.Enemy.PriorityInvincible;
                 }
             }
-
-            if (target != assignedSlot)
+            // also ignore forced targeting if current target is a PC
+            if (_config.ForceTargeting && (target == null || target.Type != ActorType.Player))
             {
-                hints.ForcedTarget = assignedSlot;
+                if (assignedSlot == null)
+                {
+                    // one boss is dead, target healthier boss
+                    var green = Module.PrimaryActor;
+                    var blue = bossModule.BlueHead();
+                    hints.ForcedTarget = green.HPMP.CurHP > blue?.HPMP.CurHP ? green : blue;
+                }
+                else if (target != assignedSlot)
+                {
+                    hints.ForcedTarget = assignedSlot;
+                }
             }
         }
     }
