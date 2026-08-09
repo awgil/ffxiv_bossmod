@@ -29,6 +29,10 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints)
         if (cast == null || cast.Action.Type == ActionType.KeyItem) // don't auto cancel quest items, that's never a good idea
             return false;
 
+        // mount doesn't break movement as of 7.whatever
+        if (cast.Action.Type == ActionType.Mount)
+            return false;
+
         var target = _ws.Actors.Find(cast.TargetID);
         if (target == null)
             return false;
