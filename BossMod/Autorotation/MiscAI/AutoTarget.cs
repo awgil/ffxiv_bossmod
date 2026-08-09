@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation.xan;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace BossMod.Autorotation.MiscAI;
 
@@ -202,6 +203,11 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
     {
         if (Service.IsMock)
             return false;
+
+        // leve targets xDDDD
+        var obj = GameObjectManager.Instance()->Objects.IndexSorted[a.SpawnIndex];
+        if (obj != null && obj.Value->NamePlateIconId == 71244)
+            return true;
 
         var mgr = FFXIVClientStructs.FFXIV.Client.Game.UI.RelicNote.Instance();
         if (Service.LuminaRow<Lumina.Excel.Sheets.RelicNote>(mgr->RelicNoteId) is not { } book)

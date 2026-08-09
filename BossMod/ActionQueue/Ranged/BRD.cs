@@ -1,4 +1,6 @@
-﻿namespace BossMod.BRD;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+
+namespace BossMod.BRD;
 
 public enum AID : uint
 {
@@ -158,6 +160,14 @@ public sealed class Definitions : Defs
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Bloodletter, TraitID.EnhancedBloodletter);
         d.RegisterChargeIncreaseTrait(AID.RainOfDeath, TraitID.EnhancedBloodletter);
+
+        // prevents breaking queueing when manually doing first gcd buffs
+        // note: only works for pov player
+        d.Spell(AID.RadiantFinale)!.AllowExecute = (ws, _, _, _) =>
+        {
+            var anyCoda = SongFlags.MagesBalladCoda | SongFlags.ArmysPaeonCoda | SongFlags.WanderersMinuetCoda;
+            return (ws.Client.GetGauge<BardGauge>().SongFlags & anyCoda) != SongFlags.None;
+        };
 
         // smart targets
         d.Spell(AID.WardensPaean)!.SmartTarget = ActionDefinitions.SmartTargetEsunable;
