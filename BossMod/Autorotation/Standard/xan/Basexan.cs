@@ -121,8 +121,10 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     protected bool HaveRaidBuffsUntil(float deadline) => RaidBuffsLeft > deadline || RaidBuffsIn > 9000;
 
     // frame alignment/cooldown reduction produces inconsistent results in combat, i.e. on MCH, 2.5 GCD drill will quasi-randomly not be considered ready
-    // i don't know if this is because our CD reduction code is buggy or if it's an inherent limitation
+    // according to the balance discord, there's a random chance that actions you use will have an animation lock longer or shorter than intended by 1 tick (+/- 40ms) and this problem is apparently more common for players that use lag reduction tools
+    // i'm just going to assume this bug can also happen to cooldowns, it's not easy to test and there's unlikely to be much data from vanilla players about it, since they all use native action queueing
     protected bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
+    protected bool DutyActionGCDReady<ID>(ID aid) where ID : Enum => DutyActionReadyIn(aid) < GCD + 0.05f;
 
     protected bool OnCooldown(AID aid) => MaxChargesIn(aid) > 0;
 

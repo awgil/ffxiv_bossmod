@@ -71,8 +71,8 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
                     Class.LNC or Class.DRG => ClassDRGUtility.IDLimitBreak3,
                     Class.ROG or Class.NIN => ClassNINUtility.IDLimitBreak3,
                     Class.SAM => ClassSAMUtility.IDLimitBreak3,
-                    Class.RPR => ActionID.MakeSpell(BossMod.RPR.AID.TheEnd),
-                    Class.VPR => ActionID.MakeSpell(BossMod.VPR.AID.WorldSwallower),
+                    Class.RPR => ClassRPRUtility.IDLimitBreak3,
+                    Class.VPR => ClassVPRUtility.IDLimitBreak3,
                     _ => default
                 };
                 if (lb3 != default)

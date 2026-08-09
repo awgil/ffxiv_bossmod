@@ -114,7 +114,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        if (ReadyIn(AID.TheRoseOfDestruction) <= GCD)
+        if (GCDReady(AID.TheRoseOfDestruction))
             PushGCD(AID.TheRoseOfDestruction, primaryTarget, GCDPriority.GCDWithCooldown);
 
         // standard filler spells

@@ -627,7 +627,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         if (HaveSwift && pid is not (PhantomID.Hellfire or PhantomID.JudgmentBolt or PhantomID.EarthenWall or PhantomID.Thunderstorm or PhantomID.Megaflare))
             castTime = 0;
 
-        if (cd <= GCD)
+        if (cd < GCD + 0.05f)
         {
             if (ActionDefinitions.Instance[action] is { } def && def.Range > 0)
                 DesiredRange = MathF.Min(DesiredRange, def.Range);

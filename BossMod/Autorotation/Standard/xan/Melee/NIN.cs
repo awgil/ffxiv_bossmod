@@ -169,11 +169,11 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
         {
             var cannonTarget = ResolveEnemy(strategy.PhantomCannon) ?? primaryTarget;
 
-            if (DutyActionReadyIn(PhantomID.SilverCannon) <= GCD)
+            if (DutyActionGCDReady(PhantomID.SilverCannon))
                 PushGCD((AID)PhantomID.SilverCannon, cannonTarget, 10);
-            if (DutyActionReadyIn(PhantomID.ShockCannon) <= GCD)
+            if (DutyActionGCDReady(PhantomID.ShockCannon))
                 PushGCD((AID)PhantomID.ShockCannon, cannonTarget, 8);
-            if (DutyActionReadyIn(PhantomID.PhantomFire) <= GCD)
+            if (DutyActionGCDReady(PhantomID.PhantomFire))
                 PushGCD((AID)PhantomID.PhantomFire, cannonTarget, 6);
         }
 
