@@ -354,11 +354,13 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module) {
             return;
         }
 
+
+
         var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
 
         foreach (var combination in nextCombinations) {
             if (!combination.IsFlare) {
-                Arena.ZoneCircle(combination.Origin, 2.0f, Colors.Other7);
+                Arena.ZoneCircle(combination.Origin, 2.0f, 0xffffff00);
             }
         }
     }
@@ -504,7 +506,7 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module)
 
         if (orb.OID == (uint)OID.HolySphereGrow)
         {
-            Arena.ZoneCircle(target.Position, 2.0f, Colors.Other7);
+            Arena.ZoneCircle(target.Position, 2.0f, 0xffffff00);
         }
     }
 
