@@ -1,10 +1,10 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C021Shishio;
 
-class EyeThunderVortex(BossModule module) : Components.GenericAOEs(module)
+sealed class EyeThunderVortex(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(2)];
-    private static readonly AOEShapeCircle _shapeCircle = new(15f);
-    private static readonly AOEShapeDonut _shapeDonut = new(8f, 30f);
+    private readonly AOEShapeCircle _shapeCircle = new(15f);
+    private readonly AOEShapeDonut _shapeDonut = new(8f, 30f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Count != 0 ? CollectionsMarshal.AsSpan(_aoes)[..1] : [];
 
@@ -24,7 +24,7 @@ class EyeThunderVortex(BossModule module) : Components.GenericAOEs(module)
         void AddAOEs(AOEShape shape1, AOEShape shape2)
         {
             _aoes.Add(new(shape1, spell.LocXZ, default, Module.CastFinishAt(spell)));
-            _aoes.Add(new(shape2, spell.LocXZ, default, Module.CastFinishAt(spell, 4f)));
+            _aoes.Add(new(shape2, spell.LocXZ, default, Module.CastFinishAt(spell, 4d)));
         }
     }
 

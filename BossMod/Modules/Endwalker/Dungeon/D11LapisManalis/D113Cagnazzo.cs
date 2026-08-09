@@ -61,16 +61,17 @@ public enum NPCYell : uint
 
 sealed class StygianDelugeArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(D113Cagnazzo.ArenaCenter, 30f)], [new Square(D113Cagnazzo.ArenaCenter, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.StygianDeluge && Arena.Bounds == D113Cagnazzo.StartingBounds)
+        if (spell.Action.ID == (uint)AID.StygianDeluge && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 0.7d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 29.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.7d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -78,7 +79,7 @@ sealed class StygianDelugeArenaChange(BossModule module) : Components.GenericAOE
     {
         if (index == 0x00 && state == 0x00020001u)
         {
-            Arena.Bounds = D113Cagnazzo.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsSquare(20f);
             _aoe = [];
         }
     }
@@ -249,12 +250,8 @@ sealed class D113CagnazzoStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, PrimaryActorOID = (uint)OID.Cagnazzo, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896u, NameID = 11995u, Category = BossModuleInfo.Category.Dungeon, Expansion = BossModuleInfo.Expansion.Endwalker, SortOrder = 4)]
-public sealed class D113Cagnazzo(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingBounds)
+public sealed class D113Cagnazzo(WorldState ws, Actor primary) : BossModule(ws, primary, new(-250f, 130f), new ArenaBoundsSquare(29.5f))
 {
-    public static readonly WPos ArenaCenter = new(-250f, 130f);
-    public static readonly ArenaBoundsSquare StartingBounds = new(29.5f);
-    public static readonly ArenaBoundsSquare DefaultBounds = new(20f);
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor);

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
-class SealOfScurryingSparks(BossModule module) : Components.UniformStackSpread(module, 6f, 10f)
+sealed class SealOfScurryingSparks(BossModule module) : Components.UniformStackSpread(module, 6f, 10f)
 {
     public int NumMechanics;
     private readonly List<Actor> _spreadTargets = [];

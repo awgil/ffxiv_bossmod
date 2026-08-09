@@ -203,7 +203,7 @@ sealed class OrderTowers(BossModule module) : Components.GenericAOEs(module)
                 Numbers[i] = [];
             }
 
-            var party = Module.Raid.WithSlot(true, true, true);
+            var party = Raid.WithSlot(true, true, true);
             var len = party.Length;
             for (var i = 0; i < len; ++i)
             {
@@ -231,7 +231,7 @@ sealed class OrderTowers(BossModule module) : Components.GenericAOEs(module)
                         shapes.Add(new Polygon(TowerPositions[j - 1], 5f, 20));
                     }
                 }
-                AOEs[p.Item1] = [new(new AOEShapeCustom(shapes, invertForbiddenZone: !outsideSafe), Arena.Center, default, Module.CastFinishAt(spell), !outsideSafe ? Colors.SafeFromAOE : default)];
+                AOEs[p.Item1] = [new(new AOEShapeCustom(Arena.Center, shapes, invertForbiddenZone: !outsideSafe), Arena.Center, default, Module.CastFinishAt(spell), !outsideSafe ? Colors.SafeFromAOE : default)];
             }
         }
     }
@@ -256,10 +256,10 @@ sealed class OrderTowers(BossModule module) : Components.GenericAOEs(module)
         {
             return;
         }
-        ref readonly var aoes = ref AOEs[slot];
+        var aoes = AOEs[slot];
         if (aoes != default)
         {
-            ref readonly var aoe = ref aoes[0];
+            ref var aoe = ref aoes[0];
             var isInside = aoe.Check(actor.Position);
             hints.Add(Numbers[slot][0] == default ? ("Avoid marked towers!", isInside) : ("Move into a marked tower!", !isInside));
         }
@@ -271,14 +271,14 @@ sealed class OrderForcedMarch(BossModule module) : Components.StatusDrivenForced
     private readonly OrderTowers _math = module.FindComponent<OrderTowers>()!;
     private static readonly Random random = new();
     private readonly float randomOdd = random.Next(1, 51) * 2 - 1; // used as pseudo randomisation for default case
-    private static readonly Angle a175 = 175f.Degrees(), a45 = 45f.Degrees(), am90 = -90f.Degrees(), a225 = 22.5f.Degrees(), a180 = 180f.Degrees();
+    private readonly Angle a175 = 175f.Degrees(), a45 = 45f.Degrees(), am90 = -90f.Degrees(), a225 = 22.5f.Degrees(), a180 = 180f.Degrees();
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
-        ref readonly var aoes = ref _math.AOEs[slot];
+        ref var aoes = ref _math.AOEs[slot];
         if (aoes != default)
         {
-            ref readonly var aoe = ref aoes[0];
+            ref var aoe = ref aoes[0];
             var isInside = aoe.Check(pos);
             return _math.Numbers[slot][0] == default ? isInside : !isInside;
         }
@@ -289,7 +289,9 @@ sealed class OrderForcedMarch(BossModule module) : Components.StatusDrivenForced
     {
         var state = State.GetValueOrDefault(actor.InstanceID);
         if (state == null || state.PendingMoves.Count == 0)
+        {
             return;
+        }
         if (_math.Numbers[slot] is var num && num != default)
         {
             var move0 = state.PendingMoves[0];

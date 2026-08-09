@@ -1,20 +1,17 @@
-using static BossMod.Dawntrail.Raid.SugarRiotSharedBounds.SugarRiotSharedBounds;
-
 namespace BossMod.Dawntrail.Savage.M06SSugarRiot;
 
 sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
 {
+    private readonly M06SSugarRiot bossmod = (M06SSugarRiot)module;
+    private AOEShapeCustom? shape;
     private bool _risky = true;
     private AOEInstance[] _aoe = [];
     private bool active;
-    public bool DangerousRiver => Arena.Bounds == RiverArena;
-    public bool DangerousLava => Arena.Bounds == LavaArena;
-    private static readonly PolygonCustom removeWestBridge = new([new(92.707f, 99.682f), new(88.088f, 101.596f), new(90.448f, 107.294f), new(95.068f, 105.382f)]);
-    private static readonly PolygonCustom removeEastBridge = new([new(103.371f, 106.475f), new(107.338f, 109.518f), new(111.093f, 104.625f), new(107.127f, 101.58f)]);
-    private static readonly PolygonCustom removeNorthBridge = new([new(103.923f, 93.843f), new(104.574f, 88.886f), new(98.459f, 88.081f), new(97.804f, 93.038f)]);
-    private static readonly PolygonCustom[] combinedLava = [removeEastBridge, removeNorthBridge, removeWestBridge];
-    public static readonly AOEShapeCustom LavaAOE = new(combinedLava);
-    public static readonly ArenaBoundsCustom LavaArena = new(DefaultSquare, [.. CombinedRiver, .. combinedLava]);
+    public bool DangerousRiver;
+    public bool DangerousLava;
+    private readonly PolygonCustom[] combinedLava = [new([new(92.707f, 99.682f), new(88.088f, 101.596f), new(90.448f, 107.294f), new(95.068f, 105.382f)]),
+     new([new(103.371f, 106.475f), new(107.338f, 109.518f), new(111.093f, 104.625f), new(107.127f, 101.58f)]),
+     new([new(103.923f, 93.843f), new(104.574f, 88.886f), new(98.459f, 88.081f), new(97.804f, 93.038f)])];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -28,14 +25,15 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
                     active = true;
                     break;
                 case 0x00800040u:
-                    AddAOE(RiverAOE);
+                    AddAOE(shape ??= GetRiverAOE(Arena.Center));
                     _risky = true;
                     break;
                 case 0x02000100u:
-                    AddAOE(LavaAOE);
+                    AddAOE(new AOEShapeCustom(Arena.Center, combinedLava));
                     break;
                 case 0x00200010u:
-                    SetArena(RiverArena);
+                    SetArena(new ArenaBoundsCustom([new Square(Arena.Center, 20f)], bossmod.GetCombinedRiver()));
+                    DangerousRiver = true;
                     active = false;
                     break;
             }
@@ -45,11 +43,11 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
             switch (state)
             {
                 case 0x00020001u:
-                    SetArena(LavaArena);
+                    SetArena(new ArenaBoundsCustom([new Square(Arena.Center, 20f)], [.. bossmod.GetCombinedRiver(), .. combinedLava]));
+                    DangerousLava = true;
                     break;
                 case 0x00080004u:
-                    Arena.Bounds = DefaultArena;
-                    Arena.Center = ArenaCenter;
+                    Arena.Bounds = new ArenaBoundsSquare(20f);
                     break;
             }
         }
@@ -58,7 +56,6 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         void SetArena(ArenaBoundsCustom bounds)
         {
             Arena.Bounds = bounds;
-            Arena.Center = bounds.Center;
             _aoe = [];
         }
     }
@@ -68,20 +65,26 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         switch (spell.Action.ID)
         {
             case (uint)AID.DoubleStyle3:
-                AddAOE(RiverAOE, Colors.SafeFromAOE, true);
+                AddAOE(shape ??= GetRiverAOE(Arena.Center), Colors.SafeFromAOE, true);
                 _risky = false;
                 break;
             case (uint)AID.DoubleStyle5:
-                AddAOE(RiverAOE);
+                AddAOE(shape ??= GetRiverAOE(Arena.Center));
                 break;
         }
 
         void AddAOE(AOEShapeCustom shape, uint color = default, bool invert = false)
         {
-            _aoe = [new(shape, Arena.Center, default, Module.CastFinishAt(spell, 4.2d), color)];
+            var center = Arena.Center;
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 4.2d), color, shapeDistance: shape.Distance(center, default))];
             ref var aoe = ref _aoe[0];
             aoe.Shape.InvertForbiddenZone = invert;
         }
+    }
+
+    AOEShapeCustom GetRiverAOE(WPos center)
+    {
+        return new AOEShapeCustom(center, bossmod.GetCombinedRiver());
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -106,7 +109,9 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
             return;
         }
         if (isInside)
+        {
             hints.Add("GTFO from river!");
+        }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -119,7 +124,7 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         var pos = actor.Position;
         if (actor.PrevPosition != pos)
         {
-            hints.WantJump = IntersectJumpEdge(pos, (pos - actor.PrevPosition).Normalized(), 1f);
+            hints.WantJump = bossmod.IntersectJumpEdge(pos, (pos - actor.PrevPosition).Normalized(), 1f);
         }
     }
 }

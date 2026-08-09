@@ -14,38 +14,40 @@ sealed class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
     private Pattern _patternN;
     private Pattern _patternS;
 
-    private static readonly AOEShapeRect _shape = new(10f, 2.5f, 10f);
-    private static readonly AOEShapeRect _shapeWide = new(10f, 7.5f, 10f);
+    private readonly AOEShapeRect _shape = new(10f, 2.5f, 10f);
+    private readonly AOEShapeRect _shapeWide = new(10f, 7.5f, 10f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan([.. NarrowAOEs, .. WideAOEs, .. KnockbackAOEs]);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID != (uint)AID.ForgedTrackPreview)
+        {
             return;
+        }
 
         var casterOffset = caster.Position - Arena.Center;
         var rightDir = spell.Rotation.ToDirection().OrthoR();
         var laneOffset = casterOffset.Dot(rightDir);
-        var laneRight = laneOffset > 0;
-        var laneInner = laneOffset is > -5 and < 5;
-        var west = casterOffset.X > 0;
-        if (casterOffset.Z < 0)
+        var laneRight = laneOffset > 0f;
+        var laneInner = laneOffset is > -5f and < 5f;
+        var west = casterOffset.X > 0f;
+        if (casterOffset.Z < 0f)
         {
             // N => wide/knockback
             if (_patternN == Pattern.Unknown)
                 return;
             var rightIsWide = west == (_patternN == Pattern.A);
-            var adjustedLaneOffset = laneOffset + (laneRight ? -5 : 5);
+            var adjustedLaneOffset = laneOffset + (laneRight ? -5f : 5f);
             if (rightIsWide == laneRight)
             {
                 // wide
-                WideAOEs.Add(new(_shapeWide, Arena.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.4f)));
+                WideAOEs.Add(new(_shapeWide, Arena.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.4d)));
             }
             else
             {
                 // knockback
-                KnockbackAOEs.Add(new(_shape, Arena.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.9f)));
+                KnockbackAOEs.Add(new(_shape, Arena.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.9d)));
             }
         }
         else
@@ -56,8 +58,8 @@ sealed class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
             var crossInner = west == (_patternS == Pattern.A);
             var cross = crossInner == laneInner;
             var adjustedRight = cross ^ laneRight;
-            var adjustedLaneOffset = (laneInner ? 7.5f : 2.5f) * (adjustedRight ? 1 : -1);
-            NarrowAOEs.Add(new(_shape, Arena.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.3f)));
+            var adjustedLaneOffset = (laneInner ? 7.5f : 2.5f) * (adjustedRight ? 1f : -1f);
+            NarrowAOEs.Add(new(_shape, Arena.Center + rightDir * adjustedLaneOffset, spell.Rotation, Module.CastFinishAt(spell, 1.3d)));
         }
     }
 
@@ -71,12 +73,16 @@ sealed class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
                 break;
             case (uint)AID.FieryEdgeAOECenter:
                 if (WideAOEs.Count == 0)
+                {
                     Module.ReportError(this, "Unexpected wide aoe");
+                }
                 WideAOEs.Clear();
                 break;
             case (uint)AID.StormyEdgeAOE:
                 if (KnockbackAOEs.Count == 0)
+                {
                     Module.ReportError(this, "Unexpected knockback");
+                }
                 KnockbackAOEs.Clear();
                 break;
         }
@@ -105,7 +111,9 @@ sealed class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
     {
         // 0x00020001 XX, 0x00200010 out and inner crossed, 0x02000100 inner crossed, 0x00800040 outer crossed, 0x00080004 disappear
         if (state == 0x00080004u)
+        {
             return; // end
+        }
         if (state != stateA && state != stateB)
         {
             Module.ReportError(this, $"Unknown pattern: {state:X8}, expected {stateA:X8} or {stateB:X8}");
@@ -113,7 +121,9 @@ sealed class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
         }
         var value = state == stateA ? Pattern.A : Pattern.B;
         if (field != Pattern.Unknown && field != value)
+        {
             Module.ReportError(this, $"Inconsistent pattern assignments: {field} vs {value}");
+        }
         field = value;
     }
 }
@@ -122,20 +132,27 @@ sealed class ForgedTrackKnockback(BossModule module) : Components.GenericKnockba
 {
     private readonly ForgedTrack? _main = module.FindComponent<ForgedTrack>();
 
-    private static readonly AOEShapeRect _shape = new(20f, 10f);
+    private readonly AOEShapeRect _shape = new(20f, 10f);
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
     {
         if (_main == null)
+        {
             return [];
-        var count = _main.KnockbackAOEs.Count;
+        }
+        var aoes = CollectionsMarshal.AsSpan(_main.KnockbackAOEs);
+        var count = aoes.Length;
         Span<Knockback> sources = new Knockback[count * 2];
         var index = 0;
         for (var i = 0; i < count; ++i)
         {
-            var aoe = _main.KnockbackAOEs[i];
-            sources[index++] = new(aoe.Origin, 7f, aoe.Activation, _shape, aoe.Rotation + 90f.Degrees(), Kind.DirForward);
-            sources[index++] = new(aoe.Origin, 7f, aoe.Activation, _shape, aoe.Rotation - 90f.Degrees(), Kind.DirForward);
+            ref var aoe = ref aoes[i];
+            var origin = aoe.Origin;
+            var act = aoe.Activation;
+            var a90 = 90f.Degrees();
+            var rot = aoe.Rotation;
+            sources[index++] = new(origin, 7f, act, _shape, rot + a90, Kind.DirForward);
+            sources[index++] = new(origin, 7f, act, _shape, rot - a90, Kind.DirForward);
         }
         return sources;
     }

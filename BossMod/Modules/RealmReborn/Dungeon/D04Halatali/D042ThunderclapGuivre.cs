@@ -18,9 +18,9 @@ public enum AID : uint
     Levinfang = 40594 // Boss->player, 5.0s cast, single-target
 }
 
-class Levinfang(BossModule module) : Components.SingleTargetCast(module, (uint)AID.Levinfang);
-class Electrify(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Electrify, 6f);
-class HydroelectricShock(BossModule module) : Components.GenericAOEs(module)
+sealed class Levinfang(BossModule module) : Components.SingleTargetCast(module, (uint)AID.Levinfang);
+sealed class Electrify(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Electrify, 6f);
+sealed class HydroelectricShock(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
 
@@ -30,7 +30,13 @@ class HydroelectricShock(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.HydroelectricShock)
         {
-            _aoe = [new(D042ThunderclapGuivre.Shock, Arena.Center, default, Module.CastFinishAt(spell))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, D042ThunderclapGuivre.GetArenaPoly(),
+            [new PolygonCustom([new(-188.248f, -101.035f), new(-187.247f, -107.031f), new(-186.281f, -111.518f),
+            new(-184.045f, -113.744f), new(-178.523f, -112.543f), new(-173.155f, -107.977f), new(-175.178f, -97.181f)]),
+            new PolygonCustom([new(-177.532f, -166.762f), new(-177.432f, -162.877f), new(-175.846f, -159.154f),
+            new(-174.737f, -155.21f), new(-173.449f, -154.881f), new(-167.214f, -153.974f), new(-167.644f, -172.626f)])]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -43,7 +49,7 @@ class HydroelectricShock(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class D042ThunderclapGuivreStates : StateMachineBuilder
+sealed class D042ThunderclapGuivreStates : StateMachineBuilder
 {
     public D042ThunderclapGuivreStates(BossModule module) : base(module)
     {
@@ -54,10 +60,15 @@ class D042ThunderclapGuivreStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)]
-public class D042ThunderclapGuivre(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7u, NameID = 1196u)]
+public sealed class D042ThunderclapGuivre : BossModule
 {
-    private static readonly PolygonCustom[] vertices = [new([new(-176.42f, -166.47f), new(-175.16f, -165.74f), new(-174.56f, -165.61f), new(-171.93f, -165.35f), new(-172.02f, -154.56f),
+    public D042ThunderclapGuivre(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D042ThunderclapGuivre(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    public static PolygonCustom[] GetArenaPoly()
+    => [new([new(-176.42f, -166.47f), new(-175.16f, -165.74f), new(-174.56f, -165.61f), new(-171.93f, -165.35f), new(-172.02f, -154.56f),
     new(-171.71f, -153.93f), new(-167.56f, -149.39f), new(-167.15f, -149.07f), new(-166.72f, -148.80f), new(-166.26f, -148.57f),
     new(-165.11f, -148.51f), new(-164.51f, -148.19f), new(-164.01f, -147.81f), new(-163.59f, -147.36f), new(-162.50f, -145.84f),
     new(-162.25f, -145.36f), new(-162.06f, -144.90f), new(-160.87f, -140.24f), new(-160.33f, -139.90f), new(-159.34f, -139.61f),
@@ -86,10 +97,10 @@ public class D042ThunderclapGuivre(WorldState ws, Actor primary) : BossModule(ws
     new(-184.36f, -163.42f), new(-183.75f, -163.80f), new(-183.25f, -163.72f), new(-182.87f, -163.36f), new(-182.40f, -162.81f),
     new(-181.87f, -162.35f), new(-181.23f, -162.01f), new(-180.55f, -161.73f), new(-179.85f, -161.66f), new(-178.65f, -161.43f),
     new(-178.12f, -161.82f), new(-177.76f, -162.17f), new(-177.33f, -162.71f), new(-177.00f, -166.15f), new(-176.69f, -166.59f)])];
-    private static readonly WPos[] verticesAOE1 = [new(-188.248f, -101.035f), new(-187.247f, -107.031f), new(-186.281f, -111.518f),
-    new(-184.045f, -113.744f), new(-178.523f, -112.543f), new(-173.155f, -107.977f), new(-175.178f, -97.181f)];
-    private static readonly WPos[] verticesAOE2 = [new(-177.532f, -166.762f), new(-177.432f, -162.877f), new(-175.846f, -159.154f),
-    new(-174.737f, -155.21f), new(-173.449f, -154.881f), new(-167.214f, -153.974f), new(-167.644f, -172.626f)];
-    public static readonly ArenaBoundsCustom arena = new(vertices);
-    public static readonly AOEShapeCustom Shock = new(vertices, [new PolygonCustom(verticesAOE1), new PolygonCustom(verticesAOE2)]);
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom(GetArenaPoly());
+        return (arena.Center, arena);
+    }
 }

@@ -3,18 +3,23 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRN5TrinityAvowed;
 sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
+    private readonly AOEShapeRect rect = new(45f, 25f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.GloryOfBozja && Arena.Bounds.Radius > 25f)
+        if (spell.Action.ID is var id && id == (uint)AID.GloryOfBozja && Arena.Bounds.Radius > 25f)
         {
-            _aoe = [new(TrinityAvowed.ArenaChange1, Arena.Center, default, Module.CastFinishAt(spell, 0.7d))];
+            var shape = TrinityAvowed.GetArenaChangeAOE();
+            var center = Arena.Center;
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.7d), shapeDistance: shape.Distance(center, default))];
         }
-        else if (spell.Action.ID == (uint)AID.FlamesOfBozjaAOE)
+        else if (id == (uint)AID.FlamesOfBozjaAOE)
         {
-            _aoe = [new(TrinityAvowed.ArenaChange2, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell))];
+            var loc = spell.LocXZ;
+            var rot = spell.Rotation;
+            _aoe = [new(rect, loc, rot, Module.CastFinishAt(spell), shapeDistance: rect.Distance(loc, rot))];
         }
     }
 
@@ -24,26 +29,26 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         {
             if (index == 0x11)
             {
-                Arena.Bounds = TrinityAvowed.DefaultArena;
+                Arena.Bounds = new ArenaBoundsSquare(25f);
                 _aoe = [];
             }
             else if (index == 0x12)
             {
-                Arena.Bounds = TrinityAvowed.ShimmeringShotArena;
-                Arena.Center = TrinityAvowed.EastRemovedCenter;
+                Arena.Bounds = new ArenaBoundsRect(5f, 25f);
+                Arena.Center = new(-292f, -82f);
                 _aoe = [];
             }
             else if (index == 0x13)
             {
-                Arena.Bounds = TrinityAvowed.ShimmeringShotArena;
-                Arena.Center = TrinityAvowed.WestRemovedCenter;
+                Arena.Bounds = new ArenaBoundsRect(5f, 25f);
+                Arena.Center = new(-252f, -82f);
                 _aoe = [];
             }
         }
         else if (state == 0x00080004u && index is 0x12 or 0x13)
         {
-            Arena.Bounds = TrinityAvowed.DefaultArena;
-            Arena.Center = TrinityAvowed.ArenaCenter;
+            Arena.Bounds = new ArenaBoundsSquare(25f);
+            Arena.Center = new(-272f, -82f);
         }
     }
 }

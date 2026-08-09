@@ -37,24 +37,25 @@ public enum AID : uint
 
 sealed class DynamicDominanceArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(D032Firearms.ArenaCenter, 25f)], [new Square(D032Firearms.ArenaCenter, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.DynamicDominance && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.DynamicDominance && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 0.6d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 25f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.6d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
     public override void OnMapEffect(byte index, uint state)
     {
-        if (state == 0x00020001 && index == 0x14)
+        if (state == 0x00020001u && index == 0x14)
         {
-            Arena.Bounds = D032Firearms.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsSquare(20f);
             _aoe = [];
         }
     }
@@ -93,10 +94,5 @@ sealed class D032FirearmsStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829, NameID = 12888)]
-public sealed class D032Firearms(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingBounds)
-{
-    public static readonly WPos ArenaCenter = new(-85f, -155f);
-    public static readonly ArenaBoundsSquare StartingBounds = new(24.5f);
-    public static readonly ArenaBoundsSquare DefaultBounds = new(20f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 829u, NameID = 12888u)]
+public sealed class D032Firearms(WorldState ws, Actor primary) : BossModule(ws, primary, new(-85f, -155f), new ArenaBoundsSquare(24.5f));

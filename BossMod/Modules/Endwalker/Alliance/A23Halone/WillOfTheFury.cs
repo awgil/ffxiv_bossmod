@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
-class WillOfTheFury(BossModule module) : Components.ConcentricAOEs(module, _shapes)
+sealed class WillOfTheFury(BossModule module) : Components.ConcentricAOEs(module, _shapes)
 {
     private static readonly AOEShape[] _shapes = [new AOEShapeDonut(24f, 30f), new AOEShapeDonut(18f, 24f), new AOEShapeDonut(12f, 18f), new AOEShapeDonut(6f, 12f), new AOEShapeCircle(6f)];
 

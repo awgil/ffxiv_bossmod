@@ -89,9 +89,9 @@ public enum AID : uint
 
     _Ability_Explosion = 45987, // Helper->player, no cast, single-target
     SanguineScratchCast = 45988, // VampFatale->self, 2.3+0.7s cast, single-target
-    SanguineScratchFirst = 45989, // Helper->self, 3.0s cast, range 40 30.000-degree cone
+    SanguineScratchFirst = 45989, // Helper->self, 3.0s cast, range 40 30-degree cone
     _Ability_SanguineScratch = 45990, // VampFatale->self, no cast, single-target
-    SanguineScratchRest = 45991, // Helper->self, no cast, range 40 ?-degree cone
+    SanguineScratchRest = 45991, // Helper->self, no cast, range 40 30-degree cone
     BreakdownDrop1 = 45992, // VampetteFatale->self, 1.0s cast, range 7 circle
     BreakwingBeat1 = 45993, // VampetteFatale->self, 1.0s cast, range 4-15 donut
     BreakdownDrop2 = 45994, // VampetteFatale->self, 1.0s cast, range 7 circle

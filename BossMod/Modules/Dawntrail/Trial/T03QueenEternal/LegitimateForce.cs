@@ -3,12 +3,10 @@ namespace BossMod.Dawntrail.Trial.T03QueenEternal;
 sealed class LegitimateForce(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(2)];
-    private static readonly AOEShapeRect rect = new(20f, 40f);
-    private static readonly WDir offset1 = new(default, 20f), offset2 = new(default, 8f);
+    private readonly AOEShapeRect rect = new(20f, 40f);
     private readonly Besiegement _aoe = module.FindComponent<Besiegement>()!;
-    private static readonly ShapeDistance stayInBounds = new SDIntersection([
-        new SDInvertedRect(T03QueenEternal.LeftSplitCenter + offset2, T03QueenEternal.LeftSplitCenter - offset2, 4f),
-        new SDInvertedRect(T03QueenEternal.RightSplitCenter + offset2, T03QueenEternal.RightSplitCenter - offset2, 4f)]);
+    private readonly ShapeDistance stayInBounds = new SDIntersection([new SDInvertedRect(new(108f, 102f), new(108f, 86f), 4f),
+        new SDInvertedRect(new(92f, 102f), new(92f, 86f), 4f)]);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -33,24 +31,26 @@ sealed class LegitimateForce(BossModule module) : Components.GenericAOEs(module)
         switch (spell.Action.ID)
         {
             case (uint)AID.LegitimateForceLL:
-                AddAOEs(caster, -90f, -90f);
+                AddAOEs(-90f, -90f);
                 break;
             case (uint)AID.LegitimateForceLR:
-                AddAOEs(caster, -90f, 90f);
+                AddAOEs(-90f, 90f);
                 break;
             case (uint)AID.LegitimateForceRR:
-                AddAOEs(caster, 90f, 90f);
+                AddAOEs(90f, 90f);
                 break;
             case (uint)AID.LegitimateForceRL:
-                AddAOEs(caster, 90f, -90f);
+                AddAOEs(90f, -90f);
                 break;
         }
 
-        void AddAOEs(Actor caster, float first, float second)
+        void AddAOEs(float first, float second)
         {
+            var loc = caster.Position;
+            var rot = spell.Rotation;
             AddAOE(first);
-            AddAOE(second, 3.1d);
-            void AddAOE(float offset, double delay = default) => _aoes.Add(new(rect, caster.Position, spell.Rotation + offset.Degrees(), Module.CastFinishAt(spell, delay)));
+            AddAOE(second, 3.1d); // intentionally caster.Position here, since these are not the actual aoe spell casts
+            void AddAOE(float offset, double delay = default) => _aoes.Add(new(rect, loc, rot + offset.Degrees(), Module.CastFinishAt(spell, delay)));
         }
     }
 
@@ -78,10 +78,12 @@ sealed class LegitimateForce(BossModule module) : Components.GenericAOEs(module)
         var aoes = CollectionsMarshal.AsSpan(_aoes);
         var count = _aoes.Count;
         var besiegeCount = _aoe.AOEs.Count;
-        var gravityBounds = Arena.Bounds == T03QueenEternal.SplitGravityBounds;
-        if (count != 0 && Arena.Center != T03QueenEternal.SplitArena.Center || besiegeCount == 0 && count == 2 && gravityBounds)
+        var gravityBounds = Arena.Bounds is ArenaBoundsCustom;
+        var center = Arena.Center;
+        if (count != 0 && center != new WPos(100f, 94f) || besiegeCount == 0 && count == 2 && gravityBounds)
         {
-            hints.AddForbiddenZone(new SDInvertedRect(Arena.Center + offset1, Arena.Center - offset1, 3f), aoes[0].Activation);
+            var o = new WDir(default, 20f);
+            hints.AddForbiddenZone(new SDInvertedRect(center + o, center - o, 3f), aoes[0].Activation);
         }
         else if (count != 2 && besiegeCount == 0 && gravityBounds)
         {

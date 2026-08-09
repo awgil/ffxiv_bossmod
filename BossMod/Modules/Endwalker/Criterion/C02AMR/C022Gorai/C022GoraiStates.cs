@@ -171,5 +171,5 @@ class C022GoraiStates : StateMachineBuilder
     }
 }
 
-class C022NGoraiStates(BossModule module) : C022GoraiStates(module, false);
-class C022SGoraiStates(BossModule module) : C022GoraiStates(module, true);
+sealed class C022NGoraiStates(BossModule module) : C022GoraiStates(module, false);
+sealed class C022SGoraiStates(BossModule module) : C022GoraiStates(module, true);

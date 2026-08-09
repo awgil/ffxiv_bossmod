@@ -34,7 +34,8 @@ sealed class IdyllicDreamArena(BossModule module) : Components.GenericAOEs(modul
     public void Predict(double seconds)
     {
         var center = Arena.Center;
-        _aoe = [new(new AOEShapeCustom([new Square(center, 20f)], splitArena), center, default, WorldState.FutureTime(seconds))];
+        var shape = new AOEShapeCustom(center, [new Square(center, 20f)], splitArena);
+        _aoe = [new(shape, center, default, WorldState.FutureTime(seconds), shapeDistance: shape.Distance(center, default))];
     }
 }
 

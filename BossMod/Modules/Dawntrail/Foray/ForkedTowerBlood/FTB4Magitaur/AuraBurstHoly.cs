@@ -50,7 +50,7 @@ sealed class AuraBurstHoly(BossModule module) : BossComponent(module)
 sealed class ArcaneReaction(BossModule module) : Components.GenericBaitAway(module)
 {
     private Actor? conduit;
-    private static readonly AOEShapeRect rect = new(55f, 3f);
+    private readonly AOEShapeRect rect = new(55f, 3f);
 
     public override void OnActorCreated(Actor actor)
     {

@@ -6,6 +6,8 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
     private bool active;
     private DateTime activation;
     private AOEInstance[] _aoe = [];
+    private readonly WPos[] squarePositions = FTB4Magitaur.GetSquarePositions();
+    private readonly WDir[] squareDirs = FTB4Magitaur.GetSquareAnglesDirs();
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -37,7 +39,7 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
             var a = players[i];
             for (var j = 0; j < 3; ++j)
             {
-                if (a.Position.InSquare(FTB4Magitaur.SquarePositions[j], 10f, FTB4Magitaur.SquareDirs[j]))
+                if (a.Position.InSquare(squarePositions[j], 10f, squareDirs[j]))
                 {
                     squareActors[j].Add(a);
                     break;
@@ -50,7 +52,9 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
             var square = squareActors[i];
             var countS = square.Count;
             if (countS == 0)
+            {
                 continue;
+            }
 
             (Actor actor, float distSq)[] distances = new (Actor, float)[countS];
             for (var j = 0; j < countS; ++j)
@@ -65,14 +69,20 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
             {
                 ref readonly var dist = ref distances[j].distSq;
                 if (dist < distances[minIdx].distSq)
+                {
                     minIdx = j;
+                }
                 if (dist > distances[maxIdx].distSq)
+                {
                     maxIdx = j;
+                }
             }
 
             targets.Add(distances[minIdx].actor);
             if (maxIdx != minIdx)
+            {
                 targets.Add(distances[maxIdx].actor);
+            }
         }
     }
 
@@ -81,7 +91,9 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
         if (spell.Action.ID == (uint)AID.ForkedFuryVisual)
         {
             activation = Module.CastFinishAt(spell, 0.6d);
-            _aoe = [new(FTB4Magitaur.CircleMinusSquares, Arena.Center, default, activation)];
+            var center = Arena.Center;
+            var shape = FTB4Magitaur.GetCircleMinusSquares(center);
+            _aoe = [new(shape, center, default, activation, shapeDistance: shape.Distance(center, default))];
             active = true;
         }
     }
@@ -116,7 +128,7 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
             var inSquare = -1;
             for (var i = 0; i < 3; ++i)
             {
-                if (actor.Position.InSquare(FTB4Magitaur.SquarePositions[i], 10f, FTB4Magitaur.SquareDirs[i]))
+                if (actor.Position.InSquare(squarePositions[i], 10f, squareDirs[i]))
                 {
                     inSquare = i;
                     break;
@@ -145,7 +157,7 @@ sealed class ForkedFury(BossModule module) : Components.GenericAOEs(module)
             for (var i = 0; i < count; ++i)
             {
                 var a = players[i];
-                if (a.Position.InSquare(FTB4Magitaur.SquarePositions[inSquare], 10f, FTB4Magitaur.SquareDirs[inSquare]))
+                if (a.Position.InSquare(squarePositions[inSquare], 10f, squareDirs[inSquare]))
                 {
                     squareActors.Add(a);
                 }

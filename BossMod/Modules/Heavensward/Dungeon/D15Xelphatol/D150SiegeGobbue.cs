@@ -20,22 +20,12 @@ public enum AID : uint
     Sneeze = 6625, // Boss->self, 4.0s cast, range 20+R 90-degree cone
 }
 
-class ArenaChange(BossModule module) : Components.GenericAOEs(module)
+sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
     private const int Vertices = 8;
     private const float InnerRadius = 11f;
     private const float OuterRadius = 16f; // 15.5 if adjusted for hitbox radius, but not needed here
-    private static readonly Angle a225 = 22.5f.Degrees();
-    private static readonly WPos arena1center = new(70.5f, -56f);
-    private static readonly WPos arena2center = new(178.083f, -4.225f);
-    private static readonly PolygonCustom verticesDiff1 = new([new(62.562f, -68.197f), new(58.33f, -63.967f), new(59.195f, -63.239f),
-    new(63.214f, -63.273f), new(63.267f, -67.123f)]);
-    private static readonly PolygonCustom verticesDiff2 = new([new(181.034f, -18.5f), new(175.119f, -18.5f), new(175.522f, -17.112f),
-    new(178.095f, -14.489f), new(180.889f, -17.318f)]);
-    private static readonly Shape[] difference1 = [new Polygon(arena1center, InnerRadius, Vertices, a225), verticesDiff1, new Rectangle(new(59f, -67.5f), 10f, 2.1f, -135f.Degrees())];
-    private static readonly Shape[] difference2 = [new Polygon(arena2center, InnerRadius, Vertices, a225), verticesDiff2];
-    private static readonly AOEShapeCustom poly1 = new([new Polygon(arena1center, OuterRadius, Vertices, a225)], difference1);
-    private static readonly AOEShapeCustom poly2 = new([new Polygon(arena2center, OuterRadius, Vertices, a225)], difference2);
+
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -44,7 +34,14 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (_aoe.Length == 0 && actor.PosRot.Z < -10f)
         {
-            _aoe = [new(poly1, Arena.Center, default, WorldState.FutureTime(4d))];
+            var center = Arena.Center;
+            var a22 = 22.5f.Degrees();
+            var c1 = new WPos(70.5f, -56f);
+            var shape = new AOEShapeCustom(center, [new Polygon(c1, OuterRadius, Vertices, a22)],
+            [new Polygon(c1, InnerRadius, Vertices, a22),
+            new PolygonCustom([new(62.562f, -68.197f), new(58.33f, -63.967f), new(59.195f, -63.239f),
+            new(63.214f, -63.273f), new(63.267f, -67.123f)]), new Rectangle(new(59f, -67.5f), 10f, 2.1f, -135f.Degrees())]);
+            _aoe = [new(shape, center, default, WorldState.FutureTime(4d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -52,16 +49,23 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (_aoe.Length == 0 && Module.PrimaryActor.PosRot.Z > -10f) // for some reason NPC yells that are exactly at the start of a module do not get recognized despite appearing in replay?
         {
-            _aoe = [new(poly2, Arena.Center, default, WorldState.FutureTime(4d))];
+            var center = Arena.Center;
+            var c2 = new WPos(178.083f, -4.225f);
+            var a22 = 22.5f.Degrees();
+            var shape = new AOEShapeCustom(center, [new Polygon(c2, OuterRadius, Vertices, a22)],
+            [new Polygon(c2, InnerRadius, Vertices, a22),
+            new PolygonCustom([new(181.034f, -18.5f), new(175.119f, -18.5f), new(175.522f, -17.112f),
+            new(178.095f, -14.489f), new(180.889f, -17.318f)])]);
+            _aoe = [new(shape, center, default, WorldState.FutureTime(4d), shapeDistance: shape.Distance(center, default))];
         }
     }
 }
 
-class Overpower(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Overpower, new AOEShapeCone(7.08f, 45f.Degrees()));
-class Sneeze(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Sneeze, new AOEShapeCone(20.85f, 45f.Degrees()));
-class SneezeHint(BossModule module) : Components.CastInterruptHint(module, (uint)AID.Sneeze, true, true, showNameInHint: true);
+sealed class Overpower(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Overpower, new AOEShapeCone(7.08f, 45f.Degrees()));
+sealed class Sneeze(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Sneeze, new AOEShapeCone(20.85f, 45f.Degrees()));
+sealed class SneezeHint(BossModule module) : Components.CastInterruptHint(module, (uint)AID.Sneeze, true, true, showNameInHint: true);
 
-class D150SiegeGobbueStates : StateMachineBuilder
+sealed class D150SiegeGobbueStates : StateMachineBuilder
 {
     public D150SiegeGobbueStates(BossModule module) : base(module)
     {

@@ -1,6 +1,6 @@
 namespace BossMod.Endwalker.Alliance.A31Thaliak;
 
-class A31ThaliakStates : StateMachineBuilder
+sealed class A31ThaliakStates : StateMachineBuilder
 {
     public A31ThaliakStates(BossModule module) : base(module)
     {

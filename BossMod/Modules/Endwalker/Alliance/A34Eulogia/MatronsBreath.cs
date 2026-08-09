@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class MatronsBreath(BossModule module) : Components.GenericAOEs(module)
+sealed class MatronsBreath(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _blueSafe = module.Enemies((uint)OID.BlueSafeZone);
     private readonly List<Actor> _goldSafe = module.Enemies((uint)OID.GoldSafeZone);

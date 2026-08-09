@@ -38,8 +38,8 @@ sealed class HumbleHammer(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class FightingSpirits(BossModule module) : Components.RaidwideCast(module, (uint)AID.FightingSpirits);
 sealed class BiwaBreaker(BossModule module) : Components.RaidwideCast(module, (uint)AID.BiwaBreakerFirst, "Raidwide x5");
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", PrimaryActorOID = (uint)OID.Gorai, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 945, NameID = 12373, SortOrder = 5, Category = BossModuleInfo.Category.VariantCriterion, Expansion = BossModuleInfo.Expansion.Endwalker)]
-public sealed class V23Gorai(WorldState ws, Actor primary) : BossModule(ws, primary, new(741f, -190f), new ArenaBoundsSquare(20f))
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", PrimaryActorOID = (uint)OID.Gorai, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 945u, NameID = 12373u, SortOrder = 5, Category = BossModuleInfo.Category.VariantCriterion, Expansion = BossModuleInfo.Expansion.Endwalker)]
+public sealed class V23Gorai(WorldState ws, Actor primary) : BossModule(ws, primary, new(741f, -190f), new ArenaBoundsSquare(22.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

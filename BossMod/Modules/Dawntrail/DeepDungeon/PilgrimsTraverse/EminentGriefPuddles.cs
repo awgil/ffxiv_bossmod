@@ -73,11 +73,11 @@ abstract class LightAndDarkBase(BossModule module) : Components.GenericAOEs(modu
     public void AddAOE()
     {
         var center = Arena.Center;
-        var shapeLight = new AOEShapeCustom([new PolygonCustom(light1), new PolygonCustom(light2), new PolygonCustom(light3),
+        var shapeLight = new AOEShapeCustom(center, [new PolygonCustom(light1), new PolygonCustom(light2), new PolygonCustom(light3),
                 new PolygonCustom(light4), new PolygonCustom(light5)]);
         _aoes.Add(new(shapeLight, center, color: Colors.Light, risky: false, shapeDistance: shapeLight.InvertedDistance(center, default)));
         _sdfs.Add(shapeLight.Distance(center, default));
-        var shapeDark = new AOEShapeCustom([new PolygonCustom(dark1), new PolygonCustom(dark2), new PolygonCustom(dark3),
+        var shapeDark = new AOEShapeCustom(center, [new PolygonCustom(dark1), new PolygonCustom(dark2), new PolygonCustom(dark3),
                 new PolygonCustom(dark4), new PolygonCustom(dark5)]);
         _aoes.Add(new(shapeDark, center, color: Colors.FutureVulnerable, risky: false, shapeDistance: shapeDark.InvertedDistance(center, default)));
         _sdfs.Add(shapeDark.Distance(center, default));

@@ -28,11 +28,12 @@ public enum IconID : uint
     Spreadmarker = 96 // player
 }
 
-class Shardstrike(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spreadmarker, (uint)AID.Shardstrike, 5f, 5.8f);
-class ShardstrikeCrystals(BossModule module) : Components.GenericAOEs(module)
+sealed class Shardstrike(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spreadmarker, (uint)AID.Shardstrike, 5f, 5.8f);
+
+sealed class ShardstrikeCrystals(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Shardstrike _st = module.FindComponent<Shardstrike>()!;
-    private static readonly AOEShapeCircle circle = new(6.6f); // for non players hitbox must not be clipped
+    private readonly AOEShapeCircle circle = new(6.6f); // for non players hitbox must not be clipped
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -63,24 +64,36 @@ class ShardstrikeCrystals(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Hailfire(BossModule module) : Components.GenericAOEs(module)
+sealed class Hailfire(BossModule module) : Components.GenericAOEs(module)
 {
     private Actor? _target;
     private const float Length = 44.2f;
     private readonly List<RectangleSE> rects = [with(4)];
+    private AOEInstance[] targetAOE = [], partyAOE = [];
+    private WPos lastPos;
+    private DateTime activation;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_target != null)
         {
-            var primary = Module.PrimaryActor;
-            return new AOEInstance[1] { _target == actor
-                ? new(new AOEShapeCustom(rects, invertForbiddenZone: true), Arena.Center, color: Colors.SafeFromAOE)
-                : new(new AOEShapeCustom([new RectangleSE(primary.Position, primary.Position + Length * primary.DirectionTo(_target), 2f)], rects), Arena.Center) };
+
+            return _target == actor ? targetAOE : partyAOE;
         }
         return [];
     }
 
+    public override void Update()
+    {
+        if (_target != null && _target.Position is var tPos && lastPos != tPos) // only do these expensive calculations if target position changes
+        {
+            lastPos = tPos;
+            var primary = Module.PrimaryActor;
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new RectangleSE(primary.Position, primary.Position + Length * primary.DirectionTo(_target), 2f)], rects);
+            partyAOE = [new(shape, center, activation: activation, shapeDistance: shape.Distance(center, default))];
+        }
+    }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.Hailfire)
@@ -98,6 +111,10 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
                 }
             }
             _target = WorldState.Actors.Find(spell.TargetID);
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, rects, invertForbiddenZone: true);
+            activation = Module.CastFinishAt(spell);
+            targetAOE = [new(shape, center, activation: activation, color: Colors.SafeFromAOE, shapeDistance: shape.InvertedDistance(center, default))];
         }
     }
 
@@ -128,12 +145,14 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
             hints.Add("Hide behind crystal!", isRisky);
         }
         else
+        {
             base.AddHints(slot, actor, hints);
+        }
     }
 }
 
-class CrystalNeedle(BossModule module) : Components.SingleTargetCast(module, (uint)AID.CrystalNeedle);
-class Shardfall(BossModule module) : Components.CastLineOfSightAOE(module, (uint)AID.Shardfall, 40f)
+sealed class CrystalNeedle(BossModule module) : Components.SingleTargetCast(module, (uint)AID.CrystalNeedle);
+sealed class Shardfall(BossModule module) : Components.CastLineOfSightAOE(module, (uint)AID.Shardfall, 40f)
 {
     public override ReadOnlySpan<Actor> BlockerActors()
     {
@@ -151,11 +170,11 @@ class Shardfall(BossModule module) : Components.CastLineOfSightAOE(module, (uint
         return CollectionsMarshal.AsSpan(actors);
     }
 }
-class CrystallineFracture(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CrystallineFracture, 3f);
-class ResonantFrequency(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ResonantFrequency, 6f);
-class Dissonance(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Dissonance, new AOEShapeDonut(5f, 40f));
+sealed class CrystallineFracture(BossModule module) : Components.SimpleAOEs(module, (uint)AID.CrystallineFracture, 3f);
+sealed class ResonantFrequency(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ResonantFrequency, 6f);
+sealed class Dissonance(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Dissonance, new AOEShapeDonut(5f, 40f));
 
-class D131HedetetStates : StateMachineBuilder
+sealed class D131HedetetStates : StateMachineBuilder
 {
     public D131HedetetStates(BossModule module) : base(module)
     {
@@ -171,8 +190,16 @@ class D131HedetetStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 585, NameID = 7667)]
-public class D131Hedetet(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 585u, NameID = 7667u)]
+public sealed class D131Hedetet : BossModule
 {
-    private static readonly ArenaBoundsCustom arena = new([new Circle(new(174f, 178f), 19.5f)], [new Rectangle(new(174f, 197.6f), 20f, 1f), new Rectangle(new(174f, 158.3f), 20f, 1f)]);
+    public D131Hedetet(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D131Hedetet(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Circle(new(174f, 178f), 19.5f)], [new Rectangle(new(174f, 197.6f), 20f, 1f), new Rectangle(new(174f, 158.3f), 20f, 1f)]);
+        return (arena.Center, arena);
+    }
 }

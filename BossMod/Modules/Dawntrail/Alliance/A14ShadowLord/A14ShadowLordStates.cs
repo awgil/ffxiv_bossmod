@@ -132,7 +132,7 @@ sealed class A14ShadowLordStates : StateMachineBuilder
     private void DarkNebula(uint id, float delay)
     {
         Cast(id, (uint)AID.DarkNebula, delay, 3);
-        ComponentCondition<DarkNebula>(id + 0x10, 1.2f, comp => comp.Casters.Count > 0);
+        ComponentCondition<DarkNebula>(id + 0x10, 1.2f, comp => comp.KBs.Count > 0);
         ComponentCondition<DarkNebula>(id + 0x11, 5, comp => comp.NumCasts > 0, "Knockback")
             .ResetComp<DarkNebula>();
     }
@@ -228,7 +228,7 @@ sealed class A14ShadowLordStates : StateMachineBuilder
     private void DarkNebulaGigaSlashNightfall(uint id, float delay)
     {
         Cast(id, (uint)AID.DarkNebula, delay, 3);
-        ComponentCondition<DarkNebula>(id + 0x10, 1.2f, comp => comp.Casters.Count > 0);
+        ComponentCondition<DarkNebula>(id + 0x10, 1.2f, comp => comp.KBs.Count > 0);
         ComponentCondition<DarkNebula>(id + 0x20, 13, comp => comp.NumCasts > 0, "Knockback 1");
         ComponentCondition<DarkNebula>(id + 0x21, 3, comp => comp.NumCasts > 1, "Knockback 2");
         CastStartMulti(id + 0x23, [(uint)AID.GigaSlashNightfallLRF, (uint)AID.GigaSlashNightfallLRB, (uint)AID.GigaSlashNightfallRLF, (uint)AID.GigaSlashNightfallRLB], 1.4f);

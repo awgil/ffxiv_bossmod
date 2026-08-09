@@ -23,8 +23,8 @@ public enum AID : uint
 
 sealed class TundraArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom donut = new([new Circle(D261Wandil.ArenaCenter, 20f)], D261Wandil.Polygon);
     private AOEInstance[] _aoe = [];
+    public static Polygon[] GetSmallPolygon() => [new Polygon(new(new(56.41631f, -88.51856f)), 12f, 20)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -32,8 +32,9 @@ sealed class TundraArenaChange(BossModule module) : Components.GenericAOEs(modul
     {
         if (state == 0x00040008u && actor.OID == (uint)OID.Voidzone)
         {
-            Arena.Bounds = D261Wandil.SmallArena;
-            Arena.Center = D261Wandil.ArenaCenter;
+            var arena = new ArenaBoundsCustom(GetSmallPolygon());
+            Arena.Bounds = arena;
+            Arena.Center = arena.Center;
             _aoe = [];
         }
     }
@@ -42,7 +43,9 @@ sealed class TundraArenaChange(BossModule module) : Components.GenericAOEs(modul
     {
         if (spell.Action.ID == (uint)AID.Tundra)
         {
-            _aoe = [new(donut, D261Wandil.ArenaCenter, default, Module.CastFinishAt(spell, 2d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(new(56.41631f, -88.51856f), 20f)], GetSmallPolygon());
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 2d), shapeDistance: shape.Distance(center, default))];
         }
     }
 }
@@ -82,20 +85,25 @@ sealed class D261WandilStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 27, NameID = 3038, SortOrder = 1)]
-public sealed class D261Wandil(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultArena.Center, DefaultArena)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 27u, NameID = 3038u, SortOrder = 1)]
+public sealed class D261Wandil : BossModule
 {
-    public static readonly WPos ArenaCenter = new(new(56.41631f, -88.51856f));
-    public static readonly ArenaBoundsCustom DefaultArena = new([new PolygonCustom([new(55.95f, -106.95f), new(65.84f, -103.79f), new(66.36f, -103.43f),
-    new(70.19f, -99.6f), new(71.49f, -97.2f),
-    new(71.59f, -96.53f), new(71.53f, -95.91f), new(71.88f, -95.48f), new(72.77f, -94.6f), new(73.28f, -94.2f),
-    new(73.49f, -93.58f), new(74.29f, -88.55f), new(74.26f, -87.89f), new(73.45f, -82.74f), new(71.07f, -78.03f),
-    new(70.70f, -77.48f), new(67.01f, -73.79f), new(66.44f, -73.42f), new(61.82f, -71.07f), new(56.1f, -70.18f),
-    new(50.75f, -70.93f), new(42.64f, -75.96f), new(42.17f, -76.42f), new(42.01f, -77.06f), new(38.99f, -82.65f),
-    new(38.09f, -88.44f), new(38.92f, -93.64f), new(39.14f, -94.25f), new(41.39f, -98.67f), new(41.77f, -99.2f),
-    new(45.45f, -102.88f), new(50.44f, -105.47f), new(55.27f, -106.93f), new(55.95f, -106.95f)])]);
-    public static readonly Polygon[] Polygon = [new Polygon(ArenaCenter, 12f, 20)];
-    public static readonly ArenaBoundsCustom SmallArena = new(Polygon);
+    public D261Wandil(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D261Wandil(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new PolygonCustom([new(55.95f, -106.95f), new(65.84f, -103.79f), new(66.36f, -103.43f),
+        new(70.19f, -99.6f), new(71.49f, -97.2f),
+        new(71.59f, -96.53f), new(71.53f, -95.91f), new(71.88f, -95.48f), new(72.77f, -94.6f), new(73.28f, -94.2f),
+        new(73.49f, -93.58f), new(74.29f, -88.55f), new(74.26f, -87.89f), new(73.45f, -82.74f), new(71.07f, -78.03f),
+        new(70.70f, -77.48f), new(67.01f, -73.79f), new(66.44f, -73.42f), new(61.82f, -71.07f), new(56.1f, -70.18f),
+        new(50.75f, -70.93f), new(42.64f, -75.96f), new(42.17f, -76.42f), new(42.01f, -77.06f), new(38.99f, -82.65f),
+        new(38.09f, -88.44f), new(38.92f, -93.64f), new(39.14f, -94.25f), new(41.39f, -98.67f), new(41.77f, -99.2f),
+        new(45.45f, -102.88f), new(50.44f, -105.47f), new(55.27f, -106.93f), new(55.95f, -106.95f)])]);
+        return (arena.Center, arena);
+    }
 
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

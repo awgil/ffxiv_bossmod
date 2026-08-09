@@ -11,13 +11,5 @@ sealed class HalfCircuitDonut(BossModule module) : Components.SimpleAOEs(module,
 sealed class HalfCircuitCircle(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HalfCircuitAOECircle, 10f);
 sealed class DutysEdge(BossModule module) : Components.LineStack(module, aidMarker: (uint)AID.DutysEdgeTarget, (uint)AID.DutysEdgeAOE, 5.3d, 100f, 4f, 8, 8, 4, false);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 996, NameID = 12882, PlanLevel = 100)]
-public sealed class Ex2ZoraalJa(WorldState ws, Actor primary) : Trial.T02ZoraalJa.ZoraalJa(ws, primary)
-{
-    private static readonly Angle a135 = 135f.Degrees();
-    private static readonly WDir dir135 = 15f * a135.ToDirection();
-    private static readonly WDir dirM135 = 15f * (-a135).ToDirection();
-
-    public static readonly ArenaBoundsCustom NWPlatformBounds = new([new Square(ArenaCenter - dir135, 10f, a135), new Square(ArenaCenter + dir135, 10f, a135)], ScaleFactor: 1.24f);
-    public static readonly ArenaBoundsCustom NEPlatformBounds = new([new Square(ArenaCenter - dirM135, 10f, -a135), new Square(ArenaCenter + dirM135, 10f, -a135)], ScaleFactor: 1.24f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 996u, NameID = 12882u, PlanLevel = 100)]
+public sealed class Ex2ZoraalJa(WorldState ws, Actor primary) : Trial.T02ZoraalJa.ZoraalJa(ws, primary);

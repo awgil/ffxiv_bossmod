@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
-class A23HaloneStates : StateMachineBuilder
+sealed class A23HaloneStates : StateMachineBuilder
 {
     public A23HaloneStates(BossModule module) : base(module)
     {
@@ -184,7 +184,7 @@ class A23HaloneStates : StateMachineBuilder
             .DeactivateOnExit<GlacialSpearSmall>()
             .DeactivateOnExit<GlacialSpearLarge>()
             .DeactivateOnExit<Octagons>()
-            .OnExit(() => Module.Arena.Bounds = A23Halone.DefaultBounds)
+            .OnExit(() => Module.Arena.Bounds = new ArenaBoundsCircle(29.5f))
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<FurysAegis>(id + 0x200, 8.7f, comp => comp.NumCasts > 0, "Raidwide", 10) // TODO: these timings differ a lot, depending on whether large is killed last?..

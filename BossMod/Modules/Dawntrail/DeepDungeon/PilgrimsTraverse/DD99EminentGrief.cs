@@ -351,11 +351,11 @@ sealed class BoundsOfSinEnd(BossModule module) : Components.GenericAOEs(module)
             if (state == 0x00020001u)
             {
                 pillars.Add(pillarPolygons[index]);
-                Arena.Bounds = new ArenaBoundsCustom([new Rectangle(DD99EminentGrief.ArenaCenter, 20f, 15f)], [.. pillars]);
+                Arena.Bounds = new ArenaBoundsCustom([new Rectangle(new(-600f, -300f), 20f, 15f)], [.. pillars]);
             }
             else if (index == 0x00 && state == 0x00080004u)
             {
-                Arena.Bounds = new ArenaBoundsCustom([new Rectangle(DD99EminentGrief.ArenaCenter, 20f, 15f)], AdjustForHitboxOutwards: true);
+                Arena.Bounds = DD99EminentGrief.BuildArena().arena;
                 pillars.Clear();
             }
         }
@@ -401,8 +401,8 @@ sealed class SpinelashBaitHint(BossModule module) : Components.GenericAOEs(modul
         if (iconID == (uint)IconID.Spinelash)
         {
             target = actor;
-            AOEShapeCustom shape = new([new Rectangle(new(-593f, -300f), 1f, 16f), new Rectangle(new(-607f, -300f), 1f, 16f)]);
             var pos = Arena.Center;
+            AOEShapeCustom shape = new(pos, [new Rectangle(new(-593f, -300f), 1f, 16f), new Rectangle(new(-607f, -300f), 1f, 16f)]);
             _aoe = [new(shape, pos, default, WorldState.FutureTime(6.3d), Colors.SafeFromAOE, shapeDistance: shape.InvertedDistance(pos, default))];
         }
     }
@@ -528,7 +528,8 @@ sealed class AbyssalBlaze(BossModule module) : Components.Exaflare(module, 5f)
                     var c = crystals[i];
                     rects[i] = new(c.Item2, 5f, 40f, c.Item1.ToAngle());
                 }
-                shape = new([new Rectangle(DD99EminentGrief.ArenaCenter, 20f, 15f)], rects);
+                var center = Arena.Center;
+                shape = new(center, [new Rectangle(center, 20f, 15f)], rects);
             }
         }
     }
@@ -633,14 +634,21 @@ PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class DD99EminentGrief : BossModule // module also works in Final Verse normal, everything but the zone ID seem to be identical
 {
-    public DD99EminentGrief(WorldState ws, Actor primary) : base(ws, primary, ArenaCenter, new ArenaBoundsCustom([new Rectangle(ArenaCenter, 20f, 15f)], AdjustForHitboxOutwards: true))
+    public DD99EminentGrief(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private DD99EminentGrief(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena)
     {
         ActivateComponent<LightAndDark>();
         FindComponent<LightAndDark>()!.AddAOE();
         vodorigas = Enemies((uint)OID.VodorigaMinion);
     }
 
-    public static readonly WPos ArenaCenter = new(-600f, -300f);
+    public static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Rectangle(new(-600f, -300f), 20f, 15f)], AdjustForHitboxOutwards: true);
+        return (arena.Center, arena);
+    }
+
     public Actor? BossEater;
     private readonly List<Actor> vodorigas;
 

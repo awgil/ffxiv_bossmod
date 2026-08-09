@@ -5,7 +5,7 @@ sealed class A33RedGirlStates : StateMachineBuilder
     public A33RedGirlStates(A33RedGirl module) : base(module)
     {
         bool IsWipedOrLeftRaid() => module.Raid.Player()!.Position is var p && !(p.InSquare(new(default, 900f), 44f) || p.InSquare(new(default, 400f), 44f)
-            || p.InSquare(new(default, -100f), 44f) || p.InSquare(A33RedGirl.ArenaCenter, 25f)) || module.WorldState.CurrentCFCID != 779u;
+            || p.InSquare(new(default, -100f), 44f) || p.InSquare(new(845f, -851f), 25f)) || module.WorldState.CurrentCFCID != 779u;
         TrivialPhase()
             .ActivateOnEnter<ArenaChanges>()
             .ActivateOnEnter<WipeBlackWhite>()
@@ -29,8 +29,8 @@ sealed class A33RedGirlStates : StateMachineBuilder
             .ActivateOnEnter<BigExplosion>()
             .Raw.Update = () => (module.RedSphere?.IsDestroyed ?? true) && IsWipedOrLeftRaid() || (module.BossP2?.IsTargetable ?? false);
         TrivialPhase(2u)
-            .OnEnter(() => module.Arena.Center = A33RedGirl.ArenaCenter)
-            .OnEnter(() => module.Arena.Bounds = A33RedGirl.StartingArena)
+            .OnEnter(() => module.Arena.Center = new(845f, -851f))
+            .OnEnter(() => module.Arena.Bounds = new ArenaBoundsSquare(24.5f))
             .ActivateOnEnter<ArenaChanges>()
             .ActivateOnEnter<WipeBlackWhite>()
             .ActivateOnEnter<ShockBlackBait>()

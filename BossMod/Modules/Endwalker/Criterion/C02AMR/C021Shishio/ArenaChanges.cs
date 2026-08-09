@@ -1,9 +1,8 @@
 namespace BossMod.Endwalker.VariantCriterion.C02AMR.C021Shishio;
 
-class ArenaChange(BossModule module) : Components.GenericAOEs(module)
+sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(C021Shishio.ArenaCenter, 25f)], [new Square(C021Shishio.ArenaCenter, 20f)]);
-    private static readonly AOEShapeDonut donut = new(20f, 30f);
+    private readonly AOEShapeDonut donut = new(20f, 30f);
 
     private AOEInstance[] _aoe = [];
 
@@ -11,15 +10,20 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        void AddAOE(AOEShape shape) => _aoe = [new(shape, Arena.Center, default, Module.CastFinishAt(spell, 0.8d))];
         var id = spell.Action.ID;
         if (id is (uint)AID.NEnkyo or (uint)AID.SEnkyo && Arena.Bounds.Radius > 20f)
         {
-            AddAOE(square);
+            var center = Arena.Center;
+            AddAOE(new AOEShapeCustom(center, [new Square(center, 24.5f)], [new Square(center, 20f)]));
         }
         else if (id is (uint)AID.NStormcloudSummons or (uint)AID.SStormcloudSummons)
         {
             AddAOE(donut);
+        }
+        void AddAOE(AOEShape shape)
+        {
+            var center = Arena.Center;
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -29,12 +33,12 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
         {
             if (index == 0x34)
             {
-                Arena.Bounds = C021Shishio.CircleBounds;
+                Arena.Bounds = new ArenaBoundsCustom([new Polygon(Arena.Center, 20f, 64)]);
                 _aoe = [];
             }
             else if (index == 0x35)
             {
-                Arena.Bounds = C021Shishio.DefaultBounds;
+                Arena.Bounds = new ArenaBoundsSquare(20f);
                 _aoe = [];
             }
         }

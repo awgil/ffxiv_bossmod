@@ -1,9 +1,9 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C021Shishio;
 
-class HauntingCrySwipes(BossModule module) : Components.GenericAOEs(module)
+sealed class HauntingCrySwipes(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(4)];
-    private static readonly AOEShapeCone _shape = new(40f, 90f.Degrees());
+    private readonly AOEShapeCone _shape = new(40f, 90f.Degrees());
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
@@ -36,7 +36,7 @@ class HauntingCrySwipes(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class HauntingCryReisho(BossModule module) : Components.GenericAOEs(module)
+sealed class HauntingCryReisho(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _ghosts = [with(4)];
     private DateTime _activation;
@@ -91,9 +91,9 @@ class HauntingCryReisho(BossModule module) : Components.GenericAOEs(module)
 }
 
 abstract class HauntingCryVermilionAura(BossModule module, uint aid) : Components.CastTowers(module, aid, 4f);
-class NHauntingCryVermilionAura(BossModule module) : HauntingCryVermilionAura(module, (uint)AID.NVermilionAura);
-class SHauntingCryVermilionAura(BossModule module) : HauntingCryVermilionAura(module, (uint)AID.SVermilionAura);
+sealed class NHauntingCryVermilionAura(BossModule module) : HauntingCryVermilionAura(module, (uint)AID.NVermilionAura);
+sealed class SHauntingCryVermilionAura(BossModule module) : HauntingCryVermilionAura(module, (uint)AID.SVermilionAura);
 
 abstract class HauntingCryStygianAura(BossModule module, uint aid) : Components.SpreadFromCastTargets(module, aid, 15f);
-class NHauntingCryStygianAura(BossModule module) : HauntingCryStygianAura(module, (uint)AID.NStygianAura);
-class SHauntingCryStygianAura(BossModule module) : HauntingCryStygianAura(module, (uint)AID.SStygianAura);
+sealed class NHauntingCryStygianAura(BossModule module) : HauntingCryStygianAura(module, (uint)AID.NStygianAura);
+sealed class SHauntingCryStygianAura(BossModule module) : HauntingCryStygianAura(module, (uint)AID.SStygianAura);

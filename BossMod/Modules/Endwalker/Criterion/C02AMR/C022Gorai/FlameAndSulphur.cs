@@ -1,12 +1,12 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
-class FlameAndSulphur(BossModule module) : Components.GenericAOEs(module)
+sealed class FlameAndSulphur(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(14)];
-    private static readonly AOEShapeRect _shapeFlameExpand = new(46f, 5f);
-    private static readonly AOEShapeRect _shapeFlameSplit = new(46f, 2.5f);
-    private static readonly AOEShapeCircle _shapeRockExpand = new(11f);
-    private static readonly AOEShapeDonut _shapeRockSplit = new(5f, 16f);
+    private readonly AOEShapeRect _shapeFlameExpand = new(46f, 5f);
+    private readonly AOEShapeRect _shapeFlameSplit = new(46f, 2.5f);
+    private readonly AOEShapeCircle _shapeRockExpand = new(11f);
+    private readonly AOEShapeDonut _shapeRockSplit = new(5f, 16f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 

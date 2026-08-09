@@ -15,7 +15,7 @@ sealed class PrincelyBlowKB(BossModule module) : Components.GenericKnockback(mod
         {
             if (targets == default)
             {
-                _kb = [new(A23Kamlanaut.ArenaCenter.Quantized(), 30f, WorldState.FutureTime(8.3d))];
+                _kb = [new(new WPos(-200f, 150f).Quantized(), 30f, WorldState.FutureTime(8.3d))];
             }
             targets.Set(Raid.FindSlot(targetID));
 
@@ -48,7 +48,7 @@ sealed class PrincelyBlowKB(BossModule module) : Components.GenericKnockback(mod
                 hints.ActionsToExecute.Push(ActionDefinitions.Armslength, actor, ActionQueue.Priority.High);
                 if (!shieldBash.PolygonInit)
                 {
-                    shieldBash.Polygon = A23Kamlanaut.P2ArenaWithBridges.Polygon.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
+                    shieldBash.Polygon = Arena.Bounds.Shape.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
                     shieldBash.PolygonInit = true;
                 }
 

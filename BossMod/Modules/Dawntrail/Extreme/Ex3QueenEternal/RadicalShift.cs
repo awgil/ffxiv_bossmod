@@ -3,12 +3,12 @@
 sealed class RadicalShift(BossModule module) : Components.GenericAOEs(module)
 {
     public enum Rotation { None, Left, Right }
+    public enum Platform { None, Wind, Earth, Ice }
 
-    private ArenaBoundsCustom? _left;
-    private ArenaBoundsCustom? _right;
+    private Platform _left;
+    private Platform _right;
     private Rotation _nextRotation;
     private AOEInstance[] _aoe = [];
-    private static readonly Square[] defaultSquare = [new(Ex3QueenEternal.ArenaCenter, 20f)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -25,24 +25,31 @@ sealed class RadicalShift(BossModule module) : Components.GenericAOEs(module)
             if (rot != Rotation.None)
             {
                 _nextRotation = rot;
-                UpdateAOE(NextPlatform);
+                UpdateAOE(NextPlatform());
             }
         }
         else if (state is 0x00020001u or 0x00200010u)
         {
             var platform = index switch
             {
-                0x09 => Ex3QueenEternal.WindBounds,
-                0x0A => Ex3QueenEternal.EarthBounds,
-                0x0B => Ex3QueenEternal.IceBounds,
-                _ => null
+                0x09 => Platform.Wind,
+                0x0A => Platform.Earth,
+                0x0B => Platform.Ice,
+                _ => Platform.None
             };
-            if (platform != null)
+            if (platform != Platform.None)
             {
                 (state == 0x00020001u ? ref _right : ref _left) = platform;
-                UpdateAOE(NextPlatform);
+                UpdateAOE(NextPlatform());
             }
         }
+
+        Platform NextPlatform() => _nextRotation switch
+        {
+            Rotation.Left => _left,
+            Rotation.Right => _right,
+            _ => default
+        };
     }
 
     public override void OnEventDirectorUpdate(uint updateID, uint param1, uint param2, uint param3, uint param4)
@@ -57,37 +64,31 @@ sealed class RadicalShift(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.RadicalShift)
         {
-            _left = _right = null;
+            _left = _right = Platform.None;
             _nextRotation = Rotation.None;
         }
     }
 
-    private ArenaBoundsCustom? NextPlatform => _nextRotation switch
-    {
-        Rotation.Left => _left,
-        Rotation.Right => _right,
-        _ => null
-    };
-
-    private void UpdateAOE(ArenaBoundsCustom? platform)
+    private void UpdateAOE(Platform platform)
     {
         AOEShapeCustom? aoe = null;
         var center = Arena.Center;
-        if (platform == Ex3QueenEternal.WindBounds)
+        Square[] defaultSquare = [new(new(100f, 100f), 20f)];
+        if (platform == Platform.Wind)
         {
-            aoe = new(defaultSquare, Trial.T03QueenEternal.T03QueenEternal.XArenaRects, origin: center);
+            aoe = new(center, defaultSquare, Trial.T03QueenEternal.T03QueenEternal.GetXArenaRects());
         }
-        else if (platform == Ex3QueenEternal.EarthBounds)
+        else if (platform == Platform.Earth)
         {
-            aoe = new(defaultSquare, Trial.T03QueenEternal.T03QueenEternal.SplitArenaRects, origin: center);
+            aoe = new(center, defaultSquare, Trial.T03QueenEternal.T03QueenEternal.GetSplitArenaRects());
         }
-        else if (platform == Ex3QueenEternal.IceBounds)
+        else if (platform == Platform.Ice)
         {
-            aoe = new(defaultSquare, Ex3QueenEternal.IceRectsAll, origin: center);
+            aoe = new(center, defaultSquare, Ex3QueenEternal.GetAllIceRects());
         }
         if (aoe != null)
         {
-            _aoe = [new(aoe, center, default, WorldState.FutureTime(6d))];
+            _aoe = [new(aoe, center, default, WorldState.FutureTime(6d), shapeDistance: aoe.Distance(center, default))];
         }
     }
 }

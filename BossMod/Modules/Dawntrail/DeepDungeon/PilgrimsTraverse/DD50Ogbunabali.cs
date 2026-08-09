@@ -111,7 +111,7 @@ sealed class Quicksand(BossModule module) : Components.GenericAOEs(module, warni
         {
             case (uint)AID.Liquefaction:
                 var center = Arena.Center;
-                var shape = new AOEShapeCustom([new Square(center, 20f)], [new PolygonCustom(vertices1), new PolygonCustom(vertices2), new PolygonCustom(vertices3),
+                var shape = new AOEShapeCustom(center, [new Square(center, 20f)], [new PolygonCustom(vertices1), new PolygonCustom(vertices2), new PolygonCustom(vertices3),
                 new PolygonCustom(vertices4), new PolygonCustom(vertices5), new PolygonCustom(vertices6),new PolygonCustom(vertices7)]);
                 _aoe = [new(shape, center, shapeDistance: shape.Distance(center, default))];
                 _aoeInv = [new(shape, center, shapeDistance: shape.InvertedDistance(center, default), color: Colors.SafeFromAOE)];
@@ -191,8 +191,8 @@ sealed class WindraiserArena(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
     private readonly AOEShapeDonut donut = new(15f, 20f);
-    private static readonly WPos center = new(-300f, -300f);
-    private readonly Polygon[] baseCircle = [new Polygon(center, 15f, 72)];
+    private readonly WPos center = new(-300f, -300f);
+    private static Polygon[] GetBaseCircle() => [new Polygon(new(-300f, -300f), 15f, 72)];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -204,11 +204,11 @@ sealed class WindraiserArena(BossModule module) : Components.GenericAOEs(module)
             {
                 case 0x00100004u:
                     Arena.Center = center;
-                    Arena.Bounds = new ArenaBoundsCustom(baseCircle);
+                    Arena.Bounds = new ArenaBoundsCustom(GetBaseCircle());
                     break;
                 case 0x00020001u:
                     Arena.Center = center;
-                    Arena.Bounds = new ArenaBoundsCustom(baseCircle, [new Polygon(center.Quantized(), 3f, 64)]);
+                    Arena.Bounds = new ArenaBoundsCustom(GetBaseCircle(), [new Polygon(center.Quantized(), 3f, 64)]);
                     break;
             }
         }

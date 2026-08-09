@@ -2,8 +2,6 @@ namespace BossMod.Dawntrail.Extreme.Ex2ZoraalJa;
 
 sealed class DawnOfAnAgeArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(Trial.T02ZoraalJa.ZoraalJa.ArenaCenter, 20f, Trial.T02ZoraalJa.ZoraalJa.ArenaRotation)],
-    [new Square(Trial.T02ZoraalJa.ZoraalJa.ArenaCenter, 10f, Trial.T02ZoraalJa.ZoraalJa.ArenaRotation)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -12,7 +10,10 @@ sealed class DawnOfAnAgeArenaChange(BossModule module) : Components.GenericAOEs(
     {
         if (spell.Action.ID == (uint)AID.DawnOfAnAge)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 0.9d))];
+            var center = Arena.Center;
+            var angle = 45f.Degrees();
+            var shape = new AOEShapeCustom(center, [new Square(center, 20f, angle)], [new Square(center, 10f, angle)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.9d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -20,7 +21,7 @@ sealed class DawnOfAnAgeArenaChange(BossModule module) : Components.GenericAOEs(
     {
         if (index == 0x0B && state == 0x00200010u)
         {
-            Module.Arena.Bounds = Trial.T02ZoraalJa.ZoraalJa.SmallBounds;
+            Arena.Bounds = new ArenaBoundsSquare(10f, 45f.Degrees());
             _aoe = [];
         }
     }

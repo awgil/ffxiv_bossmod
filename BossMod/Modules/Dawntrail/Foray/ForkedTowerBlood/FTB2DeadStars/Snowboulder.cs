@@ -40,15 +40,17 @@ sealed class Snowboulder(BossModule module) : Components.GenericAOEs(module)
         {
             List<RectangleSE> rects = [.. rectangles];
             rects.RemoveAt(i);
-            var aoe = new AOEShapeCustom([rectangles[i]]);
-            var aoeSafe = new AOEShapeCustom([rectangles[i]], rects);
-            unionOperand.AddPolygon(aoeSafe.GetCombinedPolygon(center));
+            var aoe = new AOEShapeCustom(center, [rectangles[i]]);
+            var aoeSafe = new AOEShapeCustom(center, [rectangles[i]], rects);
+            unionOperand.AddPolygon(aoeSafe.Polygon);
             for (var j = 0; j < 8; ++j)
             {
-                _aoesPerPlayer[j].Add(new(Vulnerable[j] ? ref aoe : ref aoeSafe, Arena.Center, default, activations[i], Vulnerable[j] ? default : i < 2 ? colorSafe1 : colorSafe2));
+                _aoesPerPlayer[j].Add(new(Vulnerable[j] ? ref aoe : ref aoeSafe, center, default, activations[i], Vulnerable[j] ? default : i < 2 ? colorSafe1 : colorSafe2));
             }
         }
-        distance = new SDInvertedPolygonWithHoles(new(center, clipper.Simplify(unionOperand)));
+        var poly = clipper.Simplify(unionOperand);
+        poly.InitPolygonIndex();
+        distance = new SDInvertedPolygonWithHoles(new(center, poly));
         isInit = true;
     }
 

@@ -25,7 +25,7 @@ sealed class ChasmOfVollokFangLarge(BossModule module) : Components.GenericAOEs(
 {
     public readonly List<AOEInstance> AOEs = [];
 
-    private static readonly AOEShapeRect _shape = new(10, 5);
+    private readonly AOEShapeRect _shape = new(10f, 5f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(AOEs);
 
@@ -33,12 +33,15 @@ sealed class ChasmOfVollokFangLarge(BossModule module) : Components.GenericAOEs(
     {
         if (spell.Action.ID == (uint)AID.VollokLargeAOE)
         {
-            AOEs.Add(new(_shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            var act = Module.CastFinishAt(spell);
+            var center = Arena.Center;
+            var rot = spell.Rotation;
+            AOEs.Add(new(_shape, spell.LocXZ, rot, act));
             var pos = spell.LocXZ;
-            var mainOffset = Trial.T02ZoraalJa.ZoraalJa.ArenaCenter - Arena.Center;
-            var fangOffset = pos - Arena.Center;
-            var mirrorOffset = fangOffset.Dot(mainOffset) > 0 ? -2 * mainOffset : 2 * mainOffset;
-            AOEs.Add(new(_shape, (pos + mirrorOffset).Quantized(), spell.Rotation, Module.CastFinishAt(spell)));
+            var mainOffset = new WPos(100f, 100f) - center;
+            var fangOffset = pos - center;
+            var mirrorOffset = fangOffset.Dot(mainOffset) > 0f ? -2f * mainOffset : 2f * mainOffset;
+            AOEs.Add(new(_shape, (pos + mirrorOffset).Quantized(), rot, act));
         }
     }
 }
@@ -49,23 +52,27 @@ sealed class ChasmOfVollokPlayer(BossModule module) : Components.GenericAOEs(mod
     private readonly List<Actor> _targets = [with(8)];
     private DateTime _activation;
 
-    private static readonly AOEShapeRect _shape = new(2.5f, 2.5f, 2.5f);
-    private static readonly WDir _localX = (-135f).Degrees().ToDirection();
-    private static readonly WDir _localZ = 135f.Degrees().ToDirection();
+    private readonly AOEShapeRect _shape = new(2.5f, 2.5f, 2.5f);
+    private readonly WDir _localX = (-135f).Degrees().ToDirection();
+    private readonly WDir _localZ = 135f.Degrees().ToDirection();
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (!Active)
             return [];
         var aoes = new List<AOEInstance>();
-        var platformOffset = 2f * (Arena.Center - Trial.T02ZoraalJa.ZoraalJa.ArenaCenter);
+        var mid = new WPos(100f, 100f);
+        var platformOffset = 2f * (Arena.Center - mid);
+        var a45 = 45f.Degrees();
         var count = _targets.Count;
         for (var i = 0; i < count; ++i)
         {
             var t = _targets[i];
             if (t == actor)
+            {
                 continue;
-            var playerOffset = t.Position - Trial.T02ZoraalJa.ZoraalJa.ArenaCenter;
+            }
+            var playerOffset = t.Position - mid;
             var playerX = _localX.Dot(playerOffset);
             var playerZ = _localZ.Dot(playerOffset);
             if (Math.Abs(playerX) >= 15f || Math.Abs(playerZ) >= 15f)
@@ -76,11 +83,13 @@ sealed class ChasmOfVollokPlayer(BossModule module) : Components.GenericAOEs(mod
             }
             var cellX = CoordinateToCell(playerX);
             var cellZ = CoordinateToCell(playerZ);
-            var cellCenter = Trial.T02ZoraalJa.ZoraalJa.ArenaCenter + _localX * CellCenterCoordinate(cellX) + _localZ * CellCenterCoordinate(cellZ);
+            var cellCenter = mid + _localX * CellCenterCoordinate(cellX) + _localZ * CellCenterCoordinate(cellZ);
 
-            aoes.Add(new(_shape, cellCenter, 45f.Degrees(), _activation));
+            aoes.Add(new(_shape, cellCenter, a45, _activation));
             if (platformOffset != default)
-                aoes.Add(new(_shape, cellCenter + platformOffset, 45f.Degrees(), _activation));
+            {
+                aoes.Add(new(_shape, cellCenter + platformOffset, a45, _activation));
+            }
         }
         return CollectionsMarshal.AsSpan(aoes);
     }

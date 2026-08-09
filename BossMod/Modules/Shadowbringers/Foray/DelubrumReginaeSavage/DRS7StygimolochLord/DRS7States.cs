@@ -9,8 +9,7 @@ sealed class DRS7StygimolochLordStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, PhaseAdds, "Adds")
             .ActivateOnEnter<Border>()
-            .OnExit(() => Module.Arena.Bounds = Border.DefaultBounds)
-            .OnExit(() => Module.Arena.Center = Border.DefaultBounds.Center)
+            .OnExit(() => (Module.Arena.Center, Module.Arena.Bounds) = DRS7StygimolochLord.BuildArena())
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsTargetable;
         DeathPhase(2, PhaseAfterAdds)
             .ActivateOnEnter<RapidBoltsAOE>();

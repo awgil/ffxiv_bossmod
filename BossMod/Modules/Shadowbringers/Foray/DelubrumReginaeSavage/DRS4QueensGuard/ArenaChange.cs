@@ -2,7 +2,7 @@ namespace BossMod.Shadowbringers.Foray.DelubrumReginae.DRS4QueensGuard;
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeDonut donut = new(25f, 30f);
+    private readonly AOEShapeDonut donut = new(25f, 30f);
     private AOEInstance[] _aoe = [];
     private bool startingArena = true;
 
@@ -19,7 +19,8 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
                 var f = features[i];
                 if (f.EventState == default && f.Position.AlmostEqual(new(244f, -129f), 1f))
                 {
-                    _aoe = [new(donut, Arena.Center, default, WorldState.FutureTime(5d))];
+                    var center = Arena.Center;
+                    _aoe = [new(donut, center, default, WorldState.FutureTime(5d), shapeDistance: donut.Distance(center, default))];
                     return;
                 }
             }
@@ -30,8 +31,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x18 && state == 0x00020001u)
         {
-            Arena.Bounds = QueensGuard.DefaultArena;
-            Arena.Center = QueensGuard.DefaultArena.Center;
+            var arena = QueensGuard.GetDefaultArena();
+            Arena.Bounds = arena;
+            Arena.Center = arena.Center;
             _aoe = [];
             startingArena = false;
         }

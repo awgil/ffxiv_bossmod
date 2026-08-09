@@ -4,6 +4,7 @@
 class FlamesOfBozja(BossModule module, bool risky) : Components.GenericAOEs(module, (uint)AID.FlamesOfBozjaAOE)
 {
     public AOEInstance[] AOE = [];
+    private readonly AOEShapeRect rect = new(45f, 25f);
     private readonly bool _risky = risky;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOE;
@@ -12,7 +13,9 @@ class FlamesOfBozja(BossModule module, bool risky) : Components.GenericAOEs(modu
     {
         if (spell.Action.ID == WatchedAction)
         {
-            AOE = [new(TrinityAvowed.ArenaChange2, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), risky: _risky)];
+            var loc = spell.LocXZ;
+            var rot = spell.Rotation;
+            AOE = [new(rect, loc, rot, Module.CastFinishAt(spell), shapeDistance: rect.Distance(loc, rot), risky: _risky)];
         }
     }
 
@@ -35,8 +38,8 @@ class ShimmeringShot(BossModule module, double spawnToActivation) : TemperatureA
     private readonly double _spawnToActivation = spawnToActivation;
     private DateTime _activation;
 
-    private static readonly AOEShapeRect _shapeCell = new(5f, 5f, 5f);
-    private static readonly int[,] _remap = { { 0, 1, 2, 3, 4 }, { 4, 2, 3, 0, 1 }, { 3, 4, 1, 2, 0 }, { 3, 4, 1, 2, 0 }, { 4, 2, 3, 0, 1 } };
+    private readonly AOEShapeRect _shapeCell = new(5f, 5f, 5f);
+    private readonly int[,] _remap = { { 0, 1, 2, 3, 4 }, { 4, 2, 3, 0, 1 }, { 3, 4, 1, 2, 0 }, { 3, 4, 1, 2, 0 }, { 4, 2, 3, 0, 1 } };
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -49,7 +52,7 @@ class ShimmeringShot(BossModule module, double spawnToActivation) : TemperatureA
 
         var xOffset = _pattern is Pattern.EWNormal or Pattern.EWInverted ? -20f : +20f;
         var zOffset = 10f * (cell - 2);
-        return new AOEInstance[1] { new(_shapeCell, TrinityAvowed.ArenaCenter + new WDir(xOffset, zOffset), default, _activation, Colors.SafeFromAOE, false) };
+        return new AOEInstance[1] { new(_shapeCell, new WPos(-272f, -82f) + new WDir(xOffset, zOffset), default, _activation, Colors.SafeFromAOE, false) };
     }
 
     public override void Update()
@@ -64,7 +67,9 @@ class ShimmeringShot(BossModule module, double spawnToActivation) : TemperatureA
     {
         if (spell.Action.ID is (uint)AID.ChillArrow1 or (uint)AID.FreezingArrow1 or (uint)AID.HeatedArrow1 or (uint)AID.SearingArrow1
         or (uint)AID.ChillArrow2 or (uint)AID.FreezingArrow2 or (uint)AID.HeatedArrow2 or (uint)AID.SearingArrow2)
+        {
             ++NumCasts;
+        }
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -78,7 +83,9 @@ class ShimmeringShot(BossModule module, double spawnToActivation) : TemperatureA
             _ => Pattern.Unknown
         };
         if (pattern != Pattern.Unknown)
+        {
             _pattern = pattern;
+        }
     }
 
     public bool ActorUnsafeAt(Actor actor, WPos pos)
@@ -99,7 +106,7 @@ class ShimmeringShot(BossModule module, double spawnToActivation) : TemperatureA
         return _slotTempAdjustments[row] != -Temperature(actor);
     }
 
-    protected int RowIndex(WPos pos) => (pos.Z - TrinityAvowed.ArenaCenter.Z) switch
+    protected int RowIndex(WPos pos) => (pos.Z - -82f) switch
     {
         < -15f => 0,
         < -5f => 1,

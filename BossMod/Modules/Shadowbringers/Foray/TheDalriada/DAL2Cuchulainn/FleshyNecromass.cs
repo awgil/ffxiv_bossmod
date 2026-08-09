@@ -2,29 +2,11 @@ namespace BossMod.Shadowbringers.Foray.TheDalriada.DAL2Cuchulainn;
 
 sealed class FleshNecromass(BossModule module) : Components.GenericAOEs(module)
 {
-    public static readonly WPos[] Positions = [new(637.27f, -174.667f), new(662.71f, -174.667f), new(662.71f, -200.133f), new(637.27f, -200.133f)];
-    public static readonly AOEShapeCustom Circles, CirclesInv;
-    private AOEInstance[] _voidzone = [];
+    public readonly WPos[] Positions = [new(637.27f, -174.667f), new(662.71f, -174.667f), new(662.71f, -200.133f), new(637.27f, -200.133f)];
+    public AOEInstance[] Voidzone = [];
     private AOEInstance[] _invertedvoidzone = [];
     private BitMask gelatinous;
     private bool active;
-
-    static FleshNecromass()
-    {
-        var shape = VoidzoneShape();
-        Circles = new(shape);
-        CirclesInv = new(shape, invertForbiddenZone: true);
-    }
-
-    private static Polygon[] VoidzoneShape()
-    {
-        var circles = new Polygon[4];
-        for (var i = 0; i < 4; ++i)
-        {
-            circles[i] = new Polygon(Positions[i], 5.676f, 40);
-        }
-        return circles;
-    }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -34,7 +16,7 @@ sealed class FleshNecromass(BossModule module) : Components.GenericAOEs(module)
         }
         else
         {
-            return _voidzone;
+            return Voidzone;
         }
     }
 
@@ -57,14 +39,25 @@ sealed class FleshNecromass(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         var id = spell.Action.ID;
-        if (_voidzone.Length == 0 && id == (uint)AID.PutrifiedSoul1)
+        if (Voidzone.Length == 0 && id == (uint)AID.PutrifiedSoul1)
         {
-            _voidzone = [new(Circles, Arena.Center, default, Module.CastFinishAt(spell, 0.2d))];
+            var center = Arena.Center;
+            var circles = new Polygon[4];
+            for (var i = 0; i < 4; ++i)
+            {
+                circles[i] = new Polygon(Positions[i], 5.676f, 40);
+            }
+            var shape = new AOEShapeCustom(center, circles);
+            Voidzone = [new(shape, center, default, Module.CastFinishAt(spell, 0.2d), shapeDistance: shape.Distance(center, default))];
+            _invertedvoidzone = [new(shape, center, color: Colors.SafeFromAOE, shapeDistance: shape.InvertedDistance(center, default))];
         }
         else if (id == (uint)AID.FleshyNecromassVisual)
         {
             active = true;
-            _invertedvoidzone = [new(CirclesInv, Arena.Center, default, Module.CastFinishAt(spell), Colors.SafeFromAOE)];
+            if (_invertedvoidzone.Length != 0)
+            {
+                _invertedvoidzone.AsSpan()[0].Activation = Module.CastFinishAt(spell);
+            }
         }
     }
 
@@ -96,7 +89,7 @@ sealed class FleshNecromass(BossModule module) : Components.GenericAOEs(module)
 sealed class FleshNecromassJumps(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
-    private static readonly AOEShapeCircle circle = new(12f);
+    private readonly AOEShapeCircle circle = new(12f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 

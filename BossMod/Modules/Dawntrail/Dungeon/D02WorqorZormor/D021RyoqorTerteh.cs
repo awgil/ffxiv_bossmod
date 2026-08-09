@@ -38,7 +38,7 @@ public enum TetherID : uint
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeDonut donut = new(20f, 23f);
+    private readonly AOEShapeDonut donut = new(20f, 23f);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -47,7 +47,8 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.FrostingFracas && Arena.Bounds.Radius != 20f)
         {
-            _aoe = [new(donut, Arena.Center, default, Module.CastFinishAt(spell, 0.6d))];
+            var center = Arena.Center;
+            _aoe = [new(donut, center, default, Module.CastFinishAt(spell, 0.6d), shapeDistance: donut.Distance(center, default))];
         }
     }
 
@@ -55,7 +56,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x17 && state == 0x00020001u)
         {
-            Arena.Bounds = D021RyoqorTerteh.DefaultBounds;
+            var arena = new ArenaBoundsCustom([new Polygon(new(-108f, 119f), 20f, 52)]);
+            Arena.Bounds = arena;
+            Arena.Center = arena.Center;
             _aoe = [];
         }
     }
@@ -63,8 +66,8 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 
 sealed class IceScreamFrozenSwirl(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeRect rect = new(20f, 10f);
-    private static readonly AOEShapeCircle circle = new(15f);
+    private readonly AOEShapeRect rect = new(20f, 10f);
+    private readonly AOEShapeCircle circle = new(15f);
     private readonly List<AOEInstance> _aoes = [with(8)];
     private int tetherCount;
     private byte tutorial;
@@ -161,10 +164,15 @@ sealed class D021RyoqorTertehStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824u, NameID = 12699u)]
-public sealed class D021RyoqorTerteh(WorldState ws, Actor primary) : BossModule(ws, primary, StartingBounds.Center, StartingBounds)
+public sealed class D021RyoqorTerteh : BossModule
 {
-    private static readonly WPos arenaCenter = new(-108f, 119f);
-    public static readonly ArenaBoundsCustom StartingBounds = new([new Polygon(arenaCenter, 22.5f, 52)], [new Rectangle(new(-108f, 141.95f), 20f, 1.25f),
-    new Rectangle(new(-108f, 96.25f), 20f, 1.25f)]);
-    public static readonly ArenaBoundsCustom DefaultBounds = new([new Polygon(arenaCenter, 20f, 52)]);
+    public D021RyoqorTerteh(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D021RyoqorTerteh(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(-108f, 119f), 22.5f, 52)], [new Rectangle(new(-108f, 141.95f), 20f, 1.25f), new Rectangle(new(-108f, 96.25f), 20f, 1.25f)]);
+        return (arena.Center, arena);
+    }
 }

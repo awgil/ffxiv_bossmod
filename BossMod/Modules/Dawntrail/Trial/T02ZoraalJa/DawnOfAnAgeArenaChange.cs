@@ -2,9 +2,6 @@
 
 sealed class DawnOfAnAgeArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly Square square = new(T02ZoraalJa.ZoraalJa.ArenaCenter, 20f, T02ZoraalJa.ZoraalJa.ArenaRotation);
-    private static readonly Square smallsquare = new(T02ZoraalJa.ZoraalJa.ArenaCenter, 10f, T02ZoraalJa.ZoraalJa.ArenaRotation);
-    private static readonly AOEShapeCustom transition = new([square], [smallsquare]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -16,17 +13,20 @@ sealed class DawnOfAnAgeArenaChange(BossModule module) : Components.GenericAOEs(
             switch (state)
             {
                 case 0x00020001u:
-                    _aoe = [new(transition, T02ZoraalJa.ZoraalJa.ArenaCenter, default, WorldState.FutureTime(8d))];
+                    var center = Arena.Center;
+                    var angle = 45f.Degrees();
+                    var shape = new AOEShapeCustom(center, [new Square(center, 20f, angle)], [new Square(center, 10f, angle)]);
+                    _aoe = [new(shape, center, default, WorldState.FutureTime(8d), shapeDistance: shape.Distance(center, default))];
                     break;
                 case 0x00080004u:
                     _aoe = [];
-                    Arena.Bounds = T02ZoraalJa.ZoraalJa.SmallBounds;
+                    Arena.Bounds = new ArenaBoundsSquare(10f, 45f.Degrees());
                     break;
             }
         }
         else if (index == 0x1B && state == 0x00080004u)
         {
-            Arena.Bounds = T02ZoraalJa.ZoraalJa.DefaultBounds;
+            Arena.Bounds = T02ZoraalJa.ZoraalJa.GetDefaultBounds();
         }
     }
 }

@@ -2,7 +2,9 @@ namespace BossMod.Shadowbringers.Foray.TheDalriada.DAL2Cuchulainn;
 
 sealed class BurgeoningDread(BossModule module) : Components.StatusDrivenForcedMarch(module, 3f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace, stopAtWall: true)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => FleshNecromass.Circles.Check(pos, Arena.Center, default);
+    private readonly FleshNecromass necromass = module.FindComponent<FleshNecromass>()!;
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => necromass.Voidzone is var vz && vz.Length != 0 && vz.AsSpan()[0].Check(pos);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -14,7 +16,7 @@ sealed class BurgeoningDread(BossModule module) : Components.StatusDrivenForcedM
 
         ref var move0 = ref state.PendingMoves.Ref(0);
         var act = move0.activation;
-        var aoes = FleshNecromass.Positions;
+        var aoes = necromass.Positions;
         var len = aoes.Length;
         var pos = actor.Position;
         var moveDir = move0.dir.ToDirection();

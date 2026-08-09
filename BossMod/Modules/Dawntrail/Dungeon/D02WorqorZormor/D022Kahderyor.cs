@@ -48,17 +48,13 @@ public enum IconID : uint
 sealed class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
 {
     private const string Hint = "Be inside a crystal line!";
-    private static readonly AOEShapeDonut donut = new(8f, 50f);
-    private static readonly AOEShapeCircle circle = new(15f);
-    private static readonly Angle[] angles = [119.997f.Degrees(), 29.996f.Degrees(), -80.001f.Degrees(), 99.996f.Degrees()];
-    private static readonly WPos[] positions = [new(-43, -57), new(-63, -57), new(-53, -47), new(-53, -67)];
-    private const float Length = 50f;
-    private static readonly AOEShapeCustom ENVC21Inverted = CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 1, true);
-    private static readonly AOEShapeCustom ENVC21 = CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 7);
-    private static readonly AOEShapeCustom ENVC20Inverted = CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 1, true);
-    private static readonly AOEShapeCustom ENVC20 = CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 7);
+    private readonly AOEShapeDonut donut = new(8f, 50f);
+    private readonly AOEShapeCircle circle = new(15f);
+    private readonly Angle[] angles = [119.997f.Degrees(), 29.996f.Degrees(), -80.001f.Degrees(), 99.996f.Degrees()];
+    private readonly WPos[] positions = [new(-43f, -57f), new(-63f, -57f), new(-53f, -47f), new(-53f, -67f)];
     public AOEInstance[] AOE = [];
-    private static readonly WDir am40 = -40f.Degrees().ToDirection(), a0 = new(0f, 1f);
+    private readonly WDir am40 = -40f.Degrees().ToDirection(), a0 = new(0f, 1f);
+    private uint curIndexState;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOE;
 
@@ -78,14 +74,23 @@ sealed class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
     {
         var activation = WorldState.FutureTime(5.9d);
         var color = state == 0x00800040u ? Colors.SafeFromAOE : default;
+        var center = Arena.Center;
+        var distance = shape.Distance(center, default);
+        curIndexState = index * state;
         AOE = index switch
         {
-            0x1E => [new(shape, positions[0], default, activation)],
-            0x1F => [new(shape, positions[1], default, activation)],
-            0x20 => [new(state == 0x00800040u ? ENVC20Inverted : ENVC20, Arena.Center, default, activation, color)],
-            0x21 => [new(state == 0x00800040u ? ENVC21Inverted : ENVC21, Arena.Center, default, activation, color)],
+            0x1E => [new(shape, positions[0], default, activation, shapeDistance: distance)],
+            0x1F => [new(shape, positions[1], default, activation, shapeDistance: distance)],
+            0x20 => [new(state == 0x00800040u ? CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 1f, true)
+             : CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 7f), center, default, activation, color, shapeDistance: distance)],
+            0x21 => [new(state == 0x00800040u ? CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 1f, true)
+             : CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 7f), center, default, activation, color, shapeDistance: distance)],
             _ => AOE
         };
+
+        AOEShapeCustom CreateShape(WPos pos1, WPos pos2, WPos pos3, Angle angle1, Angle angle2, Angle angle3, float halfWidth, bool inverted = false)
+            => new(center, [new Rectangle(pos1, halfWidth, 50f, angle1), new Rectangle(pos2, halfWidth, 50f, angle2), new Rectangle(pos3, halfWidth, 50f, angle3)],
+            invertForbiddenZone: inverted);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -96,7 +101,7 @@ sealed class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
         }
         ref var aoe = ref AOE[0];
         var aoeShape = aoe.Shape;
-        if (aoeShape != ENVC20Inverted && aoeShape != ENVC21Inverted)
+        if (aoeShape.InvertForbiddenZone)
         {
             base.AddHints(slot, actor, hints);
         }
@@ -115,23 +120,18 @@ sealed class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
         ref var aoe = ref AOE[0];
         base.AddAIHints(slot, actor, assignment, hints);
 
-        var aoeShape = aoe.Shape;
-        var containsENVC20 = aoeShape == ENVC20;
-        var containsENVC21 = aoeShape == ENVC21;
-
-        if (containsENVC20 || containsENVC21)
+        if (!aoe.Shape.InvertForbiddenZone)
         {
+            var center = Arena.Center;
+            const uint indexState = 0x20 * 0x00200010u;
+            var containsENVC20uninverted = curIndexState == indexState;
             ShapeDistance forbiddenZone = actor.Role != Role.Tank
-                ? new SDRect(Arena.Center, containsENVC20 ? am40 : a0, 20f, containsENVC20 ? 1f : 10f, 20f)
-                : new SDInvertedCircle(Arena.Center, 12f);
+                ? new SDRect(center, containsENVC20uninverted ? am40 : a0, 20f, containsENVC20uninverted ? 1f : 10f, 20f)
+                : new SDInvertedCircle(center, 12f);
 
             hints.AddForbiddenZone(forbiddenZone, aoe.Activation);
         }
     }
-
-    private static AOEShapeCustom CreateShape(WPos pos1, WPos pos2, WPos pos3, Angle angle1, Angle angle2, Angle angle3, int halfWidth, bool inverted = false)
-        => new([new Rectangle(pos1, halfWidth, Length, angle1), new Rectangle(pos2, halfWidth, Length, angle2), new Rectangle(pos3, halfWidth, Length, angle3)],
-        invertForbiddenZone: inverted);
 }
 
 sealed class WindShotStack(BossModule module) : Components.DonutStack(module, (uint)AID.WindShot, (uint)IconID.WindShot, 5f, 10f, 6f, 4, 4)
@@ -141,7 +141,9 @@ sealed class WindShotStack(BossModule module) : Components.DonutStack(module, (u
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Stacks.Count == 0)
+        {
             return;
+        }
 
         ref var aoe = ref _aoe.AOE[0];
         var forbidden = new List<ShapeDistance>(3);
@@ -200,15 +202,17 @@ sealed class D022KahderyorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12703)]
-public sealed class D022Kahderyor(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultBounds.Center, DefaultBounds)
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824u, NameID = 12703u)]
+public sealed class D022Kahderyor : BossModule
 {
-    public static readonly ArenaBoundsCustom DefaultBounds = new([new Polygon(new(-53f, -57f), 19.5f, 40)], [new Rectangle(new(-72.5f, -57f), 0.75f, 20), new Rectangle(new(-53f, -37f), 20f, 1.5f)]);
+    public D022Kahderyor(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
 
-    protected override void DrawEnemies(int pcSlot, Actor pc)
+    private D022Kahderyor(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
     {
-        Arena.Actor(PrimaryActor);
-        Arena.Actors(Enemies((uint)OID.CrystallineDebris), Colors.Object);
+        var arena = new ArenaBoundsCustom([new Polygon(new(-53f, -57f), 19.5f, 40)], [new Rectangle(new(-72.5f, -57f), 0.75f, 20f), new Rectangle(new(-53f, -37f), 20f, 1.5f)]);
+        return (arena.Center, arena);
     }
 
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -223,5 +227,11 @@ public sealed class D022Kahderyor(WorldState ws, Actor primary) : BossModule(ws,
                 _ => 0
             };
         }
+    }
+
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor);
+        Arena.Actors(Enemies((uint)OID.CrystallineDebris), Colors.Object);
     }
 }

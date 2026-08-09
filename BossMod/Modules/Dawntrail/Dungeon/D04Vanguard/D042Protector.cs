@@ -55,12 +55,10 @@ public enum SID : uint
 sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
 {
     private const float Radius = 0.51f; // small cushion since fences don't seem to be positioned perfectly
-    public static readonly WPos ArenaCenter = new(0f, -100f);
-    public static readonly ArenaBoundsRect StartingBounds = new(14.5f, 22.5f);
-    private static readonly ArenaBoundsRect defaultBounds = new(12f, 20f);
-    private static readonly Rectangle[] startingRect = [new(ArenaCenter, 15f, 23f)];
-    private static readonly Rectangle[] defaultRect = [new(ArenaCenter, 12f, 20f)];
-    private static readonly WPos[] circlePositions =
+    private DateTime activation;
+    private ArenaBoundsCustom? preparedArena;
+
+    private readonly WPos[] circlePositions =
     [
         new(12f, -88f), new(8f, -92f), new(4f, -88f), new(0f, -88f), new(-4f, -88f),
         new(-12f, -88f), new(-8f, -92f), new(0f, -92f), new(-4f, -96f), new(0f, -96f),
@@ -70,7 +68,7 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         new(-12f, -104f)
     ];
 
-    private static readonly (int, int)[] rectanglePairs =
+    private readonly (int Start, int End)[] rectanglePairs =
     [
         (0, 1), (7, 9), (5, 6), (13, 20), (17, 18), (11, 14), (21, 20), (14, 15),
         (12, 17), (1, 10), (3, 7), (6, 8), (25, 5), (25, 11), (2, 5), (4, 8),
@@ -78,103 +76,49 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
         (24, 8), (0, 22), (0, 4), (2, 10), (22, 13),
     ];
 
-    private static readonly Polygon[] circles = CreateCircles(circlePositions, Radius, 12);
-    private static readonly RectangleSE[] rectangles = CreateRectangles(rectanglePairs, circlePositions, Radius);
-
-    private static Polygon[] CreateCircles(WPos[] positions, float radius, int edges)
-    {
-        var result = new Polygon[26];
-        for (var i = 0; i < 26; ++i)
-            result[i] = new Polygon(positions[i], radius, edges);
-        return result;
-    }
-
-    private static RectangleSE[] CreateRectangles((int, int)[] pairs, WPos[] positions, float width)
-    {
-        var result = new RectangleSE[28];
-        for (var i = 0; i < 28; ++i)
-        {
-            var pair = pairs[i];
-            result[i] = new RectangleSE(positions[pair.Item1], positions[pair.Item2], width);
-        }
-        return result;
-    }
-
-    private static readonly AOEShapeCustom rectArenaChange = new(startingRect, defaultRect);
-
-    private static readonly Shape[] union01000080Shapes = GetShapesForUnion([0, 1, 2, 3, 4, 5], [0, 1, 7, 9, 5, 6, 13, 20, 17, 18, 11, 14]);
-    private static readonly AOEShapeCustom electricFences01000080AOE = new(union01000080Shapes);
-    private static readonly ArenaBoundsCustom electricFences01000080Arena = new(defaultRect, union01000080Shapes);
-
-    private static readonly Shape[] union08000400Shapes = GetShapesForUnion([6, 7, 8, 9, 10, 11], [21, 20, 14, 15, 12, 17, 1, 10, 3, 7, 6, 8]);
-    private static readonly AOEShapeCustom electricFences08000400AOE = new(union08000400Shapes);
-    private static readonly ArenaBoundsCustom electricFences08000400Arena = new(defaultRect, union08000400Shapes);
-
-    private static readonly Shape[] union00020001Shapes = GetShapesForUnion([12, 13, 14, 15, 16, 17, 18, 19], [2, 8, 11, 10, 13, 16]);
-    private static readonly AOEShapeCustom electricFences00020001AOE = new(union00020001Shapes);
-    private static readonly ArenaBoundsCustom electricFences00020001Arena = new(defaultRect, union00020001Shapes);
-
-    private static readonly Shape[] union00200010Shapes = GetShapesForUnion([20, 21, 22, 23, 24, 25, 26, 27], [4, 8, 11, 19, 13, 10]);
-    private static readonly AOEShapeCustom electricFences00200010AOE = new(union00200010Shapes);
-    private static readonly ArenaBoundsCustom electricFences00200010Arena = new(defaultRect, union00200010Shapes);
-
-    private static readonly (AOEShapeCustom AOE, ArenaBoundsCustom Bounds)[] arenaMap =
-    [
-        (electricFences01000080AOE, electricFences01000080Arena),
-        (electricFences08000400AOE, electricFences08000400Arena),
-        (electricFences00020001AOE, electricFences00020001Arena),
-        (electricFences00200010AOE, electricFences00200010Arena)
-    ];
+    private readonly Polygon[] circles = new Polygon[26];
+    private readonly RectangleSE[] rectangles = new RectangleSE[28];
 
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
-    private static Shape[] GetShapesForUnion(int[] rectIndices, int[] circleIndices)
-    {
-        var rectLen = rectIndices.Length;
-        var circleLen = circleIndices.Length;
-        var shapes = new Shape[rectLen + circleLen];
-        var position = 0;
-
-        for (var i = 0; i < rectLen; ++i)
-        {
-            shapes[position++] = rectangles[rectIndices[i]];
-        }
-        for (var i = 0; i < circleLen; ++i)
-        {
-            shapes[position++] = circles[circleIndices[i]];
-        }
-        return shapes;
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.Electrowave && Arena.Bounds == StartingBounds)
+        if (spell.Action.ID == (uint)AID.Electrowave && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(rectArenaChange, Arena.Center, default, Module.CastFinishAt(spell, 0.4d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Rectangle(center, 14.5f, 22.5f)], [new Rectangle(center, 12f, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.4d), shapeDistance: shape.Distance(center, default))];
+
+            // initialize shapes for later
+            CreateCircles(circlePositions, Radius, 12);
+            CreateRectangles(rectanglePairs, circlePositions, Radius);
+            void CreateCircles(WPos[] positions, float radius, int edges)
+            {
+                for (var i = 0; i < 26; ++i)
+                {
+                    circles[i] = new Polygon(positions[i], radius, edges);
+                }
+            }
+
+            void CreateRectangles((int, int)[] pairs, WPos[] positions, float width)
+            {
+                for (var i = 0; i < 28; ++i)
+                {
+                    var pair = pairs[i];
+                    rectangles[i] = new RectangleSE(positions[pair.Item1], positions[pair.Item2], width);
+                }
+            }
         }
     }
 
     public override void Update()
     {
-        if (_aoe.Length == 0)
+        if (preparedArena != null && activation <= WorldState.CurrentTime)
         {
-            return;
-        }
-        ref var aoe = ref _aoe[0];
-        if (aoe.Activation <= WorldState.CurrentTime)
-        {
-            for (var i = 0; i < 4; ++i)
-            {
-                var aoeCheck = arenaMap[i];
-                if (aoe.Shape == aoeCheck.AOE)
-                {
-                    Arena.Bounds = aoeCheck.Bounds;
-                    _aoe = [];
-                    return;
-                }
-            }
+            Arena.Bounds = preparedArena;
+            _aoe = [];
         }
     }
 
@@ -182,30 +126,82 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x0C && state == 0x00020001u)
         {
-            Arena.Bounds = defaultBounds;
+            ResetArena();
             _aoe = [];
+            return;
         }
-        else if (index == 0x0D)
+
+        if (index != 0x0D)
         {
-            void AddAOE(AOEShapeCustom shape) => _aoe = [new(shape, Arena.Center, default, WorldState.FutureTime(3d))];
-            switch (state)
+            return;
+        }
+
+        switch (state)
+        {
+            case 0x08000400u:
+                AddAOEAndPrepareArenaChange([6, 7, 8, 9, 10, 11], [21, 20, 14, 15, 12, 17, 1, 10, 3, 7, 6, 8]);
+                break;
+
+            case 0x01000080u:
+                AddAOEAndPrepareArenaChange([0, 1, 2, 3, 4, 5], [0, 1, 7, 9, 5, 6, 13, 20, 17, 18, 11, 14]);
+                break;
+
+            case 0x00020001u:
+                AddAOEAndPrepareArenaChange([12, 13, 14, 15, 16, 17, 18, 19], [2, 8, 11, 10, 13, 16]);
+                break;
+
+            case 0x00200010u:
+                AddAOEAndPrepareArenaChange([20, 21, 22, 23, 24, 25, 26, 27], [4, 8, 11, 19, 13, 10]);
+                break;
+
+            case 0x02000004u:
+            case 0x10000004u:
+            case 0x00080004u:
+            case 0x00400004u:
+                ResetArena();
+                break;
+        }
+
+        void ResetArena() => Arena.Bounds = new ArenaBoundsRect(12f, 20f);
+
+        void AddAOEAndPrepareArenaChange(ReadOnlySpan<int> rectangleIndices, ReadOnlySpan<int> circleIndices)
+        {
+            var center = Arena.Center;
+            Rectangle[] defaultBounds = [new Rectangle(center, 12f, 20f)];
+            var removedShapes = CreateShapes(rectangleIndices, circleIndices);
+
+            var shape = new AOEShapeCustom(center, defaultBounds, removedShapes);
+            activation = WorldState.FutureTime(3d);
+
+            _aoe = [new(shape, center, default, activation, shapeDistance: shape.Distance(center, default))];
+
+            preparedArena = new ArenaBoundsCustom(defaultBounds, removedShapes);
+
+            Shape[] CreateShapes(ReadOnlySpan<int> rectangleIndices, ReadOnlySpan<int> circleIndices)
             {
-                case 0x08000400u:
-                    AddAOE(electricFences08000400AOE);
-                    break;
-                case 0x01000080u:
-                    AddAOE(electricFences01000080AOE);
-                    break;
-                case 0x00020001u:
-                    AddAOE(electricFences00020001AOE);
-                    break;
-                case 0x00200010u:
-                    AddAOE(electricFences00200010AOE);
-                    break;
-                case 0x02000004u or 0x10000004u or 0x00080004u or 0x00400004u:
-                    Arena.Bounds = defaultBounds;
-                    break;
+                var lenR = rectangleIndices.Length;
+                var lenC = circleIndices.Length;
+                var shapes = new Shape[lenR + lenC];
+                var destination = shapes.AsSpan();
+
+                for (var i = 0; i < lenR; ++i)
+                {
+                    destination[i] = CreateRectangle(rectangleIndices[i]);
+                }
+
+                for (var i = 0; i < lenC; ++i)
+                {
+                    destination[lenR + i] = CreateCircle(circleIndices[i]);
+                }
+
+                return shapes;
             }
+            RectangleSE CreateRectangle(int index)
+            {
+                var (start, end) = rectanglePairs[index];
+                return new RectangleSE(circlePositions[start], circlePositions[end], Radius);
+            }
+            Polygon CreateCircle(int index) => new(circlePositions[index], Radius, 12);
         }
     }
 }
@@ -298,4 +294,4 @@ sealed class D042ProtectorStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831u, NameID = 12757u, SortOrder = 5)]
-public sealed class D042Protector(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaChanges.ArenaCenter, ArenaChanges.StartingBounds);
+public sealed class D042Protector(WorldState ws, Actor primary) : BossModule(ws, primary, new(0f, -100f), new ArenaBoundsRect(14.5f, 22.5f));

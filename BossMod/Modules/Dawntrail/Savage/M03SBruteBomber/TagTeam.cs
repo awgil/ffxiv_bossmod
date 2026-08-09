@@ -5,7 +5,6 @@ sealed class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(modu
     public readonly List<AOEInstance> AOEs = [with(2)];
     private readonly Actor?[] _tetherSource = new Actor?[PartyState.MaxPartySize];
     private readonly AOEInstance[][] _safespot = new AOEInstance[PartyState.MaxPartySize][];
-    private const string Hint = "Go to correct spot!";
     private static readonly AOEShapeRect rect = new(70f, 17f);
     private ConeHA[] cone = [];
 
@@ -41,8 +40,9 @@ sealed class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(modu
                 }
 
                 ref var aoe0 = ref aoes[0];
-                _safespot[slot] = [new(new AOEShapeCustom(safeShapes, dangerShapes, cone, cone.Length != 0 ? OperandType.Intersection : OperandType.Union, invertForbiddenZone: true),
-                    Arena.Center, default, aoe0.Activation, Colors.SafeFromAOE)];
+                var center = Arena.Center;
+                var aoeShape = new AOEShapeCustom(center, safeShapes, dangerShapes, cone, cone.Length != 0 ? OperandType.Intersection : OperandType.Union, invertForbiddenZone: true);
+                safespot = [new(aoeShape, center, default, aoe0.Activation, Colors.SafeFromAOE, shapeDistance: aoeShape.InvertedDistance(center, default))];
             }
             return safespot;
         }
@@ -58,7 +58,7 @@ sealed class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(modu
         else if (_safespot[slot] is AOEInstance[] aoes)
         {
             ref var aoe = ref aoes[0];
-            hints.Add(Hint, !aoe.Check(actor.Position));
+            hints.Add("Go to correct spot!", !aoe.Check(actor.Position));
         }
     }
 

@@ -50,7 +50,9 @@ sealed class ElectrowaveArenaChange(BossModule module) : Components.GenericAOEs(
     {
         if (spell.Action.ID == (uint)AID.Electrowave && Arena.Bounds.Radius > 19f)
         {
-            _aoe = [new(new AOEShapeCustom([new Square(D041CommanderR8.ArenaCenter, 20f)], [new Square(D041CommanderR8.ArenaCenter, 17f)]), Arena.Center, default, Module.CastFinishAt(spell, 0.4d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 20f)], [new Square(center, 17f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.4d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -58,7 +60,7 @@ sealed class ElectrowaveArenaChange(BossModule module) : Components.GenericAOEs(
     {
         if (index == 0x0A && state == 0x00020001u)
         {
-            Arena.Bounds = D041CommanderR8.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsSquare(17f);
             _aoe = [];
         }
     }
@@ -206,9 +208,4 @@ sealed class D041CommanderR8States : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 831u, NameID = 12750u, SortOrder = 3)]
-public sealed class D041CommanderR8(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingBounds)
-{
-    public static readonly WPos ArenaCenter = new(-100f, 207f);
-    public static readonly ArenaBoundsSquare StartingBounds = new(19.5f);
-    public static readonly ArenaBoundsSquare DefaultBounds = new(17f);
-}
+public sealed class D041CommanderR8(WorldState ws, Actor primary) : BossModule(ws, primary, new(-100f, 207f), new ArenaBoundsSquare(19.5f));

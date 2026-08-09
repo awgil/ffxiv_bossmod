@@ -56,7 +56,9 @@ sealed class SurgingWaveSeaFoam(BossModule module) : Components.Voidzone(module,
         var enemies = module.Enemies((uint)OID.SeaFoam);
         var count = enemies.Count;
         if (count == 0)
+        {
             return [];
+        }
 
         var voidzones = new Actor[count];
         var index = 0;
@@ -64,7 +66,9 @@ sealed class SurgingWaveSeaFoam(BossModule module) : Components.Voidzone(module,
         {
             var z = enemies[i];
             if (!z.IsDead)
+            {
                 voidzones[index++] = z;
+            }
         }
         return voidzones[..index];
     }

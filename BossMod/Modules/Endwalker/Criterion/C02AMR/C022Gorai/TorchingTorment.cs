@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.VariantCriterion.C02AMR.C022Gorai;
 
-class TorchingTorment(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
+sealed class TorchingTorment(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     private static readonly AOEShapeCircle _shape = new(6);
 

@@ -55,16 +55,17 @@ public enum IconID : uint
 
 sealed class DubiousTulidisasterArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(D074GreatestSerpentOfTural.ArenaCenter, 15f)], [new Square(D074GreatestSerpentOfTural.ArenaCenter, 12f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.DubiousTulidisaster && Arena.Bounds.Radius > 12f)
+        if (spell.Action.ID == (uint)AID.DubiousTulidisaster && Arena.Bounds.Radius > 13f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 4.8d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 14.5f)], [new Square(center, 12f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 4.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -99,31 +100,6 @@ sealed class GreatestFlood(BossModule module) : Components.SimpleKnockbacks(modu
 sealed class GreatestLabyrinth(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(2)];
-    private static readonly Square middle = new(D074GreatestSerpentOfTural.ArenaCenter, 4f);
-    private const float Radius = 2f;
-
-    private static readonly (Square correctTile, Square goalTile)[] tilePairs = [
-        (new(new(-124f, -552f), Radius), new(new(-140f, -564f), Radius)),
-        (new(new(-128f, -560f), Radius), new(new(-120f, -544f), Radius)),
-        (new(new(-132f, -548f), Radius), new(new(-120f, -564f), Radius)),
-        (new(new(-136f, -556f), Radius), new(new(-140f, -544f), Radius))];
-
-    private static readonly Shape[] wholeArena = [new Square(D074GreatestSerpentOfTural.ArenaCenter, 12f)];
-
-    private static readonly AOEShapeCustom[] forbiddenShapes = InitializeShapes();
-    private static readonly AOEShapeCustom[] safeShapes = InitializeShapes(true);
-
-    private static AOEShapeCustom[] InitializeShapes(bool invert = false)
-    {
-        var shapes = new AOEShapeCustom[4];
-        for (var i = 0; i < 4; ++i)
-        {
-            var tp = tilePairs[i];
-            shapes[i] = !invert ? new AOEShapeCustom(wholeArena, [middle, tp.correctTile, tp.goalTile]) : new AOEShapeCustom([tp.correctTile, tp.goalTile], invertForbiddenZone: true);
-        }
-        return shapes;
-    }
-
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
     public override void OnMapEffect(byte index, uint state)
@@ -133,24 +109,29 @@ sealed class GreatestLabyrinth(BossModule module) : Components.GenericAOEs(modul
             return;
         }
 
-        void AddAOEs(int index)
+        void AddAOEs(WPos[] pair)
         {
-            _aoes.Add(new(forbiddenShapes[index], Arena.Center));
-            _aoes.Add(new(safeShapes[index], Arena.Center, default, WorldState.FutureTime(10d), Colors.SafeFromAOE));
+            var center = Arena.Center;
+            var p0 = new Square(pair[0], 2f);
+            var p1 = new Square(pair[1], 2f);
+            var forbiddenShape = new AOEShapeCustom(center, [new Square(center, 12f)], [new Square(center, 4f), p0, p1]);
+            var safeShape = new AOEShapeCustom(center, [p0, p1], invertForbiddenZone: true);
+            _aoes.Add(new(forbiddenShape, center, shapeDistance: forbiddenShape.Distance(center, default)));
+            _aoes.Add(new(safeShape, center, default, WorldState.FutureTime(10d), Colors.SafeFromAOE, shapeDistance: safeShape.Distance(center, default)));
         }
         switch (state)
         {
             case 0x01000080u:
-                AddAOEs(0);
+                AddAOEs([new(-124f, -552f), new(-140f, -564f)]);
                 break;
             case 0x04000200u:
-                AddAOEs(1);
+                AddAOEs([new(-128f, -560f), new(-120f, -544f)]);
                 break;
             case 0x10000800u:
-                AddAOEs(2);
+                AddAOEs([new(-132f, -548f), new(-120f, -564f)]);
                 break;
             case 0x00020001u:
-                AddAOEs(3);
+                AddAOEs([new(-136f, -556f), new(-140f, -544f)]);
                 break;
             case 0x00100004u or 0x00200004u or 0x00400004u or 0x00080004u:
                 _aoes.Clear();
@@ -161,7 +142,9 @@ sealed class GreatestLabyrinth(BossModule module) : Components.GenericAOEs(modul
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_aoes.Count == 0)
+        {
             return;
+        }
         hints.Add("Walk onto safe square!", !_aoes[1].Check(actor.Position));
     }
 }
@@ -215,8 +198,5 @@ sealed class D074GreatestSerpentOfTuralStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834, NameID = 12709)]
-public sealed class D074GreatestSerpentOfTural(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(14.5f))
-{
-    public static readonly WPos ArenaCenter = new(-130f, -554f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834u, NameID = 12709u)]
+public sealed class D074GreatestSerpentOfTural(WorldState ws, Actor primary) : BossModule(ws, primary, new(-130f, -554f), new ArenaBoundsSquare(14.5f));

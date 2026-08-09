@@ -12,13 +12,15 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
         {
             if (state == 0x00010002u)
             {
-                _aoe = [new(Phantom.ArenaChange, Arena.Center, default, WorldState.FutureTime(4d))];
+                var shape = Phantom.GetArenaChangeAOE();
+                var center = Arena.Center;
+                _aoe = [new(shape, center, default, WorldState.FutureTime(4d), shapeDistance: shape.Distance(center, default))];
             }
             else if (state == 0x00080010u)
             {
                 _aoe = [];
-                Arena.Bounds = Phantom.DefaultArena;
-                Arena.Center = Phantom.DefaultCenter;
+                Arena.Bounds = new ArenaBoundsRect(23.5f, 24f);
+                Arena.Center = new(202f, -370f);
             }
         }
     }

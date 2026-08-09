@@ -48,7 +48,7 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
         if (spell.Action.ID == (uint)AID.Thunderspark && Arena.Bounds.Radius > 20f)
         {
             var shape = new AOEShapeDonut(20f, 30f);
-            var pos = D123ThundergustGriffin.ArenaCenter;
+            WPos pos = new(281f, -620f);
             _aoe = [new(shape, pos, default, Module.CastFinishAt(spell, 0.7d), shapeDistance: shape.Distance(pos, default))];
         }
     }
@@ -213,7 +213,6 @@ public sealed class D123ThundergustGriffin : BossModule
     public D123ThundergustGriffin(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
 
     private D123ThundergustGriffin(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
-    public static readonly WPos ArenaCenter = new(281f, -620f);
 
     private static (WPos center, ArenaBoundsCustom arena) BuildArena()
     {

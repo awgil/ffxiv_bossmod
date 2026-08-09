@@ -92,7 +92,9 @@ sealed class QuicksandDoubleStyleHeavenBomb(BossModule module) : Components.Gene
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor)
     {
         if (Targets[slot])
+        {
             return new Knockback[1] { new(actor.Position, 16f, default, default, actor.Rotation, Kind.DirForward, ignoreImmunes: true) };
+        }
         return [];
     }
 
