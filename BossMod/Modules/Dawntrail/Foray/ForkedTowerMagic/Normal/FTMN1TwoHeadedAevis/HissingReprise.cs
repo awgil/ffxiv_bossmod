@@ -17,11 +17,11 @@ sealed class HissingReprise(BossModule module) : Components.GenericKnockback(mod
         List<Knockback> kb = [with(1)];
         if (easterly[slot])
         {
-            kb.Add(new(new(-880f, Arena.Center.Z), 20f, activation, kind: Kind.DirRight));
+            kb.Add(new(new(-880f, Arena.Center.Z), 21f, activation, kind: Kind.DirRight));
         }
         else if (westerly[slot])
         {
-            kb.Add(new(new(-920f, Arena.Center.Z), 20f, activation, kind: Kind.DirLeft));
+            kb.Add(new(new(-920f, Arena.Center.Z), 21f, activation, kind: Kind.DirLeft));
         }
 
         return CollectionsMarshal.AsSpan(kb);
@@ -43,6 +43,7 @@ sealed class HissingReprise(BossModule module) : Components.GenericKnockback(mod
                     break;
             }
         }
+        base.OnStatusGain(actor, ref status);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -79,25 +80,28 @@ sealed class HissingReprise(BossModule module) : Components.GenericKnockback(mod
             // knockback can happen by itself, poison breath, or clusters
             // rect/circ slightly larger to avoid sus knockback
             var kb = kbs[0];
-            var direction = new WDir(kb.Kind == Kind.DirLeft ? 20f : -20f, 0f);
+            if (!IsImmune(slot, kb.Activation))
+            {
+                var direction = new WDir(kb.Kind == Kind.DirLeft ? 20f : -20f, 0f);
 
-            var p = GetPoisonPositions(slot, actor);
-            var pCount = p.Length;
-            if (pCount != 0)
-            {
-                hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirectionPlusAOECircles(Arena.Center, direction, 21f, p, 19f, pCount), kb.Activation);
-            }
-            else
-            {
-                var c = GetClusterPositions(slot, actor);
-                var cCount = c.Length;
-                if (cCount != 0)
+                var p = GetPoisonPositions(slot, actor);
+                var pCount = p.Length;
+                if (pCount != 0)
                 {
-                    hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirectionPlusAOECircles(Arena.Center, direction, 21f, c, 16f, cCount), kb.Activation);
+                    hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirectionPlusAOECircles(Arena.Center, direction, 19f, p, 19f, pCount), kb.Activation);
                 }
                 else
                 {
-                    hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirection(Arena.Center, direction, 21f), kb.Activation);
+                    var c = GetClusterPositions(slot, actor);
+                    var cCount = c.Length;
+                    if (cCount != 0)
+                    {
+                        hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirectionPlusAOECircles(Arena.Center, direction, 19f, c, 16f, cCount), kb.Activation);
+                    }
+                    else
+                    {
+                        hints.AddForbiddenZone(new SDKnockbackInAABBSquareFixedDirection(Arena.Center, direction, 19f), kb.Activation);
+                    }
                 }
             }
         }

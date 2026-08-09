@@ -52,6 +52,7 @@ sealed class OmniElementPanels(BossModule module) : BossComponent(module)
 sealed class Flare(BossModule module) : Components.RaidwideCast(module, (uint)AID.Flare);
 sealed class Bombs(BossModule module) : Components.Adds(module, (uint)OID.SummonedBomb, 2)
 {
+    private readonly IndexConfig _config = Service.Config.Get<IndexConfig>();
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (ActiveActors.Count != 0)
@@ -76,18 +77,27 @@ sealed class Bombs(BossModule module) : Components.Adds(module, (uint)OID.Summon
     {
         if (ActiveActors.Count != 0)
         {
-            hints.PrioritizeTargetsByOID((uint)OID.SummonedBomb, 1);
-            hints.ForcedTarget = ActiveActors.MinBy(actor.DistanceToHitbox);
+            hints.PrioritizeTargetsByOID((uint)OID.SummonedBomb, 2);
+            // ignore forced targetting if current target is a PC
+            if (_config.ForceAddTargeting && WorldState.Actors.Find(actor.TargetID) is var target && target?.Type != ActorType.Player && target?.OID != (uint)OID.SummonedBomb)
+            {
+                hints.ForcedTarget = ActiveActors.MinBy(actor.DistanceToHitbox);
+            }
+        }
+        else if (_config.ForceBossTargeting && WorldState.Actors.Find(actor.TargetID) == null)
+        {
+            hints.ForcedTarget = Module.PrimaryActor;
         }
     }
 }
-//sealed class Aim(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Aim, 11f);
 sealed class Aim(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Aim, 11f)
 {
+    // resolves after shockwave and predict; ignore until predict AOEs are gone
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var knockbacks = Module.FindComponent<Shockwave>();
-        if (knockbacks == null || knockbacks.ActiveKnockbacks(slot, actor).Length == 0)
+        var predict = Module.FindComponent<Predict>();
+        if (knockbacks?.ActiveKnockbacks(slot, actor).Length == 0 && predict?.ActiveAOEs(slot, actor).Length == 0)
         {
             base.AddHints(slot, actor, hints);
         }
@@ -95,19 +105,21 @@ sealed class Aim(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Ai
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var knockbacks = Module.FindComponent<Shockwave>();
-        if (knockbacks == null || knockbacks.ActiveKnockbacks(slot, actor).Length == 0)
+        var predict = Module.FindComponent<Predict>();
+        if (knockbacks?.ActiveKnockbacks(slot, actor).Length == 0 && predict?.ActiveAOEs(slot, actor).Length == 0)
         {
             base.AddAIHints(slot, actor, assignment, hints);
         }
     }
 }
-//sealed class RomeosBallad(BossModule module) : Components.SimpleAOEs(module, (uint)AID.RomeosBallad, 15f);
 sealed class RomeosBallad(BossModule module) : Components.SimpleAOEs(module, (uint)AID.RomeosBallad, 15f)
 {
+    // resolves after shockwave and predict; ignore until predict AOEs are gone
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var knockbacks = Module.FindComponent<Shockwave>();
-        if (knockbacks == null || knockbacks.ActiveKnockbacks(slot, actor).Length == 0)
+        var predict = Module.FindComponent<Predict>();
+        if (knockbacks?.ActiveKnockbacks(slot, actor).Length == 0 && predict?.ActiveAOEs(slot, actor).Length == 0)
         {
             base.AddHints(slot, actor, hints);
         }
@@ -115,7 +127,8 @@ sealed class RomeosBallad(BossModule module) : Components.SimpleAOEs(module, (ui
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var knockbacks = Module.FindComponent<Shockwave>();
-        if (knockbacks == null || knockbacks.ActiveKnockbacks(slot, actor).Length == 0)
+        var predict = Module.FindComponent<Predict>();
+        if (knockbacks?.ActiveKnockbacks(slot, actor).Length == 0 && predict?.ActiveAOEs(slot, actor).Length == 0)
         {
             base.AddAIHints(slot, actor, assignment, hints);
         }
@@ -308,12 +321,13 @@ sealed class Shockwave(BossModule module) : Components.SimpleKnockbacks(module, 
         {
             // what happens if player standing in 2 circles?
             ref var kb = ref Casters.Ref(i);
-            if (Shape!.Check(actor.Position, kb.Origin, default))
+            if (!IsImmune(slot, kb.Activation) && Shape!.Check(actor.Position, kb.Origin, default))
             {
                 knockbacks.Add(kb);
                 break;
             }
         }
+        // don't check isimmune, use calculatemovement and go from there
         return CollectionsMarshal.AsSpan(knockbacks);
     }
 
@@ -330,6 +344,9 @@ sealed class Shockwave(BossModule module) : Components.SimpleKnockbacks(module, 
     private void AddHints(int slot, Actor actor, TextHints? textHints, AIHints? aiHints)
     {
         // what happens when player stands in intersecting circle of 2 spears/knockbacks?
+        // AI spazzes when getting to area in between 2 spear circles
+        // if player standing in intersection, gets knocked back twice; how to determine order? proximity?
+        // have AI only do predict 1 knockback, mark the other 2 circles as forbidden
         var kbs = ActiveKnockbacks(slot, actor);
         if (kbs.Length != 0)
         {
@@ -378,6 +395,17 @@ sealed class Shockwave(BossModule module) : Components.SimpleKnockbacks(module, 
                 }
                 else
                 {
+                    // avoid circle from other 2 knockbacks
+                    var kbCount = Casters.Count;
+                    for (var i = 0; i < kbCount; i++)
+                    {
+                        ref var other = ref Casters.Ref(i);
+                        var origin = other.Origin;
+                        if (!origin.AlmostEqual(kb.Origin, 1f))
+                        {
+                            aiHints?.AddForbiddenZone(new SDCircle(origin, radius + 1f), kb.Activation);
+                        }
+                    }
                     var sd = new SDKnockbackInComplexPolygonAwayFromOriginPlusAOECircles(Arena.Center, kb.Origin, Distance + 1f, polygon, origins, radius + 1f, origins.Length);
                     aiHints?.AddForbiddenZone(sd, kb.Activation);
                 }
@@ -507,6 +535,10 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
                 {
                     hints.GoalZones.Add(AIHints.GoalProximity(aoe.Origin, 3.5f, 1f));
                 }
+                else
+                {
+                    hints.AddForbiddenZone(aoe.Shape, aoe.Origin, activation: aoe.Activation);
+                }
             }
         }
     }
@@ -514,7 +546,7 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(IndexStates),
-    ConfigType = null, // replace null with typeof(IndexConfig) if applicable
+    ConfigType = typeof(IndexConfig),
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
     StatusIDType = typeof(SID),
