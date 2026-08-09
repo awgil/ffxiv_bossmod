@@ -354,11 +354,13 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module) {
             return;
         }
 
+
+
         var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
 
         foreach (var combination in nextCombinations) {
             if (!combination.IsFlare) {
-                Arena.ZoneCircle(combination.Origin, 2.0f, Colors.Other7);
+                Arena.ZoneCircle(combination.Origin, 2.0f, 0xffffff00);
             }
         }
     }
@@ -404,14 +406,15 @@ sealed class FlareHolyMerge(BossModule module) : BossComponent(module) {
 
             if (!combination.IsFlare) {
                 var activation = combination.Activation;
-                var circles = new (WPos Origin, float Radius)[2];
+                var circles = new WPos[2];
                 for (var k = 0; k < 2 && nextCombinations.Count == 2; ++k) {
                     if (nextCombinations[k].IsFlare) {
-                        circles[k] = (nextCombinations[k].Origin, flareShape.Radius);
+                        circles[k] = nextCombinations[k].Origin;
                     }
                 }
 
-                hints.AddForbiddenZone(new SDKnockbackInAABBSquareAwayFromOriginPlusAOECirclesMixedRadii(Arena.Center, combination.Origin, 20f, 19f, circles, 2), activation);
+                hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOriginPlusAOECircles(Arena.Center, combination.Origin, holyKnockBackDistance, 19.0f,
+                    circles, flareShape.Radius, 2), activation);
                 knockbackSetup = true;
             }
         }
@@ -503,7 +506,7 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module)
 
         if (orb.OID == (uint)OID.HolySphereGrow)
         {
-            Arena.ZoneCircle(target.Position, 2.0f, Colors.Other7);
+            Arena.ZoneCircle(target.Position, 2.0f, 0xffffff00);
         }
     }
 
@@ -629,7 +632,7 @@ sealed class CE214TinyTerrorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(CE214TinyTerrorStates),
     ConfigType = null, // replace null with typeof(TinyMageConfig) if applicable
     ObjectIDType = typeof(OID),

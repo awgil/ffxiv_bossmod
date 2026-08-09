@@ -207,7 +207,7 @@ sealed class Acclaim(BossModule module) : Components.GenericAOEs(module)
             {
                 case 0x43B:
                     golemCasters.Add((actor, 3));
-                    totalGolems++; // TODO can most likely be moved above
+                    totalGolems++;
                     break;
                 case 0x43C:
                     golemCasters.Add((actor, 2));
@@ -275,12 +275,12 @@ sealed class Acclaim(BossModule module) : Components.GenericAOEs(module)
                     for (int i = 0; i < golem.turns; i++)
                     {
                         rotation -= 90.0f.Degrees();
-                        incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), WorldState.FutureTime(15.0f + 7.3f * (i + 1)), actorID: aoe.ActorID));
+                        incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), aoe.Activation + TimeSpan.FromSeconds(7.3f * (i + 1)), actorID: aoe.ActorID));
                     }
 
                     for (int i = 0; i < 3 - golem.turns; i++)
                     {
-                        incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), WorldState.FutureTime(15.0f + 7.3f * (golem.turns + i + 1)), actorID: aoe.ActorID));
+                        incomingAOEs.Add(new(shape, aoe.Origin, rotation.Normalized(), aoe.Activation + TimeSpan.FromSeconds(7.3f * (golem.turns + i + 1)), actorID: aoe.ActorID));
                     }
 
                     processedGolems.Add(golem);
@@ -317,7 +317,7 @@ sealed class CE213QuarriedAwayStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE213QuarriedAwayStates),
     ConfigType = null, // replace null with typeof(AlabasterBladeConfig) if applicable
     ObjectIDType = typeof(OID),

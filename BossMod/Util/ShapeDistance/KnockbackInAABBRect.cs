@@ -63,6 +63,33 @@ public sealed class SDKnockbackInAABBRectLeftRightAlongZAxis(WPos Center, float 
 }
 
 [SkipLocalsInit]
+public sealed class SDKnockbackInAABBRectLeftRightAlongXAxis(WPos Center, float Distance, float HalfWidth, float HalfHeight) : ShapeDistance
+{
+    private readonly WPos center = Center;
+    private readonly float originZ = Center.Z;
+    private readonly WDir dir1 = new(Distance, default);
+    private readonly WDir dir2 = new(-Distance, default);
+    private readonly float halfWidth = HalfWidth;
+    private readonly float halfHeight = HalfHeight;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override bool Contains(in WPos p)
+    {
+        if (!(p + (p.Z > originZ ? dir1 : dir2)).InRect(center, halfWidth, halfHeight))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override float Distance(in WPos p) => Contains(p) ? 0f : 1f;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override bool RowIntersectsShape(WPos rowStart, WDir dx, float width, float cushion = default) => true;
+}
+
+[SkipLocalsInit]
 public sealed class SDKnockbackInAABBRectLeftRightAlongZAxisPlusAOERects(WPos Center, float Distance, float HalfWidth, float HalfHeight, (WPos Origin, WDir Direction)[] AOEs, float LengthFront, float RectHalfWidth, int Length) : ShapeDistance
 {
     private readonly WPos center = Center;

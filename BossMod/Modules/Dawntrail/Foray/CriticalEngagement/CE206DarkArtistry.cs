@@ -236,7 +236,7 @@ sealed class CE206DarkArtistryStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE206DarkArtistryStates),
     ConfigType = null, // replace null with typeof(PhantomNecromancerConfig) if applicable
     ObjectIDType = typeof(OID),

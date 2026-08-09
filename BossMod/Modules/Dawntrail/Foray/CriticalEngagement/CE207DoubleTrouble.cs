@@ -102,6 +102,17 @@ sealed class DualCut(BossModule module) : Components.GenericAOEs(module)
 
         return CollectionsMarshal.AsSpan(incomingAOEs);
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (aoes.Count == 0) {
+            return;
+        }
+
+        var nextAOE = aoes.MinBy(aoe => aoe.Activation);
+        var distance = nextAOE.Shape.Distance(nextAOE.Origin, nextAOE.Rotation);
+        hints.GoalZones.Add(p => distance.Distance(p) is > 0.0f and <= 1.0f ? 100.0f : 0.0f);
+    }
 }
 
 [SkipLocalsInit]
@@ -119,7 +130,8 @@ sealed class CE207DoubleTroubleStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+//TODO: Add AI Hint to move closer to the middle of the cleaves to make dodging easier- can be marked as verified after implemented
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE207DoubleTroubleStates),
     ConfigType = null, // replace null with typeof(ConjuredCalofisteriConfig) if applicable
     ObjectIDType = typeof(OID),

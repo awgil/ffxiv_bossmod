@@ -10,8 +10,8 @@ public enum OID : uint
 
     _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
     _Gen_Actor1ec029 = 0x1EC029, // R0.500, x1, EventObj type
-    _Gen_Actor1ec02c = 0x1EC02C, // R0.500, x0 (spawn during fight), EventObj type
-    _Gen_Actor1ec02b = 0x1EC02B, // R0.500, x0 (spawn during fight), EventObj type
+    RouletteRing2 = 0x1EC02C, // R0.500, x0 (spawn during fight), EventObj type
+    RouletteRing1 = 0x1EC02B, // R0.500, x0 (spawn during fight), EventObj type
 }
 
 public enum AID : uint
@@ -44,10 +44,10 @@ public enum AID : uint
     PallKeeperTeleport1 = 49785, // 4D90->location, no cast, single-target
     PallKeeperTeleport2 = 49784, // 4D90->location, no cast, single-target
 
-    _Spell_Roulette = 49787, // Pallmagia->self, 4.0s cast, single-target
-    _Spell_Roulette1 = 49788, // Helper->self, no cast, range 5 circle
-    _Spell_Roulette2 = 49789, // Helper->self, no cast, range 5-12 donut
-    _Spell_Roulette3 = 49790, // Helper->self, no cast, range 12-20 donut
+    Roulette = 49787, // Pallmagia->self, 4.0s cast, single-target
+    Roulette1 = 49788, // Helper->self, no cast, range 5 circle
+    Roulette2 = 49789, // Helper->self, no cast, range 5-12 donut
+    Roulette3 = 49790, // Helper->self, no cast, range 12-20 donut
 
     _Spell_ = 49799, // Helper->self, 5.0s cast, single-target
 }
@@ -89,7 +89,9 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
 {
     private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone cone = new(50.0f, 50.0f.Degrees());
-    private readonly AOEShapeCircle circle = new((30.0f));
+    private readonly AOEShapeCircle circle = new(30.0f);
+    private bool swap = false;
+    private bool reversed = false;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -97,10 +99,15 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
         {
             Service.Logger.Info("no swap");
         }
-
-        if (spell.Action.ID == (uint)AID.EsotericInstructionSwap)
+        else if (spell.Action.ID == (uint)AID.EsotericInstructionSwap)
         {
+            swap = true;
+            reversed = false;
             Service.Logger.Info("time to swap");
+        }
+        else if (spell.Action.ID == (uint)AID.ReversePolarity)
+        {
+            reversed = true;
         }
     }
 
@@ -147,6 +154,21 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
         }
     }
 
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.EsotericInstruction or (uint)AID.EsotericInstructionSwap)
+        {
+            var swapping = spell.Action.ID == (uint)AID.EsotericInstructionSwap;
+
+            var count = aoes.Count;
+            for (var i = 0; i < count; i++)
+            {
+                ref var aoe = ref aoes.Ref(i);
+                aoe.Activation = WorldState.FutureTime((swapping ? 6.6d : 0d) + 6d + i * 4.5d);
+            }
+        }
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID is (uint)AID.BadBreathPallkeeper or (uint)AID.PlaincrackerPallkeeper)
@@ -160,40 +182,88 @@ sealed class EsotericInstruction(BossModule module) : Components.GenericAOEs(mod
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        int shown = 0;
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
+        // don't show until swapped
+        if (!swap || swap && reversed)
         {
-            if (shown >= 2)
-            {
-                break;
-            }
+            var count = aoes.Count;
+            if (count == 0)
+                return [];
 
-            aoe.Color = shown == 0 ? Colors.Danger : Colors.AOE;
-            aoe.Risky = shown == 0;
-            shown++;
+            var max = count > 2 ? 2 : count;
+            var aoeSpan = CollectionsMarshal.AsSpan(aoes);
+            if (count > 1)
+            {
+                ref var aoe0 = ref aoeSpan[0];
+                aoe0.Color = Colors.Danger;
+            }
+            return aoeSpan[..max];
         }
 
-        return CollectionsMarshal.AsSpan(aoes)[..shown];
+        return [];
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // move if no swap or already swapped, stay in center while waiting for swap
+        if (aoes.Count != 0)
+        {
+            if (!swap || swap && reversed)
+            {
+                base.AddAIHints(slot, actor, assignment, hints);
+            }
+            else
+            {
+                hints.AddForbiddenZone(new AOEShapeDonut(5f, 40f), Arena.Center);
+            }
+        }
     }
 }
 
-sealed class Roulette(BossModule module) : BossComponent(module)
+sealed class Roulette(BossModule module) : Components.GenericAOEs(module)
 {
+    private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeDonutSector outer = new(12f, 20f, 67.5f.Degrees(), 22.5f.Degrees());
+    private readonly AOEShapeDonutSector inner = new(5f, 12f, 60f.Degrees(), -60f.Degrees());
+    private readonly Angle outerDiff = 67.5f.Degrees();
+    private readonly Angle innerDiff = 120f.Degrees();
 
-    /*
-     00:09:33.393 | INF | [BossModReborn] actor created 2015276
-    00:09:33.393 | INF | [BossModReborn] actor created 2015275
-    00:09:37.928 | INF | [BossModReborn] actor 2015276 state 65538
-    00:09:37.928 | INF | [BossModReborn] actor 2015275 state 65538
-    00:10:14.213 | INF | [BossModReborn] actor 2015276 state 262160
-    00:10:14.213 | INF | [BossModReborn] actor 2015275 state 262176
-    cardinal are safe
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        return CollectionsMarshal.AsSpan(aoes);
+    }
 
-    start was also this:
-    2c - 0 rotation - north & south out, east and west inner
-    2b - 0 rotation ^
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.Roulette)
+        {
+            aoes.Add(new(new AOEShapeCircle(5f), Arena.Center, activation: WorldState.FutureTime(18.3d)));
+        }
+    }
 
-     */
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID is (uint)OID.RouletteRing1 or (uint)OID.RouletteRing2)
+        {
+            if (state is 0x00040010 or 0x00040020)
+            {
+                var act = WorldState.FutureTime(10d);
+                var isCW = state == 0x00040020;
+                var shape = actor.OID == (uint)OID.RouletteRing2 ? inner : outer;
+                var diff = actor.OID == (uint)OID.RouletteRing2 ? innerDiff : outerDiff;
+
+                aoes.Add(new(shape, Arena.Center, actor.Rotation + diff * (isCW ? -1f : 1f), act));
+                aoes.Add(new(shape, Arena.Center, actor.Rotation + 180f.Degrees() + diff * (isCW ? -1f : 1f), act));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.Roulette1)
+        {
+            aoes.Clear();
+        }
+    }
 }
 
 [SkipLocalsInit]
@@ -213,7 +283,7 @@ sealed class CE204AppallingBehaviorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(CE204AppallingBehaviorStates),
     ConfigType = null, // replace null with typeof(PallmagiaConfig) if applicable
     ObjectIDType = typeof(OID),
@@ -222,7 +292,7 @@ sealed class CE204AppallingBehaviorStates : StateMachineBuilder
     TetherIDType = typeof(TetherID), // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.Pallmagia,
-    Contributors = "Equilius",
+    Contributors = "Gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
     GroupType = BossModuleInfo.GroupType.CFC,

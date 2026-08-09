@@ -81,7 +81,7 @@ public sealed class NormalMovement : RotationModule
         if (_decisionTask.IsCompletedSuccessfully)
         {
             _lastDecision = _decisionTask.Result;
-        }
+            }
 
         if (_decisionTask.IsCompleted)
         {
@@ -297,8 +297,12 @@ public sealed class NormalMovement : RotationModule
         }
         else
         {
-            // fine to move if we won't interrupt cast or only just started casting (or are explicitly allowed to)
-            var allowMovement = Player.CastInfo == null || Player.CastInfo.EventHappened || Player.CastInfo.ElapsedTime <= 1.0f || castStrategy is CastStrategy.DropMove or CastStrategy.DropInstants;
+            // fine to move if we won't interrupt cast (or are explicitly allowed to)
+            // note: do NOT unconditionally allow movement just because the cast barely started - that would defeat
+            // leeway/slidecasting entirely, since almost every cast starts with some non-urgent repositioning pending.
+            // the dedicated CastStrategy.Leeway handling below already forces movement (and cancels the cast) when
+            // there genuinely isn't enough leeway left to both finish the cast and reach the destination in time.
+            var allowMovement = Player.CastInfo == null || Player.CastInfo.EventHappened || castStrategy is CastStrategy.DropMove or CastStrategy.DropInstants;
             Hints.ForcedMovement = allowMovement ? dir.ToVec3(Player.PosRot.Y) : default;
         }
 

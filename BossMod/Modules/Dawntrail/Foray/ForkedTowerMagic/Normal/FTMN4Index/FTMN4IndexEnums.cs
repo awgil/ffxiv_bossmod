@@ -17,12 +17,12 @@ public enum OID : uint
     Actor1e8f2f = 0x1E8F2F, // R0.500, x1, EventObj type
     Actor1e8fb8 = 0x1E8FB8, // R2.000, x1, EventObj type
     Actor1ea1a1 = 0x1EA1A1, // R0.500, x1, EventObj type
-    Actor1ec008 = 0x1EC008, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1ec009 = 0x1EC009, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1ec00a = 0x1EC00A, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1ec00b = 0x1EC00B, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1ec00c = 0x1EC00C, // R0.500, x0 (spawn during fight), EventObj type
-    Actor1ec00d = 0x1EC00D, // R0.500, x0 (spawn during fight), EventObj type
+    OmniElementFire = 0x1EC008, // R0.500, x0 (spawn during fight), EventObj type, goes across arena to both sides, created before Elementary Evocation
+    OmniElementIce = 0x1EC009, // R0.500, x0 (spawn during fight), EventObj type
+    OmniElementThunder = 0x1EC00A, // R0.500, x0 (spawn during fight), EventObj type
+    ExpansionFire = 0x1EC00B, // R0.500, x0 (spawn during fight), EventObj type
+    ExpansionIce = 0x1EC00C, // R0.500, x0 (spawn during fight), EventObj type
+    ExpansionThunder = 0x1EC00D, // R0.500, x0 (spawn during fight), EventObj type
     Actor1ec00f = 0x1EC00F, // R0.500, x0 (spawn during fight), EventObj type
 }
 
@@ -43,12 +43,12 @@ public enum AID : uint
     ElementaryExpansion = 48399, // Index->self, 3.0s cast, single-target
     BlizzardIV = 48397, // IndexHelper->self, no cast, range 30 ?-degree cone
     ThunderIV = 48398, // IndexHelper->self, no cast, range 30 ?-degree cone
-    ElementaryChemistry = 48401, // Index->self, 3.9+1.1s cast, single-target
+    ElementaryChemistryCast = 48401, // Index->self, 3.9+1.1s cast, single-target
     ElementaryChemistry1 = 48402, // IndexHelper->self, no cast, ???
-    UnknownWeaponskill2 = 48905, // IndexHelper->self, 6.0s cast, range 15 width 15 rect
+    ElementaryChemistry = 48905, // IndexHelper->self, 6.0s cast, range 15 width 15 rect
     PropulsiveProphecy = 48403, // Index->self, 3.0s cast, single-target
     Jump = 48404, // TranscribedIndex->self, no cast, single-target
-    Shockwave = 48406, // IndexHelper->self, 5.0s cast, ???
+    Shockwave = 48406, // IndexHelper->self, 5.0s cast, ???, 9f kb
     Shockwave1 = 48405, // HolyLance->self, 5.0s cast, single-target
     Summon = 48408, // Index->self, 3.0s cast, single-target
     DuologyOfImplements = 48388, // Index->self, 5.0+1.0s cast, single-target
@@ -58,7 +58,7 @@ public enum AID : uint
     AllKnowingFlames = 48418, // Index->self, 5.0s cast, single-target
     AllConsumingFlames = 48420, // IndexHelper->players, no cast, range 6 circle
     Predict = 48412, // Index->self, 3.0s cast, single-target
-    Cleansing = 48414, // ForetoldPhenomenon->self, 0.5s cast, range ?-15 donut
+    Cleansing = 48414, // ForetoldPhenomenon->self, 0.5s cast, range 4-15 donut
     Starfall = 48413, // ForetoldPhenomenon->self, 0.5s cast, range 10 circle
     Dualcast = 48407, // Index->self, 3.0s cast, single-target
     Flare2 = 48416, // Index->self, no cast, single-target
@@ -71,18 +71,17 @@ public enum SID : uint
     SealOfTheBow = 5534, // none->Index, extra=0x401
     SealOfTheBlade = 5533, // none->Index, extra=0x402
     SealOfTheBell = 5532, // none->Index, extra=0x403
-    UnknownStatus = 2552, // none->ForetoldPhenomenon, extra=0x44C/0x44D
+    Predict = 2552, // none->ForetoldPhenomenon, extra=0x44C/0x44D, donut/circle
     Dualcast = 5438, // Index->Index, extra=0x0
-
 }
 public enum IconID : uint
 {
-    Icon_loc06sp_05ak1 = 466, // player->self
+    Spread = 466, // player->self
 }
 public enum TetherID : uint
 {
-    Tether_chn_m0947_f1_p = 365, // BallOfFire->BallOfFire
-    Tether_chn_m0361_mainte_1i = 88, // Index2->ForetoldPhenomenon
-    Tether_chn_m0947_t1_p = 363, // BallOfLevin->BallOfLevin
-    Tether_chn_m0947_i1_p = 364, // SwirlingOrb->SwirlingOrb
+    Predict = 88, // Index2->ForetoldPhenomenon
+    Thunder = 363, // BallOfLevin->BallOfLevin
+    Ice = 364, // SwirlingOrb->SwirlingOrb
+    Fire = 365, // BallOfFire->BallOfFire
 }

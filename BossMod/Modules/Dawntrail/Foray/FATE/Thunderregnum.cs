@@ -1,7 +1,6 @@
-﻿namespace BossMod.Dawntrail.Foray.FATE.NH103Cresceregina;
+﻿namespace BossMod.Dawntrail.Foray.FATE.Thunderregnum;
 
-public enum OID : uint
-{
+public enum OID : uint {
     Cresceregina = 0x4D63,
     Helper = 0x233C,
     Cresceregina1 = 0x4EC4, // R0.500, x0 (spawn during fight)
@@ -11,8 +10,7 @@ public enum OID : uint
     BallOfLevin = 0x4D64, // R2.000, x0 (spawn during fight)
 }
 
-public enum AID : uint
-{
+public enum AID : uint {
     AutoAttack = 50539, // Cresceregina->player, no cast, single-target
     HighCaterwaul = 49499, // Cresceregina->self, 3.0s cast, single-target
     RegalFulguration = 49494, // Cresceregina->self, 5.0s cast, range 40 180.000-degree cone
@@ -34,14 +32,11 @@ sealed class RegalFulguration(BossModule module) : Components.SimpleAOEGroups(mo
 sealed class Thunderbolt(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Thunderbolt, 10f);
 sealed class NobleBlaster(BossModule module) : Components.SimpleAOEs(module, (uint)AID.NobleBlaster, new AOEShapeRect(50.0f, 2.5f));
 
-sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(module)
-{
+sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(module) {
     private readonly List<AOEInstance> aoes = [];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        switch (spell.Action.ID)
-        {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
+        switch (spell.Action.ID) {
             case (uint)AID.ThunderboltPuddle:
             case (uint)AID.ThunderboltPuddle1:
             case (uint)AID.ThunderboltPuddle2:
@@ -56,10 +51,8 @@ sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(modul
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        switch (spell.Action.ID)
-        {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+        switch (spell.Action.ID) {
             case (uint)AID.ThunderboltPuddle:
             case (uint)AID.ThunderboltPuddle1:
             case (uint)AID.ThunderboltPuddle2:
@@ -69,23 +62,19 @@ sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(modul
             case (uint)AID.ThunderboltPuddle6:
             case (uint)AID.ThunderboltPuddle7:
             case (uint)AID.ThunderboltPuddle8:
-                if (aoes.Count > 0)
-                {
-                    aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.5f));
+                aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
+                if (aoes.Count > 0) {
+                    aoes.RemoveAt(0);
                 }
                 break;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        int show = 0;
-
-        aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(aoes))
-        {
-            if (show == 3)
-            {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+        var incomingAOEs = aoes.OrderBy(aoe => aoe.Activation).Take(8).ToList();
+        var show = 0;
+        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
+            if (show >= 3) {
                 break;
             }
 
@@ -94,15 +83,13 @@ sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(modul
             show++;
         }
 
-        return CollectionsMarshal.AsSpan(aoes);
+        return CollectionsMarshal.AsSpan(incomingAOEs);
     }
 }
 
 [SkipLocalsInit]
-sealed class CrescereginaStates : StateMachineBuilder
-{
-    public CrescereginaStates(BossModule module) : base(module)
-    {
+sealed class ThunderregnumStates : StateMachineBuilder {
+    public ThunderregnumStates(BossModule module) : base(module) {
         TrivialPhase()
             .ActivateOnEnter<RegalFulguration>()
             .ActivateOnEnter<Thunderbolt>()
@@ -111,11 +98,11 @@ sealed class CrescereginaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
-    StatesType = typeof(CrescereginaStates),
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
+    StatesType = typeof(ThunderregnumStates),
     ConfigType = null, // replace null with typeof(CrescereginaConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
+    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
     StatusIDType = null, // replace null with typeof(SID) if applicable
     TetherIDType = null, // replace null with typeof(TetherID) if applicable
     IconIDType = null, // replace null with typeof(IconID) if applicable
@@ -126,7 +113,7 @@ sealed class CrescereginaStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1093u,
     NameID = 14785u,
-    SortOrder = 1,
+    SortOrder = 29,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Cresceregina(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
+public sealed class Thunderregnum(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
