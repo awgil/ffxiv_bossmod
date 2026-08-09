@@ -87,6 +87,13 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                 config.AssociatedActions.Add(ActionID.MakeSpell(aid));
             return this;
         }
+
+        public ConfigRef<Index> VisibleWhen<TrackIndex>(TrackIndex track, int option) where TrackIndex : Enum
+        {
+            config.VisibleWhenTrack = (int)(object)track;
+            config.VisibleWhenOption = option;
+            return this;
+        }
     }
 
     public DefineRef Define<Index>(Index expectedIndex) where Index : Enum => new(Configs, (int)(object)expectedIndex);

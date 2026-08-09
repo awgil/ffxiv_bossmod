@@ -1,4 +1,5 @@
-﻿using BossMod.Pathfinding;
+﻿using BossMod.Autorotation.xan;
+using BossMod.Pathfinding;
 
 namespace BossMod.Autorotation.MiscAI;
 
@@ -65,13 +66,14 @@ public sealed class NormalMovement : RotationModule
             .AddOption(DelayMovementStrategy.None, "Do not delay movement")
             .AddOption(DelayMovementStrategy.Short, "Delay movement by 0.5s")
             .AddOption(DelayMovementStrategy.Long, "Delay movement by 1s");
-        res.Define(Track.SeparateDodgeDelay).As<SeparateDodgeDelayStrategy>("SeparateDodgeDelay", "Separate Dodge Delay", 8)
-            .AddOption(SeparateDodgeDelayStrategy.Disabled, "Use Delay Movement for all movement (including dodges)")
-            .AddOption(SeparateDodgeDelayStrategy.Enabled, "Use Delay Movement for non-dodge movement; use Dodge Delay Movement for dodges");
+        res.Define(Track.SeparateDodgeDelay).As<SeparateDodgeDelayStrategy>("SeparateDodgeDelay", "Separate Dodge Delay", 8, renderer: typeof(DefaultOffRenderer))
+            .AddOption(SeparateDodgeDelayStrategy.Disabled)
+            .AddOption(SeparateDodgeDelayStrategy.Enabled);
         res.Define(Track.DodgeDelayMovement).As<DelayMovementStrategy>("DodgeDelayMovement", "Dodge Delay Movement", 7)
             .AddOption(DelayMovementStrategy.None, "Do not delay dodge movement")
             .AddOption(DelayMovementStrategy.Short, "Delay dodge movement by 0.5s")
-            .AddOption(DelayMovementStrategy.Long, "Delay dodge movement by 1s");
+            .AddOption(DelayMovementStrategy.Long, "Delay dodge movement by 1s")
+            .VisibleWhen(Track.SeparateDodgeDelay, (int)SeparateDodgeDelayStrategy.Enabled);
         return res;
     }
 
