@@ -105,6 +105,8 @@ sealed class TailToClaw(BossModule module) : Components.GenericAOEs(module)
 sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
 {
     public readonly List<Actor> Actors = [];
+    private readonly AOEShapeCircle circle = new(4);
+
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         List<AOEInstance> aoes = [];
@@ -112,7 +114,7 @@ sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
         for (var i = 0; i < count; i++)
         {
             ref var topaz = ref Actors.Ref(i);
-            aoes.Add(new(new AOEShapeCircle(4f), topaz.Position));
+            aoes.Add(new(circle, topaz.Position));
         }
         return CollectionsMarshal.AsSpan(aoes);
     }
@@ -164,10 +166,33 @@ sealed class TopazRay(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
+sealed class RubyReflection : Components.GenericAOEs
 {
-    private readonly TopazRay TopazComponent = module.FindComponent<TopazRay>()!;
+    public RubyReflection(BossModule module) : base(module)
+    {
+        var center = Arena.Center;
+        Reflection1Zero =
+        [
+            new(center, [new Square(new(223f, 337f), 5f), new Square(new(233f, 337f), 5f), new Square(new(233f, 347f), 5f), new Square(new(233f, 357f), 5f)]),
+            new(center, [new Square(new(223f, 347f), 5f), new Square(new(223f, 357f), 5f), new Square(new(223f, 367f), 5f), new Square(new(233f, 367f), 5f)]),
+            new(center, [new Square(new(243f, 337f), 5f), new Square(new(253f, 337f), 5f), new Square(new(253f, 347f), 5f), new Square(new(253f, 357f), 5f)]),
+            new(center, [new Square(new(243f, 347f), 5f), new Square(new(243f, 357f), 5f), new Square(new(243f, 367f), 5f), new Square(new(253f, 367f), 5f)])
+        ];
+        Reflection2Zero =
+        [
+            new(center, [new Square(new(223f, 337f), 5f), new Square(new(223f, 347f), 5f), new Square(new(233f, 347f), 5f), new Square(new(243f, 347f), 5f)]),
+            new(center, [new Square(new(233f, 337f), 5f), new Square(new(243f, 337f), 5f), new Square(new(253f, 337f), 5f), new Square(new(253f, 347f), 5f)]),
+            new(center, [new Square(new(223f, 357f), 5f), new Square(new(223f, 367f), 5f), new Square(new(233f, 367f), 5f), new Square(new(243f, 367f), 5f)]),
+            new(center, [new Square(new(233f, 357f), 5f), new Square(new(243f, 357f), 5f), new Square(new(253f, 357f), 5f), new Square(new(253f, 367f), 5f)]),
+        ];
+        TopazComponent = module.FindComponent<TopazRay>()!;
+    }
+    private readonly TopazRay TopazComponent;
     private readonly List<AOEInstance> aoes = [];
+    private readonly AOEShapeRect rect = new(10f, 10f, 10f);
+    private readonly WPos[] Quadrants = [new(228f, 342f), new(248f, 342f), new(228f, 362f), new(248f, 362f)];
+    private readonly AOEShapeCustom[] Reflection1Zero;
+    private readonly AOEShapeCustom[] Reflection2Zero;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -193,7 +218,7 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                         var p = Arena.ClampToBounds(t.Position + (t.Rotation + 180f.Degrees()).ToDirection() * 3f);
                         if (quad.InSquare(t.Position, 10f) && !quad.InSquare(p, 10f))
                         {
-                            aoes.Add(new(new AOEShapeRect(10f, 10f, 10f), quad, activation: act));
+                            aoes.Add(new(rect, quad, activation: act, shapeDistance: rect.Distance(quad, default)));
                         }
                     }
                 }
@@ -201,12 +226,12 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
         }
         else if (actor.OID == (uint)OID.Actor1ec046)
         {
-            if (state is 0x00100020 or 0x01000200)
+            if (state is 0x00100020u or 0x01000200u)
             {
                 var act = WorldState.FutureTime(14.8d);
                 var shapes = state == 0x00100020 ? Reflection2Zero : Reflection1Zero;
                 var rubyRot = actor.Rotation;
-
+                var center = Arena.Center;
                 var shapeCount = shapes.Length;
                 var topaz = CollectionsMarshal.AsSpan(TopazComponent.Actors);
                 var topazCount = topaz.Length;
@@ -215,12 +240,15 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                     for (var j = 0; j < shapeCount; j++)
                     {
                         var shape = shapes[j];
-                        shape.Polygon = shape.GetCombinedPolygon(Arena.Center).Transform(default, rubyRot.ToDirection());
+                        var poly = shape.Polygon.Transform(default, rubyRot.ToDirection());
+                        poly.InitPolygonIndex();
                         var t = topaz[i];
                         var p = Arena.ClampToBounds(t.Position + (t.Rotation + 180f.Degrees()).ToDirection() * 3f);
-                        if (shape.Check(t.Position, Arena.Center, default) && !shape.Check(p, Arena.Center, default))
+                        if (poly.Contains(t.Position - center) && !poly.Contains(p - center))
                         {
-                            aoes.Add(new(shape, Arena.Center, activation: act));
+                            var aoe = new AOEShapeCustom(center, [], skipPolygonInit: true);
+                            aoe.ReplacePolygon(poly, center);
+                            aoes.Add(new(shape, center, activation: act, shapeDistance: aoe.Distance(center, default)));
                         }
                     }
                 }
@@ -242,20 +270,6 @@ sealed class RubyReflection(BossModule module) : Components.GenericAOEs(module)
             }
         }
     }
-
-    private readonly WPos[] Quadrants = [new(228f, 342f), new(248f, 342f), new(228f, 362f), new(248f, 362f)];
-    private readonly AOEShapeCustom[] Reflection1Zero = [
-        new([new Square(new(223f, 337f), 5f), new Square(new(233f, 337f), 5f), new Square(new(233f, 347f), 5f), new Square(new(233f, 357f), 5f),]),
-        new([new Square(new(223f, 347f), 5f), new Square(new(223f, 357f), 5f), new Square(new(223f, 367f), 5f), new Square(new(233f, 367f), 5f),]),
-        new([new Square(new(243f, 337f), 5f), new Square(new(253f, 337f), 5f), new Square(new(253f, 347f), 5f), new Square(new(253f, 357f), 5f),]),
-        new([new Square(new(243f, 347f), 5f), new Square(new(243f, 357f), 5f), new Square(new(243f, 367f), 5f), new Square(new(253f, 367f), 5f),]),
-    ];
-    private readonly AOEShapeCustom[] Reflection2Zero = [
-        new([new Square(new(223f, 337f), 5f), new Square(new(223f, 347f), 5f), new Square(new(233f, 347f), 5f), new Square(new(243f, 347f), 5f)]),
-        new([new Square(new(233f, 337f), 5f), new Square(new(243f, 337f), 5f), new Square(new(253f, 337f), 5f), new Square(new(253f, 347f), 5f)]),
-        new([new Square(new(223f, 357f), 5f), new Square(new(223f, 367f), 5f), new Square(new(233f, 367f), 5f), new Square(new(243f, 367f), 5f)]),
-        new([new Square(new(233f, 357f), 5f), new Square(new(243f, 357f), 5f), new Square(new(253f, 357f), 5f), new Square(new(253f, 367f), 5f)]),
-    ];
 }
 
 sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockback(module)
