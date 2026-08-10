@@ -559,7 +559,7 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
     GroupType = BossModuleInfo.GroupType.TheForkedTowerMagic,
     GroupID = 1093u,
     NameID = 14717u,
-    SortOrder = 1,
+    SortOrder = 4,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class Index(WorldState ws, Actor primary) : BossModule(ws, primary, InitialCenter, InitialBounds)

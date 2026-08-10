@@ -102,7 +102,7 @@ sealed class VacuumWave(BossModule module) : Components.SimpleAOEs(module, (uint
     GroupType = BossModuleInfo.GroupType.TheForkedTowerMagic,
     GroupID = 1093u,
     NameID = 14503u,
-    SortOrder = 1,
+    SortOrder = 3,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class Necrophobia(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 800f), new ArenaBoundsCircle(24f))

@@ -195,7 +195,7 @@ sealed class Steelsbreath(BossModule module) : Components.GenericKnockback(modul
     GroupType = BossModuleInfo.GroupType.TheForkedTowerMagic,
     GroupID = 1093u,
     NameID = 14820u,
-    SortOrder = 1,
+    SortOrder = 2,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class SwordDancer(WorldState ws, Actor primary) : BossModule(ws, primary, new(600f, 704f), new ArenaBoundsCircle(24f))

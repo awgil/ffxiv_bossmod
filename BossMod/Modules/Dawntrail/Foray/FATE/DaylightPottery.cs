@@ -1,6 +1,4 @@
-﻿using WinRT;
-
-namespace BossMod.Dawntrail.Foray.FATE.DaylightPottery;
+﻿namespace BossMod.Dawntrail.Foray.FATE.DaylightPottery;
 
 public enum OID : uint
 {
