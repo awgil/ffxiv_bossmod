@@ -28,9 +28,7 @@ public enum SID : uint {
 sealed class GardenersHymn(BossModule module) : Components.SimpleAOEs(module, (uint)AID.GardenersHymn, 5f);
 sealed class OdeOfTheUnderfoot(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OdeOfTheUnderfoot, 10f);
 
-sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 3.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, default, default) {
-    private const float aoeCircle = 10.0f;
-
+sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch(module, 2.0f, (uint)SID.ForwardMarch, (uint)SID.AboutFace, default, default) {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
         var state = State.GetValueOrDefault(actor.InstanceID);
@@ -41,16 +39,10 @@ sealed class IambicMarch(BossModule module) : Components.StatusDrivenForcedMarch
         var move0 = state.PendingMoves[0];
         var requiredFacing = Angle.FromDirection((actor.Position - Module.PrimaryActor.Position).Normalized()) - move0.dir;
         hints.ForbiddenDirections.Add((requiredFacing + 180.0f.Degrees(), 170.0f.Degrees(), move0.activation));
-        var moveDistance = MovementSpeed * move0.duration;
-        var unsafeRadius = aoeCircle - moveDistance;
-        if (unsafeRadius > 0.0f) {
-            hints.AddForbiddenZone(new SDCircle(Module.PrimaryActor.Position, unsafeRadius), move0.activation);
-        }
     }
 }
 
-sealed class Burst(BossModule module) : Components.GenericAOEs(module) {
-    private readonly List<AOEInstance> aoes = [];
+sealed class Burst(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Burst, 15.0f, riskyWithSecondsLeft: 6.0f) {
     private readonly List<Actor> seeds = [];
 
     public override void OnActorCreated(Actor actor) {
@@ -68,22 +60,13 @@ sealed class Burst(BossModule module) : Components.GenericAOEs(module) {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID == (uint)AID.GardenersHymn) {
             foreach (var seed in seeds) {
-                if (caster.Position.AlmostEqual(seed.Position, 0.5f)) {
-                    aoes.Add(new(new AOEShapeCircle(15.0f), seed.Position));
+                if (seed.Position.InCircle(spell.LocXZ, 5.0f)) {
+                    Casters.Add(new(Shape, seed.Position, default, Module.CastFinishAt(spell, 3.5f), actorID: seed.InstanceID,
+                        shapeDistance: Shape.Distance(seed.Position, default)));
                 }
             }
         }
     }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.Burst) {
-            if (aoes.Count > 0) {
-                aoes.RemoveAll(a => a.Origin.AlmostEqual(caster.Position, 0.5f));
-            }
-        }
-    }
-
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(aoes);
 }
 
 [SkipLocalsInit]

@@ -32,58 +32,36 @@ sealed class RegalFulguration(BossModule module) : Components.SimpleAOEGroups(mo
 sealed class Thunderbolt(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Thunderbolt, 10f);
 sealed class NobleBlaster(BossModule module) : Components.SimpleAOEs(module, (uint)AID.NobleBlaster, new AOEShapeRect(50.0f, 2.5f));
 
-sealed class ThunderboltPuddle(BossModule module) : Components.GenericAOEs(module) {
-    private readonly List<AOEInstance> aoes = [];
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        switch (spell.Action.ID) {
-            case (uint)AID.ThunderboltPuddle:
-            case (uint)AID.ThunderboltPuddle1:
-            case (uint)AID.ThunderboltPuddle2:
-            case (uint)AID.ThunderboltPuddle3:
-            case (uint)AID.ThunderboltPuddle4:
-            case (uint)AID.ThunderboltPuddle5:
-            case (uint)AID.ThunderboltPuddle6:
-            case (uint)AID.ThunderboltPuddle7:
-            case (uint)AID.ThunderboltPuddle8:
-                aoes.Add(new(new AOEShapeCircle(10.0f), caster.Position, activation: Module.CastFinishAt(spell)));
-                break;
-        }
+sealed class ThunderboltPuddle: Components.SimpleAOEGroups {
+    public ThunderboltPuddle(BossModule module) : base(module, [(uint)AID.ThunderboltPuddle, (uint)AID.ThunderboltPuddle1, (uint)AID.ThunderboltPuddle2,
+            (uint)AID.ThunderboltPuddle3, (uint)AID.ThunderboltPuddle4, (uint)AID.ThunderboltPuddle5, (uint)AID.ThunderboltPuddle6,
+            (uint)AID.ThunderboltPuddle7, (uint)AID.ThunderboltPuddle8], new AOEShapeCircle(10.0f), 8, 9, 5.0f) {
+        MaxDangerColor = 5;
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        switch (spell.Action.ID) {
-            case (uint)AID.ThunderboltPuddle:
-            case (uint)AID.ThunderboltPuddle1:
-            case (uint)AID.ThunderboltPuddle2:
-            case (uint)AID.ThunderboltPuddle3:
-            case (uint)AID.ThunderboltPuddle4:
-            case (uint)AID.ThunderboltPuddle5:
-            case (uint)AID.ThunderboltPuddle6:
-            case (uint)AID.ThunderboltPuddle7:
-            case (uint)AID.ThunderboltPuddle8:
-                aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-                if (aoes.Count > 0) {
-                    aoes.RemoveAt(0);
-                }
-                break;
-        }
-    }
-
+    // Same function as the base, but changed so the MaxDangerColor is used for the final aoes instead of changing to the normal colour
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        var incomingAOEs = aoes.OrderBy(aoe => aoe.Activation).Take(8).ToList();
-        var show = 0;
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
-            if (show >= 3) {
-                break;
-            }
-
-            aoe.Color = Colors.Danger;
-            aoe.Risky = true;
-            show++;
+        var count = Casters.Count;
+        if (count == 0) {
+            return [];
         }
 
-        return CollectionsMarshal.AsSpan(incomingAOEs);
+        var time = WorldState.CurrentTime;
+        var max = count > MaxCasts ? MaxCasts : count;
+
+        var aoes = CollectionsMarshal.AsSpan(Casters);
+        for (var i = 0; i < max; ++i) {
+            ref var aoe = ref aoes[i];
+            var color = i < MaxDangerColor ? Colors.Danger : Color;
+            var risky = Risky && (MaxRisky == null || i < MaxRisky);
+
+            if (RiskyWithSecondsLeft != default) {
+                risky &= aoe.Activation.AddSeconds(-RiskyWithSecondsLeft) <= time;
+            }
+            aoe.Color = color;
+            aoe.Risky = risky;
+        }
+        return aoes[..max];
     }
 }
 

@@ -23,58 +23,65 @@ public enum AID : uint {
     Uplift = 47611, // Machetaur2/Machetaur3/Machetaur1/Machetaur4->location, 3.0s cast, range 6 circle
 
     OctupleSwipe = 47600, // Machetaur->self, 10.0s cast, single-target
-    OctupleSwipeVisual = 47601, // Machetaur1->self, 1.0s cast, range 40 ?-degree cone
-    OctupleSwipe1 = 47604, // Machetaur->self, no cast, range 40 ?-degree cone
-    OctupleSwipe2 = 47605, // Machetaur->self, no cast, range 40 ?-degree cone
-    OctupleSwipe3 = 47602, // Machetaur->self, no cast, range 40 ?-degree cone
+    OctupleSwipeVisual = 47601, // Machetaur1->self, 1.0s cast, range 40 90-degree cone
+    OctupleSwipe1 = 47604, // Machetaur->self, no cast, range 40 90-degree cone
+    OctupleSwipe2 = 47605, // Machetaur->self, no cast, range 40 90-degree cone
+    OctupleSwipe3 = 47602, // Machetaur->self, no cast, range 40 90-degree cone
+    OctupleSwipe4 = 47603, // Boss->self, no cast, range 40 90-degree cone
 }
 
-sealed class FocusedTremor(BossModule module) : Components.RaidwideCast(module, (uint)AID.FocusedTremor);
-sealed class BruntOfTheBattlefield(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BruntOfTheBattlefield, 10f);
-sealed class Uplift(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Uplift, 6f);
+sealed class FocusedTremor(BossModule module) : Components.RaidwideCast(module, (uint)AID.FocusedTremorCast);
+sealed class BruntOfTheBattlefield(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BruntOfTheBattlefield, 10.0f);
+sealed class Uplift(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Uplift, 6.0f);
 
 sealed class FocusedTremorCircle(BossModule module) : Components.GenericAOEs(module) {
-    private readonly List<AOEInstance> aoes = [];
+    public readonly List<AOEInstance> Casters = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.FocusedTremorInner) {
-            aoes.Add(new(new AOEShapeCircle(10), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-        }
+        AOEShape? shape = (AID)spell.Action.ID switch {
+            AID.FocusedTremorInner => new AOEShapeCircle(10.0f),
+            AID.FocusedTremorMiddle => new AOEShapeDonut(10.0f, 20.0f),
+            AID.FocusedTremorOuter => new AOEShapeDonut(20.0f, 30.0f),
+            _ => null
+        };
 
-        if (spell.Action.ID == (uint)AID.FocusedTremorMiddle) {
-            aoes.Add(new(new AOEShapeDonut(10, 20), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-        }
-
-        if (spell.Action.ID == (uint)AID.FocusedTremorOuter) {
-            aoes.Add(new(new AOEShapeDonut(20, 30), caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
+        if (shape != null) {
+            var origin = spell.LocXZ;
+            var rotation = spell.Rotation;
+            Casters.Add(new(shape, origin, rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID, shapeDistance: shape.Distance(origin, rotation)));
+            SortHelpers.SortAOEByActivation(Casters);
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell) {
         if (spell.Action.ID is (uint)AID.FocusedTremorInner or (uint)AID.FocusedTremorMiddle or (uint)AID.FocusedTremorOuter) {
-            aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-            if (aoes.Count > 0) {
-                aoes.RemoveAt(0);
+            if (Casters.Count > 0) {
+                Casters.RemoveAt(0);
             }
         }
     }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        int show = 0;
-        var incomingAOEs = aoes.OrderBy(a => a.Activation).Take(2).ToList();
-
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
-            aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
-            aoe.Risky = show == 0;
-            show++;
+        var count = Casters.Count;
+        if (count == 0) {
+            return [];
         }
 
-        return CollectionsMarshal.AsSpan(incomingAOEs);
+        var max = count > 2 ? 2 : count;
+        var aoes = CollectionsMarshal.AsSpan(Casters);
+
+        for (int i = 0; i < max; i++) {
+            ref var aoe = ref aoes[i];
+            aoe.Color = i == 0 ? Colors.Danger : Colors.AOE;
+            aoe.Risky = i == 0;
+        }
+
+        return aoes[..max];
     }
 }
 
 sealed class OctupleSwipe(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+    private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new(40.0f, 45.0f.Degrees());
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
@@ -84,7 +91,7 @@ sealed class OctupleSwipe(BossModule module) : Components.GenericAOEs(module) {
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3) {
+        if (spell.Action.ID is (uint)AID.OctupleSwipe1 or (uint)AID.OctupleSwipe2 or (uint)AID.OctupleSwipe3 or (uint)AID.OctupleSwipe4) {
             if (aoes.Count > 0) {
                 aoes.RemoveAt(0);
             }
@@ -92,16 +99,21 @@ sealed class OctupleSwipe(BossModule module) : Components.GenericAOEs(module) {
     }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        int show = 0;
-        var incomingAOEs = aoes.Take(2).ToList();
-
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs)) {
-            aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
-            aoe.Risky = show == 0;
-            show++;
+        var count = aoes.Count;
+        if (count == 0) {
+            return [];
         }
 
-        return CollectionsMarshal.AsSpan(incomingAOEs);
+        var max = count > 2 ? 2 : count;
+        var nextAOEs = CollectionsMarshal.AsSpan(aoes);
+
+        for (int i = 0; i < max; i++) {
+            ref var aoe = ref nextAOEs[i];
+            aoe.Color = i == 0 ? Colors.Danger : Colors.AOE;
+            aoe.Risky = i == 0;
+        }
+
+        return nextAOEs[..max];
     }
 }
 
