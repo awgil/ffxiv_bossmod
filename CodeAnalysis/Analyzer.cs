@@ -197,7 +197,13 @@ public class Analyzer : DiagnosticAnalyzer
                 return true;
 
             if (mem.Expression is MemberAccessExpressionSyntax parent)
-                return parent.Name.ToString() == "GoalZones" && mem.Name.ToString() == "Add";
+            {
+                if (parent.Name.ToString() == "GoalZones" && mem.Name.ToString() == "Add")
+                    return true;
+
+                if (parent.Name.ToString() == "TemporaryObstacles" && mem.Name.ToString() == "Add")
+                    return true;
+            }
         }
 
         return false;

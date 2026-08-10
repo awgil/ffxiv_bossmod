@@ -77,7 +77,7 @@ public sealed class ActionQueue
                 best = candidate;
                 deadline = startDelay;
             }
-            else if (CanExecute(ref candidate, def, ws, player, hints, allowDismount))
+            else if (CanExecute(candidate, def, ws, player, hints, allowDismount))
             {
                 // the action can be used right now
                 return candidate;
@@ -86,13 +86,13 @@ public sealed class ActionQueue
         }
 
         // double check that best candidate can be executed before we return it; it may have been promoted to best if a better action was interrupted for example
-        if (CanExecute(ref best, ActionDefinitions.Instance[best.Action], ws, player, hints, allowDismount))
+        if (CanExecute(best, ActionDefinitions.Instance[best.Action], ws, player, hints, allowDismount))
             return best;
 
         return default;
     }
 
-    private bool CanExecute(ref Entry entry, ActionDefinition? def, WorldState ws, Actor player, AIHints hints, bool allowDismount)
+    private bool CanExecute(in Entry entry, ActionDefinition? def, WorldState ws, Actor player, AIHints hints, bool allowDismount)
     {
         if (entry.Priority >= Priority.ManualEmergency || entry.Force || def == null)
             return true; // don't make any assumptions

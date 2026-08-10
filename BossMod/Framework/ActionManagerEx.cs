@@ -77,7 +77,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly ExecuteCommandGTDelegate _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
 
-    private readonly unsafe delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
+    private readonly delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
     public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
     {
