@@ -44,6 +44,7 @@ public enum AID : uint
     LaserSight = 18234, // Boss->self, 4.1s cast, range 100 width 20 rect
     LaserSightRepeat = 18235, // Helper->self, no cast, range 100 width 20 rect
     EnergyDispersal = 18237, // Helper->self, no cast, range 4 circle
+    EnergyBlast = 18238, // Helper->self, no cast, range 75 circle, tower explosion
     SurfaceMissileCast = 18227, // Boss->self, 3.5s cast, single-target
     SurfaceMissile = 18228, // Helper->location, 4.0s cast, range 6 circle
     AutoLarge = 18264, // ReverseJointedGoliath->player, no cast, single-target
@@ -129,6 +130,9 @@ class EnergyDispersal(BossModule module) : Components.GenericTowers(module, AID.
             NumCasts++;
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
         }
+
+        if ((AID)spell.Action.ID == AID.EnergyBlast)
+            Towers.Clear();
     }
 }
 
