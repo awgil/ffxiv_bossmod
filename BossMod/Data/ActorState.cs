@@ -835,7 +835,7 @@ public sealed class ActorState : IEnumerable<Actor>
                         for (var j = 0; j < len; ++j)
                         {
                             ref var p = ref pending[j];
-                            if (p.GlobalSequence == prevSeq && p.TargetIndex == prevIdx && !e.RequiresEffectResult)
+                            if (p.GlobalSequence == prevSeq && p.TargetIndex == prevIdx && !p.RequiresEffectResult)
                             {
                                 actor.PendingKnockbacks.RemoveAt(j);
                                 goto done;
@@ -863,7 +863,7 @@ public sealed class ActorState : IEnumerable<Actor>
                         // 2. effecthandler entry disappears before effectresult arrives; happens when the knockback is not actually applied by the spell
                         //    * indicated by type=knockback dir=6; knockback is applied some time later by an ActorControl
                         var requiresEffectResult = e.Type == ActionEffectType.Knockback && Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(e.Value)?.Direction == 6;
-                        actor.PendingKnockbacks.Add(new(v.GlobalSequence, v.TargetIndex, v.SourceInstanceID, ws.FutureTime(3d)), requiresEffectResult); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
+                        actor.PendingKnockbacks.Add(new(v.GlobalSequence, v.TargetIndex, v.SourceInstanceID, ws.FutureTime(3d), requiresEffectResult)); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
                         break;
                     }
                 }

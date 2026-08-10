@@ -300,11 +300,11 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
             AddSource(90f.Degrees());
             AddSource(-90f.Degrees());
             isAlongXAxis = rot.AlmostEqual(default, Angle.DegToRad) || rot.AlmostEqual(180f.Degrees(), Angle.DegToRad);
-            void AddSource(Angle offset) => _kbs.Add(new(Arena.Center, 15f, act, rect, rot + offset, Kind.DirForward, ignoreImmunes: true));
+            void AddSource(Angle offset) => _kbs.Add(new(Arena.Center, 15f, act, rect, rot + offset, Kind.DirForward));
         }
         else if (id == (uint)AID.SpinebreakingStampedeCircleVisual)
         {
-            _kbs.Add(new(spell.LocXZ, 30f, Module.CastFinishAt(spell, 6.1d), ignoreImmunes: true));
+            _kbs.Add(new(spell.LocXZ, 30f, Module.CastFinishAt(spell, 6.1d)));
         }
     }
 
