@@ -123,7 +123,8 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
         var approach = IsDancing || GCDReady(AID.StandardStep) || GCDReady(AID.TechnicalStep);
 
-        GoalZoneCombined(strategy, approach ? 15 : 25, Hints.GoalAOECircle(IsDancing ? 15 : 5), AID.StandardFinish, 2);
+        // dance: subtract 0.5 for player hitbox since pbaoes don't include that
+        GoalZoneCombined(strategy, approach ? 14.5f : 25, Hints.GoalAOECircle(IsDancing ? 15 : 5), AID.StandardFinish, 2);
 
         if (IsDancing)
         {
