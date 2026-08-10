@@ -162,6 +162,9 @@ public abstract record class StrategyConfig(
     Type Renderer // custom drawing for regular config, plan UI still uses old editor
 )
 {
+    public int VisibleWhenTrack = -1; // if >= 0, only show this track when the dependency track's option equals VisibleWhenOption
+    public int VisibleWhenOption;
+
     public abstract StrategyValue CreateEmpty();
     public abstract StrategyValue CreateForEditor();
 
