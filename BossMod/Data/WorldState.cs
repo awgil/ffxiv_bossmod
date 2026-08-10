@@ -200,8 +200,10 @@ public sealed class WorldState
     }
 
     public Event<OpPvPArea> IsPvPAreaChanged = new();
-    public sealed record class OpPvPArea(bool Value) : Operation
+    public sealed class OpPvPArea(bool value) : Operation
     {
+        public bool Value = value;
+
         protected override void Exec(WorldState ws)
         {
             ws.IsPvPArea = Value;

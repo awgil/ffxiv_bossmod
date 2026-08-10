@@ -173,7 +173,7 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
         PWhm(strategy, primaryTarget);
 
         if (DesiredRange < float.MaxValue && primaryTarget != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, DesiredRange, 1f));
     }
 
     private void PWhm(Strategy strategy, Actor? primaryTarget)

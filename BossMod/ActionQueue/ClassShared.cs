@@ -366,6 +366,6 @@ public sealed class Definitions : Defs
         d.Spell(PhantomID.StepForth)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180f.Degrees() : null;
 
         // Occult Jump has a ridiculous position lock of almost 2.5s
-        d.Spell(PhantomID.OccultJump)!.AllowExecute = (_, player, _, hints) => !hints.ForbiddenZones.Any(z => z.containsFn(player.Position));
+        d.Spell(PhantomID.OccultJump)!.AllowExecute = (_, player, _, hints) => !hints.ForbiddenZones.Any(z => z.shapeDistance.Contains(player.Position));
     }
 }
