@@ -395,7 +395,7 @@ public abstract class BossModule : IDisposable
         if (Arena.Bounds.AllowObstacleMap)
         {
             var (entry, bitmap) = Obstacles.Find(new Vector3(Center.X, actor.PosRot.Y, Center.Z));
-            if (entry != null && bitmap != null)
+            if (entry != null && bitmap != null && bitmap.PixelSize == Bounds.MapResolution)
             {
                 var originCell = (Center - entry.Origin) / bitmap.PixelSize;
                 var originX = (int)originCell.X;
