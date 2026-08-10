@@ -48,10 +48,10 @@ sealed class EyeToEyeStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14726u,
-    SortOrder = 22,
+    NameID = 2075u,
+    SortOrder = 4,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class EyeToEye(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

@@ -677,10 +677,10 @@ sealed class CE214TinyTerrorStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14795u,
-    SortOrder = 1,
+    NameID = 60u,
+    SortOrder = 12,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE214TinyTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(152.000f, 716.000f), new ArenaBoundsCircle(20f))

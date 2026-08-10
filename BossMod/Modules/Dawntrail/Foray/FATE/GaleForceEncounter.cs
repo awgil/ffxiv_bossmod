@@ -77,10 +77,10 @@ sealed class GaleForceEncounterStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14776u,
-    SortOrder = 23,
+    NameID = 2082u,
+    SortOrder = 11,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class GaleForceEncounter(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

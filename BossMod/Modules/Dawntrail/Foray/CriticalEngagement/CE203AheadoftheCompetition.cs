@@ -222,10 +222,10 @@ sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14523u,
-    SortOrder = 1,
+    NameID = 62u,
+    SortOrder = 14,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE203AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f))

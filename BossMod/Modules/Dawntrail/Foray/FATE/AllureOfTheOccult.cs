@@ -45,10 +45,10 @@ sealed class AllureOfTheOccultStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14738u,
-    SortOrder = 21,
+    NameID = 2078u,
+    SortOrder = 7,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class AllureOfTheOccult(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

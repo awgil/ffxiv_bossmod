@@ -280,10 +280,10 @@ sealed class CE209ForbiddenFoliosStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14520u,
-    SortOrder = 1,
+    NameID = 52u,
+    SortOrder = 4,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE209ForbiddenFolios(WorldState ws, Actor primary) : BossModule(ws, primary, new(658.991f, 658.991f), new ArenaBoundsCircle(25f))

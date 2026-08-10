@@ -92,10 +92,10 @@ sealed class InconstantGardenerStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14765u,
-    SortOrder = 24,
+    NameID = 2079u,
+    SortOrder = 8,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class InconstantGardener(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

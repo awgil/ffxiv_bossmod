@@ -402,10 +402,10 @@ sealed class CE202AcceptNoImitatorsStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14801u,
-    SortOrder = 1,
+    NameID = 63u,
+    SortOrder = 15,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE202AcceptNoImitators(WorldState ws, Actor primary) : BossModule(ws, primary, new(500.000f, -310.000f), new ArenaBoundsCircle(25f))

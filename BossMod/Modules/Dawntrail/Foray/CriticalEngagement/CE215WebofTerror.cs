@@ -73,10 +73,10 @@ sealed class CE215WebofTerrorStates : StateMachineBuilder
     Contributors = "The Combat Reborn Team (LTS)",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14840u,
-    SortOrder = 1,
+    NameID = 55u,
+    SortOrder = 7,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE215WebofTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(170f, -136f), new ArenaBoundsCircle(25f))

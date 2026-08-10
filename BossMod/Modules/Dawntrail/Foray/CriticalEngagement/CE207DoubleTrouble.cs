@@ -143,10 +143,10 @@ sealed class CE207DoubleTroubleStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14517u,
-    SortOrder = 1,
+    NameID = 50u,
+    SortOrder = 2,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE207DoubleTrouble(WorldState ws, Actor primary) : BossModule(ws, primary, new(-215.200f, -65.000f), new ArenaBoundsCircle(22f))

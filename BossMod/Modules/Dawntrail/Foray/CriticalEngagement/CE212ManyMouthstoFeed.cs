@@ -213,9 +213,9 @@ sealed class CE212ManyMouthstoFeedStates : StateMachineBuilder
     Contributors = "gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14747u,
+    NameID = 49u,
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]

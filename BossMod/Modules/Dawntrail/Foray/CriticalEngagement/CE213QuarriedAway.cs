@@ -329,10 +329,10 @@ sealed class CE213QuarriedAwayStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14509u,
-    SortOrder = 1,
+    NameID = 51u,
+    SortOrder = 3,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE213QuarriedAway(WorldState ws, Actor primary) : BossModule(ws, primary, new(-519.000f, -641.000f), new ArenaBoundsCircle(25f))

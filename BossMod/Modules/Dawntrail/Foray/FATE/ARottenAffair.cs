@@ -67,10 +67,10 @@ sealed class ARottenAffairStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14764u,
-    SortOrder = 20,
+    NameID = 2081u,
+    SortOrder = 10,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class ARottenAffair(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

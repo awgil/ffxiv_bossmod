@@ -274,10 +274,10 @@ sealed class RegnantChimeraStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14767u,
-    SortOrder = 27,
+    NameID = 2076u,
+    SortOrder = 5,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class RegnantChimera(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

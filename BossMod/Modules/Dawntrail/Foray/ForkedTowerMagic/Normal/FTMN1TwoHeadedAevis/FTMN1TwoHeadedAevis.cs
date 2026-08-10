@@ -175,7 +175,7 @@ sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(
     Contributors = "Equilius + gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.TheForkedTowerMagic,
     GroupID = 1093u,
     NameID = 14489u,
     SortOrder = 1,
@@ -199,4 +199,6 @@ public sealed class TwoHeadedAevis(WorldState ws, Actor primary) : BossModule(ws
         Arena.Actor(PrimaryActor);
         Arena.Actor(_blueHead);
     }
+
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InSquare(Arena.Center, 20f);
 }

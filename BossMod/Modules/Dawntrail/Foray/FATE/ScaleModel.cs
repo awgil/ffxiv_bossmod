@@ -54,10 +54,10 @@ sealed class ScaleModelStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14736u,
-    SortOrder = 26,
+    NameID = 2083u,
+    SortOrder = 12,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class DemiMedusa(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

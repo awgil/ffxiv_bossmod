@@ -266,10 +266,10 @@ sealed class CE211LostontheWindStates : StateMachineBuilder
     Contributors = "The Combat Reborn Team (LTS) & Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14505u,
-    SortOrder = 1,
+    NameID = 61u,
+    SortOrder = 13,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE211LostontheWind(WorldState ws, Actor primary) : BossModule(ws, primary, new(-150f, -860f), new ArenaBoundsCircle(23.9f))
