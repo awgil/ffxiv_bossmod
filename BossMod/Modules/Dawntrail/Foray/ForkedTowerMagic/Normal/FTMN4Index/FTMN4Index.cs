@@ -556,10 +556,10 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
     Contributors = "gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.TheForkedTowerMagic,
     GroupID = 1093u,
     NameID = 14717u,
-    SortOrder = 1,
+    SortOrder = 4,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class Index(WorldState ws, Actor primary) : BossModule(ws, primary, InitialCenter, InitialBounds)
@@ -590,4 +590,6 @@ public sealed class Index(WorldState ws, Actor primary) : BossModule(ws, primary
 
     public static WPos OmniElementsCenter = new(0f, -628f);
     public static readonly ArenaBoundsCustom OmniElementsBounds = new(_arenaFull, _innerHex, Offset: -1f);
+
+    protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 28f);
 }

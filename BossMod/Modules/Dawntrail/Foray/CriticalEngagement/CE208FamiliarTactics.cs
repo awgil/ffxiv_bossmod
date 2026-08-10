@@ -139,10 +139,10 @@ sealed class CE208FamiliarTacticsStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14508u,
-    SortOrder = 1,
+    NameID = 58u,
+    SortOrder = 10,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE208FamiliarTactics(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390.000f, 700.000f), new ArenaBoundsCircle(30f))

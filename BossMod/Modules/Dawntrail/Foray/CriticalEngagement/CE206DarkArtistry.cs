@@ -268,10 +268,10 @@ sealed class CE206DarkArtistryStates : StateMachineBuilder
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14512u,
-    SortOrder = 1,
+    NameID = 57u,
+    SortOrder = 9,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE206DarkArtistry(WorldState ws, Actor primary) : BossModule(ws, primary, new(224.000f, -860.000f), new ArenaBoundsSquare(20f))

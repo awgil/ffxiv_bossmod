@@ -141,10 +141,10 @@ sealed class RagingThrallStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14735u,
-    SortOrder = 25,
+    NameID = 2074u,
+    SortOrder = 3,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class RagingThrall(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

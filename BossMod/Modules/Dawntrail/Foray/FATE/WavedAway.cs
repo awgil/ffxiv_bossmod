@@ -151,10 +151,10 @@ sealed class WavedAwayStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14728u,
-    SortOrder = 30,
+    NameID = 2077u,
+    SortOrder = 6,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class WavedAway(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

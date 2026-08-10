@@ -165,10 +165,10 @@ sealed class CE210ImbalancedDietStates : StateMachineBuilder
     Contributors = "The Combat Reborn Team (LTS)",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14790u,
-    SortOrder = 1,
+    NameID = 54u,
+    SortOrder = 6,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE210ImbalancedDiet(WorldState ws, Actor primary) : BossModule(ws, primary, new(764f, 0f), new ArenaBoundsCircle(23.9f))

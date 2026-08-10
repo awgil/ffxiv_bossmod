@@ -54,10 +54,10 @@ sealed class TerritorialDisputeStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14762u,
-    SortOrder = 28,
+    NameID = 2080u,
+    SortOrder = 9,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class TerritorialDispute(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

@@ -88,10 +88,10 @@ sealed class ThunderregnumStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14785u,
-    SortOrder = 29,
+    NameID = 2084u,
+    SortOrder = 13,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class Thunderregnum(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
