@@ -148,7 +148,7 @@ public abstract class BossModule : IDisposable
 
     public void Update()
     {
-        if (StateMachine.ActivePhaseIndex < 0 && CheckPull())
+        if (StateMachine.ActivePhaseIndex < 0 && AllowedToActivate() && CheckPull())
             StateMachine.Start(WorldState.CurrentTime);
 
         if (StateMachine.ActiveState != null)
@@ -298,6 +298,12 @@ public abstract class BossModule : IDisposable
     // called during update if module is not yet active, should return true if it is to be activated
     // default implementation activates if primary target is both targetable and in combat
     protected virtual bool CheckPull() { return PrimaryActor.IsTargetable && PrimaryActor.InCombat; }
+
+    // determines whether this module should be allowed to activate if CheckPull returns true. this is only relevant for open-world content like FATEs or foray bosses
+    // if the player isn't participating in the encounter, continuing to run the module will
+    // - interfere with generic solver (best case scenario)
+    // - crash the module (e.g. if a caster disappears because the player moves too far from them) (worst case scenario)
+    protected virtual bool AllowedToActivate() { return true; }
 
     // called during update if module is active; should return true if module is to be reset (i.e. deleted and new instance recreated for same actor)
     // default implementation never resets, but it's useful for outdoor bosses that can be leashed
