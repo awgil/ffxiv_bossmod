@@ -10,10 +10,14 @@ sealed class AeroIII(BossModule module) : Components.GenericKnockback(module)
     {
         var count = Voidzones.Count;
         if (count == 0)
+        {
             return [];
+        }
         var sources = new Knockback[count];
         for (var i = 0; i < count; ++i)
+        {
             sources[i] = new(Voidzones[i].Position, 25f, shape: _shape, ignoreImmunes: true);
+        }
         return sources;
     }
 
@@ -21,9 +25,13 @@ sealed class AeroIII(BossModule module) : Components.GenericKnockback(module)
     {
         var count = Voidzones.Count;
         if (count == 0)
+        {
             return;
+        }
         for (var i = 0; i < count; ++i)
+        {
             _shape.Outline(Arena, Voidzones[i].Position);
+        }
         base.DrawArenaForeground(pcSlot, pc);
     }
 }

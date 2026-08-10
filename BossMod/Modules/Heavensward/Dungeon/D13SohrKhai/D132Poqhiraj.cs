@@ -36,31 +36,37 @@ public enum IconID : uint
     CloudCall = 24 // player
 }
 
-class ArenaChanges(BossModule module) : BossComponent(module)
+sealed class ArenaChanges(BossModule module) : BossComponent(module)
 {
     private readonly GallopKB _kb = module.FindComponent<GallopKB>()!;
-    private static readonly float[] xPositions = [395.25f, 404.75f];
-    private static readonly WPos[] wallPositions = WallPositionz();
+    private readonly WPos[] wallPositions = WallPositions();
     private readonly List<Rectangle> removedWalls = [];
-    private static readonly Rectangle[] baseArena = [new(D132Poqhiraj.ArenaCenter, 4.5f, 19.75f)];
-    private static readonly WDir offset = new(default, 0.125f);
+    private readonly Rectangle[] baseArena = [new(new(400f, 104.166f), 4.5f, 19.75f)];
+    private readonly WDir offset = new(default, 0.125f);
 
-    private static WPos[] WallPositionz()
+    private static WPos[] WallPositions()
     {
         const float zStart = 89.161f;
         const int zStep = 10;
         var index = 0;
         var walls = new WPos[8];
+        float[] xPositions = [395.25f, 404.75f];
         for (var i = 0; i < 2; ++i)
+        {
             for (var j = 0; j < 4; ++j)
+            {
                 walls[index++] = new(xPositions[i], zStart + j * zStep);
+            }
+        }
         return walls;
     }
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (state != 0x00100020u)
+        {
             return;
+        }
 
         var wallIndex = actor.OID switch
         {
@@ -80,7 +86,8 @@ class ArenaChanges(BossModule module) : BossComponent(module)
         removedWalls.Add(new(wallPos + adjustment, 0.25f, adjustment != default ? 4.875f : 5f));
         var safewalls = CollectionsMarshal.AsSpan(_kb.safeWalls);
         var len = safewalls.Length;
-        var pos = new WPos(GallopKB.xPositions[wallIndex / 4], wallPos.Z - 5f);
+        float[] xPositions = [395.5f, 404.5f];
+        var pos = new WPos(xPositions[wallIndex / 4], wallPos.Z - 5f);
         for (var i = 0; i < len; ++i)
         {
             ref readonly var safewall = ref safewalls[i];
@@ -97,12 +104,11 @@ class ArenaChanges(BossModule module) : BossComponent(module)
     }
 }
 
-class GallopAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.GallopAOE, new AOEShapeRect(40.5f, 1f));
+sealed class GallopAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.GallopAOE, new AOEShapeRect(40.5f, 1f));
 
-class GallopKB(BossModule module) : Components.GenericKnockback(module)
+sealed class GallopKB(BossModule module) : Components.GenericKnockback(module)
 {
-    public static readonly float[] xPositions = [395.5f, 404.5f];
-    private static readonly AOEShapeRect rect = new(4.5f, 20f);
+    private readonly AOEShapeRect rect = new(4.5f, 20f);
     private readonly List<Knockback> _sources = [with(2)];
     public readonly List<SafeWall> safeWalls = GenerateSafeWalls();
 
@@ -110,7 +116,7 @@ class GallopKB(BossModule module) : Components.GenericKnockback(module)
     {
         const float zStart = 89.161f;
         const int zStep = 10;
-
+        float[] xPositions = [395.5f, 404.5f];
         List<SafeWall> list = [with(8)];
 
         for (var i = 0; i < 2; ++i)
@@ -142,11 +148,11 @@ class GallopKB(BossModule module) : Components.GenericKnockback(module)
     }
 }
 
-class GallopKBHint(BossModule module) : Components.GenericAOEs(module)
+sealed class GallopKBHint(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly GallopKB _kb = module.FindComponent<GallopKB>()!;
 
-    private static readonly Angle[] angles = [-89.982f.Degrees(), 89.977f.Degrees()];
+    private readonly Angle[] angles = [-89.982f.Degrees(), 89.977f.Degrees()];
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -161,15 +167,17 @@ class GallopKBHint(BossModule module) : Components.GenericAOEs(module)
                 return;
             }
             List<RectangleSE> rects = [with(count)];
+
             for (var i = 0; i < count; ++i)
             {
                 var safeWall = _kb.safeWalls[i].Vertex1;
-                var dir = (safeWall.X == GallopKB.xPositions[0] ? angles[0] : angles[1]).ToDirection();
+                var dir = (safeWall.X == 395.5f ? angles[0] : angles[1]).ToDirection();
                 var pos = new WPos(safeWall.X, safeWall.Z + 5f);
                 rects.Add(new(pos + dir, pos - 3.5f * dir, 5f));
             }
-            AOEShapeCustom aoe = new([.. rects], invertForbiddenZone: true);
-            _aoe = [new(aoe, Arena.Center, default, Module.CastFinishAt(spell), Colors.SafeFromAOE, true)];
+            var center = Arena.Center;
+            AOEShapeCustom aoe = new(center, [.. rects], invertForbiddenZone: true);
+            _aoe = [new(aoe, center, default, Module.CastFinishAt(spell), Colors.SafeFromAOE, true, shapeDistance: aoe.InvertedDistance(center, default))];
         }
     }
 
@@ -191,9 +199,9 @@ class GallopKBHint(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Touchdown(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TouchdownVisual, 25f);
+sealed class Touchdown(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TouchdownVisual, 25f);
 
-class BurningBright(BossModule module) : Components.BaitAwayCast(module, (uint)AID.BurningBright, new AOEShapeRect(28.5f, 3f), endsOnCastEvent: true)
+sealed class BurningBright(BossModule module) : Components.BaitAwayCast(module, (uint)AID.BurningBright, new AOEShapeRect(28.5f, 3f), endsOnCastEvent: true)
 {
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -251,7 +259,7 @@ class BurningBright(BossModule module) : Components.BaitAwayCast(module, (uint)A
     }
 }
 
-class RearHoof(BossModule module) : Components.SingleTargetInstant(module, (uint)AID.RearHoof)
+sealed class RearHoof(BossModule module) : Components.SingleTargetInstant(module, (uint)AID.RearHoof)
 {
     private bool start = true, firstKB;
 
@@ -299,7 +307,7 @@ class RearHoof(BossModule module) : Components.SingleTargetInstant(module, (uint
     }
 }
 
-class CloudCall(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
+sealed class CloudCall(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     public static readonly AOEShapeCircle Circle = new(8f);
 
@@ -360,7 +368,7 @@ class CloudCall(BossModule module) : Components.GenericBaitAway(module, centerAt
     }
 }
 
-class LightningBolt(BossModule module) : Components.GenericAOEs(module)
+sealed class LightningBolt(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -382,7 +390,7 @@ class LightningBolt(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class D132PoqhirajStates : StateMachineBuilder
+sealed class D132PoqhirajStates : StateMachineBuilder
 {
     public D132PoqhirajStates(BossModule module) : base(module)
     {
@@ -399,8 +407,5 @@ class D132PoqhirajStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4952, SortOrder = 4)]
-public class D132Poqhiraj(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsRect(4.5f, 19.75f))
-{
-    public static readonly WPos ArenaCenter = new(400f, 104.166f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171u, NameID = 4952u, SortOrder = 4)]
+public sealed class D132Poqhiraj(WorldState ws, Actor primary) : BossModule(ws, primary, new(400f, 104.166f), new ArenaBoundsRect(4.5f, 19.75f));

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Chaotic.Ch01CloudOfDarkness;
 
-sealed class EnaeroEndeath(BossModule module) : Components.GenericKnockback(module)
+sealed class EnaeroEndeath(BossModule module) : Components.GenericKnockback(module, stopAfterWall: true)
 {
     private Knockback[] _source = [];
     private Kind _delayed;
@@ -57,7 +57,7 @@ sealed class EnaeroEndeath(BossModule module) : Components.GenericKnockback(modu
         void Start(DateTime activation, Kind kind)
         {
             NumCasts = 0;
-            _source = [new(Ch01CloudOfDarkness.Phase1BoundsCenter, 15f, activation, kind: kind)];
+            _source = [new(new WPos(100f, 76.28427f).Quantized(), 15f, activation, kind: kind)];
         }
     }
 
@@ -124,7 +124,7 @@ sealed class EnaeroAOE(BossModule module) : Components.GenericAOEs(module)
     private void Start(DateTime activation)
     {
         NumCasts = 0;
-        _aoe = [new(_shape, Ch01CloudOfDarkness.Phase1BoundsCenter, default, activation)];
+        _aoe = [new(_shape, new WPos(100f, 76.28427f).Quantized(), default, activation)];
         _delayed = false;
     }
 }
@@ -168,7 +168,9 @@ sealed class EndeathAOE(BossModule module) : Components.GenericAOEs(module)
             case (uint)AID.BladeOfDarknessRAOE:
             case (uint)AID.BladeOfDarknessCAOE:
                 if (_delayed)
+                {
                     Start(WorldState.FutureTime(2.2d));
+                }
                 break;
         }
     }
@@ -179,6 +181,6 @@ sealed class EndeathAOE(BossModule module) : Components.GenericAOEs(module)
         AddAOE(_shapeOut, 2d);
         AddAOE(_shapeIn, 4d);
         _delayed = false;
-        void AddAOE(AOEShape shape, double delay) => _aoes.Add(new(shape, Ch01CloudOfDarkness.Phase1BoundsCenter, default, activation.AddSeconds(delay)));
+        void AddAOE(AOEShape shape, double delay) => _aoes.Add(new(shape, new WPos(100f, 76.28427f).Quantized(), default, activation.AddSeconds(delay)));
     }
 }

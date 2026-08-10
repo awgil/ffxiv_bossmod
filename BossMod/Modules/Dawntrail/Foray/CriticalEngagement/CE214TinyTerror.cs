@@ -152,7 +152,8 @@ sealed class DiminutiveDualcast(BossModule module) : Components.GenericAOEs(modu
                 aoes.RemoveAll(aoe => aoe.ActorID == caster.InstanceID);
             }
 
-            if (spell.Action.ID == (uint)AID.TinyFireIII) {
+            if (spell.Action.ID == (uint)AID.TinyFireIII)
+            {
                 middleActive = false;
             }
         }
@@ -293,122 +294,152 @@ sealed class Comet(BossModule module) : BossComponent(module)
     }
 }
 
-sealed class FlareHolyMerge(BossModule module) : BossComponent(module) {
+sealed class FlareHolyMerge(BossModule module) : BossComponent(module)
+{
     private static readonly AOEShapeCircle flareShape = new(18.0f);
     private const float holyKnockBackDistance = 15.0f;
 
     private readonly record struct MergeCombination(WPos Origin, float Distance, bool IsFlare, DateTime Activation);
     private readonly List<MergeCombination> mergeCombinations = [];
 
-    public override void OnTethered(Actor source, in ActorTetherInfo tether) {
-        if (tether.ID == (uint)TetherID.FlareHolyMergeTether) {
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.FlareHolyMergeTether)
+        {
             var sphere = WorldState.Actors.Find(tether.Target);
-            if (sphere != null) {
+            if (sphere != null)
+            {
                 var midPoint = WPos.Lerp(source.Position, sphere.Position, 0.5f);
                 var distance = (source.Position - sphere.Position).Length();
                 mergeCombinations.Add(new(midPoint, distance, source.OID == (uint)OID.FlareSphere, default));
             }
         }
 
-        if (mergeCombinations.Count == 4) {
-            DateTime activationStart = WorldState.FutureTime(9.1f);
+        if (mergeCombinations.Count == 4)
+        {
+            var activationStart = WorldState.FutureTime(9.1d);
             mergeCombinations.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
-            for (int i = 0; i < mergeCombinations.Count; i++) {
-                mergeCombinations[i] = mergeCombinations[i] with { Activation = activationStart + TimeSpan.FromSeconds(3.0f * i) };
+            for (int i = 0; i < mergeCombinations.Count; i++)
+            {
+                mergeCombinations[i] = mergeCombinations[i] with { Activation = activationStart + TimeSpan.FromSeconds(3.0d * i) };
             }
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.TinyFlare or (uint)AID.TinyHoly1) {
-            if (mergeCombinations.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.TinyFlare or (uint)AID.TinyHoly1)
+        {
+            if (mergeCombinations.Count > 0)
+            {
                 mergeCombinations.Sort((a, b) => a.Distance.CompareTo(b.Distance));
                 mergeCombinations.RemoveAt(0);
             }
         }
     }
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc) {
-        if (mergeCombinations.Count == 0) {
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (mergeCombinations.Count == 0)
+        {
             return;
         }
 
         var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
 
-        for (int i = 0; i < nextCombinations.Count; i++) {
+        for (int i = 0; i < nextCombinations.Count; i++)
+        {
             var combination = nextCombinations[i];
-            if (combination.IsFlare) {
+            if (combination.IsFlare)
+            {
                 flareShape.Draw(Arena, combination.Origin, default, i == 0 ? Colors.Danger : Colors.AOE);
             }
 
-            if (!combination.IsFlare) {
+            if (!combination.IsFlare)
+            {
                 var endPoint = Components.GenericKnockback.AwayFromSource(pc.Position, combination.Origin, holyKnockBackDistance);
                 Components.GenericKnockback.DrawKnockback(pc, endPoint, Arena);
             }
         }
     }
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc) {
-        if (mergeCombinations.Count == 0) {
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (mergeCombinations.Count == 0)
+        {
             return;
         }
 
-
-
         var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
 
-        foreach (var combination in nextCombinations) {
-            if (!combination.IsFlare) {
+        foreach (var combination in nextCombinations)
+        {
+            if (!combination.IsFlare)
+            {
                 Arena.ZoneCircle(combination.Origin, 2.0f, 0xffffff00);
             }
         }
     }
 
-    public override void AddHints(int slot, Actor actor, TextHints hints) {
-        if (mergeCombinations.Count == 0) {
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (mergeCombinations.Count == 0)
+        {
             return;
         }
 
         var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
-        foreach (var combination in nextCombinations) {
-            if (combination.IsFlare && flareShape.Check(actor.Position, combination.Origin, default)) {
+        foreach (var combination in nextCombinations)
+        {
+            if (combination.IsFlare && flareShape.Check(actor.Position, combination.Origin, default))
+            {
                 hints.Add("GTFO from aoe!");
             }
 
-            if (!combination.IsFlare) {
+            if (!combination.IsFlare)
+            {
                 var endPoint = Components.GenericKnockback.AwayFromSource(actor.Position, combination.Origin, holyKnockBackDistance);
-                if (!Arena.InBounds(endPoint)) {
+                if (!Arena.InBounds(endPoint))
+                {
                     hints.Add("About to be knocked into wall!");
                 }
             }
         }
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
-        if (mergeCombinations.Count == 0) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (mergeCombinations.Count == 0)
+        {
             return;
         }
 
         var nextCombinations = mergeCombinations.OrderBy(c => c.Distance).Take(2).ToList();
         var knockbackSetup = false;
 
-        for (int i = 0; i < nextCombinations.Count; i++) {
+        for (int i = 0; i < nextCombinations.Count; i++)
+        {
             var combination = nextCombinations[i];
-            if (combination.IsFlare) {
+            if (combination.IsFlare)
+            {
                 hints.AddForbiddenZone(flareShape, combination.Origin, activation: combination.Activation);
             }
 
             // Safeguard so we don't try and solve both knockbacks at the same time, only happens if it knockback into knockback
-            if (knockbackSetup) {
+            if (knockbackSetup)
+            {
                 return;
             }
 
-            if (!combination.IsFlare) {
+            if (!combination.IsFlare)
+            {
                 var activation = combination.Activation;
                 var circles = new WPos[2];
-                for (var k = 0; k < 2 && nextCombinations.Count == 2; ++k) {
-                    if (nextCombinations[k].IsFlare) {
+                for (var k = 0; k < 2 && nextCombinations.Count == 2; ++k)
+                {
+                    if (nextCombinations[k].IsFlare)
+                    {
                         circles[k] = nextCombinations[k].Origin;
                     }
                 }
@@ -431,7 +462,7 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module)
     private int direction = 0;
     private WPos startPosition = default;
     private DateTime activation = default;
-    private DiminutiveDualcast diminutiveDualcast = module.FindComponent<DiminutiveDualcast>()!;
+    private readonly DiminutiveDualcast diminutiveDualcast = module.FindComponent<DiminutiveDualcast>()!;
 
     public override void OnActorCreated(Actor actor)
     {
@@ -549,11 +580,13 @@ sealed class SphereGrowable(BossModule module) : BossComponent(module)
         }
 
         // If the sphere is a knockback we should wait until the final set of aoes
-        if (diminutiveDualcast.middleActive == true) {
+        if (diminutiveDualcast.middleActive)
+        {
             return;
         }
 
-        if (orb.OID == (uint)OID.HolySphereGrow) {
+        if (orb.OID == (uint)OID.HolySphereGrow)
+        {
             hints.AddForbiddenZone(new SDKnockbackInCircleAwayFromOrigin(Arena.Center, target.Position, holyKnockBackDistance, 19.0f), activation);
         }
     }

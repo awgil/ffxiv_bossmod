@@ -10,10 +10,11 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.Unenlightenment && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.Unenlightenment && Arena.Bounds.Radius > 21f)
         {
             var center = Arena.Center;
-            _aoe = [new(new AOEShapeCustom([new Square(center, 23f)], [new Square(center, 20f)]), center, default, Module.CastFinishAt(spell, 0.5d))];
+            var shape = new AOEShapeCustom(center, [new Square(center, 22.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.5d), shapeDistance: shape.Distance(center, default))];
         }
     }
 

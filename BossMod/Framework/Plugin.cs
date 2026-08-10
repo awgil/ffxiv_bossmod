@@ -345,31 +345,32 @@ public sealed class Plugin : IAsyncDalamudPlugin
             var res = FFXIVClientStructs.FFXIV.Client.Game.StatusManager.ExecuteStatusOff(s.statusId, s.sourceId != default ? (uint)s.sourceId : 0xE0000000);
             Service.Log($"[ExecHints] Canceling status {s.statusId} from {s.sourceId:X} -> {res}");
         }
-        if (_hints.WantJump && _ws.CurrentTime > _throttleJump)
-        {
-            //Service.Log($"[ExecHints] Jumping...");
-            FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
-            _throttleJump = _ws.FutureTime(0.1d);
-        }
 
+        if (AI.AIManager.Instance?.Beh != null || Autorotation.MiscAI.NormalMovement.Instance != null) // only jump or interact if AI is being used
+        {
+            if (_hints.WantJump && _ws.CurrentTime > _throttleJump)
+            {
+                //Service.Log($"[ExecHints] Jumping...");
+                FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(FFXIVClientStructs.FFXIV.Client.Game.ActionType.GeneralAction, 2);
+                _throttleJump = _ws.FutureTime(0.1d);
+            }
+            if (CheckInteractRange(_ws.Party.Player(), _hints.InteractWithTarget))
+            {
+                // many eventobj interactions "immediately" start some cast animation (delayed by server roundtrip), and if we keep trying to move toward the target after sending the interact request, it will be canceled and force us to start over
+                _movementOverride.DesiredDirection = default;
+
+                if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
+                {
+                    FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(_hints.InteractWithTarget), false);
+                    _throttleInteract = _ws.FutureTime(1.1d);
+                }
+            }
+        }
         if (_hints.ShouldLeaveDuty && _ws.CurrentTime >= _throttleLeaveDuty)
         {
             EventFramework.LeaveCurrentContent(false);
             _throttleLeaveDuty = _ws.FutureTime(1d);
         }
-
-        if ((AI.AIManager.Instance?.Beh != null || Autorotation.MiscAI.NormalMovement.Instance != null) && CheckInteractRange(_ws.Party.Player(), _hints.InteractWithTarget))
-        {
-            // many eventobj interactions "immediately" start some cast animation (delayed by server roundtrip), and if we keep trying to move toward the target after sending the interact request, it will be canceled and force us to start over
-            _movementOverride.DesiredDirection = default;
-
-            if (_amex.EffectiveAnimationLock == 0 && _ws.CurrentTime >= _throttleInteract)
-            {
-                FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem.Instance()->InteractWithObject(GetActorObject(_hints.InteractWithTarget), false);
-                _throttleInteract = _ws.FutureTime(1.1d);
-            }
-        }
-
         HandleFateSync();
     }
 

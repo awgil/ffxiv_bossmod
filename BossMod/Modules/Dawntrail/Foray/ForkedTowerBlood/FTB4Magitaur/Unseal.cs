@@ -6,6 +6,8 @@ sealed class Unseal(BossModule module) : Components.GenericAOEs(module)
     private bool? isClose;
     private DateTime activation;
     private AOEInstance[] _aoe = [];
+    private readonly WPos[] squarePositions = FTB4Magitaur.GetSquarePositions();
+    private readonly WDir[] squareDirs = FTB4Magitaur.GetSquareAnglesDirs();
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -39,7 +41,7 @@ sealed class Unseal(BossModule module) : Components.GenericAOEs(module)
             var a = players[i];
             for (var j = 0; j < 3; ++j)
             {
-                if (a.Position.InSquare(FTB4Magitaur.SquarePositions[j], 10f, FTB4Magitaur.SquareDirs[j]))
+                if (a.Position.InSquare(squarePositions[j], 10f, squareDirs[j]))
                 {
                     squareActors[j].Add(a);
                     break;
@@ -103,7 +105,12 @@ sealed class Unseal(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    private void SetAOE() => _aoe = [new(FTB4Magitaur.CircleMinusSquares, Arena.Center, default, activation)];
+    private void SetAOE()
+    {
+        var pos = Arena.Center;
+        var shape = FTB4Magitaur.GetCircleMinusSquares(pos);
+        _aoe = [new(shape, pos, default, activation, shapeDistance: shape.Distance(pos, default))];
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -138,7 +145,7 @@ sealed class Unseal(BossModule module) : Components.GenericAOEs(module)
             var inSquare = -1;
             for (var i = 0; i < 3; ++i)
             {
-                if (actor.Position.InSquare(FTB4Magitaur.SquarePositions[i], 10f, FTB4Magitaur.SquareDirs[i]))
+                if (actor.Position.InSquare(squarePositions[i], 10f, squareDirs[i]))
                 {
                     inSquare = i;
                     break;
@@ -167,7 +174,7 @@ sealed class Unseal(BossModule module) : Components.GenericAOEs(module)
             for (var i = 0; i < count; ++i)
             {
                 var a = players[i];
-                if (a.Position.InSquare(FTB4Magitaur.SquarePositions[inSquare], 10f, FTB4Magitaur.SquareDirs[inSquare]))
+                if (a.Position.InSquare(squarePositions[inSquare], 10f, squareDirs[inSquare]))
                 {
                     squareActors.Add(a);
                 }

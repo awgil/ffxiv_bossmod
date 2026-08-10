@@ -103,6 +103,9 @@ sealed class SlipperySoapCharge(BossModule module) : Components.GenericKnockback
 sealed class SlipperySoapAOE(BossModule module) : Components.GenericAOEs(module)
 {
     private SlipperySoap.Color _color;
+    private readonly AOEShapeCross shapeBlue = new(60f, 5f);
+    private readonly AOEShapeDonut shapeGreen = new(5f, 60f);
+    private readonly AOEShapeCone shapeYellow = new(60f, 22.5f.Degrees());
 
     public bool Active => _color != SlipperySoap.Color.None;
 
@@ -113,15 +116,17 @@ sealed class SlipperySoapAOE(BossModule module) : Components.GenericAOEs(module)
         switch (_color)
         {
             case SlipperySoap.Color.Green:
-                return new AOEInstance[1] { new(C011Silkie.ShapeGreen, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation) };
+                return new AOEInstance[1] { new(shapeGreen, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation) };
             case SlipperySoap.Color.Blue:
-                return new AOEInstance[1] { new(C011Silkie.ShapeBlue, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation) };
+                return new AOEInstance[1] { new(shapeBlue, Module.PrimaryActor.Position, Module.PrimaryActor.Rotation) };
             case SlipperySoap.Color.Yellow:
                 var aoes = new AOEInstance[4];
                 var primaryPos = Module.PrimaryActor.Position;
                 var primaryRot = Module.PrimaryActor.Rotation;
                 for (var i = 0; i < 4; ++i)
-                    aoes[i] = new AOEInstance(C011Silkie.ShapeYellow, primaryPos, primaryRot + (45f + i * 90f).Degrees());
+                {
+                    aoes[i] = new AOEInstance(shapeYellow, primaryPos, primaryRot + (45f + i * 90f).Degrees());
+                }
                 return aoes;
             default:
                 return [];

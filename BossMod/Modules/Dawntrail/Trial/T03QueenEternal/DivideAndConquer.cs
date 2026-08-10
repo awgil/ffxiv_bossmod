@@ -12,8 +12,14 @@ sealed class DivideAndConquer(BossModule module) : Components.GenericBaitAway(mo
     {
         if (iconID == (uint)IconID.LineBaits && CurrentBaits.Count == 0)
         {
-            foreach (var p in Raid.WithoutSlot(true, true, true))
-                CurrentBaits.Add(new(Module.PrimaryActor, p, rect, WorldState.FutureTime(3d)));
+            var raid = Raid.WithoutSlot(true, true, true);
+            var len = raid.Length;
+            var s = Module.PrimaryActor;
+            var act = WorldState.FutureTime(3d);
+            for (var i = 0; i < len; ++i)
+            {
+                CurrentBaits.Add(new(s, raid[i], rect, act));
+            }
             counter = 8;
         }
     }
@@ -21,11 +27,15 @@ sealed class DivideAndConquer(BossModule module) : Components.GenericBaitAway(mo
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (CurrentBaits.Count == 0)
+        {
             return;
+        }
         if (spell.Action.ID == (uint)AID.DivideAndConquer)
         {
             if (--counter == 0)
+            {
                 CurrentBaits.Clear();
+            }
             if (++NumCasts > 8)
             {
                 CurrentBaits.Clear();

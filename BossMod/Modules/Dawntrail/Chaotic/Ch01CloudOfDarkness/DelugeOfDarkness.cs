@@ -135,7 +135,7 @@ sealed class Phase2InnerCells(BossModule module) : Components.GenericAOEs(module
         {
             var worldX = (coordinates.x + 0.5f) * 6f;
             var worldZ = (coordinates.y + 0.5f) * 6f;
-            return Ch01CloudOfDarkness.DefaultCenter + new WDir(worldX, worldZ);
+            return new WPos(100f, 100f) + new WDir(worldX, worldZ);
         }
         else
             return default;

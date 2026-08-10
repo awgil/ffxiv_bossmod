@@ -35,7 +35,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.MedicineField && Arena.Bounds.Radius > 20f)
         {
-            _aoe = [new(D111ChirurgeonGeneral.Square, Arena.Center, default, Module.CastFinishAt(spell, 0.8d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 21.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -57,7 +59,7 @@ sealed class BiochemicalFront(BossModule module) : Components.SimpleAOEs(module,
 sealed class SterileSphere(BossModule module) : Components.GenericAOEs(module)
 {
     public readonly List<AOEInstance> AOEs = [with(4)];
-    private static readonly AOEShapeCircle circleSmall = new(8f), circleBig = new(15f);
+    private readonly AOEShapeCircle circleSmall = new(8f), circleBig = new(15f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(AOEs);
 
@@ -161,8 +163,4 @@ sealed class D111ChirurgeonGeneralStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus)", PrimaryActorOID = (uint)OID.ChirurgeonGeneral, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028u, NameID = 13970u, Category = BossModuleInfo.Category.Dungeon, Expansion = BossModuleInfo.Expansion.Dawntrail, SortOrder = 1)]
-public sealed class D111ChirurgeonGeneral(WorldState ws, Actor primary) : BossModule(ws, primary, arenaCenter, new ArenaBoundsSquare(21.5f))
-{
-    private static readonly WPos arenaCenter = new(270f, 12f);
-    public static readonly AOEShapeCustom Square = new([new Square(arenaCenter, 22f)], [new Square(arenaCenter, 20f)]);
-}
+public sealed class D111ChirurgeonGeneral(WorldState ws, Actor primary) : BossModule(ws, primary, new(270f, 12f), new ArenaBoundsSquare(21.5f));

@@ -72,7 +72,6 @@ public enum AID : uint
 
 sealed class DisruptionArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(D063Eliminator.ArenaCenter, 16f)], [new Square(D063Eliminator.ArenaCenter, 15f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -81,7 +80,9 @@ sealed class DisruptionArenaChange(BossModule module) : Components.GenericAOEs(m
     {
         if (spell.Action.ID == (uint)AID.Disruption && Arena.Bounds.Radius > 15f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 0.7d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 15.5f)], [new Square(center, 15f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.7d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -159,7 +160,7 @@ sealed class LightOfDevotion(BossModule module) : Components.LineStack(module, a
 sealed class LightOfSalvation(BossModule module) : Components.GenericBaitAway(module)
 {
     private readonly Impact _kb = module.FindComponent<Impact>()!;
-    private static readonly AOEShapeRect rect = new(40f, 3f);
+    private readonly AOEShapeRect rect = new(40f, 3f);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -216,11 +217,9 @@ sealed class D063EliminatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS), erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827, NameID = 12729)]
-public sealed class D063Eliminator(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(15.5f))
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS), erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 827u, NameID = 12729u)]
+public sealed class D063Eliminator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-759f, -648f), new ArenaBoundsSquare(15.5f))
 {
-    public static readonly WPos ArenaCenter = new(-759f, -648f);
-
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor);

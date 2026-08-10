@@ -2,7 +2,6 @@ namespace BossMod.Endwalker.VariantCriterion.C01ASS.C011Silkie;
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(C011Silkie.ArenaCenter, 30f)], [new Square(C011Silkie.ArenaCenter, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -11,7 +10,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID is (uint)AID.NFizzlingSuds or (uint)AID.SFizzlingSuds && Arena.Bounds.Radius > 20f)
         {
-            _aoe = [new(square, Arena.Center, default, WorldState.FutureTime(3.8d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 29.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, WorldState.FutureTime(3.8d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -19,7 +20,7 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x01 && state == 0x00020001u)
         {
-            Arena.Bounds = C011Silkie.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsSquare(20f);
             _aoe = [];
         }
     }

@@ -5,6 +5,9 @@ abstract class PuffTethers(BossModule module, bool originAtBoss) : BossComponent
     private readonly bool _originAtBoss = originAtBoss;
     private readonly PuffTracker? _tracker = module.FindComponent<PuffTracker>();
     private SlipperySoap.Color _bossColor;
+    private readonly AOEShapeCross shapeBlue = new(60f, 5f);
+    private readonly AOEShapeDonut shapeGreen = new(5f, 60f);
+    private readonly AOEShapeCone shapeYellow = new(60f, 22.5f.Degrees());
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
@@ -38,28 +41,28 @@ abstract class PuffTethers(BossModule module, bool originAtBoss) : BossComponent
             return;
 
         var moveDir = (player.Position - source.Position).Normalized();
-        var movePos = source.Position + 10 * moveDir;
+        var movePos = source.Position + 10f * moveDir;
         var moveAngle = Angle.FromDirection(moveDir);
         if (yellow)
         {
-            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle + 45f.Degrees(), Colors.Other6);
-            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle + 135f.Degrees(), Colors.Other6);
-            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle - 135f.Degrees(), Colors.Other6);
-            C011Silkie.ShapeYellow.Draw(Arena, movePos, moveAngle - 45f.Degrees(), Colors.Other6);
+            shapeYellow.Draw(Arena, movePos, moveAngle + 45f.Degrees(), Colors.Other6);
+            shapeYellow.Draw(Arena, movePos, moveAngle + 135f.Degrees(), Colors.Other6);
+            shapeYellow.Draw(Arena, movePos, moveAngle - 135f.Degrees(), Colors.Other6);
+            shapeYellow.Draw(Arena, movePos, moveAngle - 45f.Degrees(), Colors.Other6);
         }
         else
         {
-            C011Silkie.ShapeBlue.Draw(Arena, movePos, moveAngle, Colors.Other6);
+            shapeBlue.Draw(Arena, movePos, moveAngle, Colors.Other6);
         }
 
         var bossOrigin = _originAtBoss ? Module.PrimaryActor.Position : Arena.Center;
         switch (_bossColor)
         {
             case SlipperySoap.Color.Green:
-                C011Silkie.ShapeGreen.Draw(Arena, bossOrigin, new(), Colors.Other6);
+                shapeGreen.Draw(Arena, bossOrigin, new(), Colors.Other6);
                 break;
             case SlipperySoap.Color.Blue:
-                C011Silkie.ShapeBlue.Draw(Arena, bossOrigin, new(), Colors.Other6);
+                shapeBlue.Draw(Arena, bossOrigin, new(), Colors.Other6);
                 break;
         }
     }

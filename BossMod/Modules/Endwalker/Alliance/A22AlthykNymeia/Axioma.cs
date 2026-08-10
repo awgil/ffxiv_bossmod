@@ -52,8 +52,8 @@ sealed class Axioma(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x00 && state == 0x00020001u)
         {
-            var shape = new AOEShapeCustom([vertices1, vertices2, vertices3]);
             var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [vertices1, vertices2, vertices3]);
             var act = DateTime.MaxValue;
             _aoe = [new(shape, center, default, act, shapeDistance: shape.Distance(center, default))];
             _aoeInv = [new(shape, center, default, act, Colors.SafeFromAOE, shapeDistance: shape.InvertedDistance(center, default))];

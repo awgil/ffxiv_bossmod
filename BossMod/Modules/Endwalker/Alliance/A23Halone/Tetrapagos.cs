@@ -1,11 +1,11 @@
 ﻿namespace BossMod.Endwalker.Alliance.A23Halone;
 
-class Tetrapagos(BossModule module) : Components.GenericAOEs(module)
+sealed class Tetrapagos(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(4)];
-    private static readonly AOEShapeCircle circle = new(10f), circlePredict = new(8f);
-    private static readonly AOEShapeDonut donut = new(10f, 30f), donutPredict = new(12f, 30f);
-    private static readonly AOEShapeCone cone = new(30f, 90f.Degrees());
+    private readonly AOEShapeCircle circle = new(10f), circlePredict = new(8f);
+    private readonly AOEShapeDonut donut = new(10f, 30f), donutPredict = new(12f, 30f);
+    private readonly AOEShapeCone cone = new(30f, 90f.Degrees());
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

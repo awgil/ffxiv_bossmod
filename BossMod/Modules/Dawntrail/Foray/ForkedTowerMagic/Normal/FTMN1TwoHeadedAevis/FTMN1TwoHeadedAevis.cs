@@ -165,7 +165,7 @@ sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(
 
 [ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(TwoHeadedAevisStates),
-    ConfigType = null, // replace null with typeof(TwoHeadedAevisConfig) if applicable
+    ConfigType = typeof(TwoHeadedAevisConfig),
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
     StatusIDType = typeof(SID),

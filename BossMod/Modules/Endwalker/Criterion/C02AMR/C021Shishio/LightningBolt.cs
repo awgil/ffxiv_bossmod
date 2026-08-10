@@ -8,9 +8,9 @@ sealed class CloudToCloud(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShapeRect _shape1 = new(100f, 1f);
-    private static readonly AOEShapeRect _shape2 = new(100f, 3f);
-    private static readonly AOEShapeRect _shape3 = new(100f, 6f);
+    private readonly AOEShapeRect _shape1 = new(100f, 1f);
+    private readonly AOEShapeRect _shape2 = new(100f, 3f);
+    private readonly AOEShapeRect _shape3 = new(100f, 6f);
 
     public bool Active => _aoes.Count > 0;
 
@@ -40,31 +40,38 @@ sealed class CloudToCloud(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        var shape = ShapeForAction(spell.Action.ID);
+        var shape = spell.Action.ID switch
+        {
+            (uint)AID.NCloudToCloud1 or (uint)AID.SCloudToCloud1 => _shape1,
+            (uint)AID.NCloudToCloud2 or (uint)AID.SCloudToCloud2 => _shape2,
+            (uint)AID.NCloudToCloud3 or (uint)AID.SCloudToCloud3 => _shape3,
+            _ => null
+        };
         if (shape != null)
         {
-            _aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
+            var loc = spell.LocXZ;
+            var rot = spell.Rotation;
+            _aoes.Add(new(shape, loc, rot, Module.CastFinishAt(spell), actorID: caster.InstanceID, shapeDistance: shape.Distance(loc, rot)));
         }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (ShapeForAction(spell.Action.ID) != null)
+        var count = _aoes.Count;
+        if (count == 0)
         {
-            ++NumCasts;
-            var numRemoved = _aoes.RemoveAll(aoe => aoe.Origin.AlmostEqual(caster.Position, 1f));
-            if (numRemoved != 1)
+            return;
+        }
+        var id = caster.InstanceID;
+        var aoes = CollectionsMarshal.AsSpan(_aoes);
+        for (var i = 0; i < count; ++i)
+        {
+            if (aoes[i].ActorID == id)
             {
-                ReportError($"Unexpected number of matching aoes: {numRemoved}");
+                _aoes.RemoveAt(i);
+                ++NumCasts;
+                return;
             }
         }
     }
-
-    private static AOEShapeRect? ShapeForAction(uint action) => action switch
-    {
-        (uint)AID.NCloudToCloud1 or (uint)AID.SCloudToCloud1 => _shape1,
-        (uint)AID.NCloudToCloud2 or (uint)AID.SCloudToCloud2 => _shape2,
-        (uint)AID.NCloudToCloud3 or (uint)AID.SCloudToCloud3 => _shape3,
-        _ => null
-    };
 }

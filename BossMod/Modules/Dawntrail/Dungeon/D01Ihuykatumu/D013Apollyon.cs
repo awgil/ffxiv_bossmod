@@ -91,7 +91,9 @@ sealed class RazorStorm(BossModule module) : Components.SimpleAOEs(module, (uint
 sealed class CuttingWind(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [with(12)];
-    private static readonly AOEShapeRect rect = new(36f, 4f, 36f);
+    private readonly AOEShapeRect rect = new(36f, 4f, 36f);
+    private readonly double[] delays = [8.6d, 16.7d, 24.7d];
+    private readonly Angle[] angles = [Angle.AnglesCardinals[3], Angle.AnglesIntercardinals[1], Angle.AnglesIntercardinals[2], Angle.AnglesCardinals[1]];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -101,9 +103,6 @@ sealed class CuttingWind(BossModule module) : Components.GenericAOEs(module)
         var max = count > 4 ? 4 : count;
         return CollectionsMarshal.AsSpan(_aoes)[..max];
     }
-
-    private static readonly double[] delays = [8.6d, 16.7d, 24.7d];
-    private static readonly Angle[] angles = [Angle.AnglesCardinals[3], Angle.AnglesIntercardinals[1], Angle.AnglesIntercardinals[2], Angle.AnglesCardinals[1]];
 
     public override void OnActorCreated(Actor actor)
     {
@@ -120,6 +119,7 @@ sealed class CuttingWind(BossModule module) : Components.GenericAOEs(module)
             }
         }
         if (actor.OID == (uint)OID.Whirlwind)
+        {
             if (actor.Position.AlmostEqual(new WPos(-121f, 279f), 1f))
             {
                 AddWhirlwind([new(-102.935f, 274.357f), new(-108.935f, 262.224f), new(-105.733f, 252.340f)]); // SW whirlwind
@@ -128,6 +128,7 @@ sealed class CuttingWind(BossModule module) : Components.GenericAOEs(module)
             {
                 AddWhirlwind([new(-111.688f, 253.942f), new(-102.276f, 264.313f), new(-108.922f, 276.528f)]); // NW whirlwind
             }
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -159,8 +160,16 @@ sealed class D013ApollyonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12711)]
-public sealed class D013Apollyon(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultBounds.Center, DefaultBounds)
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826u, NameID = 12711u)]
+public sealed class D013Apollyon : BossModule
 {
-    public static readonly ArenaBoundsCustom DefaultBounds = new([new Polygon(new(-107f, 265f), 19.5f, 32)], [new Rectangle(new(-107f, 285.75f), 20f, 2f)]);
+    public D013Apollyon(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D013Apollyon(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(-107f, 265f), 19.5f, 32)], [new Rectangle(new(-107f, 285.75f), 20f, 2f)]);
+        return (arena.Center, arena);
+    }
 }

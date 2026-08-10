@@ -42,14 +42,22 @@ sealed class AlexandrianBanishIII(BossModule module) : Components.GenericBaitSta
             base.AddHints(slot, actor, hints);
     }
 
+    private WPos lastPos;
+
     public override void Update()
     {
         var baits = CollectionsMarshal.AsSpan(CurrentBaits);
         if (baits.Length == 0)
+        {
             return;
+        }
 
         ref var bait = ref baits[0];
         var loc = bait.Target.Position;
+        if (lastPos == loc)
+        {
+            return; // don't bother with all these calculations if nothing changed...
+        }
         var shapes = new List<Shape>
         {
             new Polygon(loc, 4f, 25)
@@ -78,7 +86,9 @@ sealed class AlexandrianBanishIII(BossModule module) : Components.GenericBaitSta
             {
                 var tileIdx = ring == 0 ? i : i + 8;
                 if (visited[tileIdx] || !activeTiles[tileIdx] || !intersects[tileIdx])
+                {
                     continue;
+                }
 
                 stackPtr = 0;
                 stack[stackPtr++] = (ring, i);
@@ -88,7 +98,9 @@ sealed class AlexandrianBanishIII(BossModule module) : Components.GenericBaitSta
                     var (r, j) = stack[--stackPtr];
                     var id = r == 0 ? j : j + 8;
                     if (visited[id] || !activeTiles[id])
+                    {
                         continue;
+                    }
 
                     visited[id] = true;
 
@@ -103,17 +115,22 @@ sealed class AlexandrianBanishIII(BossModule module) : Components.GenericBaitSta
                         var n = leftright[k];
                         var nid = r == 0 ? n : n + 8;
                         if (!visited[nid] && activeTiles[nid])
+                        {
                             stack[stackPtr++] = (r, n);
+                        }
                     }
 
                     var otherRing = 1 - r;
                     var otherId = otherRing == 0 ? j : j + 8;
                     if (!visited[otherId] && activeTiles[otherId])
+                    {
                         stack[stackPtr++] = (otherRing, j);
+                    }
                 }
             }
         }
-        bait.Shape = new AOEShapeCustom([.. shapes]);
+        lastPos = loc;
+        bait.Shape = new AOEShapeCustom(pos, [.. shapes]);
     }
 }
 
@@ -135,15 +152,16 @@ sealed class AlexandrianBanishIIITargetHint(BossModule module) : Components.Gene
             var lenOuter = longestOuter.Length;
             var shapes = new DonutSegmentV[lenInner + lenOuter];
             var angle = 22.5f.Degrees();
+            var center = Arena.Center;
             for (var i = 0; i < lenInner; ++i)
             {
-                shapes[i] = new DonutSegmentV(Arena.Center, 2f, 8f, FloorTiles.TileAngles[longestInner[i]], angle, 8);
+                shapes[i] = new DonutSegmentV(center, 2f, 8f, FloorTiles.TileAngles[longestInner[i]], angle, 8);
             }
             for (var i = 0; i < lenOuter; ++i)
             {
-                shapes[lenInner + i] = new DonutSegmentV(Arena.Center, 8f, 16f, FloorTiles.TileAngles[longestOuter[i]], angle, 8);
+                shapes[lenInner + i] = new DonutSegmentV(center, 8f, 16f, FloorTiles.TileAngles[longestOuter[i]], angle, 8);
             }
-            _aoe = [new(new AOEShapeCustom(shapes, invertForbiddenZone: true), Arena.Center, default, WorldState.FutureTime(4.1d), Colors.SafeFromAOE)];
+            _aoe = [new(new AOEShapeCustom(center, shapes, invertForbiddenZone: true), center, default, WorldState.FutureTime(4.1d), Colors.SafeFromAOE)];
         }
     }
 }

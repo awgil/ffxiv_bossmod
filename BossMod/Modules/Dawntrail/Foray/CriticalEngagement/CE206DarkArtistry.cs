@@ -147,7 +147,8 @@ sealed class LongDeadExplorer(BossModule module) : Components.GenericAOEs(module
     }
 }
 
-sealed class LongDeadPirate(BossModule module) : Components.GenericAOEs(module) {
+sealed class LongDeadPirate(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCross shape = new(80.0f, 3.5f);
     private readonly List<(Actor actor, DateTime activation)> longDeadPirateWave = []; // Actors waiting to be sorted in order of activation
@@ -155,9 +156,12 @@ sealed class LongDeadPirate(BossModule module) : Components.GenericAOEs(module) 
     private int? waveSize;
     private readonly LongDeadExplorer longDeadExplorer = module.FindComponent<LongDeadExplorer>()!;
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.LongDeadPirate) {
-            if (longDeadPirateWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded).Duration() > TimeSpan.FromSeconds(1.0f)) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.LongDeadPirate)
+        {
+            if (longDeadPirateWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded).Duration() > TimeSpan.FromSeconds(1.0f))
+            {
                 SetupWave();
             }
 
@@ -166,34 +170,44 @@ sealed class LongDeadPirate(BossModule module) : Components.GenericAOEs(module) 
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.LongDeadPirateExplosion) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.LongDeadPirateExplosion)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAll(a => a.ActorID == caster.InstanceID);
             }
 
-            if (aoes.Count == 0) {
+            if (aoes.Count == 0)
+            {
                 waveSize = null;
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (longDeadExplorer.active || aoes.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (longDeadExplorer.active || aoes.Count == 0)
+        {
             return [];
         }
 
         return CollectionsMarshal.AsSpan(aoes.OrderBy(aoe => aoe.Activation).Take(4).ToList());
     }
 
-    public override void Update() {
-        if (longDeadPirateWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded) > TimeSpan.FromSeconds(2.0f)) {
+    public override void Update()
+    {
+        if (longDeadPirateWave.Count > 0 && (WorldState.CurrentTime - lastWaveAdded) > TimeSpan.FromSeconds(2.0f))
+        {
             SetupWave();
         }
     }
 
-    private void SetupWave() {
-        if (longDeadPirateWave.Count == 0) {
+    private void SetupWave()
+    {
+        if (longDeadPirateWave.Count == 0)
+        {
             return;
         }
 
@@ -201,19 +215,25 @@ sealed class LongDeadPirate(BossModule module) : Components.GenericAOEs(module) 
         waveSize ??= sort.Count / 2;
 
         // Case: 8 actors created at the same time
-        if (sort.Count > waveSize.Value) {
+        if (sort.Count > waveSize.Value)
+        {
             // Always 21.4f from spawn time
-            foreach (var (pirate, activation) in sort.Take(waveSize.Value)) {
+            foreach (var (pirate, activation) in sort.Take(waveSize.Value))
+            {
                 aoes.Add(new(shape, pirate.Position, pirate.Rotation, activation + TimeSpan.FromSeconds(21.4f), actorID: pirate.InstanceID));
             }
 
             // Always 32.9f from spawn time
-            foreach (var (pirate, activation) in sort.Skip(waveSize.Value)) {
+            foreach (var (pirate, activation) in sort.Skip(waveSize.Value))
+            {
                 aoes.Add(new(shape, pirate.Position, pirate.Rotation, activation + TimeSpan.FromSeconds(32.9f), actorID: pirate.InstanceID));
             }
-        } else {
+        }
+        else
+        {
             // Case single wave - always 32.0f from spawn time (these spawn later on compared to the others)
-            foreach (var (pirate, activation) in sort) {
+            foreach (var (pirate, activation) in sort)
+            {
                 aoes.Add(new(shape, pirate.Position, pirate.Rotation, activation + TimeSpan.FromSeconds(32.0f), actorID: pirate.InstanceID));
             }
         }

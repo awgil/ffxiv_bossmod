@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class AsAboveSoBelow(BossModule module) : Components.Exaflare(module, 6f)
+sealed class AsAboveSoBelow(BossModule module) : Components.Exaflare(module, 6f)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

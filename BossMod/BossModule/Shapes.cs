@@ -19,15 +19,7 @@ public sealed class Circle(WPos center, float radius) : Shape
 
     public override List<WDir> Contour(WPos center)
     {
-        var vertices = CurveApprox.Circle(Radius, MaxApproxError);
-        var len = vertices.Length;
-        var result = new List<WDir>(len);
-        var offset = Center - center;
-        for (var i = 0; i < len; ++i)
-        {
-            result.Add(vertices[i] + offset);
-        }
-        return result;
+        return CurveApprox.CircleL(Center - center, Radius, MaxApproxError);
     }
 
     public override string ToString() => $"Circle:{Center},{Radius}";
@@ -93,15 +85,7 @@ public sealed class Donut(WPos center, float innerRadius, float outerRadius) : S
 
     public override List<WDir> Contour(WPos center)
     {
-        var vertices = CurveApprox.Donut(InnerRadius, OuterRadius, MaxApproxError);
-        var len = vertices.Length;
-        var result = new List<WDir>(len);
-        var offset = Center - center;
-        for (var i = 0; i < len; ++i)
-        {
-            result.Add(vertices[i] + offset);
-        }
-        return result;
+        return CurveApprox.DonutL(Center - center, InnerRadius, OuterRadius, MaxApproxError);
     }
 
     public override string ToString() => $"Donut:{Center},{InnerRadius},{OuterRadius}";
@@ -240,15 +224,7 @@ public class Cone(WPos center, float radius, Angle startAngle, Angle endAngle) :
 
     public override List<WDir> Contour(WPos center)
     {
-        var points = CurveApprox.CircleSector(Radius, StartAngle, EndAngle, MaxApproxError);
-        var len = points.Length;
-        var vertices = new List<WDir>(len);
-        var offset = Center - center;
-        for (var i = 0; i < len; ++i)
-        {
-            vertices.Add(points[i] + offset);
-        }
-        return vertices;
+        return CurveApprox.CircleSectorL(Center - center, Radius, StartAngle, EndAngle, MaxApproxError);
     }
 
     public override string ToString() => $"Cone:{Center},{Radius},{StartAngle},{EndAngle}";
@@ -270,15 +246,7 @@ public class DonutSegment(WPos center, float innerRadius, float outerRadius, Ang
 
     public override List<WDir> Contour(WPos center)
     {
-        var vertices = CurveApprox.DonutSector(InnerRadius, OuterRadius, StartAngle, EndAngle, MaxApproxError);
-        var len = vertices.Length;
-        var result = new List<WDir>(len);
-        var offset = Center - center;
-        for (var i = 0; i < len; ++i)
-        {
-            result.Add(vertices[i] + offset);
-        }
-        return result;
+        return CurveApprox.DonutSectorL(Center - center, InnerRadius, OuterRadius, StartAngle, EndAngle, MaxApproxError);
     }
 
     public override string ToString() => $"DonutSegment:{Center},{InnerRadius},{OuterRadius},{StartAngle},{EndAngle}";

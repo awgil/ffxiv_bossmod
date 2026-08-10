@@ -48,7 +48,7 @@ sealed class GreenTiles(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly DateTime[] transportingCheckStartTimes = new DateTime[4];
     private const float HalfSize = 5f;
-    private static readonly WPos[] defaultGreenTiles =
+    private readonly WPos[] defaultGreenTiles =
     [
         new(-5f, -75f), new(5f, -75f), new(-15f, -65f), new(15f, -65f),
         new(-15f, -55f), new(5f, -55f), new(-5f, -45f), new(15f, -45f)
@@ -112,7 +112,9 @@ sealed class GreenTiles(BossModule module) : Components.GenericAOEs(module)
         var activate = ShouldActivateAOEs;
         if (activate && isNull)
         {
-            _aoe = [new(new AOEShapeCustom(tiles), Arena.Center, color: Colors.FutureVulnerable)];
+            var center = Arena.Center;
+            var shapes = new AOEShapeCustom(center, tiles);
+            _aoe = [new(shapes, center, color: Colors.FutureVulnerable)];
         }
         else if (!activate && !isNull)
         {
@@ -130,12 +132,13 @@ sealed class GreenTiles(BossModule module) : Components.GenericAOEs(module)
         return tiles;
     }
 
-    private static Square[] GenerateRotatedTiles(float angle)
+    private Square[] GenerateRotatedTiles(float angle)
     {
         var tiles = new Square[8];
+        var center = Arena.Center;
         for (var i = 0; i < 8; ++i)
         {
-            tiles[i] = new Square(WPos.RotateAroundOrigin(angle, D092LeananSith.ArenaCenter, defaultGreenTiles[i]), HalfSize);
+            tiles[i] = new Square(WPos.RotateAroundOrigin(angle, center, defaultGreenTiles[i]), HalfSize);
         }
         return tiles;
     }
@@ -282,9 +285,8 @@ sealed class D092LeananSithStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 692u, NameID = 9044u)]
-public sealed class D092LeananSith(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(19.5f))
+public sealed class D092LeananSith(WorldState ws, Actor primary) : BossModule(ws, primary, new(0f, -60f), new ArenaBoundsSquare(19.5f))
 {
-    public static readonly WPos ArenaCenter = new(default, -60f);
     public static readonly uint[] Seeds = [(uint)OID.LeannanSeed1, (uint)OID.LeannanSeed2, (uint)OID.LeannanSeed3, (uint)OID.LeannanSeed4];
 
     protected override void DrawEnemies(int pcSlot, Actor pc)

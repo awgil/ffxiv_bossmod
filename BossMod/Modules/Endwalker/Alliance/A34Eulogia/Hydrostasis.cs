@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class Hydrostasis(BossModule module) : Components.GenericKnockback(module)
+sealed class Hydrostasis(BossModule module) : Components.GenericKnockback(module)
 {
     private readonly List<Knockback> _sources = [with(3)];
 

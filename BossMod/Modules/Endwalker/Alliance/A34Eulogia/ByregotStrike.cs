@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
-class ByregotStrikeJump(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ByregotStrike, 8f);
-class ByregotStrikeKnockback(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.ByregotStrikeKnockback, 20f)
+sealed class ByregotStrikeJump(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ByregotStrike, 8f);
+sealed class ByregotStrikeKnockback(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.ByregotStrikeKnockback, 20f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -16,4 +16,4 @@ class ByregotStrikeKnockback(BossModule module) : Components.SimpleKnockbacks(mo
         }
     }
 }
-class ByregotStrikeCone(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ByregotStrikeAOE, new AOEShapeCone(90f, 22.5f.Degrees()));
+sealed class ByregotStrikeCone(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ByregotStrikeAOE, new AOEShapeCone(90f, 22.5f.Degrees()));

@@ -9,8 +9,13 @@ sealed class RoyalBanishment(BossModule module) : Components.GenericWildCharge(m
         {
             var bossp2 = Module.Enemies((uint)OID.BossP2);
             Source = bossp2.Count != 0 ? bossp2[0] : null;
-            foreach (var (i, p) in Raid.WithSlot(true, true, true))
-                PlayerRoles[i] = p.InstanceID == targetID ? PlayerRole.Target : PlayerRole.Share;
+            var raid = Raid.WithSlot(true, true, true);
+            var len = raid.Length;
+            for (var i = 0; i < len; ++i)
+            {
+                var p = raid[i];
+                PlayerRoles[p.Item1] = p.Item2.InstanceID == targetID ? PlayerRole.Target : PlayerRole.Share;
+            }
         }
     }
 

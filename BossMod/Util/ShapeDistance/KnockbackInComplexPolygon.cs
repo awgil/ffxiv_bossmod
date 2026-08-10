@@ -1,12 +1,21 @@
 namespace BossMod;
 
 [SkipLocalsInit]
-public sealed class SDKnockbackInComplexPolygonAwayFromOrigin(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon) : ShapeDistance
+public sealed class SDKnockbackInComplexPolygonAwayFromOrigin : ShapeDistance
 {
-    private readonly WPos center = Center;
-    private readonly WPos origin = Origin;
-    private readonly float distance = Distance;
-    private readonly RelSimplifiedComplexPolygon polygon = Polygon;
+    public SDKnockbackInComplexPolygonAwayFromOrigin(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon)
+    {
+        center = Center;
+        origin = Origin;
+        distance = Distance;
+        polygon = Polygon;
+        polygon.VerifyPolygonIndexExistance();
+    }
+
+    private readonly WPos center;
+    private readonly WPos origin;
+    private readonly float distance;
+    private readonly RelSimplifiedComplexPolygon polygon;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Contains(in WPos p) => !polygon.Contains(p - center + distance * (p - origin).Normalized());
@@ -19,11 +28,19 @@ public sealed class SDKnockbackInComplexPolygonAwayFromOrigin(WPos Center, WPos 
 }
 
 [SkipLocalsInit]
-public sealed class SDKnockbackInComplexPolygonFixedDirection(WPos Center, WDir Direction, RelSimplifiedComplexPolygon Polygon) : ShapeDistance
+public sealed class SDKnockbackInComplexPolygonFixedDirection : ShapeDistance
 {
-    private readonly WPos center = Center;
-    private readonly WDir direction = Direction;
-    private readonly RelSimplifiedComplexPolygon polygon = Polygon;
+    public SDKnockbackInComplexPolygonFixedDirection(WPos Center, WDir Direction, RelSimplifiedComplexPolygon Polygon)
+    {
+        center = Center;
+        direction = Direction;
+        polygon = Polygon;
+        polygon.VerifyPolygonIndexExistance();
+    }
+
+    private readonly WPos center;
+    private readonly WDir direction;
+    private readonly RelSimplifiedComplexPolygon polygon;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Contains(in WPos p) => !polygon.Contains(p - center + direction);
@@ -36,15 +53,27 @@ public sealed class SDKnockbackInComplexPolygonFixedDirection(WPos Center, WDir 
 }
 
 [SkipLocalsInit]
-public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusAOEAABBSquares(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon, WPos[] AOEs, float HalfWidth, int Length) : ShapeDistance
+public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusAOEAABBSquares : ShapeDistance
 {
-    private readonly WPos center = Center;
-    private readonly WPos origin = Origin;
-    private readonly RelSimplifiedComplexPolygon polygon = Polygon;
-    private readonly float distance = Distance;
-    private readonly WPos[] aoes = AOEs;
-    private readonly float halfWidth = HalfWidth;
-    private readonly int len = Length;
+    public SDKnockbackInComplexPolygonAwayFromOriginPlusAOEAABBSquares(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon, WPos[] AOEs, float HalfWidth, int Length)
+    {
+        center = Center;
+        origin = Origin;
+        polygon = Polygon;
+        distance = Distance;
+        aoes = AOEs;
+        halfWidth = HalfWidth;
+        len = Length;
+        polygon.VerifyPolygonIndexExistance();
+    }
+
+    private readonly WPos center;
+    private readonly WPos origin;
+    private readonly RelSimplifiedComplexPolygon polygon;
+    private readonly float distance;
+    private readonly WPos[] aoes;
+    private readonly float halfWidth;
+    private readonly int len;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override float Distance(in WPos p) => Contains(p) ? 0f : 1f;
@@ -74,15 +103,27 @@ public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusAOEAABBSquares(
 }
 
 [SkipLocalsInit]
-public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusAOECircles(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon, WPos[] AOEs, float Radius, int Length) : ShapeDistance
+public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusAOECircles : ShapeDistance
 {
-    private readonly WPos center = Center;
-    private readonly WPos origin = Origin;
-    private readonly RelSimplifiedComplexPolygon polygon = Polygon;
-    private readonly float distance = Distance;
-    private readonly WPos[] aoes = AOEs;
-    private readonly float radius = Radius;
-    private readonly int len = Length;
+    public SDKnockbackInComplexPolygonAwayFromOriginPlusAOECircles(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon, WPos[] AOEs, float Radius, int Length)
+    {
+        center = Center;
+        origin = Origin;
+        polygon = Polygon;
+        distance = Distance;
+        aoes = AOEs;
+        radius = Radius;
+        len = Length;
+        polygon.VerifyPolygonIndexExistance();
+    }
+
+    private readonly WPos center;
+    private readonly WPos origin;
+    private readonly RelSimplifiedComplexPolygon polygon;
+    private readonly float distance;
+    private readonly WPos[] aoes;
+    private readonly float radius;
+    private readonly int len;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Contains(in WPos p)
@@ -112,19 +153,28 @@ public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusAOECircles(WPos
 }
 
 [SkipLocalsInit]
-public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusIntersectionTest(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon) : ShapeDistance
+public sealed class SDKnockbackInComplexPolygonAwayFromOriginPlusIntersectionTest : ShapeDistance
 {
-    private readonly WPos center = Center;
-    private readonly WPos origin = Origin;
-    private readonly float distance = Distance;
-    private readonly RelSimplifiedComplexPolygon polygon = Polygon;
+    public SDKnockbackInComplexPolygonAwayFromOriginPlusIntersectionTest(WPos Center, WPos Origin, float Distance, RelSimplifiedComplexPolygon Polygon)
+    {
+        center = Center;
+        origin = Origin;
+        distance = Distance;
+        polygon = Polygon;
+        polygon.VerifyPolygonIndexExistance();
+    }
+
+    private readonly WPos center;
+    private readonly WPos origin;
+    private readonly float distance;
+    private readonly RelSimplifiedComplexPolygon polygon;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Contains(in WPos p)
     {
         var offset = p - center;
         var dir = (p - origin).Normalized();
-        return !polygon.Contains(offset + distance * dir) || Intersect.RayPolygon(offset, dir, polygon) < distance;
+        return !polygon.Contains(offset + distance * dir) || polygon.Raycast(offset, dir) < distance;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

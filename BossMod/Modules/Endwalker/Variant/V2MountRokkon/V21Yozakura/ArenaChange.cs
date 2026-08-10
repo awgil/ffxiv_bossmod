@@ -2,8 +2,6 @@ namespace BossMod.Endwalker.VariantCriterion.V2MountRokkon.V21Yozakura;
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square1 = new([new Square(V21Yozakura.ArenaCenter1, 23f)], [new Square(V21Yozakura.ArenaCenter1, 20f)]);
-    private static readonly AOEShapeCustom square2 = new([new Square(V21Yozakura.ArenaCenter3, 23f)], [new Square(V21Yozakura.ArenaCenter3, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -11,16 +9,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.GloryNeverlasting && Arena.Bounds.Radius > 20f)
         {
-            void AddAOE(AOEShape shape) => _aoe = [new(shape, Arena.Center, default, Module.CastFinishAt(spell, 3.7d))];
             var center = Arena.Center;
-            if (center == V21Yozakura.ArenaCenter1)
-            {
-                AddAOE(square1);
-            }
-            else if (center == V21Yozakura.ArenaCenter3)
-            {
-                AddAOE(square2);
-            }
+            var shape = new AOEShapeCustom(center, [new Square(center, 22.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 3.7d), shapeDistance: shape.Distance(center, default))];
         }
     }
 

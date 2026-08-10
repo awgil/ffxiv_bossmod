@@ -2,10 +2,7 @@
 
 sealed class TetraktysBorder(BossModule module) : Components.GenericAOEs(module)
 {
-    public static readonly WPos NormalCenter = new(-945f, 945f);
-    private static readonly Polygon[] triangle = [new(new(-945, 948.71267f), 27.71281f, 3, 180f.Degrees())];
-    private static readonly ArenaBoundsCustom TriangleBounds = new(triangle);
-    private static readonly AOEShapeCustom transition = new([new Square(NormalCenter, 24f)], triangle);
+    private static Polygon[] GetTriangle() => [new(new(-945, 948.71267f), 27.71281f, 3, 180f.Degrees())];
     private AOEInstance[] _aoe = [];
     public bool Active;
 
@@ -18,17 +15,19 @@ sealed class TetraktysBorder(BossModule module) : Components.GenericAOEs(module)
             switch (state)
             {
                 case 0x00200010u:
-                    _aoe = [new(transition, NormalCenter, default, WorldState.FutureTime(6.5d))];
+                    var center = Arena.Center;
+                    _aoe = [new(new AOEShapeCustom(center, [new Square(center, 24f)], GetTriangle()), center, default, WorldState.FutureTime(6.5d))];
                     break;
                 case 0x00020001u:
                     _aoe = [];
-                    Arena.Bounds = TriangleBounds;
-                    Arena.Center = TriangleBounds.Center;
+                    var arena = new ArenaBoundsCustom(GetTriangle());
+                    Arena.Bounds = arena;
+                    Arena.Center = arena.Center;
                     Active = true;
                     break;
                 case 0x00080004u:
                     Arena.Bounds = new ArenaBoundsSquare(24f);
-                    Arena.Center = NormalCenter;
+                    Arena.Center = new(-945f, 945f);
                     Active = false;
                     break;
             }

@@ -84,14 +84,14 @@ sealed class WipeBlackWhite(BossModule module) : Components.GenericAOEs(module)
                 }
             }
         }
-
-        var aoe = new AOEShapeCustom(shapes1, shapes2, invertForbiddenZone: true);
-        if (positions[1] != default && positions[0] != default) // if there are 2 meteors, we need to intersect the union of each meteor's rectangles
+        var isTwoMeteors = positions[1] != default && positions[0] != default;
+        var aoe = new AOEShapeCustom(center, shapes1, shapes2, invertForbiddenZone: true, skipPolygonInit: isTwoMeteors);
+        if (isTwoMeteors) // if there are 2 meteors, we need to intersect the union of each meteor's rectangles
         {
             var clipper = new PolygonClipper();
             var union1 = Union(shapes1);
             var union2 = Union(shapes2);
-            aoe.Polygon = clipper.Intersect(new PolygonClipper.Operand(union1), new PolygonClipper.Operand(union2));
+            aoe.ReplacePolygon(clipper.Intersect(new PolygonClipper.Operand(union1), new PolygonClipper.Operand(union2)), center);
 
             RelSimplifiedComplexPolygon Union(List<RectangleSE> shapes)
             {
@@ -104,7 +104,7 @@ sealed class WipeBlackWhite(BossModule module) : Components.GenericAOEs(module)
                 return clipper.Simplify(operand);
             }
         }
-        _aoe = [new(aoe, center, default, activation, Colors.SafeFromAOE)];
+        _aoe = [new(aoe, center, default, activation, Colors.SafeFromAOE, shapeDistance: aoe.InvertedDistance(center, default))];
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

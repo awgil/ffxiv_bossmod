@@ -16,9 +16,9 @@ public static class Layouts
 
     public static readonly ArenaBoundsCustom Layout4Quads = new(_circleBig, squares, AdjustForHitboxInwards: true);
     public static readonly ArenaBoundsCustom Layout2Corners = new(_circleBig, walls, AdjustForHitboxInwards: true);
-    public static readonly RelSimplifiedComplexPolygon Layout2CornersBlockers = new AOEShapeCustom(_circleBigAdj, walls).GetCombinedPolygon(ArenaCenter);
+    public static readonly RelSimplifiedComplexPolygon Layout2CornersBlockers = PolygonClipper.GetCombinedPolygon(ArenaCenter, _circleBigAdj, walls);
     public static readonly ArenaBoundsCustom LayoutBigQuad = new(_circleBig, _bigQuad, AdjustForHitboxInwards: true);
-    public static readonly RelSimplifiedComplexPolygon LayoutBigQuadBlockers = new AOEShapeCustom(_circleBigAdj, _bigQuad).GetCombinedPolygon(ArenaCenter);
+    public static readonly RelSimplifiedComplexPolygon LayoutBigQuadBlockers = PolygonClipper.GetCombinedPolygon(ArenaCenter, _circleBigAdj, _bigQuad);
     public static readonly ArenaBoundsCustom CircleSmall = new([new Polygon(ArenaCenter, 16.01379f, 32)]) { IsCircle = true };
     public static readonly ArenaBoundsCustom CircleBig = new(_circleBigAdj) { IsCircle = true };
 }

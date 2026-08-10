@@ -41,14 +41,13 @@ sealed class T03QueenEternalStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 984, NameID = 13029)]
-public sealed class T03QueenEternal(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, DefaultBounds)
+public sealed class T03QueenEternal(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsSquare(20f))
 {
-    public static readonly WPos ArenaCenter = new(100f, 100f), FinalCenter = new(100f, 105f), LeftSplitCenter = new(108f, 94f), RightSplitCenter = new(92f, 94f);
     public static readonly ArenaBoundsRect FinalBounds = new(20f, 15f), SplitGravityBounds = new(12f, 8f);
-    public static readonly ArenaBoundsSquare DefaultBounds = new(20f);
-    public static readonly Shape[] XArenaRects = [new Rectangle(new(100f, 82.5f), 12.5f, 2.5f), new Rectangle(new(100f, 102.5f), 12.5f, 2.5f),
+
+    public static Shape[] GetXArenaRects() => [new Rectangle(new(100f, 82.5f), 12.5f, 2.5f), new Rectangle(new(100f, 102.5f), 12.5f, 2.5f),
     new Cross(new(100f, 92.5f), 15f, 2.5f, 45f.Degrees())];
-    public static readonly ArenaBoundsCustom XArena = new(XArenaRects);
-    public static readonly Rectangle[] SplitArenaRects = [new Rectangle(LeftSplitCenter, 4f, 8f), new Rectangle(RightSplitCenter, 4f, 8f)];
-    public static readonly ArenaBoundsCustom SplitArena = new(SplitArenaRects);
+    public static ArenaBoundsCustom GetXArena() => new(GetXArenaRects());
+    public static Rectangle[] GetSplitArenaRects() => [new Rectangle(new(108f, 94f), 4f, 8f), new Rectangle(new(92f, 94f), 4f, 8f)];
+    public static ArenaBoundsCustom GetSplitArena() => new(GetSplitArenaRects());
 }

@@ -6,13 +6,15 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, (uint)AID
     public bool MovementPending;
     public readonly int[] LineOffset = new int[5];
     public readonly int[] LineMovement = new int[5];
-    private static readonly AOEShapeRect _shape = new(5f, 5f, 5f);
+    private readonly AOEShapeRect _shape = new(5f, 5f, 5f);
     private DateTime activation;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (!MovementPending)
+        {
             return [];
+        }
 
         var aoes = new List<AOEInstance>();
         for (var z = -2; z <= 2; ++z)
@@ -21,7 +23,9 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, (uint)AID
             {
                 var center = CellCenter(x, z);
                 if (Arena.InBounds(center) && CellDangerous(x, z))
+                {
                     aoes.Add(new(_shape, center, default, activation));
+                }
             }
         }
         return CollectionsMarshal.AsSpan(aoes);
@@ -36,7 +40,9 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, (uint)AID
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == WatchedAction)
-            Arena.Bounds = A11Byregot.StartingHammerBounds;
+        {
+            Arena.Bounds = new ArenaBoundsRect(15f, 25f);
+        }
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -85,7 +91,7 @@ class HammersCells(BossModule module) : Components.GenericAOEs(module, (uint)AID
         }
     }
 
-    public static WPos CellCenter(int x, int z) => A11Byregot.ArenaCenter + 10f * new WDir(x, z);
+    public static WPos CellCenter(int x, int z) => new WPos(0f, 700f) + 10f * new WDir(x, z);
 
     private bool CellDangerous(int x, int z)
     {

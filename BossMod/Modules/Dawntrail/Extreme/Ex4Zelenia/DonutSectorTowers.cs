@@ -48,11 +48,20 @@ sealed class DonutSectorTowers(BossModule module) : Components.GenericTowers(mod
         // 0x34: -135° → index 8
         if (state == 0x00020001u)
         {
-            void AddTower(AOEShapeDonutSector shape, byte idx) => Towers.Add(new(Arena.Center, shape, activation: WorldState.FutureTime(13d), rotation: FloorTiles.TileAngles[index - idx]));
+            void AddTower(AOEShapeDonutSector shape, byte idx)
+            {
+                var pos = Arena.Center;
+                Towers.Add(new(pos, shape, activation: WorldState.FutureTime(13d), rotation: FloorTiles.TileAngles[index - idx], shapeDistance: shape.Distance(pos, default),
+                invertedShapeDistance: shape.InvertedDistance(pos, default)));
+            }
             if (index is >= 0x14 and <= 0x1B)
+            {
                 AddTower(FloorTiles.DonutS, 0x14);
+            }
             else if (index is >= 0x2D and <= 0x34)
+            {
                 AddTower(FloorTiles.DonutSIn, 0x2D);
+            }
         }
         else if (state is 0x00800040u or 0x80000040u && ++envccounter == 4)
         {
@@ -97,9 +106,13 @@ sealed class DonutSectorTowers(BossModule module) : Components.GenericTowers(mod
                         var (r, j) = stack[--stackPtr];
                         var tid = r == 0 ? j : j + 8;
                         if (visited[tid])
+                        {
                             continue;
+                        }
                         if (!activeTiles[tid])
+                        {
                             continue;
+                        }
 
                         visited[tid] = true;
 
@@ -134,7 +147,10 @@ sealed class DonutSectorTowers(BossModule module) : Components.GenericTowers(mod
                 if (shapes.Count > 0)
                 {
                     ref var tow = ref towers[t];
-                    tow.Shape = new AOEShapeCustom([.. shapes]);
+                    var shape = new AOEShapeCustom(pos, [.. shapes]);
+                    tow.Shape = shape;
+                    tow.ShapeDistance = shape.Distance(pos, default);
+                    tow.InvertedShapeDistance = shape.InvertedDistance(pos, default);
                 }
             }
         }

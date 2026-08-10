@@ -16,9 +16,16 @@ sealed class GhastlyAura(BossModule module) : Components.TemporaryMisdirection(m
 sealed class FellFlowAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.FellFlow, new AOEShapeCone(50f, 60f.Degrees()));
 sealed class FellFlowBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(50f, 15f.Degrees()), (uint)IconID.FellFlow, (uint)AID.FellFlowBait, 5.2d);
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.TheDalriada, GroupID = 778, NameID = 10004, SortOrder = 3)]
-public sealed class DAL2Cuchulainn(WorldState ws, Actor primary) : BossModule(ws, primary, arena.Center, arena)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.TheDalriada, GroupID = 778u, NameID = 10004u, SortOrder = 3)]
+public sealed class DAL2Cuchulainn : BossModule
 {
-    public static readonly WPos ArenaCenter = new(650f, -187.4f);
-    private static readonly ArenaBoundsCustom arena = new([new Polygon(ArenaCenter, 25.199f, 48)], [new Rectangle(new(650f, -162f), 20f, 1.25f), new Rectangle(new(650f, -213f), 20f, 1.25f)]);
+    public DAL2Cuchulainn(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private DAL2Cuchulainn(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    public static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(650f, -187.4f), 25.199f, 48)], [new Rectangle(new(650f, -162f), 20f, 1.25f), new Rectangle(new(650f, -213f), 20f, 1.25f)]);
+        return (arena.Center, arena);
+    }
 }

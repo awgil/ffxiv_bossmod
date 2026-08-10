@@ -35,9 +35,8 @@ public enum IconID : uint
     Spreadmarker = 229 // player
 }
 
-class BeastlyFuryArenaChange(BossModule module) : Components.GenericAOEs(module)
+sealed class BeastlyFuryArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom cross = new([new Square(D113SpectralBerserker.ArenaCenter, 23)], D113SpectralBerserker.Cross);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
@@ -45,7 +44,9 @@ class BeastlyFuryArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.BeastlyFury && Arena.Bounds.Radius > 20f)
         {
-            _aoe = [new(cross, Arena.Center, default, Module.CastFinishAt(spell, 1.1d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 22.5f)], [new Cross(center, 20f, 10f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 1.1d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -53,13 +54,13 @@ class BeastlyFuryArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x0B && state == 0x00020001u)
         {
-            Arena.Bounds = D113SpectralBerserker.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsCustom([new Cross(Arena.Center, 20f, 10f)]);
             _aoe = [];
         }
     }
 }
 
-class FallingRock(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spreadmarker, (uint)AID.WildAnguish2, 8.5f, 6) // 8.5 instead of 6 to prevent aoe from intersecting additional rubble hitboxes
+sealed class FallingRock(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spreadmarker, (uint)AID.WildAnguish2, 8.5f, 6d) // 8.5 instead of 6 to prevent aoe from intersecting additional rubble hitboxes
 {
     public override void Update()
     {
@@ -97,7 +98,7 @@ class FallingRock(BossModule module) : Components.SpreadFromIcon(module, (uint)I
     }
 }
 
-class WildAnguish1(BossModule module) : Components.StackWithCastTargets(module, (uint)AID.WildAnguish1, 6f, 4, 4)
+sealed class WildAnguish1(BossModule module) : Components.StackWithCastTargets(module, (uint)AID.WildAnguish1, 6f, 4, 4)
 {
     public static bool IsQuadrupleStack(BossModule module)
     {
@@ -136,7 +137,7 @@ class WildAnguish1(BossModule module) : Components.StackWithCastTargets(module, 
     }
 }
 
-class WildAnguish2(BossModule module) : Components.GenericTowers(module)
+sealed class WildAnguish2(BossModule module) : Components.GenericTowers(module)
 {
     private readonly FallingRock _sp = module.FindComponent<FallingRock>()!;
 
@@ -183,7 +184,7 @@ class WildAnguish2(BossModule module) : Components.GenericTowers(module)
     public override void AddHints(int slot, Actor actor, TextHints hints) { }
 }
 
-class WildRageKnockback(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.WildRageKnockback, 15f)
+sealed class WildRageKnockback(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.WildRageKnockback, 15f)
 {
     private RelSimplifiedComplexPolygon polygon;
     private bool polygonInit;
@@ -198,24 +199,22 @@ class WildRageKnockback(BossModule module) : Components.SimpleKnockbacks(module,
             {
                 if (!polygonInit)
                 {
-                    polygon = D113SpectralBerserker.DefaultBounds.Polygon.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
+                    polygon = Arena.Bounds.Shape.Offset(-1f); // pretend polygon is 1y smaller than real for less suspect knockbacks
                     polygonInit = true;
                 }
                 hints.AddForbiddenZone(new SDKnockbackInComplexPolygonAwayFromOriginPlusAOECircles(Arena.Center, c.Origin, 15f, polygon, [new(738f, 482f), new(762f, 482f)], 7.5f, 2), c.Activation);
             }
         }
-    }//
+    }
 }
 
-class WildRageRaidwide(BossModule module) : Components.RaidwideCast(module, (uint)AID.WildRageKnockback);
-class WildRage(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WildRage, 8f);
-class BeastlyFury(BossModule module) : Components.RaidwideCast(module, (uint)AID.BeastlyFury);
+sealed class WildRageRaidwide(BossModule module) : Components.RaidwideCast(module, (uint)AID.WildRageKnockback);
+sealed class WildRage(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WildRage, 8f);
+sealed class BeastlyFury(BossModule module) : Components.RaidwideCast(module, (uint)AID.BeastlyFury);
 
-class CratersWildRampage(BossModule module) : Components.GenericAOEs(module)
+sealed class CratersWildRampage(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly WPos pos1 = new(738f, 482f), pos2 = new(762f, 482f);
-    private static readonly Circle circle1 = new(pos1, 7f), circle2 = new(pos2, 7f);
-    public readonly List<Circle> Circles = [with(2)];
+    private readonly List<Circle> circles = [with(2)];
     private bool invert;
     private DateTime activation;
     private AOEShapeCustom? _aoe;
@@ -234,11 +233,18 @@ class CratersWildRampage(BossModule module) : Components.GenericAOEs(module)
     {
         if (state == 0x00010002u && actor.OID == (uint)OID.Crater)
         {
-            if (actor.Position == pos1 && !Circles.Any(x => x.Center == pos1))
-                Circles.Add(circle1);
-            else if (actor.Position == pos2 && !Circles.Any(x => x.Center == pos2))
-                Circles.Add(circle2);
-            _aoe = new AOEShapeCustom([.. Circles]);
+            var count = circles.Count; // prevent duplicates because eanim happens twice
+            var pos = actor.Position;
+            for (var i = 0; i < count; ++i)
+            {
+                if (circles[i].Center == pos)
+                {
+                    return;
+                }
+            }
+            circles.Add(new Circle(pos, 7f));
+
+            _aoe = new AOEShapeCustom(Arena.Center, [.. circles]);
         }
     }
 
@@ -254,7 +260,9 @@ class CratersWildRampage(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.WildRampage)
+        {
             invert = false;
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -275,13 +283,15 @@ class CratersWildRampage(BossModule module) : Components.GenericAOEs(module)
             hints.Add("Go inside crater!", isRisky);
         }
         else
+        {
             base.AddHints(slot, actor, hints);
+        }
     }
 }
 
 sealed class RagingSlice(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.RagingSliceFirst, (uint)AID.RagingSliceRest], new AOEShapeRect(50f, 3f));
 
-class D113SpectralBerserkerStates : StateMachineBuilder
+sealed class D113SpectralBerserkerStates : StateMachineBuilder
 {
     public D113SpectralBerserkerStates(BossModule module) : base(module)
     {
@@ -299,10 +309,5 @@ class D113SpectralBerserkerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737, NameID = 9511)]
-public class D113SpectralBerserker(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(22.5f))
-{
-    public static readonly WPos ArenaCenter = new(750f, 482f);
-    public static readonly Cross[] Cross = [new Cross(ArenaCenter, 20f, 10f)];
-    public static readonly ArenaBoundsCustom DefaultBounds = new(Cross);
-}
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737u, NameID = 9511u)]
+public sealed class D113SpectralBerserker(WorldState ws, Actor primary) : BossModule(ws, primary, new(750f, 482f), new ArenaBoundsSquare(22.5f));

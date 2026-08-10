@@ -142,9 +142,10 @@ sealed class Steelsbreath(BossModule module) : Components.GenericKnockback(modul
         {
             // 10.7s between 1st status and resolve, status 1.4s between each, resolve 2.5s between each
             var count = _knockbacks.Count;
-            var act = WorldState.FutureTime(10.7d + 2.5d * count);
+            var act = WorldState.FutureTime(10.7d + 1.3d * count);
             _knockbacks.Add(new(actor.Position, 24f, act));
         }
+        base.OnStatusGain(actor, ref status);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

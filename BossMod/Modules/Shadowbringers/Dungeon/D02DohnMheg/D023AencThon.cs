@@ -35,29 +35,36 @@ public enum AID : uint
     FinaleEnrage = 13520 // Boss->self, 60.0s cast, range 80+R circle
 }
 
-class VirtuosicCapriccio(BossModule module) : Components.RaidwideCast(module, (uint)AID.VirtuosicCapriccio, "Raidwide + Bleed");
-class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, (uint)AID.CripplingBlow);
-class ImpChoir(BossModule module) : Components.CastGaze(module, (uint)AID.ImpChoir);
-class ToadChoir(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ToadChoir, new AOEShapeCone(19.5f, 75f.Degrees()));
-class BileBombardment(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BileBombardment, 8f);
+sealed class VirtuosicCapriccio(BossModule module) : Components.RaidwideCast(module, (uint)AID.VirtuosicCapriccio, "Raidwide + Bleed");
+sealed class CripplingBlow(BossModule module) : Components.SingleTargetCast(module, (uint)AID.CripplingBlow);
+sealed class ImpChoir(BossModule module) : Components.CastGaze(module, (uint)AID.ImpChoir);
+sealed class ToadChoir(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ToadChoir, new AOEShapeCone(19.5f, 75f.Degrees()));
+sealed class BileBombardment(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BileBombardment, 8f);
 
-class FunambulistsFantasia(BossModule module) : BossComponent(module)
+sealed class FunambulistsFantasia(BossModule module) : BossComponent(module)
 {
+    private bool chasmArena;
+
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.FunambulistsFantasia)
         {
-            Arena.Bounds = D033AencThon.ChasmArena;
+            Arena.Bounds = new ArenaBoundsCustom(D033AencThon.GetUnion(), [.. D033AencThon.GetDifference(), new Rectangle(new(-128.5f, -244f), 20f, 10f)],
+            [new PolygonCustom([new(-142.32f, -234f), new(-140.533f, -245.712f), new(-129.976f, -241.934f), new(-113.76f, -243.889f),
+            new(-113.87f, -244.775f), new(-125.28f, -249.556f), new(-123.83f, -254f), new(-124.66f, -254f), new(-126.205f, -249.744f), new(-126.421f, -249.072f),
+            new(-115.56f, -244.512f), new(-129.954f, -242.795f), new(-141.178f, -246.795f), new(-143.12f, -234f)])], 0.25f);
+            chasmArena = true;
         }
         else if (spell.Action.ID == (uint)AID.Finale)
         {
-            Arena.Bounds = D033AencThon.ArenaBounds;
+            Arena.Bounds = D033AencThon.BuildArena().arena;
+            chasmArena = false;
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Arena.Bounds == D033AencThon.ChasmArena && Module.Enemies((uint)OID.LiarsLyre) is var lyre && lyre.Count != 0)
+        if (chasmArena && Module.Enemies((uint)OID.LiarsLyre) is var lyre && lyre.Count != 0)
         {
             hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
             hints.GoalZones.Add(AIHints.GoalSingleTarget(lyre[0], 1f, 5f));
@@ -65,9 +72,9 @@ class FunambulistsFantasia(BossModule module) : BossComponent(module)
     }
 }
 
-class Finale(BossModule module) : Components.CastHint(module, (uint)AID.Finale, "Enrage, destroy the Liar's Lyre!", true);
+sealed class Finale(BossModule module) : Components.CastHint(module, (uint)AID.Finale, "Enrage, destroy the Liar's Lyre!", true);
 
-class CorrosiveBile(BossModule module) : Components.GenericAOEs(module)
+sealed class CorrosiveBile(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
     private static readonly AOEShapeCone cone = new(24.875f, 45f.Degrees());
@@ -98,7 +105,7 @@ class CorrosiveBile(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FlailingTentacles(BossModule module) : Components.GenericAOEs(module)
+sealed class FlailingTentacles(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
     private static readonly AOEShapeCross cross = new(38.875f, 3.5f);
@@ -129,7 +136,7 @@ class FlailingTentacles(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class D033AencThonStates : StateMachineBuilder
+sealed class D033AencThonStates : StateMachineBuilder
 {
     public D033AencThonStates(BossModule module) : base(module)
     {
@@ -146,27 +153,36 @@ class D033AencThonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8146)]
-public class D033AencThon(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaBounds.Center, ArenaBounds)
+[ModuleInfo(BossModuleInfo.Maturity.Verified, Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649u, NameID = 8146u)]
+public sealed class D033AencThon : BossModule
 {
-    private static readonly Polygon[] union = [new(new(-128.5f, -244f), 19.7f, 40)];
-    private static readonly Rectangle[] difference = [new(new(-128.5f, -224f), 20f, 1.5f)];
-    public static readonly ArenaBoundsCustom ArenaBounds = new(union, difference);
-    private static readonly PolygonCustom[] union2 = [new([new(-142.32f, -234f), new(-140.533f, -245.712f), new(-129.976f, -241.934f), new(-113.76f, -243.889f),
-    new(-113.87f, -244.775f), new(-125.28f, -249.556f), new(-123.83f, -254f), new(-124.66f, -254f), new(-126.205f, -249.744f), new(-126.421f, -249.072f),
-    new(-115.56f, -244.512f), new(-129.954f, -242.795f), new(-141.178f, -246.795f), new(-143.12f, -234f)])];
-    public static readonly ArenaBoundsCustom ChasmArena = new(union, [.. difference, new Rectangle(new(-128.5f, -244f), 20f, 10f)], union2, 0.25f);
+    public D033AencThon(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D033AencThon(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    public static Polygon[] GetUnion() => [new(new(-128.5f, -244f), 19.7f, 40)];
+    public static Rectangle[] GetDifference() => [new(new(-128.5f, -224f), 20f, 1.5f)];
+
+    public static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom(GetUnion(), GetDifference());
+        return (arena.Center, arena);
+    }
 
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var count = hints.PotentialTargets.Count;
         if (count == 0)
+        {
             return;
+        }
         for (var i = 0; i < count; ++i)
         {
             var e = hints.PotentialTargets[i];
             if (e.Actor.OID == (uint)OID.LiarsLyre && (actor.Position - e.Actor.Position).LengthSq() > 15f)
+            {
                 e.Priority = AIHints.Enemy.PriorityInvincible;
+            }
         }
     }
 

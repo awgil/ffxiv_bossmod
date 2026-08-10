@@ -2,6 +2,14 @@ using Clipper2Lib;
 
 namespace BossMod;
 
+public enum OperandType
+{
+    Union,
+    Xor,
+    Intersection,
+    Difference
+}
+
 // utility for simplifying and performing boolean operations on complex polygons
 [SkipLocalsInit]
 public sealed class PolygonClipper
@@ -134,4 +142,77 @@ public sealed class PolygonClipper
 
     private static Point64 ConvertPoint(WDir pt) => new(pt.X * Scale, pt.Z * Scale);
     private static WDir ConvertPoint(Point64 pt) => new(pt.X * InvScale, pt.Y * InvScale);
+
+    // shapes1 for unions, shapes 2 for shapes for XOR/intersection with shapes1, differences for shapes that get subtracted after previous operations
+    // in most cases origin should be the actual arena center (Arena.Center) to translate the coords back to correct relative coordinates at the end
+    public static RelSimplifiedComplexPolygon GetCombinedPolygon(WPos origin, IReadOnlyList<Shape> shapes1, IReadOnlyList<Shape>? differenceShapes = null, IReadOnlyList<Shape>? shapes2 = null,
+    OperandType operandType = OperandType.Union)
+    {
+        var operand = CreateOperandFromShapes(shapes1, origin);
+        RelSimplifiedComplexPolygon poly;
+        var clipper = new PolygonClipper();
+        if (shapes2 == null)
+        {
+            if (differenceShapes != null)
+            {
+                poly = clipper.Difference(operand, CreateOperandFromShapes(differenceShapes, origin));
+                return poly;
+            }
+            else
+            {
+                poly = clipper.Simplify(operand);
+                return poly;
+            }
+        }
+        else
+        {
+            poly = clipper.Simplify(operand);
+            if (operandType is OperandType.Intersection or OperandType.Xor)
+            {
+                var count = shapes2.Count;
+                for (var i = 0; i < count; ++i)
+                {
+                    var shape = shapes2[i];
+                    var singleShapeOperand = CreateOperandFromShape(shape, origin);
+                    var operand2 = new Operand(poly);
+                    switch (operandType)
+                    {
+                        case OperandType.Intersection:
+                            poly = clipper.Intersect(operand2, singleShapeOperand);
+                            break;
+                        case OperandType.Xor:
+                            poly = clipper.Xor(operand2, singleShapeOperand);
+                            break;
+                    }
+                }
+            }
+            poly = differenceShapes != null ? clipper.Difference(new Operand(poly), CreateOperandFromShapes(differenceShapes, origin)) : poly;
+            if (operandType == OperandType.Union)
+            {
+                poly = clipper.Union(CreateOperandFromShapes(shapes2, origin), new Operand(poly));
+            }
+            return poly;
+        }
+    }
+
+    private static Operand CreateOperandFromShape(Shape shape, WPos origin)
+    {
+        var operand = new Operand();
+        operand.AddPolygon(shape.ToPolygon(origin));
+        return operand;
+    }
+
+    private static Operand CreateOperandFromShapes(IReadOnlyList<Shape>? shapes, WPos origin)
+    {
+        var operand = new Operand();
+        if (shapes != null)
+        {
+            var count = shapes.Count;
+            for (var i = 0; i < count; ++i)
+            {
+                operand.AddPolygon(shapes[i].ToPolygon(origin));
+            }
+        }
+        return operand;
+    }
 }

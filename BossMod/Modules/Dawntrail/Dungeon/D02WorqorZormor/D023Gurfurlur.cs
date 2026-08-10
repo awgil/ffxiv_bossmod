@@ -45,16 +45,17 @@ public enum AID : uint
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(D023Gurfurlur.ArenaCenter, 25f)], [new Square(D023Gurfurlur.ArenaCenter, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.HeavingHaymaker && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.HeavingHaymaker && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 0.6d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 24.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.6d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -62,7 +63,7 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (index == 0x18 && state == 0x00020001u)
         {
-            Arena.Bounds = D023Gurfurlur.DefaultBounds;
+            Arena.Bounds = new ArenaBoundsSquare(20f);
             _aoe = [];
         }
     }
@@ -264,7 +265,7 @@ sealed class Windswrath2(BossModule module) : Windswrath(module, (uint)AID.Winds
 {
     private enum Pattern { None, EWEW, WEWE }
     private Pattern CurrentPattern;
-    private static readonly Angle a15 = 15f.Degrees(), a165 = 165f.Degrees(), a105 = 105f.Degrees(), a75 = 75f.Degrees();
+    private readonly Angle a15 = 15f.Degrees(), a165 = 165f.Degrees(), a105 = 105f.Degrees(), a75 = 75f.Degrees();
     private readonly Whirlwind _aoe = module.FindComponent<Whirlwind>()!;
 
     public override void OnActorCreated(Actor actor)
@@ -348,10 +349,5 @@ sealed class D023GurfurlurStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824, NameID = 12705)]
-public sealed class D023Gurfurlur(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, StartingBounds)
-{
-    public static readonly WPos ArenaCenter = new(-54f, -195f);
-    public static readonly ArenaBoundsSquare StartingBounds = new(24.5f);
-    public static readonly ArenaBoundsSquare DefaultBounds = new(20f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 824u, NameID = 12705u)]
+public sealed class D023Gurfurlur(WorldState ws, Actor primary) : BossModule(ws, primary, new(-54f, -195f), new ArenaBoundsSquare(24.5f));

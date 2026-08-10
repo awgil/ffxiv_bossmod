@@ -39,7 +39,7 @@ sealed class AuroralUppercut(BossModule module) : Components.GenericKnockback(mo
     {
         if (_kb.Length != 0)
         {
-            ref var kb = ref _kb[0];
+            ref readonly var kb = ref _kb[0];
             var center = Arena.Center;
             hints.AddForbiddenZone(new SDKnockbackInComplexPolygonAwayFromOrigin(center, center, kb.Distance, poly), kb.Activation);
         }
@@ -48,17 +48,8 @@ sealed class AuroralUppercut(BossModule module) : Components.GenericKnockback(mo
 
 sealed class AuroralUppercutHint(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly Angle a45 = 45f.Degrees(), a135 = 135f.Degrees(), a44 = 44f.Degrees(), a13 = 12.5f.Degrees(), a59 = 59f.Degrees();
-    private static readonly WPos center = A11Prishe.ArenaCenter;
+    private readonly ArenaChanges arena = module.FindComponent<ArenaChanges>()!;
     private AOEInstance[] _aoe = [];
-    private static readonly AOEShapeCustom hintENVC00020001KB25 = new([new DonutSegmentV(center, 4f, 10f, -144f.Degrees(), a44, 8), new DonutSegmentV(center, 4f, 10f, 36f.Degrees(), a44, 8)],
-    [new ConeV(center, 10f, -a135, a13, 8), new ConeV(center, 10f, a45, a13, 8)]);
-    private static readonly AOEShapeCustom hintENVC02000100KB25 = new([new DonutSegmentV(center, 4f, 10f, 126f.Degrees(), a44, 8), new DonutSegmentV(center, 4f, 10f, -54f.Degrees(), a44, 8)],
-    [new ConeV(center, 10f, a135, a13, 8), new ConeV(center, 10f, -a45, a13, 8)]);
-    private static readonly AOEShapeCustom hintENVC00020001KB38 = new([new ConeV(center, 5f, -a135, a13, 8), new ConeV(center, 5f, a45, a13, 8)]);
-    private static readonly AOEShapeCustom hintENVC02000100KB38 = new([new ConeV(center, 5f, a135, a13, 8), new ConeV(center, 5f, -a45, a13, 8)]);
-    private static readonly AOEShapeCustom hintENVC00020001KB12 = new([new ConeV(center, 5f, a135, a59, 8), new ConeV(center, 5f, -a45, a59, 8)]);
-    private static readonly AOEShapeCustom hintENVC02000100KB12 = new([new ConeV(center, 5f, -a135, a59, 8), new ConeV(center, 5f, a45, a59, 8)]);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -71,28 +62,48 @@ sealed class AuroralUppercutHint(BossModule module) : Components.GenericAOEs(mod
             (uint)AID.AuroralUppercut3 => 38f,
             _ => default
         };
+        if (distance == default)
+        {
+            return;
+        }
+        Angle a45 = 45f.Degrees(), a135 = 135f.Degrees(), a44 = 44f.Degrees(), a13 = 12.5f.Degrees(), a59 = 59f.Degrees();
+        var center = Arena.Center;
         switch (distance)
         {
             case 12f:
-                if (Arena.Bounds == ArenaChanges.ArenaENVC00020001)
-                    SetAOE(hintENVC00020001KB12);
-                else if (Arena.Bounds == ArenaChanges.ArenaENVC02000100)
-                    SetAOE(hintENVC02000100KB12);
+                if (arena.Curstate == 00020001u)
+                {
+                    SetAOE(new(center, [new ConeV(center, 5f, a135, a59, 8), new ConeV(center, 5f, -a45, a59, 8)]));
+                }
+                else
+                {
+                    SetAOE(new(center, [new ConeV(center, 5f, -a135, a59, 8), new ConeV(center, 5f, a45, a59, 8)]));
+                }
                 break;
             case 25f:
-                if (Arena.Bounds == ArenaChanges.ArenaENVC00020001)
-                    SetAOE(hintENVC00020001KB25);
-                else if (Arena.Bounds == ArenaChanges.ArenaENVC02000100)
-                    SetAOE(hintENVC02000100KB25);
+                if (arena.Curstate == 00020001u)
+                {
+                    SetAOE(new(center, [new DonutSegmentV(center, 4f, 10f, -144f.Degrees(), a44, 8), new DonutSegmentV(center, 4f, 10f, 36f.Degrees(), a44, 8)],
+                        [new ConeV(center, 10f, -a135, a13, 8), new ConeV(center, 10f, a45, a13, 8)]));
+                }
+                else
+                {
+                    SetAOE(new(center, [new DonutSegmentV(center, 4f, 10f, 126f.Degrees(), a44, 8), new DonutSegmentV(center, 4f, 10f, -54f.Degrees(), a44, 8)],
+                        [new ConeV(center, 10f, a135, a13, 8), new ConeV(center, 10f, -a45, a13, 8)]));
+                }
                 break;
             case 38f:
-                if (Arena.Bounds == ArenaChanges.ArenaENVC00020001)
-                    SetAOE(hintENVC00020001KB38);
-                else if (Arena.Bounds == ArenaChanges.ArenaENVC02000100)
-                    SetAOE(hintENVC02000100KB38);
+                if (arena.Curstate == 00020001u)
+                {
+                    SetAOE(new(center, [new ConeV(center, 5f, -a135, a13, 8), new ConeV(center, 5f, a45, a13, 8)]));
+                }
+                else
+                {
+                    SetAOE(new(center, [new ConeV(center, 5f, a135, a13, 8), new ConeV(center, 5f, -a45, a13, 8)]));
+                }
                 break;
         }
-        void SetAOE(AOEShapeCustom shape) => _aoe = [new(shape, Arena.Center, default, Module.CastFinishAt(spell, 1.6d), Colors.SafeFromAOE)];
+        void SetAOE(AOEShapeCustom shape) => _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 1.6d), Colors.SafeFromAOE, shapeDistance: shape.Distance(center, default))];
     }
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)

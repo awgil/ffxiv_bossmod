@@ -70,11 +70,20 @@ sealed class D012DrowsieStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12716)]
-public sealed class D012Drowsie(WorldState ws, Actor primary) : BossModule(ws, primary, DefaultBounds.Center, DefaultBounds)
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826u, NameID = 12716u)]
+public sealed class D012Drowsie : BossModule
 {
-    public static readonly ArenaBoundsCustom DefaultBounds = new([new Polygon(new(80f, 53f), 19.5f, 32)], [new Rectangle(new(65.5f, 38f), 20f, 1.8f, -130f.Degrees()),
-    new Rectangle(new(80f, 74f), 20f, 2.15f)]);
+    public D012Drowsie(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
+
+    private D012Drowsie(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
+
+    private static (WPos center, ArenaBoundsCustom arena) BuildArena()
+    {
+        var arena = new ArenaBoundsCustom([new Polygon(new(80f, 53f), 19.5f, 32)], [new Rectangle(new(65.5f, 38f), 20f, 1.8f, -130f.Degrees()),
+            new Rectangle(new(80f, 74f), 20f, 2.15f)]);
+        return (arena.Center, arena);
+    }
+
     private static readonly uint[] adds = [(uint)OID.Mimiclot1, (uint)OID.Mimiclot2, (uint)OID.Mimiclot3, (uint)OID.Mimiclot4, (uint)OID.Mimiclot5, (uint)OID.Mimiclot6];
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

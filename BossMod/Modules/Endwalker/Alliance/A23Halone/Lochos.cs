@@ -5,7 +5,7 @@ abstract class Lochos(BossModule module, double activationDelay) : Components.Ge
     private readonly List<AOEInstance> _aoes = [];
     private readonly double _activationDelay = activationDelay;
 
-    private static readonly AOEShapeRect _shape = new(60f, 15f);
+    private readonly AOEShapeRect _shape = new(60f, 15f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 

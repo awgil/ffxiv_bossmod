@@ -6,7 +6,7 @@ sealed class ShimmeringShot(BossModule module) : Components.GenericAOEs(module)
     private readonly PlayerTemperatures _temps = module.FindComponent<PlayerTemperatures>()!;
     private Pattern _pattern;
     private readonly AOEInstance[][] _safezone = new AOEInstance[PartyState.MaxAllianceSize][];
-    private static readonly AOEShapeRect square = new(5f, 5f, 5f, invertForbiddenZone: true);
+    private readonly AOEShapeRect square = new(5f, 5f, 5f, invertForbiddenZone: true);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => slot is < 0 or > 23 ? [] : _safezone[slot];
 
@@ -42,7 +42,7 @@ sealed class ShimmeringShot(BossModule module) : Components.GenericAOEs(module)
             var zOffset = 10f * (destRow - 2);
             var temps = _temps.Temperatures;
             var act = WorldState.FutureTime(10.8d);
-            var pos = TrinityAvowed.ArenaCenter + new WDir(xOffset, zOffset);
+            var pos = new WPos(-272f, -82f) + new WDir(xOffset, zOffset);
             for (var i = 0; i < 24; ++i)
             {
                 var playertemp = temps[i];
@@ -52,7 +52,7 @@ sealed class ShimmeringShot(BossModule module) : Components.GenericAOEs(module)
                 }
             }
         }
-        int RowIndex() => (actor.Position.Z - TrinityAvowed.ArenaCenter.Z) switch
+        int RowIndex() => (actor.Position.Z - -82f) switch
         {
             < -15 => 0,
             < -5 => 1,
@@ -65,7 +65,9 @@ sealed class ShimmeringShot(BossModule module) : Components.GenericAOEs(module)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID is (uint)AID.ChillArrow or (uint)AID.FreezingArrow or (uint)AID.HeatedArrow or (uint)AID.SearingArrow)
+        {
             Array.Clear(_safezone);
+        }
     }
 
     public override void OnMapEffect(byte index, uint state)

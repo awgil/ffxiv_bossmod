@@ -32,16 +32,17 @@ public enum AID : uint
 
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCustom square = new([new Square(D071Barreltender.ArenaCenter, 25f)], [new Square(D071Barreltender.ArenaCenter, 20f)]);
     private AOEInstance[] _aoe = [];
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.HeavyweightNeedlesVisual && Arena.Bounds.Radius > 20f)
+        if (spell.Action.ID == (uint)AID.HeavyweightNeedlesVisual && Arena.Bounds.Radius > 21f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 0.7d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 24.5f)], [new Square(center, 20f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 0.7d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
@@ -78,7 +79,7 @@ sealed class HeavyweightNeedles(BossModule module) : Components.SimpleAOEs(modul
 sealed class NeedleStormSuperstorm(BossModule module) : Components.GenericAOEs(module)
 {
     public readonly List<AOEInstance> AOEs = [with(16)];
-    private static readonly AOEShapeCircle circleBig = new(11f), circleSmall = new(6f);
+    private readonly AOEShapeCircle circleBig = new(11f), circleSmall = new(6f);
 
     private readonly BarrelBreaker _kb = module.FindComponent<BarrelBreaker>()!;
     private readonly HeavyweightNeedles _aoe = module.FindComponent<HeavyweightNeedles>()!;
@@ -218,8 +219,5 @@ sealed class D071BarreltenderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834, NameID = 12889)]
-public sealed class D071Barreltender(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsSquare(24.5f))
-{
-    public static readonly WPos ArenaCenter = new(-65f, 470f);
-}
+[ModuleInfo(BossModuleInfo.Maturity.AISupport, Contributors = "The Combat Reborn Team (Malediktus, LTS)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834u, NameID = 12889u)]
+public sealed class D071Barreltender(WorldState ws, Actor primary) : BossModule(ws, primary, new(-65f, 470f), new ArenaBoundsSquare(24.5f));

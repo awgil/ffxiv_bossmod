@@ -11,22 +11,32 @@ sealed class VirtualShiftIce(BossModule module) : Components.GenericAOEs(module,
 
     public override void OnMapEffect(byte index, uint state)
     {
-        WDir offset = index switch
+        WPos center = index switch
         {
-            0x04 => new(-5f, -4f),
-            0x05 => new(-5f, +4f),
-            0x06 => new(+5f, -4f),
-            0x07 => new(+5f, +4f),
+            0x04 => new(95f, 96f),
+            0x05 => new(95f, 104f),
+            0x06 => new(105f, 96f),
+            0x07 => new(105f, 104f),
             _ => default
         };
-        if (offset == default)
+        if (center == default)
+        {
             return;
+        }
 
-        var center = Ex3QueenEternal.ArenaCenter + offset;
         switch (state)
         {
             case 0x00020001u: // destroyed bridge respawns
-                _destroyedBridges.RemoveAll(s => s.Center == center);
+                var count = _destroyedBridges.Count;
+                var bridge = CollectionsMarshal.AsSpan(_destroyedBridges);
+                for (var i = 0; i < count; ++i)
+                {
+                    if (bridge[i].Center == center)
+                    {
+                        _destroyedBridges.RemoveAt(i);
+                        break;
+                    }
+                }
                 UpdateArena();
                 break;
             case 0x00200010u: // bridge gets damaged
@@ -34,17 +44,30 @@ sealed class VirtualShiftIce(BossModule module) : Components.GenericAOEs(module,
                 break;
             case 0x00400001u: // damaged bridge gets repaired
             case 0x00080004u: // bridges despawn
-                RemoveUnsafeBridges();
+                RemoveUnsafeBridges(center);
                 break;
             case 0x00800004u: // bridge gets destroyed
-                RemoveUnsafeBridges();
+                RemoveUnsafeBridges(center);
                 _destroyedBridges.Add(new(center, 3, 2));
                 UpdateArena();
                 break;
         }
 
-        void RemoveUnsafeBridges() => _unsafeBridges.RemoveAll(s => s.Origin == center);
-        void UpdateArena() => Arena.Bounds = new ArenaBoundsCustom(Ex3QueenEternal.IceRectsAll, [.. _destroyedBridges]);
+        void RemoveUnsafeBridges(WPos origin)
+        {
+            var count = _unsafeBridges.Count;
+            var bridge = CollectionsMarshal.AsSpan(_unsafeBridges);
+            for (var i = 0; i < count; ++i)
+            {
+                if (bridge[i].Origin == origin)
+                {
+                    _unsafeBridges.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        void UpdateArena() => Arena.Bounds = new ArenaBoundsCustom(Ex3QueenEternal.GetIceRects(), [.. _destroyedBridges]);
     }
 }
 
@@ -64,13 +87,17 @@ sealed class LawsOfIce(BossModule module) : Components.StayMove(module)
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == (uint)AID.LawsOfIceAOE)
+        {
             ++NumCasts;
+        }
     }
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
         if (status.ID == (uint)SID.FreezingUp)
+        {
             ClearState(Raid.FindSlot(actor.InstanceID));
+        }
     }
 }
 
@@ -80,13 +107,15 @@ sealed class Rush(BossModule module) : Components.GenericBaitAway(module)
     private BitMask _unstretched;
     private readonly Ex3QueenEternalConfig _config = Service.Config.Get<Ex3QueenEternalConfig>();
 
-    private static readonly AOEShapeRect _shapeTether = new(80f, 2f);
-    private static readonly AOEShapeCircle _shapeUntethered = new(8f); // if there is no tether, pillar will just explode; this can happen if someone is dead
+    private readonly AOEShapeRect _shapeTether = new(80f, 2f);
+    private readonly AOEShapeCircle _shapeUntethered = new(8f); // if there is no tether, pillar will just explode; this can happen if someone is dead
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (_unstretched[slot])
+        {
             hints.Add("Stretch tether!");
+        }
         base.AddHints(slot, actor, hints);
     }
 
@@ -109,28 +138,34 @@ sealed class Rush(BossModule module) : Components.GenericBaitAway(module)
     {
         if (spell.Action.ID is (uint)AID.RushFirst or (uint)AID.RushSecond)
         {
-            Activation = Module.CastFinishAt(spell, 0.2f);
+            Activation = Module.CastFinishAt(spell, 0.2d);
             if (!CurrentBaits.Any(b => b.Source == caster))
+            {
                 CurrentBaits.Add(new(caster, caster, _shapeUntethered, Activation));
+            }
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID is (uint)AID.RushFirstAOE or (uint)AID.RushSecondAOE or (uint)AID.RushFirstFail or (uint)AID.RushSecondFail)
+        {
             ++NumCasts;
+        }
     }
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID is (uint)TetherID.RushShort or (uint)TetherID.RushLong && WorldState.Actors.Find(tether.Target) is var target && target != null)
         {
-            CurrentBaits.RemoveAll(b => b.Source == source);
+            RemoveBait(source);
             CurrentBaits.Add(new(source, target, _shapeTether, Activation));
 
             var slot = Raid.FindSlot(tether.Target);
             if (slot >= 0)
+            {
                 _unstretched[slot] = tether.ID == (uint)TetherID.RushShort;
+            }
         }
     }
 
@@ -138,16 +173,30 @@ sealed class Rush(BossModule module) : Components.GenericBaitAway(module)
     {
         if (tether.ID is (uint)TetherID.RushShort or (uint)TetherID.RushLong)
         {
-            CurrentBaits.RemoveAll(b => b.Source == source);
+            RemoveBait(source);
             CurrentBaits.Add(new(source, source, _shapeUntethered, Activation));
 
             _unstretched.Clear(Raid.FindSlot(tether.Target));
         }
     }
 
+    private void RemoveBait(Actor source)
+    {
+        var count = CurrentBaits.Count;
+        var baits = CollectionsMarshal.AsSpan(CurrentBaits);
+        for (var i = 0; i < count; ++i)
+        {
+            if (baits[i].Source == source)
+            {
+                CurrentBaits.RemoveAt(i);
+                break;
+            }
+        }
+    }
+
     private static WPos SafeSpot(Actor source, Ex3QueenEternalConfig config)
     {
-        var center = Ex3QueenEternal.ArenaCenter;
+        var center = new WPos(100f, 100f);
         var pos = source.Position;
         var safeSide = pos.X > center.X ? -1 : +1;
         var offX = Math.Abs(pos.X - center.X);

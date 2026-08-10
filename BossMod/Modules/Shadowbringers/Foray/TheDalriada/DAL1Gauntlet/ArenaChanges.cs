@@ -3,7 +3,6 @@ namespace BossMod.Shadowbringers.Foray.TheDalriada.DAL1Gauntlet;
 sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance[] _aoe = [];
-    private static readonly AOEShapeCustom square = new([new Square(DAL1Gauntlet.ArenaCenter, 30f)], [new Square(DAL1Gauntlet.ArenaCenter, 23f)]);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoe;
 
@@ -11,7 +10,9 @@ sealed class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     {
         if (spell.Action.ID == (uint)AID.SuppressiveMagitekRays && Arena.Bounds.Radius > 23f)
         {
-            _aoe = [new(square, Arena.Center, default, Module.CastFinishAt(spell, 1.5d))];
+            var center = Arena.Center;
+            var shape = new AOEShapeCustom(center, [new Square(center, 29.5f)], [new Square(center, 23f)]);
+            _aoe = [new(shape, center, default, Module.CastFinishAt(spell, 1.5d), shapeDistance: shape.Distance(center, default))];
         }
     }
 
