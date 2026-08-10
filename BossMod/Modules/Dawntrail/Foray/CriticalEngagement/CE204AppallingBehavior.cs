@@ -8,8 +8,6 @@ public enum OID : uint
     Pallkeeper = 0x4D90, // R2.300, x4
     PallkeeperVFX = 0x1EC02A, // R0.500, x4, EventObj type - Used to display the cast type hints vfx in-game
 
-    _Gen_Actor1ea1a1 = 0x1EA1A1, // R2.000, x2, EventObj type
-    _Gen_Actor1ec029 = 0x1EC029, // R0.500, x1, EventObj type
     RouletteRing2 = 0x1EC02C, // R0.500, x0 (spawn during fight), EventObj type
     RouletteRing1 = 0x1EC02B, // R0.500, x0 (spawn during fight), EventObj type
 }

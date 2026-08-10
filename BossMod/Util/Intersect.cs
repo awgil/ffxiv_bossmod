@@ -241,6 +241,35 @@ public static class Intersect
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool CircleRect(in WPos circleCenter, float circleRadius, in WPos rectCenter, in WDir rectZDir, float halfExtentX, float halfExtentZ) => CircleRect(circleCenter - rectCenter, circleRadius, rectZDir, halfExtentX, halfExtentZ);
 
+    // check if AABB Rect edge intersects with a circle
+    public static bool CircleAARectEdge(WDir circleOffset, float circleRadius, float halfExtentX, float halfExtentZ)
+    {
+        circleOffset = circleOffset.Abs();
+
+        var cornerOffset = circleOffset - new WDir(halfExtentX, halfExtentZ);
+
+        // center is inside rectangle
+        if (cornerOffset.X <= 0 && cornerOffset.Z <= 0)
+        {
+            var distToXEdge = -cornerOffset.X;
+            var distToZEdge = -cornerOffset.Z;
+            var distToNearestEdge = MathF.Min(distToXEdge, distToZEdge);
+
+            return circleRadius >= distToNearestEdge;
+        }
+
+        // too far outside to touch
+        if (cornerOffset.X > circleRadius || cornerOffset.Z > circleRadius)
+            return false;
+
+        // outside along only one axis
+        if (cornerOffset.X <= 0 || cornerOffset.Z <= 0)
+            return true;
+
+        // outside near a corner
+        return cornerOffset.LengthSq() <= circleRadius * circleRadius;
+    }
+
     public static bool CircleDonutSector(in WDir circleOffset, float circleRadius, float innerRadius, float outerRadius, WDir sectorDir, Angle halfAngle)
     {
         var distSq = circleOffset.LengthSq();
