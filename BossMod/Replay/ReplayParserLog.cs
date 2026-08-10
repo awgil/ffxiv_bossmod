@@ -410,6 +410,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("UMRK"u8)] = ParseUserMarker,
             [new("RSV "u8)] = ParseRSVData,
             [new("ZONE"u8)] = ParseZoneChange,
+            [new("PVP+"u8)] = () => new WorldState.OpPvPArea(true),
+            [new("PVP-"u8)] = () => new WorldState.OpPvPArea(false),
             [new("DIRU"u8)] = ParseDirectorUpdate,
             [new("ENVC"u8)] = ParseMapEffect,
             [new("LEME"u8)] = ParseLegacyMapEffect,

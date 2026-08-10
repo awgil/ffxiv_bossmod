@@ -238,7 +238,7 @@ public sealed class ClientState
 
         return res;
     }
-    public unsafe T GetGauge<T>() where T : unmanaged => GetGauge<T>(GaugePayload);
+    public T GetGauge<T>() where T : unmanaged => GetGauge<T>(GaugePayload);
 
     public List<WorldState.Operation> CompareToInitial()
     {

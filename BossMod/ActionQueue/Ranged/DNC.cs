@@ -181,7 +181,7 @@ public sealed class Definitions : Defs
         d.RegisterChargeIncreaseTrait(AID.EnAvant, TraitID.EnhancedEnAvantII);
         d.RegisterChargeIncreaseTrait(AID.EnAvant, TraitID.EnhancedEnAvant);
 
-        d.Spell(AID.EnAvant)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+        d.Spell(AID.EnAvant)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
 
