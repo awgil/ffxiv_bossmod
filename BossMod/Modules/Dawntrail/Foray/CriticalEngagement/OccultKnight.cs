@@ -305,5 +305,5 @@ public class OccultKnight(WorldState ws, Actor primary) : CEModule(ws, primary, 
         Helper ??= Enemies(OID.DeathWallHelper).FirstOrDefault();
     }
 
-    protected override bool CheckPull() => base.CheckPull() && PrimaryActor.InCombat;
+    protected override bool CheckPullCE() => PrimaryActor.InCombat;
 }
