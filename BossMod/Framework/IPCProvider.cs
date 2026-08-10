@@ -525,7 +525,23 @@ sealed class IPCProvider : IDisposable
         });
         Register("AI.GetPreset", () => ai.GetAIPreset);
 
-        Register("ObstacleMap.Generate", (Vector3 centerWorld, float radius, bool writeToFile) => obstacles.GenerateMap(centerWorld, radius, writeToFile));
+        Register("AI.SetPreset", (string name) =>
+        {
+            Preset? found = null;
+            foreach (var p in autorotation.Database.Presets.AllPresets)
+            {
+                if (p.Name.Trim().Equals(name.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    found = p;
+                    break;
+                }
+            }
+
+            ai.SetAIPreset(found);
+        });
+        Register("AI.GetPreset", () => ai.GetAIPreset);
+
+        Register("ObstacleMap.Generate", (Vector3 centerWorld, float radius, bool writeToFile) => obstacles.GenerateMap(centerWorld, radius, writeToFile, false));
         Register("ObstacleMap.GetGenerationStatus", () => obstacles.GenerationStatus);
         Register("ObstacleMap.HasTempMap", obstacles.HasTempMap);
         Register("ObstacleMap.ClearTempMap", obstacles.ClearTempMap);

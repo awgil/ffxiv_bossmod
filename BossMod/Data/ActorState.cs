@@ -247,7 +247,7 @@ public sealed class ActorState : IEnumerable<Actor>
                 }
                 var effSource = eff.FromTarget ? target : source;
                 var effTarget = eff.AtSource ? source : target;
-                var header = new PendingEffect(ev.GlobalSequence, i, effSource.InstanceID, expiration);
+                var header = new PendingEffect(ev.GlobalSequence, i, effSource.InstanceID, expiration, false);
                 switch (type)
                 {
                     case ActionEffectType.Damage:
@@ -835,7 +835,7 @@ public sealed class ActorState : IEnumerable<Actor>
                         for (var j = 0; j < len; ++j)
                         {
                             ref var p = ref pending[j];
-                            if (p.GlobalSequence == prevSeq && p.TargetIndex == prevIdx)
+                            if (p.GlobalSequence == prevSeq && p.TargetIndex == prevIdx && !p.RequiresEffectResult)
                             {
                                 actor.PendingKnockbacks.RemoveAt(j);
                                 goto done;
@@ -856,7 +856,14 @@ public sealed class ActorState : IEnumerable<Actor>
                     var e = effects[i];
                     if (e.Type is >= ActionEffectType.Knockback and <= ActionEffectType.AttractCustom3)
                     {
-                        actor.PendingKnockbacks.Add(new(v.GlobalSequence, v.TargetIndex, v.SourceInstanceID, ws.FutureTime(3d))); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
+                        // two annoying cases to handle with pending knockback:
+                        // 1: effectresult never arrives
+                        //    * happens if source dies
+                        //    * happens always for some actions, such as Inhale from Traverse Gigant in Pilgrim's Traverse; effect is simply applied on the next globalseq
+                        // 2. effecthandler entry disappears before effectresult arrives; happens when the knockback is not actually applied by the spell
+                        //    * indicated by type=knockback dir=6; knockback is applied some time later by an ActorControl
+                        var requiresEffectResult = e.Type == ActionEffectType.Knockback && Service.LuminaRow<Lumina.Excel.Sheets.Knockback>(e.Value)?.Direction == 6;
+                        actor.PendingKnockbacks.Add(new(v.GlobalSequence, v.TargetIndex, v.SourceInstanceID, ws.FutureTime(3d), requiresEffectResult)); // note: sometimes effect can never be applied (eg if source dies shortly after actioneffect), so we need a timeout
                         break;
                     }
                 }

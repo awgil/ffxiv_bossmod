@@ -5,7 +5,7 @@ namespace BossMod.Pathfinding;
 
 public sealed class ObstacleMapDatabase
 {
-    public sealed record class Entry(Vector3 MinBounds, Vector3 MaxBounds, WPos Origin, int ViewWidth, int ViewHeight, string Filename)
+    public sealed record class Entry(Vector3 MinBounds, Vector3 MaxBounds, WPos Origin, int ViewWidth, int ViewHeight, string Filename, string Comment = "")
     {
         public Vector3 MinBounds = MinBounds;
         public Vector3 MaxBounds = MaxBounds;
@@ -13,6 +13,7 @@ public sealed class ObstacleMapDatabase
         public int ViewWidth = ViewWidth;
         public int ViewHeight = ViewHeight;
         public string Filename = Filename;
+        public string Comment = Comment;
 
         public bool Contains(Vector3 p) => p.X >= MinBounds.X && p.Y >= MinBounds.Y && p.Z >= MinBounds.Z && p.X <= MaxBounds.X && p.Y <= MaxBounds.Y && p.Z <= MaxBounds.Z;
     }
@@ -37,7 +38,8 @@ public sealed class ObstacleMapDatabase
                     ReadWPos(jentry, nameof(Entry.Origin)),
                     jentry.GetProperty(nameof(Entry.ViewWidth)).GetInt32(),
                     jentry.GetProperty(nameof(Entry.ViewHeight)).GetInt32(),
-                    jentry.GetProperty(nameof(Entry.Filename)).GetString() ?? ""
+                    jentry.GetProperty(nameof(Entry.Filename)).GetString() ?? "",
+                    jentry.TryGetProperty(nameof(Entry.Comment), out var el) ? (el.GetString() ?? "") : ""
                 ));
             }
         }
@@ -69,6 +71,8 @@ public sealed class ObstacleMapDatabase
                     jwriter.WriteNumber(nameof(Entry.ViewWidth), e.ViewWidth);
                     jwriter.WriteNumber(nameof(Entry.ViewHeight), e.ViewHeight);
                     jwriter.WriteString(nameof(Entry.Filename), e.Filename);
+                    if (e.Comment.Length > 0)
+                        jwriter.WriteString(nameof(Entry.Comment), e.Comment);
                     jwriter.WriteEndObject();
                 }
                 jwriter.WriteEndArray();

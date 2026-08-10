@@ -1,75 +1,122 @@
 ﻿namespace BossMod.Data;
 
+// ordered by position in the phantom job browser (except freelancer)
 public enum PhantomID : uint
 {
     None = 0,
+
+    // freelancer
+    OccultResuscitation = 41650,
+    OccultTreasuresight = 41651,
+    InquiringMind = 46606,
+
+    // knight
     PhantomGuard = 41588,
     Pray = 41589,
     OccultHeal = 41590,
     Pledge = 41591,
-    Rage = 41592,
-    DeadlyBlow = 41594,
+
+    // monk
     PhantomKick = 41595,
     OccultCounter = 41596,
     Counterstance = 41597,
     OccultChakra = 41598,
-    PhantomAim = 41599,
-    OccultFeatherfoot = 41600,
-    OccultFalcon = 41601,
-    OccultUnicorn = 41602,
-    Mineuchi = 41603,
-    Shirahadori = 41604,
-    Iainuki = 41605,
-    Zeninage = 41606,
-    MightyMarch = 41607,
-    OffensiveAria = 41608,
-    RomeosBallad = 41609,
-    HerosRime = 41610,
-    BattleBell = 41611,
-    Weather = 41612,
-    RingingRespite = 41619,
-    Suspend = 41620,
-    OccultSlowga = 41621,
-    OccultDispel = 41622,
-    OccultComet = 41623,
-    OccultMageMasher = 41624,
-    OccultQuick = 41625,
-    PhantomFire = 41626,
-    HolyCannon = 41627,
-    DarkCannon = 41628,
-    ShockCannon = 41629,
-    SilverCannon = 41630,
-    OccultPotion = 41631,
-    OccultEther = 41633,
-    Revive = 41634,
-    OccultElixir = 41635,
-    Predict = 41636,
-    PhantomJudgment = 41637,
-    Cleansing = 41638,
-    Blessing = 41639,
-    Starfall = 41640,
-    Recuperation = 41641,
-    PhantomDoom = 41642,
-    PhantomRejuvenation = 41643,
-    Invulnerability = 41644,
+
+    // thief
     Steal = 41645,
     OccultSprint = 41646,
     Vigilance = 41647,
     TrapDetection = 41648,
     PilferWeapon = 41649,
-    OccultResuscitation = 41650,
-    OccultTreasuresight = 41651,
 
+    // dragoon
+    OccultJump = 49077,
+    StepForth = 49078,
+    Lance = 49079,
+
+    // ninja
+    FumaShuriken = 49062,
+    Smoke = 49063,
+    LightningScroll = 49064,
+    FlameScroll = 49065,
+    Image = 49066,
+
+    // samurai
+    Mineuchi = 41603,
+    Shirahadori = 41604,
+    Iainuki = 41605,
+    Zeninage = 41606,
+
+    // berserker
+    Rage = 41592,
+    DeadlyBlow = 41594,
+
+    // ranger
+    PhantomAim = 41599,
+    OccultFeatherfoot = 41600,
+    OccultFalcon = 41601,
+    OccultUnicorn = 41602,
+
+    // mystic knight
     SunderingSpellblade = 46591,
     MagicShell = 46590,
     HolySpellblade = 46592,
     BlazingSpellblade = 46593,
 
-    Finisher = 46594,
-    Defend = 46595,
-    LongReach = 46596,
-    BladeBlitz = 46597,
+    // white mage
+    OccultWHMCureII = 49067,
+    OccultCureIII = 49068,
+    Blink = 49069,
+    OccultRaise = 49070,
+    OccultHoly = 49071,
 
+    // black mage
+    OccultFireIII = 49072,
+    OccultBlizzardIII = 49073,
+    OccultThunderIII = 49074,
+    OccultToad = 49075,
+    OccultFlare = 49076,
+
+    // time mage
+    OccultSlowga = 41621,
+    OccultDispel = 41622,
+    OccultComet = 41623,
+    OccultMageMasher = 41624,
+    OccultQuick = 41625,
+
+    // blue mage
+    OccultAero = 49085,
+    OccultMissile = 49086,
+    OccultAquaBreath = 49087,
+    OccultMightyGuard = 49088,
+    OccultWhiteWind = 49090,
+
+    // red mage
+    OccultFireII = 49092,
+    OccultRDMCureII = 49093,
+    OccultLibra = 49094,
+    OccultBlizzardII = 49095,
+    OccultThunderII = 49096,
+
+    // chemist
+    OccultPotion = 41631,
+    OccultEther = 41633,
+    Revive = 41634,
+    OccultElixir = 41635,
+
+    // geomancer
+    BattleBell = 41611,
+    Weather = 41612,
+    RingingRespite = 41619,
+    Suspend = 41620,
+
+    // bard
+    MightyMarch = 41607,
+    OffensiveAria = 41608,
+    RomeosBallad = 41609,
+    HerosRime = 41610,
+
+    // dancer
     Dance = 46598,
     PhantomSwordDance = 46599,
     TemptingTango = 46600,
@@ -79,7 +126,36 @@ public enum PhantomID : uint
     SteadfastStance = 46604,
     Mesmerize = 46605,
 
-    InquiringMind = 46606,
+    // necro
+    DrainTouch = 49097,
+    DeepFreeze = 49098,
+    HellWind = 49099,
+    ChaosDrive = 49100,
+    Doomsday = 49101,
+
+    // oracle
+    Predict = 41636,
+    PhantomJudgment = 41637,
+    Cleansing = 41638,
+    Blessing = 41639,
+    Starfall = 41640,
+    Recuperation = 41641,
+    PhantomDoom = 41642,
+    PhantomRejuvenation = 41643,
+    Invulnerability = 41644,
+
+    // cannoneer
+    PhantomFire = 41626,
+    HolyCannon = 41627,
+    DarkCannon = 41628,
+    ShockCannon = 41629,
+    SilverCannon = 41630,
+
+    // gladiator
+    Finisher = 46594,
+    Defend = 46595,
+    LongReach = 46596,
+    BladeBlitz = 46597,
 }
 
 public enum PhantomSID : uint
@@ -165,4 +241,6 @@ public enum PhantomSID : uint
     SteadfastStance = 4800, // applied by Steadfast Stance to self/ally, 10% shield
     Enamored = 4801, // applied by Mesmerize to target, -10% damage, -5% defense
     Mesmerized = 4802, // applied by Mesmerize to target, -40% damage
+
+    Smoke = 5327, // applied by Smoke to self
 }

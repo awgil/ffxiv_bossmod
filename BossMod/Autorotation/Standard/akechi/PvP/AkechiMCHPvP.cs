@@ -6,7 +6,7 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     public enum Track { Targeting, RoleActions, LimitBreak, Analysis, Tools, Scattergun, FullMetalField, Wildfire, BishopAutoturret, TurretPlacement }
-    public enum TargetingStrategy { Auto, Manual }
+    public enum TargetingStrategy { Auto, FocusTargetsTarget, Manual }
     public enum RoleActionStrategy { Forbid, Dervish, Bravery, EagleEyeShot }
     public enum LBStrategy { ASAP, LessThan70, LessThan60, LessThan50, LessThan40, Forbid }
     public enum AnalysisStrategy { Any, DrillAA, BBCS, Forbid }
@@ -16,9 +16,10 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi MCH (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.MCH), 100, 30);
+        var res = new RotationModuleDefinition("Akechi MCH (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.MCH), 100, 30, PvP: PvPCompatibility.PvPOnly);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
             .AddOption(TargetingStrategy.Auto, "Automatically select best target")
+            .AddOption(TargetingStrategy.FocusTargetsTarget, "Automatically target your current Focus Target's target - if no Focus Target or if Focus Target is hostile, then automatically select best target")
             .AddOption(TargetingStrategy.Manual, "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
@@ -87,19 +88,20 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
             return;
 
-        var (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
-        var (BestLineTargets, NumLineTargets) = GetBestTarget(primaryTarget, 25, Is25yRectTarget);
-        var (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 25, IsSplashTarget);
-        var BestConeTarget = NumConeTargets > 1 ? BestConeTargets : primaryTarget;
-        var BestLineTarget = NumLineTargets > 1 ? BestLineTargets : primaryTarget;
-        var BestSplashTarget = NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
+        var strat = strategy.Option(Track.Targeting).As<TargetingStrategy>();
+        var auto = strat == TargetingStrategy.Auto;
+        var focus = strat == TargetingStrategy.FocusTargetsTarget;
         var mainTarget = primaryTarget?.Actor;
-        var auto = strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto;
-        var BestToolTarget = auto ? (HasStatus(SID.ChainSawPrimed) ? BestLineTarget : HasStatus(SID.Bioblaster) ? BestConeTarget : primaryTarget) : primaryTarget;
+        Actor? Retarget(Actor? newTarget) => auto ? newTarget : mainTarget;
+        var bestConeTarget = Retarget(GetBestTarget(primaryTarget, 12, Is12yConeTarget).Best?.Actor);
 
         if (auto)
         {
-            GetPvPTarget(25);
+            GetPvPTarget(5, false);
+        }
+        if (focus)
+        {
+            GetPvPTarget(5, true);
         }
 
         if (HasLOS(mainTarget))
@@ -116,10 +118,10 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
                 strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
                 {
                     LBStrategy.ASAP => true,
-                    LBStrategy.LessThan70 => HPP(mainTarget) <= 70,
-                    LBStrategy.LessThan60 => HPP(mainTarget) <= 60,
-                    LBStrategy.LessThan50 => HPP(mainTarget) <= 50,
-                    LBStrategy.LessThan40 => HPP(mainTarget) <= 40,
+                    LBStrategy.LessThan70 => mainTarget?.PendingHPRatio < 0.7f,
+                    LBStrategy.LessThan60 => mainTarget?.PendingHPRatio < 0.6f,
+                    LBStrategy.LessThan50 => mainTarget?.PendingHPRatio < 0.5f,
+                    LBStrategy.LessThan40 => mainTarget?.PendingHPRatio < 0.4f,
                     LBStrategy.Forbid => false,
                     _ => false
                 })
@@ -134,25 +136,23 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
 
                     QueueGCD(AID.BlazingShotPvP, mainTarget, GCDPriority.Low);
                 }
-                if (!HasStatus(SID.OverheatedPvP))
+                else
                 {
                     var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
                     {
                         RoleActionStrategy.Dervish => (HasStatus(SID.DervishEquippedPvP) && IsReady(AID.DervishPvP), AID.DervishPvP, Player),
                         RoleActionStrategy.Bravery => (HasStatus(SID.BraveryEquippedPvP) && IsReady(AID.BraveryPvP), AID.BraveryPvP, Player),
-                        RoleActionStrategy.EagleEyeShot => (HasStatus(SID.EagleEyeShotEquippedPvP) && IsReady(AID.EagleEyeShotPvP), AID.EagleEyeShotPvP, mainTarget),
+                        RoleActionStrategy.EagleEyeShot => (HasStatus(SID.EagleEyeShotEquippedPvP) && IsReady(AID.EagleEyeShotPvP), AID.EagleEyeShotPvP, Retarget(Hints.PotentialTargets.FirstOrDefault(x => !x.Actor.IsDeadOrDestroyed)?.Actor)),
                         _ => (false, AID.None, null)
-
                     };
                     if (roleCondition)
                         QueueGCD(roleAction, roleTarget, GCDPriority.VeryHigh + 1);
 
                     if (IsReady(AID.FullMetalFieldPvP) && !HasStatus(SID.OverheatedPvP) && mainTarget != null && strategy.Option(Track.FullMetalField).As<CommonStrategy>() == CommonStrategy.Allow)
-                        QueueGCD(AID.FullMetalFieldPvP, auto ? BestSplashTarget?.Actor : mainTarget, GCDPriority.High + 5);
+                        QueueGCD(AID.FullMetalFieldPvP, Retarget(GetBestTarget(primaryTarget, 25, IsSplashTarget).Best?.Actor), GCDPriority.High + 5);
 
                     var crystal = World.Actors.FirstOrDefault(x => x.OID == 0x3886); //crystal
-                    if (IsReady(AID.BishopAutoturretPvP) && mainTarget != null &&
-                        strategy.Option(Track.BishopAutoturret).As<CommonStrategy>() == CommonStrategy.Allow)
+                    if (IsReady(AID.BishopAutoturretPvP) && mainTarget != null && strategy.Option(Track.BishopAutoturret).As<CommonStrategy>() == CommonStrategy.Allow)
                         QueueGCD(AID.BishopAutoturretPvP, strategy.Option(Track.TurretPlacement).As<TurretPlacement>() switch
                         {
                             TurretPlacement.Self => Player,
@@ -171,12 +171,11 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
                     })
                         QueueGCD(AID.AnalysisPvP, Player, GCDPriority.High + 3);
 
-                    if (IsReady(AID.ScattergunPvP) && In12y(mainTarget) && mainTarget != null &&
-                        strategy.Option(Track.Scattergun).As<CommonStrategy>() == CommonStrategy.Allow)
-                        QueueGCD(AID.ScattergunPvP, auto ? BestConeTarget?.Actor : mainTarget, GCDPriority.High + 1);
+                    if (IsReady(AID.ScattergunPvP) && In12y(mainTarget) && mainTarget != null && strategy.Option(Track.Scattergun).As<CommonStrategy>() == CommonStrategy.Allow)
+                        QueueGCD(AID.ScattergunPvP, bestConeTarget, GCDPriority.High + 1);
 
                     if (Cooldown(BestTool) <= 10.2f && strategy.Option(Track.Tools).As<ToolsStrategy>() != ToolsStrategy.Forbid)
-                        QueueGCD(BestTool, auto ? BestToolTarget?.Actor : mainTarget, GCDPriority.Average);
+                        QueueGCD(BestTool, Retarget(HasStatus(SID.ChainSawPrimed) ? Retarget(GetBestTarget(primaryTarget, 25, Is25yRectTarget).Best?.Actor) : HasStatus(SID.Bioblaster) ? bestConeTarget : mainTarget), GCDPriority.Average);
 
                     QueueGCD(AID.BlastChargePvP, mainTarget, GCDPriority.Low);
                 }

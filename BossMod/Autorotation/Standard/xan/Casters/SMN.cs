@@ -53,6 +53,9 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
         [Option("Ifrit dash", MinLevel = 86, Targets = ActionTargets.Hostile)]
         public Track<EnabledByDefault> Cyclone;
 
+        [Track(Action = AID.Swiftcast)]
+        public Track<EnabledByDefault> Swiftcast;
+
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
@@ -304,7 +307,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void OGCDs(in Strategy strategy, Enemy? primaryTarget)
     {
-        if (NextGCD == AID.Slipstream)
+        if (NextGCD == AID.Slipstream && strategy.Swiftcast.IsEnabled())
             PushOGCD(AID.Swiftcast, Player);
 
         if (!Player.InCombat || primaryTarget == null)
