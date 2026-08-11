@@ -330,12 +330,13 @@ public sealed class AIHints
     public Func<WPos, float> GoalSingleTarget(Actor target, float range, float weight = 1) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
 
     // simple goal zone that returns 1 if target is in range (usually melee), 2 if it's also in correct positional
-    public Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius)
+    public Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius, float cushion = 0)
     {
         if (positional == Positional.Any)
             return GoalSingleTarget(target, radius); // more efficient implementation
         var effRsq = radius * radius;
         var targetDir = rotation.ToDirection();
+        var cushionThreshold = cushion * MathF.Sqrt(2);
         return p =>
         {
             var offset = p - target;
@@ -347,15 +348,15 @@ public sealed class AIHints
             var side = Math.Abs(targetDir.Dot(offset.OrthoL()));
             var inPositional = positional switch
             {
-                Positional.Flank => side > Math.Abs(front),
-                Positional.Rear => -front > side,
-                Positional.Front => front > side, // TODO: reconsider this, it's not a real positional?..
+                Positional.Flank => side - Math.Abs(front) > cushionThreshold,
+                Positional.Rear => -front - side > cushionThreshold,
+                Positional.Front => front - side > cushionThreshold, // TODO: reconsider this, it's not a real positional?..
                 _ => false
             };
             return inPositional ? 2 : 1;
         };
     }
-    public Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f);
+    public Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3, float cushion = 0) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f, cushion);
 
     // simple goal zone that returns number of targets in aoes; note that performance is a concern for these functions, and perfection isn't required, so eg they ignore forbidden targets, etc
     public Func<WPos, float> GoalAOECircle(float radius)
