@@ -1,4 +1,5 @@
-﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FT11TwoHeadedAevis;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Dawntrail.Foray.ForkedTower.FT11TwoHeadedAevis;
 
 public enum OID : uint
 {

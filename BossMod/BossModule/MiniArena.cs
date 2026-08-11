@@ -335,21 +335,44 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         TextScreen(ScreenCenter - offE, "W", ArenaColor.Border, Config.CardinalsFontSize);
     }
 
-    // draw actor representation
-    public void ActorInsideBounds(WPos position, Angle rotation, uint color)
+    private (Vector2, Vector2, Vector2) ActorTri(WPos position, Angle rotation)
     {
         var dir = rotation.ToDirection();
         var normal = dir.OrthoR();
+
+        var pCenter = WorldPositionToScreenPosition(position);
+
+        var lenFront = 0.7f;
+        var lenBack = 0.35f;
+        var lenSide = 0.433f;
+
+        // default arena-independent scale factor is based on a radius 20 arena (most common savage arena size) in a radar with base width of 150px
+        var sizeFactor = Config.ActorDynamicScale ? ScreenHalfSize / Bounds.Radius : 7.5f;
+        sizeFactor *= Config.ActorScale * Config.EffectiveArenaScale;
+
+        lenFront *= sizeFactor;
+        lenBack *= sizeFactor;
+        lenSide *= sizeFactor;
+
+        return (pCenter + lenFront * dir.ToVec2(), pCenter - lenBack * dir.ToVec2() + lenSide * normal.ToVec2(), pCenter - lenBack * dir.ToVec2() - lenSide * normal.ToVec2());
+    }
+
+    // draw actor representation
+    public void ActorInsideBounds(WPos position, Angle rotation, uint color)
+    {
+        var (x, y, z) = ActorTri(position, rotation);
+
         if (Config.ShowOutlinesAndShadows)
-            AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, 0xFF000000, 2);
-        AddTriangleFilled(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+            ImGui.GetWindowDrawList().AddTriangle(x, y, z, 0xFF000000, 2);
+
+        ImGui.GetWindowDrawList().AddTriangleFilled(x, y, z, color);
     }
 
     public void ActorOutsideBounds(WPos position, Angle rotation, uint color)
     {
-        var dir = rotation.ToDirection();
-        var normal = dir.OrthoR();
-        AddTriangle(position + 0.7f * dir, position - 0.35f * dir + 0.433f * normal, position - 0.35f * dir - 0.433f * normal, color);
+        var (x, y, z) = ActorTri(position, rotation);
+
+        ImGui.GetWindowDrawList().AddTriangle(x, y, z, color);
     }
 
     public void ActorProjected(WPos from, WPos to, Angle rotation, uint color)
