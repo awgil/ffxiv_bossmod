@@ -70,23 +70,26 @@ sealed class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    private void AddAOE(byte index, uint state, AOEShape shape)
+    private void AddAOE(byte index, uint state, AOEShape aoeShape)
     {
-        var activation = WorldState.FutureTime(5.9d);
-        var color = state == 0x00800040u ? Colors.SafeFromAOE : default;
         var center = Arena.Center;
-        var distance = shape.Distance(center, default);
         curIndexState = index * state;
-        AOE = index switch
+        (AOEShape, WPos)? aoeData = index switch
         {
-            0x1E => [new(shape, positions[0], default, activation, shapeDistance: distance)],
-            0x1F => [new(shape, positions[1], default, activation, shapeDistance: distance)],
-            0x20 => [new(state == 0x00800040u ? CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 1f, true)
-             : CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 7f), center, default, activation, color, shapeDistance: distance)],
-            0x21 => [new(state == 0x00800040u ? CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 1f, true)
-             : CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 7f), center, default, activation, color, shapeDistance: distance)],
-            _ => AOE
+            0x1E => (aoeShape, positions[0]),
+            0x1F => (aoeShape, positions[1]),
+            0x20 => (state == 0x00800040u ? CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 1f, true)
+             : CreateShape(positions[0], positions[2], positions[3], angles[1], angles[3], angles[0], 7f), center),
+            0x21 => (state == 0x00800040u ? CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 1f, true)
+             : CreateShape(positions[1], positions[2], positions[3], angles[1], angles[0], angles[2], 7f), center),
+            _ => null
         };
+        if (aoeData is (AOEShape, WPos) data)
+        {
+            var shape = data.Item1;
+            var color = shape.InvertForbiddenZone ? Colors.SafeFromAOE : default;
+            AOE = [new(shape, data.Item2, default, WorldState.FutureTime(5.9d), color: color, shapeDistance: shape.Distance(data.Item2, default))];
+        }
 
         AOEShapeCustom CreateShape(WPos pos1, WPos pos2, WPos pos3, Angle angle1, Angle angle2, Angle angle3, float halfWidth, bool inverted = false)
             => new(center, [new Rectangle(pos1, halfWidth, 50f, angle1), new Rectangle(pos2, halfWidth, 50f, angle2), new Rectangle(pos3, halfWidth, 50f, angle3)],
@@ -119,8 +122,8 @@ sealed class WindEarthShot(BossModule module) : Components.GenericAOEs(module)
         }
         ref var aoe = ref AOE[0];
         base.AddAIHints(slot, actor, assignment, hints);
-
-        if (!aoe.Shape.InvertForbiddenZone)
+        var shape = aoe.Shape;
+        if (!shape.InvertForbiddenZone && shape is AOEShapeCustom)
         {
             var center = Arena.Center;
             const uint indexState = 0x20 * 0x00200010u;

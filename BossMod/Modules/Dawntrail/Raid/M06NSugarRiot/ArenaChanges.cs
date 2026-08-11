@@ -28,7 +28,7 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
                 _risky = true;
                 break;
             case 0x00200010u:
-                Arena.Bounds = new ArenaBoundsCustom(bossmod.GetCombinedRiver());
+                Arena.Bounds = new ArenaBoundsCustom([new Square(Arena.Center, 20f)], bossmod.GetCombinedRiver());
                 active = false;
                 _aoe = [];
                 break;
