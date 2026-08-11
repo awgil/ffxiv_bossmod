@@ -335,26 +335,34 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         TextScreen(ScreenCenter - offE, "W", ArenaColor.Border, Config.CardinalsFontSize);
     }
 
-    private (Vector2, Vector2, Vector2) ActorTri(WPos position, Angle rotation)
+    const float ActorLenFront = 0.7f;
+    const float ActorLenBack = 0.35f;
+    const float ActorLenSide = 0.433f;
+
+    (WPos, WPos, WPos) ActorTri(WPos position, Angle rotation)
     {
         var dir = rotation.ToDirection();
         var normal = dir.OrthoR();
 
-        var pCenter = WorldPositionToScreenPosition(position);
+        var lenFront = ActorLenFront;
+        var lenBack = ActorLenBack;
+        var lenSide = ActorLenSide;
 
-        var lenFront = 0.7f;
-        var lenBack = 0.35f;
-        var lenSide = 0.433f;
+        var scale = Config.ActorScale;
 
-        // default arena-independent scale factor is based on a radius 20 arena (most common savage arena size) in a radar with base width of 150px
-        var sizeFactor = Config.ActorDynamicScale ? ScreenHalfSize / Bounds.Radius : 7.5f * Config.EffectiveArenaScale;
-        sizeFactor *= Config.ActorScale;
+        if (!Config.ActorDynamicScale)
+        {
+            // apply arena scaling in reverse (TODO this isn't a great solution)
+            scale *= Bounds.Radius / ScreenHalfSize;
+            // using "default" actor size based on a radius 20 arena (common arena size for savage) drawn in a 150 width radar
+            scale *= 7.5f;
+        }
 
-        lenFront *= sizeFactor;
-        lenBack *= sizeFactor;
-        lenSide *= sizeFactor;
+        lenFront *= scale;
+        lenBack *= scale;
+        lenSide *= scale;
 
-        return (pCenter + lenFront * dir.ToVec2(), pCenter - lenBack * dir.ToVec2() + lenSide * normal.ToVec2(), pCenter - lenBack * dir.ToVec2() - lenSide * normal.ToVec2());
+        return (position + lenFront * dir, position - lenBack * dir + lenSide * normal, position - lenBack * dir - lenSide * normal);
     }
 
     // draw actor representation
@@ -363,16 +371,14 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         var (x, y, z) = ActorTri(position, rotation);
 
         if (Config.ShowOutlinesAndShadows)
-            ImGui.GetWindowDrawList().AddTriangle(x, y, z, 0xFF000000, 2);
-
-        ImGui.GetWindowDrawList().AddTriangleFilled(x, y, z, color);
+            AddTriangle(x, y, z, 0xFF000000, 2);
+        AddTriangleFilled(x, y, z, color);
     }
 
     public void ActorOutsideBounds(WPos position, Angle rotation, uint color)
     {
         var (x, y, z) = ActorTri(position, rotation);
-
-        ImGui.GetWindowDrawList().AddTriangle(x, y, z, color);
+        AddTriangle(x, y, z, color);
     }
 
     public void ActorProjected(WPos from, WPos to, Angle rotation, uint color)
