@@ -206,7 +206,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (Service.IsMock)
         {
             _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
-            _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false, "xan")));
+            _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
             //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
         }
     }
@@ -532,7 +532,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         });
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
-            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : _ws.Party.FindSlot(masterString);
+            var ms = masterString.ToString();
+            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : Array.FindIndex(_ws.Party.Members, m => _ws.Actors.Find(m.InstanceId)?.Name == ms);
             if (_ws.Party[masterSlot] != null)
             {
                 _wndAI.SetSlot(masterSlot);

@@ -77,6 +77,7 @@ public sealed class ReplayManager : IDisposable
     private int _nextAnalysisId;
     private string _path = "";
     private string _fileDialogStartPath;
+    private bool _convertAnonymize;
 
     public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
     {
@@ -177,13 +178,18 @@ public sealed class ReplayManager : IDisposable
                         SaveHistory();
                     }
                     if (ImGui.MenuItem("Convert to verbose"))
-                        ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose);
+                        ConvertLog(e.Replay.Result, ReplayLogFormat.TextVerbose, _convertAnonymize);
                     if (ImGui.MenuItem("Convert to short text"))
-                        ConvertLog(e.Replay.Result, ReplayLogFormat.TextCondensed);
+                        ConvertLog(e.Replay.Result, ReplayLogFormat.TextCondensed, _convertAnonymize);
                     if (ImGui.MenuItem("Convert to uncompressed binary"))
-                        ConvertLog(e.Replay.Result, ReplayLogFormat.BinaryUncompressed);
+                        ConvertLog(e.Replay.Result, ReplayLogFormat.BinaryUncompressed, _convertAnonymize);
                     if (ImGui.MenuItem("Convert to compressed binary"))
-                        ConvertLog(e.Replay.Result, ReplayLogFormat.BinaryCompressed);
+                        ConvertLog(e.Replay.Result, ReplayLogFormat.BinaryCompressed, _convertAnonymize);
+                    ImGui.Separator();
+                    ImGuiP.PushItemFlag(ImGuiItemFlags.SelectableDontClosePopup, true);
+                    if (ImGui.MenuItem("Anonymize replay during conversion", _convertAnonymize))
+                        _convertAnonymize = !_convertAnonymize;
+                    ImGuiP.PopItemFlag();
                 }
             }
 
@@ -345,14 +351,14 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private void ConvertLog(Replay r, ReplayLogFormat format)
+    private void ConvertLog(Replay r, ReplayLogFormat format, bool anonymize)
     {
         if (r.Ops.Count == 0)
             return;
 
         var player = new ReplayPlayer(r);
         player.WorldState.Frame.Timestamp = r.Ops[0].Timestamp; // so that we get correct name etc.
-        using var relogger = new ReplayRecorder(player.WorldState, format, false, new FileInfo(r.Path).Directory!, format.ToString());
+        using var relogger = new ReplayRecorder(player.WorldState, format, false, new FileInfo(r.Path).Directory!, format.ToString(), anonymize);
         player.AdvanceTo(DateTime.MaxValue, () => { });
     }
 

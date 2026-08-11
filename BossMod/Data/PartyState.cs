@@ -18,12 +18,12 @@ public sealed class PartyState
     public const int MaxAllianceSize = 24;
     public const int MaxAllies = 64;
 
-    public record struct Member(ulong ContentId, ulong InstanceId, bool InCutscene, string Name)
+    public record struct Member(ulong ContentId, ulong InstanceId, bool InCutscene)
     {
         // note that a valid member can have 0 contentid (eg buddy) or 0 instanceid (eg player in a different zone)
         public readonly bool IsValid() => ContentId != 0 || InstanceId != 0;
     }
-    public static readonly Member EmptySlot = new(0, 0, false, "");
+    public static readonly Member EmptySlot = new(0, 0, false);
 
     public readonly Member[] Members = Utils.MakeArray(MaxAllies, EmptySlot);
     private readonly Actor?[] _actors = new Actor?[MaxAllies]; // transient
@@ -83,15 +83,6 @@ public sealed class PartyState
     // find a slot index containing specified player (by instance ID); returns -1 if not found
     public int FindSlot(ulong instanceID) => instanceID != 0 ? Array.FindIndex(Members, m => m.InstanceId == instanceID) : -1;
 
-    // find a slot index containing specified player (by name); returns -1 if not found
-    public int FindSlot(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
-    {
-        for (int i = 0; i < Members.Length; ++i)
-            if (name.Equals(Members[i].Name, cmp))
-                return i;
-        return -1;
-    }
-
     public bool TryFindSlot(ulong instanceID, out int slot)
     {
         slot = FindSlot(instanceID);
@@ -99,12 +90,6 @@ public sealed class PartyState
     }
 
     public bool TryFindSlot(Actor actor, out int slot) => TryFindSlot(actor.InstanceID, out slot);
-
-    public bool TryFindSlot(ReadOnlySpan<char> name, out int slot, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
-    {
-        slot = FindSlot(name, cmp);
-        return slot >= 0;
-    }
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -132,7 +117,7 @@ public sealed class PartyState
                 Service.Log($"[PartyState] Out-of-bounds slot {Slot}");
             }
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).Emit(Member.ContentId, "X").Emit(Member.InstanceId, "X8").Emit(Member.InCutscene).Emit(Member.Name);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).EmitContentID(Member.ContentId).Emit(Member.InstanceId, "X8").Emit(Member.InCutscene);
     }
 
     public Event<OpLimitBreakChange> LimitBreakChanged = new();

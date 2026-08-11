@@ -81,7 +81,7 @@ public class PartyRolesConfig : ConfigNode
                 {
                     ref var m = ref ws.Party.Members[i];
                     if (m.IsValid())
-                        party.Add(new(m.ContentId, m.Name, ws.Party[i]?.Class ?? Class.None, this[m.ContentId]));
+                        party.Add(new(m.ContentId, ws.Party[i]?.Name ?? "", ws.Party[i]?.Class ?? Class.None, this[m.ContentId]));
                 }
                 party.SortBy(e => e.Class.GetRole());
 

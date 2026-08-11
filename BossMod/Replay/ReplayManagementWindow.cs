@@ -283,7 +283,7 @@ public class ReplayManagementWindow : UIWindow
 
         try
         {
-            _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, prefix + GetPrefix());
+            _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, prefix + GetPrefix(), _config.Anonymize);
         }
         catch (Exception ex)
         {
@@ -315,7 +315,11 @@ public class ReplayManagementWindow : UIWindow
 
         var player = _ws.Party.Player();
         if (player != null)
-            prefix += $"_{player.Class}{player.Level}_{player.Name.Replace(" ", null, StringComparison.Ordinal)}";
+        {
+            prefix += $"_{player.Class}{player.Level}";
+            if (!_config.Anonymize)
+                prefix += $"_{player.Name.Replace(" ", null, StringComparison.Ordinal)}";
+        }
 
         var cf = FFXIVClientStructs.FFXIV.Client.Game.UI.ContentsFinder.Instance();
         if (cf->IsUnrestrictedParty)

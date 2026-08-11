@@ -675,8 +675,17 @@ public sealed class ReplayParserLog : IDisposable
     private ActorState.OpEventOpenTreasure ParseActorEventOpenTreasure() => new(_input.ReadActorID());
 
     private ActorState.OpVisibility ParseActorVisibility() => new(_input.ReadActorID(), Visibility.Decode((char)_input.ReadUShort(false)));
-    private PartyState.OpModify ParsePartyModify() => new(_input.ReadInt(), new(_input.ReadULong(true), _input.ReadULong(true), _version >= 15 && _input.ReadBool(), _version < 15 ? "" : _input.ReadString()));
-    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false, ""));
+    private PartyState.OpModify ParsePartyModify()
+    {
+        var slot = _input.ReadInt();
+        var cid = _input.ReadULong(true);
+        var iid = _input.ReadULong(true);
+        var cs = _version >= 15 && _input.ReadBool();
+        if (_version is >= 15 and < 31)
+            _input.ReadString(); // member name, not stored here anymore (just look them up in worldstate)
+        return new(slot, new(cid, iid, cs));
+    }
+    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false));
     private PartyState.OpLimitBreakChange ParsePartyLimitBreak() => new(_input.ReadInt(), _input.ReadInt());
 
     private ClientState.OpActionRequest ParseClientActionRequest()
