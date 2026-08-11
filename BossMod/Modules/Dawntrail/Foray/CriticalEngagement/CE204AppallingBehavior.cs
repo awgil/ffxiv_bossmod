@@ -299,7 +299,7 @@ sealed class CE204AppallingBehaviorStates : StateMachineBuilder
     SortOrder = 11,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE204AppallingBehavior(WorldState ws, Actor primary) : BossModule(ws, primary, new(807.000f, -562.000f), new ArenaBoundsCircle(20f))
+public sealed class CE204AppallingBehavior(WorldState ws, Actor primary) : BossModule(ws, primary, new(807f, -562f), new ArenaBoundsCircle(20f))
 {
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 20f);
 }

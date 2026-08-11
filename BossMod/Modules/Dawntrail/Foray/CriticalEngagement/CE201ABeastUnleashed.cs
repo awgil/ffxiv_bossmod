@@ -390,7 +390,7 @@ sealed class CE201ABeastUnleashedStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE201ABeastUnleashedStates),
     ConfigType = null, // replace null with typeof(ABeastUnleashedConfig) if applicable
     ObjectIDType = typeof(OID),
