@@ -23,7 +23,7 @@ class EngravementOfSouls1Spread(BossModule module) : Components.UniformStackSpre
             Arena.AddCircle(safespot, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var type = (SID)status.ID switch
         {

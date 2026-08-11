@@ -4,7 +4,7 @@ class ImitationBlizzard3(BossModule module) : ImitationBlizzard1(module)
 {
     private BitMask _targets;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.WickedWater)
             _targets.Set(Raid.FindSlot(actor.InstanceID));
@@ -60,13 +60,13 @@ class GelidGaol(BossModule module) : Components.Adds(module, (uint)OID.GelidGaol
 {
     private BitMask _targets;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.GelidGaol)
             _targets.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.GelidGaol)
             _targets.Clear(Raid.FindSlot(actor.InstanceID));

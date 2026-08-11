@@ -130,7 +130,7 @@ class FireFlight(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.RugCharge)
         {
@@ -210,7 +210,7 @@ class Unravel(BossModule module) : Components.GenericAOEs(module)
             _carpets.Add(actor);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.FieryBauble && (SID)status.ID == SID.VisibleStatus && !_baubles.Contains(actor))
         {

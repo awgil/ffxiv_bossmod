@@ -56,13 +56,13 @@ class ExplosiveDehiscence(BossModule module) : Components.CastGaze(module, AID.E
             casting = false;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Clear(Raid.FindSlot(actor.InstanceID));

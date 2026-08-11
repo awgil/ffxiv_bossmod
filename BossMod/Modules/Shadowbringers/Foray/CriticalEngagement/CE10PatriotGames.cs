@@ -42,7 +42,7 @@ class ElectrochemicalReaction(BossModule module) : Components.GenericAOEs(module
     private readonly Dictionary<WPos, int> Charges = [];
     private readonly List<AOEInstance> AOEs = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.TetherOne or TetherID.TetherTwo)
             Charge(source, 1);

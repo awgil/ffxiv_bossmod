@@ -61,7 +61,7 @@ class P2Conflagrate(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor == Target && (SID)status.ID == SID.Fetters)
             Target = null;

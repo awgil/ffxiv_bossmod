@@ -97,7 +97,7 @@ class MortalSlayer(BossModule module) : Components.GenericStackSpread(module)
 
     public int NumCasts;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PoisonResistanceDownII && Raid.TryFindSlot(actor, out var slot))
             _poisoned[slot] = status.ExpireAt;

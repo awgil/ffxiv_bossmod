@@ -30,7 +30,7 @@ class P5NearDistantWorld(BossModule module) : Components.GenericStackSpread(modu
             hints.Add("Avoid baiting jump!");
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

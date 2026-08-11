@@ -16,7 +16,7 @@ class SealOfScurryingSparks(BossModule module) : Components.UniformStackSpread(m
         hints.Add($"Debuff order: {orderHint}");
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

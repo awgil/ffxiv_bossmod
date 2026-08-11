@@ -99,7 +99,7 @@ class ManaSphere(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         Letter? l = (SID)status.ID switch
         {

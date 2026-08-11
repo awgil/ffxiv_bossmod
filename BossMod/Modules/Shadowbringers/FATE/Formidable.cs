@@ -197,12 +197,12 @@ class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, AID.
         if ((AID)spell.Action.ID == AID.DynamicSensoryJammer)
             casting = false;
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
             _ec.Set(Raid.FindSlot(actor.InstanceID));
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
             _ec.Clear(Raid.FindSlot(actor.InstanceID));

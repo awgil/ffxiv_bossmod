@@ -358,13 +358,13 @@ class Malefic(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID is >= 4773 and <= 4787 && Raid.TryFindSlot(actor, out var slot))
             this[slot] = (Side)(status.ID - 4772);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID is >= 4773 and <= 4787 && Raid.TryFindSlot(actor, out var slot))
         {
@@ -423,7 +423,7 @@ class MaleficPortent(BossModule module) : Components.CastCounter(module, AID.Mal
 
     public bool Active => _targets.Any();
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.UnyieldingWill)
             _forceOfWillTargets.Set(Raid.FindSlot(tether.Target));
@@ -444,7 +444,7 @@ class MaleficPortent(BossModule module) : Components.CastCounter(module, AID.Mal
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (Raid.TryFindSlot(source, out var slot))
         {
@@ -543,7 +543,7 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.UnyieldingWill)
         {
@@ -585,7 +585,7 @@ class ForceOfWill(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bind)
             _bound = true;
@@ -823,7 +823,7 @@ class WillOfTheUnderworldSmallFast(BossModule module) : Components.GenericAOEs(m
     }
 
     // 189.14 -> 196.18
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var s = (TetherID)tether.ID switch
         {

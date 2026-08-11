@@ -93,13 +93,13 @@ class BatRing(BossModule module) : BossComponent(module)
 
 class CurseOfTheBombpyre(BossModule module) : Components.GenericStackSpread(module, alwaysShowSpreads: true)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CurseOfTheBombpyre)
             Spreads.Add(new(actor, 8, DateTime.MaxValue));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CurseOfTheBombpyre)
             Spreads.RemoveAll(s => s.Target == actor);

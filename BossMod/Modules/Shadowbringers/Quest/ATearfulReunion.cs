@@ -42,7 +42,7 @@ class LightningGlobe(BossModule module) : Components.GenericLineOfSightAOE(modul
     private readonly List<Actor> Balls = [];
     private IEnumerable<(WPos Center, float Radius)> Hollows => Module.Enemies(OID.Hollow).Select(h => (h.Position, h.HitboxRadius));
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 6)
             Balls.Add(source);

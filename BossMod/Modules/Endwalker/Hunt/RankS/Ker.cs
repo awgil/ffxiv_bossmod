@@ -84,7 +84,7 @@ class MirroredIncantation(BossModule module) : BossComponent(module)
             Type = Types.None;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor == Module.PrimaryActor)
             switch ((SID)status.ID)
@@ -103,7 +103,7 @@ class MirroredIncantation(BossModule module) : BossComponent(module)
             }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (actor == Module.PrimaryActor)
         {
@@ -141,13 +141,13 @@ class AncientFlare(BossModule module) : BossComponent(module)
             casting = false;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
             _pyretic.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
             _pyretic.Clear(Raid.FindSlot(actor.InstanceID));

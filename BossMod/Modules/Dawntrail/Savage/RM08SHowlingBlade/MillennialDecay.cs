@@ -24,7 +24,7 @@ class ProwlingGale(BossModule module) : Components.CastTowers(module, AID.Prowli
 {
     private BitMask Tethers;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic)
             UpdateMask(Raid.FindSlot(tether.Target));
@@ -56,9 +56,10 @@ class WindsOfDecay : Components.GenericBaitAway
         EnableHints = false;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
-        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic && !CurrentBaits.Any(b => b.Target.InstanceID == tether.Target))
+        var tid = tether.Target;
+        if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic && !CurrentBaits.Any(b => b.Target.InstanceID == tid))
         {
             if (Activation == default)
                 Activation = WorldState.FutureTime(7.2f);
@@ -85,7 +86,7 @@ class WindsOfDecayTether(BossModule module) : Components.CastCounter(module, AID
 
     public bool EnableHints;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.WolfOfWindDecay && (TetherID)tether.ID is TetherID.Danger or TetherID.Generic)
         {

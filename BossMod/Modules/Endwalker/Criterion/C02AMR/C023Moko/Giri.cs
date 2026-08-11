@@ -33,7 +33,7 @@ class TripleKasumiGiri(BossModule module) : Components.GenericAOEs(module)
             hints.Add($"Safespots: {string.Join(" > ", _hints)}");
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Giri)
         {
@@ -186,7 +186,7 @@ class IaiGiriBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Giri)
         {
@@ -211,7 +211,7 @@ class IaiGiriBait : Components.GenericBaitAway
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID is (uint)TetherID.RatAndMouse)
         {

@@ -77,7 +77,7 @@ class ElectronStream(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -206,7 +206,7 @@ class ElectronStreamCurrent(BossModule module) : Components.GenericAOEs(module, 
             movementHints.Add(actor.Position, p, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.RemoteCurrent or SID.ProximateCurrent or SID.SpinningConductor or SID.RoundhouseConductor or SID.ColliderConductor)
         {

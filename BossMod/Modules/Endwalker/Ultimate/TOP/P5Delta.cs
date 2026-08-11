@@ -71,7 +71,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -88,7 +88,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
@@ -110,7 +110,7 @@ class P5Delta(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.HWLocalTether or TetherID.HWRemoteTether)
         {
@@ -488,7 +488,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             _shape.Draw(Arena, _player.Position, _player.Rotation + _playerAngle, _playerIntendedTargets[pcSlot] ? ArenaColor.SafeFromAOE : ArenaColor.AOE);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var angle = (SID)status.ID switch
         {

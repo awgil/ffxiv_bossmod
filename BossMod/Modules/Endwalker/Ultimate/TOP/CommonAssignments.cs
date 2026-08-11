@@ -68,7 +68,7 @@ abstract class CommonAssignments(BossModule module) : BossComponent(module)
 // common assignments for program loop & pantokrator
 abstract class P1CommonAssignments(BossModule module) : CommonAssignments(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         int order = (SID)status.ID switch
         {

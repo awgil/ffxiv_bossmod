@@ -195,7 +195,7 @@ class FireflightPath(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Rug)
         {
@@ -434,7 +434,7 @@ class FourLongNightsBait(BossModule module) : Components.UniformStackSpread(modu
             _start = Module.CastFinishAt(spell, 2.2f);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.WitchHunt)
         {
@@ -494,7 +494,7 @@ class ParisCurseStackSpread(BossModule module) : Components.UniformStackSpread(m
 {
     public int NumCasts { get; private set; }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -595,7 +595,7 @@ class ChillingGleam(BossModule module) : Components.GenericAOEs(module, AID.Chil
             yield return new(new AOEShapeCross(40, 5), src, default, _activation, Inverted: _immolation[slot]);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CurseOfImmolation)
             _immolation.Set(Raid.FindSlot(actor.InstanceID));
@@ -706,7 +706,7 @@ class FableflightTether(BossModule module) : Components.GenericBaitAway(module)
     readonly Actor?[] _sources = new Actor?[4];
     readonly DateTime[] _resolve = new DateTime[4];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Generic && Raid.TryFindSlot(tether.Target, out var slot))
         {
@@ -733,7 +733,7 @@ class FableflightTether(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Prey && Raid.TryFindSlot(actor, out var slot))
         {

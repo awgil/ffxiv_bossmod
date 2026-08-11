@@ -18,13 +18,13 @@ class Endsong(BossModule module) : BossComponent(module)
             _aoe.Draw(Arena, a);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.EndsongFirst or TetherID.EndsongNext)
             _active.Add(source);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         _active.Remove(source);
     }

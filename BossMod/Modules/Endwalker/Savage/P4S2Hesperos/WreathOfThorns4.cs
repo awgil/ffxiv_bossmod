@@ -144,7 +144,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper && Raid.TryFindSlot(tether.Target, out var slot))
         {
@@ -153,7 +153,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper && Raid.TryFindSlot(tether.Target, out var slot))
         {

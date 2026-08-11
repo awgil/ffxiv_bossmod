@@ -147,14 +147,14 @@ class PyreOfRebirth(BossModule module) : Components.RaidwideCast(module, AID.Pyr
 
 class PyreOfRebirthPyretic(BossModule module) : Components.StayMove(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var state = StateForStatus(status);
         if (state.Requirement != Requirement.None)
             SetState(Raid.FindSlot(actor.InstanceID), state);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var state = StateForStatus(status);
         if (state.Requirement != Requirement.None)

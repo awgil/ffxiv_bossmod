@@ -20,7 +20,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
         PermitOverlap = true;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GravenImage && WorldState.Actors.Find(tether.Target) is { } target)
         {

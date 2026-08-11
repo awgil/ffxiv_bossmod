@@ -67,7 +67,7 @@ class HeavensflameKnockback(BossModule module) : Components.KnockbackFromCastTar
             Arena.AddCircle(_playerAdjustedPositions[slot], _aoeRadius, ArenaColor.Danger);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         _brokenTethers.Set(Raid.FindSlot(source.InstanceID));
         _brokenTethers.Set(Raid.FindSlot(tether.Target));

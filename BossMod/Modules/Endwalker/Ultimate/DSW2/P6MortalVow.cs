@@ -37,7 +37,7 @@ class P6MortalVow : Components.UniformStackSpread
             Arena.AddCircle(Module.Center, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -52,7 +52,7 @@ class P6MortalVow : Components.UniformStackSpread
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

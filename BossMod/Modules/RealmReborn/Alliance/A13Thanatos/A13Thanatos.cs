@@ -47,13 +47,13 @@ class AstralRealignment(BossModule module) : Components.GenericInvincible(module
         hints.SetPriority(Module.PrimaryActor, _playerStates[slot] ? 5 : AIHints.Enemy.PriorityInvincible);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AstralRealignment && Raid.TryFindSlot(actor, out var slot))
             _playerStates.Set(slot);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AstralRealignment && Raid.TryFindSlot(actor, out var slot))
             _playerStates.Clear(slot);

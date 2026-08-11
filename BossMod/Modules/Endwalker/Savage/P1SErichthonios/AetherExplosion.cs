@@ -52,7 +52,7 @@ class AetherExplosion(BossModule module) : BossComponent(module)
             Arena.Actor(_memberWithSOT, _colorSOTActor);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -82,7 +82,7 @@ class AetherExplosion(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

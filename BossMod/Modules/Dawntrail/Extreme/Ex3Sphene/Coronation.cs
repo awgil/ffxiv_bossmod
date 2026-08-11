@@ -39,13 +39,14 @@ class Coronation(BossModule module) : Components.GenericAOEs(module, AID.Ruthles
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.CoronationL or TetherID.CoronationR)
         {
             _activation = WorldState.FutureTime(10.1f);
-            var index = Groups.FindIndex(g => g.Source.InstanceID == tether.Target);
-            if (index < 0 && WorldState.Actors.Find(tether.Target) is var target && target != null)
+            var t = tether.Target;
+            var index = Groups.FindIndex(g => g.Source.InstanceID == t);
+            if (index < 0 && WorldState.Actors.Find(tether.Target) is { } target)
             {
                 index = Groups.Count;
                 Groups.Add(new() { Source = target });

@@ -69,14 +69,14 @@ class BombTether : Components.BaitAwayTethers
             hints.Add("Intercept tether!", CurrentBaits.Any(b => b.Target != actor));
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == TID)
             Activation = WorldState.FutureTime(15);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnUntethered(source, tether);
         if (tether.ID == TID)

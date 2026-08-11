@@ -6,7 +6,7 @@ class EngravementOfSouls3Shock(BossModule module) : Components.CastTowers(module
     private BitMask _plus;
     private BitMask _cross;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -51,7 +51,7 @@ class EngravementOfSouls3Spread(BossModule module) : Components.UniformStackSpre
             return base.CalcPriority(pcSlot, pc, playerSlot, player, ref customColor);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var soakers = (SID)status.ID switch
         {
@@ -112,7 +112,7 @@ class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
     }
 
     // note: these statuses are assigned before any tethers
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -133,7 +133,7 @@ class EngravementOfSouls3Hints(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {

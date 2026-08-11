@@ -22,13 +22,13 @@ class P4DarklitDragonsong(BossModule module) : BossComponent(module)
             Arena.AddLine(t.from.Position, t.to.Position, ArenaColor.Safe); // TODO: min/max break distance
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkWater)
             Stacks.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.LightRampantChains)
         {
@@ -126,7 +126,7 @@ class P4DarklitDragonsongBrightHunger(BossModule module) : Components.GenericTow
         hints.AddForbiddenZone(ShapeDistance.HalfPlane(Module.Center, new(_darklit.AssignE[slot] ? +1 : -1, 0)), Towers[0].Activation);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.LightRampantChains && ++_numTethers == 4 && _darklit != null)
         {
@@ -200,7 +200,7 @@ class P4DarklitDragonsongPathOfLight(BossModule module) : Components.GenericBait
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.LightRampantChains)
             ForbiddenPlayers.Set(Raid.FindSlot(source.InstanceID));
@@ -297,7 +297,7 @@ class P4DarklitDragonsongDarkWater(BossModule module) : Components.UniformStackS
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkWater)
             AddStack(actor, status.ExpireAt);

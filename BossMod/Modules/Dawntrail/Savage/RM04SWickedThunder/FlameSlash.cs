@@ -43,7 +43,7 @@ class ChainLightning(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _explosions.Skip(NumCasts).Take(6).Select(p => new AOEInstance(_shape, p)); // TODO: activation
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.ChainLightning1 or TetherID.ChainLightning2)
             _explosions.Add(source.Position);

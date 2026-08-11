@@ -45,13 +45,13 @@ class ProfaneWaul(BossModule module) : Components.StandardAOEs(module, AID.Profa
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).Select(a => a with { Inverted = _shadow[slot] });
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ShadowOfDeath && Raid.TryFindSlot(actor, out var slot))
             _shadow.Set(slot);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ShadowOfDeath && Raid.TryFindSlot(actor, out var slot))
             _shadow.Clear(slot);
@@ -73,7 +73,7 @@ class StaticShock(BossModule module) : Components.GenericAOEs(module)
             _first = Module.CastFinishAt(spell, 11.7f);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Lightning)
         {

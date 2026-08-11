@@ -45,7 +45,7 @@ class OneTwoPawShade(BossModule module) : Components.GenericAOEs(module)
             _firstDirection = dir;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Soulshade && _aoes.Count < 4)
         {
@@ -106,7 +106,7 @@ class LeapingOneTwoPaw(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Soulshade)
         {

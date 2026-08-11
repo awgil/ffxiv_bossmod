@@ -23,19 +23,19 @@ class Fusefield(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bombarium && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _orders[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30 ? 1 : 2;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bombarium && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _orders[slot] = 0;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.SinisterSpark && tether.ID == (uint)TetherID.Fusefield && WorldState.Actors.Find(tether.Target) is var target && target != null)
             _sparks.Add((source, target, (source.Position - target.Position).LengthSq() < 55 ? 1 : 2));

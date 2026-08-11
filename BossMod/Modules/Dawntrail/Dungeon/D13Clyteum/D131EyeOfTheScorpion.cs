@@ -45,13 +45,13 @@ class MotionScanner(BossModule module) : Components.StayMove(module)
     Actor? _scanner;
     BitMask _exclude;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MotionTracker && Raid.TryFindSlot(actor, out var slot))
             SetState(slot, new(Requirement.Stay, WorldState.CurrentTime, 1));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MotionTracker && Raid.TryFindSlot(actor, out var slot))
         {

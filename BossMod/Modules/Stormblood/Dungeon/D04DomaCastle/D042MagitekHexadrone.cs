@@ -47,12 +47,12 @@ class ChainMines(BossModule module) : Components.GenericAOEs(module)
             yield return new AOEInstance(rect, source.Position + 2 * source.Rotation.ToDirection(), source.Rotation);
         }
     }
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.ChainMine)
             _tethers.Add(source);
     }
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.ChainMine)
             _tethers.Remove(source);

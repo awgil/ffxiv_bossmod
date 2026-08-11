@@ -118,7 +118,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // we have dedicated components for this...
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkWater && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {

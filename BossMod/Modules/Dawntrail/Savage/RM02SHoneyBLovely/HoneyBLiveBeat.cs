@@ -8,14 +8,14 @@ class HoneyBLiveHearts(BossModule module) : BossComponent(module)
 {
     public int[] Hearts = new int[PartyState.MaxPartySize];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var hearts = NumHearts((SID)status.ID);
         if (hearts >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Hearts[slot] = hearts;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var hearts = NumHearts((SID)status.ID);
         if (hearts >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot) && Hearts[slot] == hearts)
@@ -161,7 +161,7 @@ class HoneyBLiveBeat3BigBurst(BossModule module) : Components.UniformStackSpread
         base.AddHints(slot, actor, hints);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PoisonNPop)
         {

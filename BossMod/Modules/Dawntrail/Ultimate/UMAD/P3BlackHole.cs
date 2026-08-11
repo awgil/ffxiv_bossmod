@@ -4,7 +4,7 @@ class P3EarthquakeRaidwide(BossModule module) : Components.RaidwideCast(module, 
 class P3EarthHints(BossModule module) : BossComponent(module)
 {
     readonly List<Actor> _accretions = [];
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Accretion)
         {
@@ -33,7 +33,7 @@ class P3KefkaIndicator(BossModule module) : BossComponent(module)
     Actor? _bigKefka;
     bool offset;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.P3Max)
         {
@@ -225,7 +225,7 @@ class P3Nothingness : Components.BaitAwayTethers
             base.AddHints(slot, actor, hints);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
 
@@ -283,7 +283,7 @@ class P3Nothingness : Components.BaitAwayTethers
             AssignHoles();
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var order = (SID)status.ID switch
         {

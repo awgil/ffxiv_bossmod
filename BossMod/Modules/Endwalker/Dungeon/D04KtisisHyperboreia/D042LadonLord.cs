@@ -40,7 +40,7 @@ class PyricBreath(BossModule module) : Components.GenericAOEs(module)
             yield return _aoes[i] with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE };
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.Front or SID.Left or SID.Right)
             _buffs.Add((SID)status.ID);

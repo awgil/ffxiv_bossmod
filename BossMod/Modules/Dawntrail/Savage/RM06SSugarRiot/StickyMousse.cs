@@ -21,7 +21,7 @@ class StickyBurst(BossModule module) : Components.UniformStackSpread(module, 4, 
 {
     public int NumCasts;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MousseMine)
             AddStack(actor, status.ExpireAt);

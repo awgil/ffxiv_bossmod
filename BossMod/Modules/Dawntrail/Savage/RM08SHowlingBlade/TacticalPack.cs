@@ -60,7 +60,7 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -73,7 +73,7 @@ class WolfOfWindStone(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -279,7 +279,7 @@ class EarthyWindborneEnd : BossComponent
         WindOff |= spell.Action.ID == (uint)AID.WindSurgeFinal;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.EarthborneEnd or SID.WindborneEnd)
             Debuffs[Raid.FindSlot(actor.InstanceID)] = default;

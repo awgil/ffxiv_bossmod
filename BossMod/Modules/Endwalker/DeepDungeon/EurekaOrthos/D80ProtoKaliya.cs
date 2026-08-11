@@ -64,7 +64,7 @@ class Aetheromagnetism(BossModule module) : Components.Knockback(module, ignoreI
         return (Charge.None, default);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Magnet)
         {
@@ -134,13 +134,13 @@ class Barofield(BossModule module) : Components.GenericAOEs(module, AID.Barofiel
             activation = Module.CastFinishAt(spell);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.Barofield)
             activation = WorldState.CurrentTime;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.Barofield)
             activation = DateTime.MinValue;

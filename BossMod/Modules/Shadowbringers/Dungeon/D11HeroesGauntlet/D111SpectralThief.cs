@@ -2,7 +2,7 @@ namespace BossMod.Shadowbringers.Dungeon.D11HeroesGauntlet.D111SpectralThief;
 
 public enum OID : uint
 {
-    Boss = 0x2DEC, // R0.875, x? 
+    Boss = 0x2DEC, // R0.875, x?
     Shadow = 0x2DED, // R0.875, x?
     ChickenKnife = 0x2E71, // R1.000, x?
     DashMarker = 0x1EAED9, // Circles?
@@ -47,7 +47,7 @@ class Markers(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _nextShape is { } s ? _actors.Select(m => new AOEInstance(_nextShape, m.Position, default, _activation)) : [];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DashStatus)
         {
@@ -61,7 +61,7 @@ class Markers(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Dash && tether.Target == Module.PrimaryActor.InstanceID && !_actors.Contains(source))
         {

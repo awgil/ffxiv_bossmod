@@ -27,7 +27,7 @@ class ScreamOfTheFallen(BossModule module) : Components.UniformStackSpread(modul
                 Arena.AddCircle(t.Position, _towerRadius, ArenaColor.Safe, 2);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

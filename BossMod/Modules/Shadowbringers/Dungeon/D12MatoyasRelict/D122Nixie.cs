@@ -155,7 +155,7 @@ class GeyserSafe(BossModule module) : BossComponent(module)
             Geysers.RemoveAll(g => g.Position.AlmostEqual(caster.Position, 1));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HeadInTheClouds)
         {

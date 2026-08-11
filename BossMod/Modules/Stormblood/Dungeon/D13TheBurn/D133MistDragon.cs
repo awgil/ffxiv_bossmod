@@ -61,7 +61,7 @@ class ColdFogGrowth(BossModule module) : Components.GenericAOEs(module, AID.Cold
             yield return _aoes[0] with { Color = ArenaColor.AOE };
         }
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID != SID.AreaInfluence)
             return;
@@ -77,7 +77,7 @@ class ColdFogGrowth(BossModule module) : Components.GenericAOEs(module, AID.Cold
             _aoes.Add(new(new AOEShapeCircle(Radius), Module.Center));
         }
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (_aoes.Count > 0 && (SID)status.ID == SID.AreaInfluence)
         {
@@ -102,14 +102,14 @@ class CauterizeConceal(BossModule module) : Components.GenericAOEs(module)
                 yield return i with { Color = ArenaColor.AOE };
         }
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.Concealed)
         {
             _aoes.Add(new AOEInstance(new AOEShapeRect(40, 8, 5), actor.Position + 2 * actor.Rotation.ToDirection(), actor.Rotation));
         }
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.Concealed)
         {

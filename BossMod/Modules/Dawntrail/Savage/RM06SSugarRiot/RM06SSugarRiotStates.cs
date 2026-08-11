@@ -6,7 +6,7 @@ class SweetShot(BossModule module) : Components.GenericAOEs(module)
 {
     public readonly List<(Actor Caster, DateTime Activation)> Casters = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.SweetShot)
         {

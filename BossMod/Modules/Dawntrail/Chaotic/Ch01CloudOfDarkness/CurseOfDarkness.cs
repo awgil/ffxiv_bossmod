@@ -17,13 +17,13 @@ class DarkEnergyParticleBeam(BossModule module) : Components.GenericBaitAway(mod
                 CurrentBaits.Add(new(p, p, _shape, _activation[i]));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CurseOfDarkness && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _activation[slot] = status.ExpireAt;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CurseOfDarkness && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _activation[slot] = default;

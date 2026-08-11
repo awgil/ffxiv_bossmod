@@ -63,7 +63,7 @@ class MagitekTurret(BossModule module) : Components.GenericAOEs(module, AID.Self
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Mine && WorldState.Actors.Find(tether.Target) is Actor target)
             Mines.Add(new(source, target, source.Position, WorldState.CurrentTime));

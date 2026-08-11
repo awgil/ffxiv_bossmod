@@ -22,7 +22,7 @@ class Fireworks(BossModule module) : Components.UniformStackSpread(module, 3, 20
         base.DrawArenaForeground(pcSlot, pc);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Follow && Raid.TryFindSlot(tether.Target, out var slot) && slot < TetheredAdds.Length)
         {
@@ -96,7 +96,7 @@ class BurningChains(BossModule module) : BossComponent(module)
             movementHints.Add(actor.Position, Module.Center, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.BurningChains)
         {
@@ -106,7 +106,7 @@ class BurningChains(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.BurningChains)
             _chains.Clear(Raid.FindSlot(actor.InstanceID));
@@ -119,7 +119,7 @@ class BurningChains(BossModule module) : BossComponent(module)
     }
 
     // Shortcuts for early chain hints in Fireworks1
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         // Ensure "preparing" is cleared if the status somehow doesn't happen
         if ((OID)source.OID is OID.NSurprisingMissile or OID.SSurprisingMissile
@@ -127,7 +127,7 @@ class BurningChains(BossModule module) : BossComponent(module)
             _tethers.Clear(slot);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         // Missile indicates an upcoming chain
         if ((OID)source.OID is OID.NSurprisingMissile or OID.SSurprisingMissile

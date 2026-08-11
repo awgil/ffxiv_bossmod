@@ -24,7 +24,7 @@ class ShieldProtocol(BossModule module) : Components.GenericInvincible(module, "
                 yield return target;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -50,7 +50,7 @@ class ShieldProtocol(BossModule module) : Components.GenericInvincible(module, "
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

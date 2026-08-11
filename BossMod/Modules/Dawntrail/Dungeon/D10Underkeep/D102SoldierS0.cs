@@ -86,7 +86,7 @@ class SectorBisector(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.BisectorEnd)
             _tethers[source.InstanceID] = tether.Target;

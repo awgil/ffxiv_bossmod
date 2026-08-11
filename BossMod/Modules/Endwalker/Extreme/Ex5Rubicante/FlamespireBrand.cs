@@ -6,7 +6,7 @@ class Welts(BossModule module) : Components.GenericStackSpread(module, true)
 
     public Mechanic NextMechanic;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

@@ -108,13 +108,13 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Blaster)
             _tethers.Set(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Blaster)
             _tethers.Clear(Raid.FindSlot(source.InstanceID));

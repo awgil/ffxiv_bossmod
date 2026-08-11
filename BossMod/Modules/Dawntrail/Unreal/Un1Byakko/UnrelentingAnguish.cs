@@ -21,13 +21,13 @@ class OminousWind(BossModule module) : BossComponent(module)
                 Arena.AddCircle(p.Position, 6, ArenaColor.Danger);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.OminousWind)
             Targets.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.OminousWind)
             Targets.Clear(Raid.FindSlot(actor.InstanceID));

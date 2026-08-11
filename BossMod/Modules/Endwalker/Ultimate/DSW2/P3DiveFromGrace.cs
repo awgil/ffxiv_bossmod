@@ -156,7 +156,7 @@ class P3DiveFromGrace(BossModule module) : Components.CastTowers(module, AID.Dar
             Arena.AddCircle(s, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

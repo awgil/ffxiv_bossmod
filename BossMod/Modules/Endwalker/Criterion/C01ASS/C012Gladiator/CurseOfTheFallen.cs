@@ -30,7 +30,7 @@ class CurseOfTheFallen(BossModule module) : Components.UniformStackSpread(module
         base.Update();
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

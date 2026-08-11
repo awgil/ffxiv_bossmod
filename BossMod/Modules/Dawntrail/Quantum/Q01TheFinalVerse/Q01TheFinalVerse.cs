@@ -30,7 +30,7 @@ class AbyssalSunTower : Components.GenericTowers
             hints.Add("Get light debuff!");
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.LightVengeance && Raid.TryFindSlot(actor, out var slot))
         {
@@ -39,7 +39,7 @@ class AbyssalSunTower : Components.GenericTowers
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.LightVengeance && Raid.TryFindSlot(actor, out var slot))
         {

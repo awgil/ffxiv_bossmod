@@ -9,7 +9,7 @@ class P7FlamesIceOfAscalon(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.GenericMechanic && (OID)actor.OID == OID.DragonKingThordan)
             _aoe = new(status.Extra == 0x12B ? _shapeIn : _shapeOut, actor.Position, default, WorldState.FutureTime(6.2f));

@@ -27,7 +27,7 @@ class AwesomeSplab : Components.GenericStackSpread
         EnableHints = false;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.DeepBlue && (SID)status.ID == SID.Unk2056)
         {
@@ -118,13 +118,13 @@ class AlleyOopProteans(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Watersnaking)
             _targets.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Watersnaking)
             _targets.Clear(Raid.FindSlot(actor.InstanceID));
@@ -206,7 +206,7 @@ class DeepImpactBait(BossModule module) : Components.GenericBaitAway(module, cen
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Watersnaking)
             _targets.Set(Raid.FindSlot(actor.InstanceID));

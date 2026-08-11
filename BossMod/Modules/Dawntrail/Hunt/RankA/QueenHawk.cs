@@ -48,7 +48,7 @@ class BeeBeGoneHere(BossModule module) : Components.GenericAOEs(module, default,
             _aoe = new(shape, caster.Position, default, Module.CastFinishAt(spell, 0.8f));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (actor == Module.PrimaryActor && (SID)status.ID is SID.BeeBeGone or SID.BeeBeHere)
             _aoe = null;

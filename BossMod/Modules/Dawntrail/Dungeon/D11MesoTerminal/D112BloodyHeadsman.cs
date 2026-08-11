@@ -115,7 +115,7 @@ class Shackles(BossModule module) : Components.GenericInvincible(module)
             hints.TemporaryObstacles.Add(ShapeDistance.Donut(g.Position, 7.5f, 100));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         // TODO: i don't know what spawns the cell vfx, but it's not this, helper objects also get the 2552 status when they activate
         if (status.ID == 2552 && _guards.Contains(actor))
@@ -135,7 +135,7 @@ class Shackles(BossModule module) : Components.GenericInvincible(module)
         _shackles.RemoveAll(s => s.IsDead);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID is >= 4542 and <= 4545 && Raid.TryFindSlot(actor, out var slot))
             _cellBlocks[slot] = -1;
@@ -171,7 +171,7 @@ class PealOfJudgment(BossModule module) : Components.GenericAOEs(module, AID.Pea
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == 2552 && (OID)actor.OID == OID.SwordOfJustice)
             _casters.Add((actor, WorldState.FutureTime(2), Shackles.GetCell(actor.Position)));
@@ -208,7 +208,7 @@ class Doom(BossModule module) : BossComponent(module)
             _target = WorldState.Actors.Find(spell.TargetID);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
         {
@@ -217,7 +217,7 @@ class Doom(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _victim = null;

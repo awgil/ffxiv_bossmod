@@ -46,7 +46,7 @@ class P4Antilight(BossModule module) : Components.GroupedAOEs(module, [AID.White
 
     bool _castWasFake;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.P4TruthLie)
         {
@@ -134,7 +134,7 @@ class P4Debuffs(BossModule module) : BossComponent(module)
 
     public readonly GlobalP4Hints HelpHints = new();
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.P4TruthLie)
         {
@@ -198,7 +198,7 @@ class P4Debuffs(BossModule module) : BossComponent(module)
             hints.Add("Water: " + (w ? "Stay in" : "Move out"));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var dbf = (SID)status.ID switch
         {
@@ -295,7 +295,7 @@ class P4DeathBomb : Components.StayMove
                 SetState(i, new(real ? Requirement.Stay : Requirement.Move, exp));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AccelerationBomb && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);

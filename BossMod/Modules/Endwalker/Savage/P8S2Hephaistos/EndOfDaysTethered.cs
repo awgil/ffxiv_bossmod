@@ -32,7 +32,7 @@ class EndOfDaysTethered(BossModule module) : BossComponent(module)
             Arena.AddLine(t.source.Position, t.target.Position, ArenaColor.Danger);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.IllusoryHephaistosMovable)
         {

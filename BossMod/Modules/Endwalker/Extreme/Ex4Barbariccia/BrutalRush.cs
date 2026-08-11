@@ -5,13 +5,13 @@ class BrutalRush(BossModule module) : Components.StandardAOEs(module, AID.Brutal
     private BitMask _pendingRushes;
     public bool HavePendingRushes => _pendingRushes.Any();
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BrutalRush)
             _pendingRushes.Set(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BrutalRush)
             _pendingRushes.Clear(Raid.FindSlot(source.InstanceID));

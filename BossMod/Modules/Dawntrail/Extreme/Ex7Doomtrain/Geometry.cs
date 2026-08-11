@@ -56,13 +56,13 @@ class CarGeometry : BossComponent
         KeepOnPhaseChange = true;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.UpHigh && Raid.TryFindSlot(actor, out var slot))
             _highPlayers.Set(slot);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.UpHigh && Raid.TryFindSlot(actor, out var slot))
             _highPlayers.Clear(slot);

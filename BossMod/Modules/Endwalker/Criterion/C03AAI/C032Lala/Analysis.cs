@@ -4,7 +4,7 @@ class Analysis(BossModule module) : BossComponent(module)
 {
     public Angle[] SafeDir = new Angle[4];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         Angle? offset = (SID)status.ID switch
         {
@@ -73,7 +73,7 @@ class TargetedLight(BossModule module) : Components.GenericGaze(module, default,
         base.AddHints(slot, actor, hints);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var count = (SID)status.ID switch
         {

@@ -103,13 +103,13 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Mudball)
             CurrentBaits.Add(new(source, WorldState.Actors.Find(tether.Target)!, rect1, WorldState.FutureTime(8.2f)));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Mudball)
             CurrentBaits.RemoveAll(x => x.Source == source);

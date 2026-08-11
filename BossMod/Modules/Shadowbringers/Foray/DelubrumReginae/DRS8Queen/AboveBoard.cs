@@ -20,7 +20,7 @@ class AboveBoard(BossModule module) : Components.GenericAOEs(module)
         return imminentBombs.Select(b => new AOEInstance(_shape, b.Position, new(), _activation));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

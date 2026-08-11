@@ -42,7 +42,7 @@ abstract class TetherAOEs(BossModule module, AOEShape shape, TetherID tetherID, 
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(shape, c.Caster.Position, Activation: c.Activation));
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == tetherID && WorldState.Actors.Find(tether.Target) is { } tar)
             _casters.Add((reverse ? source : tar, WorldState.FutureTime(6)));
@@ -103,7 +103,7 @@ class SelfDestruct(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.SelfDestruct)
             _targets.Add((source, WorldState.FutureTime(23)));

@@ -36,7 +36,7 @@ class Tether(BossModule module) : BaitAwayTethers(module, new AOEShapeCone(0, 0.
 {
     private ulong target;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.Tether)

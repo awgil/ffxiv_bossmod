@@ -26,7 +26,7 @@ class P2CompressedWaterLightning(BossModule module) : Components.GenericStackSpr
             base.DrawArenaForeground(pcSlot, pc);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

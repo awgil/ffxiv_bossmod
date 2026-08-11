@@ -21,7 +21,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
             Arena.AddCircle(s, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -37,7 +37,7 @@ class P3SniperCannon(BossModule module) : Components.UniformStackSpread(module, 
     }
 
     // note: if player dies, stack/spread immediately hits random target, so we use status loss to end stack/spread
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

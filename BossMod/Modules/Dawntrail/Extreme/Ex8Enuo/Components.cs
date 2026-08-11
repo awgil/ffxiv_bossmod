@@ -68,7 +68,7 @@ class ReturnToNothing(BossModule module) : Components.UntelegraphedBait(module)
 class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
 {
     public bool Active { get; private set; }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
         {
@@ -77,7 +77,7 @@ class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);
@@ -125,7 +125,7 @@ class Burst(BossModule module) : Components.CastCounterMulti(module, [AID.Burst,
     readonly List<VoidBall> Balls = [];
     bool _ordered;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {
@@ -196,7 +196,7 @@ class Burst(BossModule module) : Components.CastCounterMulti(module, [AID.Burst,
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor, out var slot))
             _vuln[slot] = status.ExpireAt;
@@ -275,13 +275,13 @@ class DeepFreezeFreeze(BossModule module) : Components.StayMove(module, maxTimeT
             Array.Fill(PlayerStates, new(Requirement.Move, Module.CastFinishAt(spell)));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FreezingUp && Raid.TryFindSlot(actor, out var slot))
             SetState(slot, new(Requirement.Move, WorldState.CurrentTime));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FreezingUp && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);
@@ -405,7 +405,7 @@ class Gauntlet(BossModule module) : Components.GenericInvincible(module)
                 yield return add;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID is >= 5357 and <= 5364 && Raid.TryFindSlot(actor, out var slot))
             _playerOrder[slot] = (int)status.ID - (int)SID.GauntletTaken1;
@@ -414,7 +414,7 @@ class Gauntlet(BossModule module) : Components.GenericInvincible(module)
             _addsOrdered[status.ID - (uint)SID.GauntletThrown1] = actor;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID is >= 5357 and <= 5364 && Raid.TryFindSlot(actor, out var slot))
             _playerOrder[slot] = -1;
@@ -500,7 +500,7 @@ class EndlessChase(BossModule module) : Components.GenericChasingAOEs(module, AI
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.VoidChasePlayer && _numChasers < 2 && WorldState.Actors.Find(tether.Target) is { } target)
         {

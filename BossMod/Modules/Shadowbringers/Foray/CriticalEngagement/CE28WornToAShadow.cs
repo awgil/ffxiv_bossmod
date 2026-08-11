@@ -51,7 +51,7 @@ class Stormcall(BossModule module) : Components.GenericAOEs(module, AID.Explosio
         return _sources.Take(2).Select(e => new AOEInstance(_shape, e.dest, default, e.activation));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.OrbMovement)
         {

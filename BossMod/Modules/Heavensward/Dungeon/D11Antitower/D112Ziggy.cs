@@ -35,7 +35,7 @@ class JitteringJab(BossModule module) : Components.SingleTargetCast(module, AID.
 
 class JitteringJounceAOE(BossModule module) : Components.GenericLineOfSightAOE(module, AID.JitteringJounceCharge, 100, false)
 {
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.JitteringJounce)
         {
@@ -58,13 +58,13 @@ class JitteringJounceTether(BossModule module) : BossComponent(module)
 {
     private Actor? Target;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.JitteringJounce)
             Target = WorldState.Actors.Find(tether.Target);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.JitteringJounce)
             Target = null;

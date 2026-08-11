@@ -211,7 +211,7 @@ class P2Shapes : Components.CastCounterMulti
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellsTrouble && Raid.TryFindSlot(actor, out var slot))
         {

@@ -15,7 +15,7 @@ class Tangle(BossModule module) : Components.StandardAOEs(module, AID.Tangle, ne
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Tangle)
         {
@@ -28,7 +28,7 @@ class Tangle(BossModule module) : Components.StandardAOEs(module, AID.Tangle, ne
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Tangle)
         {

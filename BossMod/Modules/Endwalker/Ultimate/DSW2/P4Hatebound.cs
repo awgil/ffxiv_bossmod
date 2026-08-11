@@ -43,7 +43,7 @@ class P4Hatebound(BossModule module) : BossComponent(module)
             _orbs.Add((actor, color, false));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var color = (SID)status.ID switch
         {
@@ -103,13 +103,13 @@ class P4MirageDive(BossModule module) : Components.CastCounter(module, AID.Mirag
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Clawbound)
             _baiters.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Clawbound)
             _baiters.Clear(Raid.FindSlot(actor.InstanceID));

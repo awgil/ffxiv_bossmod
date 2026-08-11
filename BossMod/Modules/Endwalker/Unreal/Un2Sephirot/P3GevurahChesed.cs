@@ -21,7 +21,7 @@ class P3GevurahChesed(BossModule module) : Components.CastCounter(module, AID.Li
             _shape.Draw(Arena, Origin(side), 0.Degrees());
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ForceAgainstMight)
             _physResistMask.Set(Raid.FindSlot(actor.InstanceID));

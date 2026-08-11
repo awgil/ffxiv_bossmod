@@ -54,13 +54,13 @@ class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
             Array.Fill(PlayerStates, new PlayerState(Requirement.NoMove, Module.CastFinishAt(spell)));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
             SetState(slot, new PlayerState(Requirement.NoMove, WorldState.CurrentTime));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);

@@ -164,7 +164,7 @@ class Fireflight(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Rug && _rotation != default)
         {
@@ -274,7 +274,7 @@ class ChainStack(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Chains)
         {
@@ -370,13 +370,13 @@ class FellSpark(BossModule module) : BossComponent(module)
             _next = Module.CastFinishAt(spell, 2.2f);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DarkResistanceDown && Raid.TryFindSlot(actor, out var slot))
             _debuffLeft[slot] = status.ExpireAt;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DarkResistanceDown && Raid.TryFindSlot(actor, out var slot))
             _debuffLeft[slot] = default;
@@ -417,13 +417,13 @@ class FellSpark(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Generic)
             _target = Raid.FindSlot(tether.Target);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Generic)
             _target = -1;
@@ -438,7 +438,7 @@ class FellSpark(BossModule module) : BossComponent(module)
 
 class FirePowder(BossModule module) : Components.UniformStackSpread(module, 15, 15, alwaysShowSpreads: true)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

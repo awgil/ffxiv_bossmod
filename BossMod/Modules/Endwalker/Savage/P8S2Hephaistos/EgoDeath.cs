@@ -4,13 +4,13 @@ class EgoDeath(BossModule module) : BossComponent(module)
 {
     public BitMask InEventMask;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.InEvent)
             InEventMask.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.InEvent)
             InEventMask.Clear(Raid.FindSlot(actor.InstanceID));

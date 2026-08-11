@@ -12,12 +12,12 @@ public enum AID : uint
 
     BallisticMissileB = 4334, // Boss->self, 3.0s cast, single-target , done
     BallisticMissileH = 4335, // Helper->self, no cast, ???
-    BallisticMissileVisual = 4771, // Helper->self, 4.0s cast, range 4 circle 
+    BallisticMissileVisual = 4771, // Helper->self, 4.0s cast, range 4 circle
 
     WeighingOfTheHeartNaga = 3790, // Boss->self, 3.0s cast, single-target (Snake form, Gaze -> x2 CircleofFlames)
     WeighingOfTheHeartMachina = 3792, // Boss->self, 3.0s cast, single-target (2 Player Enum -> Stack)
     WeighingOfTheHeartCobra = 4328, // Boss->self, 3.0s cast, single-target (Damage up form + Cleave)
-    WeighingOfTheHeartFormSphinx = 5007, // Helper->self, no cast, single-target 
+    WeighingOfTheHeartFormSphinx = 5007, // Helper->self, no cast, single-target
 
     ChthonicHush = 4327, // Boss->self, no cast, range 12+R (R=5.3) 120-degree cone
     CircleOfFlames = 4332, // Boss->player, no cast, range 5 circle
@@ -47,7 +47,7 @@ public enum IconID : uint
 
 class BallisticMissile(BossModule module) : Components.UniformStackSpread(module, 4, 0, 2, 2)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bind)
             AddStack(actor, WorldState.FutureTime(6.2f));

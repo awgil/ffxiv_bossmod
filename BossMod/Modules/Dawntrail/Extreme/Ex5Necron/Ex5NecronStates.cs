@@ -52,7 +52,7 @@ class LoomingSpecter(BossModule module) : Components.GenericAOEs(module, AID.Inv
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => new AOEInstance(new AOEShapeRect(36, 5), p.Item1.Position, p.Item1.Rotation, p.Item2));
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.LoomingSpecter1 && tether.ID == 102)
             _predicted.Add((source, WorldState.FutureTime(12.1f)));

@@ -45,7 +45,7 @@ class PreyLancepoint(BossModule module) : BossComponent(module)
 
     public readonly List<Target> Targets = [];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PreyLancepoint)
         {
@@ -67,7 +67,7 @@ class PreyLancepoint(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PreyLancepoint)
             Targets.RemoveAll(t => t.Actor == actor);

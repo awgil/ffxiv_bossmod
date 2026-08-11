@@ -18,7 +18,7 @@ class Hieroglyphika(BossModule module) : Components.GenericAOEs(module, AID.Hier
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bind)
             BindsAssigned = true;

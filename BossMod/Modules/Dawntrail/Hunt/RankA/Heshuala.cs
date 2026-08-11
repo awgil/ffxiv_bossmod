@@ -52,7 +52,7 @@ class HigherPower(BossModule module) : Components.GenericAOEs(module)
             yield return _aoes[0] with { Color = ArenaColor.Danger };
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

@@ -64,7 +64,7 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.Invisible)
         {
@@ -75,7 +75,7 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
             irradiated.Set(Raid.FindSlot(actor.InstanceID));
         }
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.Invisible && actor == Module.PrimaryActor)
         {

@@ -12,7 +12,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
             AddStack(Target, _activation, _forbidden);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Firescorched)
         {
@@ -22,7 +22,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Firescorched)
         {
@@ -32,7 +32,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Fireball)
         {
@@ -60,7 +60,7 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 
     public bool ActiveOrSkipped() => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Thunderstruck)
         {
@@ -117,7 +117,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
         {
@@ -126,7 +126,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
         {

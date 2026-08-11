@@ -22,7 +22,7 @@ class HeatingUpHints(BossModule module) : BossComponent(module)
     private readonly DateTime[] SpreadAt = new DateTime[PartyState.MaxPartySize];
     private readonly DateTime[] StackAt = new DateTime[PartyState.MaxPartySize];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -35,7 +35,7 @@ class HeatingUpHints(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -74,7 +74,7 @@ class HeatingUp(BossModule module) : Components.UniformStackSpread(module, 6, 15
     public int NumCasts;
     public bool EnableAIHints;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -121,7 +121,7 @@ class Quicksand(BossModule module) : Components.GenericAOEs(module, warningText:
 
     private BitMask StandInQuicksand;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.BlueTether)
             StandInQuicksand.Set(Raid.FindSlot(source.InstanceID));
@@ -181,7 +181,7 @@ class PuddingGrafAim(BossModule module) : BossComponent(module)
     private BitMask Aimers;
     private Quicksand? _qs;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.PinkTether)
             Aimers.Set(Raid.FindSlot(source.InstanceID));

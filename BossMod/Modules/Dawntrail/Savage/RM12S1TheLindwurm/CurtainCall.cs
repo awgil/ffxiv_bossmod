@@ -10,7 +10,7 @@ class CurtainCallSpreadHint(BossModule module) : BossComponent(module)
             hints.Add($"Next: {j}", false);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -52,7 +52,7 @@ class RavenousReachInverted(BossModule module) : Components.GenericAOEs(module, 
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.RottingFlesh && Raid.TryFindSlot(actor, out var slot))
             _soak.Set(slot);
@@ -64,7 +64,7 @@ class CurtainCallStackSpread(BossModule module) : Components.GenericStackSpread(
     public int NumCells;
     public int NumSpreads;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -75,7 +75,7 @@ class CurtainCallStackSpread(BossModule module) : Components.GenericStackSpread(
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -94,13 +94,13 @@ class CurtainCallStackSpread(BossModule module) : Components.GenericStackSpread(
 class CurtainCallChains(BossModule module) : Components.Chains(module, (uint)TetherID.Cell, chainLength: 20);
 class CurtainCallChainSpread(BossModule module) : Components.GenericStackSpread(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.UnbreakableA or SID.UnbreakableB)
             Spreads.Add(new(actor, 4, status.ExpireAt));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.UnbreakableA or SID.UnbreakableB)
             Spreads.RemoveAll(s => s.Target == actor);

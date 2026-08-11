@@ -89,7 +89,7 @@ class Crystallize : BossComponent
     }
 
     // note: this is pure validation, we currently rely on crystallize cast id to determine element...
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor != Module.PrimaryActor || (SID)status.ID != SID.CrystallizeElement)
             return;

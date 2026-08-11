@@ -22,7 +22,7 @@ abstract class Chess(BossModule module) : Components.GenericAOEs(module)
                 yield return new(Shape, g.FinalPosition, g.Actor.Rotation);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MovementIndicator)
         {
@@ -85,7 +85,7 @@ class QueensEdict(BossModule module) : Chess(module)
             Arena.AddLine(m.from, m.to, m.color);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         base.OnStatusGain(actor, status);
         switch ((SID)status.ID)
@@ -114,7 +114,7 @@ class QueensEdict(BossModule module) : Chess(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Stun)
             --NumStuns;

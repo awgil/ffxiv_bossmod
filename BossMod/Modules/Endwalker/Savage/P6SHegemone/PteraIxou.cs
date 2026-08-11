@@ -19,7 +19,7 @@ class PteraIxou(BossModule module) : Components.CastCounter(module, AID.PteraIxo
             _shape.Draw(Arena, Module.Center, dir);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -32,7 +32,7 @@ class PteraIxou(BossModule module) : Components.CastCounter(module, AID.PteraIxo
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

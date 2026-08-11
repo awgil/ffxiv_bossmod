@@ -32,13 +32,13 @@ public enum SID : uint
 
 class ExtremeCaution(BossModule module) : Components.StayMove(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
             SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ExtremeCaution)
             ClearState(Raid.FindSlot(actor.InstanceID));

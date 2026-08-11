@@ -45,7 +45,7 @@ class P1BoundOfFaith(BossModule module) : Components.UniformStackSpread(module, 
         };
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Fire && WorldState.Actors.Find(tether.Target) is var target && target != null)
         {

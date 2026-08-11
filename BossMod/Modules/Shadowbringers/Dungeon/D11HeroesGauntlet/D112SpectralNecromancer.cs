@@ -127,13 +127,13 @@ class Doom(BossModule module) : BossComponent(module)
 
     public static bool CanActorCureDoom(Actor actor) => actor.Role == Role.Healer || actor.Class == Class.BRD;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Add(actor);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _doomed.Remove(actor);

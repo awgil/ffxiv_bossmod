@@ -94,13 +94,13 @@ class Poison(BossModule module) : BossComponent(module)
 {
     private readonly List<Actor> _poisoned = [];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Poison)
             _poisoned.Add(actor);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Poison)
             _poisoned.Remove(actor);

@@ -79,7 +79,7 @@ class ImpCounter(BossModule module) : BossComponent(module)
 
     public IEnumerable<Imp> ActiveImps => Imps.Count > 2 ? Imps.Where(i => i.Predicted == 2) : Imps;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ElementSelect)
         {
@@ -140,7 +140,7 @@ class Seduction(BossModule module) : Components.Knockback(module)
             hints.AddForbiddenZone(ShapeDistance.Circle(i.Source, EffectiveMarchDistance + 8), _playerStates[slot].Activation);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

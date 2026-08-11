@@ -67,7 +67,7 @@ class SpringCrystalsSphere(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID is OID.NSpringCrystalSphere or OID.SSpringCrystalSphere && (SID)status.ID == SID.Bubble)
         {

@@ -105,7 +105,7 @@ class StampedeMajesticMeteowrath(BossModule module) : Components.GenericBaitAway
 {
     private readonly Actor?[] _tetheredTo = new Actor?[8];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.TheTyrant && Raid.TryFindSlot(tether.Target, out var slot))
         {

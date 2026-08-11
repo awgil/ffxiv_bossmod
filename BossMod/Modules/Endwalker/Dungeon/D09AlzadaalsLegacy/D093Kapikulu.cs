@@ -68,7 +68,7 @@ class ManaExplosion(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.ManaExplosion)
         {
@@ -145,7 +145,7 @@ class SpinningHints(BossModule module) : BossComponent(module)
 {
     int _numBlades;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Spinning)
             _numBlades = 0;

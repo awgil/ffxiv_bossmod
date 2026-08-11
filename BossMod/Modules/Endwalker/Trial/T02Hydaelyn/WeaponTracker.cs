@@ -6,7 +6,7 @@ class WeaponTracker(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HydaelynsWeapon && status.Extra == 0x1B4)
             _aoe = new(new AOEShapeCircle(10), Module.PrimaryActor.Position, default, WorldState.FutureTime(6));
@@ -14,7 +14,7 @@ class WeaponTracker(BossModule module) : Components.GenericAOEs(module)
             _aoe = new(new AOEShapeDonut(5, 40), Module.PrimaryActor.Position, default, WorldState.FutureTime(6));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HydaelynsWeapon)
             _aoe = new(new AOEShapeCross(40, 5), Module.PrimaryActor.Position, default, WorldState.FutureTime(6.9f));

@@ -14,7 +14,7 @@ class P1DoubleTroubleTrap : Components.UniformStackSpread
         PermitOverlap = true;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DoubleTroubleTrap)
             AddStack(actor, status.ExpireAt);
@@ -97,7 +97,7 @@ class P1DoubleTroubleTrapKB(BossModule module) : Components.Knockback(module, AI
                 yield return new(src.Source.Position, 14, src.Activation);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DoubleTroubleTrap && NumCasts == 0)
             _sources.Add((actor, status.ExpireAt));

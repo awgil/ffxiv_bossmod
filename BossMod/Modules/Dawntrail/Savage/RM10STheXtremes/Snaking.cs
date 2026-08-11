@@ -178,7 +178,7 @@ class HotAerial(BossModule module) : Components.GenericBaitAway(module, centerAt
             _next = Module.CastFinishAt(spell, 0.4f);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Firesnaking)
             _targets.Set(Raid.FindSlot(actor.InstanceID));

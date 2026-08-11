@@ -491,7 +491,7 @@ class NA03TetherIntercept(BossModule module) : BossComponent(module)
         Arena.AddLine(Module.Center, bomb.Position, ArenaColor.Safe, 2f);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == TID)
         {
@@ -501,7 +501,7 @@ class NA03TetherIntercept(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == TID)
         {

@@ -100,7 +100,7 @@ public class StatusDrivenForcedMarch(BossModule module, float duration, uint sta
     public float Duration = duration;
     public readonly uint[] Statuses = [statusForward, statusLeft, statusBackward, statusRight, statusForced]; // 5 elements: fwd, left, back, right, forced
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var statusKind = Array.IndexOf(Statuses, status.ID);
         if (statusKind == 4)
@@ -113,7 +113,7 @@ public class StatusDrivenForcedMarch(BossModule module, float duration, uint sta
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var statusKind = Array.IndexOf(Statuses, status.ID);
         if (statusKind == 4)

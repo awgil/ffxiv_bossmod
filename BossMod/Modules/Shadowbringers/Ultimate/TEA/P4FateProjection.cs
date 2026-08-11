@@ -7,7 +7,7 @@ class P4FateProjection(BossModule module) : BossComponent(module)
 
     public int ProjectionOwner(ulong proj) => Array.IndexOf(Projections, proj);
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.FateProjection)
         {

@@ -106,7 +106,7 @@ public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPri
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == ParrySID)
         {
@@ -116,7 +116,7 @@ public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPri
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == ParrySID)
         {

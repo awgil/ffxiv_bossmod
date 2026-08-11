@@ -40,7 +40,7 @@ class Firewall(BossModule module) : Components.GenericWildCharge(module, 3, AID.
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FireResistanceDownII && Raid.TryFindSlot(actor, out var slot))
             _fireVuln[slot] = status.ExpireAt;

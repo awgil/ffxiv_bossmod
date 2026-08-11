@@ -15,7 +15,7 @@ class WindOfChange(BossModule module) : Components.Knockback(module, AID.WindOfC
             yield return new(actor.Position, 20, _activation, null, _directions[slot], Kind.DirForward);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var dir = (SID)status.ID switch
         {

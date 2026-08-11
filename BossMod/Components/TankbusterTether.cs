@@ -78,7 +78,7 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var sides = DetermineTetherSides(source, tether);
         if (sides != null)
@@ -88,7 +88,7 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         var sides = DetermineTetherSides(source, tether);
         if (sides != null)

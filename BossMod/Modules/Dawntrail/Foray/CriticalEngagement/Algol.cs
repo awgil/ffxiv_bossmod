@@ -139,13 +139,13 @@ class Malady(BossModule module) : Components.StandardAOEs(module, AID.Malady, 11
 class Stun(BossModule module) : BossComponent(module)
 {
     BitMask _stunned;
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Stun && Raid.TryFindSlot(actor, out var slot))
             _stunned.Set(slot);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Stun && Raid.TryFindSlot(actor, out var slot))
             _stunned.Clear(slot);

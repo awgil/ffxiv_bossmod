@@ -22,7 +22,7 @@ class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(modul
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DirectedGrotesquerieVisual && Raid.TryFindSlot(actor, out var slot))
         {
@@ -39,7 +39,7 @@ class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(modul
             _activation = status.ExpireAt;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DirectedGrotesquerieVisual && Raid.TryFindSlot(actor, out var slot))
             _offset[slot] = null;
@@ -85,7 +85,7 @@ class Act1GrotesquerieSpreadHint(BossModule module) : BossComponent(module)
 {
     readonly string?[] Job = new string?[8];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -120,7 +120,7 @@ class Act1GrotesquerieStackSpread(BossModule module) : Components.UniformStackSp
 {
     public int NumCasts;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

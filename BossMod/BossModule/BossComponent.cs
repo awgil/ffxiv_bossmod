@@ -48,10 +48,10 @@ public class BossComponent(BossModule module)
     public virtual void OnActorDestroyed(Actor actor) { }
     public virtual void OnTargetable(Actor actor) { }
     public virtual void OnUntargetable(Actor actor) { }
-    public virtual void OnStatusGain(Actor actor, ActorStatus status) { } // note: also called for status-change events; if component needs to distinguish between lose+gain and change, it can use the fact that 'lose' is not called for change
-    public virtual void OnStatusLose(Actor actor, ActorStatus status) { }
-    public virtual void OnTethered(Actor source, ActorTetherInfo tether) { }
-    public virtual void OnUntethered(Actor source, ActorTetherInfo tether) { }
+    public virtual void OnStatusGain(Actor actor, in ActorStatus status) { } // note: also called for status-change events; if component needs to distinguish between lose+gain and change, it can use the fact that 'lose' is not called for change
+    public virtual void OnStatusLose(Actor actor, in ActorStatus status) { }
+    public virtual void OnTethered(Actor source, in ActorTetherInfo tether) { }
+    public virtual void OnUntethered(Actor source, in ActorTetherInfo tether) { }
     public virtual void OnCastStarted(Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
     public virtual void OnCastFinished(Actor caster, ActorCastInfo spell) { } // note: action is always a spell; not called for player spells
     public virtual void OnEventCast(Actor caster, ActorCastEvent spell) { } // note: action is always a spell; not called for player spells

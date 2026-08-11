@@ -12,13 +12,13 @@ class Axioma(BossModule module) : BossComponent(module)
             hints.Add(ShouldBeInZone ? "Go to dark zone!" : "GTFO from dark zone!");
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Heavy)
             _inZone.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Heavy)
             _inZone.Clear(Raid.FindSlot(actor.InstanceID));

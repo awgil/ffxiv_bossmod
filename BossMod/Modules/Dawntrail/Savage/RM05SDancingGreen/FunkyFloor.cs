@@ -136,7 +136,7 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.BurnBabyBurn)
         {
@@ -146,7 +146,7 @@ class BurnBabyBurn(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.BurnBabyBurn)
         {
@@ -240,7 +240,7 @@ class BurnBabyBurn2(BossModule module) : BossComponent(module)
 
     private BackupDance? backupDance;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.BurnBabyBurn && Raid.TryFindSlot(actor.InstanceID, out var slot))
             orders[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 14 ? 1 : 2;

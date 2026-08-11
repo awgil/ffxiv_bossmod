@@ -67,7 +67,7 @@ class SlipperySoapCharge(BossModule module) : Components.Knockback(module)
             _chargeShape.Draw(Arena, Module.PrimaryActor.Position, _chargeDir, ArenaColor.SafeFromAOE);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         base.OnStatusGain(actor, status);
         if (actor != Module.PrimaryActor)
@@ -124,7 +124,7 @@ class SlipperySoapAOE(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor != Module.PrimaryActor)
             return;
@@ -144,7 +144,7 @@ class SlipperySoapAOE(BossModule module) : Components.GenericAOEs(module)
 // note: we don't wait for forked lightning statuses to appear
 class SoapsudStatic(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor == Module.PrimaryActor && SlipperySoap.ColorForStatus(status.ID) == SlipperySoap.Color.Yellow)
             AddSpreads(Raid.WithoutSlot(true));

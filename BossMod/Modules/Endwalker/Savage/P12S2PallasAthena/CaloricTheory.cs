@@ -48,7 +48,7 @@ class CaloricTheory1Part2(BossModule module) : Components.UniformStackSpread(mod
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyrefaction)
             AddStack(actor, status.ExpireAt);
@@ -92,7 +92,7 @@ class CaloricTheory1Part3(BossModule module) : Components.UniformStackSpread(mod
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -139,7 +139,7 @@ class CaloricTheory2Part2(BossModule module) : Components.UniformStackSpread(mod
 {
     public bool Done { get; private set; }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Entropifaction)
         {
@@ -150,7 +150,7 @@ class CaloricTheory2Part2(BossModule module) : Components.UniformStackSpread(mod
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Entropifaction)
         {

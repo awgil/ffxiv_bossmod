@@ -47,7 +47,7 @@ class Act2Assignments(BossModule module) : BossComponent(module)
         return Array.FindIndex(Assignments, s => s.Order == a.Order && s.Letter != a.Letter);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var letter = (SID)status.ID switch
         {
@@ -175,7 +175,7 @@ class RoilingMass(BossModule module) : Components.GenericTowers(module, AID.Roil
 
 class Act2DramaticLysis(BossModule module) : Components.GenericStackSpread(module)
 {
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Cell)
         {
@@ -185,11 +185,12 @@ class Act2DramaticLysis(BossModule module) : Components.GenericStackSpread(modul
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Cell)
         {
-            Spreads.RemoveAll(s => s.Target.InstanceID == source.InstanceID || s.Target.InstanceID == tether.Target);
+            var tid = tether.Target;
+            Spreads.RemoveAll(s => s.Target.InstanceID == source.InstanceID || s.Target.InstanceID == tid);
         }
     }
 }
@@ -201,7 +202,7 @@ class Act2CellChains(BossModule module) : Components.Chains(module, (uint)Tether
 
     public int NumChains;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.BondsA or SID.BondsB && Raid.TryFindSlot(actor, out var slot))
         {
@@ -209,7 +210,7 @@ class Act2CellChains(BossModule module) : Components.Chains(module, (uint)Tether
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
 
@@ -273,7 +274,6 @@ class Act2CellChains(BossModule module) : Components.Chains(module, (uint)Tether
     }
 }
 
-// 171.64 -> 176.56
 class Constrictor(BossModule module) : Components.GenericAOEs(module, AID.ConstrictorKill)
 {
     int _splitterCounter;

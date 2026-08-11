@@ -18,7 +18,7 @@ class ShackleSpreadHint(BossModule module) : Components.GenericStackSpread(modul
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ShackledHealing)
         {
@@ -35,13 +35,13 @@ class ShackleHint(BossModule module) : BossComponent(module)
     private Actor? Healer;
     public bool Expired;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ShackledHealing)
             Healer = actor;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ShackledHealing)
         {
@@ -130,7 +130,7 @@ class HellishEarthPull(BossModule module) : Components.Knockback(module, ignoreI
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.HellishEarth && WorldState.Actors.Find(tether.Target) is { } tar)
             Target = tar;

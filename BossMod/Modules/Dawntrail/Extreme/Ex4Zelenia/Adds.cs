@@ -4,13 +4,13 @@ class AddsExplosion(BossModule module) : Components.CastTowers(module, AID.AddsE
 {
     private BitMask TetheredPlayers;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.TryFindSlot(tether.Target, out var slot))
             TetheredPlayers.Set(slot);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.SpearpointPush && Raid.TryFindSlot(tether.Target, out var slot))
             TetheredPlayers.Clear(slot);
@@ -39,7 +39,7 @@ class SpearpointBait(BossModule module) : Components.GenericBaitAway(module)
 {
     private readonly Dictionary<ulong, Actor> tethers = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.SpearpointPush && WorldState.Actors.Find(tether.Target) is { } player)
             tethers[source.InstanceID] = player;

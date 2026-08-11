@@ -107,7 +107,7 @@ class DecisiveBattle(BossModule module) : Components.GenericInvincible(module)
             yield return Bosses[0]!;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -128,7 +128,7 @@ class DecisiveBattle(BossModule module) : Components.GenericInvincible(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -170,7 +170,7 @@ class Knockbacks(BossModule module) : Components.Knockback(module)
             yield return new(sb.CastInfo!.LocXZ, 14, Module.CastFinishAt(sb.CastInfo), Kind: Kind.AwayFromOrigin);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         base.OnStatusGain(actor, status);
 

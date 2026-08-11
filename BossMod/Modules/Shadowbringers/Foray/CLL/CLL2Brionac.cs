@@ -110,7 +110,7 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
     private Charge GetCharge(Actor c) => charges.TryGetValue(c.InstanceID, out var c2) ? c2 : Charge.None;
 
     // delay 8.2f
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.TryFindSlot(source.InstanceID, out var slot) && WorldState.Actors.Find(tether.Target) is { } target)
         {
@@ -140,7 +140,7 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PolarMagnetism && Raid.TryFindSlot(source.InstanceID, out var slot))
             tetheredTo[slot] = null;
@@ -238,7 +238,7 @@ class Balls(BossModule module) : Components.GenericAOEs(module)
             Casters.RemoveAll(c => c.Caster == caster);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 21 && WorldState.Actors.Find(tether.Target) is { } target)
         {

@@ -28,7 +28,7 @@ class GoldenSilverFlame(BossModule module) : BossComponent(module)
                 Arena.ZoneRect(c, new WDir(1, 0), _shape.HalfWidth, _shape.HalfWidth, _shape.HalfWidth, ArenaColor.SafeFromAOE);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         int debuff = (SID)status.ID switch
         {

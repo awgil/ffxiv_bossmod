@@ -58,7 +58,7 @@ class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "G
                 yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -71,7 +71,7 @@ class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "G
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

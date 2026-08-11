@@ -69,7 +69,7 @@ sealed class Devour(BossModule module) : Components.GenericAOEs(module)
         foreach (var e in _aoes)
             yield return e with { Color = ArenaColor.AOE };
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.Boss && (SID)status.ID == SID.ChargeTelegraph)
             _reverse = status.Extra == 0x3F9;
@@ -159,7 +159,7 @@ class StingingTentacle(BossModule module) : Components.GenericAOEs(module)
         if ((OID)actor.OID == OID.StingingTentacle)
             _tents.Remove(actor);
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (actor.OID == 0x4B96 && status.ID == 2056)
             _aoes.Add(new AOEInstance(rect, actor.Position, actor.Rotation, _activation));

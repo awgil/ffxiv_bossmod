@@ -45,13 +45,13 @@ class FireScourgeOfIce(BossModule module) : Components.StayMove(module)
     public int NumImminent;
     public int NumActiveFreezes;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FreezingUp)
             ++NumActiveFreezes;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FreezingUp)
             --NumActiveFreezes;

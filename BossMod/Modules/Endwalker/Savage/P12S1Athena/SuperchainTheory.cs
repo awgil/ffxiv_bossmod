@@ -125,7 +125,7 @@ abstract class SuperchainTheory(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         _pendingTethers.Add(source);
     }

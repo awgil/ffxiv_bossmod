@@ -28,13 +28,13 @@ class Enervation(BossModule module) : BossComponent(module)
     private bool Active;
     private Actor? OrnKhai;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor.OID == 0 && status.ID == (uint)SID.Enervation)
             Active = true;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (actor.OID == 0 && status.ID == (uint)SID.Enervation)
             Active = false;

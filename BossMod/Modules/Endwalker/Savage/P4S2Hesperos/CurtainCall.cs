@@ -39,7 +39,7 @@ class CurtainCall(BossModule module) : BossComponent(module)
             Arena.AddLine(pc.Position, tetherTarget.Position, pc.Tether.ID == (uint)TetherID.WreathOfThorns ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Thornpricked && Raid.TryFindSlot(actor, out var slot))
         {
@@ -51,7 +51,7 @@ class CurtainCall(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Thornpricked)
             ++_numCasts;

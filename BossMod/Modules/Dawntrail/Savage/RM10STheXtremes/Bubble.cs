@@ -56,7 +56,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
 
     private Actor? BaitSource(Actor? target) => (target == TargetRed || target == TargetBlue) && Raid.TryFindSlot(target?.InstanceID ?? 0, out var slot) ? _tetheredTo[slot] : null;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.TetherHelper && Raid.TryFindSlot(tether.Target, out var slot))
             _tetheredTo[slot] = source;
@@ -88,7 +88,7 @@ class BubbleTether(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.WateryGrave)
             _bubble.Set(Raid.FindSlot(actor.InstanceID));

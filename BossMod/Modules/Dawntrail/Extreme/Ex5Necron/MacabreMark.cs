@@ -40,14 +40,14 @@ class MacabreMark(BossModule module) : Components.GenericTowers(module, AID.Maca
             Towers.Clear();
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor, out var slot))
             foreach (ref var t in Towers.AsSpan())
                 t.ForbiddenSoakers.Set(slot);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor, out var slot))
             foreach (ref var t in Towers.AsSpan())

@@ -122,7 +122,7 @@ class DecisiveBattle : Components.GenericInvincible
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var ix = (SID)status.ID switch
         {
@@ -135,7 +135,7 @@ class DecisiveBattle : Components.GenericInvincible
             _playerAssignments[slot] = ix;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.TritonicGravity or SID.NereidicGravity or SID.PhobosicGravity && Raid.TryFindSlot(actor, out var slot))
             _playerAssignments[slot] = -1;

@@ -4,7 +4,7 @@ class SteelWebStack(BossModule module) : Components.UniformStackSpread(module, 6
 {
     private BitMask _forbidden;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.DividingWings)
             _forbidden.Set(Raid.FindSlot(tether.Target));
@@ -40,13 +40,13 @@ class SteelWebTethers(BossModule module) : BossComponent(module)
             Arena.AddLine(w.from.Position, w.to.Position, w.color);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.Web or TetherID.WebFail && WorldState.Actors.Find(tether.Target) is var target && target != null)
             _webs.Add((source, target, (TetherID)tether.ID == TetherID.Web ? ArenaColor.Danger : ArenaColor.Enemy));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.Web or TetherID.WebFail)
             _webs.RemoveAll(w => w.from == source);

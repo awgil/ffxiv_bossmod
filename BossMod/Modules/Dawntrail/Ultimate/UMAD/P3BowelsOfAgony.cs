@@ -31,7 +31,7 @@ class P3Firewall(BossModule module) : Components.GenericInvincible(module)
             yield return otherBoss;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -52,7 +52,7 @@ class P3Firewall(BossModule module) : Components.GenericInvincible(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -103,7 +103,7 @@ class P3EntropyFluid : Components.GenericBaitAway
         EnableHints = false;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -328,7 +328,7 @@ class P3HeadwindTailwind(BossModule module) : Components.Knockback(module, ignor
             _wave = _wave with { EventHappened = true };
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var dir = (SID)status.ID switch
         {

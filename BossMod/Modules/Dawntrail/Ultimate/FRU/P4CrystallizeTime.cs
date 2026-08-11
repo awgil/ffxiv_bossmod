@@ -18,7 +18,7 @@ class P4CrystallizeTime(BossModule module) : BossComponent(module)
         return null;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -51,13 +51,13 @@ class P4CrystallizeTime(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.Wyrmclaw or SID.Wyrmfang)
             Cleansed.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.UltimateRelativitySlow && source.Position.Z < Module.Center.Z)
             NorthSlowHourglass = source.Position - Module.Center;
@@ -197,7 +197,7 @@ class P4CrystallizeTimeMaelstrom(BossModule module) : Components.GenericAOEs(mod
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var delay = (TetherID)tether.ID switch
         {
@@ -230,7 +230,7 @@ class P4CrystallizeTimeDarkWater(BossModule module) : Components.UniformStackSpr
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by other components
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkWater)
         {
@@ -266,7 +266,7 @@ class P4CrystallizeTimeDarkEruption(BossModule module) : Components.GenericBaitA
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by other components
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkEruption)
         {
@@ -284,7 +284,7 @@ class P4CrystallizeTimeDarkAero(BossModule module) : Components.Knockback(module
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources.Exclude(actor).Select(s => new Source(s.Position, 30, _activation, _shape));
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkAero)
         {
@@ -298,7 +298,7 @@ class P4CrystallizeTimeUnholyDarkness(BossModule module) : Components.UniformSta
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by other components
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingUnholyDarkness)
         {
@@ -608,7 +608,7 @@ class P4CrystallizeTimeRewind(BossModule module) : Components.Knockback(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

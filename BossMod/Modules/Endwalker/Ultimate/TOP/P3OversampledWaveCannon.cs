@@ -89,7 +89,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             Arena.AddCircle(p.pos, 1, p.assigned ? ArenaColor.Safe : ArenaColor.Danger);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var angle = (SID)status.ID switch
         {

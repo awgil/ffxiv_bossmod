@@ -49,7 +49,7 @@ class GrandCrossLine(BossModule module) : Components.GenericAOEs(module, AID.Gra
             yield return new AOEInstance(new AOEShapeRect(20, 2, 20), Arena.Center, l.Item1, l.Item2);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var angle = (Arena.Center - source.Position).ToAngle();
 

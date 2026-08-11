@@ -10,7 +10,7 @@ class MalformedPrayer1(BossModule module) : Components.GenericTowers(module)
     public int[] OrangeSoakOrder = [-1, -1, -1, -1]; // blue is inferred as (x+2)%4
     private readonly List<int> _towerOrder = [];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var order = (SID)status.ID switch
         {

@@ -53,7 +53,7 @@ class LawsOfIce(BossModule module) : Components.StayMove(module)
             ++NumCasts;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FreezingUp)
             ClearState(Raid.FindSlot(actor.InstanceID));
@@ -105,7 +105,7 @@ class Rush(BossModule module) : Components.GenericBaitAway(module)
             ++NumCasts;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.RushShort or TetherID.RushLong && WorldState.Actors.Find(tether.Target) is var target && target != null)
         {
@@ -117,7 +117,7 @@ class Rush(BossModule module) : Components.GenericBaitAway(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.RushShort or TetherID.RushLong)
         {
@@ -182,13 +182,13 @@ class RaisedTribute(BossModule module) : Components.GenericWildCharge(module, 4,
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.IceDart && Raid.TryFindSlot(source.InstanceID, out var slot) && PlayerRoles[slot] != PlayerRole.Target)
             PlayerRoles[slot] = PlayerRole.Avoid;
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.IceDart && Raid.TryFindSlot(source.InstanceID, out var slot) && PlayerRoles[slot] != PlayerRole.Target)
             PlayerRoles[slot] = PlayerRole.Share;

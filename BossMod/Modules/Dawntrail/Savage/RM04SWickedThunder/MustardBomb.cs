@@ -46,7 +46,7 @@ class MustardBomb(BossModule module) : Components.UniformStackSpread(module, 0, 
                 Arena.AddLine(_tetherTarget.Position, p.Position, ArenaColor.Danger);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.MustardBomb)
         {
@@ -60,13 +60,13 @@ class MustardBomb(BossModule module) : Components.UniformStackSpread(module, 0, 
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.MustardBomb)
             _bombTargets.Clear(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MustardBomb)
         {
@@ -75,7 +75,7 @@ class MustardBomb(BossModule module) : Components.UniformStackSpread(module, 0, 
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MustardBomb)
         {

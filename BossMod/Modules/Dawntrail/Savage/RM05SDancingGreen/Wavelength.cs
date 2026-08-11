@@ -14,7 +14,7 @@ class Wavelength(BossModule module) : BossComponent(module)
 
     private readonly PlayerState[] PlayerStates = Utils.MakeArray(8, new PlayerState());
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (!Raid.TryFindSlot(actor.InstanceID, out var slot))
             return;
@@ -56,7 +56,7 @@ class Wavelength(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.WavelengthA or SID.WavelengthB)
             PlayerStates[Raid.FindSlot(actor.InstanceID)] = default;

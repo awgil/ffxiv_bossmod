@@ -22,13 +22,13 @@ public class DispelHint(BossModule module, uint statusID, Enum? action = default
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == statusID)
             Targets.Add(actor);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == statusID)
             Targets.Remove(actor);

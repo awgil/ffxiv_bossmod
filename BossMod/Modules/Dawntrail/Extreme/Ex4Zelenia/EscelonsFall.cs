@@ -24,7 +24,7 @@ class EscelonsFall : Components.GenericBaitAway
         AllowDeadTargets = false;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.Boss && status.ID == (uint)SID.WitchHunt)
         {

@@ -56,7 +56,7 @@ class P1TelePortent(BossModule module) : BossComponent(module)
 
     public int NumArrows { get; private set; }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var newDir = (SID)status.ID switch
         {
@@ -127,7 +127,7 @@ class P1TelePortent(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var missingDir = (SID)status.ID switch
         {
@@ -243,7 +243,7 @@ class P1IndulgentWill(BossModule module) : BossComponent(module)
     BitMask _targets;
     public bool Draw;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GravenImage && source.Position.AlmostEqual(new(95, 25), 5) && Raid.TryFindSlot(tether.Target, out var target))
             _targets.Set(target);
@@ -272,7 +272,7 @@ class P1IdyllicWill(BossModule module) : Components.UniformStackSpread(module, 0
     readonly UMADConfig _config = Service.Config.Get<UMADConfig>();
     readonly List<Spread> _stored = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GravenImage && source.Position.AlmostEqual(new(107, 43), 5) && WorldState.Actors.Find(tether.Target) is { } target)
             _stored.Add(new(target, 5, WorldState.FutureTime(9)));

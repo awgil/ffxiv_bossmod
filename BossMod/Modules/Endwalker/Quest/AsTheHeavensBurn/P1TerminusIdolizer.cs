@@ -64,7 +64,7 @@ class SelfDestruct(BossModule module) : Components.GenericStackSpread(module)
 {
     private readonly List<Actor> Bombs = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.BombTether)
         {

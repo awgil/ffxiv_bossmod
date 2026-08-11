@@ -94,7 +94,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -157,7 +157,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -167,7 +167,7 @@ class P3UltimateRelativity(BossModule module) : Components.CastCounter(module, d
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.DelightsHourglass && tether.ID == (uint)TetherID.UltimateRelativityQuicken)
         {
@@ -281,7 +281,7 @@ class P3UltimateRelativityDarkFireUnholyDarkness(BossModule module) : Components
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by main component
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -417,7 +417,7 @@ class P3UltimateRelativityDarkBlizzard(BossModule module) : Components.GenericAO
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // handled by main component
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SpellInWaitingDarkBlizzard)
         {
@@ -468,7 +468,7 @@ class P3UltimateRelativityShadoweye(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

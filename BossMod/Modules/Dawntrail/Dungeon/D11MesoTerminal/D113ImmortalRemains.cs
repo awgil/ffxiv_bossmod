@@ -124,13 +124,13 @@ class Bombardment(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Select(a => a with { Risky = Risky });
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.PreservedTerror)
             _tethered.Add(source);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.PreservedTerror && _tethered.Count > 0)
         {
@@ -150,13 +150,13 @@ class Bombardment(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.PreservedTerror && status.ID == 2552)
             _active.Add(actor);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.PreservedTerror && status.ID == 2552)
             _active.Remove(actor);

@@ -17,7 +17,7 @@ class R011Laser(BossModule module) : Components.GenericAOEs(module, AID.R011Lase
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Transfer && _casters.Count > 0 && WorldState.Actors.Find(tether.Target) is { } t)
             _tethers.Add((source, t));

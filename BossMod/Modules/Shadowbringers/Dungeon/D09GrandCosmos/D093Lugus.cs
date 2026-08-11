@@ -140,13 +140,13 @@ class MortalFlame(BossModule module) : BossComponent(module)
         Timers[slot] = timer;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MortalFlame && actor.Type != ActorType.Enemy)
             SetTimer(Raid.FindSlot(actor.InstanceID), (float)(status.ExpireAt - WorldState.CurrentTime).TotalSeconds);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MortalFlame)
             SetTimer(Raid.FindSlot(actor.InstanceID), 0);

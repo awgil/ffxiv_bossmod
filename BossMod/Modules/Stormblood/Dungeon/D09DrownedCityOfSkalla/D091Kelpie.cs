@@ -104,7 +104,7 @@ class BubbleBurst(BossModule module) : Components.GenericAOEs(module, AID.Bubble
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Water)
             _sources.Add((source, WorldState.Actors.Find(tether.Target)!, WorldState.FutureTime(11)));

@@ -31,13 +31,13 @@ class SpatialTactics(BossModule module) : Components.GenericAOEs(module)
             _fonts.Add(actor);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SubtractiveSuppressorBeta && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _remainingStacks.Length)
             _remainingStacks[slot] = status.Extra;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SubtractiveSuppressorBeta && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot < _remainingStacks.Length)
             _remainingStacks[slot] = 0;

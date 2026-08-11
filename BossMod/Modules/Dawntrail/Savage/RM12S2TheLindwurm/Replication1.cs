@@ -312,7 +312,7 @@ class MightyMagicTopTierSlamSecondBait(BossModule module) : Components.UniformSt
             hints.Add("Avoid baiting dark!");
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

@@ -74,7 +74,7 @@ class RelayFlare(BossModule module) : Components.GenericAOEs(module, AID.TinyFla
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted);
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.FlareSphereGrow && (SID)status.ID == SID.SustainedDamage && status.Extra == 1)
         {
@@ -102,7 +102,7 @@ class RelayHoly(BossModule module) : Components.Knockback(module, AID.TinyHolyAO
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_source);
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.HolySphereGrow && (SID)status.ID == SID.SustainedDamage && status.Extra == 1)
         {
@@ -168,7 +168,7 @@ class TinyTether(BossModule module) : Components.Knockback(module)
                 yield return new(new AOEShapeCircle(18), mech.Origin, default, mech.Activation, i == 0 ? ArenaColor.Danger : ArenaColor.AOE, i == 0);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.SphereTether && WorldState.Actors.Find(tether.Target) is { } target)
         {

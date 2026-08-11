@@ -73,7 +73,7 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var blueSlot = (SID)status.ID switch
         {
@@ -87,7 +87,7 @@ class MalformedPrayer2(BossModule module) : Components.GenericTowers(module)
             _playerBlue[slot, blueSlot] = true;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.SquirrellyPrayer or SID.OdderPrayer)
         {

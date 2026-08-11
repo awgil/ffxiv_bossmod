@@ -120,7 +120,7 @@ class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
                 yield return new(new AOEShapeCone(25, width.Degrees()), caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(caster.CastInfo));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var adj = (SID)status.ID switch
         {
@@ -136,7 +136,7 @@ class KnowledgeLevel(BossModule module) : Components.GenericAOEs(module)
             _adjusted[slot] += adj;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var adj = (SID)status.ID switch
         {

@@ -258,13 +258,13 @@ class Tether(BossModule module) : BossComponent(module)
     private Actor? Dawon => Module.Enemies(OID.DawonTheYounger).FirstOrDefault();
     private bool tethered;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.OneMind)
             tethered = true;
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.OneMind)
             tethered = false;

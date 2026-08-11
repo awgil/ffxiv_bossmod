@@ -90,12 +90,13 @@ class CoordinateMarch(BossModule module) : Components.GenericAOEs(module, AID.En
             BossCasts++;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.OrbTeleport)
         {
             _orbs.Add(source);
-            _orbs.RemoveAll(o => o.InstanceID == tether.Target);
+            var t = tether.Target;
+            _orbs.RemoveAll(o => o.InstanceID == t);
             Predict();
         }
     }
@@ -120,7 +121,7 @@ class CoordinateMarch(BossModule module) : Components.GenericAOEs(module, AID.En
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID == OID.CoordinateBit && status.ID == 2056)
         {
@@ -315,7 +316,7 @@ class Debugger(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.OrbTeleport)
             _links.Add((source, WorldState.Actors.Find(tether.Target)!));

@@ -10,7 +10,7 @@ class P1PulseWave(BossModule module) : Components.Knockback(module, AID.PulseWav
 
     bool _blizzardStarted;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GravenImage)
         {
@@ -103,7 +103,7 @@ class P1Explosion(BossModule module) : Components.CastTowers(module, AID.Explosi
 {
     readonly DateTime[] _vuln = new DateTime[8];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vuln[slot] = status.ExpireAt;

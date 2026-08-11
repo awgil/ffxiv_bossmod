@@ -7,7 +7,7 @@ class BatTether(BossModule module) : BossComponent(module)
 {
     private readonly (Actor?, bool)[] _tetherTarget = new (Actor?, bool)[8];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         bool? danger = (TetherID)tether.ID switch
         {
@@ -44,7 +44,7 @@ class BatShapePredict(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Unk1957 && (OID)actor.OID == OID.VampetteFatale)
             _startPositions[actor.InstanceID] = actor.Position - Arena.Center;

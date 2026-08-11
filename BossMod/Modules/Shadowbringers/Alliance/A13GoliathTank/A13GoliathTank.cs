@@ -73,7 +73,7 @@ class EnergyRing(BossModule module) : Components.ConcentricAOEs(module, [new AOE
 }
 class ConvenientSelfDestruction(BossModule module) : Components.GenericBaitAway(module, AID.ConvenientSelfDestruction, centerAtTarget: true)
 {
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.MediumExploder && WorldState.Actors.Find(tether.Target) is { } target)
             CurrentBaits.Add(new(source, target, new AOEShapeCircle(10), WorldState.FutureTime(9.1f)));
@@ -91,7 +91,7 @@ class ConvenientSelfDestruction(BossModule module) : Components.GenericBaitAway(
 
 class AreaBombingBait(BossModule module) : Components.GenericBaitAway(module)
 {
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (WorldState.Actors.Find(tether.Target) is { } target && (OID)target.OID == OID.FlightUnit)
             CurrentBaits.Add(new(target, source, new AOEShapeRect(60, 4), WorldState.FutureTime(6)));

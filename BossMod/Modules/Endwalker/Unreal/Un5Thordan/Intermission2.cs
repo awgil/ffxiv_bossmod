@@ -38,7 +38,7 @@ class SwordShieldOfTheHeavens(BossModule module) : BossComponent(module)
             Arena.Actor(a.actor, ArenaColor.Enemy);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var buff = ClassifyStatus(status.ID);
         if (buff != Buff.None)
@@ -49,7 +49,7 @@ class SwordShieldOfTheHeavens(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         var buff = ClassifyStatus(status.ID);
         if (buff != Buff.None)

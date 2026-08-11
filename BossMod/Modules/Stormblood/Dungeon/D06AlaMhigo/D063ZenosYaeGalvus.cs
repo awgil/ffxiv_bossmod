@@ -50,13 +50,13 @@ public enum TetherID : uint
 
 class LightlessSparkTether(BossModule module) : Components.GenericBaitAway(module)
 {
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 41 && WorldState.Actors.Find(tether.Target) is Actor tar)
             CurrentBaits.Add(new(source, tar, new AOEShapeCone(40.5f, 45.Degrees()), WorldState.FutureTime(8.1f)));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 41)
             CurrentBaits.Clear();

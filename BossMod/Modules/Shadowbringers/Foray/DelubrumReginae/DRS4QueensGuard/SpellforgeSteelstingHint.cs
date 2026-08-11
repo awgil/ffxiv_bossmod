@@ -12,7 +12,7 @@ class SpellforgeSteelstingHint(BossModule module) : BossComponent(module)
             hints.Add(_hint);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var hint = (TetherID)tether.ID switch
         {
@@ -24,7 +24,7 @@ class SpellforgeSteelstingHint(BossModule module) : BossComponent(module)
             _hint = hint;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.PhysicalVulnerabilityDown or SID.MagicVulnerabilityDown)
             _hint = "";

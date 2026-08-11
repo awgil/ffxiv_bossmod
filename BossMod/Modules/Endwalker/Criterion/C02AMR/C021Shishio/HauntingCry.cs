@@ -48,7 +48,7 @@ class HauntingCryReisho(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID is OID.NHauntingThrall or OID.SHauntingThrall)
         {

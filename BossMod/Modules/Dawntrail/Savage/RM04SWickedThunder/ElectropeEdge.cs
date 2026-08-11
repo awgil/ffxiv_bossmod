@@ -22,7 +22,7 @@ class ElectropeEdgeSidewiseSparkL(BossModule module) : Components.StandardAOEs(m
 
 class ElectropeEdgeStar(BossModule module) : Components.UniformStackSpread(module, 6, 6, alwaysShowSpreads: true)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Marker)
         {
@@ -88,7 +88,7 @@ class LightningCage(BossModule module) : Components.GenericAOEs(module, AID.Ligh
         base.AddHints(slot, actor, hints);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ElectricalCondenser && Raid.TryFindSlot(actor.InstanceID, out var slot))
             Order[slot] = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds < 30 ? 1 : 2;

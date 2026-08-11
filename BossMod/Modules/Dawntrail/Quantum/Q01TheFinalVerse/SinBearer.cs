@@ -27,7 +27,7 @@ class SinBearer(BossModule module) : BossComponent(module)
     private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
     private readonly Q01TheFinalVerseConfig _config = Service.Config.Get<Q01TheFinalVerseConfig>();
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SinBearer && Raid.TryFindSlot(actor, out var slot))
         {
@@ -42,7 +42,7 @@ class SinBearer(BossModule module) : BossComponent(module)
             Immunes.Set(slot2);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SinBearer && Immunes.NumSetBits() == 3)
             Bearer = null;
@@ -184,13 +184,13 @@ class Doom(BossModule module) : BossComponent(module)
 {
     private Actor? _victim;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _victim = actor;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom && _victim == actor)
             _victim = null;

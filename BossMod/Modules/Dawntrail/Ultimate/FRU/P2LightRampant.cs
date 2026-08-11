@@ -15,13 +15,13 @@ class P2LightRampant(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.LightRampantChains or TetherID.LightRampantCurse && Raid.TryFindSlot(source.InstanceID, out var slot))
             _tetherTargets[slot] = WorldState.Actors.Find(tether.Target);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.LightRampantChains or TetherID.LightRampantCurse && Raid.TryFindSlot(source.InstanceID, out var slot))
             _tetherTargets[slot] = null;
@@ -125,7 +125,7 @@ class P2PowerfulLight(BossModule module) : Components.UniformStackSpread(module,
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // there are dedicated components for hints
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.WeightOfLight)
             AddStack(actor, status.ExpireAt);
@@ -144,7 +144,7 @@ class P2BrightHunger2(BossModule module) : Components.GenericTowers(module, AID.
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { } // there are dedicated components for hints
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Lightsteeped && status.Extra >= 3)
             _forbidden.Set(Raid.FindSlot(actor.InstanceID));

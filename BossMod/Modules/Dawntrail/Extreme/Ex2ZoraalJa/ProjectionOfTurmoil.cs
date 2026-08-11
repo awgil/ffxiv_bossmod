@@ -23,13 +23,13 @@ class ProjectionOfTurmoil(BossModule module) : Components.CastCounter(module, AI
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Projection)
             _targets.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Projection)
             _targets.Clear(Raid.FindSlot(actor.InstanceID));

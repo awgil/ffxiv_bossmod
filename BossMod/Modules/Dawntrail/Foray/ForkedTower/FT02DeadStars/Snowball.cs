@@ -98,7 +98,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PhysicalVulnerabilityUp && Raid.TryFindSlot(actor, out var slot))
             _vulns[slot] = status.ExpireAt;

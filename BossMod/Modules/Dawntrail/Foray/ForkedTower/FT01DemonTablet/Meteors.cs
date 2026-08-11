@@ -35,13 +35,13 @@ class PortentousComet : Components.UniformStackSpread
             Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CraterLater)
             AddSpread(actor, status.ExpireAt);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.CraterLater)
             Spreads.RemoveAll(s => s.Target == actor);

@@ -141,7 +141,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, E
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var (player, enemy) = DetermineTetherSides(source, tether);
         if (player != null && enemy != null)
@@ -150,7 +150,7 @@ public class BaitAwayTethers(BossModule module, AOEShape shape, uint tetherID, E
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         var (player, enemy) = DetermineTetherSides(source, tether);
         if (player != null && enemy != null)

@@ -4,13 +4,13 @@ class StateOfShock(BossModule module) : Components.CastCounter(module, AID.State
 {
     public int NumStuns;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Stun)
             ++NumStuns;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Stun)
             --NumStuns;

@@ -45,7 +45,7 @@ class DarkMatter(BossModule module) : Components.GenericBaitAway(module, centerA
 
 class ForkedLightningDarkBeckons(BossModule module) : Components.UniformStackSpread(module, 6, 5, 4, alwaysShowSpreads: true)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ForkedLightning)
             AddSpread(actor, status.ExpireAt);

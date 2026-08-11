@@ -320,7 +320,7 @@ class SeaShackles(BossModule module) : BossComponent(module)
 
     public bool Active => _assignments.Any(s => s.Assignment != Assignment.None);
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var assignment = (TetherID)tether.ID switch
         {
@@ -339,7 +339,7 @@ class SeaShackles(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.Good or TetherID.Bad)
             Array.Fill(_assignments, new(Assignment.None, -1));

@@ -29,7 +29,7 @@ class EnergyCompression1(BossModule module) : Components.GenericTowers(module)
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Transfer && WorldState.Actors.Find(tether.Target) is { } tar)
         {

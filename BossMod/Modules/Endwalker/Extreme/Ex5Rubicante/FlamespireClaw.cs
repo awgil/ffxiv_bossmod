@@ -51,13 +51,13 @@ class FlamespireClaw(BossModule module) : Components.GenericBaitAway(module, AID
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.FlamespireClaw)
             _tethers.Set(Raid.FindSlot(source.InstanceID));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.FlamespireClaw)
             _tethers.Clear(Raid.FindSlot(source.InstanceID));

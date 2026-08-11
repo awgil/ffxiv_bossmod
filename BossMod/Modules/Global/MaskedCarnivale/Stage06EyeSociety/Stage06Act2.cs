@@ -26,13 +26,13 @@ class DemonEye(BossModule module) : Components.CastGaze(module, AID.DemonEye)
 {
     private BitMask _blinded;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Clear(Raid.FindSlot(actor.InstanceID));
@@ -48,13 +48,13 @@ class ColdStare(BossModule module) : Components.StandardAOEs(module, AID.ColdSta
 {
     private BitMask _blinded;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Clear(Raid.FindSlot(actor.InstanceID));
@@ -70,13 +70,13 @@ class TearyTwirl(BossModule module) : Components.StackWithCastTargets(module, AI
 {
     private BitMask _blinded;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Clear(Raid.FindSlot(actor.InstanceID));
@@ -95,13 +95,13 @@ class DreadGaze(BossModule module) : Components.StandardAOEs(module, AID.DreadGa
 {
     private BitMask _blinded;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Blind)
             _blinded.Clear(Raid.FindSlot(actor.InstanceID));

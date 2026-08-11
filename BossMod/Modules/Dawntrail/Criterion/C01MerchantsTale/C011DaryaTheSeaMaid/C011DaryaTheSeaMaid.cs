@@ -204,7 +204,7 @@ class ForcedMarch(BossModule module) : Components.StatusDrivenForcedMarch(module
 
 class Tidalspout(BossModule module) : Components.UniformStackSpread(module, 6, 0, 2, 2)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.TidalspoutTarget)
             AddStack(actor, status.ExpireAt);
@@ -492,7 +492,7 @@ class Shackles(BossModule module) : BossComponent(module)
 
     public bool Active => _assignments.Any(s => s.Assignment != Assignment.None);
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var a = (TetherID)tether.ID switch
         {
@@ -511,7 +511,7 @@ class Shackles(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Active)
             Array.Fill(_assignments, new(Assignment.None, -1));
@@ -528,7 +528,7 @@ class Shackles(BossModule module) : BossComponent(module)
 
 class HydrobulletStack(BossModule module) : Components.UniformStackSpread(module, 15, 0, maxStackSize: 2)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HydrobulletTarget)
             AddStack(actor, status.ExpireAt);

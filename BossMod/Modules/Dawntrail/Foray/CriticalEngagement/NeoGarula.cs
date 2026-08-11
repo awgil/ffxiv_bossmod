@@ -123,7 +123,7 @@ class LightningCrossingRush(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.LightningCrossing)
         {
@@ -242,7 +242,7 @@ class BirdserkPredict(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (_active && (TetherID)tether.ID == TetherID.Purple && (OID)source.OID == OID.Boss && WorldState.Actors.Find(tether.Target) is { } bird)
             _bird = bird;

@@ -44,13 +44,13 @@ class LeftRightScalpel2(BossModule module) : Components.StandardAOEs(module, AID
 class EnhancedNoulith(BossModule module) : Components.Adds(module, (uint)OID.EnhancedNoulith)
 {
     private readonly List<(Actor, Actor)> Tethers = [];
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Craniotomy && WorldState.Actors.Find(tether.Target) is Actor target)
             Tethers.Add((source, target));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == (uint)SID.Craniotomy)
             Tethers.RemoveAll(t => t.Item2 == actor);

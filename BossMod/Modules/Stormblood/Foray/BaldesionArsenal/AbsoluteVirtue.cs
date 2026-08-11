@@ -120,7 +120,7 @@ class Balls(BossModule module) : BossComponent(module)
         var c => AllTowers.Where(t => t.Color != c).Select(t => t.Tower)
     };
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID is TetherID.DarkTether or TetherID.BrightTether)
         {
@@ -138,7 +138,7 @@ class Balls(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         Tethers.RemoveAll(t => t.Source == source);
         if (Raid.TryFindSlot(tether.Target, out var slot))

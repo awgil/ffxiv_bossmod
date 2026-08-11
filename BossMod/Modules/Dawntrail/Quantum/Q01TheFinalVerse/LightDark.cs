@@ -18,7 +18,7 @@ class LightDark(BossModule module) : BossComponent(module)
 {
     private readonly ColorTime[] _playerStates = Utils.GenArray(4, () => new ColorTime());
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DarkVengeance && Raid.TryFindSlot(actor, out var slot))
         {
@@ -33,7 +33,7 @@ class LightDark(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DarkVengeance && Raid.TryFindSlot(actor, out var slot))
             _playerStates[slot].Color ^= Color.Dark;
@@ -111,13 +111,13 @@ class DrainAether(BossModule module) : Components.CastCounterMulti(module, [AID.
     private readonly List<(Color, DateTime)> _colors = [];
     private Actor? _sinBearer;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SinBearer)
             _sinBearer = actor;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SinBearer)
             _sinBearer = null;

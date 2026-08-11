@@ -87,13 +87,13 @@ class P2OptimizedPassageOfArms(BossModule module) : BossComponent(module)
         hints.SetPriority(_invincible, AIHints.Enemy.PriorityInvincible);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Invincibility && (OID)actor.OID == OID.OmegaM)
             _invincible = actor;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Invincibility && _invincible == actor)
             _invincible = null;

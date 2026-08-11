@@ -92,7 +92,7 @@ class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AreaOfInfluenceUp)
             _range = status.Extra;
@@ -108,7 +108,7 @@ class Burst(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Take(3).Select(p => p with { Risky = _risky });
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == 2056)
         {

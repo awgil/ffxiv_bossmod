@@ -18,7 +18,7 @@ class TagTeamLariatCombo(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.ChainDeathmatch && Raid.TryFindSlot(tether.Target, out var slot))
         {

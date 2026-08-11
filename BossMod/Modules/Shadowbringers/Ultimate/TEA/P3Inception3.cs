@@ -49,7 +49,7 @@ class P3Inception3Debuffs(BossModule module) : Components.GenericStackSpread(mod
             Arena.AddLine(pc.Position, partner.Position, (partner.Position - pc.Position).LengthSq() < 30 * 30 ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

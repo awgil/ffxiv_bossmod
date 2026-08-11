@@ -137,7 +137,7 @@ class EsotericInstruction(BossModule module) : Components.GenericAOEs(module)
 
     int numTethers;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Swap)
         {

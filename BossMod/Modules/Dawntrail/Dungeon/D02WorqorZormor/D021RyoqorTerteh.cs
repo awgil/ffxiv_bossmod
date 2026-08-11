@@ -61,7 +61,7 @@ abstract class FreezableAOEs(BossModule module, Enum action, AOEShape shape) : C
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Freeze && _aoes.FindIndex(aoe => aoe.Origin.AlmostEqual(source.Position, 1)) is var index && index >= 0)
         {

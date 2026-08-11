@@ -58,14 +58,14 @@ public class Rocks(BossModule module) : BossComponent(module)
             _quicksand = true;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
             // sigh
             _drowning[slot] = status.ExpireAt;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.SixFulmsUnder && Raid.TryFindSlot(actor, out var slot))
             _drowning[slot] = default;

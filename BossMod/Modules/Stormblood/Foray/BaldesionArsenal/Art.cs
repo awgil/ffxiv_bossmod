@@ -55,7 +55,7 @@ abstract class SpearAOEs(BossModule module, Enum bossCast, AOEShape shape) : Com
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Activation == default ? [] : Casters.Select(c => new AOEInstance(shape, c.Position, Activation: Activation));
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 1)
             Casters.Add(source);

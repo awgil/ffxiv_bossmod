@@ -8,7 +8,7 @@ class FinalFusedownSelfDestruct(BossModule module) : Components.GenericAOEs(modu
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Skip(NumCasts).Take(4);
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         var delay = (SID)status.ID switch
         {
@@ -38,7 +38,7 @@ class FinalFusedownExplosion(BossModule module) : Components.GenericStackSpread(
 
     public void Show() => Spreads = _spreads1;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         (List<Spread>? list, float delay) = (SID)status.ID switch
         {

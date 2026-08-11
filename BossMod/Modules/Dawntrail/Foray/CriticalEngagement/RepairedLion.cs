@@ -72,7 +72,7 @@ class HolySphere(BossModule module) : BossComponent(module)
             _spheres.Add(new(actor));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HolySphereElement)
         {

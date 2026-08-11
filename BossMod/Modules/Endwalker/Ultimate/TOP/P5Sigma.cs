@@ -46,7 +46,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
             Arena.AddCircle(Module.Center + safeSpot, 1, ArenaColor.Safe);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PartySynergy)
         {
@@ -58,7 +58,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -395,7 +395,7 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
             Arena.AddCircle(p, 1, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         base.OnStatusGain(actor, status);
         if ((SID)status.ID == SID.QuickeningDynamis)

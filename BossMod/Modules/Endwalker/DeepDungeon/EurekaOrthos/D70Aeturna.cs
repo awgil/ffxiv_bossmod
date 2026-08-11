@@ -41,7 +41,7 @@ class FerocityGood(BossModule module) : Components.BaitAwayTethers(module, new A
 {
     private ulong target;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.FerocityTetherGood)
@@ -79,7 +79,7 @@ class FerocityBad(BossModule module) : Components.BaitAwayTethers(module, new AO
 {
     private ulong target;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.FerocityTetherStretch)

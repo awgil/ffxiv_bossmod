@@ -103,25 +103,25 @@ class Adds(BossModule module) : BossComponent(module)
 
     private readonly HashSet<ulong> TetheredRays = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.FeatherRay)
             TetheredRays.Add(source.InstanceID);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.FeatherRay)
             TetheredRays.Remove(source.InstanceID);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HuffyCat)
             HuffyCat++;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.HuffyCat)
             HuffyCat = 0;

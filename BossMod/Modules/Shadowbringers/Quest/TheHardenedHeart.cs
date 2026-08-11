@@ -72,7 +72,7 @@ class TankbusterTether(BossModule module) : BossComponent(module)
 
     private bool Danger => DwarfTether?.Target.OID == 0x2917;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 84 && WorldState.Actors.Find(tether.Target) is Actor target)
             DwarfTether = new(source, target, DwarfTether?.Activation ?? WorldState.FutureTime(10));

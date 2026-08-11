@@ -29,7 +29,7 @@ class ExplosiveTataru(BossModule module) : BossComponent(module)
     private readonly List<Actor> Balls = [];
     private Actor? Tataru;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == 3)
         {

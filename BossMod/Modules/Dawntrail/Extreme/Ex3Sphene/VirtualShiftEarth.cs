@@ -23,13 +23,13 @@ class VirtualShiftEarth(BossModule module) : BossComponent(module)
         Arena.AddRect(Midpoint - CenterOffset, new(0, 1), HalfExtent.Z, HalfExtent.Z, HalfExtent.X, ArenaColor.Border, 2);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.GravitationalAnomaly)
             Flying.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.GravitationalAnomaly)
             Flying.Clear(Raid.FindSlot(actor.InstanceID));
@@ -84,7 +84,7 @@ class LawsOfEarthBurst2 : LawsOfEarthBurst
                 t.ForbiddenSoakers.Set(Raid.FindSlot(spell.TargetID));
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.GravityRay)
             foreach (ref var t in Towers.AsSpan())
@@ -97,7 +97,7 @@ class GravityPillar(BossModule module) : Components.BaitAwayCast(module, AID.Gra
 // note: the tethers appear before target is created; the target is at the same location as the boss
 class GravityRay(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(50, 30.Degrees()), (uint)TetherID.GravityRay, AID.GravityRay) // TODO: verify angle
 {
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == TID)
         {
@@ -105,7 +105,7 @@ class GravityRay(BossModule module) : Components.BaitAwayTethers(module, new AOE
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == TID)
         {

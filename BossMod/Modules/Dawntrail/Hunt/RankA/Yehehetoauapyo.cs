@@ -51,7 +51,7 @@ class WhirlingOmen(BossModule module) : Components.GenericAOEs(module)
             yield return new(_shape, Module.PrimaryActor.Position, _aoeRotations[0], _activation, ArenaColor.Danger);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

@@ -163,7 +163,7 @@ class StrongerTogether(BossModule module) : BossComponent(module)
     private Actor? _boss1;
     private Actor? _boss2;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.StrongerTogether && (OID)source.OID is OID.Hansel or OID.Gretel)
         {
@@ -172,7 +172,7 @@ class StrongerTogether(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.StrongerTogether)
         {

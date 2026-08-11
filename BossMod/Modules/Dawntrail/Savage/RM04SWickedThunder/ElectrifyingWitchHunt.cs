@@ -58,7 +58,7 @@ class ElectrifyingWitchHuntResolve(BossModule module) : Components.GenericStackS
         base.AddHints(slot, actor, hints);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

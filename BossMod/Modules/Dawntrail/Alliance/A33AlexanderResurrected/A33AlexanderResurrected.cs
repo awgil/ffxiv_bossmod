@@ -356,7 +356,7 @@ class Electrify(BossModule module) : Components.GenericAOEs(module, AID.Electrif
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Take(2);
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Electrify)
             _predicted.Add(new(new AOEShapeCircle(18), source.Position, default, WorldState.FutureTime(9)));

@@ -108,7 +108,7 @@ class LightDark(BossModule module) : BossComponent(module)
 
     private readonly Buff[] _playerStates = Utils.GenArray(4, () => new Buff());
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DarkVengeance && Raid.TryFindSlot(actor, out var slot))
         {
@@ -123,7 +123,7 @@ class LightDark(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DarkVengeance && Raid.TryFindSlot(actor, out var slot))
             _playerStates[slot].Color ^= Color.Dark;
@@ -374,13 +374,13 @@ class ChainsOfCondemnation(BossModule module) : Components.StayMove(module)
             Array.Fill(PlayerStates, new(Requirement.NoMove, Module.CastFinishAt(spell)));
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
             SetState(slot, new(Requirement.NoMove, WorldState.CurrentTime));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.ChainsOfCondemnation && Raid.TryFindSlot(actor, out var slot))
             ClearState(slot);

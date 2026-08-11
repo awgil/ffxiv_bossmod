@@ -9,7 +9,7 @@ class UnnaturalEnchainment(BossModule module) : Components.GenericAOEs(module, A
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.UnnaturalEnchainment)
             _aoes.Add(new(_shape, source.Position, default, WorldState.FutureTime(8.2f)));

@@ -4,7 +4,7 @@ class Dragonfall(BossModule module) : Components.UniformStackSpread(module, 6, 0
 {
     public int NumCasts;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Dragonfall)
             AddStack(source, WorldState.FutureTime(9.5f));

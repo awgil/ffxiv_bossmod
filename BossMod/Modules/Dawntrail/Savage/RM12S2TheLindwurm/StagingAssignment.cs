@@ -63,7 +63,7 @@ abstract class StagingAssignment<TRole>(BossModule module, int playerGroupSize, 
             WurmClones.Add(new(actor, (actor.Position - Arena.Center).ToAngle(), _totalCloneSpawns++ / cloneGroupSize));
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var tid = (TetherID)tether.ID;
 

@@ -108,7 +108,7 @@ class PrimeBladeDonutTeleport(BossModule module) : Components.GenericAOEs(module
             _caster = caster;
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.Helper && (TetherID)tether.ID == TetherID.Transfer)
             _location = source.Position;

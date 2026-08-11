@@ -25,13 +25,13 @@ class InvincibleStatus(BossModule module, uint statusId, string hint = "Attackin
 
     protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor) => _actors;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (status.ID == statusId && !_actors.Contains(actor))
             _actors.Add(actor);
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (status.ID == statusId)
             _actors.Remove(actor);

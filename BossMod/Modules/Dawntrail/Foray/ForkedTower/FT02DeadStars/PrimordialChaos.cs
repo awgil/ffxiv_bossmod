@@ -47,7 +47,7 @@ class Ooze(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.NovaOoze or SID.IceOoze && Raid.TryFindSlot(actor, out var slot))
         {
@@ -58,7 +58,7 @@ class Ooze(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID is SID.NovaOoze or SID.IceOoze && Raid.TryFindSlot(actor, out var slot))
             _states[slot] = 0;

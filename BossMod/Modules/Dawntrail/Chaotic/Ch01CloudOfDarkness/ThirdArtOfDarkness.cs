@@ -36,13 +36,13 @@ class ThirdArtOfDarknessCleave(BossModule module) : Components.GenericAOEs(modul
         base.AddHints(slot, actor, hints);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.OuterDarkness)
             PlatformPlayers.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.OuterDarkness)
             PlatformPlayers.Clear(Raid.FindSlot(actor.InstanceID));

@@ -74,7 +74,7 @@ class AetherialRay(BossModule module) : Components.GenericAOEs(module, AID.Aethe
                 yield return new AOEInstance(Shape, Arena.Center, a, _activation);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.BeaconCountdown && WorldState.Actors.Find(tether.Target) is { } beacon && beacon.OID == (uint)OID.RadiantBeacon)
         {
@@ -109,7 +109,7 @@ class BrightPulse(BossModule module) : Components.GenericAOEs(module, AID.Bright
             yield return new AOEInstance(Shape, WorldState.FutureTime(PredictionCutoff) > t ? a.Position : p, Activation: t);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.RoundelCountdown && (OID)actor.OID == OID.RadiantRoundel)
         {

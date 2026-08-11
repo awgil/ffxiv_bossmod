@@ -193,12 +193,12 @@ class WillOfTheUnderworld(BossModule module) : Components.GenericAOEs(module)
                 _westUnsafe = true;
         }
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor == Raid.Player())
             RefreshUnsafeDirections();
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (actor == Raid.Player())
             RefreshUnsafeDirections();
@@ -383,7 +383,7 @@ class UnyieldingWillBaited(BossModule module) : Components.GenericAOEs(module)
             Arena.AddRect(src.Position, dir.Normalized(), dir.Length(), 0, 2, ArenaColor.Danger);
         }
     }
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.ForceOfWillWallTether)
         {
@@ -425,12 +425,12 @@ class UnyieldingWillBaited(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bind)
             _bound = true;
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Bind)
             _bound = false;
@@ -521,7 +521,7 @@ class WillOfTheUnderworldLOS(BossModule module) : Components.GenericAOEs(module,
             Refresh();
         }
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID is OID.FallenRock)
         {
@@ -532,7 +532,7 @@ class WillOfTheUnderworldLOS(BossModule module) : Components.GenericAOEs(module,
             Refresh();
         }
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((OID)actor.OID is OID.FallenRock)
         {
@@ -575,7 +575,7 @@ class MagneticQuadrants(BossModule module) : Components.GenericAOEs(module, AID.
             }
         }
     }
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if (actor == Raid.Player())
         {
@@ -592,7 +592,7 @@ class MagneticQuadrants(BossModule module) : Components.GenericAOEs(module, AID.
             }
         }
     }
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if (actor == Raid.Player())
         {
@@ -675,7 +675,7 @@ class MagneticBoulders(BossModule module) : Components.GenericAOEs(module, AID.M
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -701,7 +701,7 @@ class MagneticBoulders(BossModule module) : Components.GenericAOEs(module, AID.M
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -717,7 +717,7 @@ class MagneticBoulders(BossModule module) : Components.GenericAOEs(module, AID.M
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID != TetherID.Magnetism)
             return;

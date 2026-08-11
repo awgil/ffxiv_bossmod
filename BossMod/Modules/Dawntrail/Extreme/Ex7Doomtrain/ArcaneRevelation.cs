@@ -68,13 +68,13 @@ class DesignatedConductor(BossModule module) : Components.GenericStackSpread(mod
 {
     private BitMask _conductors;
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DesignatedConductor)
             _conductors.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DesignatedConductor)
             _conductors.Clear(Raid.FindSlot(actor.InstanceID));

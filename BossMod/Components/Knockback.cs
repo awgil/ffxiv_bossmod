@@ -74,7 +74,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             DrawKnockback(e.from, e.to, pc.Rotation, Arena);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch (status.ID)
         {
@@ -96,7 +96,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch (status.ID)
         {

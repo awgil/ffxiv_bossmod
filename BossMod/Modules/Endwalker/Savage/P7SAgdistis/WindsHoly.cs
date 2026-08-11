@@ -6,7 +6,7 @@ class WindsHoly(BossModule module) : Components.UniformStackSpread(module, 6, 7,
     private readonly List<Actor>[] _futureStacks = [[], [], [], []];
     private readonly List<Actor>[] _futureSpreads = [[], [], [], []];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

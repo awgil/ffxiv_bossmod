@@ -9,7 +9,7 @@ class LoneWolfTethers(BossModule module) : BossComponent(module)
 
     public readonly Assignment[] Assignments = new Assignment[PartyState.MaxPartySize];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {

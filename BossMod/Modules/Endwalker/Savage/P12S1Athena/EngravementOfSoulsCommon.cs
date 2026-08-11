@@ -34,7 +34,7 @@ class EngravementOfSoulsTethers(BossModule module) : Components.GenericBaitAway(
             Arena.AddLine(state.Source.Position, pc.Position, state.TooClose ? ArenaColor.Danger : ArenaColor.Safe);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var (type, tooClose) = (TetherID)tether.ID switch
         {
@@ -84,7 +84,7 @@ class EngravementOfSoulsTowers(BossModule module) : Components.GenericTowers(mod
     private BitMask _lightForbidden; // these players can't close light towers due to light debuff
     private BitMask _darkForbidden; // these players can't close light towers due to light debuff
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -102,7 +102,7 @@ class EngravementOfSoulsTowers(BossModule module) : Components.GenericTowers(mod
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {

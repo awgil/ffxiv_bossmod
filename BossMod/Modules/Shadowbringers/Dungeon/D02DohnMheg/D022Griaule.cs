@@ -40,7 +40,7 @@ class FeedingTime(BossModule module) : BossComponent(module)
 
     DateTime _deadline;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.FeedingTime && WorldState.Actors.Find(tether.Target) is { } target)
         {
@@ -52,7 +52,7 @@ class FeedingTime(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.FeedingTime)
             _tethers.RemoveAll(t => t.Source == source);

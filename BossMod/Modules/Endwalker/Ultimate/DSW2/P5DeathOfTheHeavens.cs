@@ -124,13 +124,13 @@ class P5DeathOfTheHeavensHeavensflame(BossModule module) : Components.Knockback(
             KnockbackDone = true;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Doom)
             _dooms.Set(Raid.FindSlot(actor.InstanceID));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         _brokenTethers.Set(Raid.FindSlot(source.InstanceID));
         _brokenTethers.Set(Raid.FindSlot(tether.Target));

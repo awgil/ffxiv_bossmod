@@ -45,7 +45,7 @@ class DarkAndLight(BossModule module) : BossComponent(module)
             Arena.AddCircle(safespot.Value, 1, ArenaColor.Safe);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         switch ((TetherID)tether.ID)
         {

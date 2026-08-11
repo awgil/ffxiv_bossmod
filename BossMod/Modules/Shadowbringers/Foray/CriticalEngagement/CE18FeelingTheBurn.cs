@@ -85,7 +85,7 @@ class ChainCannonEscort(BossModule module) : Components.GenericAOEs(module)
             _shape.Outline(Arena, c.caster);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Tracking)
             _casters.Add((actor, 0, status.ExpireAt));

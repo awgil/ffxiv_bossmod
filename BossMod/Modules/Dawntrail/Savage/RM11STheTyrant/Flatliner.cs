@@ -144,7 +144,7 @@ class FireBreathMeteowrath : Components.GenericBaitAway
             hints.AddForbiddenZone(ShapeDistance.Circle(tetherBait.Source.Position, 48), tetherBait.Activation);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         var color = (TetherID)tether.ID switch
         {
@@ -156,7 +156,7 @@ class FireBreathMeteowrath : Components.GenericBaitAway
             _tethers.Add((source, target, color));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         _tethers.RemoveAll(t => t.Source == source);
     }
@@ -275,7 +275,7 @@ class FireBreathMeteowrathHints(BossModule module) : BossComponent(module)
 
     private readonly List<WPos>[] _destination = Utils.GenArray<List<WPos>>(8, () => []);
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.TheTyrant && Raid.TryFindSlot(tether.Target, out var slot))
             _tetheredTo[slot] = source;

@@ -53,7 +53,7 @@ class WreathOfThorns5(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (source.OID == (uint)OID.Helper)
             _towersOrder.Add(source);

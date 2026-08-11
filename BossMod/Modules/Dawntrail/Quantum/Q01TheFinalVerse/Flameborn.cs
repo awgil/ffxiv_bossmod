@@ -34,7 +34,7 @@ class Flameborn(BossModule module) : Components.Adds(module, (uint)OID.Flameborn
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((OID)source.OID == OID.Flameborn && WorldState.Actors.Find(tether.Target) is { } tar)
         {
@@ -43,7 +43,7 @@ class Flameborn(BossModule module) : Components.Adds(module, (uint)OID.Flameborn
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         _tethers.Remove(source);
     }

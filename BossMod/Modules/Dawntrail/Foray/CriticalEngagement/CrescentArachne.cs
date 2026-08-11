@@ -56,7 +56,7 @@ class ArachnidFunnel(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.WebBoss && _charges.Count == 0)
             _charges.Add((Module.PrimaryActor, source, WorldState.FutureTime(8.2f)));
@@ -80,7 +80,7 @@ class Conformity(BossModule module) : Components.GroupedAOEs(module, [AID.Confor
 {
     readonly List<Actor> _dangerous = [];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Unk2056)
             _dangerous.Add(actor);

@@ -202,7 +202,7 @@ class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID.F
     private readonly Actor?[] _assignedTether = new Actor?[8];
     private int _numActiveTethers;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.ForegoneFatality && WorldState.Actors.Find(tether.Target) is { } target)
         {
@@ -216,7 +216,7 @@ class ForegoneFatality(BossModule module) : Components.CastCounter(module, AID.F
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.ForegoneFatality && WorldState.Actors.Find(tether.Target) is { } target)
             _tethered.RemoveAll(t => t.Source == source && t.Target == target);

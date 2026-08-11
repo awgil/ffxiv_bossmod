@@ -4,13 +4,13 @@ class TwofoldTether(BossModule module) : BossComponent(module)
 {
     public readonly List<(Actor, Actor)> Tethers = [];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GenericPassable && WorldState.Actors.Find(tether.Target) is { } target)
             Tethers.Add((source, target));
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GenericPassable)
             Tethers.RemoveAll(t => t.Item1 == source);
@@ -40,7 +40,7 @@ class TwofoldStack(BossModule module) : Components.GenericStackSpread(module)
         }
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GenericPassable && WorldState.Actors.Find(tether.Target) is { } target)
         {
@@ -88,7 +88,7 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
 
     private readonly DateTime[] _vulns = new DateTime[PartyState.MaxPartySize];
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.GenericPassable)
         {
@@ -108,13 +108,13 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
         }
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vulns[slot] = status.ExpireAt;
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MagicVulnerabilityUp && Raid.TryFindSlot(actor.InstanceID, out var slot))
             _vulns[slot] = default;

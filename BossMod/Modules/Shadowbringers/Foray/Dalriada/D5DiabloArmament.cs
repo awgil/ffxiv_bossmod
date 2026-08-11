@@ -246,13 +246,13 @@ class PillarOfShamashCone(BossModule module) : Components.GenericAOEs(module)
 
 class AccelerationBomb(BossModule module) : Components.StayMove(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AccelerationBomb)
             SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AccelerationBomb)
             ClearState(Raid.FindSlot(actor.InstanceID));

@@ -49,7 +49,7 @@ class HoundOutOfHeavenGood(BossModule module) : Components.BaitAwayTethers(modul
 {
     private ulong target;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherGood)
@@ -87,7 +87,7 @@ class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module
 {
     private ulong target;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         base.OnTethered(source, tether);
         if (tether.ID == (uint)TetherID.HoundOutOfHeavenTetherStretch)

@@ -7,7 +7,7 @@ class AbsoluteAuthorityExpansionBoot(BossModule module) : Components.UniformStac
     public int NumCasts;
     private readonly Ex3SpheneConfig _config = Service.Config.Get<Ex3SpheneConfig>();
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -50,7 +50,7 @@ class AbsoluteAuthorityHeel(BossModule module) : Components.CastCounter(module, 
             Arena.AddCircle(pc.Position, Radius, ArenaColor.Safe);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.AuthoritysHeel)
         {

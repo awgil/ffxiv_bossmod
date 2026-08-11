@@ -5,13 +5,13 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
     private BitMask _targets;
     private Angle _direction;
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Chain && Raid.TryFindSlot(source.InstanceID, out var slot))
             _targets.Set(slot);
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if ((TetherID)tether.ID == TetherID.Chain && Raid.TryFindSlot(source.InstanceID, out var slot))
             _targets.Clear(slot);
@@ -57,7 +57,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
             AddForcedMovement(player, default, 4, activation);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PayingThePiper)
         {
@@ -68,7 +68,7 @@ class ChildsPlay(BossModule module) : Components.GenericForcedMarch(module)
         }
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.PayingThePiper)
             DeactivateForcedMovement(actor);

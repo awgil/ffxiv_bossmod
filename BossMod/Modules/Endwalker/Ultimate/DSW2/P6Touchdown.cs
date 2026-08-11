@@ -46,7 +46,7 @@ class P6TouchdownCauterize(BossModule module) : BossComponent(module)
             _shape.Draw(Arena, _hraesvelgr);
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         switch ((SID)status.ID)
         {
@@ -75,13 +75,13 @@ class P6TouchdownCauterize(BossModule module) : BossComponent(module)
 
 class P6TouchdownPyretic(BossModule module) : Components.StayMove(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Boiling)
             SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
             ClearState(Raid.FindSlot(actor.InstanceID));

@@ -23,7 +23,7 @@ class Exoterikos(BossModule module) : BossComponent(module)
             shape.Draw(Arena, src);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         // tethers appear much earlier than cast start, but not for all sigils
         var target = WorldState.Actors.Find(tether.Target);

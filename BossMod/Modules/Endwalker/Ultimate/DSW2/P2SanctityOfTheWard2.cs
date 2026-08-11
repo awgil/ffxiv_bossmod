@@ -569,7 +569,7 @@ class P2SanctityOfTheWard2Towers2(BossModule module) : Components.CastTowers(mod
         // note: not drawing any default hints here...
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Prey)
         {

@@ -70,7 +70,7 @@ class PlagueDance(BossModule module) : BossComponent(module)
         _shape.Outline(Arena, _target);
     }
 
-    public override void OnTethered(Actor source, ActorTetherInfo tether)
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PlagueDance)
         {
@@ -79,7 +79,7 @@ class PlagueDance(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnUntethered(Actor source, ActorTetherInfo tether)
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.PlagueDance)
             _target = null;

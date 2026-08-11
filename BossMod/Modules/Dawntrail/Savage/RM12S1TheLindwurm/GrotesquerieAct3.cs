@@ -117,7 +117,7 @@ class MetamitosisProjected(BossModule module) : BossComponent(module)
 {
     readonly WDir[] _orientation = new WDir[8];
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.DirectedGrotesquerieVisual && Raid.TryFindSlot(actor, out var slot))
             _orientation[slot] = status.Extra switch
@@ -130,7 +130,7 @@ class MetamitosisProjected(BossModule module) : BossComponent(module)
             };
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MitoticPhase && Raid.TryFindSlot(actor, out var slot))
             _orientation[slot] = default;
@@ -173,7 +173,7 @@ class MetamitosisProjected(BossModule module) : BossComponent(module)
 
 class MitoticPhaseDramaticLysis(BossModule module) : Components.GenericStackSpread(module)
 {
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.MitoticPhase)
             Spreads.Add(new(actor, 9, status.ExpireAt.AddSeconds(1.7f)));

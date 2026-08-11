@@ -15,7 +15,7 @@ class MercyFourfold(BossModule module) : Components.GenericAOEs(module, AID.Merc
             yield return _safezones[0]!.Value;
     }
 
-    public override void OnStatusGain(Actor actor, ActorStatus status)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID != SID.Mercy)
             return;

@@ -85,7 +85,7 @@ internal class Bounds(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.Donut(Module.PrimaryActor.Position, 1, 100));
     }
 
-    public override void OnStatusLose(Actor actor, ActorStatus status)
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.FoolsTightrope)
             Deactivate();
