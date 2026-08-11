@@ -1,4 +1,5 @@
-﻿using BossMod.Data;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+using BossMod.Data;
 
 namespace BossMod.Dawntrail.Foray.ForkedTower.FT12SwordDancer;
 
