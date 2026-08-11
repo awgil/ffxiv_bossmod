@@ -351,12 +351,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         var scale = Config.ActorScale;
 
         if (!Config.ActorDynamicScale)
-        {
-            // apply arena scaling in reverse (TODO this isn't a great solution)
-            scale *= Bounds.Radius / ScreenHalfSize;
-            // using "default" actor size based on a radius 20 arena (common arena size for savage) drawn in a 150 width radar
-            scale *= 7.5f;
-        }
+            // draw actor as if we're in an arena of radius 20 (feels like the most common arena size)
+            scale *= Bounds.Radius / 20f;
 
         lenFront *= scale;
         lenBack *= scale;
