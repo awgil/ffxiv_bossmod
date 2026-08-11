@@ -347,8 +347,8 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
         var lenSide = 0.433f;
 
         // default arena-independent scale factor is based on a radius 20 arena (most common savage arena size) in a radar with base width of 150px
-        var sizeFactor = Config.ActorDynamicScale ? ScreenHalfSize / Bounds.Radius : 7.5f;
-        sizeFactor *= Config.ActorScale * Config.EffectiveArenaScale;
+        var sizeFactor = Config.ActorDynamicScale ? ScreenHalfSize / Bounds.Radius : 7.5f * Config.EffectiveArenaScale;
+        sizeFactor *= Config.ActorScale;
 
         lenFront *= sizeFactor;
         lenBack *= sizeFactor;
