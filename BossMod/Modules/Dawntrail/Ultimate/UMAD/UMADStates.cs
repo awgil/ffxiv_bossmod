@@ -4,6 +4,10 @@ class UMADStates : StateMachineBuilder
 {
     readonly UMAD _module;
 
+    // bosses can occasionally get deleted on the same frame they go untargetable
+    // thank you vera
+    static bool IsEffectivelyDead(Actor? a) => a is { IsTargetable: false, HPRatio: < 1 } or { IsDestroyed: true };
+
     public UMADStates(BossModule module) : base(module)
     {
         _module = (UMAD)module;
@@ -13,13 +17,13 @@ class UMADStates : StateMachineBuilder
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(1, P2, "P2")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.BossP2() is { IsTargetable: false, HPRatio: < 1 };
+            .Raw.Update = () => IsEffectivelyDead(_module.BossP2());
         SimplePhase(2, P3, "P3")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.ExdeathP3() is { HPMP.CurHP: 1, IsTargetable: false } && _module.ChaosP3() is { HPMP.CurHP: 1, IsTargetable: false };
+            .Raw.Update = () => IsEffectivelyDead(_module.ExdeathP3()) && IsEffectivelyDead(_module.ChaosP3());
         SimplePhase(3, P4, "P4")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => _module.KefkaP4() is { IsTargetable: false, HPRatio: < 1 };
+            .Raw.Update = () => IsEffectivelyDead(_module.KefkaP4());
         SimplePhase(4, P5, "P5")
             .ActivateOnEnter<P5ForsakenHoles>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
