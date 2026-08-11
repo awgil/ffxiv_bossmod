@@ -319,9 +319,9 @@ class Blaze(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class TwoHeadedAevisStates : StateMachineBuilder
+class FT11TwoHeadedAevisStates : StateMachineBuilder
 {
-    public TwoHeadedAevisStates(BossModule module) : base(module)
+    public FT11TwoHeadedAevisStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Heads>()
@@ -336,8 +336,10 @@ class TwoHeadedAevisStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14489)]
-public class TwoHeadedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-900, 700), new ArenaBoundsSquare(20))
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14489)]
+public class FT11TwoHeadedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-900, 700), new ArenaBoundsSquare(20))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
+
+    public override bool DrawAllPlayers => true;
 }
