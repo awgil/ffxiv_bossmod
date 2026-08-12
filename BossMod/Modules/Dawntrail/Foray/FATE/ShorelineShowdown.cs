@@ -164,7 +164,7 @@ sealed class TheDragonsVoiceBoss(BossModule module) : Components.SimpleAOEs(modu
 
         var spellInstance = Casters[0];
         var distanceToOrb = spellInstance.Origin + (singleOrb.Position - spellInstance.Origin).Normalized() * 6.0f;
-        hints.GoalZones.Add(AIHints.GoalProximity(distanceToOrb, 7.8f, 100.0f));
+        hints.GoalZones.Add(AIHints.GoalProximity(distanceToOrb, 2.0f, 100.0f));
     }
 }
 
