@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.ScaleModel;
 
-public enum OID : uint {
+public enum OID : uint
+{
     DemiMedusa = 0x4C6A,
     Helper = 0x233C,
     DefectiveLamia = 0x4DD8, // R2.500, x0 (spawn during fight)
@@ -17,7 +18,8 @@ public enum OID : uint {
     DefectiveLamia7 = 0x4D51, // R2.500, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50538, // DemiMedusa->player, no cast, single-target
     Summon = 48300, // DemiMedusa->self, 3.0s cast, single-target
     CursedSight = 48252, // DemiMedusa->self, 5.0s cast, range 60 60.000-degree cone
@@ -33,8 +35,10 @@ sealed class LamianLesion(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class Dark(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Dark, 6f);
 
 [SkipLocalsInit]
-sealed class ScaleModelStates : StateMachineBuilder {
-    public ScaleModelStates(BossModule module) : base(module) {
+sealed class ScaleModelStates : StateMachineBuilder
+{
+    public ScaleModelStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<CursedSight>()
             .ActivateOnEnter<LamianLesion>()

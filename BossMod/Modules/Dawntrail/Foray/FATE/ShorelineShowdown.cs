@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.ShorelineShowdown;
 
-public enum OID : uint {
+public enum OID : uint
+{
     RegnantChimera = 0x4C7D,
     Helper = 0x233C,
     GlacipotentOrb = 0x4C80, // R2.000, x0 (spawn during fight)
@@ -8,7 +9,8 @@ public enum OID : uint {
     Cacophony = 0x4B71, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50856, // RegnantChimera->player, no cast, single-target
     TheRamsBreath = 48631, // RegnantChimera->self, 6.0s cast, range 30 120-degree cone
     TheRamsBreath1 = 48632, // RegnantChimera->self, no cast, range 30 120-degree cone
@@ -28,12 +30,14 @@ public enum AID : uint {
     TheDragonsBreath3 = 50115, // Boss->self, no cast, range 40 180-degree cone
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     Gen = 5196, // RegnantChimera/4C80->4C80/RegnantChimera, extra=0x0
     Gen1 = 5197, // RegnantChimera/4C7F->4C7F/RegnantChimera, extra=0x0
 }
 
-public enum IconID : uint {
+public enum IconID : uint
+{
     TurnLeft = 547, // RegnantChimera->self
     TurnRight = 546, // RegnantChimera->self
 }
@@ -42,13 +46,16 @@ sealed class TheRamsVoice(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class TheDragonsVoice(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TheDragonsVoice1, new AOEShapeDonut(8.0f, 30.0f));
 sealed class ChaoticChorus(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ChaoticChorus, new AOEShapeCircle(6.0f));
 
-sealed class Breath(BossModule module) : Components.GenericRotatingAOE(module) {
+sealed class Breath(BossModule module) : Components.GenericRotatingAOE(module)
+{
     private ActorCastInfo? spellInfo;
     private Angle increment;
     private readonly AOEShapeCone shape = new(30.0f, 60.0f.Degrees());
 
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID) {
-        increment = iconID switch {
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        increment = iconID switch
+        {
             (uint)IconID.TurnLeft => 120.0f.Degrees(),
             (uint)IconID.TurnRight => -120.0f.Degrees(),
             _ => default
@@ -57,24 +64,31 @@ sealed class Breath(BossModule module) : Components.GenericRotatingAOE(module) {
         InitIfReady();
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.TheRamsBreath or (uint)AID.TheDragonsBreath) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.TheRamsBreath or (uint)AID.TheDragonsBreath)
+        {
             spellInfo = spell;
             InitIfReady();
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
         if (spell.Action.ID is (uint)AID.TheRamsBreath or (uint)AID.TheRamsBreath1 or (uint)AID.TheRamsBreath2 or
-            (uint)AID.TheDragonsBreath or (uint)AID.TheDragonsBreath1 or (uint)AID.TheDragonsBreath2) {
-            if (Sequences.Count > 0) {
+            (uint)AID.TheDragonsBreath or (uint)AID.TheDragonsBreath1 or (uint)AID.TheDragonsBreath2)
+        {
+            if (Sequences.Count > 0)
+            {
                 AdvanceSequence(0, WorldState.CurrentTime);
             }
         }
     }
 
-    private void InitIfReady() {
-        if (spellInfo != null && increment != default) {
+    private void InitIfReady()
+    {
+        if (spellInfo != null && increment != default)
+        {
             Sequences.Add(new(shape, spellInfo.LocXZ, spellInfo.Rotation, increment, Module.CastFinishAt(spellInfo), 2.7f, 3));
             spellInfo = null;
             increment = default;
@@ -82,40 +96,51 @@ sealed class Breath(BossModule module) : Components.GenericRotatingAOE(module) {
     }
 }
 
-sealed class GlacipotentOrb(BossModule module) : Components.GenericAOEs(module) {
-    private List<Actor> iceOrbs = [];
+sealed class GlacipotentOrb(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<Actor> iceOrbs = [];
     private readonly AOEShapeCircle shape = new(12.0f);
     private bool active = false;
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.GlacipotentOrb) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.GlacipotentOrb)
+        {
             iceOrbs.Add(actor);
         }
     }
 
-    public override void OnActorDeath(Actor actor) {
-        if (actor.OID == (uint)OID.GlacipotentOrb) {
+    public override void OnActorDeath(Actor actor)
+    {
+        if (actor.OID == (uint)OID.GlacipotentOrb)
+        {
             iceOrbs.Remove(actor);
 
-            if (iceOrbs.Count == 0) {
+            if (iceOrbs.Count == 0)
+            {
                 active = false;
             }
         }
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.TheRamsVoice) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.TheRamsVoice)
+        {
             active = true;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (iceOrbs.Count == 0 || active == false) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (iceOrbs.Count == 0 || !active)
+        {
             return [];
         }
 
         List<AOEInstance> aoes = [];
-        foreach (var orb in iceOrbs) {
+        foreach (var orb in iceOrbs)
+        {
             aoes.Add(new(shape, orb.Position, orb.Rotation));
         }
 
@@ -123,42 +148,53 @@ sealed class GlacipotentOrb(BossModule module) : Components.GenericAOEs(module) 
     }
 }
 
-sealed class TheDragonsVoiceBoss(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TheDragonsVoice, new AOEShapeDonut(8.0f, 30.0f)) {
+sealed class TheDragonsVoiceBoss(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TheDragonsVoice, new AOEShapeDonut(8.0f, 30.0f))
+{
     private readonly List<Actor> orbs = [];
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.FulmipotentOrb) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.FulmipotentOrb)
+        {
             orbs.Add(actor);
         }
     }
 
-    public override void OnActorDestroyed(Actor actor) {
-        if (actor.OID == (uint)OID.FulmipotentOrb) {
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.FulmipotentOrb)
+        {
             orbs.Remove(actor);
         }
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (Casters.Count == 0) {
+        if (Casters.Count == 0)
+        {
             return;
         }
 
-        if (orbs.Count <= 2) {
+        if (orbs.Count <= 2)
+        {
             return;
         }
 
         Actor? singleOrb = null;
         var bestDistance = float.MinValue;
-        foreach (var orb in orbs) {
+        foreach (var orb in orbs)
+        {
             var distance = orbs.Where(o => o != orb).Min(o => (o.Position - orb.Position).LengthSq());
-            if (distance > bestDistance) {
+            if (distance > bestDistance)
+            {
                 bestDistance = distance;
                 singleOrb = orb;
             }
         }
 
-        if (singleOrb == null) {
+        if (singleOrb == null)
+        {
             return;
         }
 
@@ -168,29 +204,37 @@ sealed class TheDragonsVoiceBoss(BossModule module) : Components.SimpleAOEs(modu
     }
 }
 
-sealed class Cacophony(BossModule module) : Components.GenericAOEs(module) {
-    private List<Actor> orbs = [];
+sealed class Cacophony(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<Actor> orbs = [];
     private readonly AOEShapeCircle shape = new(6.0f);
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.Cacophony) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.Cacophony)
+        {
             orbs.Add(actor);
         }
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.ChaoticChorus) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.ChaoticChorus)
+        {
             orbs.Remove(caster);
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        if (orbs.Count == 0) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (orbs.Count == 0)
+        {
             return [];
         }
 
         List<AOEInstance> aoes = [];
-        foreach (var orb in orbs) {
+        foreach (var orb in orbs)
+        {
             aoes.Add(new(shape, orb.Position, orb.Rotation, WorldState.FutureTime(1.5f)));
         }
 
@@ -198,35 +242,44 @@ sealed class Cacophony(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-sealed class Duobreath(BossModule module) : Components.GenericAOEs(module) {
+sealed class Duobreath(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new(40.0f, 90.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath)
+        {
             aoes.Add(new(shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell)));
             aoes.Add(new(shape, spell.LocXZ, spell.Rotation + 180.0f.Degrees(), Module.CastFinishAt(spell, 3.0f)));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath or (uint)AID.TheRamsBreath3 or (uint)AID.TheDragonsBreath3) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.LeftDuobreath or (uint)AID.RightDuobreath or (uint)AID.TheRamsBreath3 or (uint)AID.TheDragonsBreath3)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         var count = aoes.Count;
-        if (count == 0) {
+        if (count == 0)
+        {
             return [];
         }
 
         var max = count > 2 ? 2 : count;
         var nextAOEs = CollectionsMarshal.AsSpan(aoes);
 
-        for (int i = 0; i < max; i++) {
+        for (int i = 0; i < max; i++)
+        {
             ref var aoe = ref nextAOEs[i];
             aoe.Color = i == 0 ? Colors.Danger : Colors.AOE;
             aoe.Risky = i == 0;
@@ -235,21 +288,25 @@ sealed class Duobreath(BossModule module) : Components.GenericAOEs(module) {
         return nextAOEs[..max];
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (aoes.Count == 0) {
+        if (aoes.Count == 0)
+        {
             return;
         }
 
-        var nextAOE =  aoes[0];
+        var nextAOE = aoes[0];
         var distance = nextAOE.Shape.Distance(nextAOE.Origin, nextAOE.Rotation);
         hints.GoalZones.Add(p => distance.Distance(p) is > 0.0f and <= 1.0f ? 100.0f : 0.0f);
     }
 }
 
 [SkipLocalsInit]
-sealed class RegnantChimeraStates : StateMachineBuilder {
-    public RegnantChimeraStates(BossModule module) : base(module) {
+sealed class RegnantChimeraStates : StateMachineBuilder
+{
+    public RegnantChimeraStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Breath>()
             .ActivateOnEnter<TheRamsVoice>()

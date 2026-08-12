@@ -58,24 +58,32 @@ sealed class Aerosnare : Components.SimpleAOEs
     }
 }
 
-sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
+sealed class Buffet(BossModule module) : Components.GenericKnockback(module)
+{
     private readonly List<Knockback> knockbacks = [];
     private BuffetWind? _aoe;
     public bool active = false;
 
-    public override void OnActorEAnim(Actor actor, uint state) {
-        if (actor.OID == (uint)OID.BuffetWind && state == 65538) {
-            knockbacks.Add(new(actor.Position, 24.0f, WorldState.FutureTime(11.1f), direction: actor.Rotation, kind: Kind.DirForward, actorID: actor.InstanceID));
-        }
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.BuffetWind)
+        {
+            if (state == 65538u)
+            {
+                knockbacks.Add(new(actor.Position, 24.0f, WorldState.FutureTime(11.1f), direction: actor.Rotation, kind: Kind.DirForward, actorID: actor.InstanceID));
+            }
 
-        if (actor.OID == (uint)OID.BuffetWind && state == 1048608) {
-            active = true;
+            else if (state == 1048608u)
+            {
+                active = true;
+            }
         }
-
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID == (uint)AID.Buffet) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == (uint)AID.Buffet)
+        {
             knockbacks.Clear();
             active = false;
         }
@@ -83,8 +91,10 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
 
     public override ReadOnlySpan<Knockback> ActiveKnockbacks(int slot, Actor actor) => CollectionsMarshal.AsSpan(knockbacks);
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
-        if (knockbacks.Count == 0) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (knockbacks.Count == 0)
+        {
             return;
         }
 
@@ -92,15 +102,18 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
         _aoe ??= Module.FindComponent<BuffetWind>();
 
         var activation = k.Activation;
-        if (!IsImmune(slot, activation)) {
+        if (!IsImmune(slot, activation))
+        {
             var aoes = CollectionsMarshal.AsSpan(_aoe!.aoes);
             var len = aoes.Length;
             var circleArcs = new Components.GenericAOEs.AOEInstance[len];
             var circleArcsCount = 0;
 
-            for (var i = 0; i < len; i++) {
+            for (var i = 0; i < len; i++)
+            {
                 ref var aoe = ref aoes[i];
-                if (aoe.Shape is AOEShapeArcCapsule arcCapsule) {
+                if (aoe.Shape is AOEShapeArcCapsule arcCapsule)
+                {
                     var distance = (aoe.Origin - arcCapsule.OrbitCenter).Length();
                     var angle = (2.0f / distance).Radians();
                     var direction = arcCapsule.AngularLength + (arcCapsule.AngularLength.Rad < 0.0f ? -angle : angle);
@@ -114,12 +127,15 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) {
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    {
         _aoe ??= Module.FindComponent<BuffetWind>();
         var aoes = CollectionsMarshal.AsSpan(_aoe!.aoes);
         var len = aoes.Length;
-        for (var i = 0; i < len; ++i) {
-            if (aoes[i].Check(pos)) {
+        for (var i = 0; i < len; ++i)
+        {
+            if (aoes[i].Check(pos))
+            {
                 return true;
             }
         }
@@ -127,17 +143,20 @@ sealed class Buffet(BossModule module) : Components.GenericKnockback(module) {
     }
 }
 
-sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
+sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module)
+{
     public List<AOEInstance> aoes = [];
-    private List<(Actor actor, bool incomingWind, WPos predictedPosition, DateTime activation)> winds = []; // incomingWind is for when the actor has an active icon
+    private readonly List<(Actor actor, bool incomingWind, WPos predictedPosition, DateTime activation)> winds = []; // incomingWind is for when the actor has an active icon
     private readonly AOEShapeCross cross = new(60.0f, 4.2f); // Slightly bigger since the predicted aoes can be like a pixel off
     private readonly AOEShapeCircle circle = new(4.0f);
     private const float innerCircleAngle = 34.7f;
     private const float outerCircleAngle = 40.7f;
     private Buffet? buffetWind;
 
-    public override void OnActorCreated(Actor actor) {
-        if (actor.OID == (uint)OID.BitingWind) {
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.BitingWind)
+        {
             winds.Add((actor, false, default, default));
         }
     }
@@ -203,12 +222,14 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
             return [];
         }
 
-        foreach (var wind in winds) {
+        foreach (var wind in winds)
+        {
             var angleDirection = (wind.actor.Position - Arena.Center).Cross(wind.actor.Rotation.ToDirection()) > 0.0f;
             var length = 4.0f / (wind.actor.Position - Arena.Center).Length();
-            var lengthDirection = (angleDirection ? -length  : length).Radians();
+            var lengthDirection = (angleDirection ? -length : length).Radians();
             aoes.Add(new(new AOEShapeArcCapsule(4.0f, lengthDirection, Arena.Center), wind.actor.Position, wind.actor.Rotation, color: Colors.Danger));
-            if (wind.incomingWind == true) {
+            if (wind.incomingWind)
+            {
                 aoes.Add(new(circle, wind.predictedPosition, default, wind.activation));
                 aoes.Add(new(cross, wind.predictedPosition, Angle.AnglesIntercardinals[1], wind.activation));
                 aoes.Add(new(cross, wind.predictedPosition, Angle.AnglesCardinals[1], wind.activation));
@@ -218,18 +239,22 @@ sealed class BuffetWind(BossModule module) : Components.GenericAOEs(module) {
         return CollectionsMarshal.AsSpan(aoes);
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
-        if (aoes.Count == 0 || winds.Count == 0) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (aoes.Count == 0 || winds.Count == 0)
+        {
             return;
         }
 
         buffetWind ??= Module.FindComponent<Buffet>();
 
-        if (buffetWind == null) {
+        if (buffetWind == null)
+        {
             return;
         }
 
-        if (buffetWind.active == true) {
+        if (buffetWind.active)
+        {
             return;
         }
 

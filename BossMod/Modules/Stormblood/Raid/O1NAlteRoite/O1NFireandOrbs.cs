@@ -13,7 +13,7 @@ sealed class FireOrbsTimedFollowAOE(BossModule module) : Components.GenericAOEs(
     private const float InnerExplodeFromSpawn = 16.84f;
 
     // outer ring: explode shortly after Breath Wing / Downburst resolves; approximate as "boss cast start + 4s"
-   // outer ring explosion timings measured from replay (cast start -> orb explosion)
+    // outer ring explosion timings measured from replay (cast start -> orb explosion)
     private const float OuterExplodeFromBreathStart = 9.08f;
     private const float OuterExplodeFromDownburstStart = 12.18f;
     private record struct OrbInfo(DateTime Spawn, bool IsOuter, DateTime PredictedExplode, DateTime? ActualExplode);
@@ -94,7 +94,7 @@ sealed class FireOrbsTimedFollowAOE(BossModule module) : Components.GenericAOEs(
                 _downburstStart = WorldState.CurrentTime;
 
             // once seen Breath/Downburst, update predictions for any outer orbs that haven't started casting yet
-            if (spell.Action.ID == (uint)AID.BreathWing || spell.Action.ID == (uint)AID.Downburst)
+            if (spell.Action.ID is (uint)AID.BreathWing or (uint)AID.Downburst)
                 RefreshOuterPredictions();
 
             return;
@@ -123,7 +123,7 @@ sealed class FireOrbsTimedFollowAOE(BossModule module) : Components.GenericAOEs(
     {
         // prefer the most recent known driver
         if (_downburstStart != default)
-        return _downburstStart.AddSeconds(OuterExplodeFromDownburstStart);
+            return _downburstStart.AddSeconds(OuterExplodeFromDownburstStart);
         if (_breathStart != default)
             return _breathStart.AddSeconds(OuterExplodeFromBreathStart);
 
@@ -133,7 +133,6 @@ sealed class FireOrbsTimedFollowAOE(BossModule module) : Components.GenericAOEs(
 
     private void RefreshOuterPredictions()
     {
-        var now = WorldState.CurrentTime;
         foreach (var (id, info) in _orbs.ToArray())
         {
             if (!info.IsOuter || info.ActualExplode.HasValue)

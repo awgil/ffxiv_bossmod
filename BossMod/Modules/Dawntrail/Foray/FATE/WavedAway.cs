@@ -1,12 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.WavedAway;
 
-public enum OID : uint {
+public enum OID : uint
+{
     ArchKelpie = 0x4B1F,
     Helper = 0x233C,
     ArchKelpieHelper = 0x4B5B, // R0.500, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 47381, // ArchKelpie->player, no cast, single-target
     Teleport = 47382, // ArchKelpie->player, no cast, single-target
     WaveWhistle = 47383, // ArchKelpie->self, 5.0s cast, range 25 width 50 rect
@@ -22,22 +24,28 @@ public enum AID : uint {
 sealed class WaveWhistle(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WaveWhistle, new AOEShapeRect(25.0f, 25.0f));
 sealed class WaterIV(BossModule module) : Components.RaidwideCast(module, (uint)AID.WaterIV);
 
-sealed class BloodyPuddle : Components.SimpleAOEs {
-    public BloodyPuddle(BossModule module) : base(module, (uint)AID.BloodyPuddle, 8f) {
+sealed class BloodyPuddle : Components.SimpleAOEs
+{
+    public BloodyPuddle(BossModule module) : base(module, (uint)AID.BloodyPuddle, 8f)
+    {
         Color = Colors.Danger;
     }
 }
 
-class StormWaveStart : Components.SimpleAOEs {
-    public StormWaveStart(BossModule module) : base(module, (uint)AID.StormWaveStart, new AOEShapeRect(50.0f, 5.0f)) {
+class StormWaveStart : Components.SimpleAOEs
+{
+    public StormWaveStart(BossModule module) : base(module, (uint)AID.StormWaveStart, new AOEShapeRect(50.0f, 5.0f))
+    {
         Color = Colors.Danger;
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
         base.AddAIHints(slot, actor, assignment, hints);
         var casters = CollectionsMarshal.AsSpan(Casters);
         var count = casters.Length;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
+        {
             var aoe = casters[i];
             var right = aoe.Origin + aoe.Rotation.ToDirection().OrthoR() * 1.0f;
             var left = aoe.Origin + aoe.Rotation.ToDirection().OrthoL() * 1.0f;
@@ -46,18 +54,22 @@ class StormWaveStart : Components.SimpleAOEs {
     }
 }
 
-class StormWave(BossModule module) : Components.Exaflare(module, new AOEShapeRect(25.0f, 2.5f, 25.0f)) {
+class StormWave(BossModule module) : Components.Exaflare(module, new AOEShapeRect(25.0f, 2.5f, 25.0f))
+{
     private readonly List<WaveSet> waves = [];
 
-    private class WaveSet(Line right, Line left, ulong casterID) {
+    private class WaveSet(Line right, Line left, ulong casterID)
+    {
         public readonly Line RightLine = right;
         public readonly Line LeftLine = left;
         public bool waveStart = false;
         public ulong casterInstanceID = casterID;
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if ((AID)spell.Action.ID == AID.StormWaveStart) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.StormWaveStart)
+        {
             var directionRight = caster.Rotation.ToDirection().OrthoR() * 5.0f;
             var directionLeft = caster.Rotation.ToDirection().OrthoL() * 5.0f;
 
@@ -72,23 +84,30 @@ class StormWave(BossModule module) : Components.Exaflare(module, new AOEShapeRec
         }
     }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.StormWaveStart) {
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.StormWaveStart)
+        {
             var set = waves.Find(w => w.casterInstanceID == caster.InstanceID);
-            if (set != null) {
+            if (set != null)
+            {
                 set.waveStart = true;
                 currentVersion++;
             }
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if ((AID)spell.Action.ID is AID.StormWaveStart or AID.StormWaveNext) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.StormWaveStart or AID.StormWaveNext)
+        {
             var ix = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position + l.Advance / 2, 1.0f));
-            if (ix >= 0) {
+            if (ix >= 0)
+            {
                 var line = Lines[ix];
                 AdvanceLine(Lines[ix], caster.Position + Lines[ix].Advance / 2);
-                if (Lines[ix].ExplosionsLeft <= 0) {
+                if (Lines[ix].ExplosionsLeft <= 0)
+                {
                     Lines.RemoveAt(ix);
                     waves.RemoveAll(w => (w.RightLine == line || w.LeftLine == line) && !Lines.Contains(w.RightLine) && !Lines.Contains(w.LeftLine));
                 }
@@ -96,23 +115,27 @@ class StormWave(BossModule module) : Components.Exaflare(module, new AOEShapeRec
         }
     }
 
-    public override void Update() {
+    public override void Update()
+    {
         var linesCount = Lines.Count;
-        if (lastCount != linesCount || currentVersion != lastVersion) {
+        if (lastCount != linesCount || currentVersion != lastVersion)
+        {
             var futureAOEs = CollectionsMarshal.AsSpan(FutureAOEs(linesCount));
             var imminentAOEs = ImminentAOEs(linesCount);
             var futureLen = futureAOEs.Length;
             var imminentLen = imminentAOEs.Length;
 
             _aoes = new AOEInstance[futureLen + imminentLen];
-            for (var i = 0; i < futureLen; ++i) {
+            for (var i = 0; i < futureLen; ++i)
+            {
                 ref var aoe = ref futureAOEs[i];
                 var origin = aoe.Item1;
                 var rotation = aoe.Item3;
                 _aoes[i] = new(Shape, origin, rotation, aoe.Item2, FutureColor, false, shapeDistance: Shape.Distance(origin, rotation));
             }
 
-            for (var i = 0; i < imminentLen; ++i) {
+            for (var i = 0; i < imminentLen; ++i)
+            {
                 ref var aoe = ref imminentAOEs[i];
                 var origin = aoe.Item1;
                 var rotation = aoe.Item3;
@@ -128,8 +151,10 @@ class StormWave(BossModule module) : Components.Exaflare(module, new AOEShapeRec
 }
 
 [SkipLocalsInit]
-sealed class WavedAwayStates : StateMachineBuilder {
-    public WavedAwayStates(BossModule module) : base(module) {
+sealed class WavedAwayStates : StateMachineBuilder
+{
+    public WavedAwayStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<WaveWhistle>()
             .ActivateOnEnter<WaterIV>()

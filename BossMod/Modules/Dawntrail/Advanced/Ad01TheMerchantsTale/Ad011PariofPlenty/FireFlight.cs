@@ -35,7 +35,10 @@ sealed class FireFlight(BossModule module) : Components.GenericAOEs(module)
             if (tether.ID == (uint)TetherID.Fireflight)
             {
                 var target = WorldState.Actors.Find(tether.Target);
-                if (target == null) { return; }
+                if (target == null)
+                {
+                    return;
+                }
                 var aoes = CollectionsMarshal.AsSpan(_aoes);
                 var len = aoes.Length;
                 var initial = len == 0 ? _who.Position : _nextLanding;
@@ -44,7 +47,7 @@ sealed class FireFlight(BossModule module) : Components.GenericAOEs(module)
                 {
                     _firstActivation = WorldState.FutureTime(11.25d);
                 }
-                var dist = (_nextLanding - initial).Length();
+
                 var rot = (_nextLanding - initial).ToAngle();
                 var activation = _firstActivation.AddSeconds(2d * (len - 1));
                 var conerot = left ? rot + 90.Degrees() : rot + 270.Degrees();
@@ -129,7 +132,10 @@ sealed class FireFlightFactOrFiction(BossModule module) : Components.GenericAOEs
             if (source == real)
             {
                 var target = WorldState.Actors.Find(tether.Target);
-                if (target == null) { return; }
+                if (target == null)
+                {
+                    return;
+                }
                 var aoes = CollectionsMarshal.AsSpan(_aoes);
                 var len = aoes.Length;
                 var initial = len == 0 ? Module.PrimaryActor.Position : _nextLanding;
@@ -138,7 +144,7 @@ sealed class FireFlightFactOrFiction(BossModule module) : Components.GenericAOEs
                 {
                     _firstActivation = WorldState.FutureTime(11.25d);
                 }
-                var dist = (_nextLanding - initial).Length();
+
                 var rot = (_nextLanding - initial).ToAngle();
                 var activation = _firstActivation.AddSeconds(2d * (len - 1));
                 var conerot = left ? rot + 90.Degrees() : rot + 270.Degrees();
@@ -181,16 +187,15 @@ sealed class FireFlightFactOrFiction(BossModule module) : Components.GenericAOEs
 sealed class DoubleFableFlight(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => _activecasters;
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => Activecasters;
     private WPos _nextLanding = default;
     private DateTime _firstActivation = default;
     private bool left;
-    private Actor _who;
     private bool _active = false;
     private readonly List<uint> _carpetrides = [(uint)AID.CarpetRide, (uint)AID.CarpetRide1, (uint)AID.CarpetRide2, (uint)AID.CarpetRide3, (uint)AID.CarpetRide4, (uint)AID.CarpetRide5, (uint)AID.CarpetRide6, (uint)AID.CarpetRide7, (uint)AID.CarpetRide8, (uint)AID.CarpetRide9, (uint)AID.CarpetRide10];
     private readonly List<AOEInstance> _casters = [];
 
-    public ReadOnlySpan<AOEInstance> _activecasters
+    public ReadOnlySpan<AOEInstance> Activecasters
     {
         get
         {
@@ -205,21 +210,19 @@ sealed class DoubleFableFlight(BossModule module) : Components.GenericAOEs(modul
         if (spell.Action.ID is ((uint)AID.LeftFableflight1))
         {
             left = true;
-            _who = caster;
             _active = true;
         }
         else if (spell.Action.ID is (uint)AID.RightFableflight1)
         {
             left = false;
-            _who = caster;
             _active = true;
         }
         else if (spell.Action.ID is (uint)AID.CharmdFableflight)
         {
             _active = true;
         }
-
     }
+
     public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         if (_active)
@@ -228,7 +231,10 @@ sealed class DoubleFableFlight(BossModule module) : Components.GenericAOEs(modul
             {
 
                 var target = WorldState.Actors.Find(tether.Target);
-                if (target == null) { return; }
+                if (target == null)
+                {
+                    return;
+                }
                 var aoes = CollectionsMarshal.AsSpan(_aoes);
                 var len = aoes.Length;
                 var initial = source.Position;
@@ -237,7 +243,7 @@ sealed class DoubleFableFlight(BossModule module) : Components.GenericAOEs(modul
                 {
                     _firstActivation = WorldState.FutureTime(11.25d);
                 }
-                var dist = (_nextLanding - initial).Length();
+
                 var rot = (_nextLanding - initial).ToAngle();
                 var activation = _firstActivation.AddSeconds(2d * (len - 1));
                 var conerot = left ? rot + 90.Degrees() : rot + 270.Degrees();
@@ -260,7 +266,7 @@ sealed class DoubleFableFlight(BossModule module) : Components.GenericAOEs(modul
                     //{
                     //    _aoes.RemoveAt(0);
                     //}
-                    if(_casters.Count == 0)
+                    if (_casters.Count == 0)
                     {
                         _active = false;
                     }

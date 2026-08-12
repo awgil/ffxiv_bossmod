@@ -56,11 +56,11 @@ sealed class ChaosBaits(BossModule module) : Components.GenericBaitAway(module)
             // 180 degrees rotation to keep the cross from spinning with pc.
             CurrentBaits.Add(new(_nextTarget, _nextTarget, new AOEShapeCross(40f, 4f), _nextActivation, customRotation: 180.Degrees()));
         }
-        else if ((IconID)iconID == IconID.SpreadCircle &&  _nextTarget != null)
+        else if ((IconID)iconID == IconID.SpreadCircle && _nextTarget != null)
         {
             CurrentBaits.Add(new(_nextTarget, _nextTarget, new AOEShapeCircle(7f), _nextActivation));
         }
-        else if ((IconID)iconID == IconID.RingOfChaosIcon &&  _nextTarget != null)
+        else if ((IconID)iconID == IconID.RingOfChaosIcon && _nextTarget != null)
         {
             CurrentBaits.Add(new(_nextTarget, _nextTarget, new AOEShapeDonut(10f, 20f), _nextActivation));
         }
@@ -99,30 +99,23 @@ sealed class ChaosBaits(BossModule module) : Components.GenericBaitAway(module)
 
 sealed class WordsOfWoe(BossModule module) : Components.SimpleAOEs(module, (uint)AID.WordsOfWoe, new AOEShapeRect(65f, 3f));
 
-
 [SkipLocalsInit]
-sealed class HrodricPoisontongueStates : StateMachineBuilder
+sealed class D093HrodricPoisonTongueStates : StateMachineBuilder
 {
-    public HrodricPoisontongueStates(BossModule module) : base(module)
+    public D093HrodricPoisonTongueStates(BossModule module) : base(module)
     {
-        DeathPhase(default, SinglePhase);
-    }
-
-    private void SinglePhase(uint id)
-    {
-        SimpleState(id + 0xFF0000u, 10000f, "???")
+        TrivialPhase()
             .ActivateOnEnter<RustingClaw>()
             .ActivateOnEnter<TailDrive>()
             .ActivateOnEnter<TheSpin>()
             .ActivateOnEnter<ChaosBaits>()
             .ActivateOnEnter<EyeOfTheFire>()
-            .ActivateOnEnter<WordsOfWoe>()
-            ;
+            .ActivateOnEnter<WordsOfWoe>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(HrodricPoisontongueStates),
+    StatesType = typeof(D093HrodricPoisonTongueStates),
     ConfigType = null, // replace null with typeof(HrodricPoisontongueConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -136,7 +129,7 @@ sealed class HrodricPoisontongueStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 279u,
     NameID = 6910u,
-    SortOrder = 1,
+    SortOrder = 3,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class HrodricPoisontongue(WorldState ws, Actor primary) : BossModule(ws, primary, new(479f, 4f), new ArenaBoundsCircle(20f));
+public sealed class D093HrodricPoisonTongue(WorldState ws, Actor primary) : BossModule(ws, primary, new(479f, 4f), new ArenaBoundsCircle(20f));

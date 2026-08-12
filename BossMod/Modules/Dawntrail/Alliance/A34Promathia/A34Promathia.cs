@@ -181,7 +181,7 @@ sealed class WindsOfPromyvion(BossModule module) : Components.GenericRotatingAOE
         }
     }
 }
-sealed class EmptySeed(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.EmptySeed, 10f, shape:new AOEShapeCircle(10f))
+sealed class EmptySeed(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.EmptySeed, 10f, shape: new AOEShapeCircle(10f))
 {
     private Angle PlatformOrientation(WPos p)
     {
@@ -234,8 +234,7 @@ sealed class EmptySeed(BossModule module) : Components.SimpleKnockbacks(module, 
                 hints.AddForbiddenZone(new SDInvertedCone(corner, 5f, angle + 180.Degrees(), 22.5f.Degrees()));
             }
         }
-
-   }
+    }
 }
 
 sealed class MalevolentBlessingCone(BossModule module) : Components.SimpleAOEs(module, (uint)AID.MalevolentBlessingCone, new AOEShapeCone(40f, 11.5f.Degrees()));

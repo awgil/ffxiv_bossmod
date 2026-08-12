@@ -57,7 +57,7 @@ sealed class TyrantStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 17u,
     NameID = 2264u,
-    SortOrder = 1,
+    SortOrder = 3,
     PlanLevel = 0)]
 // (0, 140, 0) for hyperborea
 [SkipLocalsInit]
@@ -66,11 +66,7 @@ public sealed class D173Tyrant : BossModule
     public D173Tyrant(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
 
     // Constructor so we can build arena
-    private D173Tyrant(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary,
-        a.center,
-        a.arena)
-    {
-    }
+    private D173Tyrant(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
 
     public static readonly WPos ArenaCenter = new(0f, 0f);
 
@@ -84,7 +80,7 @@ public sealed class D173Tyrant : BossModule
         // 4 light columns at intercardinals
         Array.ForEach(Angle.AnglesIntercardinals, interCardinal =>
         {
-            WPos pos = WPos.RotateAroundOrigin(interCardinal.Deg, ArenaCenter, startPos);
+            var pos = WPos.RotateAroundOrigin(interCardinal.Deg, ArenaCenter, startPos);
             _shapes.Add(new Rectangle(pos, 1f, 1f, interCardinal));
         });
 

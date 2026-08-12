@@ -6,17 +6,21 @@ class ScouringScorn(BossModule module) : Components.RaidwideCast(module, (uint)A
 
 class ImpassionedSparks(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ImpassionedSparks3, new AOEShapeCircle(8f), 8);
 
-class BurningPillar(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
-    
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if ((AID)spell.Action.ID == AID.BurningPillar) {
+class BurningPillar(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.BurningPillar)
+        {
             aoes.Add(new AOEInstance(new AOEShapeCircle(10f), caster.Position, default, default, Colors.Danger));
             NumCasts++;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         return CollectionsMarshal.AsSpan(aoes);
     }
 }

@@ -156,28 +156,22 @@ sealed class WaterPuddles(BossModule module) : BossComponent(module)
 class BloodyBurstTether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(6f), (uint)TetherID.HydrosphereTether, (uint)AID.BubbleBurst, enemyOID: (uint)OID.Hydrosphere);
 
 [SkipLocalsInit]
-sealed class KelpieStates : StateMachineBuilder
+sealed class D091KelpieStates : StateMachineBuilder
 {
-    public KelpieStates(BossModule module) : base(module)
+    public D091KelpieStates(BossModule module) : base(module)
     {
-        DeathPhase(default, SinglePhase);
-    }
-
-    private void SinglePhase(uint id)
-    {
-        SimpleState(id + 0xFF0000u, 10000f, "???")
+        TrivialPhase()
             .ActivateOnEnter<RisingSeas>()
             .ActivateOnEnter<HydroPull>()
             .ActivateOnEnter<HydroPush>()
             .ActivateOnEnter<WaterPuddles>()
             .ActivateOnEnter<BloodyPuddle>()
-            .ActivateOnEnter<BloodyBurstTether>()
-            ;
+            .ActivateOnEnter<BloodyBurstTether>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(KelpieStates),
+    StatesType = typeof(D091KelpieStates),
     ConfigType = null, // replace null with typeof(KelpieConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -195,4 +189,4 @@ sealed class KelpieStates : StateMachineBuilder
     PlanLevel = 0)]
 [SkipLocalsInit]
 
-public sealed class Kelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(-220f, 4f), new ArenaBoundsSquare(14.5f));
+public sealed class D091Kelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(-220f, 4f), new ArenaBoundsSquare(14.5f));

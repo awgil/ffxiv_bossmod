@@ -117,7 +117,7 @@ sealed class D132ChortStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1011u,
     NameID = 14734u,
-    SortOrder = 1,
+    SortOrder = 2,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Chort(WorldState ws, Actor primary) : BossModule(ws, primary, new(660f, -141f), new ArenaBoundsCircle(15f));
+public sealed class D132Chort(WorldState ws, Actor primary) : BossModule(ws, primary, new(660f, -141f), new ArenaBoundsCircle(15f));

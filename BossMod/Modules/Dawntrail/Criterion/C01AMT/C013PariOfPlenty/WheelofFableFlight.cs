@@ -1,74 +1,86 @@
 ﻿namespace BossMod.Dawntrail.Criterion.C01AMT.C013PariOfPlenty;
 
 // TODO figure out who gets the stack - its always support / DPS - but can we tell who?
-class WheelOfFableFlight(BossModule module) : Components.GenericAOEs(module) {
-    private List<AOEInstance> aoes = [];
+class WheelOfFableFlight(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> aoes = [];
     private Angle offset;
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.WheelOfFableflightRight) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is var id && id == (uint)AID.WheelOfFableflightRight)
+        {
             offset = -90.Degrees();
-            return;
         }
-        
-        if (spell.Action.ID == (uint)AID.WheelOfFableflightLeft) {
+        else if (spell.Action.ID == (uint)AID.WheelOfFableflightLeft)
+        {
             offset = 90.Degrees();
         }
     }
 
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID) {
-        if (iconID is (uint)IconID.FalseFlameRight) {
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID == (uint)IconID.FalseFlameRight)
+        {
             aoes.Add(new AOEInstance(new AOEShapeRect(40, 40, 0, offset), actor.Position, actor.Rotation - 90.Degrees(), WorldState.CurrentTime, Colors.AOE));
         }
-        
-        if (iconID is (uint)IconID.FalseFlameLeft) {
+
+        else if (iconID == (uint)IconID.FalseFlameLeft)
+        {
             aoes.Add(new AOEInstance(new AOEShapeRect(40, 40, 0, -offset), actor.Position, actor.Rotation - 90.Degrees(), WorldState.CurrentTime, Colors.AOE));
         }
-        
-        if (iconID is (uint)IconID.FalseFlameRRight) {
+
+        else if (iconID == (uint)IconID.FalseFlameRRight)
+        {
             aoes.Add(new AOEInstance(new AOEShapeRect(40, 40, 0, offset), actor.Position, actor.Rotation - 90.Degrees(), WorldState.CurrentTime, Colors.AOE));
         }
-        
-        if (iconID is (uint)IconID.FalseFlameRLeft) {
+
+        else if (iconID == (uint)IconID.FalseFlameRLeft)
+        {
             aoes.Add(new AOEInstance(new AOEShapeRect(40, 40, 0, -offset), actor.Position, actor.Rotation - 90.Degrees(), WorldState.CurrentTime, Colors.AOE));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if ((AID)spell.Action.ID == AID.WheelOfFireflight || 
-            (AID)spell.Action.ID == AID.WheelOfFireflight1 || 
-            (AID)spell.Action.ID == AID.WheelOfFireflight2 || 
-            (AID)spell.Action.ID == AID.WheelOfFireflight3) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.WheelOfFireflight or (uint)AID.WheelOfFireflight1 or (uint)AID.WheelOfFireflight2 or (uint)AID.WheelOfFireflight3)
+        {
             aoes.Clear();
-            NumCasts++;
+            ++NumCasts;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         return CollectionsMarshal.AsSpan(aoes);
     }
 }
 
-class WheelofFableFlightStackSpread(BossModule module) : Components.UniformStackSpread(module, 6f, 6f, 2) {
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if ((AID)spell.Action.ID == AID.KindledFlameStack) {
+class WheelofFableFlightStackSpread(BossModule module) : Components.UniformStackSpread(module, 6f, 6f, 2)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is var id && id == (uint)AID.KindledFlameStack)
+        {
             AddStacks(Raid.WithoutSlot().Where(p => p.Class.IsSupport()));
         }
-
-        if ((AID)spell.Action.ID == AID.ScatteredKindlingSpread) {
-            foreach (var (i, player) in Raid.WithSlot()) {
+        else if (id == (uint)AID.ScatteredKindlingSpread)
+        {
+            foreach (var (i, player) in Raid.WithSlot())
+            {
                 AddSpread(player);
             }
         }
     }
-    
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if ((AID)spell.Action.ID == AID.KindledFlame1) {
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is var id && id == (uint)AID.KindledFlame1)
+        {
             Stacks.Clear();
-            return;
         }
-        
-        if ((AID)spell.Action.ID == AID.ScatteredKindling1) {
+        else if (id == (uint)AID.ScatteredKindling1)
+        {
             Spreads.Clear();
         }
     }

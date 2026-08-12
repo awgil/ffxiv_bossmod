@@ -8,14 +8,14 @@
  * not load if party wipes after reaching phase 2.
  */
 // import the components from phase 1 of the fight.
-using BossMod.Shadowbringers.Trial.T04WarriorOfLight;
+using BossMod.Shadowbringers.Trial.T04WarriorOfLightP1;
 
-namespace BossMod.Shadowbringers.Trial.T04WarriorOfLight2;
+namespace BossMod.Shadowbringers.Trial.T04WarriorOfLightP2;
 
 [SkipLocalsInit]
-sealed class WarriorOfLightStates : StateMachineBuilder
+sealed class T04WarriorOfLightP2States : StateMachineBuilder
 {
-    public WarriorOfLightStates(WarriorOfLight module) : base(module)
+    public T04WarriorOfLightP2States(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<TerrorUnleashed>()
@@ -49,7 +49,7 @@ sealed class WarriorOfLightStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(WarriorOfLightStates),
+    StatesType = typeof(T04WarriorOfLightP2States),
     ConfigType = null, // replace null with typeof(WarriorOfLightConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -63,9 +63,8 @@ sealed class WarriorOfLightStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 738u,
     NameID = 9462u,
-    SortOrder = 1,
+    SortOrder = 2,
     PlanLevel = 0)]
 
 [SkipLocalsInit]
-public sealed class WarriorOfLight(WorldState ws, Actor primary)
-    : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsSquare(20f));
+public sealed class T04WarriorOfLightP2(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsSquare(20f));

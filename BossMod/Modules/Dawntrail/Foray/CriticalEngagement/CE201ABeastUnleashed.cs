@@ -340,7 +340,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
         switch (len)
         {
             case 1:
-                if (firstImmune)
+                if (!firstImmune)
                 {
                     AddAwayFromOrigin(first.Origin, firstActivation);
                 }
@@ -364,7 +364,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
                         return;
                     }
                     var lastActivation = last.Activation;
-                    if (IsImmune(slot, lastActivation))
+                    if (!IsImmune(slot, lastActivation))
                     {
                         AddAwayFromOrigin(last.Origin, lastActivation);
                     }

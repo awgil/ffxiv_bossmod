@@ -1,4 +1,4 @@
-namespace BossMod.Shadowbringers.Trial.T04WarriorOfLight;
+namespace BossMod.Shadowbringers.Trial.T04WarriorOfLightP1;
 
 public enum OID : uint
 {
@@ -118,13 +118,12 @@ public enum TetherID : uint
     FlareBreathTether = 17, // SpectralEgi->player
 }
 
-
 // Reduces the entire party's HP to 1 and inflicts True Walking Dead, which will kill affected
 // players when the debuff's timer runs out. The debuff is removed by healing the player to full HP.
 sealed class TerrorUnleashed(BossModule module) : Components.RaidwideCast(module, (uint)AID.TerrorUnleashed);
 
 // range 6 circle
-sealed class SolemnConfiteor(BossModule module) : Components.SimpleAOEs(module, (uint)AID.SolemnConfiteor1, new AOEShapeCircle(6f));
+sealed class SolemnConfiteor(BossModule module) : Components.SimpleAOEs(module, (uint)AID.SolemnConfiteor1, 6f);
 
 // range 5-60 donut
 sealed class CoruscantSaberDonut(BossModule module)
@@ -132,7 +131,7 @@ sealed class CoruscantSaberDonut(BossModule module)
 
 // range 10 circle
 sealed class CoruscantSaberCircle(BossModule module)
-    : Components.SimpleAOEs(module, (uint)AID.CoruscantSaberCircle, new AOEShapeCircle(10f));
+    : Components.SimpleAOEs(module, (uint)AID.CoruscantSaberCircle, 10f);
 
 /*
  * Marks each player with a "play" marker above their head. After the marker goes away,
@@ -163,13 +162,14 @@ class ElementStayMove(BossModule module) : Components.StayMove(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        // Cast time for imbued coruscance is approx 7 seconds.
-        DateTime _activation = WorldState.CurrentTime.AddSeconds(5.5f);
-
-        if (spell.Action.ID is (uint)AID.ImbuedAbsoluteBlizzardIII)
-            _imbuedBlizzard = true;
-        if ((spell.Action.ID is (uint)AID.ImbuedCoruscance or (uint)AID.ImbuedCoruscance1) && _imbuedBlizzard)
+        if (spell.Action.ID is var id && id == (uint)AID.ImbuedAbsoluteBlizzardIII)
         {
+            _imbuedBlizzard = true;
+        }
+        else if (id is (uint)AID.ImbuedCoruscance or (uint)AID.ImbuedCoruscance1 && _imbuedBlizzard)
+        {
+            // Cast time for imbued coruscance is approx 7 seconds.
+            var _activation = WorldState.CurrentTime.AddSeconds(5.5d);
             Array.Fill(PlayerStates, new(Requirement.Move, _activation, default, _activation.AddSeconds(2)));
         }
     }
@@ -332,7 +332,7 @@ sealed class DelugeOfDeath(BossModule module)
     {
         var _activation = WorldState.FutureTime(5.0f);
         // We want to path to another corner if we have a deluge of death bait.
-        WPos[] corners = [new (80f, 80f), new (120f, 80f), new (120f, 120f), new (80f, 120f)];
+        WPos[] corners = [new(80f, 80f), new(120f, 80f), new(120f, 120f), new(80f, 120f)];
         var count = corners.Length;
         if (count != 0 && ActiveBaits.Count > 0)
         {
@@ -408,7 +408,7 @@ sealed class RadiantBraver(BossModule module) : Components.BaitAwayIcon(module, 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
-        if (CurrentBaits.Count != 0 && spell.Action.ID is (uint)AID.RadiantBraver1 or  (uint)AID.RadiantBraver2)
+        if (CurrentBaits.Count != 0 && spell.Action.ID is (uint)AID.RadiantBraver1 or (uint)AID.RadiantBraver2)
         {
             CurrentBaits.RemoveAt(0);
         }
@@ -462,7 +462,7 @@ sealed class RadiantMeteor(BossModule module) : Components.SpreadFromCastTargets
     {
         var _activation = WorldState.FutureTime(5.0f);
         // We want to path to the corner if we have a radiant meteor bait.
-        WPos[] corners = [new (80f, 80f), new (120f, 80f), new (120f, 120f), new (80f, 120f)];
+        WPos[] corners = [new(80f, 80f), new(120f, 80f), new(120f, 120f), new(80f, 120f)];
         var count = corners.Length;
         if (count != 0 && ActiveSpreads.Count > 0)
         {
@@ -555,16 +555,13 @@ sealed class SwordOfLight(BossModule module)
     // Generate the aoe marker on map effect.
     public override void OnMapEffect(byte index, uint state)
     {
-        // sword of light cast time is approx 2.7 seconds, might need to extend this because aoe clears later.
-        DateTime _activation = WorldState.FutureTime(2.7f);
-
         //* ENVC|14|0002|0001 : where 14 is index (cardinal direction) and 00020001 is state that places sword at starting point of draw.
         if (state == 0x00020001u)
         {
-            (WPos pos, Angle rot) = index switch
+            (var pos, var rot) = index switch
             {
                 //14 is north facing south.
-                0x14 => (new WPos(100f, 80f), 0f.Degrees()),
+                0x14 => (new WPos(100f, 80f), default),
                 //15 is east facing west.
                 0x15 => (new WPos(120f, 100f), 270f.Degrees()),
                 //index 16 south facing north.
@@ -575,6 +572,8 @@ sealed class SwordOfLight(BossModule module)
             };
             if (pos != default)
             {
+                // sword of light cast time is approx 2.7 seconds, might need to extend this because aoe clears later.
+                var _activation = WorldState.FutureTime(2.7d);
                 Casters.Add(new(Shape, pos.Quantized(), rot, _activation));
             }
         }
@@ -590,8 +589,7 @@ sealed class SwordOfLight(BossModule module)
     }
 }
 
-sealed class SuitonSan(BossModule module)
-    : Components.SimpleKnockbacks(module, (uint)AID.SuitonSan, 30f, kind: Kind.DirForward)
+sealed class SuitonSan(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.SuitonSan, 30f, kind: Kind.DirForward)
 {
     // Leave a free space where ai should run to during knockback
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -623,11 +621,10 @@ sealed class FlareBreathAOE(BossModule module)
 // 4 cones followed by 4 cones radiating out from center.
 sealed class PerfectDecimation(BossModule module) : Components.SimpleAOEs(module, (uint)AID.PerfectDecimation1, new AOEShapeCone(60f, 22.5f.Degrees()), maxCasts: 4);
 
-
 [SkipLocalsInit]
-sealed class WarriorOfLightStates : StateMachineBuilder
+sealed class T04WarriorOfLightP1States : StateMachineBuilder
 {
-    public WarriorOfLightStates(WarriorOfLight module) : base(module)
+    public T04WarriorOfLightP1States(T04WarriorOfLightP1 module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<TerrorUnleashed>()
@@ -661,7 +658,7 @@ sealed class WarriorOfLightStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(WarriorOfLightStates),
+    StatesType = typeof(T04WarriorOfLightP1States),
     ConfigType = null, // replace null with typeof(WarriorOfLightConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -679,5 +676,4 @@ sealed class WarriorOfLightStates : StateMachineBuilder
     PlanLevel = 0)]
 
 [SkipLocalsInit]
-public sealed class WarriorOfLight(WorldState ws, Actor primary)
-    : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsSquare(20f));
+public sealed class T04WarriorOfLightP1(WorldState ws, Actor primary) : BossModule(ws, primary, new(100f, 100f), new ArenaBoundsSquare(20f));

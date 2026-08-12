@@ -554,7 +554,8 @@ public sealed class ArenaBoundsCustom : ArenaBounds
         var height = map.Height;
         var resolution = map.Resolution;
         // var startTime = Stopwatch.GetTimestamp();
-
+        // for (var i = 0; i < 10000; ++i)
+        // {
         var halfCell = resolution * 0.49999f; // tiny offset to account for floating point inaccuracies and the assumption that being exactly on the polygon border is safe
 
         var dx = new WDir(resolution, default);
@@ -588,6 +589,7 @@ public sealed class ArenaBoundsCustom : ArenaBounds
                 }
             }
         });
+        // }
         // var rasterFinish = Stopwatch.GetTimestamp();
         // Service.Log($"raster time: {(rasterFinish - startTime) * 1000d / Stopwatch.Frequency}ms");
         return map;

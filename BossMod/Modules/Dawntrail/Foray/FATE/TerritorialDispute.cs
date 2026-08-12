@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.TerritorialDispute;
 
-public enum OID : uint {
+public enum OID : uint
+{
     RuinHound = 0x4D5E,
     Helper = 0x233C,
     IcePillar = 0x4D5F, // R2.000, x0 (spawn during fight)
@@ -8,7 +9,8 @@ public enum OID : uint {
     RuinHound2 = 0x4D60, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50536, // RuinHound->player, no cast, single-target
     IcePillarCast = 49758, // RuinHound->self, 3.0s cast, single-target
     IcePillar = 49770, // 4D5F->self, 3.0s cast, range 4 circle
@@ -30,8 +32,10 @@ sealed class TheStormWithin(BossModule module) : Components.SimpleAOEs(module, (
 sealed class TheStormWithout(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TheStormWithout, new AOEShapeDonut(10.0f, 40.0f));
 
 [SkipLocalsInit]
-sealed class TerritorialDisputeStates : StateMachineBuilder {
-    public TerritorialDisputeStates(BossModule module) : base(module) {
+sealed class TerritorialDisputeStates : StateMachineBuilder
+{
+    public TerritorialDisputeStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<IcePillar>()
             .ActivateOnEnter<RoaringBlizzard>()

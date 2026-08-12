@@ -103,9 +103,11 @@ sealed class DualCut(BossModule module) : Components.GenericAOEs(module)
         return CollectionsMarshal.AsSpan(incomingAOEs);
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (aoes.Count == 0) {
+        if (aoes.Count == 0)
+        {
             return;
         }
 

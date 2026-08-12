@@ -130,10 +130,9 @@ sealed class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTow
     {
         base.DrawArenaForeground(pcSlot, pc);
         if (!_stormsDone && _players[pcSlot].AssignedQuadrant >= 0)
-{
-    Arena.ZoneCircleOutline(StormPlacementPosition(_players[pcSlot].AssignedQuadrant), 1f, Colors.Safe);
-}
-
+        {
+            Arena.ZoneCircleOutline(StormPlacementPosition(_players[pcSlot].AssignedQuadrant), 1f, Colors.Safe);
+        }
 
         if (Active)
         {
@@ -183,7 +182,7 @@ sealed class P2SanctityOfTheWard2Towers1(BossModule module) : Components.CastTow
             _preyOnTH = actor.Class.IsSupport();
             _preyTargets.Set(Raid.FindSlot(actor.InstanceID));
         }
-         if (_preyTargets.NumSetBits() == 2)
+        if (_preyTargets.NumSetBits() == 2)
         {
             var config = Service.Config.Get<DSW2Config>();
             if (InitQuadrantAssignments(config))

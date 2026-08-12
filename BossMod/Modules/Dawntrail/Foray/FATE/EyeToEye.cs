@@ -1,13 +1,15 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.EyeToEye;
 
-public enum OID : uint {
+public enum OID : uint
+{
     EvilSeer = 0x4BA7,
     Helper = 0x233C,
     EvilSeerHelper = 0x4BAA, // R0.500, x0 (spawn during fight)
     AccursedOrb = 0x4BA8, // R2.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 47146, // EvilSeer->player, no cast, single-target
     Ability = 45338, // EvilSeer->player, no cast, single-target
     AllEyes = 47147, // EvilSeer->self, 3.0+0.5s cast, range 30 circle
@@ -25,8 +27,10 @@ sealed class SeeNoEvil(BossModule module) : Components.CastGaze(module, (uint)AI
 sealed class SinisterSight(BossModule module) : Components.CastGaze(module, (uint)AID.SinisterSight);
 
 [SkipLocalsInit]
-sealed class EyeToEyeStates : StateMachineBuilder {
-    public EyeToEyeStates(BossModule module) : base(module) {
+sealed class EyeToEyeStates : StateMachineBuilder
+{
+    public EyeToEyeStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<AllEyes>()
             .ActivateOnEnter<SeeNoEvil>()

@@ -20,7 +20,7 @@ internal sealed class EarCut
         for (var i = 0; i < lenP; ++i)
         {
             var part = parts[i];
-            estimatedTriangles = checked(estimatedTriangles + Math.Max(0, part.Vertices.Count + part.HoleStarts.Count * 2 - 2));
+            estimatedTriangles += Math.Max(0, part.Vertices.Count + part.HoleStarts.Count * 2 - 2);
         }
 
         if (estimatedTriangles == 0)
@@ -177,7 +177,7 @@ internal sealed class EarCut
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int RequiredWords(int edgeCapacity, int vertexCapacity, int yBuckets, int xBuckets)
-            => checked(2 * yBuckets + xBuckets + 3 * edgeCapacity + 2 * vertexCapacity);
+            => 2 * yBuckets + xBuckets + 3 * edgeCapacity + 2 * vertexCapacity;
 
         public TriangulationBridgeIndex(Span<int> storage, int edgeCapacity, int vertexCapacity, int yBuckets, int xBuckets,
             float minX, float minY, float maxX, float maxY)
@@ -931,14 +931,14 @@ internal sealed class EarCut
 
     private static int TriangulationScratchWords(int pointCount, int holeCount, int nodeCapacity)
     {
-        var words = checked(nodeCapacity + ((3 * nodeCapacity + 1) >> 1)); // 20 Morton bytes per possible node
+        var words = nodeCapacity + ((3 * nodeCapacity + 1) >> 1); // 20 Morton bytes per possible node
         if (holeCount >= 2 && (long)holeCount * pointCount >= 768)
         {
             var buckets = TriangulationBridgeIndex.ChooseBucketCount(pointCount + 2 * holeCount);
-            var edgeCapacity = checked(2 * pointCount + 8 * holeCount + 8);
-            var vertexCapacity = checked(pointCount + 2 * holeCount);
+            var edgeCapacity = 2 * pointCount + 8 * holeCount + 8;
+            var vertexCapacity = pointCount + 2 * holeCount;
             var bridgeInts = TriangulationBridgeIndex.RequiredWords(edgeCapacity, vertexCapacity, buckets, buckets);
-            words = Math.Max(words, checked((bridgeInts + 1) >> 1));
+            words = Math.Max(words, (bridgeInts + 1) >> 1);
         }
         return words;
     }
