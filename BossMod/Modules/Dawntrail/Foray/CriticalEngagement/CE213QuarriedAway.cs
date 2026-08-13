@@ -42,6 +42,7 @@ sealed class EmbrittlingBlade(BossModule module) : Components.RaidwideCast(modul
 sealed class OccultTornado(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultTornado, new AOEShapeCircle(5.0f));
 sealed class FalseSpellbladeHoly(BossModule module) : Components.RaidwideCast(module, (uint)AID.FalseSpellbladeHoly);
 sealed class OccultAeroIII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultAeroIII, new AOEShapeRect(50.0f, 5.0f));
+sealed class OccultAero(BossModule module) : Components.SimpleAOEGroupsByTimewindow(module, [(uint)AID.OccultAero], new AOEShapeRect(50.0f, 5.0f));
 
 sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(module) {
     private readonly List<AOEInstance> aoes = [];
@@ -77,36 +78,6 @@ sealed class RightLeftCombination(BossModule module) : Components.GenericAOEs(mo
     }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(aoes);
-}
-
-sealed class OccultAero(BossModule module) : Components.SimpleAOEs(module, (uint)AID.OccultAero, new AOEShapeRect(50.0f, 5.0f)) {
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.OccultAero) {
-            Casters.Add(new(Shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID));
-        }
-    }
-
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
-        var count = Casters.Count;
-        if (count == 0) {
-            return [];
-        }
-
-        var aoes = CollectionsMarshal.AsSpan(Casters);
-        var deadline = aoes[0].Activation.AddSeconds(1.0f);
-
-        var index = 0;
-        while (index < count) {
-            ref var aoe = ref aoes[index];
-            if (aoe.Activation >= deadline) {
-                break;
-            }
-
-            index++;
-        }
-
-        return aoes[..index];
-    }
 }
 
 sealed class OccultStoneII : Components.SimpleAOEs {

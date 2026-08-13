@@ -1,7 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE207DoubleTrouble;
 
-public enum OID : uint
-{
+public enum OID : uint {
     ConjuredCalofisteri = 0x4BB8,
     Helper = 0x233C,
     LitheLock = 0x4BBA, // R1.000, x0 (spawn during fight)
@@ -10,13 +9,11 @@ public enum OID : uint
     RedIcon = 0x4BBC, // R1.000, x0 (spawn during fight)
 }
 
-public enum SID : uint
-{
+public enum SID : uint {
     Fetters = 5349, // Entanglement->player, extra=0xEC4
 }
 
-public enum AID : uint
-{
+public enum AID : uint {
     AutoAttack = 50122, // ConjuredCalofisteri->player, no cast, single-target
     AuraBurst = 47079, // ConjuredCalofisteri->self, 5.0s cast, single-target
     AuraBurstVisual = 47080, // Helper->self, no cast, ???
@@ -63,53 +60,19 @@ sealed class DashingCut(BossModule module) : Components.SimpleChargeAOEGroups(mo
 sealed class HairShearsCross(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HairShearsCross, new AOEShapeCross(60.0f, 2.0f));
 sealed class HairShearsCircle(BossModule module) : Components.SimpleAOEs(module, (uint)AID.HairShearsCircle, new AOEShapeCircle(10.0f));
 
-sealed class DualCut(BossModule module) : Components.GenericAOEs(module)
-{
-    private readonly List<AOEInstance> aoes = [];
-    private readonly AOEShapeCone shape = new(60.0f, 90.0f.Degrees());
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action.ID is (uint)AID.DualCut or (uint)AID.DualCut1)
-        {
-            aoes.Add(new(shape, caster.Position, caster.Rotation, Module.CastFinishAt(spell)));
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action.ID is (uint)AID.DualCut or (uint)AID.DualCut1)
-        {
-            if (aoes.Count > 0)
-            {
-                aoes.Sort((a, b) => a.Activation.CompareTo(b.Activation));
-                aoes.RemoveAt(0);
-            }
-        }
-    }
-
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var show = 0;
-
-        var incomingAOEs = aoes.OrderBy(aoe => aoe.Activation).ToList();
-        foreach (ref var aoe in CollectionsMarshal.AsSpan(incomingAOEs))
-        {
-            aoe.Color = show == 0 ? Colors.Danger : Colors.AOE;
-            aoe.Risky = show == 0;
-            show++;
-        }
-
-        return CollectionsMarshal.AsSpan(incomingAOEs);
+sealed class DualCut : Components.SimpleAOEGroups {
+    public DualCut(BossModule module) : base(module, [(uint)AID.DualCut, (uint)AID.DualCut1], new AOEShapeCone(60.0f, 90.0f.Degrees()),
+        expectedNumCasters: 2) {
+        MaxDangerColor = 1;
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (aoes.Count == 0) {
+        if (Casters.Count == 0) {
             return;
         }
 
-        var nextAOE = aoes.MinBy(aoe => aoe.Activation);
+        var nextAOE = Casters[0];
         var distance = nextAOE.Shape.Distance(nextAOE.Origin, nextAOE.Rotation);
         hints.GoalZones.Add(p => distance.Distance(p) is > 0.0f and <= 1.0f ? 100.0f : 0.0f);
     }
