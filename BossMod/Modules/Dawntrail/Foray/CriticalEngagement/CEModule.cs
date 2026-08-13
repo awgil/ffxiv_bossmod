@@ -7,4 +7,6 @@ public abstract class CEModule(WorldState ws, Actor primary, WPos center, ArenaB
     protected sealed override bool AllowedToActivate() => Raid.Player()?.FindStatus(1778) != null;
 
     public sealed override bool DrawAllPlayers => true;
+
+    public override bool ShouldPrioritizeAllEnemies => true;
 }
