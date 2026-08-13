@@ -544,7 +544,7 @@ sealed class Predict(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(IndexStates),
     ConfigType = typeof(IndexConfig),
     ObjectIDType = typeof(OID),

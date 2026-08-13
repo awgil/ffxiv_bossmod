@@ -76,21 +76,46 @@ sealed class Venom(BossModule module) : Components.SimpleAOEs(module, (uint)AID.
         }
     }
 }
+
 sealed class VenomGrow(BossModule module) : Components.GenericAOEs(module)
 {
     // showing max size cause AI to run straight to next safe zone
-    // can AI dodge puddle? or use growing circle forbidden zones?
+    // AI can't dodge properly with growing AOE zone
+    // display growing zone on map but use full size for AI hints
     private readonly List<VenomZone> _venom = [];
+    private readonly List<AOEInstance> _aoes = [];
+    private readonly float _minRadius = 2f;
     private readonly float _maxRadius = 22f;
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var aoes = CreateAOEs(2f, _maxRadius);
-        var count = aoes.Count;
+        var venoms = CollectionsMarshal.AsSpan(_venom);
+        var aoes = CollectionsMarshal.AsSpan(_aoes);
+        var count = venoms.Length;
+
         if (count == 0)
+        {
             return [];
+        }
 
         var max = count > 2 ? 2 : count;
-        return CollectionsMarshal.AsSpan(aoes)[..max];
+
+        for (var i = 0; i < max; i++)
+        {
+            ref var venom = ref venoms[i];
+            ref var aoe = ref aoes[i];
+            var position = venom.Position;
+            var startTime = venom.StartTime;
+            aoe = CreateCircle(position, startTime);
+        }
+
+        return aoes[..max];
+
+        AOEInstance CreateCircle(WPos position, DateTime startTime)
+        {
+            var radius = startTime == default ? _minRadius : _minRadius + (float)((WorldState.CurrentTime - startTime).TotalMilliseconds / 400);
+            radius = radius > _maxRadius ? _maxRadius : radius;
+            return new(new AOEShapeCircle(radius), position);
+        }
     }
 
     public override void OnActorEAnim(Actor actor, uint state)
@@ -101,6 +126,7 @@ sealed class VenomGrow(BossModule module) : Components.GenericAOEs(module)
             if (state == 0x00010002)
             {
                 _venom.Add(new(position));
+                _aoes.Add(new(new AOEShapeCircle(_minRadius), position));
             }
             else if (state == 0x00040008)
             {
@@ -132,6 +158,7 @@ sealed class VenomGrow(BossModule module) : Components.GenericAOEs(module)
                     if (venom.NumCasts == 8)
                     {
                         _venom.RemoveAt(i);
+                        _aoes.RemoveAt(i);
                         return;
                     }
                 }
@@ -141,36 +168,14 @@ sealed class VenomGrow(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // small buffer to avoid growing puddle
-        var aoes = CreateAOEs(4f, _maxRadius);
-        var count = aoes.Count;
-        if (count != 0)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                ref var aoe = ref aoes.Ref(i);
-                hints.AddForbiddenZone(aoe.Shape, aoe.Origin);
-            }
-        }
-    }
-
-    private List<AOEInstance> CreateAOEs(float min, float max)
-    {
-        var aoes = new List<AOEInstance>();
         var venoms = CollectionsMarshal.AsSpan(_venom);
         var count = venoms.Length;
-
-        for (var i = 0; i < count; i++)
+        var max = count > 2 ? 2 : count;
+        for (var i = 0; i < max; i++)
         {
-            ref var venom = ref venoms[i];
-            var position = venom.Position;
-            var startTime = venom.StartTime;
-            var radius = startTime == default ? min : min + (float)((WorldState.CurrentTime - startTime).TotalMilliseconds / 400);
-            radius = radius > max ? max : radius;
-            aoes.Add(new(new AOEShapeCircle(radius), position));
+            ref var aoe = ref venoms[i];
+            hints.AddForbiddenZone(new AOEShapeCircle(_maxRadius), aoe.Position);
         }
-
-        return aoes;
     }
 
     private class VenomZone(WPos position)

@@ -3,7 +3,6 @@
 sealed class SwordStormCast(BossModule module) : Components.RaidwideCast(module, (uint)AID.SwordStormCast);
 sealed class RushShort1(BossModule module) : Components.ChargeAOEs(module, (uint)AID.Rush1, 3.5f);
 sealed class RushShort2(BossModule module) : Components.ChargeAOEs(module, (uint)AID.Rush2, 3.5f);
-//sealed class RushSurgesword(BossModule module) : Components.SimpleAOEs(module, (uint)AID.RushSurgesword, new AOEShapeRect(60f, 3f));
 sealed class RushSurgesword(BossModule module) : Components.GenericAOEs(module)
 {
     // hide AOE until knockback done, less clutter
@@ -180,7 +179,7 @@ sealed class Steelsbreath(BossModule module) : Components.GenericKnockback(modul
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(SwordDancerStates),
     ConfigType = null, // replace null with typeof(SwordDancerConfig) if applicable
     ObjectIDType = typeof(OID),

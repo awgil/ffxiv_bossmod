@@ -163,7 +163,7 @@ sealed class ArcaneBeacon(BossModule module) : Components.SimpleAOEs(module, (ui
 sealed class Archaeofury1(BossModule module) : Components.SpreadFromCastTargets(module, (uint)AID.Archaeofury1, 6f);
 sealed class Archaeofury2(BossModule module) : Components.SpreadFromCastTargets(module, (uint)AID.Archaeofury2, 6f);
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(TwoHeadedAevisStates),
     ConfigType = typeof(TwoHeadedAevisConfig),
     ObjectIDType = typeof(OID),

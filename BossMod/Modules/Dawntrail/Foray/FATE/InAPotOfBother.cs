@@ -10,6 +10,8 @@ public enum OID : uint
     CrescentBicephalus = 0x4E7E, // R2.850, x1
     CrescentSandSerpent = 0x4E20, // R3.450, x1
     CrescentWoolback = 0x4E25, // R4.500, x1
+    PersistentPotFate = 0x4D8C, // R0.400, x?
+    PersistentPot = 0x47CB, // R0.300, x?
 }
 
 public enum AID : uint
@@ -22,17 +24,11 @@ public enum AID : uint
 
 sealed class TightTornado(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.TightTornado1, (uint)AID.TightTornado2], new AOEShapeRect(15f, 2f));
 sealed class TightTornadoKnockback(BossModule module) : Components.SimpleKnockbackGroups(module, [(uint)AID.TightTornado1, (uint)AID.TightTornado2], 10f, shape: new AOEShapeRect(15f, 2f));
-sealed class AeroIII(BossModule module) : Components.SimpleAOEs(module, (uint)AID.AeroIII, 20f)
+sealed class AeroIII : Components.SimpleAOEs
 {
-    // draw for completion but no need to avoid
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public AeroIII(BossModule module) : base(module, (uint)AID.AeroIII, 20f)
     {
-        if (spell.Action.ID == WatchedAction)
-        {
-            var origin = spell.LocXZ;
-            var rotation = spell.Rotation;
-            Casters.Add(new(Shape, origin, rotation, Module.CastFinishAt(spell), default, false, caster.InstanceID, Shape.Distance(origin, rotation)));
-        }
+        MaxRisky = 0;
     }
 }
 
@@ -48,7 +44,7 @@ sealed class InAPotOfBotherStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.WIP,
     StatesType = typeof(InAPotOfBotherStates),
     ConfigType = null, // replace null with typeof(GreaterFanConfig) if applicable
     ObjectIDType = typeof(OID),
@@ -66,20 +62,6 @@ sealed class InAPotOfBotherStates : StateMachineBuilder
     SortOrder = 2,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class InAPotOfBother(WorldState ws, Actor primary) : OpenWorldFate(ws, primary)
-{
-    // need to find something for OID.Boss to use as primary
-    public static readonly uint[] Trash = [(uint)OID.GreaterFan, (uint)OID.CrescentFan];
-    public Actor? GreaterFan;
-
-    protected override void UpdateModule()
-    {
-        GreaterFan ??= GetActor((uint)OID.GreaterFan);
-    }
-
-    protected override void DrawEnemies(int pcSlot, Actor pc)
-    {
-        Arena.Actors(this, Trash);
-        Arena.Actor(GreaterFan);
-    }
-}
+public sealed class InAPotOfBother(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
+// no singular actor we can use to trigger arena draw
+// really onlt want this for FATE completion and so AI doesn't move for Aero III
