@@ -104,6 +104,17 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         if (World.Client.Flying)
             return;
 
+        // if the player on a ranged job pulls a dungeon boss from outside (e.g. Mistwake B1), pathfinder won't force it to move inside the arena, since their position isn't in the pathfinding map
+        // TODO: what should the generic solution be? do we need multiple sets of bounds?
+        // forcing the player to move directly toward the arena center works fine in this basic case, but would be terrible for other content
+        //   - hunt marks can be hundreds of units away
+        //   - araid/foray bosses are often located on an isolated platform with a clientpath leading to it, so VBM would just run directly forward into the abyss
+        if (Bossmods.ActiveModule is { Info.Category: BossModuleInfo.Category.Dungeon } module && !module.Arena.InBounds(Player.Position))
+        {
+            Hints.ForcedMovement = Player.DirectionTo(module.Arena.Center).ToVec3();
+            return;
+        }
+
         var castOpt = strategy.Option(Track.Cast);
         var castStrategy = castOpt.As<CastStrategy>();
         if (castStrategy is CastStrategy.FinishInstants or CastStrategy.DropInstants)
