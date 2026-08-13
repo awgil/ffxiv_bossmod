@@ -53,6 +53,10 @@ public enum AID : uint
     BlazeloopCast2 = 47661, // GreenHead->self, 6.0s cast, single-target
     BlazeloopCast3 = 47662, // BlueHead->self, 5.3+0.7s cast, single-target
     ArcaneRevelation = 49716, // BlueHead/GreenHead->self, 3.0s cast, single-target
+    ArcaneBeacon = 49720, // 4B73->self, 4.0s cast, range 60 width 5 rect
+    ArchaeofuryCast = 47745, // BlueHead/GreenHead->self, 5.0s cast, single-target
+    Archaeofury1 = 47747, // Helper->player, 5.0s cast, range 6 circle
+    Archaeofury2 = 47748, // Helper->player, 5.0s cast, range 6 circle
     Unk1 = 49727, // Boss->self, 5.0s cast, single-target
     Unk2 = 47615, // Boss->self, 7.2+0.8s cast, single-target
     Unk3 = 47614, // Boss->self, 7.2+0.8s cast, single-target
@@ -66,6 +70,9 @@ public enum AID : uint
     Unk11 = 47655, // Boss->self, 5.3s cast, single-target
     Unk12 = 47658, // Boss->self, no cast, single-target
     Unk13 = 49717, // Boss->self, 3.0s cast, single-target
+    Unk14 = 47656, // Boss->self, 5.3s cast, single-target
+    Unk15 = 47657, // Boss->self, no cast, single-target
+    Unk16 = 47746, // Boss->self, 5.0s cast, single-target
 }
 
 public enum SID : uint
@@ -319,6 +326,23 @@ class Blaze(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class ArcaneBeacon(BossModule module) : Components.StandardAOEs(module, AID.ArcaneBeacon, new AOEShapeRect(60, 2.5f), maxCasts: 8);
+
+class Archaeofury(BossModule module) : Components.BaitAwayCast(module, null, new AOEShapeCircle(6), true)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.Archaeofury1 or AID.Archaeofury2 && WorldState.Actors.Find(spell.TargetID) is { } target)
+            CurrentBaits.Add(new(caster, target, Shape, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.Archaeofury1 or AID.Archaeofury2)
+            CurrentBaits.RemoveAll(b => b.Source == caster);
+    }
+}
+
 class FT11TwoHeadedAevisStates : StateMachineBuilder
 {
     public FT11TwoHeadedAevisStates(BossModule module) : base(module)
@@ -332,7 +356,9 @@ class FT11TwoHeadedAevisStates : StateMachineBuilder
             .ActivateOnEnter<Knockbacks>()
             .ActivateOnEnter<Cluster>()
             .ActivateOnEnter<HypothermalShock>()
-            .ActivateOnEnter<Blaze>();
+            .ActivateOnEnter<Blaze>()
+            .ActivateOnEnter<ArcaneBeacon>()
+            .ActivateOnEnter<Archaeofury>();
     }
 }
 
