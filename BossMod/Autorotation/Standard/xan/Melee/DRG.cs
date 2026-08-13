@@ -140,10 +140,10 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget != null)
             GoalZoneCombined(strategy, 3, Hints.GoalAOERect(primaryTarget.Actor, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
 
-        if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Zeninage.IsEnabled() && DutyActionGCDReady(PhantomID.Zeninage))
+        if (LotD > GCD && PowerSurge > GCD && LanceCharge > GCD && strategy.Zeninage.IsEnabled() && DutyActionGCDReady(PhantomID.Zeninage) && DraconianFire <= GCD)
             PushGCD((AID)(uint)PhantomID.Zeninage, primaryTarget, priority: 100);
 
-        if (strategy.Iainuki.IsEnabled() && DutyActionGCDReady(PhantomID.Iainuki) && DutyActionReadyIn(PhantomID.Zeninage) > GCD)
+        if (strategy.Iainuki.IsEnabled() && DutyActionGCDReady(PhantomID.Iainuki) && DutyActionReadyIn(PhantomID.Zeninage) > GCD && DraconianFire <= GCD)
             PushGCD((AID)(uint)PhantomID.Iainuki, primaryTarget, priority: 90);
 
         if (NumAOETargets > 2)

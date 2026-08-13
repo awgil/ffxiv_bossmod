@@ -1,4 +1,5 @@
 ﻿using BossMod.Data;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
 
@@ -278,7 +279,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
     private void PWhm(Strategy strategy, Actor? primaryTarget)
     {
-        if (strategy.WhiteMage.IsEnabled() && primaryTarget?.IsAlly == false)
+        if (strategy.WhiteMage.IsEnabled() && !MidCombo && primaryTarget?.IsAlly == false)
             UseAction(PhantomID.OccultHoly, primaryTarget, strategy.WhiteMage.Priority(PGCDPriority), 2.3f * SpellHaste());
 
         var option = strategy.WHMRaise;
@@ -649,7 +650,15 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
     private bool CheckMidCombo()
     {
-        return Player.Statuses.Any(s => BreakableComboStatus.Contains(s.ID));
+        if (Player.Statuses.Any(s => BreakableComboStatus.Contains(s.ID)))
+            return true;
+
+        // 3 = verflare/holy
+        // >0 = melee combo
+        if (Player.Class == Class.RDM && World.Client.GetGauge<RedMageGauge>().ManaStacks > 0)
+            return true;
+
+        return false;
     }
 
     private float SpellHaste() => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level) / 2.5f;
