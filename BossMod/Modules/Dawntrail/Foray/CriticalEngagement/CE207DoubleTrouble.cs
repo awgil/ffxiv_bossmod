@@ -64,10 +64,10 @@ sealed class DualCut : Components.SimpleAOEGroups {
     public DualCut(BossModule module) : base(module, [(uint)AID.DualCut, (uint)AID.DualCut1], new AOEShapeCone(60.0f, 90.0f.Degrees()),
         expectedNumCasters: 2) {
         MaxDangerColor = 1;
+        MaxRisky = 1;
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) {
         base.AddAIHints(slot, actor, assignment, hints);
         if (Casters.Count == 0) {
             return;
