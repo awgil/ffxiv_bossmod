@@ -7,7 +7,7 @@ namespace BossMod.Autorotation.akechi;
 public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     public enum Track { Targeting, RoleActions, LimitBreak, TerminalTrigger, Corundum, RoughDivide, Zone, GnashingFang, FatedCircle }
-    public enum TargetingStrategy { Auto, Manual }
+    public enum TargetingStrategy { Auto, FocusTargetsTarget, Manual }
     public enum RoleActionStrategy { Forbid, Rampage, Rampart, FullSwing }
     public enum LBStrategy { Allow, Forbid }
     public enum TriggerStrategy { Five, Four, Three, Two, One, Forbid }
@@ -18,9 +18,10 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30);
+        var res = new RotationModuleDefinition("Akechi GNB (PvP)", "PvP Rotation Module", "PvP", "Akechi", RotationModuleQuality.Basic, BitMask.Build((int)Class.GNB), 100, 30, PvP: PvPCompatibility.PvPOnly);
         res.Define(Track.Targeting).As<TargetingStrategy>("Targeting", "", 300)
             .AddOption(TargetingStrategy.Auto, "Automatically select best target")
+            .AddOption(TargetingStrategy.FocusTargetsTarget, "Automatically target your current Focus Target's target - if no Focus Target or if Focus Target is hostile, then automatically select best target")
             .AddOption(TargetingStrategy.Manual, "Manually select target");
 
         res.Define(Track.RoleActions).As<RoleActionStrategy>("Role Actions", "", 300)
@@ -87,17 +88,6 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
-    private OGCDPriority ContinuationPrio
-    {
-        get
-        {
-            if (GCD < 0.5f)
-                return OGCDPriority.SlightlyHigh + 2000;
-            var i = Math.Max(0, (int)((SkSGCDLength - GCD) / 0.5f));
-            var a = i * 300;
-            return OGCDPriority.Low + a; //every 0.5s = +300 prio
-        }
-    }
     private void ExecuteCommons(AID action, StrategyValues.OptionRef track, Actor? primaryTarget)
     {
         if (ActionReady(action) && track.As<CommonStrategy>() switch
@@ -111,33 +101,40 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+            return;
+
+        var strat = strategy.Option(Track.Targeting).As<TargetingStrategy>();
+        var auto = strat == TargetingStrategy.Auto;
+        var focus = strat == TargetingStrategy.FocusTargetsTarget;
+        var mainTarget = primaryTarget?.Actor;
         var gauge = World.Client.GetGauge<GunbreakerGauge>();
         var GunStep = gauge.AmmoComboStep;
         var hasNM = HasStatus(SID.NoMercyPvP);
         var targetsOk = Hints.NumPriorityTargetsInAOECircle(Player.Position, 6) > 0;
-        var mainTarget = primaryTarget?.Actor;
         var rangeOk = Player.DistanceToHitbox(mainTarget) <= 5.99f;
 
-        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
-            return;
-
-        if (strategy.Option(Track.Targeting).As<TargetingStrategy>() == TargetingStrategy.Auto)
+        if (auto)
         {
-            GetPvPTarget(5);
+            GetPvPTarget(5, false);
+        }
+        if (focus)
+        {
+            GetPvPTarget(5, true);
         }
 
         if (ActionReady(AID.HeartOfCorundumPvP) && strategy.Option(Track.Corundum).As<CorundumStrategy>() switch
         {
-            CorundumStrategy.Auto => (PlayerHPP is <= 80 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 50 and not 0,
-            CorundumStrategy.Two => PlayerHPP is < 100 and not 0 && EnemiesTargetingSelf(2),
-            CorundumStrategy.Three => PlayerHPP is < 100 and not 0 && EnemiesTargetingSelf(3),
-            CorundumStrategy.Four => PlayerHPP is < 100 and not 0 && EnemiesTargetingSelf(4),
-            CorundumStrategy.Eighty => PlayerHPP is <= 80 and not 0,
-            CorundumStrategy.Seventy => PlayerHPP is <= 70 and not 0,
-            CorundumStrategy.Sixty => PlayerHPP is <= 60 and not 0,
-            CorundumStrategy.Fifty => PlayerHPP is <= 50 and not 0,
-            CorundumStrategy.Fourty => PlayerHPP is <= 40 and not 0,
-            CorundumStrategy.Thirty => PlayerHPP is <= 30 and not 0,
+            CorundumStrategy.Auto => (Player.PendingHPRatio is <= 0.8f and not 0.0f && EnemiesTargetingPlayer >= 2) || Player.PendingHPRatio is < 0.5f and not 0.0f,
+            CorundumStrategy.Two => Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 2,
+            CorundumStrategy.Three => Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 3,
+            CorundumStrategy.Four => Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 4,
+            CorundumStrategy.Eighty => Player.PendingHPRatio is <= 0.8f and not 0.0f,
+            CorundumStrategy.Seventy => Player.PendingHPRatio is <= 0.7f and not 0.0f,
+            CorundumStrategy.Sixty => Player.PendingHPRatio is <= 0.6f and not 0.0f,
+            CorundumStrategy.Fifty => Player.PendingHPRatio is <= 0.5f and not 0.0f,
+            CorundumStrategy.Fourty => Player.PendingHPRatio is <= 0.4f and not 0.0f,
+            CorundumStrategy.Thirty => Player.PendingHPRatio is <= 0.3f and not 0.0f,
             _ => false
         })
             QueueGCD(AID.HeartOfCorundumPvP, Player, GCDPriority.Max);
@@ -145,7 +142,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
         {
             RoleActionStrategy.Rampage => (HasStatus(SID.RampageEquippedPvP) && ActionReady(AID.RampagePvP) && Hints.PriorityTargets.Any(h => h.Actor.IsDeadOrDestroyed && !h.Actor.IsFriendlyNPC && !h.Actor.IsAlly && h.Actor.DistanceToHitbox(Player) <= 10) && In10y(mainTarget), AID.RampagePvP, Player),
-            RoleActionStrategy.Rampart => (HasStatus(SID.RampartEquippedPvP) && ActionReady(AID.RampartPvP) && ((PlayerHPP is < 100 and not 0 && EnemiesTargetingSelf(2)) || PlayerHPP is < 50 and not 0), AID.RampartPvP, Player),
+            RoleActionStrategy.Rampart => (HasStatus(SID.RampartEquippedPvP) && ActionReady(AID.RampartPvP) && ((Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 2) || Player.PendingHPRatio is < 0.5f and not 0.0f), AID.RampartPvP, Player),
             RoleActionStrategy.FullSwing => (HasStatus(SID.FullSwingEquippedPvP) && ActionReady(AID.FullSwingPvP) && In5y(mainTarget), AID.FullSwingPvP, mainTarget),
             _ => (false, AID.None, null)
         };
@@ -183,9 +180,9 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
             if (ActionReady(AID.BlastingZonePvP) && strategy.Option(Track.Zone).As<ZoneStrategy>() switch
             {
                 ZoneStrategy.Buff => hasNM,
-                ZoneStrategy.HalfHPP => HPP(mainTarget) < 50,
-                ZoneStrategy.BuffOrHalfHPP => hasNM || HPP(mainTarget) < 50,
-                ZoneStrategy.BuffAndHalfHPP => hasNM && HPP(mainTarget) < 50,
+                ZoneStrategy.HalfHPP => mainTarget?.PendingHPRatio < 0.5f,
+                ZoneStrategy.BuffOrHalfHPP => hasNM || mainTarget?.PendingHPRatio < 0.5f,
+                ZoneStrategy.BuffAndHalfHPP => hasNM && mainTarget?.PendingHPRatio < 0.5f,
                 ZoneStrategy.ASAP => true,
                 _ => false
             })
@@ -217,7 +214,7 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
             })
             {
                 if (HasStatus(status))
-                    QueueOGCD(action, mainTarget, ContinuationPrio);
+                    QueueOGCD(action, mainTarget, ChangePriority(highPrio: (int)OGCDPriority.High, convert: true));
             }
         }
     }

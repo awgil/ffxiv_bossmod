@@ -38,8 +38,7 @@ public enum TetherID : uint
 }
 
 // Cleave range and angle are estimates
-sealed class FrontalCleave(BossModule module)
-    : Components.Cleave(module, (uint)AID.FrontalCleave, new AOEShapeCone(9, 60f.Degrees()));
+sealed class FrontalCleave(BossModule module) : Components.Cleave(module, (uint)AID.FrontalCleave, new AOEShapeCone(9f, 60f.Degrees()));
 
 sealed class BreathWing(BossModule module) : Components.RaidwideCasts(module, [(uint)AID.BreathWing, (uint)AID.BreathWing1]);
 
@@ -53,21 +52,19 @@ sealed class ZuAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID
  * to also avoid targeting the eggs accidentally. This is best effort. Maybe voidzones need to be larger
  * to avoid AOE clipping the eggs.
  */
-sealed class EggZone(BossModule module)
-    : Components.Voidzone(module, 8, m => (m.Enemies([(uint)OID.ZuEgg, (uint)OID.ZuEggSpotted])));
+sealed class EggZone(BossModule module) : Components.Voidzone(module, 8, m => m.Enemies([(uint)OID.ZuEgg, (uint)OID.ZuEggSpotted]));
 
 // The idea is not to target eggs directly or get near enough to hit them with aoe.
 // TODO I would like to not show the enemy arrow indicator if they are not hatched.
 sealed class NoKillEggs(BossModule module) : Components.AddsPointless(module, (uint)OID.ZuEgg)
 {
-    public override void DrawArenaForeground(int pcSlot, Actor pc){ }
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
 
 sealed class NoKillEggs1(BossModule module) : Components.AddsPointless(module, (uint)OID.ZuEggSpotted)
 {
-    public override void DrawArenaForeground(int pcSlot, Actor pc){ }
+    public override void DrawArenaForeground(int pcSlot, Actor pc) { }
 }
-
 
 [SkipLocalsInit]
 sealed class ZuStates : StateMachineBuilder
@@ -86,7 +83,6 @@ sealed class ZuStates : StateMachineBuilder
     }
 }
 
-
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(ZuStates),
     ConfigType = null, // replace null with typeof(ZuConfig) if applicable
@@ -102,7 +98,7 @@ sealed class ZuStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 17u,
     NameID = 2259u,
-    SortOrder = 1,
+    SortOrder = 2,
     PlanLevel = 0)]
 [SkipLocalsInit]
 // technically arena center is (0, 90, 0) if you want to visit in hyperborea. It is an irregular shape that can go out to 22.
@@ -110,15 +106,10 @@ public sealed class D172Zu : BossModule
 {
     public D172Zu(WorldState ws, Actor primary) : this(ws, primary, BuildArena()) { }
 
-
     // Constructor so we can build arena
-    private D172Zu(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center,
-        a.arena)
-    {
-    }
+    private D172Zu(WorldState ws, Actor primary, (WPos center, ArenaBoundsCustom arena) a) : base(ws, primary, a.center, a.arena) { }
 
     public static readonly WPos ArenaCenter = new(0f, 0f);
-
 
     private static (WPos center, ArenaBoundsCustom arena) BuildArena()
     {

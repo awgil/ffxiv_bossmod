@@ -116,6 +116,7 @@ sealed class ReplayDetailsWindow : UIWindow
         ImGui.Checkbox("Override", ref _azimuthOverride);
         _hintsBuilder.Update(_hints, _povSlot, false);
         _rmm.Update(0, false, false);
+        var drawnGauge = false;
         if (_mgr.ActiveModule != null)
         {
             if (_mgr.WorldState.Client.CountdownRemaining != null)
@@ -145,12 +146,7 @@ sealed class ReplayDetailsWindow : UIWindow
                 }
             }
 
-            if (_showDebug && _povSlot == 0 && _mgr.WorldState.Party[0] is { } player)
-            {
-                var cursor = ImGui.GetCursorPos();
-                GaugeVisualizer.Instance().Draw(player, _mgr.WorldState.Client);
-                ImGui.SetCursorPos(cursor);
-            }
+            drawnGauge = DrawGauge(true);
 
             var compListSb = new System.Text.StringBuilder();
             var comps = _mgr.ActiveModule.Components;
@@ -173,6 +169,9 @@ sealed class ReplayDetailsWindow : UIWindow
             }
             ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {povOffsetString}");
         }
+
+        if (!drawnGauge)
+            DrawGauge(false);
 
         if (ImGui.CollapsingHeader("Plan execution"))
         {
@@ -253,6 +252,22 @@ sealed class ReplayDetailsWindow : UIWindow
         {
             ResetPF();
         }
+    }
+
+    private bool DrawGauge(bool inline)
+    {
+        if (_showDebug && _povSlot == 0 && _mgr.WorldState.Party[0] is { } player)
+        {
+            var cursor = ImGui.GetCursorPos();
+            if (inline)
+                ImGui.SameLine();
+            GaugeVisualizer.Instance().Draw(player, _mgr.WorldState.Client);
+            if (inline)
+                ImGui.SetCursorPos(cursor);
+            return true;
+        }
+
+        return false;
     }
 
     private void DrawControlRow()

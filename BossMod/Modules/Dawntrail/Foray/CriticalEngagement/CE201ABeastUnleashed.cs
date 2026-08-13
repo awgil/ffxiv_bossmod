@@ -300,11 +300,11 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
             AddSource(90f.Degrees());
             AddSource(-90f.Degrees());
             isAlongXAxis = rot.AlmostEqual(default, Angle.DegToRad) || rot.AlmostEqual(180f.Degrees(), Angle.DegToRad);
-            void AddSource(Angle offset) => _kbs.Add(new(Arena.Center, 15f, act, rect, rot + offset, Kind.DirForward, ignoreImmunes: true));
+            void AddSource(Angle offset) => _kbs.Add(new(Arena.Center, 15f, act, rect, rot + offset, Kind.DirForward));
         }
         else if (id == (uint)AID.SpinebreakingStampedeCircleVisual)
         {
-            _kbs.Add(new(spell.LocXZ, 30f, Module.CastFinishAt(spell, 6.1d), ignoreImmunes: true));
+            _kbs.Add(new(spell.LocXZ, 30f, Module.CastFinishAt(spell, 6.1d)));
         }
     }
 
@@ -340,7 +340,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
         switch (len)
         {
             case 1:
-                if (firstImmune)
+                if (!firstImmune)
                 {
                     AddAwayFromOrigin(first.Origin, firstActivation);
                 }
@@ -364,7 +364,7 @@ sealed class SpinebreakingStampede(BossModule module) : Components.GenericKnockb
                         return;
                     }
                     var lastActivation = last.Activation;
-                    if (IsImmune(slot, lastActivation))
+                    if (!IsImmune(slot, lastActivation))
                     {
                         AddAwayFromOrigin(last.Origin, lastActivation);
                     }
@@ -390,7 +390,7 @@ sealed class CE201ABeastUnleashedStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(CE201ABeastUnleashedStates),
     ConfigType = null, // replace null with typeof(ABeastUnleashedConfig) if applicable
     ObjectIDType = typeof(OID),
@@ -402,10 +402,10 @@ sealed class CE201ABeastUnleashedStates : StateMachineBuilder
     Contributors = "The Combat Reborn Team (LTS)",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14791u,
-    SortOrder = 1,
+    NameID = 56u,
+    SortOrder = 8,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE201ABeastUnleashed(WorldState ws, Actor primary) : BossModule(ws, primary, new(238f, 352f), new ArenaBoundsSquare(20f))

@@ -31,7 +31,7 @@ public sealed class NormalMovement : RotationModule
 
     public static RotationModuleDefinition Definition()
     {
-        var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI", "veyn", RotationModuleQuality.Good, new(~0ul), 1000, 1, RotationModuleOrder.Movement, CanUseWhileRoleplaying: true);
+        var res = new RotationModuleDefinition("Automatic movement", "Automatically move character based on pathfinding or explicit coordinates.", "AI", "veyn", RotationModuleQuality.Good, new(~0ul), 1000, 1, RotationModuleOrder.Movement, CanUseWhileRoleplaying: true, PvP: PvPCompatibility.Any);
         res.Define(Track.Destination).As<DestinationStrategy>("Destination", "Destination", 30)
             .AddOption(DestinationStrategy.None, "No automatic movement")
             .AddOption(DestinationStrategy.Pathfind, "Use standard pathfinding to find best position")
@@ -113,6 +113,11 @@ public sealed class NormalMovement : RotationModule
 
     public override void Execute(StrategyValues strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (AI.AIManager.Instance?.Beh != null) // prevent both AI movement modes from being active at the same time
+        {
+            return;
+        }
+
         // do nothing if we're already being moved by some other module (i.e. quest battle pathfinding)
         if (Hints.ForcedMovement != null)
             return;

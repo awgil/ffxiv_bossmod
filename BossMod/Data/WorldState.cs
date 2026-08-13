@@ -12,6 +12,7 @@ public sealed class WorldState
     public FrameState Frame;
     public ushort CurrentZone;
     public ushort CurrentCFCID;
+    public bool IsPvPArea;
     public readonly Dictionary<string, string> RSVEntries = [];
     public readonly WaymarkState Waymarks = new();
     public readonly ActorState Actors = new();
@@ -75,6 +76,10 @@ public sealed class WorldState
             ops.Add(new OpZoneChange(CurrentZone, CurrentCFCID));
         }
 
+        if (IsPvPArea)
+        {
+            ops.Add(new OpPvPArea(true));
+        }
         foreach (var (k, v) in RSVEntries)
         {
             ops.Add(new OpRSVData(k, v));
@@ -192,6 +197,20 @@ public sealed class WorldState
 
         protected override void Exec(WorldState ws) => ws.LegacyMapEffect.Fire(this);
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("LEME"u8).Emit(Sequence, "X2").Emit(Param, "X2").Emit(Data);
+    }
+
+    public Event<OpPvPArea> IsPvPAreaChanged = new();
+    public sealed class OpPvPArea(bool value) : Operation
+    {
+        public bool Value = value;
+
+        protected override void Exec(WorldState ws)
+        {
+            ws.IsPvPArea = Value;
+            ws.IsPvPAreaChanged.Fire(this);
+        }
+
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC(Value ? "PVP+"u8 : "PVP-"u8);
     }
 
     public Event<OpSystemLogMessage> SystemLogMessage = new();

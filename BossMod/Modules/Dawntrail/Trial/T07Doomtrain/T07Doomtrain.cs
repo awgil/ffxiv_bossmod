@@ -1,6 +1,5 @@
 namespace BossMod.Dawntrail.Trial.T07Doomtrain;
 
-
 public enum OID : uint
 {
     _Gen_Aether = 0x233C, // R0.500, x?, Helper type
@@ -99,14 +98,13 @@ public enum IconID : uint
     Plummet = 499, // player->self
 }
 
-
 sealed class ElectrayShort(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ElectrayShort, new AOEShapeRect(10f, 2.5f));
 sealed class ElectrayMedium(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ElectrayMedium, new AOEShapeRect(15f, 2.5f));
 sealed class ElectrayLong(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ElectrayLong, new AOEShapeRect(25f, 2.5f));
-sealed class LightningBurstTankBuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5f), (uint)IconID.LightningBurstIcon, (uint)AID.LightningBurst, 5f,centerAtTarget: true, tankbuster: true, damageType: AIHints.PredictedDamageType.Tankbuster);
+sealed class LightningBurstTankBuster(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(5f), (uint)IconID.LightningBurstIcon, (uint)AID.LightningBurst, 5f, centerAtTarget: true, tankbuster: true, damageType: AIHints.PredictedDamageType.Tankbuster);
 
 // For first pass the knockback distance is estimated.
-sealed class LightningExpress(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.LightningExpress, 16f, kind : Kind.DirForward);
+sealed class LightningExpress(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.LightningExpress, 16f, kind: Kind.DirForward);
 
 /**
  * Plasma beams have a cast of 0.7 seconds. The Levin signal actors spawn about 7 seconds earlier.
@@ -119,23 +117,23 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID.LevinSignal)
+        if (actor.OID == (uint)OID.LevinSignal)
         {
             // if actor.PosRot.Y then they are at ground level
             var ground = actor.PosRot.Y < 2;
 
             var car = Module.FindComponent<CarGeometry>();
             // set default value for ground to 30 and upperdeck to 0 cull levin signal that are elevated and not over platforms.
-            var maxLen = ground?30 : 0;
+            var maxLen = ground ? 30 : 0;
             var offset = 0;
-
+            var posX = actor.PosRot.X;
             if (car?.Car == 2)
             {
-                if (95f < actor.Position.X && 100 > actor.Position.X)
+                if (posX is > 95f and < 100)
                 {
                     maxLen = 20;
                 }
-                if (100f < actor.Position.X && 105 > actor.Position.X)
+                else if (posX is > 100f and < 105)
                 {
                     maxLen = 10;
                 }
@@ -144,7 +142,7 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
             if (car?.Car == 3)
             {
                 // left side platforms
-                if (actor.Position.X < 95f)
+                if (posX < 95f)
                 {
                     if (ground)
                     {
@@ -157,7 +155,7 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
                     }
                 }
                 // right side platforms
-                if (actor.Position.X > 105f)
+                else if (posX > 105f)
                 {
                     if (ground)
                     {
@@ -173,7 +171,7 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
             if (car?.Car == 5)
             {
                 // left side platform, length 10
-                if (actor.Position.X < 95f)
+                if (posX < 95f)
                 {
                     if (ground)
                     {
@@ -186,7 +184,7 @@ class LevinSignal(BossModule module) : Components.GenericAOEs(module)
                     }
                 }
                 // right side platform
-                if (actor.Position.X > 105f)
+                else if (posX > 105f)
                 {
                     if (ground)
                     {
@@ -271,7 +269,7 @@ sealed class WindpipeDrawIn(BossModule module) : Components.SimpleKnockbacks(mod
             {
                 // It is a draw in, we use mirrorZ to make safe zones to keep us from moving towards boss.
                 var dir = kb.Direction.ToDirection().MirrorZ();
-                var _walls = _car.Car == 2? safeWalls2 : safeWalls5;
+                var _walls = _car.Car == 2 ? safeWalls2 : safeWalls5;
                 var len = _walls.Count;
                 if (len > 0)
                 {
@@ -468,7 +466,7 @@ sealed class Shockwave(BossModule module) : Components.RaidwideCast(module, (uin
 sealed class Derail(BossModule module) : Components.GenericAOEs(module)
 {
     // Cheat by making portal visible as an inverted danger zone at WPos
-    private WPos escapePortal = new WPos(100f, 262.5f);
+    private readonly WPos escapePortal = new(100f, 262.5f);
     private readonly List<AOEInstance> _aoes = [];
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) => CollectionsMarshal.AsSpan(_aoes);
 
@@ -496,7 +494,7 @@ sealed class DerailmentSiegeCircle(BossModule module) : Components.StackWithCast
 // TODO should probably move this over to geometry with the rest of the arena changes.
 sealed class ArenaChangeCar4(BossModule module) : BossComponent(module)
 {
-    private CarGeometry _car = module.FindComponent<CarGeometry>()!;
+    private readonly CarGeometry _car = module.FindComponent<CarGeometry>()!;
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
@@ -608,7 +606,7 @@ sealed class DoomtrainStates : StateMachineBuilder
                 // Added the outer donut for railroad tracks and to improve how
                 // aetherial ray cone aoe presents on the radar.
                 Module.Arena.Center = new(-400, -400);
-                Shape[] intermissionCircles = [new Circle(Module.Arena.Center,14.5f), new Donut(Module.Arena.Center, 22.4f, 27.5f)];
+                Shape[] intermissionCircles = [new Circle(Module.Arena.Center, 14.5f), new Donut(Module.Arena.Center, 22.4f, 27.5f)];
                 ArenaBoundsCustom intermissionArena = new(intermissionCircles, AdjustForHitboxInwards: true);
                 Module.Arena.Bounds = intermissionArena;
             })
@@ -639,7 +637,6 @@ sealed class DoomtrainStates : StateMachineBuilder
         Targetable(id + 0x260, false, 0.2f, "Moves to car 5");
     }
 
-
     void Car5(uint id, float delay)
     {
         Targetable(id + 0x110, true, 0.2f, "On car 5")
@@ -656,7 +653,6 @@ sealed class DoomtrainStates : StateMachineBuilder
             .ActivateOnEnter<LightningBurstTankBuster>();
     }
 }
-
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(DoomtrainStates),

@@ -1,12 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.ARottenAffair;
 
-public enum OID : uint {
+public enum OID : uint
+{
     PatientKuribu = 0x4D61,
     Helper = 0x233C,
     PatientKuribuHelper = 0x4DCC, // R1.000, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50537, // PatientKuribu->player, no cast, single-target
     Glory = 49915, // PatientKuribu->self, 5.0s cast, range 50 90.000-degree cone
 
@@ -28,7 +30,8 @@ public enum AID : uint {
     LongswordAndSorcery1 = 50120, // PatientKuribu->self, 5.0s cast, range 10-25 donut
 }
 
-public enum SID : uint {
+public enum SID : uint
+{
     EnsorcelledStoneIII = 5375, // PatientKuribu->PatientKuribu, extra=0x0
     EnsorcelledAeroIII = 5374, // PatientKuribu->PatientKuribu, extra=0x0
 }
@@ -43,8 +46,10 @@ sealed class LongswordAndSorcery(BossModule module) : Components.SimpleAOEGroups
     new AOEShapeDonut(10.0f, 25.0f));
 
 [SkipLocalsInit]
-sealed class ARottenAffairStates : StateMachineBuilder {
-    public ARottenAffairStates(BossModule module) : base(module) {
+sealed class ARottenAffairStates : StateMachineBuilder
+{
+    public ARottenAffairStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<Glory>()
             .ActivateOnEnter<StoneIII>()
@@ -67,10 +72,10 @@ sealed class ARottenAffairStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14764u,
-    SortOrder = 20,
+    NameID = 2081u,
+    SortOrder = 10,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class ARottenAffair(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

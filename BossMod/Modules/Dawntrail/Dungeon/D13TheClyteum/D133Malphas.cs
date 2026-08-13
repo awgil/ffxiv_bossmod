@@ -110,7 +110,7 @@ Category = BossModuleInfo.Category.Dungeon,
 GroupType = BossModuleInfo.GroupType.CFC,
 GroupID = 1011u,
 NameID = 14758u,
-SortOrder = 1,
+SortOrder = 3,
 PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class D133Malphas(WorldState ws, Actor primary) : BossModule(ws, primary, new(760f, -803f), new ArenaBoundsCircle(20f));

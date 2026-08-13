@@ -10,10 +10,12 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    AutoAttack = 1482, // Siren->player, no cast, range 7+R ?-degree cone
+    AutoAttack1 = 1482, // Siren->player, no cast, range 7+R ?-degree cone
+    AutoAttack2 = 872, // ZombieStormPrivate->player, no cast, single-target
+
     DeathlyVerse = 1483, // Siren->player, 1.0s cast, single-target
     SongOfTorment = 1486, // Siren->player, 1.5s cast, single-target
-    _AutoAttack1 = 872, // ZombieStormPrivate->player, no cast, single-target
+
     DeathlyCadenza = 1487, // Siren->self, 3.0s cast, range 50+R circle
     FeralLunge = 1484, // Siren->self, 3.0s cast, range 50+R width 12 rect
     LunaticVoice = 1485, // Siren->self, 4.0s cast, range 50+R circle
@@ -32,7 +34,7 @@ public enum SID : uint
 
 // Cleave angle is an estimate.
 sealed class AutoCleave(BossModule module)
-    : Components.Cleave(module, (uint)AID.AutoAttack, new AOEShapeCone(7f, 65f.Degrees()), [(uint)OID.Siren]);
+    : Components.Cleave(module, (uint)AID.AutoAttack1, new AOEShapeCone(7f, 60f.Degrees()), [(uint)OID.Siren]);
 
 // Donut aoe. Stand in center to to avoid 'siren song' debuff.
 sealed class DeathlyCadenza(BossModule module)
@@ -57,9 +59,9 @@ sealed class Wallop(BossModule module) : Components.SimpleAOEs(module, (uint)AID
 sealed class ZombieSergeant(BossModule module) : Components.Adds(module, (uint)OID.ZombieStormSergeant);
 
 [SkipLocalsInit]
-sealed class SirenStates : StateMachineBuilder
+sealed class D173SirenStates : StateMachineBuilder
 {
-    public SirenStates(BossModule module) : base(module)
+    public D173SirenStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AutoCleave>()
@@ -75,7 +77,7 @@ sealed class SirenStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(SirenStates),
+    StatesType = typeof(D173SirenStates),
     ConfigType = null, // replace null with typeof(SirenConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -89,8 +91,7 @@ sealed class SirenStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 17u,
     NameID = 2265u,
-    SortOrder = 1,
+    SortOrder = 4,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class Siren(WorldState ws, Actor primary)
-    : BossModule(ws, primary, new(0f, 0f), new ArenaBoundsCircle(24f));
+public sealed class D173Siren(WorldState ws, Actor primary) : BossModule(ws, primary, default, new ArenaBoundsCircle(24f));

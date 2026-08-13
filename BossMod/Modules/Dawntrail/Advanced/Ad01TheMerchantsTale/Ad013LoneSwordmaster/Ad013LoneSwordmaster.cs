@@ -29,7 +29,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public Angle[] GetAngles(int slot)
     {
-        if (slot < 0 || slot > 3)
+        if (slot is < 0 or > 3)
             return [];
 
         if (Malefic[slot] == 0)
@@ -59,7 +59,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
     }
     public Angle[] GetUnsafeAngles(int slot)
     {
-        if (slot < 0 || slot > 3)
+        if (slot is < 0 or > 3)
             return [];
 
         if (Malefic[slot] == 0)
@@ -90,7 +90,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public Angle? GetUnyieldingAngle(int slot, bool sourceNorthSouth)
     {
-        if (slot < 0 || slot > 3)
+        if (slot is < 0 or > 3)
             return null;
 
         if (Malefic[slot] == 0)
@@ -110,7 +110,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID >= (uint)SID.MaleficE && status.ID <= (uint)SID.MaleficNSEW)
+        if (status.ID is >= (uint)SID.MaleficE and <= (uint)SID.MaleficNSEW)
         {
             Malefic[Raid.FindSlot(actor.InstanceID)] = status.ID;
         }
@@ -118,7 +118,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
-        if (status.ID >= (uint)SID.MaleficE && status.ID <= (uint)SID.MaleficNSEW)
+        if (status.ID is >= (uint)SID.MaleficE and <= (uint)SID.MaleficNSEW)
         {
             var remaining = (status.ExpireAt - WorldState.CurrentTime).TotalSeconds;
             if (remaining < 2d)

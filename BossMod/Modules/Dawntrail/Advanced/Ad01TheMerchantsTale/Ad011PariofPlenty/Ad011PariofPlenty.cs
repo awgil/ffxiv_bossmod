@@ -6,7 +6,7 @@ sealed class BurningGleam(BossModule module) : Components.SimpleAOEGroups(module
 
 sealed class CharmedChains(BossModule module) : Components.Chains(module, (uint)TetherID.CharmedChain);
 
-sealed class SimpleFableFlight(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.LeftFableflight,(uint)AID.RightFableflight], new AOEShapeCone(60f, 90f.Degrees()));
+sealed class SimpleFableFlight(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.LeftFableflight, (uint)AID.RightFableflight], new AOEShapeCone(60f, 90f.Degrees()));
 
 sealed class FireOfVictory(BossModule module) : Components.SpreadFromCastTargets(module, (uint)AID.FireOfVictory, 4f);
 
@@ -16,7 +16,7 @@ sealed class CurseOfCompanionshipSolitude(BossModule module) : Components.Status
 
 sealed class SpurningFlames(BossModule module) : Components.RaidwideCast(module, (uint)AID.SpurningFlames);
 sealed class ImpassionedSpark(BossModule module) : Components.SimpleAOEs(module, (uint)AID.ImpassionedSparks3, 8f);
-sealed class BurningPillar(BossModule module) : Components.SimpleAOEs(module,(uint)AID.BurningPillar, 10f);
+sealed class BurningPillar(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BurningPillar, 10f);
 sealed class SparkPuddle(BossModule module) : Components.Voidzone(module, 10f, GetPuddles)
 {
     private static Actor[] GetPuddles(BossModule module)

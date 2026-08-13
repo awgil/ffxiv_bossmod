@@ -75,11 +75,10 @@ sealed class CorruptingBurst(BossModule module) : Components.GenericBaitAway(mod
     }
 }
 
-
 [SkipLocalsInit]
-sealed class SymondTheUnsinkableStates : StateMachineBuilder
+sealed class D171SymondTheUnsinkableStates : StateMachineBuilder
 {
-    public SymondTheUnsinkableStates(BossModule module) : base(module)
+    public D171SymondTheUnsinkableStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<CorruptingShot>()
@@ -95,9 +94,8 @@ sealed class SymondTheUnsinkableStates : StateMachineBuilder
     }
 }
 
-
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(SymondTheUnsinkableStates),
+    StatesType = typeof(D171SymondTheUnsinkableStates),
     ConfigType = null, // replace null with typeof(SymondTheUnsinkableConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -115,4 +113,4 @@ sealed class SymondTheUnsinkableStates : StateMachineBuilder
     PlanLevel = 0)]
 [SkipLocalsInit]
 // technically arena center is (42, 30, -56) if you want to visit in hyperborea.
-public sealed class SymondTheUnsinkable(WorldState ws, Actor primary) : BossModule(ws, primary, new(42f, -56f), new ArenaBoundsCircle(20f));
+public sealed class D171SymondTheUnsinkable(WorldState ws, Actor primary) : BossModule(ws, primary, new(42f, -56f), new ArenaBoundsCircle(20f));

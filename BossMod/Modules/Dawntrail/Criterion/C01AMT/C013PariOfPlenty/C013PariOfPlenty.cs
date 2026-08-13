@@ -19,15 +19,20 @@ class FireOfVictory(BossModule module) : Components.BaitAwayCast(module, (uint)A
 
 class RedCrystals(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BurningGleam, new AOEShapeCross(40, 5), 3);
 
-class RedCrystals2 : Components.SimpleAOEs {
-    public RedCrystals2(BossModule module) : base(module, (uint)AID.BurningGleam, new AOEShapeCross(40, 5), 2) {
+class RedCrystals2 : Components.SimpleAOEs
+{
+    public RedCrystals2(BossModule module) : base(module, (uint)AID.BurningGleam, new AOEShapeCross(40, 5), 2)
+    {
         Color = Colors.Danger;
     }
 }
 
-class KindleFlameStackIcon(BossModule module) : Components.StackTogether(module, (uint)IconID.StackIcon, 5, 6) {
-    public override void DrawArenaForeground(int pcSlot, Actor pc) {
-        foreach (var target in Targets) {
+class KindleFlameStackIcon(BossModule module) : Components.StackTogether(module, (uint)IconID.StackIcon, 5, 6)
+{
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var target in Targets)
+        {
             Arena.ZoneCircleOutline(target.Position, Radius, Colors.Safe);
         }
     }
@@ -37,18 +42,18 @@ class KindleFlameStackIcon(BossModule module) : Components.StackTogether(module,
     StatesType = typeof(PariOfPlentyStates),
     ConfigType = null, // replace null with typeof(PariOfPlentyConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = null, // replace null with typeof(AID) if applicable
-    StatusIDType = null, // replace null with typeof(SID) if applicable
-    TetherIDType = null, // replace null with typeof(TetherID) if applicable
-    IconIDType = null, // replace null with typeof(IconID) if applicable
+    ActionIDType = typeof(AID),
+    StatusIDType = typeof(SID),
+    TetherIDType = typeof(TetherID),
+    IconIDType = typeof(IconID),
     PrimaryActorOID = (uint)OID.PariOfPlenty,
-    Contributors = "",
+    Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.VariantCriterion,
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 1079u,
     NameID = 14274u,
-    SortOrder = 1,
+    SortOrder = 3,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class PariOfPlenty(WorldState ws, Actor primary) : BossModule(ws, primary, new(-760f, -805f), new ArenaBoundsSquare(20f));

@@ -91,12 +91,10 @@ public enum TetherID : uint
     SpecterTether = 17, // SpecterOfThePatriarch/SpecterOfTheMatriarch/SpecterOfAsahi->Yotsuyu
 }
 
-
 sealed class TormentUntoDeath(BossModule module) : Components.BaitAwayCast(module, (uint)AID.TormentUntoDeath,
     new AOEShapeCone(15f, 37.5f.Degrees()), tankbuster: true);
 
-sealed class TsukuNoMaiogi(BossModule module)
-    : Components.SimpleAOEs(module, (uint)AID.TsukiNoMaiogi, new AOEShapeCircle(10f), 7);
+sealed class TsukuNoMaiogi(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TsukiNoMaiogi, 10f, 7);
 
 sealed class SteelOfTheUnderworld(BossModule module) : Components.SimpleAOEs(module, (uint)AID.SteelOfTheUnderworld, new AOEShapeCone(70f, 45f.Degrees()));
 
@@ -104,7 +102,7 @@ sealed class Reprimand(BossModule module) : Components.RaidwideCast(module, (uin
 
 sealed class MidnightHaze(BossModule module) : Components.Adds(module, (uint)OID.MidnightHaze, 1);
 
-sealed class LeadOfTheUnderworld(BossModule module) : Components.LineStack(module, aidMarker: (uint)AID.LeadOfUnderworldMark, (uint)AID.LeadOfTheUnderworld, 5.0f, 70f, 4f, 8, 8);
+sealed class LeadOfTheUnderworld(BossModule module) : Components.LineStack(module, aidMarker: (uint)AID.LeadOfUnderworldMark, (uint)AID.LeadOfTheUnderworld, 5d, 70f, 4f, 8, 8);
 
 /*
  * Nightbloom happens and the arena takes the bloody smoke look, same bounds. Multiple adds come out to be killed.
@@ -146,7 +144,7 @@ sealed class MoonStatus(BossModule module) : BossComponent(module)
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
         // Check if we have 3 or more stacks. Check if player character is the affected target.
-        if ((status.ID is (uint)SID.Moonlit or (uint)SID.Moonshadowed) && status.Extra >= 3 && actor.InstanceID == Raid.Player()!.InstanceID)
+        if (status.ID is (uint)SID.Moonlit or (uint)SID.Moonshadowed && status.Extra >= 3 && actor.InstanceID == Raid.Player()!.InstanceID)
         {
             // This is assuming that moon splits are east/west always
             // if they can be north/south also this will need logic for that.
@@ -162,7 +160,7 @@ sealed class MoonStatus(BossModule module) : BossComponent(module)
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
         // Check that status is dropping from the player character.
-        if (status.ID is (uint)SID.Moonlit or (uint)SID.Moonshadowed &&  actor.InstanceID == Raid.Player()!.InstanceID)
+        if (status.ID is (uint)SID.Moonlit or (uint)SID.Moonshadowed && actor.InstanceID == Raid.Player()!.InstanceID)
         {
             _westSideDanger = false;
             _eastSideDanger = false;
@@ -191,14 +189,11 @@ sealed class Antitwilight(BossModule module) : Components.RaidwideCast(module, (
 
 sealed class Lunacy(BossModule module) : Components.StackWithCastTargets(module, (uint)AID.Lunacy, 6f, 8, 8);
 
-sealed class DarkBlade(BossModule module) : Components.SimpleAOEs(module, (uint)AID.DarkBlade, new AOEShapeCone(70f, 105f.Degrees()));
-
-sealed class BrightBlade(BossModule module) : Components.SimpleAOEs(module, (uint)AID.BrightBlade, new AOEShapeCone(70f, 105f.Degrees()));
+sealed class BrightDarkBlade(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.BrightBlade, (uint)AID.DarkBlade], new AOEShapeCone(70f, 105f.Degrees()));
 
 sealed class DanceOfTheDead(BossModule module) : Components.RaidwideCast(module, (uint)AID.DanceOfTheDead1);
 
 sealed class ToAshes(BossModule module) : Components.RaidwideCast(module, (uint)AID.ToAshes);
-
 
 [SkipLocalsInit]
 sealed class TsukuyomiStates : StateMachineBuilder
@@ -226,10 +221,8 @@ sealed class TsukuyomiStates : StateMachineBuilder
             .ActivateOnEnter<Lunacy>()
             // Final Phase with no moon status. Uses all the other 1st phase aoe
             .ActivateOnEnter<DanceOfTheDead>()
-            .ActivateOnEnter<DarkBlade>()
-            .ActivateOnEnter<BrightBlade>()
-            .ActivateOnEnter<ToAshes>()
-            ;
+            .ActivateOnEnter<BrightDarkBlade>()
+            .ActivateOnEnter<ToAshes>();
     }
 }
 

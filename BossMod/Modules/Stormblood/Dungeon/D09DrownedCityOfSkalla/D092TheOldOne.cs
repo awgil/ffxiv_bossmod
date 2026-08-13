@@ -86,28 +86,22 @@ sealed class Shatterstone(BossModule module) : BossComponent(module)
 sealed class OrderToDetonate(BossModule module) : Components.RaidwideCast(module, (uint)AID.OrderToDetonate);
 
 [SkipLocalsInit]
-sealed class TheOldOneStates : StateMachineBuilder
+sealed class D092TheOldOneStates : StateMachineBuilder
 {
-    public TheOldOneStates(BossModule module) : base(module)
+    public D092TheOldOneStates(BossModule module) : base(module)
     {
-        DeathPhase(default, SinglePhase);
-    }
-
-    private void SinglePhase(uint id)
-    {
-        SimpleState(id + 0xFF0000u, 10000f, "???")
+        TrivialPhase()
             .ActivateOnEnter<MysticLight>()
             .ActivateOnEnter<MysticFlame>()
             .ActivateOnEnter<SubservientAdds>()
             .ActivateOnEnter<ShiftingLight>()
             .ActivateOnEnter<Shatterstone>()
-            .ActivateOnEnter<OrderToDetonate>()
-            ;
+            .ActivateOnEnter<OrderToDetonate>();
     }
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed,
-    StatesType = typeof(TheOldOneStates),
+    StatesType = typeof(D092TheOldOneStates),
     ConfigType = null, // replace null with typeof(TheOldOneConfig) if applicable
     ObjectIDType = typeof(OID),
     ActionIDType = typeof(AID),
@@ -121,8 +115,8 @@ sealed class TheOldOneStates : StateMachineBuilder
     GroupType = BossModuleInfo.GroupType.CFC,
     GroupID = 279u,
     NameID = 6908u,
-    SortOrder = 1,
+    SortOrder = 2,
     PlanLevel = 0)]
 
 [SkipLocalsInit]
-public sealed class TheOldOne(WorldState ws, Actor primary) : BossModule(ws, primary, new(115f, 4f), new ArenaBoundsCircle(20f));
+public sealed class D092TheOldOne(WorldState ws, Actor primary) : BossModule(ws, primary, new(115f, 4f), new ArenaBoundsCircle(20f));

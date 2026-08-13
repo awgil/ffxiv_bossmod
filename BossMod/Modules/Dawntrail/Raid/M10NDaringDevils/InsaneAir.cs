@@ -19,19 +19,18 @@ static class InsaneAirData
 
 sealed class InsaneAirSnaps(BossModule module) : Components.GenericAOEs(module)
 {
-    private struct Pair
+    private struct Pair(ulong o, ulong t, uint icon)
     {
-        public ulong OriginID;
-        public ulong TargetID;
-        public uint Icon; // 651 (blue) or 665 (red)
-        public Pair(ulong o, ulong t, uint icon) { OriginID = o; TargetID = t; Icon = icon; }
+        public ulong OriginID = o;
+        public ulong TargetID = t;
+        public uint Icon = icon; // 651 (blue) or 665 (red)
     }
 
     private readonly List<Pair> _pairs = [];
     private readonly List<AOEInstance> _active = [];
 
-    private const uint IconBlue = 651; 
-    private const uint IconRed  = 665; 
+    private const uint IconBlue = 651;
+    private const uint IconRed = 665;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -53,14 +52,12 @@ sealed class InsaneAirSnaps(BossModule module) : Components.GenericAOEs(module)
         return CollectionsMarshal.AsSpan(_active);
     }
 
-    
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID != IconBlue && iconID != IconRed)
+        if (iconID is not IconBlue and not IconRed)
             return;
 
-        
-        if ((uint)actor.OID != (uint)OID._Gen_)
+        if (actor.OID != (uint)OID._Gen_)
             return;
 
         var target = WorldState.Actors.Find(targetID);

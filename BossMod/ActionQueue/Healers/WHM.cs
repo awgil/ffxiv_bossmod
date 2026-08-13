@@ -225,7 +225,7 @@ public sealed class Definitions : Defs
         d.RegisterChargeIncreaseTrait(AID.DivineBenison, TraitID.EnhancedDivineBenison);
         d.RegisterChargeIncreaseTrait(AID.Tetragrammaton, TraitID.EnhancedTetragrammaton);
 
-        d.Spell(AID.AetherialShift)!.TransformAngle = (ws, _, _, _) => _config.AlignDashToCamera
+        d.Spell(AID.AetherialShift)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera
             ? ws.Client.CameraAzimuth + 180.Degrees()
             : null;
         d.Spell(AID.AetherialShift)!.AllowExecute = ActionPredicate.AllowDashFixed(15);

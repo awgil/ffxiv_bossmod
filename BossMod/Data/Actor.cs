@@ -146,12 +146,13 @@ public readonly struct ActorIncomingEffect(uint globalSequence, int targetIndex,
     public readonly ActionEffects Effects = effects;
 }
 
-public readonly struct PendingEffect(uint globalSequence, int targetIndex, ulong sourceInstanceID, DateTime expiration)
+public readonly struct PendingEffect(uint globalSequence, int targetIndex, ulong sourceInstanceID, DateTime expiration, bool requiresEffectResult)
 {
     public readonly uint GlobalSequence = globalSequence;
     public readonly int TargetIndex = targetIndex;
     public readonly ulong SourceInstanceID = sourceInstanceID;
     public readonly DateTime Expiration = expiration;
+    public readonly bool RequiresEffectResult = requiresEffectResult;
 }
 
 public readonly struct PendingEffectDelta(PendingEffect effect, int value)

@@ -1,12 +1,15 @@
 ﻿namespace BossMod.Dawntrail.Criterion.C01AMT.C011DaryaTheSeaMaid;
 
 [SkipLocalsInit]
-sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
-    public DaryaTheSeaMaidStates(BossModule module) : base(module) {
+sealed class DaryaTheSeaMaidStates : StateMachineBuilder
+{
+    public DaryaTheSeaMaidStates(BossModule module) : base(module)
+    {
         DeathPhase(default, SinglePhase);
     }
 
-    private void SinglePhase(uint id) {
+    private void SinglePhase(uint id)
+    {
         FamilarCall(id, 7.1f);
         AlluringOrder1(id + 0x200, 6.3f);
         CeaselessCurrent(id + 0x300, 7.4f);
@@ -16,11 +19,12 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
         Enrage(id + 0x1000, 1f);
     }
 
-    private void FamilarCall(uint id, float delay) {
+    private void FamilarCall(uint id, float delay)
+    {
         Cast(id, (uint)AID.PiercingPlunge, delay, 5, "Raidwide")
             .ActivateOnEnter<PiercingPlunge>()
             .DeactivateOnExit<PiercingPlunge>();
-            
+
         Cast(id + 0x10, (uint)AID.FamiliarCall, 10.4f, 3, "Adds spawn")
             .ActivateOnEnter<EchoedSerenade>();
         Cast(id + 0x50, (uint)AID.EchoedSerenade, 5.1f, 8.5f)
@@ -38,7 +42,8 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
             .DeactivateOnExit<SurgingCurrent>();
     }
 
-    private void AlluringOrder1(uint id, float delay) {
+    private void AlluringOrder1(uint id, float delay)
+    {
         Cast(id, (uint)AID.AlluringOrder, delay, 4, "Raidwide")
             .ActivateOnEnter<AlluringOrder>()
             .DeactivateOnExit<AlluringOrder>()
@@ -54,7 +59,8 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
             .DeactivateOnExit<AlluringOrderForcedMarch>();
     }
 
-    private void CeaselessCurrent(uint id, float delay) {
+    private void CeaselessCurrent(uint id, float delay)
+    {
         Cast(id + 0x10, (uint)AID.CeaselessCurrent, delay, 4, "CeaselessCurrent")
             .ActivateOnEnter<CeaselessCurrent>()
             .ActivateOnEnter<SurgingCurrent2>()
@@ -65,12 +71,13 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
             .DeactivateOnExit<SurgingCurrent2>()
             .DeactivateOnExit<CrossCurrent>();
     }
-    
-    private void AlluringOrder2(uint id, float delay) {
+
+    private void AlluringOrder2(uint id, float delay)
+    {
         Cast(id, (uint)AID.PiercingPlunge, delay, 5, "Raidwide")
             .ActivateOnEnter<PiercingPlunge>()
             .DeactivateOnExit<PiercingPlunge>();
-        
+
         Cast(id + 0x10, (uint)AID.AlluringOrder, 7.2f, 4, "Raidwide")
             .ActivateOnEnter<AlluringOrder>()
             .DeactivateOnExit<AlluringOrder>()
@@ -80,7 +87,7 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
         Cast(id + 0x20, (uint)AID.SunkenTreasure, 5.2f, 3, "Spawns Spheres/Donuts")
             .ActivateOnEnter<SunkenTreasure>()
             .ActivateOnEnter<SurgingCurrent2>();
-        
+
         ComponentCondition<AlluringOrderForcedMarch>(id + 0x30, 13, o => o.NumActiveForcedMarches > 0, "Controlled Walk");
         ComponentCondition<Tidalspout>(id + 0x40, 4.0f, o => !o.Active, "Sphere Shatter + Stack Resolves")
             .DeactivateOnExit<AlluringOrderForcedMarch>()
@@ -91,11 +98,12 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
             .DeactivateOnExit<SunkenTreasure>();
     }
 
-    private void AquaSpear1(uint id, float delay) {
+    private void AquaSpear1(uint id, float delay)
+    {
         Cast(id, (uint)AID.AquaSpear, delay, 3, "Aqua Spear")
             .ActivateOnEnter<AquaSpear>();
         ComponentCondition<AquaSpear>(id + 0x10, 6.8f, o => o.NumCasts >= 4, "Spreads resolve");
-        
+
         Cast(id + 0x20, (uint)AID.FamiliarCall, 4.7f, 3, "Adds spawn")
             .ActivateOnEnter<EchoedSerenade2>()
             .ActivateOnEnter<AquaBall>()
@@ -120,8 +128,9 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
             .DeactivateOnExit<SurgingCurrent>()
             .DeactivateOnExit<AquaSpear>();
     }
-    
-    private void SunkenTreasure1(uint id, float delay) {
+
+    private void SunkenTreasure1(uint id, float delay)
+    {
         Cast(id, (uint)AID.SeaShackles, delay, 4, "Sea Shackles")
             .ActivateOnEnter<SeaShackles>()
             .ActivateOnEnter<HydrobulletStack>();
@@ -140,7 +149,8 @@ sealed class DaryaTheSeaMaidStates : StateMachineBuilder {
             .DeactivateOnExit<SeaShackles>();
     }
 
-    private void Enrage(uint id, float delay) {
+    private void Enrage(uint id, float delay)
+    {
         Cast(id, (uint)AID.PiercingPlunge, delay, 5, "Raidwide")
             .ActivateOnEnter<PiercingPlunge>()
             .DeactivateOnExit<PiercingPlunge>();

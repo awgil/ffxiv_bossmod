@@ -1,12 +1,15 @@
 ﻿namespace BossMod.Dawntrail.Criterion.C01AMT.C013PariOfPlenty;
 
 [SkipLocalsInit]
-sealed class PariOfPlentyStates : StateMachineBuilder {
-    public PariOfPlentyStates(BossModule module) : base(module) {
+sealed class PariOfPlentyStates : StateMachineBuilder
+{
+    public PariOfPlentyStates(BossModule module) : base(module)
+    {
         DeathPhase(default, SinglePhase);
     }
 
-    private void SinglePhase(uint id) {
+    private void SinglePhase(uint id)
+    {
         FireFlight(id, 8.1f);
         WheelOfFableFlight(id + 0x100, 12.7f);
         FireFlightFourLongNight(id + 0x200, 7.0f);
@@ -16,7 +19,8 @@ sealed class PariOfPlentyStates : StateMachineBuilder {
         SimpleState(id + 0xFF0000u, 10000f, "???");
     }
 
-    private void FireFlight(uint id, float delay) {
+    private void FireFlight(uint id, float delay)
+    {
         Cast(id, (uint)AID.HeatBurst, delay, 5, "Raidwide")
             .ActivateOnEnter<HeatBurst>()
             .DeactivateOnExit<HeatBurst>();
@@ -40,20 +44,22 @@ sealed class PariOfPlentyStates : StateMachineBuilder {
             .ActivateOnEnter<WheelOfFableFlight>(); // Easier to just activate this here rather than adding a condition for when the four clones move in-game
     }
 
-    private void WheelOfFableFlight(uint id, float delay) {
-        CastMulti(id, [(uint)AID.WheelOfFableflightLeft, (uint)AID.WheelOfFableflightRight], delay, 11.0f,"WheelOfFableFlight")
+    private void WheelOfFableFlight(uint id, float delay)
+    {
+        CastMulti(id, [(uint)AID.WheelOfFableflightLeft, (uint)AID.WheelOfFableflightRight], delay, 11.0f, "WheelOfFableFlight")
             .ActivateOnEnter<WheelofFableFlightStackSpread>();
         ComponentCondition<WheelOfFableFlight>(id + 0x10, 0.3f, o => o.NumCasts > 0, "Cleaves");
         ComponentCondition<WheelofFableFlightStackSpread>(id + 0x20, 0.5f, o => !o.Active, "Spread/Stack", checkDelay: 0.5f)
             .DeactivateOnExit<WheelOfFableFlight>()
             .DeactivateOnExit<WheelofFableFlightStackSpread>();
-        
+
         Cast(id + 0x30, (uint)AID.FireOfVictory, 4.4f, 5.0f, "Tankbuster")
             .ActivateOnEnter<FireOfVictory>()
             .DeactivateOnExit<FireOfVictory>();
     }
 
-    private void FireFlightFourLongNight(uint id, float delay) {
+    private void FireFlightFourLongNight(uint id, float delay)
+    {
         CastMulti(id, [(uint)AID.FireflightFourLongNightsLeft, (uint)AID.FireflightFourLongNightsRight], delay, 17.0f,
                 "FireFlightFourLongNight")
             .ActivateOnEnter<FireFlightFourLongNight>()
@@ -68,7 +74,8 @@ sealed class PariOfPlentyStates : StateMachineBuilder {
             .DeactivateOnExit<WitchHuntStack>();
     }
 
-    private void ParisCurse(uint id, float delay) {
+    private void ParisCurse(uint id, float delay)
+    {
         Cast(id, (uint)AID.ParisCurse, delay, 5, "Pari's Curse")
             .ActivateOnEnter<ParisCurse>()
             .ActivateOnEnter<Fableflight>();
@@ -76,7 +83,8 @@ sealed class PariOfPlentyStates : StateMachineBuilder {
             .DeactivateOnExit<ParisCurse>();
     }
 
-    private void SpurningFlames(uint id, float delay) {
+    private void SpurningFlames(uint id, float delay)
+    {
         Cast(id, (uint)AID.SpurningFlames, delay, 7, "Spurning Flames")
             .ActivateOnEnter<SpurningFlames>()
             .DeactivateOnExit<SpurningFlames>()
@@ -97,7 +105,8 @@ sealed class PariOfPlentyStates : StateMachineBuilder {
             .DeactivateOnExit<FireChains>();
     }
 
-    private void Doubling(uint id, float delay) {
+    private void Doubling(uint id, float delay)
+    {
         Cast(id, (uint)AID.Doubling, delay, 3, "Doubling")
             .ActivateOnEnter<Doubling>();
         ComponentCondition<Doubling>(id + 0x10, 14.2f, o => o.NumCasts > 0, "1st Towers");

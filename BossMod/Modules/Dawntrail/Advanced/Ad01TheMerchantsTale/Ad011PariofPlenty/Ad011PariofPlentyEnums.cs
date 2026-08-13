@@ -1,4 +1,5 @@
 ﻿namespace BossMod.Modules.Dawntrail.Advanced.Ad01TheMerchantsTale.Ad011PariofPlenty;
+
 public enum OID : uint
 {
     PariOfPlenty = 0x4A6D,

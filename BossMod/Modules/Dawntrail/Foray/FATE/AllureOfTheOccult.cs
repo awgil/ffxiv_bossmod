@@ -1,12 +1,14 @@
 ﻿namespace BossMod.Dawntrail.Foray.FATE.AllureOfTheOccult;
 
-public enum OID : uint {
+public enum OID : uint
+{
     SensualSandy = 0x4D56,
     Helper = 0x233C,
     PoisonCloud = 0x4D57, // R1.700, x0 (spawn during fight)
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50535, // SensualSandy->player, no cast, single-target
     PutridBreath = 48944, // SensualSandy->self, 5.0s cast, range 25 130.000-degree cone
     PutridBreath1 = 48952, // SensualSandy->self, 3.0s cast, range 25 130.000-degree cone
@@ -24,8 +26,10 @@ sealed class WildWildBreath(BossModule module) : Components.SimpleAOEGroups(modu
 sealed class Burst(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Burst, 10f);
 
 [SkipLocalsInit]
-sealed class AllureOfTheOccultStates : StateMachineBuilder {
-    public AllureOfTheOccultStates(BossModule module) : base(module) {
+sealed class AllureOfTheOccultStates : StateMachineBuilder
+{
+    public AllureOfTheOccultStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<PutridBreath>()
             .ActivateOnEnter<WildWildBreath>()
@@ -45,10 +49,10 @@ sealed class AllureOfTheOccultStates : StateMachineBuilder {
     Contributors = "Equilius",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.ForayFATE,
     GroupID = 1093u,
-    NameID = 14738u,
-    SortOrder = 21,
+    NameID = 2078u,
+    SortOrder = 7,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class AllureOfTheOccult(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);

@@ -24,7 +24,11 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
                 }
 
                 var dist = part.EffectiveExistence.Distance(now);
-                if (best == null || dist < bestDist) { best = part; bestDist = dist; }
+                if (best == null || dist < bestDist)
+                {
+                    best = part;
+                    bestDist = dist;
+                }
             }
             var p = best;
             var adjNow = p == null ? Now : Now < p.EffectiveExistence.Start ? p.EffectiveExistence.Start : Now > p.EffectiveExistence.End ? p.EffectiveExistence.End : Now;
@@ -93,9 +97,9 @@ sealed class IPCList(Replay replay, Replay.Encounter? enc, IEnumerable<WorldStat
         while (c.Step())
         {
             foreach (var n in tree.Nodes(_nodes[c.DisplayStart..c.DisplayEnd], n => new($"{(n.op.Timestamp - timeRef).TotalSeconds:f3}: {n.data.Value.Text}###{n.index}", n.data.Value.Children == null), n => ContextMenu(n.op), n => scrollTo(n.op.Timestamp), n => _relativeTS = n.op.Timestamp))
-        {
+            {
                 DrawNodes(tree, n.data.Value.Children);
-        }
+            }
         }
 
         c.End();

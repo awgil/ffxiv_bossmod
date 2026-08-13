@@ -152,7 +152,36 @@ public static class ConfigConverter
             ConvertV9Plans(j.AsObject(), f.Directory!);
             return j;
         });
+        res.Converters.Add((j, _, _) => // v11: repair color arrays without overwriting user customizations
+        {
+            FixColorArrays(j.AsObject());
+            return j;
+        });
         return res;
+    }
+
+    private static void FixColorArrays(JsonObject payload)
+    {
+        if (payload[typeof(ColorConfig).FullName!] is not JsonObject config)
+        {
+            return;
+        }
+
+        var defaults = ColorConfig.DefaultConfig;
+        var serializationOptions = Serialization.BuildSerializationOptions();
+        foreach (var field in typeof(ColorConfig).GetFields())
+        {
+            if (field.FieldType != typeof(Color[]) || field.GetValue(defaults) is not Color[] defaultColors || config[field.Name] is not JsonArray configuredColors)
+            {
+                continue;
+            }
+            var countConfigures = configuredColors.Count;
+            var lenDefault = defaultColors.Length;
+            for (var i = countConfigures; i < lenDefault; ++i)
+            {
+                configuredColors.Add(JsonSerializer.SerializeToNode(defaultColors[i], serializationOptions));
+            }
+        }
     }
 
     private static void ConvertV1GatherChildren(JsonObject result, JsonObject json, bool isV0)

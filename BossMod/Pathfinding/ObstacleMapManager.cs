@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -94,14 +95,14 @@ public sealed class ObstacleMapManager : IDisposable
         }
     }
 
-    public bool TryCloneTempMap(out ObstacleMapDatabase.Entry entry, out Bitmap bitmap)
+    public bool TryCloneTempMap([NotNullWhen(true)] out ObstacleMapDatabase.Entry? entry, [NotNullWhen(true)] out Bitmap? bitmap)
     {
         lock (_tempMapLock)
         {
             if (_tempMap is not { } t)
             {
-                entry = null!;
-                bitmap = null!;
+                entry = null;
+                bitmap = null;
                 return false;
             }
 
@@ -304,7 +305,7 @@ public sealed class ObstacleMapManager : IDisposable
         }
     }
 
-    public bool GenerateMap(Vector3 centerWorld, float radius, bool writeToFile)
+    public bool GenerateMap(Vector3 centerWorld, float radius, bool writeToFile, bool insertAtFront)
     {
         if (_generationTask is { IsCompleted: false })
         {
@@ -337,7 +338,11 @@ public sealed class ObstacleMapManager : IDisposable
                 var bitmap = new Bitmap(stream);
                 if (writeToFile)
                 {
-                    Database.Entries.GetOrAdd(CurrentKey()).Add(entry);
+                    var entryList = Database.Entries.GetOrAdd(CurrentKey());
+                    if (insertAtFront)
+                        entryList.Insert(0, entry);
+                    else
+                        entryList.Add(entry);
                     SaveDatabase();
                 }
                 else

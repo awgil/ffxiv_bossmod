@@ -52,6 +52,19 @@ public enum SID : uint
     CacheMeIfYouCan = 1531, // none->player, extra=0x0
 }
 
+sealed class HowlingDarkness(BossModule module) : Components.RaidwideCast(module, (uint)AID.HowlingDarkness);
+sealed class SnakingNecrobreath(BossModule module) : Components.SimpleAOEs(module, (uint)AID.SnakingNecrobreath, new AOEShapeCone(60f, 135f.Degrees()));
+sealed class GraveMold(BossModule module) : Components.SimpleAOEs(module, (uint)AID.GraveMold, 8f);
+sealed class Cauterize(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Cauterize, new AOEShapeRect(40f, 5f));
+sealed class Catching(BossModule module) : Components.GenericAOEs(module)
+{
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        return [];
+    }
+}
+sealed class BreathInThrees(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.BreathInThrees, (uint)AID.BreathInThrees1], new AOEShapeCone(60f, 60f.Degrees()));
+
 [SkipLocalsInit]
 sealed class CE205CursedResurgenceStates : StateMachineBuilder
 {
@@ -73,10 +86,10 @@ sealed class CE205CursedResurgenceStates : StateMachineBuilder
     Contributors = "The Combat Reborn Team (LTS)",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14787u,
-    SortOrder = 1,
+    NameID = 53u,
+    SortOrder = 5,
     PlanLevel = 0)]
 [SkipLocalsInit]
 public sealed class CE205CursedResurgence(WorldState ws, Actor primary) : BossModule(ws, primary, new(-688f, 150f), new ArenaBoundsSquare(20f))

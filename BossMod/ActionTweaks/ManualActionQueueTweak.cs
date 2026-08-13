@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.Data;
+
+namespace BossMod;
 
 // Custom queue for manual actions.
 // When running autorotation, we typically still want the ability to execute actions manually (e.g. if there is no plan available, or if some emergency happens).
@@ -117,12 +119,12 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             return false; // don't bother trying to queue something that's on cd
         }
 
-        if (!ResolveTarget(def, player, targetId, getAreaTarget, targetNearest, allowTargetOverride, out var target, out var targetPos))
+        var angleOverride = def.TransformAngle?.Invoke(ws, player, hints);
+
+        if (!ResolveTarget(def, player, targetId, getAreaTarget, targetNearest, allowTargetOverride, angleOverride, out var target, out var targetPos))
         {
             return false; // failed to resolve target
         }
-
-        var angleOverride = def.TransformAngle?.Invoke(ws, player, target, hints);
 
         var expireAt = ws.CurrentTime.AddSeconds(expire);
         var index = _queue.FindIndex(e => e.Definition.MainCooldownGroup == def.MainCooldownGroup); // TODO: what about alt groups and duty actions?..
@@ -166,7 +168,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         }
     }
 
-    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest, bool allowSmartTarget, out Actor? target, out Vector3 targetPos)
+    private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest, bool allowSmartTarget, Angle? angleOverride, out Actor? target, out Vector3 targetPos)
     {
         target = null;
         targetPos = default;
@@ -211,6 +213,16 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             }
 
             targetPos = playerGate.PosRot.XYZ();
+            return true;
+        }
+
+        // Step Forth is area targeted so it's basically BTL but for a fixed distance, which is why we need angleOverride here
+        // it's fine to have an incorrect Y, game will attempt to move us in a straight line toward the destination, respecting walls/ledges/gravity
+        if (def.ID.ID == (uint)PhantomID.StepForth)
+        {
+            var displacement = (angleOverride ?? player.Rotation).ToDirection() * 10;
+
+            targetPos = (player.Position + displacement).ToVec3(player.PosRot.Y);
             return true;
         }
 

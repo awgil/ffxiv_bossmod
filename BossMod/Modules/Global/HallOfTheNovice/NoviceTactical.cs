@@ -11,7 +11,7 @@ public enum OID : uint
 public enum AID : uint
 {
     // NA01 React to Attack Markers
-    NA01SpreadExampleCast =  40678,
+    NA01SpreadExampleCast = 40678,
     NA01Glaciate = 40679, // 463B->self, 4.5+0.5s cast, single-target
     NA01Glaciate1 = 40680, // 233C->player/463D/463E/463F, 5.0s cast, range 6 circle
     NA01Glaciate2 = 40691, // 463B->self, 6.5+0.5s cast, single-target
@@ -419,7 +419,6 @@ class NA02Border(BossModule module) : Components.SimpleAOEGroups(module,
     }
 }
 
-
 class NA02Windage(BossModule module) : Components.SimpleAOEs(module, (uint)AID.NA02Windage1, 5f);
 class NA02WindageKnockback(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.NA02Windage2, 10f);
 class NA02FuriousFlare(BossModule module) : Components.SimpleAOEs(module, (uint)AID.NA02FuriousFlare1, 18f);
@@ -454,7 +453,7 @@ class NA03Tether(BossModule module) : Components.BaitAwayTethers(module, new AOE
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (ActiveBaits.Any())
+        if (CurrentBaits.Count != 0)
         {
             hints.AddForbiddenZone(new AOEShapeCircle(19f), Module.Center);
         }
@@ -476,9 +475,10 @@ class NA03TetherIntercept(BossModule module) : BossComponent(module)
             var bomb = tethers.First();
 
             var distance = Module.PrimaryActor.Position - bomb.Position;
-            var halfLength = distance.Length() / 2 / 3 * 2;
+            const float divisor = 1f / 2f / 3f * 2f;
+            var halfLength = distance.Length() * divisor;
 
-            hints.AddForbiddenZone(new SDInvertedRect(Module.Center - distance.Scaled(0.5f), distance.ToAngle(), halfLength, halfLength, 1f));
+            hints.AddForbiddenZone(new SDInvertedRect(Arena.Center - distance.Scaled(0.5f), distance.ToAngle(), halfLength, halfLength, 1f));
         }
     }
 
@@ -524,7 +524,7 @@ class NA03TetherIntercept(BossModule module) : BossComponent(module)
 }
 
 class NA03Glaciate(BossModule module) : Components.SimpleAOEs(module, (uint)AID.NA03Glaciate1, 6f);
-class NA03FanOfFlames(BossModule module) : Components.SimpleAOEGroupsByTimewindow(module, [(uint)AID.NA03FanOfFlames1, (uint)AID.NA03FanOfFlames2], new AOEShapeCone(60f, 23.Degrees(), 0.Degrees()), expectedNumCasters: 4);
+class NA03FanOfFlames(BossModule module) : Components.SimpleAOEGroupsByTimewindow(module, [(uint)AID.NA03FanOfFlames1, (uint)AID.NA03FanOfFlames2], new AOEShapeCone(60f, 22.5f.Degrees()), expectedNumCasters: 4);
 class NA03PetrifyingLight(BossModule module) : Components.CastGaze(module, (uint)AID.NA03PetrifyingLight2);
 class NA03PetrifyingLight2(BossModule module) : Components.CastGaze(module, (uint)AID.NA03PetrifyingLight4);
 class NA03Withdraw(BossModule module) : Components.RaidwideCast(module, (uint)AID.NA03Withdraw);

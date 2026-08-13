@@ -30,6 +30,9 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
         [Track("Monk: Use Occult Chakra", Action = PhantomID.OccultChakra)]
         public Track<ChakraStrategy> Chakra;
 
+        [Track("Thief: Use Steal", Action = PhantomID.Steal)]
+        public Track<DisabledByDefault> Steal;
+
         [Track("Oracle: Predict", Actions = [PhantomID.Predict, PhantomID.PhantomJudgment, PhantomID.Cleansing, PhantomID.Blessing, PhantomID.Starfall])]
         public Track<PredictStrategy> Predict;
 
@@ -41,6 +44,21 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
 
         [Track("Dancer: Dance", Actions = [PhantomID.Dance, PhantomID.PhantomSwordDance, PhantomID.TemptingTango, PhantomID.Jitterbug, PhantomID.MysteryWaltz, PhantomID.Quickstep])]
         public Track<EnabledByDefault> Dancer;
+
+        [Track("Dragoon: Jump, Lance", Actions = [PhantomID.OccultJump, PhantomID.Lance])]
+        public Track<EnabledByDefault> Dragoon;
+
+        [Track("Ninja: Shuriken, Smoke, Scrolls", Actions = [PhantomID.FumaShuriken, PhantomID.Smoke, PhantomID.FlameScroll, PhantomID.LightningScroll])]
+        public Track<EnabledByDefault> Ninja;
+
+        [Track("White Mage: Holy", Action = PhantomID.OccultHoly)]
+        public Track<EnabledByDefault> WhiteMage;
+
+        [Track("White Mage: Raise", Action = PhantomID.OccultRaise)]
+        public Track<RaiseStrategy> WHMRaise;
+
+        [Track("White Mage: Self-heal (DPS only)", Action = PhantomID.OccultWHMCureII)]
+        public Track<EnabledByDefault> WHMSelfHeal;
     }
 
     public enum RaiseStrategy
@@ -128,56 +146,233 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
 
     float DesiredRange = float.MaxValue;
 
+    bool MidCombo;
+
     public override void Execute(in Strategy strategy, Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.Client.CountdownRemaining > 0)
             return;
 
         DesiredRange = float.MaxValue;
+        MidCombo = CheckMidCombo();
 
-        var isMidCombo = CheckMidCombo();
+        PCan(strategy, primaryTarget);
+        PRanger(strategy, primaryTarget);
+        PTime(strategy, primaryTarget);
+        PChem(strategy, primaryTarget);
+        PSam(strategy, primaryTarget);
+        PBard(strategy, primaryTarget);
+        PMonk(strategy, primaryTarget);
+        PThief(strategy, primaryTarget);
+        POrc(strategy, primaryTarget);
+        PMyst(strategy, primaryTarget);
+        PGlad(strategy, primaryTarget);
+        PDnc(strategy, primaryTarget);
+        PDrg(strategy, primaryTarget);
+        PNin(strategy, primaryTarget);
+        PWhm(strategy, primaryTarget);
 
-        if (strategy.Cannoneer.IsEnabled() && !isMidCombo)
+        if (DesiredRange < float.MaxValue && primaryTarget != null)
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, DesiredRange, 1f));
+    }
+
+    private void PWhm(Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.WhiteMage.IsEnabled() && primaryTarget?.IsAlly == false)
+            UseAction(PhantomID.OccultHoly, primaryTarget, strategy.WhiteMage.Priority(ActionQueue.Priority.VeryHigh));
+
+        var option = strategy.WHMRaise;
+        var canRaise = option.Value switch
         {
-            var prio = strategy.Cannoneer.Priority(ActionQueue.Priority.High + 500);
+            RaiseStrategy.InCombat => true,
+            RaiseStrategy.OutOfCombat => !Player.InCombat,
+            _ => false
+        };
 
-            var bestTarget = primaryTarget?.IsAlly == false ? primaryTarget : null;
-            var bestCount = bestTarget == null ? 0 : Hints.NumPriorityTargetsInAOECircle(bestTarget.Position, 5);
-            foreach (var tar in Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 30))
+        if (canRaise && !MidCombo && World.Client.DutyActions.Any(d => d.Action.ID == (uint)PhantomID.OccultRaise))
+        {
+            var prio = option.Priority(ActionQueue.Priority.High + 500);
+            if (RaiseUtil.FindRaiseTargets(World, RaiseUtil.Targets.Everyone).FirstOrDefault() is { } tar)
+                UseAction(PhantomID.OccultRaise, tar, prio);
+        }
+
+        if (strategy.WHMSelfHeal.IsEnabled() && Player.InCombat && !MidCombo && Player.Class.IsDD() && Player.PendingHPRatio < 0.6f && !World.Party.WithoutSlot().Any(p => p.Role == Role.Healer) && Player.HPMP.CurMP >= 1500)
+            UseAction(PhantomID.OccultWHMCureII, Player, strategy.WHMSelfHeal.Priority(ActionQueue.Priority.VeryHigh), 1.5f);
+    }
+
+    private void PNin(Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.Ninja.IsEnabled())
+        {
+            if (primaryTarget?.IsAlly == false)
             {
-                if (tar.Actor == bestTarget)
-                    continue;
-
-                var cnt = Hints.NumPriorityTargetsInAOECircle(tar.Actor.Position, 5);
-                if (cnt > bestCount)
-                {
-                    bestTarget = tar.Actor;
-                    bestCount = cnt;
-                }
+                UseAction(PhantomID.FumaShuriken, primaryTarget, ActionQueue.Priority.High);
+                UseAction(PhantomID.LightningScroll, primaryTarget, ActionQueue.Priority.High);
+                UseAction(PhantomID.FlameScroll, primaryTarget, ActionQueue.Priority.High);
             }
 
-            if (bestTarget != null && bestCount > 0)
+            if (Player.InCombat)
             {
-                var isUndead = UndeadMobs.Contains(bestTarget.NameID);
+                var smokeLeft = Player.FindStatus(PhantomSID.Smoke, World.FutureTime(90))?.ExpireAt ?? default;
 
-                UseAction(PhantomID.SilverCannon, bestTarget, prio); // shares CD with holy
-                UseAction(PhantomID.ShockCannon, bestTarget, prio); // shares CD with dark
+                if (smokeLeft < World.FutureTime(5))
+                    UseAction(PhantomID.Smoke, Player, ActionQueue.Priority.High);
+            }
+        }
+    }
 
-                // use after silver for the extra damage from silver debuff
-                UseAction(PhantomID.PhantomFire, bestTarget, prio);
+    private void PDrg(Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.Dragoon.IsEnabled() && primaryTarget?.IsAlly == false)
+        {
+            UseAction(PhantomID.OccultJump, primaryTarget, ActionQueue.Priority.VeryHigh);
+            UseAction(PhantomID.Lance, primaryTarget, ActionQueue.Priority.High);
+        }
+    }
 
-                UseAction(PhantomID.HolyCannon, bestTarget, isUndead ? prio + 1 : prio);
-                UseAction(PhantomID.DarkCannon, bestTarget, prio);
+    private void PDnc(Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.Dancer.IsEnabled())
+        {
+            if (SelfStatusLeft(PhantomSID.Quickstep) < 5)
+                UseAction(PhantomID.Quickstep, Player, ActionQueue.Priority.High);
+
+            if (primaryTarget?.IsAlly == false)
+            {
+                UseAction(PhantomID.Dance, Player, ActionQueue.Priority.High);
+
+                if (Player.FindStatus(PhantomSID.PoisedToSwordDance) != null)
+                    UseAction(PhantomID.PhantomSwordDance, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.TemptedToTango) != null)
+                    UseAction(PhantomID.TemptingTango, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.Jitterbugged) != null)
+                    UseAction(PhantomID.Jitterbug, primaryTarget, ActionQueue.Priority.VeryHigh);
+                if (Player.FindStatus(PhantomSID.WillingToWaltz) != null)
+                    UseAction(PhantomID.MysteryWaltz, primaryTarget, ActionQueue.Priority.VeryHigh);
+            }
+        }
+    }
+
+    private void PGlad(Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.Gladiator.IsEnabled())
+            return;
+
+        if (Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(4)) || EnemiesAutoingMe.Any())
+            UseAction(PhantomID.Defend, Player, ActionQueue.Priority.High);
+
+        if (primaryTarget?.IsAlly == false)
+        {
+            UseAction(PhantomID.Finisher, primaryTarget, ActionQueue.Priority.VeryHigh);
+            UseAction(PhantomID.LongReach, primaryTarget, ActionQueue.Priority.VeryHigh);
+            if (primaryTarget.Position.InCircle(Player.Position, Player.HitboxRadius + primaryTarget.HitboxRadius + 8))
+                UseAction(PhantomID.BladeBlitz, Player, ActionQueue.Priority.VeryHigh);
+        }
+    }
+
+    private void PMyst(Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.MysticKnight.IsEnabled())
+            return;
+
+        if (primaryTarget?.IsAlly == false)
+        {
+            if (primaryTarget.FindStatus(PhantomSID.BlazingBane, DateTime.MaxValue) == null)
+                UseAction(PhantomID.BlazingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+
+            UseAction(PhantomID.HolySpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+            UseAction(PhantomID.SunderingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
+        }
+
+        // shell has permanent uptime (60s duration, 60s cooldown)
+        UseAction(PhantomID.MagicShell, Player, ActionQueue.Priority.High);
+    }
+
+    private void POrc(Strategy strategy, Actor? primaryTarget)
+    {
+        var predictOpt = strategy.Predict;
+        if (predictOpt == PredictStrategy.Disabled)
+            return;
+
+        var (pred, flags) = GetPrediction();
+
+        var haveTarget = Player.InCombat && predictOpt.Value switch
+        {
+            PredictStrategy.AutoConservative or PredictStrategy.AutoGreedy or PredictStrategy.AutoSuperGreedy => primaryTarget?.IsAlly == false,
+            PredictStrategy.HealOnly => true,
+            _ => false
+        };
+
+        if (pred == Prediction.None && haveTarget)
+            UseAction(PhantomID.Predict, Player, ActionQueue.Priority.VeryHigh - 10);
+
+        var isHeal = pred == Prediction.Blessing;
+        var isDmg = pred is Prediction.Cleansing or Prediction.Judgment or Prediction.Starfall;
+        var isSafe = pred != Prediction.Starfall;
+        var isLastPrediction = flags == 0xF;
+
+        var canUse = predictOpt.Value switch
+        {
+            PredictStrategy.AutoConservative => isDmg && isSafe,
+            PredictStrategy.AutoGreedy => isDmg && (isSafe || EnoughHP),
+            PredictStrategy.AutoSuperGreedy => !isSafe,
+            PredictStrategy.HealOnly => isHeal,
+            _ => false
+        };
+
+        if (canUse && haveTarget || isLastPrediction)
+            UseAction(GetID(pred), Player, predictOpt.Priority(ActionQueue.Priority.High));
+    }
+
+    void PCan(in Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.Cannoneer.IsEnabled() || MidCombo)
+            return;
+
+        var prio = strategy.Cannoneer.Priority(ActionQueue.Priority.High + 500);
+
+        var bestTarget = primaryTarget?.IsAlly == false ? primaryTarget : null;
+        var bestCount = bestTarget == null ? 0 : Hints.NumPriorityTargetsInAOECircle(bestTarget.Position, 5);
+        foreach (var tar in Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 30))
+        {
+            if (tar.Actor == bestTarget)
+                continue;
+
+            var cnt = Hints.NumPriorityTargetsInAOECircle(tar.Actor.Position, 5);
+            if (cnt > bestCount)
+            {
+                bestTarget = tar.Actor;
+                bestCount = cnt;
             }
         }
 
+        if (bestTarget != null && bestCount > 0)
+        {
+            var isUndead = UndeadMobs.Contains(bestTarget.NameID);
+
+            UseAction(PhantomID.SilverCannon, bestTarget, prio); // shares CD with holy
+            UseAction(PhantomID.ShockCannon, bestTarget, prio); // shares CD with dark
+
+            // use after silver for the extra damage from silver debuff
+            UseAction(PhantomID.PhantomFire, bestTarget, prio);
+
+            UseAction(PhantomID.HolyCannon, bestTarget, isUndead ? prio + 1 : prio);
+            UseAction(PhantomID.DarkCannon, bestTarget, prio);
+        }
+    }
+
+    void PRanger(in Strategy strategy, Actor? primaryTarget)
+    {
         if (strategy.Ranger.IsEnabled() && primaryTarget?.IsAlly == false && Player.InCombat)
         {
             var prio = strategy.Ranger.Priority(ActionQueue.Priority.Low);
 
             UseAction(PhantomID.PhantomAim, Player, prio);
         }
+    }
 
+    void PTime(in Strategy strategy, Actor? primaryTarget)
+    {
         if (strategy.TimeMage.IsEnabled() && primaryTarget?.IsAlly == false)
         {
             var prio = strategy.TimeMage.Priority(ActionQueue.Priority.High + 500);
@@ -189,7 +384,10 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
 
             UseAction(PhantomID.OccultQuick, Player, prio);
         }
+    }
 
+    void PChem(in Strategy strategy, Actor? primaryTarget)
+    {
         var option = strategy.Chemist;
         var canRaise = option.Value switch
         {
@@ -199,20 +397,26 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
         };
 
         // check that we have Revive to avoid pointlessly scanning the object table again
-        if (canRaise && !isMidCombo && World.Client.DutyActions.Any(d => d.Action.ID == (uint)PhantomID.Revive))
+        if (canRaise && !MidCombo && World.Client.DutyActions.Any(d => d.Action.ID == (uint)PhantomID.Revive))
         {
             var prio = option.Priority(ActionQueue.Priority.High + 500);
             if (RaiseUtil.FindRaiseTargets(World, RaiseUtil.Targets.Everyone).FirstOrDefault() is { } tar)
                 UseAction(PhantomID.Revive, tar, prio);
         }
+    }
 
-        if (strategy.Samurai.IsEnabled() && primaryTarget?.IsAlly == false && !isMidCombo)
+    void PSam(in Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.Samurai.IsEnabled() && primaryTarget?.IsAlly == false && !MidCombo)
         {
             var prio = strategy.Samurai.Priority(ActionQueue.Priority.High + 500);
             if (UseAction(PhantomID.Iainuki, primaryTarget, prio, 0.8f))
                 Hints.GoalZones.Add(Hints.GoalAOECone(primaryTarget, 8, 60.Degrees()));
         }
+    }
 
+    private void PBard(Strategy strategy, Actor? primaryTarget)
+    {
         if (strategy.Bard.IsEnabled() && primaryTarget?.IsAlly == false && Player.InCombat)
         {
             var ariaLeft = SelfStatusDetails(PhantomSID.OffensiveAria, 70).Left;
@@ -224,7 +428,10 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
             if (ariaLeft < 10 && rimeLeft < World.Client.AnimationLock)
                 UseAction(PhantomID.OffensiveAria, Player, prio);
         }
+    }
 
+    private void PMonk(Strategy strategy, Actor? primaryTarget)
+    {
         if (strategy.Monk.IsEnabled() && Player.InCombat)
         {
             var prio = strategy.Monk.Priority(ActionQueue.Priority.Low);
@@ -260,91 +467,13 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
             if (useOk)
                 UseAction(PhantomID.OccultChakra, Player, chakraOpt.Priority(ActionQueue.Priority.Low));
         }
+    }
 
-        var predictOpt = strategy.Predict;
-        if (predictOpt != PredictStrategy.Disabled)
-        {
-            var (pred, flags) = GetPrediction();
-
-            var haveTarget = Player.InCombat && predictOpt.Value switch
-            {
-                PredictStrategy.AutoConservative or PredictStrategy.AutoGreedy or PredictStrategy.AutoSuperGreedy => primaryTarget?.IsAlly == false,
-                PredictStrategy.HealOnly => true,
-                _ => false
-            };
-
-            if (pred == Prediction.None && haveTarget)
-                UseAction(PhantomID.Predict, Player, ActionQueue.Priority.VeryHigh - 10);
-
-            var isHeal = pred == Prediction.Blessing;
-            var isDmg = pred is Prediction.Cleansing or Prediction.Judgment or Prediction.Starfall;
-            var isSafe = pred != Prediction.Starfall;
-            var isLastPrediction = flags == 0xF;
-
-            var canUse = predictOpt.Value switch
-            {
-                PredictStrategy.AutoConservative => isDmg && isSafe,
-                PredictStrategy.AutoGreedy => isDmg && (isSafe || EnoughHP),
-                PredictStrategy.AutoSuperGreedy => !isSafe,
-                PredictStrategy.HealOnly => isHeal,
-                _ => false
-            };
-
-            if (canUse && haveTarget || isLastPrediction)
-                UseAction(GetID(pred), Player, predictOpt.Priority(ActionQueue.Priority.High));
-        }
-
-        if (strategy.MysticKnight.IsEnabled())
-        {
-            if (primaryTarget?.IsAlly == false)
-            {
-                if (primaryTarget.FindStatus(PhantomSID.BlazingBane, DateTime.MaxValue) == null)
-                    UseAction(PhantomID.BlazingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
-
-                UseAction(PhantomID.HolySpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
-                UseAction(PhantomID.SunderingSpellblade, primaryTarget, ActionQueue.Priority.VeryHigh);
-            }
-
-            // shell has permanent uptime (60s duration, 60s cooldown)
-            UseAction(PhantomID.MagicShell, Player, ActionQueue.Priority.High);
-        }
-
-        if (strategy.Gladiator.IsEnabled())
-        {
-            if (Hints.PredictedDamage.Any(p => p.Players[0] && p.Activation < World.FutureTime(4)) || EnemiesAutoingMe.Any())
-                UseAction(PhantomID.Defend, Player, ActionQueue.Priority.High);
-
-            if (primaryTarget?.IsAlly == false)
-            {
-                UseAction(PhantomID.Finisher, primaryTarget, ActionQueue.Priority.VeryHigh);
-                UseAction(PhantomID.LongReach, primaryTarget, ActionQueue.Priority.VeryHigh);
-                if (primaryTarget.Position.InCircle(Player.Position, Player.HitboxRadius + primaryTarget.HitboxRadius + 8))
-                    UseAction(PhantomID.BladeBlitz, Player, ActionQueue.Priority.VeryHigh);
-            }
-        }
-
-        if (strategy.Dancer.IsEnabled())
-        {
-            if (SelfStatusLeft(PhantomSID.Quickstep) < 5)
-                UseAction(PhantomID.Quickstep, Player, ActionQueue.Priority.High);
-
-            if (primaryTarget?.IsAlly == false)
-            {
-                UseAction(PhantomID.Dance, Player, ActionQueue.Priority.High);
-
-                if (Player.FindStatus(PhantomSID.PoisedToSwordDance) != null)
-                    UseAction(PhantomID.PhantomSwordDance, primaryTarget, ActionQueue.Priority.VeryHigh);
-                if (Player.FindStatus(PhantomSID.TemptedToTango) != null)
-                    UseAction(PhantomID.TemptingTango, primaryTarget, ActionQueue.Priority.VeryHigh);
-                if (Player.FindStatus(PhantomSID.Jitterbugged) != null)
-                    UseAction(PhantomID.Jitterbug, primaryTarget, ActionQueue.Priority.VeryHigh);
-                if (Player.FindStatus(PhantomSID.WillingToWaltz) != null)
-                    UseAction(PhantomID.MysteryWaltz, primaryTarget, ActionQueue.Priority.VeryHigh);
-            }
-        }
-
-        if (DesiredRange < float.MaxValue && primaryTarget != null)
-            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, DesiredRange, 1));
+    private void PThief(Strategy strategy, Actor? primaryTarget)
+    {
+        var stealOpt = strategy.Steal;
+        if (stealOpt.Value.IsEnabled() && primaryTarget?.IsAlly == false)
+            UseAction(PhantomID.Steal, primaryTarget, stealOpt.Priority(ActionQueue.Priority.Medium));
     }
 
     private bool EnoughHP => Player.HPMP.MaxHP * 0.9f < Player.HPMP.CurHP + Player.HPMP.Shield;
@@ -353,7 +482,7 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
     {
         var deadline = World.Client.AnimationLock;
 
-        foreach (var sid in Player.Statuses)
+        foreach (ref var sid in Player.Statuses.AsSpan())
         {
             if (sid.ExpireAt < World.FutureTime(deadline))
                 continue;
@@ -401,7 +530,9 @@ public sealed class PhantomAI(RotationModuleManager manager, Actor player) : AIB
 
         if (cd <= GCD)
         {
-            DesiredRange = MathF.Min(DesiredRange, ActionDefinitions.Instance[action]?.Range ?? float.MaxValue);
+            if (ActionDefinitions.Instance[action] is { } def && def.Range > 0)
+                DesiredRange = MathF.Min(DesiredRange, def.Range);
+
             Hints.ActionsToExecute.Push(action, target, prio, castTime: castTime);
             return true;
         }

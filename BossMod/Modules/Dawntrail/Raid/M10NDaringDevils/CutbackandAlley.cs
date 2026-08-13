@@ -3,10 +3,10 @@ namespace BossMod.DawnTrail.Raid.M10NDaringDevils;
 sealed class CutbackBlazeBait(BossModule module) : Components.BaitAwayIcon(
     module,
     new AOEShapeCone(60f, 30f.Degrees()),                 // tune angle if needed
-    (uint)IconID.CutbackBlazeBait,                          
-    (uint)AID.CutbackBlaze1,                                 
-    activationDelay: 5.0d,                                   
-    centerAtTarget: false)                                   
+    (uint)IconID.CutbackBlazeBait,
+    (uint)AID.CutbackBlaze1,
+    activationDelay: 5.0d,
+    centerAtTarget: false)
 {
     public static readonly AOEShapeCone Cone = new(60f, 30f.Degrees());
 }
@@ -45,7 +45,7 @@ sealed class AlleyOopInfernoSpread(BossModule module)
 sealed class AlleyOopInfernoPuddles(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _puddles = [];
-    private static readonly AOEShapeCircle Shape = new(5f); 
+    private static readonly AOEShapeCircle Shape = new(5f);
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
         => CollectionsMarshal.AsSpan(_puddles);
@@ -54,16 +54,16 @@ sealed class AlleyOopInfernoPuddles(BossModule module) : Components.GenericAOEs(
     {
         switch (spell.Action.ID)
         {
-            case (uint)AID.AlleyOopInferno1: 
-            {
-                foreach (var t in spell.Targets)
+            case (uint)AID.AlleyOopInferno1:
                 {
-                    var target = WorldState.Actors.Find(t.ID);
-                    if (target != null)
-                        _puddles.Add(new(Shape, target.Position, default, WorldState.CurrentTime, Colors.AOE, true));
+                    foreach (var t in spell.Targets)
+                    {
+                        var target = WorldState.Actors.Find(t.ID);
+                        if (target != null)
+                            _puddles.Add(new(Shape, target.Position, default, WorldState.CurrentTime, Colors.AOE, true));
+                    }
+                    break;
                 }
-                break;
-            }
 
             case (uint)AID.DiversDare:
             case (uint)AID.DiversDare1:
@@ -76,15 +76,14 @@ sealed class AlleyOopInfernoPuddles(BossModule module) : Components.GenericAOEs(
 sealed class AlleyOopMaelstromSequential(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Tracked> _tracked = [];
-    private readonly List<AOEInstance> _active = []; 
+    private readonly List<AOEInstance> _active = [];
     private static readonly AOEShapeCone Shape30 = new(60f, 15f.Degrees());
     private static readonly AOEShapeCone Shape15 = new(60f, 7.5f.Degrees());
 
-    private struct Tracked
+    private struct Tracked(AOEInstance aoe, uint aid)
     {
-        public AOEInstance AOE;
-        public uint AID;
-        public Tracked(AOEInstance aoe, uint aid) { AOE = aoe; AID = aid; }
+        public AOEInstance AOE = aoe;
+        public uint AID = aid;
     }
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -111,13 +110,13 @@ sealed class AlleyOopMaelstromSequential(BossModule module) : Components.Generic
 
         return CollectionsMarshal.AsSpan(_active);
     }
-public override void OnEventCast(Actor caster, ActorCastEvent spell)
-{
-    if (spell.Action.ID is (uint)AID.AlleyOopMaelstrom or (uint)AID.AlleyOopMaelstrom2)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        _tracked.RemoveAll(t => t.AOE.ActorID == caster.InstanceID && t.AID == spell.Action.ID);
+        if (spell.Action.ID is (uint)AID.AlleyOopMaelstrom or (uint)AID.AlleyOopMaelstrom2)
+        {
+            _tracked.RemoveAll(t => t.AOE.ActorID == caster.InstanceID && t.AID == spell.Action.ID);
+        }
     }
-}
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         AOEShape? shape = spell.Action.ID switch

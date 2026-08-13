@@ -293,13 +293,13 @@ sealed class CE204AppallingBehaviorStates : StateMachineBuilder
     Contributors = "Gynorhino",
     Expansion = BossModuleInfo.Expansion.Dawntrail,
     Category = BossModuleInfo.Category.Foray,
-    GroupType = BossModuleInfo.GroupType.CFC,
+    GroupType = BossModuleInfo.GroupType.CriticalEngagement,
     GroupID = 1093u,
-    NameID = 14714u,
-    SortOrder = 1,
+    NameID = 59u,
+    SortOrder = 11,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE204AppallingBehavior(WorldState ws, Actor primary) : BossModule(ws, primary, new(807.000f, -562.000f), new ArenaBoundsCircle(20f))
+public sealed class CE204AppallingBehavior(WorldState ws, Actor primary) : BossModule(ws, primary, new(807f, -562f), new ArenaBoundsCircle(20f))
 {
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 20f);
 }
