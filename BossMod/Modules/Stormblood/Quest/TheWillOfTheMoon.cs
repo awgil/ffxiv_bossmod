@@ -123,10 +123,7 @@ class P2Hints(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var e in hints.PotentialTargets)
-        {
-            e.Priority = e.Actor.OID == (uint)OID.Magnai ? 1 : 0;
-        }
+        hints.PrioritizeTargetsByOID(OID.Magnai, 1);
     }
 }
 
