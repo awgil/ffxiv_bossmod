@@ -7,7 +7,13 @@ public enum OID : uint
     CrescentSapria = 0x4E15, // R1.920, x?
     CrescentDhruva = 0x4E8E, // R2.400, x?
     CrescentOpken = 0x4E13, // R1.690, x?
+    CrescentMelia = 0x4E16, // R3.600, x?
     CrescentSoblyn = 0x4E1A, // R2.200, x?
+    CrescentBicephalus = 0x4E47, // R2.850, x?
+    CrescentBicephalus1 = 0x4E7B, // R2.850, x?
+    PersistentPotFate = 0x4D89, // R0.400, x?
+    PersistentPot = 0x47CB, // R0.300, x?
+    Actor1ea1a1 = 0x1EA1A1, // R0.500, x?, EventObj type
 }
 
 public enum AID : uint
@@ -50,20 +56,5 @@ sealed class DaylightPotteryStates : StateMachineBuilder
     SortOrder = 1,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class DaylightPottery(WorldState ws, Actor primary) : OpenWorldFate(ws, primary)
-{
-    // need to find something for OID.Boss to use as primary
-    public static readonly uint[] Trash = [(uint)OID.CrimsonGremlin, (uint)OID.CrescentGremlin];
-    public Actor? CrimsonGremlin;
-
-    protected override void UpdateModule()
-    {
-        CrimsonGremlin ??= GetActor((uint)OID.CrimsonGremlin);
-    }
-
-    protected override void DrawEnemies(int pcSlot, Actor pc)
-    {
-        Arena.Actors(this, Trash);
-        Arena.Actor(CrimsonGremlin);
-    }
-}
+public sealed class DaylightPottery(WorldState ws, Actor primary) : OpenWorldFate(ws, primary);
+// no singular actor we can use to trigger arena draw
