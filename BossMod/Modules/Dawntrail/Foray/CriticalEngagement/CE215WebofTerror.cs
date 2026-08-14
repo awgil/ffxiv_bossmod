@@ -157,32 +157,36 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
 
             if (conformity.RotationDone)
             {
-                var offset = conformity.InitialPosition - Arena.Center;
+                var offset = conformity.Position - Arena.Center;
                 var direction = conformity.FinalRotation.ToDirection();
                 var edgeDistance = Arena.Bounds.IntersectRay(offset, direction);
-                var edgePosition = conformity.InitialPosition + direction * edgeDistance;
-                /*
+                var edgePosition = conformity.Position + direction * edgeDistance;
                 var coneDirection = Arena.Center - edgePosition;
-                aoes.Add(new(_cone, edgePosition, coneDirection.ToAngle(), _activation));
-                */
-                // going by finished rotation not exact; 1st matches, 2nd off by a several degrees
-                // adds always go to cardinal? clamp to closest cardinal position?
-                var edgeOffset = edgePosition - Arena.Center;
-                var cardinal = Math.Abs(edgeOffset.X) < Math.Abs(edgeOffset.Z) ? edgeOffset.Z < 0 ? 180f.Degrees() : 0f.Degrees() : edgeOffset.X < 0 ? -90f.Degrees() : 90f.Degrees();
-                var finalfinal = Arena.Center + cardinal.ToDirection() * 25f;
-                var coneDirection = Arena.Center - finalfinal;
-                aoes.Add(new(_cone, finalfinal, coneDirection.ToAngle(), _activation));
+                // going by finished rotation not exact; adds may swerver a bit towards the middle
+                // adds not always cardinals; maybe card & intercards? try setting to closest 45deg spot
+                var cardIntercard = Angle.AnglesCardinals.Concat(Angle.AnglesIntercardinals).ToArray();
+                for (var j = 0; j < 8; j++)
+                {
+                    var angle = cardIntercard[j];
+                    var rotation = coneDirection.ToAngle();
+                    if (rotation.AlmostEqual(angle, 20f.Degrees().Rad))
+                    {
+                        var finalPos = Arena.Center + (angle + 180f.Degrees()).ToDirection() * 25f;
+                        var finalDirection = Arena.Center - finalPos;
+                        aoes.Add(new(_cone, finalPos, finalDirection.ToAngle(), _activation));
+                        break;
+                    }
+                }
             }
         }
 
         return CollectionsMarshal.AsSpan(aoes);
     }
-
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
         if (status.ID == (uint)SID.QueensOrders)
         {
-            _conformities.Add(new(actor, actor.Position, actor.Rotation));
+            _conformities.Add(new(actor, actor.Rotation));
         }
     }
 
@@ -216,19 +220,19 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
                     if (!actor.Rotation.AlmostEqual(conformity.InitialRotation, 0.1f) && actor.PosRot.W - actor.PrevPosRot.W == default)
                     {
                         conformity.RotationDone = true;
+                        conformity.Position = actor.Position;
                         conformity.FinalRotation = actor.Rotation;
                     }
                 }
             }
         }
     }
-
-    private class Conformity(Actor actor, WPos position, Angle rotation, bool done = false, Angle finalRotation = default)
+    private class Conformity(Actor actor, Angle rotation, bool done = false, WPos position = default, Angle finalRotation = default)
     {
         public Actor Actor = actor;
-        public WPos InitialPosition = position;
         public Angle InitialRotation = rotation;
         public bool RotationDone = done;
+        public WPos Position = position;
         public Angle FinalRotation = finalRotation;
     }
 }
@@ -258,6 +262,25 @@ sealed class BedrockUplift(BossModule module) : Components.ConcentricAOEs(module
 
 sealed class ArachneDaughter(BossModule module) : Components.Adds(module, (uint)OID.ArachneDaughter, 2);
 sealed class VenomEruption(BossModule module) : Components.RaidwideCast(module, (uint)AID.VenomEruption, "Kill adds before they cast!");
+sealed class Debug(BossModule module) : BossComponent(module)
+{
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        var adds = WorldState.Actors.Where(x => x.OID == (uint)OID.ArachneDaughter).ToList();
+        for (var i = 0; i < adds.Count; i++)
+        {
+            Arena.ZoneCircle(adds[i].Position, 2f, Colors.SafeFromAOE);
+        }
+
+        var compass = Angle.AnglesCardinals.Concat(Angle.AnglesIntercardinals).ToArray();
+        for (var i = 0; i < compass.Length; i++)
+        {
+            var edgeDistance = Arena.Bounds.IntersectRay(default, compass[i].ToDirection());
+            var edgePosition = Arena.Center + compass[i].ToDirection() * edgeDistance;
+            Arena.ZoneCircleOutline(edgePosition, 3f, default);
+        }
+    }
+}
 
 [SkipLocalsInit]
 sealed class CE215WebofTerrorStates : StateMachineBuilder
@@ -272,6 +295,7 @@ sealed class CE215WebofTerrorStates : StateMachineBuilder
             .ActivateOnEnter<Conformity>()
             .ActivateOnEnter<ConformityAdds>()
             .ActivateOnEnter<BedrockUplift>();
+            //.ActivateOnEnter<Debug>();
     }
 }
 
