@@ -41,14 +41,16 @@ class EmbrittlingBlade(BossModule module) : Components.RaidwideCastDelay(module,
 
 class Acclaim(BossModule module) : Components.GenericAOEs(module)
 {
-    readonly List<(Actor Source, List<Angle> Angles, DateTime Next)> _casters = [];
+    record struct Caster(Actor Source, List<Angle> Angles, DateTime Next, bool Telegraphed);
+
+    readonly List<Caster> _casters = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeCone(40, 45.Degrees()), c.Source.Position, c.Angles[0], c.Next));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AcclaimSlow)
-            _casters.Add((caster, [spell.Rotation], Module.CastFinishAt(spell)));
+            _casters.Add(new(caster, [spell.Rotation], Module.CastFinishAt(spell), false));
         if ((AID)spell.Action.ID == AID.AcclaimFast)
         {
             var ix = _casters.FindIndex(c => c.Source == caster);
@@ -88,6 +90,14 @@ class Acclaim(BossModule module) : Components.GenericAOEs(module)
                 ReportError($"Unable to find golem {actor} in caster list");
                 return;
             }
+
+            if (_casters[ix].Telegraphed)
+            {
+                ReportError($"Duplicate arrow status for golem {actor}, skipping it");
+                return;
+            }
+
+            _casters.Ref(ix).Telegraphed = true;
 
             var starting = _casters[ix].Angles[0];
 
