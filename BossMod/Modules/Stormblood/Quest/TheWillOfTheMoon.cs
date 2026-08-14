@@ -71,11 +71,11 @@ class AutoYshtola(WorldState ws) : UnmanagedRotation(ws, 25)
 {
     private Actor Magnai => World.Actors.First(x => (OID)x.OID == OID.Magnai);
     private Actor Hien => World.Actors.First(x => (OID)x.OID == OID.Hien);
-    private Actor Daidukul => World.Actors.First(x => (OID)x.OID == OID.Daidukul);
+    private Actor? Daidukul => World.Actors.FirstOrDefault(x => (OID)x.OID == OID.Daidukul);
 
     protected override void Exec(Actor? primaryTarget)
     {
-        var hienMinHP = Daidukul.CastInfo?.Action.ID == (uint)AID.TranquilAnnihilation
+        var hienMinHP = Daidukul?.CastInfo?.Action.ID == (uint)AID.TranquilAnnihilation
             ? 28000
             : 10000;
 
