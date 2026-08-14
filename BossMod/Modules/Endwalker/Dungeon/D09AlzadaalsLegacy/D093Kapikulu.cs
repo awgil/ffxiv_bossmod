@@ -44,7 +44,7 @@ sealed class BillowingBoltsArenaChange(BossModule module) : BossComponent(module
 {
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action.ID == (uint)AID.BillowingBolts && Arena.Bounds.Radius < 24f)
+        if (spell.Action.ID == (uint)AID.BillowingBolts && Arena.Bounds.Radius > 24f)
         {
             Arena.Bounds = new ArenaBoundsRect(15f, 20f);
         }
@@ -177,7 +177,7 @@ sealed class SpinningHints(BossModule module) : Components.Spinning(module, (uin
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (mask[slot])
+        if (!mask[slot])
         {
             return;
         }
