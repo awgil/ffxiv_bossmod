@@ -441,7 +441,7 @@ sealed class Netherworld(BossModule module) : Components.UniformStackSpread(modu
     {
         _forbidden = default;
 
-        var party = Raid.WithSlot();
+        var party = Raid.WithSlot(true, true, true);
         var len = party.Length;
 
         for (var i = 0; i < len; ++i)

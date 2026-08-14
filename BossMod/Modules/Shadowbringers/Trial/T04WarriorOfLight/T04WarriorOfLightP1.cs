@@ -298,7 +298,7 @@ sealed class Twincast(BossModule module) : Components.CastTowers(module, (uint)A
         WPos pos;
         WPos startPos = new(100f, 89.5f);
         // We derive angle by 45 degrees times index position where 0 is North. 1 is NE, etc
-        float rotAngFloat = 45f * index; // positive rotation is clockwise. negative is counterclockwise
+        var rotAngFloat = 45f * index; // positive rotation is clockwise. negative is counterclockwise
         // Calculate the position of the tower based on the index.
         if (index <= 07)
             pos = WPos.RotateAroundOrigin(rotAngFloat, Arena.Center, startPos);
@@ -508,9 +508,9 @@ sealed class BrimstoneEarthGrow(BossModule module) : Components.SimpleAOEs(modul
              * Instead we make a few extra and then clear the Casters queue when the actors
              * that are in spell.TargetXZ position dies.
              */
-            int _genAOE = 16;
+            var _genAOE = 16;
 
-            for (int i = 0; i < _genAOE; i++)
+            for (var i = 0; i < _genAOE; i++)
             {
                 // The first long cast takes approx 6 seconds. The instants that follow every 1 seconds or so.
                 DateTime _activation = WorldState.FutureTime(5f + (1.0f * i));

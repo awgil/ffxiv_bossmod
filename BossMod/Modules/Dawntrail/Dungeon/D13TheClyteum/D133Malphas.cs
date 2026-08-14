@@ -60,7 +60,7 @@ sealed class StringUp(BossModule module) : Components.StayMove(module)
     {
         if (caster.OID == (uint)OID.Malphas && spell.Action.ID == (uint)AID.StringUp)
         {
-            foreach (var (slot, _) in Raid.WithSlot())
+            foreach (var (slot, _) in Raid.WithSlot(false, true, true))
             {
                 PlayerStates[slot] = new(Requirement.Move, WorldState.CurrentTime.AddSeconds(5d));
             }
@@ -70,7 +70,7 @@ sealed class StringUp(BossModule module) : Components.StayMove(module)
     {
         if (caster.OID == (uint)OID.Malphas && spell.Action.ID == (uint)AID.StringUp)
         {
-            foreach (var (slot, _) in Raid.WithSlot())
+            foreach (var (slot, _) in Raid.WithSlot(false, true, true))
             {
                 PlayerStates[slot] = default;
             }

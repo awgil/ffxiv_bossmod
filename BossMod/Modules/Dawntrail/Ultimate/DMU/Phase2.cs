@@ -485,7 +485,7 @@ sealed class ForsakenBaitsSpreadStacks(BossModule module) : Components.UniformSt
         Stacks.Clear();
         Spreads.Clear();
 
-        foreach (var (i, player) in Raid.WithSlot())
+        foreach (var (i, player) in Raid.WithSlot(true, true, true))
         {
             if (towers.Towers.Any(t => player.Position.InCircle(t.Position, 4.00f)))
             {
@@ -517,16 +517,16 @@ sealed class ForsakenBaitsCone(BossModule module) : Components.GenericBaitAway(m
 
         CurrentBaits.Clear();
 
-        foreach (var (i, player) in Raid.WithSlot())
+        foreach (var (i, player) in Raid.WithSlot(true, true, true))
         {
             if (towers.Towers.Any(t => player.Position.InCircle(t.Position, 4.00f)))
             {
                 if (shapes.shapes[i] == ForsakenShapes.Shape.Cone)
                 {
-                    var closestPlayer = Raid.WithoutSlot().Exclude(player).Closest(player.Position);
+                    var closestPlayer = Raid.WithoutSlot(false, true, true).Exclude(player).Closest(player.Position);
                     if (closestPlayer != null)
                     {
-                        CurrentBaits.Add(new(player, closestPlayer, new AOEShapeCone(40, 45.Degrees())));
+                        CurrentBaits.Add(new(player, closestPlayer, new AOEShapeCone(40f, 45f.Degrees())));
                     }
                 }
             }
@@ -806,7 +806,7 @@ sealed class ForsakenSolverSet1(BossModule module) : BossComponent(module)
 
         var party = new BitMask(0xFF);
 
-        for (int i = 0; i < towers.Towers.Count; i++)
+        for (var i = 0; i < towers.Towers.Count; i++)
         {
             var t = towers.Towers[i];
 
@@ -854,7 +854,6 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
         if (shapes.swSoakers[pcSlot])
         {
             var swPosition = towers.CurrentSW.Value.Position;
-            var assignment = partyConfig[Raid.Members[pcSlot].ContentId];
 
             var toCenter = (Arena.Center - swPosition).Normalized();
             if (toCenter.LengthSq() <= 0)
@@ -950,7 +949,6 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
         if (shapes.seSoakers[pcSlot])
         {
             var sePosition = towers.CurrentSE.Value.Position;
-            var assignment = partyConfig[Raid.Members[pcSlot].ContentId];
 
             var toCenter = (Arena.Center - sePosition).Normalized();
             if (toCenter.LengthSq() <= 0)
@@ -1062,7 +1060,7 @@ sealed class ForsakenSolverSet2(BossModule module) : BossComponent(module)
 
         var party = new BitMask(0xFF);
 
-        for (int i = 0; i < towers.Towers.Count; i++)
+        for (var i = 0; i < towers.Towers.Count; i++)
         {
             var t = towers.Towers[i];
 
@@ -1174,7 +1172,7 @@ sealed class Trine(BossModule module) : Components.GenericAOEs(module, (uint)AID
         (int currentWave, int nextWave)[] wave = [(9, 3), (3, 9), (9, 0)];
         var (currentSize, nextSize) = wave[NumCasts < 9 ? 0 : NumCasts < 12 ? 1 : 2];
         var count = Math.Min(currentSize + nextSize, aoes.Count);
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             aoes[i] = aoes[i] with
             {
@@ -1242,10 +1240,10 @@ sealed class Trine(BossModule module) : Components.GenericAOEs(module, (uint)AID
         }
 
         WPos closestSpot = ccwSpot;
-        for (float r = 0.5f; r <= (ccwSpot - boss.Position).Length(); r += 0.5f)
+        for (var r = 0.5f; r <= (ccwSpot - boss.Position).Length(); r += 0.5f)
         {
             List<WPos> spots = [];
-            for (int degree = -60; degree <= 60; degree += 5)
+            for (var degree = -60; degree <= 60; degree += 5)
             {
                 var spot = boss.Position + r * ((ccwSpot - boss.Position).ToAngle() + degree.Degrees()).ToDirection();
 

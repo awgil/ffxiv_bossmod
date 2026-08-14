@@ -65,7 +65,7 @@ class Fireflight(BossModule module) : Components.GenericAOEs(module)
 
         var dirOffset = side == 1 ? 90.Degrees() : (-90).Degrees();
 
-        int shown = 0;
+        var shown = 0;
         foreach (var pathAOE in pathAOEs)
         {
             if (shown >= 2)
@@ -80,7 +80,7 @@ class Fireflight(BossModule module) : Components.GenericAOEs(module)
             var final = (baseAng + delta).Normalized();
 
             var halfWidth = pathAOE.aoePosition == 2 ? 27 : 60;
-            uint colour = (shown < 1) ? Colors.Danger : Colors.AOE;
+            var colour = (shown < 1) ? Colors.Danger : Colors.AOE;
 
             var shape = new AOEShapeRect(40, halfWidth, 0f, dirOffset);
             aoes.Add(new AOEInstance(shape, pathAOE.startPosition, final, default, colour, (shown < 1)));
@@ -98,12 +98,12 @@ class FireflightStackSpread(BossModule module) : Components.UniformStackSpread(m
     {
         if (spell.Action.ID is var id && id is (uint)AID.FireflightByPyrelightLeft or (uint)AID.FireflightByPyrelightRight)
         {
-            var stackPlayer = Raid.WithSlot().FirstOrDefault().Item2;
+            var stackPlayer = Raid.WithSlot(false, true, true).FirstOrDefault().Item2;
             AddStack(stackPlayer);
         }
         else if (id is (uint)AID.FireflightByEmberlightLeft or (uint)AID.FireflightByEmberlightRight)
         {
-            foreach (var player in Raid.WithoutSlot())
+            foreach (var player in Raid.WithoutSlot(true, true, true))
             {
                 AddSpread(player);
             }

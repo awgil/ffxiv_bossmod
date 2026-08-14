@@ -195,7 +195,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
         OTTankAtIncinerateCounts = new(otTankAtIncinerateCounts);
 
         var smallNails = module.Enemies((uint)OID.InfernalNailSmall);
-        var startingNail = smallNails.Closest(Arena.Center + new WDir(15, 0));
+        var startingNail = smallNails.Closest(Arena.Center + new WDir(15f, 0f));
         if (startingNail != null)
         {
             NailKillOrder.Add(startingNail);
@@ -224,23 +224,23 @@ class Ex4IfritAINails : Ex4IfritAINormal
             foreach (var e in hints.PotentialTargets)
             {
                 e.StayAtLongRange = true;
-                switch ((OID)e.Actor.OID)
+                switch (e.Actor.OID)
                 {
-                    case OID.Boss:
+                    case (uint)OID.Boss:
                         e.Priority = 1; // attack only if it's the only thing to do...
                         UpdateBossTankingProperties(e, actor, assignment);
                         if (nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
                         {
                             var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
-                            e.DesiredRotation = bossToNail + (bossToNail.Rad > e.DesiredRotation.Rad ? -75 : 75).Degrees();
+                            e.DesiredRotation = bossToNail + (bossToNail.Rad > e.DesiredRotation.Rad ? -75f : 75f).Degrees();
                         }
                         break;
-                    case OID.InfernalNailSmall:
-                    case OID.InfernalNailLarge:
+                    case (uint)OID.InfernalNailSmall:
+                    case (uint)OID.InfernalNailLarge:
                         e.Priority = e.Actor == nextNail ? 2 : 0;
                         e.AttackStrength = 0;
                         e.ShouldBeTanked = false;
-                        e.ForbidDOTs = (OID)e.Actor.OID == OID.InfernalNailSmall;
+                        e.ForbidDOTs = e.Actor.OID == (uint)OID.InfernalNailSmall;
                         break;
                 }
             }
@@ -256,12 +256,12 @@ class Ex4IfritAINails : Ex4IfritAINormal
                 if (IsSearingWindTarget(actor))
                 {
                     var dir = !actor.Position.InCircle(Arena.Center, 10) ? Angle.FromDirection(actor.Position - Arena.Center)
-                        : bossAngle + (invertedSW ? -105 : 105).Degrees();
-                    AddPositionHint(hints, Arena.Center + 18 * dir.ToDirection());
+                        : bossAngle + (invertedSW ? -105f : 105f).Degrees();
+                    AddPositionHint(hints, Arena.Center + 18f * dir.ToDirection());
                 }
                 else if (assignment == BossTankRole)
                 {
-                    var dir = bossAngle + (invertedSW ? 75 : -75).Degrees();
+                    var dir = bossAngle + (invertedSW ? 75f : -75f).Degrees();
                     AddPositionHint(hints, Module.PrimaryActor.Position + 7.5f * dir.ToDirection());
                 }
                 else if (actor.Role == Role.Healer)
@@ -277,8 +277,8 @@ class Ex4IfritAINails : Ex4IfritAINormal
             }
 
             // heavy raidwide on large nail death
-            if ((OID)nextNail.OID == OID.InfernalNailLarge && nextNail.HPMP.CurHP < 0.5f * nextNail.HPMP.MaxHP)
-                hints.AddPredictedDamage(Raid.WithSlot().Mask(), default);
+            if (nextNail.OID == (uint)OID.InfernalNailLarge && nextNail.HPMP.CurHP < 0.5f * nextNail.HPMP.MaxHP)
+                hints.AddPredictedDamage(Raid.WithSlot(false, true, true).Mask(), default);
         }
     }
 
@@ -293,8 +293,8 @@ class Ex4IfritAINails : Ex4IfritAINormal
     private (float, float) NailDirDist(WDir offset, Angle startingDir)
     {
         var dir = startingDir - Angle.FromDirection(offset);
-        if (dir.Rad < 0)
-            dir += 360.Degrees();
+        if (dir.Rad < 0f)
+            dir += 360f.Degrees();
         return (dir.Rad, offset.LengthSq());
     }
 }
@@ -354,7 +354,7 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
 
     public Ex4IfritAIHellfire(BossModule module, Angle safeSpotDir, PartyRolesConfig.Assignment tankRole) : base(module)
     {
-        _safespotOffset = 18 * safeSpotDir.ToDirection();
+        _safespotOffset = 18f * safeSpotDir.ToDirection();
         BossTankRole = tankRole;
     }
 
@@ -366,7 +366,7 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
             boss.Priority = 1;
             boss.StayAtLongRange = true;
             boss.DesiredRotation = Angle.FromDirection(_safespotOffset);
-            boss.DesiredPosition = Arena.Center + 13 * boss.DesiredRotation.ToDirection();
+            boss.DesiredPosition = Arena.Center + 13f * boss.DesiredRotation.ToDirection();
             boss.PreferProvoking = boss.ShouldBeTanked = assignment == BossTankRole;
         }
 

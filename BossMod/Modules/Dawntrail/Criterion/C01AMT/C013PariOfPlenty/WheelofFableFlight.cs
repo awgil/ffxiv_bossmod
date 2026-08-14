@@ -66,7 +66,7 @@ class WheelofFableFlightStackSpread(BossModule module) : Components.UniformStack
         }
         else if (id == (uint)AID.ScatteredKindlingSpread)
         {
-            foreach (var (i, player) in Raid.WithSlot())
+            foreach (var (i, player) in Raid.WithSlot(false, true, true))
             {
                 AddSpread(player);
             }

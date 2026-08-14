@@ -27,7 +27,7 @@ class WitchHunt(BossModule module) : Components.GenericBaitAway(module, (uint)AI
         {
             var hintString = new StringBuilder();
 
-            for (int i = 0; i < Order.Count; ++i)
+            for (var i = 0; i < Order.Count; ++i)
             {
                 if (i > 0)
                 {
@@ -73,14 +73,14 @@ class WitchHunt(BossModule module) : Components.GenericBaitAway(module, (uint)AI
             return;
         }
 
-        var targets = Raid.WithoutSlot().SortedByRange(Module.PrimaryActor.Position);
+        var targets = Raid.WithoutSlot(false, true, true).SortedByRange(Module.PrimaryActor.Position);
         targets = Order[0] == Proximity.Close ? targets.Take(1) : targets.TakeLast(1);
         foreach (var t in targets)
         {
-            CurrentBaits.Add(new(t, t, new AOEShapeCircle(3), NextActivation));
+            CurrentBaits.Add(new(t, t, new AOEShapeCircle(3f), NextActivation));
         }
 
-        ForbiddenPlayers = Raid.WithSlot().Where(p => Vulns[p.Item1] > NextActivation).Mask();
+        ForbiddenPlayers = Raid.WithSlot(false, true, true).Where(p => Vulns[p.Item1] > NextActivation).Mask();
     }
 }
 
@@ -197,7 +197,7 @@ class FireFlightFourLongNight(BossModule module) : Components.GenericAOEs(module
     {
         aoes.Clear();
 
-        int shown = 0;
+        var shown = 0;
         foreach (var rotation in rotations.Take(2))
         {
             var color = (shown == 0) ? Colors.Danger : default;

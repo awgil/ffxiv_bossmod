@@ -253,22 +253,20 @@ class Replication2ScaldingWaves : Components.GenericBaitProximity
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        var aid = (AID)spell.Action.ID;
+        var aid = spell.Action.ID;
 
-        if (aid == AID.FirefallSplash)
+        if (aid == (uint)AID.FirefallSplash)
         {
             _sourcePos = spell.TargetXZ;
-            return;
         }
-
-        if (aid == AID.ScaldingWaves)
+        else if (aid == (uint)AID.ScaldingWaves)
         {
             _source = null;
             _sourcePos = null;
             ++NumCasts;
 
             // determine closest target to cone centerline
-            var party = Raid.WithSlot();
+            var party = Raid.WithSlot(true, true, true);
             var len = party.Length;
 
             var bestSlot = -1;
@@ -327,7 +325,7 @@ class Replication2ManaBurst : Components.UniformStackSpread
     {
         _staging = module.FindComponent<Replication2Staging>()!;
 
-        var party = Raid.WithSlot(true);
+        var party = Raid.WithSlot(true, true, true);
         var len = party.Length;
 
         for (var i = 0; i < len; ++i)
@@ -391,7 +389,7 @@ class Replication2ManaBurst : Components.UniformStackSpread
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.ManaBurstAOE)
+        if (spell.Action.ID != (uint)AID.ManaBurstAOE)
             return;
 
         // find closest spread target to explosion location
@@ -430,7 +428,7 @@ class Replication2HeavySlam : Components.UniformStackSpread
     {
         _staging = module.FindComponent<Replication2Staging>()!;
 
-        var party = Raid.WithSlot(true);
+        var party = Raid.WithSlot(true, true, true);
         var len = party.Length;
 
         for (var i = 0; i < len; ++i)
@@ -525,7 +523,7 @@ class Replication2HeavySlam : Components.UniformStackSpread
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.HeavySlam)
+        if (spell.Action.ID != (uint)AID.HeavySlam)
             return;
 
         var stacks = CollectionsMarshal.AsSpan(Stacks);
@@ -564,9 +562,9 @@ sealed class Replication2HemorrhagicProjection : Components.GenericBaitAway
         : base(module, centerAtTarget: true)
     {
         var staging = module.FindComponent<Replication2Staging>()!;
-        _activation = WorldState.FutureTime(8.8f);
+        _activation = WorldState.FutureTime(8.8d);
 
-        var party = Raid.WithSlot(true);
+        var party = Raid.WithSlot(true, true, true);
         var len = party.Length;
 
         for (var i = 0; i < len; ++i)
@@ -584,7 +582,7 @@ sealed class Replication2HemorrhagicProjection : Components.GenericBaitAway
     {
         CurrentBaits.Clear();
 
-        var party = Raid.WithSlot();
+        var party = Raid.WithSlot(true, true, true);
         var len = party.Length;
 
         for (var i = 0; i < len; ++i)
@@ -628,7 +626,7 @@ sealed class Replication2HemorrhagicProjection : Components.GenericBaitAway
 
         var forbidden = new ArcList(actor.Position, 60);
 
-        var raid = Raid.WithoutSlot();
+        var raid = Raid.WithoutSlot(true, true, true);
         var rlen = raid.Length;
 
         for (var i = 0; i < rlen; ++i)
@@ -638,7 +636,7 @@ sealed class Replication2HemorrhagicProjection : Components.GenericBaitAway
                 continue;
 
             var angle = actor.AngleTo(ally);
-            forbidden.ForbidInfiniteCone(actor.Position, angle, 28.Degrees());
+            forbidden.ForbidInfiniteCone(actor.Position, angle, 28f.Degrees());
         }
 
         var segments = forbidden.Forbidden.Segments;
@@ -656,20 +654,21 @@ sealed class Replication2HemorrhagicProjection : Components.GenericBaitAway
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID != AID.HemorrhagicProjection)
+        if (spell.Action.ID != (uint)AID.HemorrhagicProjection)
             return;
 
         ++NumCasts;
         _targets.Reset();
     }
 }
-class Replication2ReenactmentOrder(BossModule module) : BossComponent(module)
+
+sealed class Replication2ReenactmentOrder(BossModule module) : BossComponent(module)
 {
     public readonly List<(Actor Understudy, CloneShape Shape, int Order)> Replay = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID != AID.Reenactment)
+        if (spell.Action.ID != (uint)AID.Reenactment)
             return;
 
         Replay.Clear();
@@ -717,8 +716,7 @@ class Replication2ReenactmentOrder(BossModule module) : BossComponent(module)
     }
 }
 
-class Replication2ReenactmentAOEs(BossModule module)
-    : Components.GenericAOEs(module)
+sealed class Replication2ReenactmentAOEs(BossModule module) : Components.GenericAOEs(module)
 {
     // We store nullable AOEInstance to preserve timing "holes"
     private readonly List<AOEInstance?> _predicted = [];
@@ -761,10 +759,10 @@ class Replication2ReenactmentAOEs(BossModule module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID != AID.Reenactment)
+        if (spell.Action.ID != (uint)AID.Reenactment)
             return;
 
-        var mechStart = Module.CastFinishAt(spell, 8.2f);
+        var mechStart = Module.CastFinishAt(spell, 8.2d);
         var order = Module.FindComponent<Replication2ReenactmentOrder>()!.Replay;
 
         var replaySpan = CollectionsMarshal.AsSpan(order);
@@ -776,16 +774,16 @@ class Replication2ReenactmentAOEs(BossModule module)
             var initialCast = mechStart.AddSeconds(4 * spawnOrder);
 
             AOEShape? shape = null;
-            float delay = 0f;
+            var delay = 0f;
 
             switch (mechShape)
             {
                 case CloneShape.Boss:
-                    shape = new AOEShapeCircle(5);
+                    shape = new AOEShapeCircle(5f);
                     break;
 
                 case CloneShape.Spread:
-                    shape = new AOEShapeCircle(20);
+                    shape = new AOEShapeCircle(20f);
                     delay = DefamDelay;
                     break;
 
@@ -826,11 +824,11 @@ class Replication2ReenactmentAOEs(BossModule module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.FirefallSplashReplay:
-            case AID.ManaBurstReplay:
-            case AID.HemorrhagicProjectionReplay:
+            case (uint)AID.FirefallSplashReplay:
+            case (uint)AID.ManaBurstReplay:
+            case (uint)AID.HemorrhagicProjectionReplay:
                 if (_predicted.Count > 0)
                 {
                     _predicted.RemoveAt(0);
@@ -838,21 +836,20 @@ class Replication2ReenactmentAOEs(BossModule module)
                 }
                 break;
 
-            case AID.HeavySlamReplay:
+            case (uint)AID.HeavySlamReplay:
                 if (_predicted.Count > 0)
                     _predicted.RemoveAt(0);
                 break;
         }
     }
 }
-sealed class Replication2ReenactmentTowers(BossModule module)
-    : Components.GenericTowers(module, (uint)AID.HeavySlamReplay)
+sealed class Replication2ReenactmentTowers(BossModule module) : Components.GenericTowers(module, (uint)AID.HeavySlamReplay)
 {
     private readonly List<(WPos? Position, DateTime Activation)> _predicted = [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID != AID.Reenactment)
+        if (spell.Action.ID != (uint)AID.Reenactment)
             return;
 
         var mechStart = Module.CastFinishAt(spell, 8.2f);
@@ -917,16 +914,16 @@ sealed class Replication2ReenactmentTowers(BossModule module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.FirefallSplashReplay:
-            case AID.ManaBurstReplay:
-            case AID.HemorrhagicProjectionReplay:
+            case (uint)AID.FirefallSplashReplay:
+            case (uint)AID.ManaBurstReplay:
+            case (uint)AID.HemorrhagicProjectionReplay:
                 if (_predicted.Count > 0)
                     _predicted.RemoveAt(0);
                 break;
 
-            case AID.HeavySlamReplay:
+            case (uint)AID.HeavySlamReplay:
                 if (_predicted.Count > 0)
                 {
                     _predicted.RemoveAt(0);
@@ -937,20 +934,19 @@ sealed class Replication2ReenactmentTowers(BossModule module)
     }
 }
 
-class Replication2ReenactmentScaldingWaves(BossModule module)
-    : Components.GenericBaitAway(module)
+sealed class Replication2ReenactmentScaldingWaves(BossModule module) : Components.GenericBaitAway(module)
 {
     private readonly List<(Actor? Source, DateTime Activation)> _predicted = [];
     private BitMask _targets;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID != AID.Reenactment)
+        if (spell.Action.ID != (uint)AID.Reenactment)
             return;
 
         _targets = Module.FindComponent<Replication2ScaldingWaves>()!.Targets;
 
-        var mechStart = Module.CastFinishAt(spell, 8.2f);
+        var mechStart = Module.CastFinishAt(spell, 8.2d);
         var replay = Module.FindComponent<Replication2ReenactmentOrder>()!.Replay;
 
         var span = CollectionsMarshal.AsSpan(replay);
@@ -959,7 +955,7 @@ class Replication2ReenactmentScaldingWaves(BossModule module)
         for (var i = 0; i < len; ++i)
         {
             var (actor, shape, order) = span[i];
-            var initialCast = mechStart.AddSeconds(4 * order);
+            var initialCast = mechStart.AddSeconds(4d * order);
 
             if (shape == CloneShape.Boss)
             {
@@ -995,7 +991,7 @@ class Replication2ReenactmentScaldingWaves(BossModule module)
             if (source == null)
                 continue;
 
-            var raid = Raid.WithSlot();
+            var raid = Raid.WithSlot(true, true, true);
             var raidLen = raid.Length;
 
             for (var j = 0; j < raidLen; ++j)
@@ -1018,24 +1014,24 @@ class Replication2ReenactmentScaldingWaves(BossModule module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.ManaBurstReplay:
-            case AID.HemorrhagicProjectionReplay:
-            case AID.HeavySlamReplay:
+            case (uint)AID.ManaBurstReplay:
+            case (uint)AID.HemorrhagicProjectionReplay:
+            case (uint)AID.HeavySlamReplay:
                 if (_predicted.Count > 0)
                     _predicted.RemoveAt(0);
                 break;
 
-            case AID.ScaldingWavesReplay:
+            case (uint)AID.ScaldingWavesReplay:
                 _predicted.Clear();
                 ++NumCasts;
                 break;
         }
     }
 }
-class Replication2TimelessSpite(BossModule module)
-    : Components.UniformStackSpread(module, 6, 0, maxStackSize: 2)
+
+sealed class Replication2TimelessSpite(BossModule module) : Components.UniformStackSpread(module, 6f, 0f, maxStackSize: 2)
 {
     private DateTime _activation;
     private bool _far;
@@ -1050,7 +1046,7 @@ class Replication2TimelessSpite(BossModule module)
         if (_activation == default)
             return;
 
-        var raid = Raid.WithoutSlot();
+        var raid = Raid.WithoutSlot(true, true, true);
         var len = raid.Length;
 
         if (len == 0)
@@ -1061,11 +1057,11 @@ class Replication2TimelessSpite(BossModule module)
         // we need the 2 nearest or 2 farthest players
         // do a partial selection without full sort
 
-        int first = -1;
-        int second = -1;
+        var first = -1;
+        var second = -1;
 
-        float best1 = _far ? float.MinValue : float.MaxValue;
-        float best2 = _far ? float.MinValue : float.MaxValue;
+        var best1 = _far ? float.MinValue : float.MaxValue;
+        var best2 = _far ? float.MinValue : float.MaxValue;
 
         for (var i = 0; i < len; ++i)
         {
@@ -1176,16 +1172,16 @@ class Replication2TimelessSpite(BossModule module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.NetherwrathNear:
-                _activation = Module.CastFinishAt(spell, 1.2f);
+            case (uint)AID.NetherwrathNear:
+                _activation = Module.CastFinishAt(spell, 1.2d);
                 _far = false;
                 _netherwrathActive = true;
                 break;
 
-            case AID.NetherwrathFar:
-                _activation = Module.CastFinishAt(spell, 1.2f);
+            case (uint)AID.NetherwrathFar:
+                _activation = Module.CastFinishAt(spell, 1.2d);
                 _far = true;
                 _netherwrathActive = true;
                 break;
@@ -1194,7 +1190,7 @@ class Replication2TimelessSpite(BossModule module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.TimelessSpite)
+        if (spell.Action.ID == (uint)AID.TimelessSpite)
         {
             ++NumCasts;
             if (NumCasts >= 2)

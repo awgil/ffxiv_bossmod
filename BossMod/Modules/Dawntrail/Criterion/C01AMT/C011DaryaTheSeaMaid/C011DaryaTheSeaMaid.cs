@@ -50,7 +50,7 @@ class CrossCurrent(BossModule module) : Components.GenericAOEs(module, (uint)AID
 
     public static WPos TileCenter(Actor a)
     {
-        WPos arenaCenter = new(375, 530);
+        WPos arenaCenter = new(375f, 530f);
         var dir = (a.Position - arenaCenter) / 8;
         return arenaCenter + dir.Rounded() * 8;
     }
@@ -58,7 +58,7 @@ class CrossCurrent(BossModule module) : Components.GenericAOEs(module, (uint)AID
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         aoes.Clear();
-        foreach (var (_, p) in Raid.WithSlot().IncludedInMask(_targets).Exclude(actor))
+        foreach (var (_, p) in Raid.WithSlot(false, true, true).IncludedInMask(_targets).Exclude(actor))
         {
             aoes.Add(new(new AOEShapeCross(36, 4), TileCenter(p), default, _activation));
         }
@@ -71,7 +71,7 @@ class CrossCurrent(BossModule module) : Components.GenericAOEs(module, (uint)AID
         if (iconID == (uint)IconID.CrossCurrent)
         {
             _targets.Set(Raid.FindSlot(targetID));
-            _activation = WorldState.FutureTime(6.1f);
+            _activation = WorldState.FutureTime(6.1d);
         }
     }
 

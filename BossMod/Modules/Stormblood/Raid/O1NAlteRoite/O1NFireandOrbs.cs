@@ -34,7 +34,7 @@ sealed class FireOrbsTimedFollowAOE(BossModule module) : Components.GenericAOEs(
         var now = WorldState.CurrentTime;
 
         var liveOrbs = Module.Enemies((uint)OID.BallOfFire);
-        for (int i = 0; i < liveOrbs.Count; ++i)
+        for (var i = 0; i < liveOrbs.Count; ++i)
         {
             var o = liveOrbs[i];
             if (!_orbs.TryGetValue(o.InstanceID, out var info))
@@ -69,7 +69,7 @@ sealed class FireOrbsTimedFollowAOE(BossModule module) : Components.GenericAOEs(
         if (_firstRingSpawn == default)
             _firstRingSpawn = now;
 
-        bool isOuter = (now - _firstRingSpawn).TotalSeconds >= 2.0; // From log: ~3s gap between rings
+        var isOuter = (now - _firstRingSpawn).TotalSeconds >= 2.0; // From log: ~3s gap between rings
         DateTime predicted = isOuter
             ? PredictOuterExplosion(now)
             : now.AddSeconds(InnerExplodeFromSpawn);

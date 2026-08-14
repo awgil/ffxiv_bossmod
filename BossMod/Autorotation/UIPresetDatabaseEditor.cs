@@ -142,7 +142,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
     private void DrawPresetListElements(bool defaultPresets)
     {
         var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
-        for (int i = 0; i < presets.Count; ++i)
+        for (var i = 0; i < presets.Count; ++i)
         {
             var preset = presets[i];
             if (ImGui.Selectable(preset.Name, _selectedPresetDefault == defaultPresets && _selectedPresetIndex == i))

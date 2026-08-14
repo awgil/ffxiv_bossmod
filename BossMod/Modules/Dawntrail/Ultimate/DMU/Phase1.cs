@@ -251,9 +251,11 @@ sealed class WaveCannonTowers(BossModule module) : Components.CastTowers(module,
 
         if (spell.Action.ID == WatchedAction)
         {
-            for (var i = 0; i < Towers.Count; i++)
+            var count = Towers.Count;
+            var towers = CollectionsMarshal.AsSpan(Towers);
+            for (var i = 0; i < count; i++)
             {
-                Towers.Ref(i).ForbiddenSoakers = Raid.WithSlot()
+                towers[i].ForbiddenSoakers = Raid.WithSlot(false, true, true)
                     .WhereSlot(player => magicVulnerability[player] > Towers[i].Activation).Mask();
             }
         }
@@ -423,7 +425,7 @@ sealed class Gravitas(BossModule module) : Components.UniformStackSpread(module,
     {
         base.DrawArenaForeground(pcSlot, pc);
         var assignment = partyConfig[Raid.Members[pcSlot].ContentId];
-        bool partyConfigRolesSet = true;
+        var partyConfigRolesSet = true;
 
         var slots = partyConfig.SlotsPerAssignment(Raid);
         if (slots.Length == 0)

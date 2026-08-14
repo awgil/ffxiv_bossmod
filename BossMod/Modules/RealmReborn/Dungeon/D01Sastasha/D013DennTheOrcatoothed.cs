@@ -57,7 +57,7 @@ class TrashSpawning(BossModule module) : BossComponent(module)
     // Updating ripple state when an animation state change happens
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        for (int i = 0; i < _ripples.Length; ++i)
+        for (var i = 0; i < _ripples.Length; ++i)
         {
             if (_ripples[i]?.OID == actor.OID)
             {

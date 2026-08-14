@@ -324,7 +324,7 @@ sealed class MaleficPortent(BossModule module) : Components.CastCounter(module, 
         }
         else
         {
-            bool canIntercept = false;
+            var canIntercept = false;
             for (var i = 0; i < count; i++)
             {
                 var player = keys[i];

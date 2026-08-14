@@ -319,7 +319,7 @@ sealed class P3UltimateRelativitySinboundMeltdownBait(BossModule module) : Compo
         CurrentBaits.Clear();
         if (_rel != null)
         {
-            for (int i = NumCasts; i < _rel.LaserRotations.Count; ++i)
+            for (var i = NumCasts; i < _rel.LaserRotations.Count; ++i)
             {
                 var closest = Raid.WithoutSlot(false, true, true).Closest(_rel.LaserRotations[i].origin.Position);
                 if (closest != null)
@@ -404,7 +404,7 @@ sealed class P3UltimateRelativitySinboundMeltdownAOE(BossModule module) : Compon
         {
             case (uint)AID.UltimateRelativitySinboundMeltdownAOEFirst:
                 var rot = _rel?.LaserRotationAt(caster.Position) ?? default;
-                for (int i = 1; i < 10; ++i)
+                for (var i = 1; i < 10; ++i)
                     _aoes.Add(new(_shape, caster.Position, spell.Rotation + i * rot, WorldState.FutureTime(i + 1)));
                 break;
             case (uint)AID.UltimateRelativitySinboundMeltdownAOERest:

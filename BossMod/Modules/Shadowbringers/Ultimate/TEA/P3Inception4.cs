@@ -15,7 +15,7 @@ sealed class P3Inception4Cleaves(BossModule module) : Components.GenericBaitAway
     }
 }
 
-class P3Inception4Hints(BossModule module) : BossComponent(module)
+sealed class P3Inception4Hints(BossModule module) : BossComponent(module)
 {
     private List<WPos>[]? _safespots;
     private readonly TEA bossmod = (TEA)module;
@@ -35,29 +35,32 @@ class P3Inception4Hints(BossModule module) : BossComponent(module)
         var jumpSrc = bossmod.BruteJustice();
         if (jumpSrc == null)
         {
-            for (var i = 0; i < 8; ++i)
-            {
-                _safespots[i] = [];
-            }
             return;
         }
 
         var center = Arena.Center;
         var bjDir = Angle.FromDirection(jumpSrc.Position - center).ToDirection();
 
-        foreach (var (slot, actor) in Raid.WithSlot())
+        var raid = Raid.WithSlot(true, true, true);
+        var len = raid.Length;
+        for (var i = 0; i < len; ++i)
         {
-            _safespots[slot] = [];
+            var p = raid[i];
+            var slot = p.Item1;
+            var actor = p.Item2;
+            _safespots[slot] = [with(2)];
 
             // phys vuln, player can't bait alpha sword
-            if (actor.FindStatus(SID.PhysicalVulnerabilityUp, DateTime.MaxValue) != null)
+            if (actor.FindStatus((uint)SID.PhysicalVulnerabilityUp, DateTime.MaxValue) != null)
             {
                 // wait on far side of CC
                 _safespots[slot].Add(center - bjDir * 7f);
 
                 // remind both tanks to bait super jump (TODO: add config option to define tank prio)
                 if (actor.Role == Role.Tank)
+                {
                     _safespots[slot].Add(center - bjDir * 18.5f);
+                }
             }
             else if (actor.Role == Role.Healer)
             {
@@ -75,19 +78,28 @@ class P3Inception4Hints(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (_safespots != null)
+        if (_safespots != null && _safespots[pcSlot] is List<WPos> safespots)
         {
-            foreach (var spot in _safespots[pcSlot])
-                Arena.ZoneCircleOutline(spot, 1f, Colors.Safe);
+            var count = safespots.Count;
+            var color = Colors.Safe;
+            for (var i = 0; i < count; ++i)
+            {
+                Arena.ZoneCircleOutline(safespots[i], 1f, color);
+            }
         }
     }
 
     public override void AddMovementHints(int slot, Actor actor, MovementHints movementHints)
     {
-        if (_safespots != null)
+        if (_safespots != null && _safespots[slot] is List<WPos> safespots)
         {
-            foreach (var spot in _safespots[slot])
-                movementHints.Add((actor.Position, spot, Colors.Safe));
+            var count = safespots.Count;
+            var color = Colors.Safe;
+            var pos = actor.Position;
+            for (var i = 0; i < count; ++i)
+            {
+                movementHints.Add((pos, safespots[i], color));
+            }
         }
     }
 }

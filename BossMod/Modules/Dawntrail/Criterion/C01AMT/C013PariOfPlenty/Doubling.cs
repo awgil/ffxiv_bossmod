@@ -119,8 +119,8 @@ public class Doubling(BossModule module) : Components.CastTowers(module, (uint)A
             SortTowerOrder();
         }
 
-        bool priority = priorityPlayers.Take(2).Contains(pc.InstanceID);
-        bool eastPlayer = eastPlayers.Contains(pc.InstanceID);
+        var priority = priorityPlayers.Take(2).Contains(pc.InstanceID);
+        var eastPlayer = eastPlayers.Contains(pc.InstanceID);
         var list = eastPlayer ? eastTowers : westTowers;
 
         ulong targetId = 0;
@@ -131,7 +131,7 @@ public class Doubling(BossModule module) : Components.CastTowers(module, (uint)A
 
         foreach (var tower in Towers.Take(4))
         {
-            uint colour = tower.ActorID == targetId ? Colors.Safe : Colors.Danger;
+            var colour = tower.ActorID == targetId ? Colors.Safe : Colors.Danger;
             tower.Shape.Outline(Arena, tower.Position, tower.Rotation, colour, 2f);
         }
     }

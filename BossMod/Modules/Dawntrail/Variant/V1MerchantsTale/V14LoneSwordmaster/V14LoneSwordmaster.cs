@@ -10,7 +10,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public Angle[] GetAngles(int slot)
     {
-        if (slot < 0 || slot > 7)
+        if (slot is < 0 or > 7)
             return [];
 
         if (Malefic[slot] == 0)
@@ -35,7 +35,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
     }
     public Angle[] GetUnsafeAngles(int slot)
     {
-        if (slot < 0 || slot > 7)
+        if (slot is < 0 or > 7)
             return [];
 
         if (Malefic[slot] == 0)
@@ -61,7 +61,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public Angle? GetUnyieldingAngle(int slot, bool sourceNorthSouth)
     {
-        if (slot < 0 || slot > 7)
+        if (slot is < 0 or > 7)
             return null;
 
         if (Malefic[slot] == 0)
@@ -81,15 +81,15 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID >= (uint)SID.MaleficE && status.ID <= (uint)SID.MaleficNS)
+        if (status.ID is var id && id is >= (uint)SID.MaleficE and <= (uint)SID.MaleficNS)
         {
             Malefic[Raid.FindSlot(actor.InstanceID)] = status.ID;
         }
-        else if (status.ID is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
+        else if (id is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
         {
             Magnet[Raid.FindSlot(actor.InstanceID)] = status.ID;
         }
-        else if (status.ID == (uint)SID.MagneticLevitation)
+        else if (id == (uint)SID.MagneticLevitation)
         {
             Floating.Set(Raid.FindSlot(actor.InstanceID));
         }
@@ -97,15 +97,15 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
-        if (status.ID >= (uint)SID.MaleficE && status.ID <= (uint)SID.MaleficNS)
+        if (status.ID is var id && id is (uint)SID.MaleficE or <= (uint)SID.MaleficNS)
         {
             Malefic[Raid.FindSlot(actor.InstanceID)] = 0;
         }
-        else if (status.ID is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
+        else if (id is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
         {
             Magnet[Raid.FindSlot(actor.InstanceID)] = 0;
         }
-        else if (status.ID == (uint)SID.MagneticLevitation)
+        else if (id == (uint)SID.MagneticLevitation)
         {
             Floating.Clear(Raid.FindSlot(actor.InstanceID));
         }
@@ -240,12 +240,11 @@ sealed class ConcentrativityRocks(BossModule module) : Components.GenericKnockba
         if (kbs[0].Kind == Kind.AwayFromOrigin)
             hints.AddForbiddenZone(new SDKnockbackInAABBSquareAwayFromOriginIntoCircle(Arena.Center, kbs[0].Origin, 20f, 20f, Arena.Center, 2.5f), _finishAt);
         else
-            hints.AddForbiddenZone(new SDKnockbackTowardsOriginIntoCircle(Arena.Center, kbs[0].Origin, 20f, Arena.Center, 2.5f), _finishAt);
+            hints.AddForbiddenZone(new SDKnockbackTowardsOriginIntoCircle(kbs[0].Origin, 20f, Arena.Center, 2.5f), _finishAt);
     }
 
-    sealed class SDKnockbackTowardsOriginIntoCircle(WPos Center, WPos Origin, float MaxDistance, WPos CircleOrigin, float Radius) : ShapeDistance
+    sealed class SDKnockbackTowardsOriginIntoCircle(WPos Origin, float MaxDistance, WPos CircleOrigin, float Radius) : ShapeDistance
     {
-        private readonly WPos center = Center;
         private readonly WPos origin = Origin;
         private readonly float maxDistance = MaxDistance;
         private readonly WPos circleOrigin = CircleOrigin;
@@ -272,7 +271,7 @@ sealed class HeavensConfluenceIcon(BossModule module) : Components.BaitAwayIcon(
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
-        if (CurrentBaits.Count != 0 && (spell.Action.ID is (uint)AID.HeavensConfluenceTarget1 or (uint)AID.HeavensConfluenceTarget2))
+        if (CurrentBaits.Count != 0 && spell.Action.ID is (uint)AID.HeavensConfluenceTarget1 or (uint)AID.HeavensConfluenceTarget2)
         {
             CurrentBaits.RemoveAt(0);
         }
@@ -632,7 +631,7 @@ sealed class UnyieldingWill(BossModule module) : Components.GenericBaitAway(modu
         var inter = tethers.Intermediate;
 
         // if source is same direction as safe side, stand in that path; try standing close to avoid clipping other players
-        bool sourceSafe = true;
+        var sourceSafe = true;
         for (var i = 0; i < len; i++)
         {
             if (source.Rotation.AlmostEqual(unsafeAngles[i], 0.02f))

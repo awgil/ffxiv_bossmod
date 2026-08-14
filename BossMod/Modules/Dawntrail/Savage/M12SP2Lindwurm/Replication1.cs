@@ -263,7 +263,7 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
         if (_numFire != 1 || _numDark != 2)
             return;
 
-        var party = Raid.WithSlot();
+        var party = Raid.WithSlot(true, true, true);
         var len = party.Length;
 
         for (var i = 0; i < len; ++i)
@@ -272,7 +272,7 @@ class Replication1SecondBait(BossModule module) : BossComponent(module)
             var slot = entry.Item1;
             var actor = entry.Item2;
 
-            var hasDarkRes = actor.FindStatus(SID.DarkResistanceDownII, DateTime.MinValue) != null;
+            var hasDarkRes = actor.FindStatus((uint)SID.DarkResistanceDownII, DateTime.MinValue) != null;
             _assignments[slot] = hasDarkRes ? Assignment.Fire : Assignment.Dark;
         }
     }

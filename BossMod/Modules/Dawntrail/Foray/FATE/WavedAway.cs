@@ -44,7 +44,7 @@ class StormWaveStart : Components.SimpleAOEs
         base.AddAIHints(slot, actor, assignment, hints);
         var casters = CollectionsMarshal.AsSpan(Casters);
         var count = casters.Length;
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var aoe = casters[i];
             var right = aoe.Origin + aoe.Rotation.ToDirection().OrthoR() * 1.0f;

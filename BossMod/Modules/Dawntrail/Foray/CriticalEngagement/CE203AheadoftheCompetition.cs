@@ -1,6 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE203AheadoftheCompetition;
 
-public enum OID : uint {
+public enum OID : uint
+{
     PhantomHydra = 0x4BC5,
     Helper = 0x233C,
     BallOfLevin = 0x4BC9, // R2.300, x3
@@ -10,7 +11,8 @@ public enum OID : uint {
     PoisonOrb = 0x1EBFC7, // R0.500, x0 (spawn during fight), EventObj type
 }
 
-public enum AID : uint {
+public enum AID : uint
+{
     AutoAttack = 50759, // PhantomHydra->player, no cast, single-target
     Discordance = 47209, // PhantomHydra->self, 5.0s cast, single-target - raidwide
     DiscordanceVisual = 47210, // Helper->self, no cast, ???
@@ -55,30 +57,38 @@ sealed class ElementalCascadeElements(BossModule module) : Components.SimpleAOEG
     (uint)AID.ElementalCascadeLightning, (uint)AID.ElementalCascadeLight, (uint)AID.ElementalCascadeIce ], new AOEShapeCircle(6.0f));
 sealed class StunningSheen(BossModule module) : Components.CastGaze(module, (uint)AID.StunningSheen);
 
-sealed class ScarletThread : Components.SimpleAOEs {
-    public ScarletThread(BossModule module) : base(module, (uint)AID.ScarletThread, new AOEShapeRect(70.0f, 2.0f)) {
+sealed class ScarletThread : Components.SimpleAOEs
+{
+    public ScarletThread(BossModule module) : base(module, (uint)AID.ScarletThread, new AOEShapeRect(70.0f, 2.0f))
+    {
         Color = Colors.Danger;
     }
 }
 
-sealed class IceBurst : Components.SimpleAOEs {
-    public IceBurst(BossModule module) : base(module, (uint)AID.IceBurst, new AOEShapeCone(40.0f, 10.0f.Degrees())) {
+sealed class IceBurst : Components.SimpleAOEs
+{
+    public IceBurst(BossModule module) : base(module, (uint)AID.IceBurst, new AOEShapeCone(40.0f, 10.0f.Degrees()))
+    {
         Color = Colors.Danger;
     }
 }
 
-sealed class Shock(BossModule module) : Components.GenericAOEs(module) {
+sealed class Shock(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> Casters = [];
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        AOEShape? shape = (AID)spell.Action.ID switch {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        AOEShape? shape = (AID)spell.Action.ID switch
+        {
             AID.Shock => new AOEShapeCircle(10.0f),
             AID.LevinRingMiddle => new AOEShapeDonut(10.0f, 20.0f),
             AID.LevinRingOuter => new AOEShapeDonut(20.0f, 30.0f),
             _ => null
         };
 
-        if (shape != null) {
+        if (shape != null)
+        {
             var origin = spell.LocXZ;
             var rotation = spell.Rotation;
             Casters.Add(new(shape, origin, rotation, Module.CastFinishAt(spell), actorID: caster.InstanceID, shapeDistance: shape.Distance(origin, rotation)));
@@ -86,24 +96,30 @@ sealed class Shock(BossModule module) : Components.GenericAOEs(module) {
         }
     }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID is (uint)AID.Shock or (uint)AID.LevinRingMiddle or (uint)AID.LevinRingOuter) {
-            if (Casters.Count > 0) {
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID is (uint)AID.Shock or (uint)AID.LevinRingMiddle or (uint)AID.LevinRingOuter)
+        {
+            if (Casters.Count > 0)
+            {
                 Casters.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         var count = Casters.Count;
-        if (count == 0) {
+        if (count == 0)
+        {
             return [];
         }
 
         var max = count > 2 ? 2 : count;
         var aoes = CollectionsMarshal.AsSpan(Casters);
 
-        for (int i = 0; i < max; i++) {
+        for (var i = 0; i < max; i++)
+        {
             ref var aoe = ref aoes[i];
             aoe.Color = i == 0 ? Colors.Danger : Colors.AOE;
             aoe.Risky = i == 0;
@@ -113,34 +129,43 @@ sealed class Shock(BossModule module) : Components.GenericAOEs(module) {
     }
 }
 
-sealed class ManyHeadedBreath(BossModule module) : Components.GenericAOEs(module) {
+sealed class ManyHeadedBreath(BossModule module) : Components.GenericAOEs(module)
+{
     private readonly List<AOEInstance> aoes = [];
     private readonly AOEShapeCone shape = new(30.0f, 60.0f.Degrees());
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell) {
-        if (spell.Action.ID == (uint)AID.ManyHeadedBreathVisual) {
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action.ID == (uint)AID.ManyHeadedBreathVisual)
+        {
             aoes.Add(new(shape, spell.LocXZ, spell.Rotation));
         }
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell) {
-        if (spell.Action.ID is (uint)AID.ManyHeadedBreathFront or (uint)AID.ManyHeadedBreathLeft or (uint)AID.ManyHeadedBreathRight) {
-            if (aoes.Count > 0) {
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID is (uint)AID.ManyHeadedBreathFront or (uint)AID.ManyHeadedBreathLeft or (uint)AID.ManyHeadedBreathRight)
+        {
+            if (aoes.Count > 0)
+            {
                 aoes.RemoveAt(0);
             }
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         var count = aoes.Count;
-        if (count == 0) {
+        if (count == 0)
+        {
             return [];
         }
 
         var max = count > 2 ? 2 : count;
         var nextAOEs = CollectionsMarshal.AsSpan(aoes);
 
-        for (int i = 0; i < max; i++) {
+        for (var i = 0; i < max; i++)
+        {
             ref var aoe = ref nextAOEs[i];
             aoe.Color = i == 0 ? Colors.Danger : Colors.AOE;
             aoe.Risky = i == 0;
@@ -150,25 +175,32 @@ sealed class ManyHeadedBreath(BossModule module) : Components.GenericAOEs(module
     }
 }
 
-sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7)) {
+sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, module => module.Enemies((uint)OID.PoisonOrb).Where(z => z.EventState != 7))
+{
     private bool active = false;
 
-    public override void OnActorEAnim(Actor actor, uint state) {
-        if (actor.OID == (uint)OID.PoisonOrb) {
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.PoisonOrb)
+        {
             active = true;
         }
     }
 
-    public override void OnActorDestroyed(Actor actor) {
-        if (actor.OID == (uint)OID.PoisonOrb) {
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.PoisonOrb)
+        {
             active = false;
         }
     }
 
-    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor) {
+    public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
         var aoes = new List<AOEInstance>();
 
-        foreach (var source in Sources(Module)) {
+        foreach (var source in Sources(Module))
+        {
             aoes.Add(new(Shape, source.Position, source.Rotation, color: active ? Colors.Danger : default));
         }
 
@@ -177,8 +209,10 @@ sealed class Dissipate(BossModule module) : Components.Voidzone(module, 8.5f, mo
 }
 
 [SkipLocalsInit]
-sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder {
-    public CE203AheadoftheCompetitionStates(BossModule module) : base(module) {
+sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder
+{
+    public CE203AheadoftheCompetitionStates(BossModule module) : base(module)
+    {
         TrivialPhase()
             .ActivateOnEnter<ElementalCascade>()
             .ActivateOnEnter<Discordance>()
@@ -210,6 +244,7 @@ sealed class CE203AheadoftheCompetitionStates : StateMachineBuilder {
     SortOrder = 14,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE203AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f)) {
+public sealed class CE203AheadoftheCompetition(WorldState ws, Actor primary) : BossModule(ws, primary, new(-82.000f, 485.000f), new ArenaBoundsCircle(20f))
+{
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 20f);
 }

@@ -101,22 +101,22 @@ sealed class WyvernsWealIrregularCastLane(BossModule module) : Components.Generi
             return;
 
         // Only the two sweep casts
-        if (spell.Action.ID != 45046u && spell.Action.ID != 45047u)
+        if (spell.Action.ID is not 45046u and not 45047u)
             return;
 
         // 45047 = north/right sweep → danger RIGHT
         // 45046 = southeast/left sweep → danger LEFT
-        bool dangerOnRight = spell.Action.ID == 45047u;
+        var dangerOnRight = spell.Action.ID == 45047u;
 
         _rotation = spell.Rotation;
         var forward = _rotation.ToDirection();
         var left = new WDir(-forward.Z, forward.X);
 
         // asymmetric lateral extents
-        float lw = dangerOnRight ? Narrow : Wide;
-        float rw = dangerOnRight ? Wide : Narrow;
-        float halfW = (lw + rw) * 0.5f;
-        float lateralShift = (lw - rw) * 0.5f;
+        var lw = dangerOnRight ? Narrow : Wide;
+        var rw = dangerOnRight ? Wide : Narrow;
+        var halfW = (lw + rw) * 0.5f;
+        var lateralShift = (lw - rw) * 0.5f;
 
         // origin shifted sideways so the narrow side is safe
         _origin = caster.Position + lateralShift * left;

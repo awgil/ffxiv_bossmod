@@ -28,15 +28,15 @@ class VoidAeroII(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var (slot, actor) in Raid.WithSlot().IncludedInMask(_greenTargets))
+        foreach (var (slot, actor) in Raid.WithSlot(false, true, true).IncludedInMask(_greenTargets))
             Arena.ZoneCircleOutline(actor.Position, _greenRadius, Colors.Safe, slot == pcSlot ? 2 : 1);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        switch (spell.Action.ID)
         {
-            case AID.VoidAeroII:
+            case (uint)AID.VoidAeroII:
                 _greenTargets.Clear(Raid.FindSlot(spell.MainTargetID));
                 break;
         }
@@ -44,16 +44,16 @@ class VoidAeroII(BossModule module) : BossComponent(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        switch ((IconID)iconID)
+        switch (iconID)
         {
-            case IconID.WindSpread:
+            case (uint)IconID.WindSpread:
                 _greenTargets.Set(Raid.FindSlot(actor.InstanceID));
                 break;
         }
     }
 }
 
-class VoidBlizzardIIIAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.VoidBlizzardIIIAOE, new AOEShapeCone(60, 10.Degrees()));
+class VoidBlizzardIIIAOE(BossModule module) : Components.SimpleAOEs(module, (uint)AID.VoidBlizzardIIIAOE, new AOEShapeCone(60f, 10f.Degrees()));
 
 class VoidAeroIVKB1(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.VoidAeroIVKB1, 37, kind: Kind.DirLeft, stopAtWall: true);
 class VoidAeroIVKB2(BossModule module) : Components.SimpleKnockbacks(module, (uint)AID.VoidAeroIVKB2, 37, kind: Kind.DirRight, stopAtWall: true);

@@ -221,7 +221,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 writer.WriteEndArray();
             }
             writer.WriteStartObject("_defaults");
-            for (int iDef = 0; iDef < m.Defaults.Count; ++iDef)
+            for (var iDef = 0; iDef < m.Defaults.Count; ++iDef)
             {
                 var def = m.Defaults[iDef];
                 if (def == default)

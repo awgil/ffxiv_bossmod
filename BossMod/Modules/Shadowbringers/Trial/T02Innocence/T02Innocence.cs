@@ -155,11 +155,11 @@ sealed class SoulAndBody(BossModule module) : Components.SimpleAOEs(module, (uin
              * how many will be cast. Instead we make extra and then clear the Casters queue when the Thorn actor
              * that is in the Arena.Center position dies.
              */
-            int _genAOE = 26;
+            var _genAOE = 26;
 
-            for (int i = 0; i < _genAOE; i++)
+            for (var i = 0; i < _genAOE; i++)
             {
-                float rotAngFloat = 8f * i;
+                var rotAngFloat = 8f * i;
                 WPos futureOrigin = WPos.RotateAroundOrigin(-rotAngFloat, Arena.Center, spell.LocXZ);
                 Angle futureRot = rotation + rotAngFloat.Degrees();
                 // The first long cast takes approx 2.7 seconds. The instants that follow every 0.6 seconds or so.

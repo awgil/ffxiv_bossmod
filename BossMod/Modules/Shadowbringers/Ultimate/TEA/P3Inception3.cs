@@ -151,7 +151,7 @@ sealed class P3Inception3EarlyHints(BossModule module) : BossComponent(module)
         var center = Arena.Center;
         var relNorth = (heartPosition - center).ToAngle();
 
-        foreach (var (slot, actor) in Raid.WithSlot())
+        foreach (var (slot, actor) in Raid.WithSlot(true, true, true))
         {
             var safeSide = actor.Role is Role.Tank || actor.FindStatus((uint)SID.SharedSentence) != null ? -90f.Degrees() : 90f.Degrees();
             _safespots[slot] = center + (relNorth + safeSide).ToDirection() * 18f;

@@ -24,7 +24,7 @@ sealed class P6WrothFlames : Components.GenericAOEs
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        int count = (NumCasts > 0) ? 3 : 4;
+        var count = (NumCasts > 0) ? 3 : 4;
         return _aoes.Count > count ? _aoes.AsSpan()[..count] : CollectionsMarshal.AsSpan(_aoes);
     }
 

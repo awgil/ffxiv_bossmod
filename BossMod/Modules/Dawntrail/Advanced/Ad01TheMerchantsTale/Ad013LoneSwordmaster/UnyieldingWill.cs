@@ -176,7 +176,7 @@ sealed class UnyieldingWill(BossModule module) : Components.GenericBaitAway(modu
         var inter = tethers.Intermediate;
 
         // if source is same direction as safe side, stand in that path; try standing close to avoid clipping other players
-        bool sourceSafe = true;
+        var sourceSafe = true;
         for (var i = 0; i < len; i++)
         {
             if (source.Rotation.AlmostEqual(unsafeAngles[i], 0.02f))

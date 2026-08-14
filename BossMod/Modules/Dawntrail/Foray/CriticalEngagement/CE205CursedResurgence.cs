@@ -23,7 +23,7 @@ public enum AID : uint
     SnakingNecrobreath = 48260, // ClaretDragon->self, 6.0s cast, range 60 270.000-degree cone
     GraveMoldCast = 48261, // ClaretDragon->self, 5.0s cast, single-target
     GraveMold = 48262, // ClaretDragonHelper->self, 6.0s cast, range 8 circle
-    Necrohaze1= 48263, // Necrohaze->self, no cast, range 5 circle
+    Necrohaze1 = 48263, // Necrohaze->self, no cast, range 5 circle
     Soar = 50488, // ClaretDragon->self, 4.0s cast, single-target
     UnknownAbility2 = 48302, // ClaretDragon->self, no cast, single-target
     CauterizeCast = 48264, // ClaretDragon->self, 6.0s cast, single-target

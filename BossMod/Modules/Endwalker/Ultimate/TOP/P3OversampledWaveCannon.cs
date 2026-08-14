@@ -33,7 +33,7 @@ sealed class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.PredictedDamage.Add(new(Raid.WithSlot().Mask(), _resolve, AIHints.PredictedDamageType.Raidwide));
+        hints.PredictedDamage.Add(new(Raid.WithSlot(false, true, true).Mask(), _resolve, AIHints.PredictedDamageType.Raidwide));
 
         if (!IsMonitor(slot) || !_config.P3MonitorForbiddenDirections)
             return;

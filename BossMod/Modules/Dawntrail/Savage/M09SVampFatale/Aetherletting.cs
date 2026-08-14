@@ -104,7 +104,7 @@ sealed class AetherlettingPuddle(BossModule module) : Components.SpreadFromCastT
         // only draw player bait position when spreading
         var spreads = CollectionsMarshal.AsSpan(Spreads);
         var lenSpread = spreads.Length;
-        bool isTarget = false;
+        var isTarget = false;
 
         for (var i = 0; i < lenSpread; i++)
         {
@@ -131,7 +131,7 @@ sealed class AetherlettingPuddle(BossModule module) : Components.SpreadFromCastT
 
         var spreads = CollectionsMarshal.AsSpan(Spreads);
         var lenSpread = spreads.Length;
-        bool isTarget = false;
+        var isTarget = false;
 
         for (var i = 0; i < lenSpread; i++)
         {

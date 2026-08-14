@@ -90,7 +90,7 @@ sealed class AlleyOopMaelstromSequential(BossModule module) : Components.Generic
     {
         _active.Clear();
 
-        bool have30 = false;
+        var have30 = false;
         foreach (var t in _tracked)
         {
             if (t.AID == (uint)AID.AlleyOopMaelstrom)
@@ -100,7 +100,7 @@ sealed class AlleyOopMaelstromSequential(BossModule module) : Components.Generic
             }
         }
 
-        uint want = have30 ? (uint)AID.AlleyOopMaelstrom : (uint)AID.AlleyOopMaelstrom2;
+        var want = have30 ? (uint)AID.AlleyOopMaelstrom : (uint)AID.AlleyOopMaelstrom2;
 
         foreach (var t in _tracked)
         {

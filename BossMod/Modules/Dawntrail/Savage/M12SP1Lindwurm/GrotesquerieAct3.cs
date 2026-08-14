@@ -39,7 +39,7 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0 || slot >= 8)
+        if (slot is < 0 or >= 8)
             return;
 
         if (status.ID == (uint)SID._Gen_Direction && status.Extra is >= DirNorth and <= DirWest)
@@ -52,7 +52,7 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
         var slot = Raid.FindSlot(actor.InstanceID);
-        if (slot < 0 || slot >= 8)
+        if (slot is < 0 or >= 8)
             return;
 
         if (status.ID == (uint)SID._Gen_Direction)
@@ -137,19 +137,19 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
 
         if (_pattern == Pattern.CardinalSafe)
         {
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 95f), 0.Degrees(), activation)); // c
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(85f, 85f), 0.Degrees(), activation)); // nw
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(115f, 85f), 0.Degrees(), activation)); // ne
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(85f, 105f), 0.Degrees(), activation)); // sw
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(115f, 105f), 0.Degrees(), activation)); // se
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 95f), default, activation)); // c
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(85f, 85f), default, activation)); // nw
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(115f, 85f), default, activation)); // ne
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(85f, 105f), default, activation)); // sw
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(115f, 105f), default, activation)); // se
         }
         else if (_pattern == Pattern.IntercardinalSafe)
         {
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 85f), 0.Degrees(), activation)); // n
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 95f), 0.Degrees(), activation)); // c
-            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 105f), 0.Degrees(), activation)); // s
-            _aoes.Add(new(new AOEShapeRect(10f, 5f), new WPos(85f, 95f), 0.Degrees(), activation)); // w
-            _aoes.Add(new(new AOEShapeRect(10f, 5f), new WPos(115f, 95f), 0.Degrees(), activation)); // e
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 85f), default, activation)); // n
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 95f), default, activation)); // c
+            _aoes.Add(new(new AOEShapeRect(10f, 10f), new WPos(100f, 105f), default, activation)); // s
+            _aoes.Add(new(new AOEShapeRect(10f, 5f), new WPos(85f, 95f), default, activation)); // w
+            _aoes.Add(new(new AOEShapeRect(10f, 5f), new WPos(115f, 95f), default, activation)); // e
         }
     }
 
@@ -244,7 +244,7 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
 
     private void DrawAllDefamations()
     {
-        foreach (var (slot, actor) in Raid.WithSlot())
+        foreach (var actor in Raid.WithoutSlot(false, true, true))
         {
             var status = actor.FindStatus((uint)SID.MitoticPhase);
             if (status == null)
@@ -257,38 +257,6 @@ sealed class GrotesquerieAct3(BossModule module) : Components.GenericAOEs(module
     }
 
     private float StatusDuration(DateTime expireAt) => Math.Max(0, (float)(expireAt - WorldState.CurrentTime).TotalSeconds);
-
-    private void DrawAllSafeSpots()
-    {
-        if (_pattern == Pattern.CardinalSafe)
-        {
-            DrawSafeSpotWithLabel(CardinalNorthSupp, "N Supp");
-            DrawSafeSpotWithLabel(CardinalNorthDPS, "N DPS");
-            DrawSafeSpotWithLabel(CardinalSouthSupp, "S Supp");
-            DrawSafeSpotWithLabel(CardinalSouthDPS, "S DPS");
-            DrawSafeSpotWithLabel(CardinalEastSupp, "E Supp");
-            DrawSafeSpotWithLabel(CardinalEastDPS, "E DPS");
-            DrawSafeSpotWithLabel(CardinalWestSupp, "W Supp");
-            DrawSafeSpotWithLabel(CardinalWestDPS, "W DPS");
-        }
-        else // IntercardinalSafe
-        {
-            DrawSafeSpotWithLabel(IntercardNESupp, "NE Supp");
-            DrawSafeSpotWithLabel(IntercardNEDPS, "NE DPS");
-            DrawSafeSpotWithLabel(IntercardSWSupp, "SW Supp");
-            DrawSafeSpotWithLabel(IntercardSWDPS, "SW DPS");
-            DrawSafeSpotWithLabel(IntercardSESupp, "SE Supp");
-            DrawSafeSpotWithLabel(IntercardSEDPS, "SE DPS");
-            DrawSafeSpotWithLabel(IntercardNWSupp, "NW Supp");
-            DrawSafeSpotWithLabel(IntercardNWDPS, "NW DPS");
-        }
-    }
-
-    private void DrawSafeSpotWithLabel(WPos pos, string label)
-    {
-        Arena.ZoneCircleOutline(pos, SafeSpotRadius, Colors.Safe);
-        Arena.TextWorld(pos, label, Colors.Object);
-    }
 
     private WPos GetSafeSpot(ushort direction, bool isSupport)
     {

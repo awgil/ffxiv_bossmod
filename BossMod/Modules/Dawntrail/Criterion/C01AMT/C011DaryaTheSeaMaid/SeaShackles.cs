@@ -27,7 +27,7 @@ class SeaShackles(BossModule module) : Components.StretchTetherDuo(module, minim
             return;
         }
 
-        uint tetherId = tether.ID;
+        var tetherId = tether.ID;
         CurrentBaits.RemoveAll(b => b.Target == player && b.Source == partner);
         TetherOnActor.RemoveAll(t => t.Item1 == player && t.Item2 == tetherId);
     }
@@ -53,7 +53,7 @@ class SeaShackles(BossModule module) : Components.StretchTetherDuo(module, minim
                 ? TetherOnActor.FirstOrDefault(t => t.Item1 == bait.Target).Item2
                 : TetherOnActor.FirstOrDefault(t => t.Item1 == bait.Source).Item2;
 
-            uint color = tetherId == (uint)TetherID.Safe ? Colors.Safe : Colors.Danger;
+            var color = tetherId == (uint)TetherID.Safe ? Colors.Safe : Colors.Danger;
             Arena.AddLine(bait.Source.Position, bait.Target.Position, color);
         }
     }
@@ -71,8 +71,8 @@ class SeaShackles(BossModule module) : Components.StretchTetherDuo(module, minim
             return (null, null);
         }
 
-        bool sourceIsPlayer = Raid.WithoutSlot().Contains(source);
-        bool targetIsPlayer = Raid.WithoutSlot().Contains(target);
+        var sourceIsPlayer = Raid.WithoutSlot().Contains(source);
+        var targetIsPlayer = Raid.WithoutSlot().Contains(target);
         if (!sourceIsPlayer || !targetIsPlayer)
         {
             return (null, null);

@@ -66,7 +66,7 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module)
     {
         aoes.Clear();
 
-        int shown = 0;
+        var shown = 0;
         foreach (var blueObject in blueObjects)
         {
             if (shown >= maxShow)

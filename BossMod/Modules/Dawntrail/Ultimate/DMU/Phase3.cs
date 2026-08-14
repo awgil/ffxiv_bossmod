@@ -29,7 +29,7 @@ sealed class TheDecisiveBattle(BossModule module) : BossComponent(module)
             Arena.AddLine(exDeathBoss.Position, player.Position, Colors.Danger);
         }
 
-        foreach (var (_, player) in Raid.WithSlot())
+        foreach (var (_, player) in Raid.WithSlot(true, true, true))
         {
             Arena.Actor(player, player == pc ? Colors.PC : Colors.PlayerGeneric, true);
         }
@@ -222,7 +222,7 @@ sealed class WaterCrystal(BossModule module) : Components.GenericBaitProximity(m
         }
 
         var players = Raid.WithoutSlot().SortedByRange(waterCrystal.Value.actor.Position).ToList();
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             CurrentBaits.Add(new(players[i], new AOEShapeCircle(5.0f)));
         }
@@ -233,7 +233,7 @@ sealed class WaterCrystal(BossModule module) : Components.GenericBaitProximity(m
             return;
         }
 
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             CurrentBaits.Add(new(debuffPlayers[i].actor, new AOEShapeDonut(4.0f, 10.0f)));
         }
@@ -324,7 +324,7 @@ sealed class FireCrystal(BossModule module) : Components.GenericBaitProximity(mo
         }
 
         var players = Raid.WithoutSlot().SortedByRange(fireCrystal.Value.actor.Position).ToList();
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             CurrentBaits.Add(new(players[i], new AOEShapeDonut(4.0f, 10.0f)));
         }
@@ -335,7 +335,7 @@ sealed class FireCrystal(BossModule module) : Components.GenericBaitProximity(mo
             return;
         }
 
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             CurrentBaits.Add(new(debuffPlayers[i].actor, new AOEShapeCircle(5.0f)));
         }
@@ -662,7 +662,7 @@ sealed class HeadTailWind(BossModule module) : Components.GenericKnockback(modul
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        uint direction = status.ID switch
+        var direction = status.ID switch
         {
             (uint)SID.Headwind => (uint)SID.Headwind,
             (uint)SID.Tailwind => (uint)SID.Tailwind,
@@ -784,7 +784,7 @@ sealed class Cyclone(BossModule module) : Components.GenericStackSpread(module)
             return;
         }
 
-        foreach (var (slot, player) in Raid.WithSlot().WhereSlot(p => windDebuffs.Direction[p] is (uint)SID.Headwind or (uint)SID.Tailwind))
+        foreach (var (slot, player) in Raid.WithSlot(true, true, true).WhereSlot(p => windDebuffs.Direction[p] is (uint)SID.Headwind or (uint)SID.Tailwind))
         {
             Stacks.Add(new(player, 6.0f));
         }
@@ -875,7 +875,7 @@ sealed class SlapHappyBaits(BossModule module) : Components.GenericBaitStack(mod
             BitMask allowedHealers = default;
             BitMask allowedDDs = default;
 
-            for (int i = 0; i < party.Length; i++)
+            for (var i = 0; i < party.Length; i++)
             {
                 ref var p = ref party[i];
 
@@ -899,7 +899,7 @@ sealed class SlapHappyBaits(BossModule module) : Components.GenericBaitStack(mod
             var addedHealer = false;
             var addedDD = false;
 
-            for (int i = 0; i < party.Length; i++)
+            for (var i = 0; i < party.Length; i++)
             {
                 ref var player = ref party[i];
                 var p = player.Item2;
@@ -1092,7 +1092,7 @@ sealed class BlackHole(BossModule module) : Components.BaitAwayTethers(module, n
     {
         base.DrawArenaForeground(pcSlot, pc);
 
-        for (int i = 0; i < Tethers.Count; i++)
+        for (var i = 0; i < Tethers.Count; i++)
         {
             var (blackHoleActor, targetID) = Tethers[i];
             var target = WorldState.Actors.Find(targetID);
@@ -1101,7 +1101,7 @@ sealed class BlackHole(BossModule module) : Components.BaitAwayTethers(module, n
                 continue;
             }
 
-            bool assignedToMe = i < currentSet.Length && orderedRoles[pcSlot].role == currentSet[i].role && orderedRoles[pcSlot].order == currentSet[i].order;
+            var assignedToMe = i < currentSet.Length && orderedRoles[pcSlot].role == currentSet[i].role && orderedRoles[pcSlot].order == currentSet[i].order;
             Arena.AddLine(blackHoleActor.Position, target.Position, assignedToMe ? Colors.Safe : Colors.Danger, 3.0f);
         }
     }
@@ -1278,7 +1278,7 @@ sealed class P3BlizzardMove(BossModule module) : Components.StayMove(module, 5d)
     {
         if (spell.Action.ID == (uint)AID.BlizzardIIIRaidwide)
         {
-            foreach (var (slot, _) in Raid.WithSlot())
+            foreach (var (slot, _) in Raid.WithSlot(true, true, true))
             {
                 PlayerStates[slot] = new(Requirement.Move, WorldState.FutureTime(spell.RemainingTime));
             }
@@ -1289,11 +1289,8 @@ sealed class P3BlizzardMove(BossModule module) : Components.StayMove(module, 5d)
     {
         if (spell.Action.ID == (uint)AID.BlizzardIIIRaidwide)
         {
-            foreach (var (slot, _) in Raid.WithSlot())
-            {
-                PlayerStates[slot] = default;
-            }
-            NumCasts++;
+            Array.Clear(PlayerStates);
+            ++NumCasts;
         }
     }
 }
@@ -1318,7 +1315,7 @@ sealed class KnockDown(BossModule module) : Components.GenericStackSpread(module
             BitMask allowedPlayers = default;
             if (target.Class.IsSupport())
             {
-                foreach (var (slot, player) in Raid.WithSlot())
+                foreach (var (slot, player) in Raid.WithSlot(true, true, true))
                 {
                     if (player.Class.IsSupport())
                     {
@@ -1329,7 +1326,7 @@ sealed class KnockDown(BossModule module) : Components.GenericStackSpread(module
 
             if (target.Class.IsDD())
             {
-                foreach (var (slot, player) in Raid.WithSlot())
+                foreach (var (slot, player) in Raid.WithSlot(true, true, true))
                 {
                     if (player.Class.IsDD())
                     {
@@ -1430,7 +1427,7 @@ sealed class StompAMole(BossModule module) : Components.GenericTowers(module)
     {
         if (spell.Action.ID == (uint)AID.StompAMoleTower)
         {
-            int wave = NumCasts < 2 ? 0 : 1;
+            var wave = NumCasts < 2 ? 0 : 1;
             towers.RemoveAll(t => t.wave == wave && t.tower.Position.AlmostEqual(caster.Position, 1.0f));
             NumCasts++;
         }
@@ -1452,7 +1449,7 @@ sealed class StompAMole(BossModule module) : Components.GenericTowers(module)
 
         if (stacks.stackClass.IsSupport())
         {
-            foreach (var (slot, player) in Raid.WithSlot())
+            foreach (var (slot, player) in Raid.WithSlot(true, true, true))
             {
                 if (player.Class.IsDD())
                 {
@@ -1463,7 +1460,7 @@ sealed class StompAMole(BossModule module) : Components.GenericTowers(module)
 
         if (stacks.stackClass.IsDD())
         {
-            foreach (var (slot, player) in Raid.WithSlot())
+            foreach (var (slot, player) in Raid.WithSlot(true, true, true))
             {
                 if (player.Class.IsSupport())
                 {
@@ -1481,7 +1478,7 @@ sealed class StompAMole(BossModule module) : Components.GenericTowers(module)
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        foreach (var (tower, side, wave) in CurrentTowers)
+        foreach (var (tower, _, _) in CurrentTowers)
         {
             if (tower.ForbiddenSoakers[pcSlot] || !tower.IsInside(pc) && tower.NumInside(Module) >= tower.MaxSoakers)
             {
@@ -1508,7 +1505,7 @@ sealed class StompAMole(BossModule module) : Components.GenericTowers(module)
             }
         }
 
-        foreach (var (tower, side, wave) in CurrentTowers)
+        foreach (var (tower, side, _) in CurrentTowers)
         {
             if (tower.ForbiddenSoakers[pcSlot])
             {

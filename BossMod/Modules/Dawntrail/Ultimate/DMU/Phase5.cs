@@ -54,7 +54,7 @@ sealed class FellForces(BossModule module) : Components.GenericBaitStack(module)
         BitMask allowedHealers = default;
         BitMask allowedDDs = default;
 
-        for (int i = 0; i < party.Length; ++i)
+        for (var i = 0; i < party.Length; ++i)
         {
             ref var p = ref party[i];
 
@@ -78,7 +78,7 @@ sealed class FellForces(BossModule module) : Components.GenericBaitStack(module)
         var addedHealer = false;
         var addedDD = false;
 
-        for (int i = 0; i < party.Length; ++i)
+        for (var i = 0; i < party.Length; ++i)
         {
             ref var player = ref party[i];
             var p = player.Item2;
@@ -318,7 +318,7 @@ sealed class MaddeningOrchestra(BossModule module) : Components.GenericBaitAway(
             return;
         }
 
-        var targets = Raid.WithoutSlot().SortedByRange(boss.Position).ToList();
+        var targets = Raid.WithoutSlot(true, true, true).SortedByRange(boss.Position).ToList();
         if (!firstWave)
         {
             foreach (var player in targets)
@@ -330,7 +330,7 @@ sealed class MaddeningOrchestra(BossModule module) : Components.GenericBaitAway(
         }
 
         targets = [.. targets.Take(3)];
-        BitMask forbiddenPlayers = Raid.WithSlot().Where(p => magicVulnerability[p.Item1] > WorldState.CurrentTime || p.Item2.Role == Role.Tank).Mask();
+        BitMask forbiddenPlayers = Raid.WithSlot(true, true, true).Where(p => magicVulnerability[p.Item1] > WorldState.CurrentTime || p.Item2.Role == Role.Tank).Mask();
         foreach (var target in targets)
         {
             CurrentBaits.Add(new(boss.Position, target, new AOEShapeCircle(5.0f), forbidden: forbiddenPlayers));
@@ -385,10 +385,10 @@ sealed class ChaoticFlareTB(BossModule module) : Components.GenericBaitStack(mod
 
         CurrentBaits.Clear();
 
-        var party = Raid.WithSlot();
+        var party = Raid.WithSlot(true, true, true);
         BitMask allowedTanks = default;
-
-        for (int i = 0; i < party.Length; i++)
+        var len = party.Length;
+        for (var i = 0; i < len; ++i)
         {
             ref var p = ref party[i];
 
@@ -400,7 +400,7 @@ sealed class ChaoticFlareTB(BossModule module) : Components.GenericBaitStack(mod
 
         var addedTank = false;
 
-        for (int i = 0; i < party.Length; i++)
+        for (var i = 0; i < len; ++i)
         {
             ref var player = ref party[i];
             var p = player.Item2;
@@ -426,12 +426,11 @@ sealed class ChaoticHolyFlareDiffusion(BossModule module) : Components.GenericBa
 {
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID == (uint)SID.SurpriseHoly)
+        if (status.ID is var id && id == (uint)SID.SurpriseHoly)
         {
             CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(6.0f), status.ExpireAt));
         }
-
-        if (status.ID == (uint)SID.SurpriseFlare)
+        else if (id == (uint)SID.SurpriseFlare)
         {
             CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(25.0f), status.ExpireAt));
         }
@@ -464,17 +463,15 @@ sealed class Celestriad(BossModule module) : Components.GenericTowers(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if (actor.OID == (uint)OID.IceTower)
+        if (actor.OID is var id && id == (uint)OID.IceTower)
         {
             allTowers.Add((actor, Elements.ICE));
         }
-
-        if (actor.OID == (uint)OID.FireTower)
+        else if (id == (uint)OID.FireTower)
         {
             allTowers.Add((actor, Elements.FIRE));
         }
-
-        if (actor.OID == (uint)OID.ThunderTower)
+        else if (id == (uint)OID.ThunderTower)
         {
             allTowers.Add((actor, Elements.THUNDER));
         }
@@ -526,7 +523,7 @@ sealed class Celestriad(BossModule module) : Components.GenericTowers(module)
 
             if (state == (uint)Animations.TowerExplosion)
             {
-                NumCasts++;
+                ++NumCasts;
                 Towers.RemoveAll(p => p.ActorID == actor.InstanceID);
             }
         }
@@ -563,7 +560,7 @@ sealed class Celestriad(BossModule module) : Components.GenericTowers(module)
         // If all 6 players have debuffs, we know the final two are the non-debuff players
         if (debuffs.Count(d => d != Elements.NONE) == 6)
         {
-            for (int i = 0; i < debuffs.Length; i++)
+            for (var i = 0; i < debuffs.Length; i++)
             {
                 if (debuffs[i] == Elements.NONE)
                 {
@@ -588,7 +585,7 @@ sealed class Celestriad(BossModule module) : Components.GenericTowers(module)
 
         // Assign each tower to an element index
         var towerElements = new Elements[Towers.Count];
-        for (int i = 0; i < Towers.Count; ++i)
+        for (var i = 0; i < Towers.Count; ++i)
         {
             var index = allTowers.Find(t => t.actor.InstanceID == Towers[i].ActorID);
             towerElements[i] = index == default ? Elements.NONE : index.element;
@@ -596,7 +593,7 @@ sealed class Celestriad(BossModule module) : Components.GenericTowers(module)
 
         // Find the dupe element
         var dupeElement = Elements.NONE;
-        for (int i = 0; i < towerElements.Length && dupeElement == Elements.NONE; ++i)
+        for (var i = 0; i < towerElements.Length && dupeElement == Elements.NONE; ++i)
         {
             for (var k = i + 1; k < towerElements.Length; ++k)
             {
@@ -611,7 +608,7 @@ sealed class Celestriad(BossModule module) : Components.GenericTowers(module)
 
         // Set up the forbidden players for each tower
         var set = NumCasts / 4;
-        for (int i = 0; i < Towers.Count; ++i)
+        for (var i = 0; i < Towers.Count; ++i)
         {
             var tower = Towers[i];
             BitMask forbiddenPlayers = default;
@@ -703,7 +700,7 @@ sealed class StrayApocalypse(BossModule module) : Components.Exaflare(module, 6f
             var count = Lines.Count;
             var pos = caster.Position;
 
-            for (int i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
             {
                 var line = Lines[i];
                 if (line.Next.AlmostEqual(pos, 1f))
@@ -725,13 +722,13 @@ sealed class StrayApocalypse(BossModule module) : Components.Exaflare(module, 6f
         currentAOEs.Clear();
 
         var exaFlares = Lines.Take(4).ToList();
-        for (int i = 0; i < exaFlares.Count; ++i)
+        for (var i = 0; i < exaFlares.Count; ++i)
         {
             var line = Lines[i];
             var pos = line.Next;
             var time = line.NextExplosion;
 
-            for (int k = 0; k < line.ExplosionsLeft; ++k)
+            for (var k = 0; k < line.ExplosionsLeft; ++k)
             {
                 currentAOEs.Add(new(Shape, pos.Quantized(), line.Rotation, time, k == 0 ? ImminentColor : FutureColor));
                 pos += line.Advance;

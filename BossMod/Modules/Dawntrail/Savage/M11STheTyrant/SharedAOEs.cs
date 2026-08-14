@@ -15,7 +15,7 @@ sealed class MajesticMeteorStorm : Components.SimpleAOEs
         MaxDangerColor = 6;
     }
 }
-sealed class MammothMeteor(BossModule module) : Components.SimpleAOEs(module, (uint)AID.MammothMeteor, new AOEShapeCircle(18f));
+sealed class MammothMeteor(BossModule module) : Components.SimpleAOEs(module, (uint)AID.MammothMeteor, 18f);
 sealed class AtomicImpact(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AtomicImpactIcon, (uint)AID.AtomicImpact, 5f, 6);
 sealed class Comet(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.CometIcon, (uint)AID.Comet, 6f, 5d);
 sealed class CrushingComet(BossModule module) : Components.StackWithCastTargets(module, (uint)AID.CrushingComet, 6f);
@@ -75,7 +75,7 @@ sealed class MaelstromVoidZones(BossModule module) : Components.GenericAOEs(modu
 }
 sealed class MaelstromGustCones(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCone GustCone = new(60f, 45.Degrees());
+    private static readonly AOEShapeCone GustCone = new(60f, 45f.Degrees());
 
     private readonly List<Actor> _maelstroms = new(4);
     private readonly List<AOEInstance> _aoes = new(8);
@@ -83,7 +83,7 @@ sealed class MaelstromGustCones(BossModule module) : Components.GenericAOEs(modu
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.PowerfulGust)
+        if (spell.Action.ID == (uint)AID.PowerfulGust)
             _resolved = true;
     }
 
@@ -150,7 +150,7 @@ sealed class MaelstromBaitSafeSpots(BossModule module) : BossComponent(module)
 
         var count = 0;
         foreach (var a in WorldState.Actors)
-            if ((OID)a.OID == OID.Maelstrom)
+            if (a.OID == (uint)OID.Maelstrom)
                 ++count;
 
         if (count < 4)
@@ -158,7 +158,7 @@ sealed class MaelstromBaitSafeSpots(BossModule module) : BossComponent(module)
 
         foreach (var a in WorldState.Actors)
         {
-            if ((OID)a.OID != OID.Maelstrom)
+            if (a.OID != (uint)OID.Maelstrom)
                 continue;
 
             var pos = a.Position;
@@ -170,36 +170,36 @@ sealed class MaelstromBaitSafeSpots(BossModule module) : BossComponent(module)
             WPos spot = default;
 
             // WEST
-            if (MathF.Abs(dx) > MathF.Abs(dy) && dx < 0)
+            if (MathF.Abs(dx) > MathF.Abs(dy) && dx < 0f)
             {
                 if (role == PartyRolesConfig.Assignment.H1)
-                    spot = Offset(pos, (-135).Degrees());
+                    spot = Offset(pos, (-135f).Degrees());
                 else if (role == PartyRolesConfig.Assignment.M1)
-                    spot = Offset(pos, (-45).Degrees());
+                    spot = Offset(pos, (-45f).Degrees());
             }
             // EAST
-            else if (MathF.Abs(dx) > MathF.Abs(dy) && dx > 0)
+            else if (MathF.Abs(dx) > MathF.Abs(dy) && dx > 0f)
             {
                 if (role == PartyRolesConfig.Assignment.R2)
-                    spot = Offset(pos, 135.Degrees());
+                    spot = Offset(pos, 135f.Degrees());
                 else if (role == PartyRolesConfig.Assignment.H2)
-                    spot = Offset(pos, 45.Degrees());
+                    spot = Offset(pos, 45f.Degrees());
             }
             // NORTH
-            else if (dy < 0)
+            else if (dy < 0f)
             {
                 if (role == PartyRolesConfig.Assignment.R1)
-                    spot = Offset(pos, (-135).Degrees());
+                    spot = Offset(pos, (-135f).Degrees());
                 else if (role == PartyRolesConfig.Assignment.MT)
-                    spot = Offset(pos, 135.Degrees());
+                    spot = Offset(pos, 135f.Degrees());
             }
             // SOUTH
             else
             {
                 if (role == PartyRolesConfig.Assignment.M2)
-                    spot = Offset(pos, 45.Degrees());
+                    spot = Offset(pos, 45f.Degrees());
                 else if (role == PartyRolesConfig.Assignment.OT)
-                    spot = Offset(pos, (-45).Degrees());
+                    spot = Offset(pos, (-45f).Degrees());
             }
 
             if (spot != default)
@@ -282,7 +282,7 @@ sealed class AtomicImpactBaitPath(BossModule module) : BossComponent(module)
         if (aoes.Length < 2)
             return;
 
-        bool nw = false;
+        var nw = false;
 
         for (var i = 0; i < aoes.Length; ++i)
         {

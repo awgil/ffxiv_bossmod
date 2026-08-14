@@ -111,7 +111,7 @@ sealed class GrandCrossOrder(BossModule module) : BossComponent(module)
         var result = new List<(int slot, DateTime expireAt, bool? tellingTruth)>();
         foreach (var index in grandCross)
         {
-            for (int slot = 0; slot < index.playerBuffs.Length; slot++)
+            for (var slot = 0; slot < index.playerBuffs.Length; slot++)
             {
                 foreach (var buff in index.playerBuffs[slot])
                 {
@@ -211,7 +211,7 @@ sealed class TsunamiInfernoOrder(BossModule module) : BossComponent(module)
         var result = new List<(int slot, DateTime expireAt, bool? tellingTruth)>();
         foreach (var index in tsunamiInferno)
         {
-            for (int slot = 0; slot < index.playerBuffs.Length; ++slot)
+            for (var slot = 0; slot < index.playerBuffs.Length; ++slot)
             {
                 foreach (var buff in index.playerBuffs[slot])
                 {
@@ -551,7 +551,7 @@ sealed class AccelerationBomb(BossModule module) : Components.StayMove(module)
 
     public override void Update()
     {
-        foreach (var (slot, _) in Raid.WithSlot())
+        foreach (var (slot, _) in Raid.WithSlot(true, true, true))
         {
             PlayerStates[slot] = default;
             //Service.Logger.Info($"Slot {slot} resetting"); // todo debug - remove later
@@ -564,7 +564,7 @@ sealed class AccelerationBomb(BossModule module) : Components.StayMove(module)
 
         foreach (var (slot, expireAt, tellingTruth) in grandCrossOrder.GetNextBuffPlayers((uint)SID.AccelerationBomb, 4))
         {
-            if ((expireAt - WorldState.CurrentTime).TotalSeconds > 7.0f)
+            if ((expireAt - WorldState.CurrentTime).TotalSeconds > 7d)
             {
                 continue;
             }
@@ -678,9 +678,9 @@ sealed class CursedShriek(BossModule module) : Components.GenericGaze(module)
             return;
         }
 
-        for (int i = 0; i < players.Count; i++)
+        for (var i = 0; i < players.Count; i++)
         {
-            if ((players[i].expireAt - WorldState.CurrentTime).TotalSeconds > 8.0)
+            if ((players[i].expireAt - WorldState.CurrentTime).TotalSeconds > 8d)
             {
                 continue;
             }

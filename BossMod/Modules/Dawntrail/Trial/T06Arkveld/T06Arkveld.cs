@@ -62,7 +62,7 @@ sealed class ResonanceTowerLarge(BossModule module)
         }
 
         // Apply to all active towers (Tower is a struct; must assign back)
-        for (int i = 0; i < Towers.Count; ++i)
+        for (var i = 0; i < Towers.Count; ++i)
         {
             var t = Towers[i];
             t.ForbiddenSoakers = forbid;
