@@ -16,6 +16,7 @@ public enum OID : uint
     DefectiveLamia5 = 0x4D52, // R2.500, x0 (spawn during fight)
     DefectiveLamia6 = 0x4D53, // R2.500, x0 (spawn during fight)
     DefectiveLamia7 = 0x4D51, // R2.500, x0 (spawn during fight)
+    CrescentAdamantoise = 0x4E28, // R5.000, x?
 }
 
 public enum AID : uint
@@ -27,12 +28,14 @@ public enum AID : uint
     LamianLesion = 48254, // DemiMedusa->self, 5.0s cast, range 25 180.000-degree cone
     DarkCast = 48255, // DemiMedusa->self, 3.0s cast, single-target
     Dark = 48256, // 4C6C/4CAE/4EC1/4EC2->location, 3.0s cast, range 6 circle
+    TortoiseStomp = 50598, // 4E28->self, 3.0s cast, range 8 circle
 }
 
 sealed class CursedSight(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.CursedSight, (uint)AID.CursedSight1],
     new AOEShapeCone(60.0f, 30.0f.Degrees()));
 sealed class LamianLesion(BossModule module) : Components.SimpleAOEs(module, (uint)AID.LamianLesion, new AOEShapeCone(25.0f, 90.0f.Degrees()));
 sealed class Dark(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Dark, 6f);
+sealed class TortoiseStomp(BossModule module) : Components.SimpleAOEs(module, (uint)AID.TortoiseStomp, 8f);
 
 [SkipLocalsInit]
 sealed class ScaleModelStates : StateMachineBuilder
@@ -42,7 +45,8 @@ sealed class ScaleModelStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<CursedSight>()
             .ActivateOnEnter<LamianLesion>()
-            .ActivateOnEnter<Dark>();
+            .ActivateOnEnter<Dark>()
+            .ActivateOnEnter<TortoiseStomp>();
     }
 }
 

@@ -87,7 +87,7 @@ sealed class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
 sealed class DeathlyRay(BossModule module) : Components.SimpleAOEs(module, (uint)AID.DeathlyRay, new AOEShapeRect(30f, 3f));
 sealed class VacuumWave(BossModule module) : Components.SimpleAOEs(module, (uint)AID.VacuumWave, new AOEShapeCone(30f, 90f.Degrees()));
 
-[ModuleInfo(BossModuleInfo.Maturity.WIP,
+[ModuleInfo(BossModuleInfo.Maturity.Verified,
     StatesType = typeof(NecrophobiaStates),
     ConfigType = null, // replace null with typeof(NecrophobiaConfig) if applicable
     ObjectIDType = typeof(OID),
