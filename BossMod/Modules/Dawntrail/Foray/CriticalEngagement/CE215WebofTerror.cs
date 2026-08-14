@@ -130,7 +130,7 @@ sealed class ArachnidFunnel(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-sealed class Conformity(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.Conformity, (uint)AID.Conformity1], new AOEShapeCone(50f, 22.5f.Degrees()));
+sealed class Conformity(BossModule module) : Components.SimpleAOEs(module, (uint)AID.Conformity, new AOEShapeCone(50f, 22.5f.Degrees()));
 
 sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
 {
@@ -159,7 +159,7 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
             {
                 var offset = conformity.Position - Arena.Center;
                 var direction = conformity.FinalRotation.ToDirection();
-                var edgeDistance = Arena.Bounds.IntersectRay(offset, direction);
+                var edgeDistance = Intersect.RayCircle(offset, direction, 25f);
                 var edgePosition = conformity.Position + direction * edgeDistance;
                 var coneDirection = Arena.Center - edgePosition;
                 // going by finished rotation not exact; adds may swerver a bit towards the middle
@@ -239,6 +239,8 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
 
 sealed class BedrockUplift(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10f), new AOEShapeDonut(10f, 20f), new AOEShapeDonut(20f, 30f)])
 {
+    // donut too thicc if player standing between starting circles
+    // stand on non-inside facing sides of one circle, or maybe increase AI forbidden
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.BedrockUplift1)
@@ -257,6 +259,31 @@ sealed class BedrockUplift(BossModule module) : Components.ConcentricAOEs(module
             _ => -1
         };
         AdvanceSequence(order, caster.Position, WorldState.FutureTime(2d));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Sequences.Count != 0)
+        {
+            var seqs = CollectionsMarshal.AsSpan(Sequences);
+            var count = seqs.Length;
+            for (var i = 0; i < count; i++)
+            {
+                ref var seq = ref seqs[i];
+                if (seq.NumCastsDone == 0)
+                {
+                    hints.AddForbiddenZone(new AOEShapeCircle(13f), seq.Origin, activation: seq.NextActivation);
+                }
+                else
+                {
+                    base.AddAIHints(slot, actor, assignment, hints);
+                }
+            }
+        }
+        else
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+        }
     }
 }
 
@@ -317,7 +344,7 @@ sealed class CE215WebofTerrorStates : StateMachineBuilder
     SortOrder = 7,
     PlanLevel = 0)]
 [SkipLocalsInit]
-public sealed class CE215WebofTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(170f, -136f), new ArenaBoundsCircle(25f))
+public sealed class CE215WebofTerror(WorldState ws, Actor primary) : BossModule(ws, primary, new(170f, -136f), new ArenaBoundsCircle(20f))
 {
     protected override bool CheckPull() => base.CheckPull() && Raid.Player()!.Position.InCircle(Arena.Center, 25f);
 }
