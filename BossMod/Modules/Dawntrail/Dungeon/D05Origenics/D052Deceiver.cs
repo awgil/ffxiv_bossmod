@@ -67,7 +67,7 @@ sealed class ArenaChanges(BossModule module) : Components.GenericAOEs(module)
                 var defaultSquare = new Square[] { new(Arena.Center, 20f) };
                 RectangleSE CreateRow(float x1, float x2, int row) => row switch
                 {
-                    0 => new(new(x1, -147f), new(x2, -157f), HalfWidth),
+                    0 => new(new(x1, -157f), new(x2, -157f), HalfWidth),
                     1 => new(new(x1, -147f), new(x2, -147f), HalfWidth),
                     2 => new(new(x1, -137f), new(x2, -137f), HalfWidth),
                     3 => new(new(x1, -127f), new(x2, -127f), HalfWidth),
