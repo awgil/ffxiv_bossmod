@@ -90,7 +90,7 @@ sealed class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
     public BitMask Ghostly;
     private bool risky;
     private DateTime activation;
-    private SDIntersection shapeDistances;
+    private SDIntersection? shapeDistances;
 
     public override ReadOnlySpan<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -113,6 +113,10 @@ sealed class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
         {
             risky = Ghostly[slot];
         }
+        else
+        {
+            risky = true;
+        }
         return circles;
     }
 
@@ -122,7 +126,7 @@ sealed class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
         {
             return;
         }
-        var color = risky ? Colors.SafeFromAOE : default;
+        var color = risky ? default : Colors.SafeFromAOE;
         for (var i = 0; i < 4; ++i)
         {
             ref var aoe = ref circles[i];
@@ -137,7 +141,7 @@ sealed class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
         {
             activated = true;
             WPos[] positions = [new(137.5f, -443.5f), new(158.5f, -443.5f), new(137.5f, -422.5f), new(158.5f, -422.5f)];
-            ShapeDistance[] distances = new ShapeDistance[4];
+            var distances = new ShapeDistance[4];
             for (var i = 0; i < 4; ++i)
             {
                 var pos = positions[i];
@@ -196,7 +200,7 @@ sealed class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!risky)
+        if (!risky && shapeDistances != null)
         {
             hints.AddForbiddenZone(shapeDistances, activation);
         }
@@ -247,12 +251,12 @@ sealed class D083TräumereiStates : StateMachineBuilder
     public D083TräumereiStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<IllIntentMaliciousMist>()
+            .ActivateOnEnter<Ghostduster>()
             .ActivateOnEnter<GhostlyGuise>()
             .ActivateOnEnter<ImpactArenaChange>()
             .ActivateOnEnter<Ghostcrusher>()
             .ActivateOnEnter<MaliciousMistRaidwide>()
-            .ActivateOnEnter<IllIntentMaliciousMist>()
-            .ActivateOnEnter<Ghostduster>()
             .ActivateOnEnter<Impact>()
             .ActivateOnEnter<BitterRegret1>()
             .ActivateOnEnter<BitterRegret2>()

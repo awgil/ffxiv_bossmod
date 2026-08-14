@@ -1,6 +1,4 @@
-﻿using BossMod.Autorotation.xan;
-
-namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE215WebofTerror;
+﻿namespace BossMod.Dawntrail.Foray.CriticalEngagement.CE215WebofTerror;
 
 public enum OID : uint
 {
@@ -87,6 +85,7 @@ sealed class ArachnidFunnel(BossModule module) : Components.GenericAOEs(module)
         var max = aoecount > 2 ? 2 : aoecount;
         return aoespan[..max];
     }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID is (uint)AID.ArachnidWeb)
@@ -103,6 +102,7 @@ sealed class ArachnidFunnel(BossModule module) : Components.GenericAOEs(module)
             _activation = Module.CastFinishAt(spell);
         }
     }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action.ID == (uint)AID.ArachnidWeb1)
@@ -129,7 +129,9 @@ sealed class ArachnidFunnel(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
+
 sealed class Conformity(BossModule module) : Components.SimpleAOEGroups(module, [(uint)AID.Conformity, (uint)AID.Conformity1], new AOEShapeCone(50f, 22.5f.Degrees()));
+
 sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
 {
     // any pattern to how adds move after being assigned status?
@@ -175,6 +177,7 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
 
         return CollectionsMarshal.AsSpan(aoes);
     }
+
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
         if (status.ID == (uint)SID.QueensOrders)
@@ -219,6 +222,7 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
             }
         }
     }
+
     private class Conformity(Actor actor, WPos position, Angle rotation, bool done = false, Angle finalRotation = default)
     {
         public Actor Actor = actor;
@@ -228,12 +232,15 @@ sealed class ConformityAdds(BossModule module) : Components.GenericAOEs(module)
         public Angle FinalRotation = finalRotation;
     }
 }
+
 sealed class BedrockUplift(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10f), new AOEShapeDonut(10f, 20f), new AOEShapeDonut(20f, 30f)])
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.BedrockUplift1)
+        if (spell.Action.ID == (uint)AID.BedrockUplift1)
+        {
             AddSequence(caster.Position, Module.CastFinishAt(spell));
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -245,9 +252,10 @@ sealed class BedrockUplift(BossModule module) : Components.ConcentricAOEs(module
             (uint)AID.BedrockUplift3 => 2,
             _ => -1
         };
-        AdvanceSequence(order, caster.Position, WorldState.FutureTime(2));
+        AdvanceSequence(order, caster.Position, WorldState.FutureTime(2d));
     }
 }
+
 sealed class ArachneDaughter(BossModule module) : Components.Adds(module, (uint)OID.ArachneDaughter, 2);
 sealed class VenomEruption(BossModule module) : Components.RaidwideCast(module, (uint)AID.VenomEruption, "Kill adds before they cast!");
 
@@ -267,13 +275,13 @@ sealed class CE215WebofTerrorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(BossModuleInfo.Maturity.Dummy,
+[ModuleInfo(BossModuleInfo.Maturity.Contributed,
     StatesType = typeof(CE215WebofTerrorStates),
     ConfigType = null, // replace null with typeof(WebofTerrorConfig) if applicable
     ObjectIDType = typeof(OID),
-    ActionIDType = typeof(AID), // replace null with typeof(AID) if applicable
-    StatusIDType = typeof(SID), // replace null with typeof(SID) if applicable
-    TetherIDType = typeof(TetherID), // replace null with typeof(TetherID) if applicable
+    ActionIDType = typeof(AID),
+    StatusIDType = typeof(SID),
+    TetherIDType = typeof(TetherID),
     IconIDType = null, // replace null with typeof(IconID) if applicable
     PrimaryActorOID = (uint)OID.CrescentArachne,
     Contributors = "gynorhino",
