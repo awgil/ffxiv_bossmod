@@ -145,7 +145,7 @@ public sealed class NormalMovement : RotationModule
             if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.NoMovement && Hints.ImminentSpecialMode.activation <= World.FutureTime(1d))
                 return;
 
-            if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Freezing && Hints.ImminentSpecialMode.activation <= World.FutureTime(0.5f) && Player.PosRot == Player.PrevPosRot)
+            if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Freezing && Hints.ImminentSpecialMode.activation <= World.FutureTime(0.5d) && Player.PosRot == Player.PrevPosRot)
                 Hints.WantJump = true;
         }
 
@@ -155,12 +155,14 @@ public sealed class NormalMovement : RotationModule
             // strongly prefer moving towards interact target
             Hints.GoalZones.Add(p =>
             {
-                var length = (p - targetPos).Length();
+                var lengthSq = (p - targetPos).LengthSq();
+                const float interactRange1 = 2.09f * 2.09f;
+                const float interactRange2 = 3.5f * 3.5f;
 
                 // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
                 // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
                 // this is specifically an issue in the metal gear thancred solo duty in endwalker
-                return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
+                return lengthSq <= interactRange1 ? 101f : lengthSq <= interactRange2 ? 100f : 0f;
             });
         }
 
@@ -348,7 +350,7 @@ public sealed class NormalMovement : RotationModule
         Hints.ForceCancelCast |= castStrategy == CastStrategy.DropMove;
         if (castStrategy is CastStrategy.Leeway && Player.CastInfo is { } castInfo)
         {
-            var effectiveCastRemaining = Math.Max(0, castInfo.RemainingTime - 0.5f);
+            var effectiveCastRemaining = Math.Max(0, castInfo.RemainingTime - 0.5d);
             if (Hints.MaxCastTime < effectiveCastRemaining)
             {
                 Hints.ForceCancelCast = true;
