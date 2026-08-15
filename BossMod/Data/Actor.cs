@@ -243,7 +243,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
 
     private static readonly HashSet<uint> ignoreNPC = [0xE19, 0xE18, 0xE1A, 0x2C11, 0x2C0F, 0x2C10, 0x2C0E, 0x2C12, 0x2EFE, 0x418F, 0x464E,
     0x4697, 0x35BC, 0x3657, 0x3658, 0x2ED7, 0x2EDB, 0x2EDA, 0x2E92, 0x2ECA, 0x2E94, 0x2E96, 0x2E90, 0x3265, 0x3264, 0x31A8, 0x391B,
-    0x3EFA]; // friendly NPCs that should not count as party members
+    0x3EFA, 0x4ABF]; // friendly NPCs that should not count as party members
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable && !ignoreNPC.Contains(OID);
     public bool IsStrikingDummy => NameID == 541u; // this is a hack, but striking dummies are special in some ways
     public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise

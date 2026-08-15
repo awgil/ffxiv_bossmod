@@ -4,13 +4,13 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 {
     // any times when attacks cast without debuffs? necessary to track status lost?
     // what happens when status lost and status gained on same frame? (E -> N-E)
-    public uint[] Malefic = new uint[8];
-    public uint[] Magnet = new uint[8];
-    public BitMask Floating = default;
+    public uint[] Malefic = new uint[4];
+    public uint[] Magnet = new uint[4];
+    public BitMask Floating;
 
     public Angle[] GetAngles(int slot)
     {
-        if (slot is < 0 or > 7)
+        if (slot is < 0 or > 3)
             return [];
 
         if (Malefic[slot] == 0)
@@ -35,7 +35,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
     }
     public Angle[] GetUnsafeAngles(int slot)
     {
-        if (slot is < 0 or > 7)
+        if (slot is < 0 or > 3)
             return [];
 
         if (Malefic[slot] == 0)
@@ -61,7 +61,7 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public Angle? GetUnyieldingAngle(int slot, bool sourceNorthSouth)
     {
-        if (slot is < 0 or > 7)
+        if (slot is < 0 or > 3)
             return null;
 
         if (Malefic[slot] == 0)
@@ -81,33 +81,39 @@ sealed class DebuffTracker(BossModule module) : BossComponent(module)
 
     public override void OnStatusGain(Actor actor, ref ActorStatus status)
     {
-        if (status.ID is var id && id is >= (uint)SID.MaleficE and <= (uint)SID.MaleficNS)
+        if (Raid.FindSlot(actor.InstanceID) is var slot && slot is >= 0 and <= 3)
         {
-            Malefic[Raid.FindSlot(actor.InstanceID)] = status.ID;
-        }
-        else if (id is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
-        {
-            Magnet[Raid.FindSlot(actor.InstanceID)] = status.ID;
-        }
-        else if (id == (uint)SID.MagneticLevitation)
-        {
-            Floating.Set(Raid.FindSlot(actor.InstanceID));
+            if (status.ID is var id && id is >= (uint)SID.MaleficE and <= (uint)SID.MaleficNS)
+            {
+                Malefic[slot] = status.ID;
+            }
+            else if (id is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
+            {
+                Magnet[slot] = status.ID;
+            }
+            else if (id == (uint)SID.MagneticLevitation)
+            {
+                Floating.Set(slot);
+            }
         }
     }
 
     public override void OnStatusLose(Actor actor, ref ActorStatus status)
     {
-        if (status.ID is var id && id is (uint)SID.MaleficE or <= (uint)SID.MaleficNS)
+        if (Raid.FindSlot(actor.InstanceID) is var slot && slot is >= 0 and <= 3)
         {
-            Malefic[Raid.FindSlot(actor.InstanceID)] = 0;
-        }
-        else if (id is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
-        {
-            Magnet[Raid.FindSlot(actor.InstanceID)] = 0;
-        }
-        else if (id == (uint)SID.MagneticLevitation)
-        {
-            Floating.Clear(Raid.FindSlot(actor.InstanceID));
+            if (status.ID is var id && id is (uint)SID.MaleficE or <= (uint)SID.MaleficNS)
+            {
+                Malefic[slot] = default;
+            }
+            else if (id is (uint)SID.PositiveCharge or (uint)SID.NegativeCharge)
+            {
+                Magnet[slot] = default;
+            }
+            else if (id == (uint)SID.MagneticLevitation)
+            {
+                Floating.Clear(slot);
+            }
         }
     }
 }
