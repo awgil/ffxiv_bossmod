@@ -109,7 +109,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         // forcing the player to move directly toward the arena center works fine in this basic case, but would be terrible for other content
         //   - hunt marks can be hundreds of units away
         //   - araid/foray bosses are often located on an isolated platform with a clientpath leading to it, so VBM would just run directly forward into the abyss
-        if (Bossmods.ActiveModule is { Info.Category: BossModuleInfo.Category.Dungeon } module && !module.Arena.InBounds(Player.Position))
+        if (Bossmods.ActiveModule is { Info.Category: BossModuleInfo.Category.Dungeon, StateMachine.ActivePhase: not null } module && !module.Arena.InBounds(Player.Position))
         {
             Hints.ForcedMovement = Player.DirectionTo(module.Arena.Center).ToVec3();
             return;
