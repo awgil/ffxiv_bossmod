@@ -251,6 +251,13 @@ public sealed class UIPresetEditor
             var active = ms.SerializedSettings.FindIndex(s => s.Track == track && s.Mod == default);
             if (active < 0 && cfg.UIPriority < 0 && !_showHiddenTracks)
                 break;
+            if (cfg.VisibleWhenTrack >= 0)
+            {
+                var dep = ms.SerializedSettings.FindIndex(s => s.Track == cfg.VisibleWhenTrack && s.Mod == default);
+                var depOption = dep >= 0 && ms.SerializedSettings[dep].Value is StrategyValueTrack depVal ? depVal.Option : 0;
+                if (depOption != cfg.VisibleWhenOption)
+                    continue;
+            }
 
             using (ImRaii.PushId($"{cfg.InternalName}_default"))
             {

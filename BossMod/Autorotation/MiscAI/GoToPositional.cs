@@ -4,8 +4,11 @@ public sealed class GoToPositional(RotationModuleManager manager, Actor player) 
 {
     public enum Tracks
     {
-        Positional
+        Positional,
+        EdgeBuffer
     }
+
+    public enum EdgeBufferStrategy { None, Small, Medium, Large }
 
     public static RotationModuleDefinition Definition()
     {
@@ -17,6 +20,13 @@ public sealed class GoToPositional(RotationModuleManager manager, Actor player) 
         {
             track.AddOption(positional);
         }
+
+        def.Define(Tracks.EdgeBuffer).As<EdgeBufferStrategy>("EdgeBuffer", "Edge buffer", 20)
+            .AddOption(EdgeBufferStrategy.None, "Stand at positional edges")
+            .AddOption(EdgeBufferStrategy.Small, "Prefer staying 0.5y inside from the edges")
+            .AddOption(EdgeBufferStrategy.Medium, "Prefer staying 1.5y inside from the edges")
+            .AddOption(EdgeBufferStrategy.Large, "Prefer staying 3y inside from the edges");
+
         return def;
     }
 
@@ -43,7 +53,15 @@ public sealed class GoToPositional(RotationModuleManager manager, Actor player) 
             _ => true
         };
 
+        var cushion = strategy.Option(Tracks.EdgeBuffer).As<EdgeBufferStrategy>() switch
+        {
+            EdgeBufferStrategy.Small => 0.5f,
+            EdgeBufferStrategy.Medium => 1.5f,
+            EdgeBufferStrategy.Large => 3.0f,
+            _ => 0f
+        };
+
         Hints.RecommendedPositional = (primaryTarget, positional, true, correct);
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, positional));
+        Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, positional, cushion: cushion));
     }
 }
