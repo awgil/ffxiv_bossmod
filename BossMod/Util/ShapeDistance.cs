@@ -33,12 +33,28 @@ public struct Sdf
         }
     }
 
-    public readonly bool Check(WPos p) => Type == SdfType.Continuous ? SdfCont(p) < 0 : SdfDisc(p);
-    public readonly float Distance(WPos p) => Type == SdfType.Continuous
-        ? SdfCont(p)
-        : SdfDisc(p)
-            ? float.MinValue
-            : float.MaxValue;
+    public readonly Func<WPos, bool> Check
+    {
+        get
+        {
+            if (Type == SdfType.Discrete)
+                return SdfDisc;
+
+            var sc = SdfCont;
+            return (p) => sc(p) < 0;
+        }
+    }
+    public readonly Func<WPos, float> Distance
+    {
+        get
+        {
+            if (Type == SdfType.Continuous)
+                return SdfCont;
+
+            var sd = SdfDisc;
+            return (p) => sd(p) ? float.MinValue : float.MaxValue;
+        }
+    }
 }
 
 public static class ShapeDistance
