@@ -10,7 +10,8 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
     public WPos? NaviTargetPos;
     public float? NaviTargetVertical;
     public bool AllowInterruptingCastByMovement;
-    public bool ForceCancelCast;
+    public bool ForceCancelCastOtherAI;
+    public bool ForceCancelCastMechanicAI;
 
     private readonly ActionManagerEx _amex = amex;
     private readonly MovementOverride _movement = movement;
@@ -24,7 +25,8 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
         NaviTargetPos = null;
         NaviTargetVertical = null;
         AllowInterruptingCastByMovement = false;
-        ForceCancelCast = false;
+        ForceCancelCastOtherAI = false;
+        ForceCancelCastMechanicAI = false;
     }
 
     public void SetFocusTarget(Actor? actor)
@@ -46,7 +48,7 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
 
         // TODO this checks whether movement keys are pressed, we need a better solution
         var moveRequested = _movement.IsMoveRequested();
-        var castInProgress = player.CastInfo != null && !player.CastInfo.EventHappened;
+        var castInProgress = player.CastInfo != null;
         var forbidMovement = moveRequested || !AllowInterruptingCastByMovement && _amex.MoveMightInterruptCast;
         if (NaviTargetPos != null && !forbidMovement && (NaviTargetPos.Value - player.Position).LengthSq() > 0.001f)
         {
@@ -54,7 +56,8 @@ sealed class AIController(WorldState ws, ActionManagerEx amex, MovementOverride 
         }
         else
         {
-            hints.ForceCancelCast |= ForceCancelCast && castInProgress;
+            hints.ForceCancelCastMechanic |= ForceCancelCastMechanicAI && castInProgress;
+            hints.ForceCancelCastOther |= ForceCancelCastOtherAI && castInProgress;
         }
 
         if (hints.ForcedMovement == null && desiredPosition != null)

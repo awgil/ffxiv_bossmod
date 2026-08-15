@@ -261,7 +261,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
             // if we exit combat while casting, cancel it so we get instant cast instead
             if (Player.CastInfo?.Action.ID == (uint)AID.Soulsow)
-                Hints.ForceCancelCast = true;
+                Hints.ForceCancelCastOther = true;
         }
 
         if (!SoulReaver)

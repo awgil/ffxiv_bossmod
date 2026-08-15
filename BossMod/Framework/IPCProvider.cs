@@ -175,8 +175,12 @@ sealed class IPCProvider : IDisposable
         });
 
         Register("Hints.MaxCastTime", () => hints.MaxCastTime);
-        Register("Hints.ForceCancelCast", () => hints.ForceCancelCast);
-        Register("Hints.ForceCancelCastAI", () => ai.Controller.ForceCancelCast);
+
+        Register("Hints.ForceCancelCastMechanic", () => hints.ForceCancelCastMechanic);
+        Register("Hints.ForceCancelCastOther", () => hints.ForceCancelCastOther);
+
+        Register("Hints.ForceCancelCastMechanicAI", () => ai.Controller.ForceCancelCastMechanicAI);
+        Register("Hints.ForceCancelCastOtherAI", () => ai.Controller.ForceCancelCastOtherAI);
 
         Register("Movement.IsMoving", () => hints.ForcedMovement != null);
         Register("Movement.IsMoveRequested", movement.IsMoveRequested);

@@ -201,7 +201,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         HolyTarget = ResolveEnemy(strategy.Holy) ?? BestAOETarget;
 
         if (!Player.InCombat && Player.CastInfo is { Action: var act } && (AID)act.ID is AID.PomMotif or AID.WingMotif or AID.ClawMotif or AID.MawMotif or AID.HammerMotif or AID.StarrySkyMotif)
-            Hints.ForceCancelCast = true;
+            Hints.ForceCancelCastOther = true;
 
         var motifOk = IsMotifOk(strategy);
 

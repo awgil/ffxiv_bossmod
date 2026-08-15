@@ -509,9 +509,17 @@ public sealed unsafe class ActionManagerEx : IDisposable
         _movement.MovementBlocked = blockMovement;
 
         // TODO: what's the reason to do it in AM update, rather than plugin's executehints?..
-        if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
+        if (_ws.Party.Player()?.CastInfo != null)
         {
-            UIState.Instance()->Hotbar.CancelCast();
+            if (_cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCastMechanic))
+            {
+                UIState.Instance()->Hotbar.CancelCast();
+            }
+
+            //if (_cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCastOther))
+            //{
+            //    UIState.Instance()->Hotbar.CancelCast();
+            //}
         }
 
         if (!GameMain.IsInPvPArea() && !Service.Condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))

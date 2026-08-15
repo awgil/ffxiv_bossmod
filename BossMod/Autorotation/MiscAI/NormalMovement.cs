@@ -127,7 +127,7 @@ public sealed class NormalMovement : RotationModule
         if (castStrategy is CastStrategy.FinishInstants or CastStrategy.DropInstants)
         {
             Hints.MaxCastTime = 0;
-            Hints.ForceCancelCast |= castStrategy == CastStrategy.DropInstants;
+            Hints.ForceCancelCastOther |= castStrategy == CastStrategy.DropInstants;
         }
 
         var allowSpecialModes = strategy.Option(Track.SpecialModes).As<SpecialModesStrategy>() == SpecialModesStrategy.Automatic;
@@ -138,7 +138,7 @@ public sealed class NormalMovement : RotationModule
 
             if (Hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && Hints.ImminentSpecialMode.activation <= World.FutureTime(1d))
             {
-                Hints.ForceCancelCast = true; // this is only useful if autopyretic tweak is disabled
+                Hints.ForceCancelCastMechanic = true; // this is only useful if autopyretic tweak is disabled
                 return; // pyretic is imminent, do not move
             }
 
@@ -347,13 +347,13 @@ public sealed class NormalMovement : RotationModule
             _ => 0,
         };
         Hints.MaxCastTime = Math.Max(0, Math.Min(Hints.MaxCastTime, maxCastTime));
-        Hints.ForceCancelCast |= castStrategy == CastStrategy.DropMove;
+        Hints.ForceCancelCastOther |= castStrategy == CastStrategy.DropMove;
         if (castStrategy is CastStrategy.Leeway && Player.CastInfo is { } castInfo)
         {
             var effectiveCastRemaining = Math.Max(0, castInfo.RemainingTime - 0.5d);
             if (Hints.MaxCastTime < effectiveCastRemaining)
             {
-                Hints.ForceCancelCast = true;
+                Hints.ForceCancelCastOther = true;
                 // no leeway, cast might have been initiated by user, keep moving
                 Hints.ForcedMovement = dir.ToVec3(Player.PosRot.Y);
             }

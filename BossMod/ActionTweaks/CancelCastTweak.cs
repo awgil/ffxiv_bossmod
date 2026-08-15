@@ -63,7 +63,11 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints)
         var hasRaiseStatus = false;
         foreach (var s in target.Statuses)
         {
-            if (s.ID is 148 or 1140) { hasRaiseStatus = true; break; }
+            if (s.ID is 148 or 1140)
+            {
+                hasRaiseStatus = true;
+                break;
+            }
         }
 
         return !target.IsDead || hasRaiseStatus;
