@@ -43,6 +43,7 @@
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
     <PackageReference Include="DalaMock.Core" Version="6.1.8" />
+    <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -598,6 +598,7 @@ class AbilityInfo : CommonEnumInfo
         3 => $"range {data.EffectRange}+R {DetermineConeAngle(data)?.ToString() ?? "?"}-degree cone",
         4 => $"range {data.EffectRange}+R width {data.XAxisModifier} rect",
         5 => $"range {data.EffectRange}+R circle",
+        6 => $"range {data.EffectRange} ???",
         8 => $"width {data.XAxisModifier} rect charge",
         10 => $"range {DetermineDonutInner(data)?.ToString() ?? "?"}-{data.EffectRange} donut",
         11 => $"range {data.EffectRange} width {data.XAxisModifier} cross",

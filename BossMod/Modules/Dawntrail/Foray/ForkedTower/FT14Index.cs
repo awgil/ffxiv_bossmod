@@ -4,76 +4,84 @@ public enum OID : uint
 {
     Boss = 0x4B5F, // R7.500, x1
     Helper = 0x233C, // R0.500, x15 (spawn during fight), Helper type
-    _Gen_HolyLance = 0x4B62, // R1.000, x3
-    _Gen_TranscribedIndex = 0x4B6F, // R7.500, x3
-    _Gen_Index = 0x4B72, // R1.000, x3
-    _Gen_BallOfLevin = 0x4B66, // R1.500, x0 (spawn during fight)
-    _Gen_SwirlingOrb = 0x4B64, // R1.500, x0 (spawn during fight)
-    _Gen_SummonedBomb = 0x4B60, // R2.100, x0 (spawn during fight)
-    _Gen_ForetoldPhenomenon = 0x4B63, // R1.000, x0 (spawn during fight)
-    _Gen_BallOfFire = 0x4B65, // R1.500, x0 (spawn during fight)
+    HolyLance = 0x4B62, // R1.000, x3
+    TranscribedIndex = 0x4B6F, // R7.500, x3
+    Index = 0x4B72, // R1.000, x3
+    SwirlingOrb = 0x4B64, // R1.500, x0 (spawn during fight)
+    BallOfFire = 0x4B65, // R1.500, x0 (spawn during fight)
+    BallOfLevin = 0x4B66, // R1.500, x0 (spawn during fight)
+    SummonedBomb = 0x4B60, // R2.100, x0 (spawn during fight)
+    ForetoldPhenomenon = 0x4B63, // R1.000, x0 (spawn during fight)
+
+    FirePlatform = 0x1EC008,
+    IcePlatform = 0x1EC009,
+    LightningPlatform = 0x1EC00A,
+
+    FireRing = 0x1EC00B,
+    IceRing = 0x1EC00C,
+    LightningRing = 0x1EC00D,
 }
 
 public enum AID : uint
 {
-    _AutoAttack_ = 48421, // Boss->player, no cast, single-target
-    _Spell_Flare = 48415, // Boss->self, 5.0s cast, single-target
-    _Spell_Flare1 = 48417, // Helper->self, no cast, ???
-    _Weaponskill_SealedImplements = 48384, // Boss->self, 5.0+2.0s cast, single-target
-    _Weaponskill_RomeosBallad = 48385, // Helper->self, 7.0s cast, range 15 circle
-    _Weaponskill_ = 50665, // Boss->self, no cast, single-target
-    _Weaponskill_SealedImplements1 = 48386, // Boss->self, 5.0+2.1s cast, single-target
-    _Weaponskill_Aim = 48387, // Helper->self, 7.1s cast, range 11 circle
-    _Spell_OmniElements = 48394, // Boss->self, 4.0+1.0s cast, single-target
-    _Spell_OmniElements1 = 48395, // Helper->self, no cast, ???
-    _Weaponskill_ElementaryEvocation = 48400, // Boss->self, 3.0s cast, single-target
-    _Spell_ThunderIV = 48398, // Helper->self, no cast, range 30 ?-degree cone
-    _Weaponskill_ElementaryExpansion = 48399, // Boss->self, 3.0s cast, single-target
-    _Spell_FireIV = 48396, // Helper->self, no cast, range 30 ?-degree cone
-    _Spell_BlizzardIV = 48397, // Helper->self, no cast, range 30 ?-degree cone
-    _Spell_ElementaryChemistry = 48401, // Boss->self, 3.9+1.1s cast, single-target
-    _Spell_ElementaryChemistry1 = 48402, // Helper->self, no cast, ???
-    _Weaponskill_1 = 48905, // Helper->self, 6.0s cast, range 15 width 15 rect
-    _Weaponskill_PropulsiveProphecy = 48403, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_Jump = 48404, // 4B6F->self, no cast, single-target
-    _Weaponskill_Shockwave = 48405, // 4B62->self, 5.0s cast, single-target
-    _Weaponskill_Shockwave1 = 48406, // Helper->self, 5.0s cast, ???
-    _Weaponskill_Summon = 48408, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_DuologyOfImplements = 48388, // Boss->self, 5.0+1.0s cast, single-target
-    _Weaponskill_Iainuki = 48389, // Helper->self, 6.0s cast, range 30 60-degree cone
-    _Weaponskill_SealedImplements2 = 48904, // Boss->self, no cast, single-target
-    _Weaponskill_WindSlash = 48391, // Helper->self, 6.0s cast, range 30 60-degree cone
-    _Spell_AllKnowingFlames = 48418, // Boss->self, 5.0s cast, single-target
-    _Spell_AllConsumingFlames = 48420, // Helper->players, no cast, range 6 circle
-    _Weaponskill_Predict = 48412, // Boss->self, 3.0s cast, single-target
-    _Spell_Starfall = 48413, // 4B63->self, 0.5s cast, range 10 circle
-    _Spell_Cleansing = 48414, // 4B63->self, 0.5s cast, range ?-15 donut
-    _Spell_Dualcast = 48407, // Boss->self, 3.0s cast, single-target
-    _Spell_Flare2 = 48416, // Boss->self, no cast, single-target
+    AutoAttack = 48421, // Boss->player, no cast, single-target
+    FlareCast = 48415, // Boss->self, 5.0s cast, single-target
+    FlareInstant = 48416, // Boss->self, no cast, single-target
+    Flare = 48417, // Helper->self, no cast, range 60 ???
+    SealedImplements1 = 48384, // Boss->self, 5.0+2.0s cast, single-target
+    RomeosBallad = 48385, // Helper->self, 7.0s cast, range 15 circle
+    SealedImplements2 = 48386, // Boss->self, 5.0+2.1s cast, single-target
+    SealedImplements3 = 48904, // Boss->self, no cast, single-target
+    Aim = 48387, // Helper->self, 7.1s cast, range 11 circle
+    UnkBoss1 = 50665, // Boss->self, no cast, single-target
+    OmniElementsCast = 48394, // Boss->self, 4.0+1.0s cast, single-target
+    OmniElements = 48395, // Helper->self, no cast, range 60 ???
+    ElementaryExpansion = 48399, // Boss->self, 3.0s cast, single-target
+    ElementaryEvocation = 48400, // Boss->self, 3.0s cast, single-target
+    FireIV = 48396, // Helper->self, no cast, range 30 ?-degree cone
+    BlizzardIV = 48397, // Helper->self, no cast, range 30 ?-degree cone
+    ThunderIV = 48398, // Helper->self, no cast, range 30 ?-degree cone
+    ElementaryChemistryCast = 48401, // Boss->self, 3.9+1.1s cast, single-target
+    ElementaryChemistry = 48402, // Helper->self, no cast, range 60 ???
+    PlatformDisappear = 48905, // Helper->self, 6.0s cast, range 15 width 15 rect
+    PropulsiveProphecy = 48403, // Boss->self, 3.0s cast, single-target
+    Jump = 48404, // _Gen_TranscribedIndex->self, no cast, single-target
+    ShockwaveCast = 48405, // _Gen_HolyLance->self, 5.0s cast, single-target
+    ShockwaveKnockback = 48406, // Helper->self, 5.0s cast, range 15 ???
+    Summon = 48408, // Boss->self, 3.0s cast, single-target
+    DuologyOfImplements = 48388, // Boss->self, 5.0+1.0s cast, single-target
+    Iainuki = 48389, // Helper->self, 6.0s cast, range 30 60-degree cone
+    WindSlash = 48391, // Helper->self, 6.0s cast, range 30 60-degree cone
+    AllKnowingFlames = 48418, // Boss->self, 5.0s cast, single-target
+    AllConsumingFlames = 48420, // Helper->players, no cast, range 6 circle
+    Predict = 48412, // Boss->self, 3.0s cast, single-target
+    Starfall = 48413, // _Gen_ForetoldPhenomenon->self, 0.5s cast, range 10 circle
+    Cleansing = 48414, // _Gen_ForetoldPhenomenon->self, 0.5s cast, range ?-15 donut
+    Dualcast = 48407, // Boss->self, 3.0s cast, single-target
 }
 
 public enum SID : uint
 {
-    _Gen_SealOfTheHarp = 5535, // none->Boss, extra=0x404
-    _Gen_SealOfTheBow = 5534, // none->Boss, extra=0x401
-    _Gen_SealOfTheBlade = 5533, // none->Boss, extra=0x402
-    _Gen_SealOfTheBell = 5532, // none->Boss, extra=0x403
-    _Gen_ = 2552, // none->4B63, extra=0x44D/0x44C
-    _Gen_Dualcast = 5438, // Boss->Boss, extra=0x0
+    SealOfTheBell = 5532, // none->Boss, extra=0x403
+    SealOfTheBlade = 5533, // none->Boss, extra=0x402
+    SealOfTheBow = 5534, // none->Boss, extra=0x401
+    SealOfTheHarp = 5535, // none->Boss, extra=0x404
+    Unk2552 = 2552, // none->4B63, extra=0x44D/0x44C
+    Dualcast = 5438, // Boss->Boss, extra=0x0
 
 }
 
 public enum IconID : uint
 {
-    _Gen_Icon_loc06sp_05ak1 = 466, // player->self
+    Spread = 466, // player->self
 }
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_m0947_t1_p = 363, // 4B66->4B66, lightning
-    _Gen_Tether_chn_m0947_i1_p = 364, // 4B64->4B64, ice
-    _Gen_Tether_chn_m0947_f1_p = 365, // 4B65->4B65, fire
-    _Gen_Tether_chn_m0361_mainte_1i = 88, // 4B72->4B63, this is for the ball/donut tether thing
+    Thunder = 363, // 4B66->4B66, lightning
+    Ice = 364, // 4B64->4B64, ice
+    Fire = 365, // 4B65->4B65, fire
+    Foretold = 88, // 4B72->4B63, this is for the ball/donut tether thing
 }
 
 class Bounds(BossModule module) : BossComponent(module)
@@ -90,10 +98,169 @@ class Bounds(BossModule module) : BossComponent(module)
     }
 }
 
-class Flare(BossModule module) : Components.RaidwideCastDelay(module, AID._Spell_Flare, AID._Spell_Flare1, 0.8f);
-class OmniElements(BossModule module) : Components.RaidwideCastDelay(module, AID._Spell_OmniElements, AID._Spell_OmniElements1, 1.1f);
-class RomeosBallad(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_RomeosBallad, 15);
-class Aim(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Aim, 11);
+class Flare(BossModule module) : Components.RaidwideCastDelay(module, AID.FlareCast, AID.Flare, 0.8f);
+class OmniElements(BossModule module) : Components.RaidwideCastDelay(module, AID.OmniElementsCast, AID.OmniElements, 1.1f);
+class ElementaryChemistry(BossModule module) : Components.RaidwideCastDelay(module, AID.ElementaryChemistryCast, AID.ElementaryChemistry, 1.4f);
+class RomeosBallad(BossModule module) : Components.StandardAOEs(module, AID.RomeosBallad, 15);
+class Aim(BossModule module) : Components.StandardAOEs(module, AID.Aim, 11);
+
+enum Element
+{
+    None,
+    Fire,
+    Ice,
+    Lightning
+}
+
+class ElementaryEvocation(BossModule module) : Components.GenericAOEs(module)
+{
+    record struct Pair(Angle StartingAngle, Angle ClosestPlatform);
+
+    private DateTime _nextActivation;
+
+    private readonly List<Pair> _pairs = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var i = 0;
+        foreach (var (_, c) in _pairs.Take(2))
+        {
+            var activation = _nextActivation.AddSeconds(2.5f * i);
+            yield return new(new AOEShapeCone(60, 30.Degrees()), Arena.Center, c, activation, i == 0 ? ArenaColor.Danger : ArenaColor.AOE, i == 0);
+            yield return new(new AOEShapeCone(60, 30.Degrees()), Arena.Center, c + 180.Degrees(), activation, i == 0 ? ArenaColor.Danger : ArenaColor.AOE, i == 0);
+            i++;
+        }
+    }
+
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        var element = (TetherID)tether.ID switch
+        {
+            TetherID.Fire => Element.Fire,
+            TetherID.Ice => Element.Ice,
+            TetherID.Thunder => Element.Lightning,
+            _ => Element.None
+        };
+        if (element != default)
+        {
+            var startingAngle = (source.Position - Arena.Center).ToAngle();
+            var closest = ((FT14Index)Module).GetPlatforms(element).MinBy(p => p.DistanceToAngle(startingAngle));
+
+            _pairs.Add(new(startingAngle, closest));
+            _pairs.SortBy(p =>
+            {
+                var distance = (p.ClosestPlatform - p.StartingAngle).Deg;
+                if (distance > 0)
+                    distance -= 180;
+                return -distance;
+            });
+            _nextActivation = WorldState.FutureTime(7.7f);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.ThunderIV or AID.FireIV or AID.BlizzardIV)
+        {
+            NumCasts++;
+            if (NumCasts % 2 == 0 && _pairs.Count > 0)
+            {
+                _nextActivation = WorldState.FutureTime(2.5f);
+                _pairs.RemoveAt(0);
+                if (_pairs.Count == 0)
+                    _nextActivation = default;
+            }
+        }
+    }
+}
+
+class ElementaryExpansion(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<(Element element, Angle angle, DateTime deadline)> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var i = 0;
+        foreach (var (e, a, d) in _predicted.Take(2))
+        {
+            yield return new(new AOEShapeCone(60, 30.Degrees()), Arena.Center, a, d,
+                i == 0 ? ArenaColor.Danger : ArenaColor.AOE, i == 0);
+            yield return new(new AOEShapeCone(60, 30.Degrees()), Arena.Center, a + 180.Degrees(), d,
+                i == 0 ? ArenaColor.Danger : ArenaColor.AOE, i == 0);
+            i++;
+        }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        var e = (OID)actor.OID switch
+        {
+            OID.FireRing => Element.Fire,
+            OID.IceRing => Element.Ice,
+            OID.LightningRing => Element.Lightning,
+            _ => default
+        };
+
+        if (e != default)
+        {
+            foreach(var a in ((FT14Index)Module).GetPlatforms(e).Take(1))
+                _predicted.Add((e, a, WorldState.FutureTime(6.9f)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.ThunderIV or AID.FireIV or AID.BlizzardIV)
+        {
+            NumCasts++;
+            if (NumCasts % 2 == 0 && _predicted.Count > 0)
+                _predicted.RemoveAt(0);
+        }
+    }
+}
+
+class SummonedBomb(BossModule module) : Components.Adds(module, (uint)OID.SummonedBomb, 1, true);
+
+class PlatformDisappear(BossModule module) : Components.StandardAOEs(module, AID.PlatformDisappear, new AOEShapeRect(15, 7.5f));
+
+// TODO: hints
+class Shockwave(BossModule module) : Components.Knockback(module)
+{
+    private readonly List<(Actor, WPos, DateTime)> _casters = [];
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        foreach (var (a, p, d) in _casters)
+            yield return new(p, 9, d, new AOEShapeCircle(15));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.ShockwaveKnockback)
+            _casters.RemoveAll(c => c.Item1 == caster);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ShockwaveKnockback)
+        {
+            var src = spell.LocXZ;
+            if (_casters.Any(c => c.Item2.AlmostEqual(src, 1)))
+                return;
+
+            _casters.Add((caster, src, Module.CastFinishAt(spell)));
+        }
+    }
+}
+
+class IainukiWindSlash(BossModule module) : Components.GroupedAOEs(module, [AID.Iainuki, AID.WindSlash], new AOEShapeCone(30, 30.Degrees()), 3);
+
+// 200.2
+// 205.33
+// 208.34
+// 211.34
+
+class AllConsumingFlames(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spread, AID.AllConsumingFlames, 6, 5.1f);
 
 class FT14IndexStates : StateMachineBuilder
 {
@@ -103,19 +270,33 @@ class FT14IndexStates : StateMachineBuilder
             .ActivateOnEnter<Bounds>()
             .ActivateOnEnter<Flare>()
             .ActivateOnEnter<OmniElements>()
+            .ActivateOnEnter<ElementaryChemistry>()
             .ActivateOnEnter<RomeosBallad>()
-            .ActivateOnEnter<Aim>();
+            .ActivateOnEnter<Aim>()
+            .ActivateOnEnter<ElementaryEvocation>()
+            .ActivateOnEnter<ElementaryExpansion>()
+            .ActivateOnEnter<PlatformDisappear>()
+            .ActivateOnEnter<SummonedBomb>()
+            .ActivateOnEnter<Shockwave>()
+            .ActivateOnEnter<AllConsumingFlames>()
+            .ActivateOnEnter<IainukiWindSlash>();
     }
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14717, BitmapType = BossModuleInfo.BitmapType.Disabled)]
 public class FT14Index(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -628), MakeIndexBounds(false))
 {
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        if (PrimaryActor.IsTargetable)
+            Arena.ActorInsideBounds(PrimaryActor.Position, PrimaryActor.Rotation, ArenaColor.Enemy);
+    }
+
     public static ArenaBoundsCustom MakeIndexBounds(bool allPlatforms)
     {
-        IEnumerable<WDir> platformSlice = [new WDir(7.5f, 0), new WDir(7.5f, 28), new WDir(-7.5f, 28), new WDir(-7.5f, 0)];
+        WDir[] platformSlice = [new(7.5f, 0), new(7.5f, 28), new(-7.5f, 28), new(-7.5f, 0)];
         // widened so the connection between slices is clean
-        IEnumerable<WDir> noPlatform = [new WDir(8, 0), new WDir(8, 13), new WDir(-8, 13), new WDir(-8, 0)];
+        WDir[] noPlatform = [new(8, 0), new(8, 13), new(-8, 13), new(-8, 0)];
 
         var poly = new RelSimplifiedComplexPolygon(platformSlice);
 
@@ -126,11 +307,31 @@ public class FT14Index(WorldState ws, Actor primary) : BossModule(ws, primary, n
             poly = new PolygonClipper().Union(new(poly), new(shape));
         }
 
-        var holePoint = new WDir(2.886742f, 5);
+        var holePoint = new WDir(2.886742f, 5); // ~tan(60deg) * 5
         var holePoly = Enumerable.Range(0, 6).Select(i => holePoint.Rotate((i * 60).Degrees()));
 
         poly = new PolygonClipper().Difference(new(poly), new(holePoly));
 
         return new(new WDir(7.5f, 28).Length(), poly);
+    }
+
+    internal IEnumerable<Angle> GetPlatforms(Element el)
+    {
+        var oid = el switch
+        {
+            Element.Fire => OID.FirePlatform,
+            Element.Ice => OID.IcePlatform,
+            Element.Lightning => OID.LightningPlatform,
+            _ => default
+        };
+
+        if (oid == default)
+            yield break;
+
+        foreach (var a in Enemies(oid))
+        {
+            yield return a.Rotation;
+            yield return a.Rotation + 180.Degrees();
+        }
     }
 }
