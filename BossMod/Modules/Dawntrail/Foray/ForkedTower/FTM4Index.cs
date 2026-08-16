@@ -342,9 +342,9 @@ class Predict(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class FT14IndexStates : StateMachineBuilder
+class FTM4IndexStates : StateMachineBuilder
 {
-    public FT14IndexStates(BossModule module) : base(module)
+    public FTM4IndexStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Bounds>()

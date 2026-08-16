@@ -217,9 +217,9 @@ class Steelsbreath(BossModule module) : Components.Knockback(module, AID.Steelsb
     }
 }
 
-class FT12SwordDancerStates : StateMachineBuilder
+class FTM2SwordDancerStates : StateMachineBuilder
 {
-    public FT12SwordDancerStates(BossModule module) : base(module)
+    public FTM2SwordDancerStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<SwordStorm>()

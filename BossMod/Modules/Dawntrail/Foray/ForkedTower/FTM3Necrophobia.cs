@@ -142,9 +142,9 @@ class DarkCurrent(BossModule module) : Components.Exaflare(module, new AOEShapeR
     }
 }
 
-class FT13NecrophobiaStates : StateMachineBuilder
+class FTM3NecrophobiaStates : StateMachineBuilder
 {
-    public FT13NecrophobiaStates(BossModule module) : base(module)
+    public FTM3NecrophobiaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<HailOfHellflares>()

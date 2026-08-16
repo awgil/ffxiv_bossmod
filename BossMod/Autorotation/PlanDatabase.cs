@@ -58,7 +58,9 @@ public sealed class PlanDatabase
                 var payload = json.RootElement.GetProperty("payload");
                 foreach (var enc in payload.EnumerateObject())
                 {
-                    var encType = Type.GetType(enc.Name);
+                    // TODO: rename after some appropriately long wait (typename will be corrected next time the plan database is modified, so eventually nobody will have an old cdplan left)
+                    var correctName = PlanPresetConverter.FTBRenames.TryGetValue(enc.Name, out var rename) ? rename : enc.Name;
+                    var encType = Type.GetType(correctName);
                     var encInfo = encType != null ? BossModuleRegistry.FindByType(encType) : null;
                     if (encInfo == null)
                     {

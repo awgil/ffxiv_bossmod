@@ -343,9 +343,9 @@ class Archaeofury(BossModule module) : Components.BaitAwayCast(module, null, new
     }
 }
 
-class FT11TwoHeadedAevisStates : StateMachineBuilder
+class FTM1TwoHeadedAevisStates : StateMachineBuilder
 {
-    public FT11TwoHeadedAevisStates(BossModule module) : base(module)
+    public FTM1TwoHeadedAevisStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Heads>()
