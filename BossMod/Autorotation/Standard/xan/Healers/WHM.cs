@@ -85,7 +85,9 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
         }
 
-        GoalZoneCombined(strategy, 25, Hints.GoalAOECircle(8), AID.Holy, 3);
+        var approach = strategy.Assize.Value != AssizeStrategy.None && CanWeave(AID.Assize, 1);
+
+        GoalZoneCombined(strategy, approach ? 19.5f : 25, Hints.GoalAOECircle(8), AID.Holy, 3);
 
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero, BestDotTarget);
