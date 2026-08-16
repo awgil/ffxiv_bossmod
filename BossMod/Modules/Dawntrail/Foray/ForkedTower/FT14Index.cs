@@ -45,8 +45,8 @@ public enum AID : uint
     ElementaryChemistry = 48402, // Helper->self, no cast, range 60 ???
     PlatformDisappear = 48905, // Helper->self, 6.0s cast, range 15 width 15 rect
     PropulsiveProphecy = 48403, // Boss->self, 3.0s cast, single-target
-    Jump = 48404, // _Gen_TranscribedIndex->self, no cast, single-target
-    ShockwaveCast = 48405, // _Gen_HolyLance->self, 5.0s cast, single-target
+    Jump = 48404, // TranscribedIndex->self, no cast, single-target
+    ShockwaveCast = 48405, // HolyLance->self, 5.0s cast, single-target
     ShockwaveKnockback = 48406, // Helper->self, 5.0s cast, range 15 ???
     Summon = 48408, // Boss->self, 3.0s cast, single-target
     DuologyOfImplements = 48388, // Boss->self, 5.0+1.0s cast, single-target
@@ -55,8 +55,8 @@ public enum AID : uint
     AllKnowingFlames = 48418, // Boss->self, 5.0s cast, single-target
     AllConsumingFlames = 48420, // Helper->players, no cast, range 6 circle
     Predict = 48412, // Boss->self, 3.0s cast, single-target
-    Starfall = 48413, // _Gen_ForetoldPhenomenon->self, 0.5s cast, range 10 circle
-    Cleansing = 48414, // _Gen_ForetoldPhenomenon->self, 0.5s cast, range ?-15 donut
+    Starfall = 48413, // ForetoldPhenomenon->self, 0.5s cast, range 10 circle
+    Cleansing = 48414, // ForetoldPhenomenon->self, 0.5s cast, range 4-15 donut
     Dualcast = 48407, // Boss->self, 3.0s cast, single-target
 }
 
@@ -68,7 +68,6 @@ public enum SID : uint
     SealOfTheHarp = 5535, // none->Boss, extra=0x404
     Unk2552 = 2552, // none->4B63, extra=0x44D/0x44C
     Dualcast = 5438, // Boss->Boss, extra=0x0
-
 }
 
 public enum IconID : uint
@@ -223,10 +222,12 @@ class SummonedBomb(BossModule module) : Components.Adds(module, (uint)OID.Summon
 
 class PlatformDisappear(BossModule module) : Components.StandardAOEs(module, AID.PlatformDisappear, new AOEShapeRect(15, 7.5f));
 
-// TODO: hints
 class Shockwave(BossModule module) : Components.Knockback(module)
 {
     private readonly List<(Actor, WPos, DateTime)> _casters = [];
+
+    private bool _balladActive;
+    private bool _aimActive;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -238,10 +239,20 @@ class Shockwave(BossModule module) : Components.Knockback(module)
     {
         if ((AID)spell.Action.ID == AID.ShockwaveKnockback)
             _casters.RemoveAll(c => c.Item1 == caster);
+
+        if ((AID)spell.Action.ID == AID.RomeosBallad)
+            _balladActive = false;
+        if ((AID)spell.Action.ID == AID.Aim)
+            _aimActive = false;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        if ((AID)spell.Action.ID == AID.RomeosBallad)
+            _balladActive = true;
+        if ((AID)spell.Action.ID == AID.Aim)
+            _aimActive = true;
+
         if ((AID)spell.Action.ID == AID.ShockwaveKnockback)
         {
             var src = spell.LocXZ;
@@ -251,16 +262,85 @@ class Shockwave(BossModule module) : Components.Knockback(module)
             _casters.Add((caster, src, Module.CastFinishAt(spell)));
         }
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_casters.Count == 0 || IsImmune(slot, _casters[0].Item3))
+            return;
+
+        var (_, closestSource, activation) = _casters.MinBy(c => (c.Item2 - actor.Position).LengthSq());
+
+        var platformDir = (closestSource - Arena.Center).Normalized();
+
+        var safeRect = ShapeDistance.InvertedRect(Arena.Center + platformDir * 5, platformDir, 23, 0, 7.5f);
+        hints.AddForbiddenZone(p =>
+        {
+            var off = (p - closestSource).Normalized() * 9;
+            return safeRect(p + off);
+        }, activation);
+
+        if (_balladActive)
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(closestSource, platformDir), activation);
+
+        if (_aimActive)
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(closestSource, -platformDir), activation);
+    }
 }
 
 class IainukiWindSlash(BossModule module) : Components.GroupedAOEs(module, [AID.Iainuki, AID.WindSlash], new AOEShapeCone(30, 30.Degrees()), 3);
 
-// 200.2
-// 205.33
-// 208.34
-// 211.34
+class AllConsumingFlames(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spread, AID.AllConsumingFlames, 6, 5.1f)
+{
+    public override void Update()
+    {
+        Spreads.RemoveAll(s => s.Target.IsDead);
+    }
+}
 
-class AllConsumingFlames(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spread, AID.AllConsumingFlames, 6, 5.1f);
+class Predict(BossModule module) : Components.GenericAOEs(module)
+{
+    class AOE
+    {
+        public AOEShape? Shape;
+        public Actor? Destination;
+        public DateTime Activation;
+    }
+    private readonly Dictionary<ulong, AOE> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Values.Where(p => p.Shape != null && p.Destination != null).Select(p => new AOEInstance(p.Shape!, p.Destination!.Position, p.Destination!.Rotation, p.Activation));
+
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if ((OID)actor.OID == OID.ForetoldPhenomenon && (SID)status.ID == SID.Unk2552)
+        {
+            AOEShape? shape = status.Extra == 0x44D ? new AOEShapeCircle(10) : status.Extra == 0x44C ? new AOEShapeDonut(4, 15) : null;
+            if (shape == null)
+                return;
+
+            if (_predicted.TryGetValue(actor.InstanceID, out var existing))
+                existing.Shape = shape;
+            else
+                _predicted.Add(actor.InstanceID, new() { Shape = shape, Activation = WorldState.FutureTime(10) });
+        }
+    }
+
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID.Foretold)
+        {
+            if (_predicted.TryGetValue(tether.Target, out var existing))
+                existing.Destination = source;
+            else
+                _predicted.Add(tether.Target, new() { Destination = source, Activation = WorldState.FutureTime(10) });
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.Starfall or AID.Cleansing && _predicted.Count > 0)
+            _predicted.Clear();
+    }
+}
 
 class FT14IndexStates : StateMachineBuilder
 {
@@ -279,11 +359,12 @@ class FT14IndexStates : StateMachineBuilder
             .ActivateOnEnter<SummonedBomb>()
             .ActivateOnEnter<Shockwave>()
             .ActivateOnEnter<AllConsumingFlames>()
-            .ActivateOnEnter<IainukiWindSlash>();
+            .ActivateOnEnter<IainukiWindSlash>()
+            .ActivateOnEnter<Predict>();
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14717, BitmapType = BossModuleInfo.BitmapType.Disabled)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14717, BitmapType = BossModuleInfo.BitmapType.Disabled)]
 public class FT14Index(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -628), MakeIndexBounds(false))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
