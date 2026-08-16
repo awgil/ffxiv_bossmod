@@ -203,7 +203,7 @@ class ElementaryExpansion(BossModule module) : Components.GenericAOEs(module)
 
         if (e != default)
         {
-            foreach(var a in ((FT14Index)Module).GetPlatforms(e).Take(1))
+            foreach (var a in ((FT14Index)Module).GetPlatforms(e).Take(1))
                 _predicted.Add((e, a, WorldState.FutureTime(6.9f)));
         }
     }
@@ -230,7 +230,7 @@ class Shockwave(BossModule module) : Components.Knockback(module)
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        foreach (var (a, p, d) in _casters)
+        foreach (var (_, p, d) in _casters)
             yield return new(p, 9, d, new AOEShapeCircle(15));
     }
 
