@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-namespace BossMod;
+﻿namespace BossMod;
 
 // utility for building state machines for boss modules
 // conventions for id:
@@ -31,7 +30,7 @@ public class StateMachineBuilder(BossModule module)
         }
 
         // note: usually components are deactivated automatically on phase change - manual deactivate is needed only for components that opt out of this (useful for components that need to maintain state across multiple phases)
-        public Phase ActivateOnEnter<[MeansImplicitUse] C>(bool condition = true) where C : BossComponent => OnEnter(module.ActivateComponent<C>, condition);
+        public Phase ActivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(module.ActivateComponent<C>, condition);
         public Phase DeactivateOnEnter<C>(bool condition = true) where C : BossComponent => OnEnter(module.DeactivateComponent<C>, condition); // TODO: reconsider...
         public Phase DeactivateOnExit<C>(bool condition = true) where C : BossComponent => OnExit(module.DeactivateComponent<C>, condition);
 

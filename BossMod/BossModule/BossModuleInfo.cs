@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 public static class BossModuleInfo
 {
@@ -85,7 +83,6 @@ public static class BossModuleInfo
 
 // attribute that allows customizing boss module's metadata; it is optional, each field has some defaults that are fine in most cases
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-[MeansImplicitUse]
 public sealed class ModuleInfoAttribute() : Attribute
 {
     public Type? StatesType { get; set; } // default: ns.xxxStates
