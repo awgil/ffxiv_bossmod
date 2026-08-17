@@ -65,6 +65,30 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         return res;
     }
 
+    // all targets closer than this many units to the player are considered to have the same priority
+    // we use "is this the player's current target?" as a tiebreaker
+    // due to the way goalzones work for jobs with weirdly shaped AOEs (cone, rect, etc), AI tends to move closer to a mob that isn't its primary target, and without a threshold, that results in switching target rapidly (sometimes every frame)
+    public const float MinPriorityDistance = 3;
+
+    record struct TargetKey(bool ShouldTarget, int Priority, float InvDistance, bool IsCurrentTarget) : IComparable<TargetKey>
+    {
+        public readonly int CompareTo(TargetKey other)
+        {
+            if (ShouldTarget.CompareTo(other.ShouldTarget) is var i && i != 0)
+                return i;
+            if (Priority.CompareTo(other.Priority) is var j && j != 0)
+                return j;
+            if (InvDistance.CompareTo(other.InvDistance) is var k && k != 0)
+                return k;
+            return IsCurrentTarget.CompareTo(other.IsCurrentTarget);
+        }
+
+        public static TargetKey Create(AIHints.Enemy enemy, Actor player)
+        {
+            return new(enemy.ShouldBeTargeted, enemy.Priority, -Math.Max(MinPriorityDistance, player.DistanceToHitbox(enemy.Actor)), player.TargetID == enemy.Actor.InstanceID);
+        }
+    }
+
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (strategy.Option(Track.Treasure).As<Flag>() == Flag.Enabled)
@@ -78,13 +102,15 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         var maxTargets = strategy.GetInt(Track.MaxTargets);
         var canPullMore = maxTargets == 0 || World.Actors.Count(a => a.AggroPlayer && !a.IsDead) < maxTargets;
 
+        var currentTargetId = primaryTarget?.InstanceID ?? 0;
+
         Actor? bestTarget = null; // non-null if we bump any priorities
-        (bool, int, float) bestTargetKey = (false, 0, float.MinValue); // "force target" flag, priority, and negated squared distance
+        var bestTargetKey = new TargetKey(false, 0, float.MinValue, false);
         void prioritize(AIHints.Enemy e, int prio)
         {
             e.Priority = prio;
 
-            var key = (e.ShouldBeTargeted, e.Priority, -(e.Actor.Position - Player.Position).LengthSq());
+            var key = TargetKey.Create(e, Player);
             if (key.CompareTo(bestTargetKey) > 0)
             {
                 bestTarget = e.Actor;
