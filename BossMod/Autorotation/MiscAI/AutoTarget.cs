@@ -87,6 +87,11 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         {
             return new(enemy.ShouldBeTargeted, enemy.Priority, -Math.Max(MinPriorityDistance, player.DistanceToHitbox(enemy.Actor)), player.TargetID == enemy.Actor.InstanceID);
         }
+
+        public static bool operator <(TargetKey left, TargetKey right) => left.CompareTo(right) < 0;
+        public static bool operator <=(TargetKey left, TargetKey right) => left.CompareTo(right) <= 0;
+        public static bool operator >(TargetKey left, TargetKey right) => left.CompareTo(right) > 0;
+        public static bool operator >=(TargetKey left, TargetKey right) => left.CompareTo(right) >= 0;
     }
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
