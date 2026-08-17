@@ -68,7 +68,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
         Mimic = CurrentMimic();
 
-        if (Utils.IsPlayerUnsynced(World, mightyGuard: true))
+        if (Utils.IsMultiplayerDuty(World) && World.Party.WithoutSlot(includeDead: false, excludeNPCs: true).Count() == 1)
         {
             if (CanUse(AID.BasicInstinct) && Player.FindStatus(SID.MightyGuard) == null)
                 PushGCD(AID.MightyGuard, Player);

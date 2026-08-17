@@ -92,13 +92,9 @@ public static partial class Utils
 
     public static readonly Func<uint, uint> GetFateItem = Memoize((uint fateID) => Service.LuminaRow<Lumina.Excel.Sheets.Fate>(fateID)?.EventItem.RowId ?? 0);
 
-    public static bool IsPlayerUnsynced(WorldState world, bool mightyGuard = false)
-    {
-        if (Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(world.CurrentCFCID) is not { } cfc)
-            return false;
+    public static bool IsMultiplayerDuty(WorldState world) => Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(world.CurrentCFCID) is { } cfc && cfc.AllowUndersized;
 
-        return cfc.AllowUndersized && world.Party.WithoutSlot(includeDead: !mightyGuard, excludeNPCs: true).Count() == 1;
-    }
+    public static bool IsUnsynced(WorldState world, Actor player) => Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(world.CurrentCFCID) is { } cfc && player.Level > cfc.ClassJobLevelSync;
 
     private static readonly string[] _omenDonutTags = [
         "sircle_",
