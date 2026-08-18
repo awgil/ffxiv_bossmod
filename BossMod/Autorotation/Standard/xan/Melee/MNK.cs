@@ -492,14 +492,14 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.WindsReply.Value)
         {
             case WRStrategy.Automatic:
-                PushGCD(AID.WindsReply, WindTarget, expiring || buffsExpiring ? GCDPriority.WindsReply : GCDPriority.WindRanged, setRotation: true);
+                PushGCD(AID.WindsReply, WindTarget, expiring || buffsExpiring ? GCDPriority.WindsReply : GCDPriority.WindRanged, setRotation: NumWindTargets > 1);
                 break;
             case WRStrategy.Force:
-                PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply, setRotation: true);
+                PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply, setRotation: NumWindTargets > 1);
                 break;
             case WRStrategy.Multi:
                 if (NumWindTargets > 1 || expiring)
-                    PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply, setRotation: true);
+                    PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply, setRotation: NumWindTargets > 1);
                 break;
         }
     }

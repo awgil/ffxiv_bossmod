@@ -404,7 +404,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (ImmortalSacrifice.Left <= GCD || BloodsownCircle > GCD || !strategy.PH.IsEnabled() || SoulReaver)
             return;
 
-        PushGCD(AID.PlentifulHarvest, ResolveEnemy(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest, setRotation: true);
+        PushGCD(AID.PlentifulHarvest, ResolveEnemy(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest, setRotation: NumLineTargets > 1);
     }
 
     private void Sow(in Strategy strategy)

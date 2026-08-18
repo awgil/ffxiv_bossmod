@@ -336,6 +336,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
                 numTargets = 0;
 
             // for player-sourced targeted AOEs, the action is hardcoded to hit the main target
+            // this means that even if the primary target technically isn't in the shape (e.g. MCH chainsaw, at maximum range, is 0.5 units too short to hit the targeted mob) it will still be counted
             // for all other targets, the server checks based on our rotation and position at snapshot time (yes, seriously)
             else
                 numTargets = Math.Max(1, numOk);

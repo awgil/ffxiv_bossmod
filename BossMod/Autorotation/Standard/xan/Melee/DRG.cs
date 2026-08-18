@@ -221,7 +221,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.BattleLitany, Player);
 
         if (NastrondReady == 0 && LanceCharge > AnimLock)
-            PushOGCD(AID.Geirskogul, BestLongAOETarget, setRotation: true);
+            PushOGCD(AID.Geirskogul, BestLongAOETarget, setRotation: NumLongAOETargets > 1);
 
         HJMD(strategy, primaryTarget);
 
@@ -230,7 +230,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         // ok to use WT outside of buffs, otherwise we might overcap and waste one
         if (ShouldWT(strategy))
-            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget, setRotation: true);
+            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget, setRotation: NumLongAOETargets > 1);
 
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
@@ -239,7 +239,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)
-            PushOGCD(AID.Nastrond, BestLongAOETarget, setRotation: true);
+            PushOGCD(AID.Nastrond, BestLongAOETarget, setRotation: NumLongAOETargets > 1);
 
         if (LotD > AnimLock && moveOk)
         {

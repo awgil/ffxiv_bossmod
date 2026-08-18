@@ -102,7 +102,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < EffectApplicationDelay(AID.Stormbite))
+            if (CountdownRemaining < GetApplicationDelay(AID.Stormbite))
                 PushGCD(AID.Stormbite, primaryTarget);
 
             return;
@@ -111,7 +111,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         if (primaryTarget != null)
             GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 45.Degrees()), AID.QuickNock, minAoe: 2);
 
-        var ijDelay = EffectApplicationDelay(AID.IronJaws);
+        var ijDelay = GetApplicationDelay(AID.IronJaws);
 
         if (CanFitGCD(TargetDotLeft.Min - ijDelay) && !CanFitGCD(TargetDotLeft.Min - ijDelay, 1))
             PushGCD(AID.IronJaws, BestDotTarget);
@@ -123,10 +123,10 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.VenomousBite, BestDotTarget);
 
         if (BlastArrow > GCD)
-            PushGCD(AID.BlastArrow, BestLineTarget);
+            PushGCD(AID.BlastArrow, BestLineTarget, setRotation: NumLineTargets > 1);
 
         if (ShouldApexArrow(strategy))
-            PushGCD(AID.ApexArrow, BestLineTarget);
+            PushGCD(AID.ApexArrow, BestLineTarget, setRotation: NumLineTargets > 1);
 
         if (RadiantEncore > GCD)
             PushGCD(AID.RadiantEncore, BestCircleTarget);
@@ -231,28 +231,4 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
         // use in 2min
         return RagingStrikes > GCD;
     }
-
-    private float EffectApplicationDelay(AID aid) => aid switch
-    {
-        AID.Sidewinder => 0.55f,
-        AID.IronJaws => 0.6f,
-        AID.Troubadour => 0.62f,
-        AID.WanderersMinuet => 0.63f,
-        AID.MagesBallad => 0.63f,
-        AID.ArmysPaeon => 0.63f,
-        AID.WardensPaean => 0.67f,
-        AID.NaturesMinne => 0.7f,
-        AID.PitchPerfect => 0.8f,
-        AID.ApexArrow => 1.05f,
-        AID.EmpyrealArrow => 1.1f,
-        AID.CausticBite => 1.3f,
-        AID.Stormbite => 1.3f,
-        AID.Shadowbite => 1.43f,
-        AID.BurstShot => 1.45f,
-        AID.RefulgentArrow => 1.45f,
-        AID.Bloodletter => 1.6f,
-        AID.QuickNock => 1.65f,
-        AID.RainOfDeath => 1.65f,
-        _ => 0
-    };
 }

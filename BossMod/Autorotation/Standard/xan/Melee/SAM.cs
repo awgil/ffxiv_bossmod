@@ -239,7 +239,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         {
             // technically the remaining duration we need is ((1 + stacks) * GCD) + (application delay for next GCD) but that's at the mercy of network latency
             if (Meikyo.Left == 0 || CanFitGCD(Meikyo.Left, 2 + Meikyo.Stacks))
-                PushGCD(AID.OgiNamikiri, BestOgiTarget, GCDPriority.Ogi1, setRotation: true);
+                PushGCD(AID.OgiNamikiri, BestOgiTarget, GCDPriority.Ogi1, setRotation: NumOgiTargets > 1);
         }
 
         if (Meikyo.Left > GCD)
@@ -357,7 +357,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
         // namikiri combo is broken by all GCDs EXCEPT for non-tsubame iaijutsu, meaning we can use e.g. ogi 1 -> bana -> ogi 2 for alignment
         // TODO rotation does not currently do this
         if (OgiRepeat)
-            PushGCD(AID.KaeshiNamikiri, BestOgiTarget, GCDPriority.Ogi2, setRotation: true);
+            PushGCD(AID.KaeshiNamikiri, BestOgiTarget, GCDPriority.Ogi2, setRotation: NumOgiTargets > 1);
 
         var (aid, target) = TsubameAction(primaryTarget, Tsubame.Action);
         if (aid == default)
@@ -457,7 +457,7 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
         // accidentally overcapping shoha will probably cause the second one to fall out of buffs, resulting in huge potency loss
         if (Meditation == 3 && (RaidBuffsLeft > AnimLock || GrantsMeditation(NextGCD)))
-            PushOGCD(AID.Shoha, BestLineTarget, setRotation: true);
+            PushOGCD(AID.Shoha, BestLineTarget, setRotation: NumLineTargets > 1);
 
         if (strategy.Buffs != OffensiveStrategy.Delay && Kenki <= 50)
             PushOGCD(AID.Ikishoten, Player);
@@ -472,11 +472,11 @@ public sealed class SAM(RotationModuleManager manager, Actor player) : Attackxan
 
             // queue guren since senei may not be unlocked (unlocks at level 72)
             if (!Unlocked(AID.HissatsuSenei))
-                PushOGCD(AID.HissatsuGuren, BestLineTarget, setRotation: true);
+                PushOGCD(AID.HissatsuGuren, BestLineTarget, setRotation: NumLineTargets > 1);
         }
 
         if (Kenki >= 50 && Zanshin > 0 && ReadyIn(AID.HissatsuSenei) > 30)
-            PushOGCD(AID.Zanshin, BestOgiTarget, setRotation: true);
+            PushOGCD(AID.Zanshin, BestOgiTarget, setRotation: NumOgiTargets > 1);
 
         var saveKenki = RaidBuffsLeft <= AnimLock && RaidBuffsIn < 1000 || Zanshin > 0 || ReadyIn(AID.HissatsuSenei) < 10;
 
