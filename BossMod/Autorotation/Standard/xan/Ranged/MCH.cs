@@ -380,5 +380,5 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
         return OnCooldown(AID.Drill);
     }
 
-    private PositionCheck IsConeAOETarget => (playerTarget, targetToTest) => Hints.TargetInAOECone(targetToTest, Player.Position, 12, Player.DirectionTo(playerTarget), 60.Degrees());
+    private PositionCheck IsConeAOETarget => (playerTarget, targetToTest) => TargetInAOECone(targetToTest, Player.Position, 12, Player.DirectionTo(playerTarget), 60.Degrees());
 }

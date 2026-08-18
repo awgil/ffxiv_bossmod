@@ -128,10 +128,10 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CanUse(AID.PeatPelt) && CanUse(AID.DeepClean) && StatusLeft(SID.SpickAndSpan) < GCDLength)
         {
-            var (poopTarget, poopNum) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 6));
+            var (poopTarget, poopNum) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
             if (poopTarget != null && poopNum > 2)
             {
-                var scoopNum = Hints.NumPriorityTargetsInAOE(act => StatusDetails(act.Actor, SID.Begrimed, Player.InstanceID).Left > SpellGCDLength && Hints.TargetInAOECircle(act.Actor, poopTarget.Actor.Position, 6));
+                var scoopNum = Hints.NumPriorityTargetsInAOE(act => StatusDetails(act.Actor, SID.Begrimed, Player.InstanceID).Left > SpellGCDLength && TargetInAOECircle(act.Actor, poopTarget.Actor.Position, 6));
                 if (scoopNum > 2)
                     PushGCD(AID.DeepClean, poopTarget, GCDPriority.Scoop);
                 PushGCD(AID.PeatPelt, poopTarget, GCDPriority.Poop);

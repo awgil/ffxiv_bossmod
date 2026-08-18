@@ -338,7 +338,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         return TechFinishLeft > AnimLock;
     }
 
-    private bool IsFan4Target(Actor primary, Actor other) => Hints.TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());
+    private bool IsFan4Target(Actor primary, Actor other) => TargetInAOECone(other, Player.Position, 15, Player.DirectionTo(primary), 60.Degrees());
 
     private Actor? FindDancePartner(in Track<PartnerStrategy> p)
     {

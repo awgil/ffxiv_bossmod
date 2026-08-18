@@ -443,7 +443,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
             _ => 0
         };
 
-    protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
+    protected PositionCheck IsSplashTarget => (primary, other) => TargetInAOECircle(other, primary.Position, 5);
     protected PositionCheck Is25yRectTarget => (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25.5f, 2);
 
     /// <summary>
