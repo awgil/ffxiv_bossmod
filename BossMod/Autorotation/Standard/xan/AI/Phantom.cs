@@ -322,7 +322,8 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
     {
         if (strategy.Dragoon.IsEnabled() && primaryTarget?.IsAlly == false)
         {
-            UseAction(PhantomID.OccultJump, primaryTarget, PGCDPriority);
+            if (!MidCombo)
+                UseAction(PhantomID.OccultJump, primaryTarget, PGCDPriority);
             UseAction(PhantomID.Lance, primaryTarget, ActionQueue.Priority.High);
         }
     }

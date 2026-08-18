@@ -444,7 +444,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         };
 
     protected PositionCheck IsSplashTarget => (primary, other) => Hints.TargetInAOECircle(other, primary.Position, 5);
-    protected PositionCheck Is25yRectTarget => (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25, 2);
+    protected PositionCheck Is25yRectTarget => (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 25.5f, 2);
 
     /// <summary>
     /// Get <em>effective</em> cast time for the provided action.<br/>
