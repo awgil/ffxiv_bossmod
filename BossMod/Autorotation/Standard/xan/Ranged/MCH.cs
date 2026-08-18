@@ -155,7 +155,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.FullMetalField, BestRangedAOETarget);
 
             if (NumAOETargets > 5)
-                PushGCD(AID.AutoCrossbow, BestAOETarget);
+                PushGCD(AID.AutoCrossbow, BestAOETarget, setRotation: true);
 
             PushGCD(BestActionUnlocked(AID.BlazingShot, AID.HeatBlast), primaryTarget);
         }
@@ -173,10 +173,10 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
                     PushGCD(AID.AirAnchor, toolTarget ?? primaryTarget, priority: 20);
 
                 if (GCDReady(AID.ChainSaw))
-                    PushGCD(AID.ChainSaw, toolTarget ?? BestChainsawTarget, 10);
+                    PushGCD(AID.ChainSaw, toolTarget ?? BestChainsawTarget, 10, setRotation: true);
 
                 if (GCDReady(AID.Bioblaster) && NumAOETargets > 2)
-                    PushGCD(AID.Bioblaster, toolTarget ?? BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2);
+                    PushGCD(AID.Bioblaster, toolTarget ?? BestAOETarget, priority: MaxChargesIn(AID.Bioblaster) <= GCD ? 20 : 2, setRotation: true);
 
                 if (GCDReady(AID.Drill))
                     PushGCD(AID.Drill, toolTarget ?? primaryTarget, priority: MaxChargesIn(AID.Drill) <= GCD ? 20 : 2);
@@ -193,7 +193,7 @@ public sealed class MCH(RotationModuleManager manager, Actor player) : Attackxan
             var breakpoint = Unlocked(AID.Scattergun) ? 2 : 1;
 
             if (NumAOETargets > breakpoint && Unlocked(AID.SpreadShot))
-                PushGCD(BestActionUnlocked(AID.Scattergun, AID.SpreadShot), BestAOETarget);
+                PushGCD(BestActionUnlocked(AID.Scattergun, AID.SpreadShot), BestAOETarget, setRotation: true);
             else
             {
                 if (ComboLastMove == AID.SlugShot)

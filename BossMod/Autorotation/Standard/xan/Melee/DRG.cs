@@ -151,11 +151,11 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             switch (ComboLastMove)
             {
                 case AID.SonicThrust:
-                    PushGCD(AID.CoerthanTorment, BestAOETarget);
+                    PushGCD(AID.CoerthanTorment, BestAOETarget, setRotation: true);
                     break;
                 case AID.DoomSpike:
                 case AID.DraconianFury:
-                    PushGCD(AID.SonicThrust, BestAOETarget);
+                    PushGCD(AID.SonicThrust, BestAOETarget, setRotation: true);
                     break;
             }
 
@@ -168,7 +168,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
                 PushGCD(AID.TrueThrust, primaryTarget);
             }
 
-            PushGCD(DraconianFire > GCD ? AID.DraconianFury : AID.DoomSpike, BestAOETarget);
+            PushGCD(DraconianFire > GCD ? AID.DraconianFury : AID.DoomSpike, BestAOETarget, setRotation: true);
         }
         else
         {
@@ -221,7 +221,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.BattleLitany, Player);
 
         if (NastrondReady == 0 && LanceCharge > AnimLock)
-            PushOGCD(AID.Geirskogul, BestLongAOETarget);
+            PushOGCD(AID.Geirskogul, BestLongAOETarget, setRotation: true);
 
         HJMD(strategy, primaryTarget);
 
@@ -230,7 +230,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
 
         // ok to use WT outside of buffs, otherwise we might overcap and waste one
         if (ShouldWT(strategy))
-            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget);
+            PushOGCD(AID.WyrmwindThrust, BestLongAOETarget, setRotation: true);
 
         if (LanceCharge > GCD && ShouldLifeSurge())
             PushOGCD(AID.LifeSurge, Player);
@@ -239,7 +239,7 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(AID.DragonfireDive, BestDiveTarget);
 
         if (NastrondReady > 0)
-            PushOGCD(AID.Nastrond, BestLongAOETarget);
+            PushOGCD(AID.Nastrond, BestLongAOETarget, setRotation: true);
 
         if (LotD > AnimLock && moveOk)
         {

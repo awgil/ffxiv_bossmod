@@ -144,7 +144,7 @@ public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan
             PushGCD(AID.ResonantArrow, BestCircleTarget);
 
         if (NumConeTargets > 1)
-            PushGCD(AID.QuickNock, BestConeTarget);
+            PushGCD(AID.QuickNock, BestConeTarget, setRotation: true);
 
         PushGCD(AID.HeavyShot, primaryTarget);
     }

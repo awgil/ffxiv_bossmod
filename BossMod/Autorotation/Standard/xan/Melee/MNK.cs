@@ -492,14 +492,14 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         switch (strategy.WindsReply.Value)
         {
             case WRStrategy.Automatic:
-                PushGCD(AID.WindsReply, WindTarget, expiring || buffsExpiring ? GCDPriority.WindsReply : GCDPriority.WindRanged);
+                PushGCD(AID.WindsReply, WindTarget, expiring || buffsExpiring ? GCDPriority.WindsReply : GCDPriority.WindRanged, setRotation: true);
                 break;
             case WRStrategy.Force:
-                PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply);
+                PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply, setRotation: true);
                 break;
             case WRStrategy.Multi:
                 if (NumWindTargets > 1 || expiring)
-                    PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply);
+                    PushGCD(AID.WindsReply, WindTarget, GCDPriority.WindsReply, setRotation: true);
                 break;
         }
     }
@@ -680,7 +680,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         if (HaveTarget && Chakra >= 5 && Player.InCombat)
         {
             if (NumEnlightenmentTargets >= 3)
-                PushOGCD(AID.HowlingFist, EnlightenmentTarget, OGCDPriority.TFC);
+                PushOGCD(AID.HowlingFist, EnlightenmentTarget, OGCDPriority.TFC, setRotation: true);
 
             PushOGCD(AID.SteelPeak, primaryTarget, OGCDPriority.TFC, useOnDyingTarget: false);
         }

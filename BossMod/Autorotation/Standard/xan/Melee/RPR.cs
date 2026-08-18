@@ -240,7 +240,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             var gui = Executioner ? AID.ExecutionersGuillotine : AID.Guillotine;
 
             if (NumConeTargets > 2)
-                PushGCD(gui, BestConeTarget, GCDPriority.Reaver);
+                PushGCD(gui, BestConeTarget, GCDPriority.Reaver, setRotation: true);
 
             if (primaryTarget != null)
             {
@@ -339,7 +339,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (PurpleSouls > 1)
         {
             if (NumConeTargets > 2)
-                PushOGCD(AID.LemuresScythe, BestConeTarget);
+                PushOGCD(AID.LemuresScythe, BestConeTarget, setRotation: true);
 
             PushOGCD(AID.LemuresSlice, primaryTarget);
         }
@@ -404,7 +404,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         if (ImmortalSacrifice.Left <= GCD || BloodsownCircle > GCD || !strategy.PH.IsEnabled() || SoulReaver)
             return;
 
-        PushGCD(AID.PlentifulHarvest, ResolveEnemy(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest);
+        PushGCD(AID.PlentifulHarvest, ResolveEnemy(strategy.PH) ?? BestLineTarget, GCDPriority.Harvest, setRotation: true);
     }
 
     private void Sow(in Strategy strategy)
@@ -464,7 +464,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
         void useBloodStalk()
         {
             if (NumConeTargets > 2 && targetOverride == null)
-                PushOGCD(AID.GrimSwathe, BestConeTarget);
+                PushOGCD(AID.GrimSwathe, BestConeTarget, setRotation: true);
 
             PushOGCD(AID.BloodStalk, targetOverride ?? primaryTarget, OGCDPriority.Default, useOnDyingTarget: haveBlueGauge);
         }
@@ -549,7 +549,7 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
             prio = GCDPriority.Lemure;
 
         if (NumConeTargets > 2 && prio > 0)
-            PushGCD(AID.GrimReaping, BestConeTarget, prio + 1);
+            PushGCD(AID.GrimReaping, BestConeTarget, prio + 1, setRotation: true);
 
         PushGCD(EnhancedCrossReaping > GCD ? AID.CrossReaping : AID.VoidReaping, primaryTarget, prio);
     }

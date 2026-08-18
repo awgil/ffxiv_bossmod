@@ -160,7 +160,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         var haveCombo2 = Unlocked(combo2) && ComboLastMove == (NumAOETargets > 1 ? AID.Windmill : AID.Cascade);
 
         if (canStarfall && FlourishingStarfallLeft <= GCDLength)
-            PushGCD(AID.StarfallDance, BestStarfallTarget);
+            PushGCD(AID.StarfallDance, BestStarfallTarget, setRotation: true);
 
         // the targets for these two will be auto fixed if they are AOE actions
         if (canFlow && FlowLeft <= GCDLength)
@@ -177,7 +177,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
 
         // TODO combine this with above
         if (canStarfall)
-            PushGCD(AID.StarfallDance, BestStarfallTarget);
+            PushGCD(AID.StarfallDance, BestStarfallTarget, setRotation: true);
 
         if (FinishingMoveLeft > GCD && NumDanceTargets > 0)
             PushGCD(AID.FinishingMove, Player);
@@ -252,7 +252,7 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
             PushOGCD(f1ToUse, primaryTarget);
 
         if (OnCooldown(AID.Devilment) && FourfoldLeft > AnimLock && NumFan4Targets > 0)
-            PushOGCD(AID.FanDanceIV, BestFan4Target);
+            PushOGCD(AID.FanDanceIV, BestFan4Target, setRotation: true);
 
         if (canF1)
             PushOGCD(f1ToUse, primaryTarget);

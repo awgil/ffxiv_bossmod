@@ -192,7 +192,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
     {
         // combo continuations
         if (ComboLastMove is AID.Scorch)
-            PushGCD(AID.Resolution, BestLineTarget, GCDPriority.Combo);
+            PushGCD(AID.Resolution, BestLineTarget, GCDPriority.Combo, setRotation: true);
 
         if (ComboLastMove is AID.Verflare or AID.Verholy)
             PushGCD(AID.Scorch, BestAOETarget, GCDPriority.Combo);
@@ -207,10 +207,10 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Zwerchhau, primaryTarget, GCDPriority.Combo);
 
         if (ComboLastMove == AID.EnchantedMoulinetDeux)
-            PushGCD(AID.EnchantedMoulinetTrois, BestConeTarget, GCDPriority.Combo);
+            PushGCD(AID.EnchantedMoulinetTrois, BestConeTarget, GCDPriority.Combo, setRotation: true);
 
         if (ComboLastMove == AID.EnchantedMoulinet)
-            PushGCD(AID.EnchantedMoulinetDeux, BestConeTarget, GCDPriority.Combo);
+            PushGCD(AID.EnchantedMoulinetDeux, BestConeTarget, GCDPriority.Combo, setRotation: true);
 
         if (strategy.Combo != ComboStrategy.Break && InCombo)
             return;

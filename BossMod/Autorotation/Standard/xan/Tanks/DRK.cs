@@ -263,7 +263,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
             _ => false
         })
             // +20 prio so overcapped shb (620) is used before c&s (610)
-            UsePlanned(strategy.ShB, AID.Shadowbringer, BestLineTarget?.Actor, additionalPriority: MaxChargesIn(AID.Shadowbringer) <= GCD ? 20 : 0);
+            UsePlanned(strategy.ShB, AID.Shadowbringer, BestLineTarget?.Actor, additionalPriority: MaxChargesIn(AID.Shadowbringer) <= GCD ? 20 : 0, setRotation: true);
 
         switch (strategy.Carve.Value)
         {
@@ -326,7 +326,7 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
             var pExtra = (int)prio - (int)OGCDPriority.Edge;
 
             if (NumLineTargets > 2 || !Unlocked(AID.EdgeOfDarkness))
-                UsePlanned(track, AID.FloodOfDarkness, BestLineTarget, additionalPriority: pExtra + 1, predicate: e => useOnDyingTarget || e?.Priority >= 0);
+                UsePlanned(track, AID.FloodOfDarkness, BestLineTarget, additionalPriority: pExtra + 1, predicate: e => useOnDyingTarget || e?.Priority >= 0, setRotation: true);
 
             UsePlanned(track, AID.EdgeOfDarkness, primaryTarget, additionalPriority: pExtra, predicate: e => useOnDyingTarget || e?.Priority >= 0);
         }
@@ -381,6 +381,6 @@ public sealed class DRK(RotationModuleManager manager, Actor player) : Attackxan
         if (!CanFitGCD(Scorn, 1) || CanFitGCD(RaidBuffsLeft) && !CanFitGCD(RaidBuffsLeft, 2))
             prio = GCDPriority.Disesteem;
 
-        PushGCD(AID.Disesteem, BestLineTarget, prio);
+        PushGCD(AID.Disesteem, BestLineTarget, prio, setRotation: true);
     }
 }
