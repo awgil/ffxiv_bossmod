@@ -48,4 +48,7 @@ public sealed class AutorotationConfig : ConfigNode
 
     [PropertyDisplay("Disable autorotation if the boss is pulled without a countdown", tooltip: "Only applies if you have a cooldown plan active.", since: "7.5.1.28")]
     public bool PlannedPullSafety = true;
+
+    [PropertyDisplay("Disable autorotation if a cooldown plan is selected", tooltip: "Only applies if you have timeline reminder active")]
+    public bool DisableIfPlanSelected = false;
 }

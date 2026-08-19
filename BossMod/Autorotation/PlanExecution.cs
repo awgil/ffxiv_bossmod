@@ -23,6 +23,8 @@ public sealed class PlanExecution
         public bool IsActive(float t, StateData s) => t >= WindowStart && t <= WindowEnd && IntersectBranchRange(s.BranchID, s.NumBranches);
     }
 
+    public readonly record struct UpcomingEntry(string Name, uint IconId, uint Color, float TimeUntilStart, float TimeUntilEnd);
+
     public readonly record struct ModuleData(Type Type, RotationModuleDefinition Definition, List<List<EntryData>> Tracks, List<StrategyValue> Defaults);
 
     public readonly BossModule Module;
@@ -103,6 +105,36 @@ public sealed class PlanExecution
         var s = FindCurrentStateData();
         var t = GetVirtualTime(s);
         return GetEntryAt(ForcedTargets, ws, playerSlot, t, s)?.Value as StrategyValueTrack;
+    }
+
+    // returns up to maxPerTrack soonest not-yet-expired entries per track, within maxLookahead seconds of 'now' (sorted by time until start)
+    public List<UpcomingEntry> GetUpcomingEntries(WorldState ws, int playerSlot, float maxLookahead, int maxPerTrack = 1)
+    {
+        var s = FindCurrentStateData();
+        var t = GetVirtualTime(s);
+        List<UpcomingEntry> res = [];
+        foreach (var data in Strategies)
+        {
+            for (int i = 0; i < data.Tracks.Count; ++i)
+            {
+                if (data.Definition.Configs[i] is not StrategyConfigTrack config)
+                    continue;
+
+                var candidates = data.Tracks[i]
+                    .Where(e => e.WindowEnd > t && e.WindowStart - t <= maxLookahead && e.IntersectBranchRange(s.BranchID, s.NumBranches) && FilterEntry(e, ws, playerSlot))
+                    .OrderBy(e => e.WindowStart)
+                    .Take(maxPerTrack);
+
+                foreach (var entry in candidates)
+                {
+                    var value = (StrategyValueTrack)entry.Value;
+                    var option = config.Options[value.Option];
+                    res.Add(new(option.UIName, config.AssociatedActions.FirstOrDefault().Icon(), option.Color, entry.WindowStart - t, entry.WindowEnd - t));
+                }
+            }
+        }
+        res.SortBy(e => e.TimeUntilStart);
+        return res;
     }
 
     private StateData ProcessState(StateMachineTree tree, StateMachineTree.Node curState, StateData? prev, StateData? nextPhaseStart)

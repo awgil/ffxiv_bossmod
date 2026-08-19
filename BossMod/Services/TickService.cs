@@ -52,6 +52,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private readonly BossModuleMainWindow _wndBossmod;
     private readonly BossModuleHintsWindow _wndBossmodHints;
+    private readonly BossModuleTimelineRemindersWindow _wndTimelineReminders;
     private readonly ZoneModuleWindow _wndZone;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;
@@ -163,6 +164,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod);
+        _wndTimelineReminders = new BossModuleTimelineRemindersWindow(_rotation);
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
