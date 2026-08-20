@@ -91,83 +91,84 @@ public struct NavigationDecision
             zonesFixed[i] = (zones[i].distance, clusterG);
         }
 
-        // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
-        // to avoid 4x calculations, we do a slightly tricky loop:
-        // - outer loop fills row i to with g values corresponding to the 'upper edge' of cell i
-        // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
-        // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
         map.MaxG = clusterG;
-        if (gScratch.Length < map.PixelMaxG.Length)
-            gScratch = new float[map.PixelMaxG.Length];
-        if (dScratch.Length < map.PixelMaxG.Length)
-            dScratch = new bool[map.PixelMaxG.Length];
-        var numBlockedCells = 0;
+        var lenPlus1 = (map.Width + 1) * (map.Height + 1);
+        if (gScratch.Length < lenPlus1)
+            gScratch = new float[lenPlus1];
+        if (dScratch.Length < lenPlus1)
+            dScratch = new bool[lenPlus1];
 
-        // see Map.EnumeratePixels, note that we care about corners rather than centers
+        foreach (var (d, g) in zonesFixed)
+            RasterizeForbiddenZone(map, d, g, ref gScratch);
+
+        if (map.PixelMaxG.All(g => g < float.MaxValue))
+        {
+            var realMaxG = map.PixelMaxG.Max();
+            for (var i = 0; i < map.PixelMaxG.Length; i++)
+                if (map.PixelMaxG[i] == realMaxG)
+                {
+                    map.PixelMaxG[i] = float.MaxValue;
+                    map.PixelPriority[i] = 0;
+                }
+        }
+    }
+
+    private static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch)
+    {
+        // all gscores <= 0 are equivalent so we use min as a sentinel value
+        Array.Fill(gScratch, float.MinValue, 0, gScratch.Length);
+
+        var discrete = !sdf.IsContinuous;
+
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        int iCell = 0;
-        for (int y = 0; y < map.Height; ++y)
+        for (var y = 0; y <= map.Height; y++)
         {
-            var cx = cy;
-            var (leftG, leftD) = CalculateMaxG(zonesFixed, cx, cushion);
-            for (int x = 0; x < map.Width; ++x)
+            for (var x = 0; x <= map.Width; x++)
             {
-                cx += dx;
-                var (rightG, rightD) = CalculateMaxG(zonesFixed, cx, cushion);
-                dScratch[iCell] = leftD || rightD;
-                gScratch[iCell++] = Math.Min(leftG, rightG);
-                leftD = rightD;
-                leftG = rightG;
-            }
-            cy += dy;
-        }
-        var (bleftG, bleftD) = CalculateMaxG(zonesFixed, cy, cushion);
-        iCell -= map.Width;
-        for (int x = 0; x < map.Width; ++x, ++iCell)
-        {
-            cy += dx;
-            var (brightG, brightD) = CalculateMaxG(zonesFixed, cy, cushion);
-            var bottomD = bleftD || brightD;
-            var bottomG = Math.Min(bleftG, brightG);
-            var jCell = iCell;
-            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
-            {
-                var topG = gScratch[jCell];
-                var topD = dScratch[jCell];
-                var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
-                if (cellG != float.MaxValue)
+                var iCell = y * map.Height + x;
+
+                // filled by previous iteration
+                if (gScratch[iCell] != float.MinValue)
+                    continue;
+
+                var point = cy + x * dx + y * dy;
+
+                if (discrete)
                 {
-                    map.PixelPriority[jCell] = float.MinValue;
-                    ++numBlockedCells;
+                    if (sdf.Check(point))
+                        gScratch[iCell] = g;
+                    continue;
                 }
-                else if (bottomD || topD)
-                    map.PixelAvoid[jCell] = true;
-                bottomD = topD;
-                bottomG = topG;
+
+                var distance = sdf.Distance(point);
+                var distPx = (int)(distance / map.Resolution);
+                var toEnd = map.Width - x;
+
+                // shape is fairly far from the current cell; skip over N adjacent cells, or to next line if distance is high enough
+                // TODO: we can prefill N^2/2 adjacent pixels, using manhattan distance (assuming distance functions are well behaved)
+                if (distance >= 0)
+                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(distPx, toEnd) + 1);
+                else
+                    Array.Fill(gScratch, g, iCell, Math.Max(1, -distPx));
             }
-            bleftD = brightD;
-            bleftG = brightG;
         }
 
-        if (numBlockedCells == map.Width * map.Height)
-        {
-            // everything is dangerous, clear least dangerous so that pathfinding works reasonably
-            // note that max value could be smaller than MaxG, if more dangerous stuff overlaps it
-            float realMaxG = 0;
-            for (iCell = 0; iCell < numBlockedCells; ++iCell)
-                realMaxG = Math.Max(realMaxG, map.PixelMaxG[iCell]);
-            for (iCell = 0; iCell < numBlockedCells; ++iCell)
+        for (var y = 0; y < map.Height; y++)
+            for (var x = 0; x < map.Width; x++)
             {
-                if (map.PixelMaxG[iCell] == realMaxG)
-                {
-                    map.PixelMaxG[iCell] = float.MaxValue;
+                var iCell = y * map.Height + x;
+                if (map.PixelMaxG[iCell] < float.MaxValue)
+                    continue;
+
+                var gTop = Math.Min(gScratch[iCell], gScratch[iCell + 1]);
+                var gBottom = Math.Min(gScratch[iCell + map.Width], gScratch[iCell + map.Width + 1]);
+                var cellG = map.PixelMaxG[iCell] = Math.Min(gTop, gBottom);
+                if (cellG < float.MaxValue)
                     map.PixelPriority[iCell] = 0;
-                }
             }
-        }
     }
 
     public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, bool cushion)
