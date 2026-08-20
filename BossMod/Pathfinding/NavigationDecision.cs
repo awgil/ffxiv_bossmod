@@ -99,7 +99,13 @@ public struct NavigationDecision
             dScratch = new bool[lenPlus1];
 
         foreach (var (d, g) in zonesFixed)
-            RasterizeForbiddenZone(map, d, g, ref gScratch);
+        {
+            // all gscores <= 0 are equivalent so we use min as a sentinel value
+            // note that dScratch doesn't get reset since the cushion effect applies to all zones, not just the most imminent
+            Array.Fill(gScratch, float.MinValue);
+
+            RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
+        }
 
         if (map.PixelMaxG.All(g => g < float.MaxValue))
         {
@@ -113,11 +119,8 @@ public struct NavigationDecision
         }
     }
 
-    private static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch)
+    private static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
     {
-        // all gscores <= 0 are equivalent so we use min as a sentinel value
-        Array.Fill(gScratch, float.MinValue, 0, gScratch.Length);
-
         var discrete = !sdf.IsContinuous;
 
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
@@ -129,6 +132,11 @@ public struct NavigationDecision
             for (var x = 0; x <= map.Width; x++)
             {
                 var iCell = y * map.Height + x;
+
+                // cell is already blocked by a more dangerous zone
+                // TODO: this adds a 1-pixel-wide cushion with the current gscore to previously rasterized zones if they happen to be axis aligned
+                //if (y < map.Height && x < map.Width && map.PixelMaxG[iCell] < g)
+                //    continue;
 
                 // filled by previous iteration
                 if (gScratch[iCell] != float.MinValue)
@@ -147,10 +155,17 @@ public struct NavigationDecision
                 var distPx = (int)(distance / map.Resolution);
                 var toEnd = map.Width - x;
 
-                // shape is fairly far from the current cell; skip over N adjacent cells, or to next line if distance is high enough
-                // TODO: we can prefill N^2/2 adjacent pixels, using manhattan distance (assuming distance functions are well behaved)
-                if (distance >= 0)
-                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(distPx, toEnd) + 1);
+                if (distance >= cushion)
+                {
+                    // TODO optimize; this drastically increases the number of sdf evaluations since they need to be executed for each grid point within the cushion zone
+                    var safeDist = (int)((distance - cushion) / map.Resolution);
+                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(safeDist, toEnd) + 1);
+                }
+                else if (cushion > 0 && distance >= 0)
+                {
+                    dScratch[iCell] = true;
+                    gScratch[iCell] = float.MaxValue;
+                }
                 else
                     Array.Fill(gScratch, g, iCell, Math.Max(1, -distPx));
             }
@@ -168,6 +183,9 @@ public struct NavigationDecision
                 var cellG = map.PixelMaxG[iCell] = Math.Min(gTop, gBottom);
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iCell] = 0;
+
+                if (dScratch[iCell] || dScratch[iCell + 1] || dScratch[iCell + map.Width] || dScratch[iCell + map.Width + 1])
+                    map.PixelAvoid[iCell] = true;
             }
     }
 
