@@ -98,6 +98,7 @@ public struct NavigationDecision
         if (dScratch.Length < lenPlus1)
             dScratch = new bool[lenPlus1];
 
+        // TODO: group continuous sdfs with same gscore together
         foreach (var (d, g) in zonesFixed)
         {
             // all gscores <= 0 are equivalent so we use min as a sentinel value
@@ -107,16 +108,15 @@ public struct NavigationDecision
             RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
         }
 
-        if (map.PixelMaxG.All(g => g < float.MaxValue))
-        {
-            var realMaxG = map.PixelMaxG.Max();
+        // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
+        var realMaxG = map.PixelMaxG.Max();
+        if (realMaxG < float.MaxValue)
             for (var i = 0; i < map.PixelMaxG.Length; i++)
                 if (map.PixelMaxG[i] == realMaxG)
                 {
                     map.PixelMaxG[i] = float.MaxValue;
                     map.PixelPriority[i] = 0;
                 }
-        }
     }
 
     private static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
@@ -146,8 +146,7 @@ public struct NavigationDecision
 
                 if (discrete)
                 {
-                    if (sdf.Check(point))
-                        gScratch[iCell] = g;
+                    gScratch[iCell] = sdf.Check(point) ? g : float.MaxValue;
                     continue;
                 }
 
@@ -178,9 +177,10 @@ public struct NavigationDecision
                 if (map.PixelMaxG[iCell] < float.MaxValue)
                     continue;
 
-                var gTop = Math.Min(gScratch[iCell], gScratch[iCell + 1]);
-                var gBottom = Math.Min(gScratch[iCell + map.Width], gScratch[iCell + map.Width + 1]);
-                var cellG = map.PixelMaxG[iCell] = Math.Min(gTop, gBottom);
+                var cellG = map.PixelMaxG[iCell] = Math.Min(
+                    Math.Min(gScratch[iCell], gScratch[iCell + 1]),
+                    Math.Min(gScratch[iCell + map.Width], gScratch[iCell + map.Width + 1])
+                );
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iCell] = 0;
 
@@ -253,26 +253,6 @@ public struct NavigationDecision
     }
 
     private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
-
-    private static (float G, bool D) CalculateMaxG(Span<(Sdf d, float g)> zones, WPos p, float cushion)
-    {
-        var g = float.MaxValue;
-        var d = false;
-
-        foreach (ref var z in zones)
-        {
-            var dist = z.d.Distance(p);
-            if (dist < 0)
-            {
-                g = z.g;
-                break;
-            }
-
-            if (dist < cushion)
-                d = true;
-        }
-        return (g, d);
-    }
 
     public static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
     {
