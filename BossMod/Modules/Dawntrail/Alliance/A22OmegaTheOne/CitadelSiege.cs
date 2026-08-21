@@ -88,6 +88,6 @@ class CitadelSiegeJump(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_deadline != default && actor.Position.X >= 780)
-            hints.AddForbiddenZone(Sdf.Discrete(p => p.X > 785), _deadline);
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(new(785, 0), new(1, 0)), _deadline);
     }
 }
