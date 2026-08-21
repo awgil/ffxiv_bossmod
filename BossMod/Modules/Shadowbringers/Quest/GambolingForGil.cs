@@ -31,18 +31,11 @@ class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: tr
         if (Casters.FirstOrDefault() is not Actor source)
             return;
 
-        var sources = ww?.Sources(Module).Select(p => p.Position).ToList() ?? [];
-        if (sources.Count == 0)
-            return;
-
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        foreach (var whirlwind in ww?.Sources(Module) ?? [])
         {
-            foreach (var s in sources)
-                if (Intersect.RayCircle(source.Position, source.DirectionTo(p), s, 6) < 1000)
-                    return true;
-
-            return false;
-        }), Module.CastFinishAt(source.CastInfo));
+            var dir = ShapeDistance.Cone(source.Position, 30, source.AngleTo(whirlwind), MathF.Atan2(6, (source.Position - whirlwind.Position).Length()).Radians());
+            hints.AddForbiddenZone(dir, Module.CastFinishAt(source.CastInfo));
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
