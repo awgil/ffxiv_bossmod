@@ -131,7 +131,7 @@ public struct NavigationDecision
         {
             for (var x = 0; x <= map.Width; x++)
             {
-                var iCell = y * map.Height + x;
+                var iCell = y * (map.Width + 1) + x;
 
                 // cell is already blocked by a more dangerous zone
                 // TODO: this adds a 1-pixel-wide cushion with the current gscore to previously rasterized zones if they happen to be axis aligned
@@ -151,14 +151,15 @@ public struct NavigationDecision
                 }
 
                 var distance = sdf.Distance(point);
-                var distPx = (int)(distance / map.Resolution);
-                var toEnd = map.Width - x;
+                var toRowEnd = map.Width - x;
+
+                int distPixels;
 
                 if (distance >= cushion)
                 {
                     // TODO optimize; this drastically increases the number of sdf evaluations since they need to be executed for each grid point within the cushion zone
-                    var safeDist = (int)((distance - cushion) / map.Resolution);
-                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(safeDist, toEnd) + 1);
+                    distPixels = (int)((distance - cushion) / map.Resolution);
+                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(distPixels, toRowEnd) + 1);
                 }
                 else if (cushion > 0 && distance >= 0)
                 {
@@ -166,26 +167,31 @@ public struct NavigationDecision
                     gScratch[iCell] = float.MaxValue;
                 }
                 else
-                    Array.Fill(gScratch, g, iCell, Math.Max(1, -distPx));
+                {
+                    distPixels = (int)(distance / map.Resolution);
+                    Array.Fill(gScratch, g, iCell, Math.Min(-distPixels, toRowEnd) + 1);
+                }
             }
         }
 
         for (var y = 0; y < map.Height; y++)
             for (var x = 0; x < map.Width; x++)
             {
-                var iCell = y * map.Height + x;
-                if (map.PixelMaxG[iCell] < float.MaxValue)
+                var iG = y * (map.Width + 1) + x;
+                var iM = y * map.Width + x;
+
+                if (map.PixelMaxG[iM] < float.MaxValue)
                     continue;
 
-                var cellG = map.PixelMaxG[iCell] = Math.Min(
-                    Math.Min(gScratch[iCell], gScratch[iCell + 1]),
-                    Math.Min(gScratch[iCell + map.Width], gScratch[iCell + map.Width + 1])
+                var cellG = map.PixelMaxG[iM] = Math.Min(
+                    Math.Min(gScratch[iG], gScratch[iG + 1]),
+                    Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
                 );
                 if (cellG < float.MaxValue)
-                    map.PixelPriority[iCell] = 0;
+                    map.PixelPriority[iM] = 0;
 
-                if (dScratch[iCell] || dScratch[iCell + 1] || dScratch[iCell + map.Width] || dScratch[iCell + map.Width + 1])
-                    map.PixelAvoid[iCell] = true;
+                if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
+                    map.PixelAvoid[iM] = true;
             }
     }
 

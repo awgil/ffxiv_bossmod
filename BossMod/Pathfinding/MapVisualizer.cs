@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Pathfinding;
 
@@ -7,6 +7,8 @@ public class MapVisualizer
 {
     public Map Map;
     public WPos StartPos;
+    private readonly float[] gScratch;
+    public static readonly bool DebugG;
     public float ScreenPixelSize = 12;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
@@ -15,10 +17,11 @@ public class MapVisualizer
     private ThetaStar _pathfind;
     private float _lastExecTime;
 
-    public MapVisualizer(Map map, WPos startPos)
+    public MapVisualizer(Map map, WPos startPos, float[]? gScratch = null)
     {
         Map = map;
         StartPos = startPos;
+        this.gScratch = gScratch ?? [];
         _pathfind = BuildPathfind();
         ExecTimed(() => _pathfind.Execute());
     }
@@ -91,6 +94,13 @@ public class MapVisualizer
                 }
             }
         }
+
+        // highlights blocked grid points, useful for rasterizer debugging but noisy otherwise
+        if (DebugG)
+            for (var y = 0; y <= Map.Height; ++y)
+                for (var x = 0; x <= Map.Width; ++x)
+                    if (gScratch.BoundSafeAt(y * (Map.Width + 1) + x, float.MinValue) is > float.MinValue and < float.MaxValue)
+                        dl.AddCircleFilled(tl + new Vector2(x, y) * ScreenPixelSize, 4, 0xFF0000FF);
 
         // border
         dl.AddLine(tl, tr, 0xffffffff, 2);
