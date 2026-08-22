@@ -303,7 +303,7 @@ public abstract class BossModule : IDisposable
     // if the player isn't participating in the encounter, continuing to run the module will
     // - interfere with generic solver (best case scenario)
     // - crash the module (e.g. if a caster disappears because the player moves too far from them) (worst case scenario)
-    protected virtual bool AllowedToActivate() { return true; }
+    protected virtual bool AllowedToActivate() { return WorldState.Client.ActiveFate.ID == PrimaryActor.FateID; }
 
     // called during update if module is active; should return true if module is to be reset (i.e. deleted and new instance recreated for same actor)
     // default implementation never resets, but it's useful for outdoor bosses that can be leashed
