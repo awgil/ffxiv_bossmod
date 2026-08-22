@@ -1,20 +1,27 @@
-﻿namespace BossMod.Autorotation.xan;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+
+namespace BossMod.Autorotation.xan;
 
 public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<MeleeAI.Strategy>(manager, player)
 {
     public struct Strategy
     {
-        [Track("Second Wind", InternalName = "Second Wind")]
+        [Track("Second Wind", InternalName = "Second Wind", Action = ClassShared.AID.SecondWind)]
         public Track<EnabledByDefault> SecondWind;
+        [Track(Action = ClassShared.AID.Bloodbath)]
         public Track<EnabledByDefault> Bloodbath;
+        [Track(Action = ClassShared.AID.LegSweep)]
         public Track<EnabledByDefault> Stun;
         [Track("Limit Break", InternalName = "Limit Break", Actions = [ClassShared.AID.Braver, ClassShared.AID.Bladedance])]
         public Track<EnabledByDefault> LimitBreak;
+
+        [Track(Actions = [BossMod.MNK.AID.Thunderclap, BossMod.DRG.AID.WingedGlide, BossMod.NIN.AID.Shukuchi, BossMod.SAM.AID.HissatsuGyoten, BossMod.RPR.AID.HellsIngress, BossMod.VPR.AID.Slither])]
+        public Track<EnabledByDefault> Dash;
     }
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Melee DPS AI", "Utilities for melee - bloodbath, second wind, stun", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Melee DPS AI", "Utilities for melee", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100).WithStrategies<Strategy>();
     }
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -38,6 +45,8 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LegSweep), stunnableEnemy.Actor, ActionQueue.Priority.VeryLow);
         }
 
+        // TODO move to bozja ai
+        /*
         if (Player.FindStatus(2324) != null && Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel)
         {
             var gcdLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -45,14 +54,13 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
             if (GCD + gcdLength < fopLeft)
                 Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
         }
+        */
 
-        if (Bossmods.ActiveModule == null && Player.Class == Class.RPR && Hints.PotentialTargets.Any(t => t.Actor.TargetID == Player.InstanceID && t.Actor.CastInfo == null && t.Actor.DistanceToHitbox(Player) < 6))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.RPR.AID.ArcaneCrest), Player, ActionQueue.Priority.VeryLow);
-
-        ExecLB(strategy, primaryTarget);
+        AutoDash(strategy, primaryTarget);
+        AutoLB(strategy, primaryTarget);
     }
 
-    private void ExecLB(in Strategy strategy, Actor? primaryTarget)
+    private void AutoLB(in Strategy strategy, Actor? primaryTarget)
     {
         if (!strategy.LimitBreak.IsEnabled() || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1 || Bossmods.ActiveModule is null)
             return;
@@ -77,6 +85,49 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
                 };
                 if (lb3 != default)
                     Hints.ActionsToExecute.Push(lb3, primaryTarget, ActionQueue.Priority.VeryHigh, castTime: 4.5f);
+                break;
+        }
+    }
+
+    private void AutoDash(in Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.Dash.IsEnabled() || primaryTarget is not { IsAlly: false })
+            return;
+
+        switch (Player.Class)
+        {
+            // simple dashes
+            case Class.MNK:
+                if (Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.MNK.AID.Thunderclap), primaryTarget, ActionQueue.Priority.Low);
+                break;
+            case Class.DRG:
+                if (Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.DRG.AID.WingedGlide), primaryTarget, ActionQueue.Priority.Low);
+                break;
+            case Class.VPR:
+                if (Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.VPR.AID.Slither), primaryTarget, ActionQueue.Priority.Low);
+                break;
+
+            // simple dash with a little bit of sauce
+            case Class.SAM:
+                if (World.Client.GetGauge<SamuraiGauge>().Kenki >= 10 && Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SAM.AID.HissatsuGyoten), primaryTarget, ActionQueue.Priority.Low);
+                break;
+
+            case Class.RPR:
+                if (Player.DistanceToHitbox(primaryTarget) > 7.5f)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.RPR.AID.HellsIngress), Player, ActionQueue.Priority.Low, facingAngle: Player.AngleTo(primaryTarget));
+                break;
+
+            case Class.NIN:
+                var toHitbox = Player.DistanceToHitbox(primaryTarget);
+                if (toHitbox > 5)
+                {
+                    var travelDir = Player.DirectionTo(primaryTarget) * Math.Min(toHitbox + 0.5f, 20);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.NIN.AID.Shukuchi), null, ActionQueue.Priority.Low, targetPos: (Player.Position + travelDir).ToVec3(Player.PosRot.Y));
+                }
                 break;
         }
     }

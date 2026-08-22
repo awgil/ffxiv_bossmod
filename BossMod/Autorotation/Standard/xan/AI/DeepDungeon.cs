@@ -124,6 +124,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         0x3E66, // orthosystem α
 
         // PT
+        0x3738, // forgiven bribery
         0x4934, // invoked dreamer
     ];
 

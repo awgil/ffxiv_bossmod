@@ -643,6 +643,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
     public static readonly uint[] BreakableComboStatus = [
         (uint)BossMod.NIN.SID.Mudra,
         (uint)BossMod.NIN.SID.TenChiJin,
+        (uint)BossMod.NIN.SID.RaijuReady,
         //(uint)BossMod.RDM.SID.Dualcast,
         (uint)BossMod.DRG.SID.DraconianFire,
         (uint)BossMod.RPR.SID.SoulReaver,
