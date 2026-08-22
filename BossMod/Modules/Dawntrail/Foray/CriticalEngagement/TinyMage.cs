@@ -130,13 +130,12 @@ class RelayHoly(BossModule module) : Components.Knockback(module, AID.TinyHolyAO
             {
                 var s = src.Origin;
                 var d = src.Distance;
-                var sh = ShapeDistance.InvertedCircle(Arena.Center, 20);
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - s).Normalized();
                     var proj = p + dir * d;
-                    return sh(proj);
-                }, src.Activation);
+                    return !proj.InCircle(Arena.Center, 20);
+                }), src.Activation);
             }
     }
 }
@@ -259,30 +258,31 @@ class TinyTether(BossModule module) : Components.Knockback(module)
 
             case [{ Type: Orb.Holy } h1]:
                 orig = h1.Origin;
-                sh = ShapeDistance.InvertedCircle(Arena.Center, 20);
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - orig).Normalized() * 15;
-                    return sh(p + dir);
-                }, h1.Activation);
+                    return !(p + dir).InCircle(Arena.Center, 20);
+                }), h1.Activation);
                 break;
             case [{ Type: Orb.Holy } h1, { Type: Orb.Flare } f2, ..]:
                 orig = h1.Origin;
                 sh = ShapeDistance.Union([ShapeDistance.InvertedCircle(Arena.Center, 20), ShapeDistance.Circle(f2.Origin, 12)]);
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - orig).Normalized() * 15;
-                    return sh(p + dir);
-                }, h1.Activation);
+                    var proj = p + dir;
+                    return !proj.InCircle(Arena.Center, 20) || proj.InCircle(f2.Origin, 12);
+                }), h1.Activation);
                 break;
             case [{ Type: Orb.Holy } h1, { Type: Orb.Holy } h2, ..]:
                 orig = h1.Origin;
                 sh = ShapeDistance.Union([ShapeDistance.InvertedCircle(Arena.Center, 20), ShapeDistance.InvertedCircle(h2.Origin, 10)]);
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - orig).Normalized() * 15;
-                    return sh(p + dir);
-                }, h1.Activation);
+                    var proj = p + dir;
+                    return !proj.InCircle(Arena.Center, 20) || !proj.InCircle(h2.Origin, 10);
+                }), h1.Activation);
                 break;
         }
     }

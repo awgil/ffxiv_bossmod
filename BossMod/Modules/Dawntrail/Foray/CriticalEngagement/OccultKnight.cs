@@ -144,11 +144,11 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
             var center = Arena.Center;
             var dist = Distance;
 
-            hints.AddForbiddenZone(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = (p - center).Normalized() * dist;
-                return hitRectShape(p + dir);
-            }, Module.CastFinishAt(caster.CastInfo));
+                return hitRectShape(p + dir) < 0;
+            }), Module.CastFinishAt(caster.CastInfo));
         }
     }
 

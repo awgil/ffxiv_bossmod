@@ -263,13 +263,12 @@ class CostOfLiving(BossModule module) : Components.KnockbackFromCastTarget(modul
     {
         foreach (var src in Sources(slot, actor))
         {
-            var inv = ShapeDistance.InvertedCircle(Arena.Center, 25);
             if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - src.Origin).Normalized() * 30;
-                    return inv(p + dir);
-                }, src.Activation);
+                    return !(p + dir).InCircle(Arena.Center, 25);
+                }), src.Activation);
         }
     }
 }

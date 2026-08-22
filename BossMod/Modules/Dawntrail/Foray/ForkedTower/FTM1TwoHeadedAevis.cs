@@ -219,13 +219,12 @@ class Knockbacks(BossModule module) : Components.Knockback(module)
 
             if (src.Kind == Kind.AwayFromOrigin)
             {
-                var inv = ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20);
                 var orig = src.Origin;
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - orig).Normalized() * 14;
-                    return inv(p + dir);
-                }, src.Activation);
+                    return !(p + dir).AlmostEqual(Arena.Center, 20);
+                }), src.Activation);
             }
         }
     }

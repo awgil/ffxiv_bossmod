@@ -285,13 +285,13 @@ class SpinebreakingStampede(BossModule module) : Components.Knockback(module)
         if (_sources.Count == 1 || _sources.Count > 1 && IsImmune(slot, _sources[0].Activation) && !IsImmune(slot, _sources[^1].Activation))
         {
             var src = _sources[^1].Origin;
-            var inv = ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20);
-            hints.AddForbiddenZone(p =>
+            var center = Arena.Center;
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = (p - src).Normalized();
                 var proj = p + dir * 30;
-                return inv(proj);
-            }, _sources[^1].Activation);
+                return !proj.AlmostEqual(center, 20);
+            }), _sources[^1].Activation);
         }
 
         // horizontal kb

@@ -58,20 +58,19 @@ class EmpyrealBanishIII(BossModule module) : Components.SpreadFromCastTargets(mo
 class IllumedEstoc(BossModule module) : Components.StandardAOEs(module, AID.IllumedEstoc, new AOEShapeRect(120, 6.5f));
 class ShieldBash(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ShieldBash, 30)
 {
-    private static readonly float _platformSafeRad = MathF.Atan2(5, 40);
+    private static readonly float PlatformSafeRad = MathF.Atan2(5, 40);
 
-    public static Sdf SafetyShape(WPos origin) => Sdf.Discrete(p =>
-    {
-        var d = p - origin;
-        var angle = d.ToAngle();
-        return !angle.AlmostEqual(180.Degrees(), _platformSafeRad) && !angle.AlmostEqual(60.Degrees(), _platformSafeRad) && !angle.AlmostEqual(-60.Degrees(), _platformSafeRad) || d.LengthSq() >= 100;
-    });
+    public static Func<WPos, float> SafetyShape => ShapeDistance.Intersection([
+        ShapeDistance.InvertedCone(new WPos(-200, 150), 10, 180.Degrees(), PlatformSafeRad.Radians()),
+        ShapeDistance.InvertedCone(new WPos(-200, 150), 10, 60.Degrees(), PlatformSafeRad.Radians()),
+        ShapeDistance.InvertedCone(new WPos(-200, 150), 10, -60.Degrees(), PlatformSafeRad.Radians()),
+    ]);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(SafetyShape(src.Origin), src.Activation);
+                hints.AddForbiddenZone(SafetyShape, src.Activation);
     }
 }
 class EmpyrealBanishIV(BossModule module) : Components.StackWithCastTargets(module, AID.EmpyrealBanishIV, 5);

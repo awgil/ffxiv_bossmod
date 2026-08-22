@@ -38,7 +38,7 @@ class PrincelyBlowKnockback(BossModule module) : Components.Knockback(module, AI
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_targets.Contains(actor) && !StopAtWall && !IsImmune(slot, _activation))
-            hints.AddForbiddenZone(ShieldBash.SafetyShape(Module.PrimaryActor.Position), _activation);
+            hints.AddForbiddenZone(ShieldBash.SafetyShape, _activation);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

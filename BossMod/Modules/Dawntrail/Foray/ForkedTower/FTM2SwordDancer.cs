@@ -209,11 +209,11 @@ class Steelsbreath(BossModule module) : Components.Knockback(module, AID.Steelsb
         var orig = kb0.Origin;
         var goal = srcs.MoveNext() ? ShapeDistance.InvertedCircle(srcs.Current.Origin, 6) : ShapeDistance.InvertedCircle(Arena.Center, 24);
 
-        hints.AddForbiddenZone(p =>
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
         {
             var off = (p - orig).Normalized() * 24;
-            return goal(p + off);
-        }, kb0.Activation);
+            return goal(p + off) < 0;
+        }), kb0.Activation);
     }
 }
 

@@ -91,7 +91,6 @@ class TornadoAttract(BossModule module) : Components.KnockbackFromCastTarget(mod
     {
         foreach (var s in Sources(slot, actor))
             if (!IsImmune(slot, s.Activation))
-                // TODO(SDF)
                 hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = p - s.Origin;

@@ -100,13 +100,7 @@ public struct NavigationDecision
 
         // TODO: group continuous sdfs with same gscore together
         foreach (var (d, g) in zonesFixed)
-        {
-            // all gscores <= 0 are equivalent so we use min as a sentinel value
-            // note that dScratch doesn't get reset since the cushion effect applies to all zones, not just the most imminent
-            Array.Fill(gScratch, float.MinValue);
-
             RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
-        }
 
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         var realMaxG = map.PixelMaxG.Max();
@@ -119,8 +113,10 @@ public struct NavigationDecision
                 }
     }
 
-    private static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
+    public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
     {
+        Array.Fill(gScratch, float.MinValue);
+
         var discrete = !sdf.IsContinuous;
 
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;

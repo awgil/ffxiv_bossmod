@@ -28,12 +28,12 @@ class PungentAerosol(BossModule module) : Components.KnockbackFromCastTarget(mod
         foreach (var c in Sources(slot, actor))
             if (!IsImmune(slot, c.Activation))
             {
-                var inv = ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20);
-                hints.AddForbiddenZone(p =>
+                var center = Arena.Center;
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - c.Origin).Normalized() * 24;
-                    return inv(p + dir);
-                }, c.Activation);
+                    return !(p + dir).AlmostEqual(center, 20);
+                }), c.Activation);
             }
     }
 }

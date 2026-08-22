@@ -53,12 +53,12 @@ class HydroPull(BossModule module) : Components.KnockbackFromCastTarget(module, 
                 ShapeDistance.InvertedRect(ctr, default(Angle), 15, 15, 15)
             ]);
 
-            hints.AddForbiddenZone(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = orig - p;
                 var proj = p + dir.Normalized() * Math.Min(20, dir.Length());
-                return dangerShape(proj);
-            }, src.Activation);
+                return dangerShape(proj) < 0;
+            }), src.Activation);
         }
     }
 }

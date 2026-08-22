@@ -47,12 +47,12 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.Sh
 
         var windzone = ShapeDistance.Union(aoes);
         if (Casters.FirstOrDefault() is Actor c)
-            hints.AddForbiddenZone(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = c.DirectionTo(p);
                 var projected = p + dir * 10;
-                return windzone(projected);
-            }, Module.CastFinishAt(c.CastInfo));
+                return windzone(projected) < 0;
+            }), Module.CastFinishAt(c.CastInfo));
     }
 }
 class NaldsWhisper(BossModule module) : Components.StandardAOEs(module, AID.NaldsWhisper, new AOEShapeCircle(20));

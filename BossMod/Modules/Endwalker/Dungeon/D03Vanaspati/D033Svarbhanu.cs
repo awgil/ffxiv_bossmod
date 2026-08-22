@@ -175,12 +175,12 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
 
                 var orig = src.Origin;
                 var center = Arena.Center;
-                hints.AddForbiddenZone(p =>
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
                 {
                     var dir = (p - orig).Normalized();
                     var proj = p + dir * 13;
-                    return Math.Min(inv(proj), rect(proj));
-                }, src.Activation);
+                    return inv(proj) < 0 || rect(proj) < 0;
+                }), src.Activation);
             }
         }
     }

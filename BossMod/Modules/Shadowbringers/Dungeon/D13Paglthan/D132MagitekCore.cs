@@ -81,12 +81,12 @@ class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastT
 
         var source = Casters[0].CastInfo!.LocXZ;
         var clamp = Arena.ClampToBounds;
-        hints.AddForbiddenZone(p =>
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
         {
             var dist = (p - source).Normalized();
             var proj = clamp(p + dist * 10);
-            return aoes.Min(e => e.Distance(proj));
-        }, Module.CastFinishAt(Casters[0].CastInfo));
+            return aoes.Any(e => e.Check(proj));
+        }), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
 
