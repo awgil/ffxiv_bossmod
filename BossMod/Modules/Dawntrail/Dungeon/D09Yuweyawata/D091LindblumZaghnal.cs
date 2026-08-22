@@ -82,7 +82,7 @@ class CellShock(BossModule module) : Components.GenericAOEs(module, AID.CellShoc
 class LightningStorm(BossModule module) : Components.SpreadFromCastTargets(module, AID.LightningStormAOE, 5);
 class SparkingFissureStart(BossModule module) : Components.RaidwideCast(module, AID.SparkingFissureStart);
 class SparkingFissureResolve(BossModule module) : Components.RaidwideCast(module, AID.SparkingFissureResolveAOE);
-class RawElectrope(BossModule module) : Components.Adds(module, (uint)OID.RawElectrope, 1);
+class RawElectrope(BossModule module) : Components.Adds(module, (uint)OID.RawElectrope, 1, true);
 class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 6);
 
 class D091LindblumZaghnalStates : StateMachineBuilder
