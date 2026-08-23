@@ -170,7 +170,7 @@ class LightAether(BossModule module) : Components.Adds(module, (uint)OID.LightAe
 
 class OccultAero(BossModule module) : Components.StandardAOEs(module, AID.OccultAero, new AOEShapeRect(50, 5))
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).TakeSpan(TimeSpan.FromSeconds(1));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).TakeSpan(p => p.Activation, TimeSpan.FromSeconds(1));
 }
 
 class OccultTornado(BossModule module) : Components.StandardAOEs(module, AID.OccultTornado, 5);

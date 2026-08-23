@@ -32,7 +32,7 @@ class LongDeadExploder(BossModule module) : Components.GenericAOEs(module, AID.E
 {
     readonly List<(Actor actor, DateTime explosion)> _actors = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _actors.Select(a => new AOEInstance(new AOEShapeCircle(8), a.actor.Position, a.actor.Rotation, a.explosion)).TakeSpan(TimeSpan.FromSeconds(1));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _actors.Select(a => new AOEInstance(new AOEShapeCircle(8), a.actor.Position, a.actor.Rotation, a.explosion)).TakeSpan(p => p.Activation, TimeSpan.FromSeconds(1));
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {

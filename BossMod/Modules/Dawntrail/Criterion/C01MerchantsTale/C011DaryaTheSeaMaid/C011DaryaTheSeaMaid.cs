@@ -311,7 +311,7 @@ class SphereShatter(BossModule module) : Components.GenericAOEs(module)
 
     public bool Risky;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky }).TakeSpan(TimeSpan.FromSeconds(2));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky }).TakeSpan(p => p.Activation, TimeSpan.FromSeconds(2));
 
     public override void OnActorEAnim(Actor actor, uint state)
     {

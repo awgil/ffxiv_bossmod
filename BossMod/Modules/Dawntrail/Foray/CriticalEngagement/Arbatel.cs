@@ -231,7 +231,7 @@ class UnboundInk(BossModule module) : Components.StandardAOEs(module, AID.Unboun
 class BookDrop(BossModule module) : Components.CastTowers(module, AID.BookDrop, 3, 3);
 class ThunderII(BossModule module) : Components.StandardAOEs(module, AID.ThunderII, new AOEShapeRect(50, 2.5f))
 {
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).TakeSpan(TimeSpan.FromSeconds(1));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).TakeSpan(p => p.Activation, TimeSpan.FromSeconds(1));
 }
 class FireII(BossModule module) : Components.StandardAOEs(module, AID.FireII, new AOEShapeCone(60, 22.5f.Degrees()));
 class ArcaneRule(BossModule module) : Components.GenericAOEs(module)

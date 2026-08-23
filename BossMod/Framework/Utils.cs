@@ -292,19 +292,19 @@ public static partial class Utils
     }
 
     // useful for grouping AOEs on radar; input must already be sorted in activation order
-    public static IEnumerable<T> TakeWhileTime<T>(IEnumerable<T> source, Func<T, DateTime> getTimestamp, float delay)
+    public static IEnumerable<T> TakeSpan<T>(this IEnumerable<T> items, Func<T, DateTime> getTimestamp, TimeSpan span)
     {
         DateTime nextTs = default;
-        foreach (var s in source)
+        foreach (var item in items)
         {
-            var ts = getTimestamp(s);
+            var ts = getTimestamp(item);
             if (nextTs == default)
                 nextTs = ts;
 
-            if (ts > nextTs.AddSeconds(delay))
-                yield break;
+            if (ts > nextTs + span)
+                break;
 
-            yield return s;
+            yield return item;
         }
     }
 
@@ -428,20 +428,6 @@ public static partial class Utils
                 yield return list[i];
                 list.RemoveAt(i);
             }
-    }
-
-    public static IEnumerable<Components.GenericAOEs.AOEInstance> TakeSpan(this IEnumerable<Components.GenericAOEs.AOEInstance> aoes, TimeSpan ts)
-    {
-        DateTime deadline = default;
-        foreach (var aoe in aoes)
-        {
-            if (deadline == default)
-                deadline = aoe.Activation + ts;
-            if (aoe.Activation >= deadline)
-                break;
-
-            yield return aoe;
-        }
     }
 
     public static Vector3 ToSystem(this Lumina.Data.Parsing.Common.Vector3 v) => new(v.X, v.Y, v.Z);

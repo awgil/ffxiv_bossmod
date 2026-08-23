@@ -48,7 +48,7 @@ class SurfaceMissile(BossModule module) : Components.GenericAOEs(module, AID.Sur
 {
     private readonly List<(WPos, DateTime)> _tiles = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.TakeWhileTime(_tiles, t => t.Item2, 1).Select(t => new AOEInstance(new AOEShapeRect(6, 10, 6), t.Item1, default, t.Item2));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _tiles.TakeSpan(t => t.Item2, TimeSpan.FromSeconds(1)).Select(t => new AOEInstance(new AOEShapeRect(6, 10, 6), t.Item1, default, t.Item2));
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
