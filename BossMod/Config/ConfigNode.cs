@@ -44,6 +44,9 @@ public sealed class PropertyComboAttribute(string[] values) : Attribute
 #pragma warning restore CA1019
 }
 
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class PropertyRadioAttribute : Attribute;
+
 // attribute that specifies slider should be used for displaying float/int property
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class PropertySliderAttribute(float min, float max) : Attribute
