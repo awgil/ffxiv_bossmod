@@ -51,6 +51,7 @@ public sealed class ReplayBuilder : IDisposable
             _ws.Actors.EffectResult.Subscribe(EventConfirm),
             _ws.Actors.EventObjectAnimation.Subscribe(EventObjectAnimation),
             _ws.Actors.EventStateChanged.Subscribe(EventState),
+            _ws.Actors.ModelStateChanged.Subscribe(ModelState),
             _ws.Actors.PlayActionTimelineEvent.Subscribe(PlayActionTimeline),
             _ws.UserMarkerAdded.Subscribe(EventUserMarker),
             _ws.CurrentZoneChanged.Subscribe(EventZoneChange),
@@ -411,6 +412,11 @@ public sealed class ReplayBuilder : IDisposable
     private void EventState(Actor actor)
     {
         _participants[actor.InstanceID].EventState[_ws.CurrentTime] = actor.EventState;
+    }
+
+    private void ModelState(Actor actor)
+    {
+        _participants[actor.InstanceID].ModelState[_ws.CurrentTime] = actor.ModelState;
     }
 
     private void PlayActionTimeline(Actor actor, ushort id)

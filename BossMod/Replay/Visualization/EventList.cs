@@ -187,6 +187,10 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
             {
                 _tree.LeafNodes(p.EventState, r => $"{tp(r.Key)} = {r.Value}");
             }
+            foreach (var an in _tree.Node("Model state", p.ModelState.Count == 0))
+            {
+                _tree.LeafNodes(p.ModelState, r => $"{tp(r.Key)} = {r.Value}");
+            }
             foreach (var an in _tree.Node("Action timeline events", p.ActionTimeline.Count == 0))
             {
                 _tree.LeafNodes(p.ActionTimeline, r => $"{tp(r.Key)} = {r.Value:X4}");

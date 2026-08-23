@@ -92,17 +92,15 @@ class MartialMystique(BossModule module) : Components.StandardAOEs(module, AID.M
 
 class Spin(BossModule module) : Components.GenericAOEs(module)
 {
-    bool Draw;
-
     readonly List<AOEInstance> _predicted = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Draw ? _predicted : [];
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
 
-    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID == OID.CycloSword && animState1 == 1 && animState2 == 0)
+        if ((OID)actor.OID == OID.CycloSword && id == 0x25EE)
         {
-            AOEShape? shape = modelState switch
+            AOEShape? shape = actor.ModelState.ModelState switch
             {
                 4 => new AOEShapeDonut(15, 60),
                 5 => new AOEShapeDonut(20, 60),
@@ -112,23 +110,16 @@ class Spin(BossModule module) : Components.GenericAOEs(module)
             };
 
             if (shape != null)
-                _predicted.Add(new(shape, actor.Position, default, WorldState.FutureTime(13.3f)));
+                _predicted.Add(new(shape, actor.Position, actor.Rotation, WorldState.FutureTime(9.3f)));
+            else
+                ReportError($"don't know which AOE corresponds with modelstate {actor.ModelState}");
         }
-    }
-
-    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
-    {
-        if ((OID)actor.OID == OID.CycloSword && id == 0x25EE)
-            Draw = true;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.SpinSmall or AID.SpinSmallDonut or AID.SpinBigDonut or AID.SpinBig && _predicted.Count > 0)
-        {
             _predicted.RemoveAt(0);
-            Draw = false;
-        }
     }
 }
 
@@ -217,6 +208,11 @@ class Steelsbreath(BossModule module) : Components.Knockback(module, AID.Steelsb
     }
 }
 
+class Sp1(BossModule module) : Components.DebugCasts(module, [AID.SpinSmallDonut], new AOEShapeDonut(15, 60));
+class Sp2(BossModule module) : Components.DebugCasts(module, [AID.SpinBigDonut], new AOEShapeDonut(20, 60));
+class Sp3(BossModule module) : Components.DebugCasts(module, [AID.SpinSmall], new AOEShapeCircle(15));
+class Sp4(BossModule module) : Components.DebugCasts(module, [AID.SpinBig], new AOEShapeCircle(20));
+
 class FTM2SwordDancerStates : StateMachineBuilder
 {
     public FTM2SwordDancerStates(BossModule module) : base(module)
@@ -237,7 +233,11 @@ class FTM2SwordDancerStates : StateMachineBuilder
             .ActivateOnEnter<SwordDanceRaidwide>()
             .ActivateOnEnter<SwordDance>()
             .ActivateOnEnter<Pierce>()
-            .ActivateOnEnter<Steelsbreath>();
+            .ActivateOnEnter<Steelsbreath>()
+            .ActivateOnEnter<Sp1>()
+            .ActivateOnEnter<Sp2>()
+            .ActivateOnEnter<Sp3>()
+            .ActivateOnEnter<Sp4>();
     }
 }
 

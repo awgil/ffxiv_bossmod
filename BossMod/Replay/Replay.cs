@@ -53,6 +53,7 @@ public sealed class Replay
         public readonly List<Cast> Casts = [];
         public readonly SortedList<DateTime, uint> EventObjectAnimation = [];
         public readonly SortedList<DateTime, byte> EventState = [];
+        public readonly SortedList<DateTime, ActorModelState> ModelState = [];
         public readonly SortedList<DateTime, ushort> ActionTimeline = [];
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
