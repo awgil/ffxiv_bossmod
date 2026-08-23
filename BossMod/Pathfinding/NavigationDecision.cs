@@ -184,7 +184,7 @@ public struct NavigationDecision
                     Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
                 );
                 if (cellG < float.MaxValue)
-                    map.PixelPriority[iM] = 0;
+                    map.PixelPriority[iM] = float.MinValue;
 
                 if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
                     map.PixelAvoid[iM] = true;
