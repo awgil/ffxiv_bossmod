@@ -208,11 +208,6 @@ class Steelsbreath(BossModule module) : Components.Knockback(module, AID.Steelsb
     }
 }
 
-class Sp1(BossModule module) : Components.DebugCasts(module, [AID.SpinSmallDonut], new AOEShapeDonut(15, 60));
-class Sp2(BossModule module) : Components.DebugCasts(module, [AID.SpinBigDonut], new AOEShapeDonut(20, 60));
-class Sp3(BossModule module) : Components.DebugCasts(module, [AID.SpinSmall], new AOEShapeCircle(15));
-class Sp4(BossModule module) : Components.DebugCasts(module, [AID.SpinBig], new AOEShapeCircle(20));
-
 class FTM2SwordDancerStates : StateMachineBuilder
 {
     public FTM2SwordDancerStates(BossModule module) : base(module)
@@ -233,11 +228,7 @@ class FTM2SwordDancerStates : StateMachineBuilder
             .ActivateOnEnter<SwordDanceRaidwide>()
             .ActivateOnEnter<SwordDance>()
             .ActivateOnEnter<Pierce>()
-            .ActivateOnEnter<Steelsbreath>()
-            .ActivateOnEnter<Sp1>()
-            .ActivateOnEnter<Sp2>()
-            .ActivateOnEnter<Sp3>()
-            .ActivateOnEnter<Sp4>();
+            .ActivateOnEnter<Steelsbreath>();
     }
 }
 
