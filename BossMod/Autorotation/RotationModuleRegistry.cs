@@ -5,7 +5,9 @@ namespace BossMod.Autorotation;
 // database containing all registered rotation module definitions and builder functions
 public static class RotationModuleRegistry
 {
-    public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, Type ModuleType);
+    public static readonly Event Modified = new();
+
+    public readonly record struct Entry(Type ModuleType, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
 
     public static IReadOnlyDictionary<string, Entry> Modules => _modules;
 
@@ -13,6 +15,8 @@ public static class RotationModuleRegistry
 
     public static void ScanAssembly(Assembly assembly)
     {
+        var modified = false;
+
         foreach (var t in Utils.GetDerivedTypes<RotationModule>(assembly).Where(t => !t.IsAbstract))
         {
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
@@ -23,13 +27,22 @@ public static class RotationModuleRegistry
                 continue;
             }
 
-            _modules[t.FullName!] = new(def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t), t);
+            modified = true;
+            _modules[t.FullName!] = new(t, def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t));
         }
+
+        if (modified)
+            Modified.Fire();
     }
 
     public static void UnloadFrom(Assembly assembly)
     {
+        var modified = false;
+
         foreach (var (k, _) in _modules.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
-            _modules.Remove(k);
+            modified |= _modules.Remove(k);
+
+        if (modified)
+            Modified.Fire();
     }
 }

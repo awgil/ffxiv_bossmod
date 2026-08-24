@@ -35,6 +35,8 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
+    private readonly EventSubscriptions _subscriptions;
+
     public ModuleViewer(PlanDatabase? planDB, WorldState ws)
     {
         _planDB = planDB;
@@ -84,6 +86,14 @@ public sealed class ModuleViewer : IDisposable
         _iconHunt = (uint)playStyle.GetRow(10).Icon;
 
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
+
+        _subscriptions = new(
+            BossModuleRegistry.Modified.ExecuteAndSubscribe(Rebuild)
+        );
+    }
+
+    private void Rebuild()
+    {
         for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
             for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
                 _groups[i, j] = [];
@@ -124,6 +134,7 @@ public sealed class ModuleViewer : IDisposable
 
     public void Dispose()
     {
+        _subscriptions.Dispose();
     }
 
     public void Draw(UITree tree, WorldState ws)

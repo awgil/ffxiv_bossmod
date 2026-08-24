@@ -61,26 +61,29 @@ sealed class PackLoader : IDisposable
         foreach (var ctx in _loadContexts.Values)
         {
             foreach (var asm in ctx.Assemblies)
-            {
-                RotationModuleRegistry.UnloadFrom(asm);
-                BossModuleRegistry.UnloadFrom(asm);
-            }
+                Unload(asm);
 
             ctx.Unload();
         }
 
         _loadContexts.Clear();
-        _watcher.Path = packDirectory;
-        _watcher.EnableRaisingEvents = Path.Exists(packDirectory);
 
-        if (packDirectory.Length == 0)
+        var builtinsFile = Path.Join(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "BossMod.Modules.dll");
+        if (Path.Exists(builtinsFile))
+            OnCreated(builtinsFile);
+        else
+            Service.PluginLog.Warning($"Builtin modules are missing, you won't see a whole lot in the UI");
+
+        if (!Path.Exists(packDirectory))
             return;
 
+        _watcher.Path = packDirectory;
+        _watcher.EnableRaisingEvents = true;
+
         var dir = new DirectoryInfo(packDirectory);
-        if (dir.Exists)
-            foreach (var file in dir.EnumerateFiles())
-                if (file.Extension == ".dll")
-                    OnCreated(file.FullName);
+        foreach (var file in dir.EnumerateFiles())
+            if (file.Extension == ".dll")
+                OnCreated(file.FullName);
     }
 
     void OnCreated(string fullPath)
@@ -95,9 +98,7 @@ sealed class PackLoader : IDisposable
         var context = _loadContexts[fullPath] = new();
         try
         {
-            var newAssembly = context.LoadFromStream(new MemoryStream(raw));
-            RotationModuleRegistry.ScanAssembly(newAssembly);
-            BossModuleRegistry.ScanAssembly(newAssembly);
+            Load(context.LoadFromStream(new MemoryStream(raw)));
         }
         catch (BadImageFormatException e)
         {
@@ -113,10 +114,7 @@ sealed class PackLoader : IDisposable
             Service.Log($"unloading assembly from {e.FullPath}");
 
             foreach (var asm in ctx.Assemblies)
-            {
-                RotationModuleRegistry.UnloadFrom(asm);
-                BossModuleRegistry.UnloadFrom(asm);
-            }
+                Unload(asm);
 
             _loadContexts.Remove(e.FullPath);
         }
@@ -126,6 +124,20 @@ sealed class PackLoader : IDisposable
     {
         if (_loadContexts.Remove(e.OldFullPath, out var ctx))
             _loadContexts[e.FullPath] = ctx;
+    }
+
+    static void Unload(Assembly asm)
+    {
+        RotationModuleRegistry.UnloadFrom(asm);
+        BossModuleRegistry.UnloadFrom(asm);
+        ZoneModuleRegistry.UnloadFrom(asm);
+    }
+
+    static void Load(Assembly asm)
+    {
+        RotationModuleRegistry.ScanAssembly(asm);
+        BossModuleRegistry.ScanAssembly(asm);
+        ZoneModuleRegistry.ScanAssembly(asm);
     }
 
     public void Dispose()

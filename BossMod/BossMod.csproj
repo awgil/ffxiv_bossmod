@@ -70,4 +70,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="BossMod-Modules" AfterTargets="Build">
+    <MSBuild Projects="..\BossMod.Modules\BossMod.Modules.csproj" Targets="Build">
+      <Output ItemName="NativeModules" TaskParameter="TargetOutputs" />
+    </MSBuild>
+
+    <Copy SourceFiles="@(NativeModules)" DestinationFolder="$(OutDir)" />
+  </Target>
 </Project>

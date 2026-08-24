@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "benchmarks", "benchmarks\be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleLib", "ExampleLib\ExampleLib.csproj", "{0A4B3F30-3460-40EB-BDDA-DE25E49332CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossModules", "BossModules\BossModules.csproj", "{EF338792-2E07-4A65-8923-0B79696B9196}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Modules", "BossMod.Modules\BossMod.Modules.csproj", "{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +37,10 @@ Global
 		{A8D1E505-DA3A-4F19-9831-F745718AD97C}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{0A4B3F30-3460-40EB-BDDA-DE25E49332CA}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
 		{0A4B3F30-3460-40EB-BDDA-DE25E49332CA}.Release|AnyCPU.ActiveCfg = Release|Any CPU
-		{EF338792-2E07-4A65-8923-0B79696B9196}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
-		{EF338792-2E07-4A65-8923-0B79696B9196}.Debug|AnyCPU.Build.0 = Debug|Any CPU
-		{EF338792-2E07-4A65-8923-0B79696B9196}.Release|AnyCPU.ActiveCfg = Release|Any CPU
-		{EF338792-2E07-4A65-8923-0B79696B9196}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Debug|AnyCPU.ActiveCfg = Debug|x64
+		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Debug|AnyCPU.Build.0 = Debug|x64
+		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Release|AnyCPU.ActiveCfg = Release|x64
+		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Release|AnyCPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,13 +12,17 @@ public sealed class ZoneModuleInfoAttribute(uint cfcId, uint territoryID = 0) : 
 
 public static class ZoneModuleRegistry
 {
+    public static readonly Event Modified = new();
+
     public record class Info(Type ModuleType, ZoneModuleInfoAttribute Desc, Func<WorldState, ZoneModule> Factory);
 
     private static readonly Dictionary<uint, Info> _modulesByCFC = [];
 
-    static ZoneModuleRegistry()
+    public static void ScanAssembly(Assembly assembly)
     {
-        foreach (var t in Utils.GetDerivedTypes<ZoneModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
+        var modified = false;
+
+        foreach (var t in Utils.GetDerivedTypes<ZoneModule>(assembly).Where(t => !t.IsAbstract))
         {
             var attr = t.GetCustomAttribute<ZoneModuleInfoAttribute>();
             if (attr == null)
@@ -32,7 +36,22 @@ public static class ZoneModuleRegistry
                 continue;
             }
             _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));
+            modified = true;
         }
+
+        if (modified)
+            Modified.Fire();
+    }
+
+    public static void UnloadFrom(Assembly assembly)
+    {
+        var modified = false;
+
+        foreach (var (k, _) in _modulesByCFC.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
+            modified |= _modulesByCFC.Remove(k);
+
+        if (modified)
+            Modified.Fire();
     }
 
     public static ZoneModule? CreateModule(WorldState ws, uint cfcId)
