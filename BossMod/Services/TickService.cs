@@ -17,6 +17,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,6 +101,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.Config.Initialize();
         Service.Config.LoadFromFile(dalamud.ConfigFile);
 
+        RotationModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
+        BossModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
+
         _packs = new();
         _hints = new();
 
@@ -171,7 +175,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (Service.IsMock)
         {
             Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
-            _ = new MainDevWindow(dalamud) { IsOpen = true };
+            _ = new MainDevWindow(dalamud, _packs) { IsOpen = true };
         }
         else
         {

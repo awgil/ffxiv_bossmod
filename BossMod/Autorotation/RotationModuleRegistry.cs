@@ -7,13 +7,13 @@ public static class RotationModuleRegistry
 {
     public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
 
-    public static readonly Dictionary<Type, Entry> Modules = BuildModules();
+    public static IReadOnlyDictionary<Type, Entry> Modules => _modules;
 
-    private static Dictionary<Type, Entry> BuildModules()
+    private static readonly Dictionary<Type, Entry> _modules = [];
+
+    public static void ScanAssembly(Assembly assembly)
     {
-        Dictionary<Type, Entry> res = [];
-
-        foreach (var t in Utils.GetDerivedTypes<RotationModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
+        foreach (var t in Utils.GetDerivedTypes<RotationModule>(assembly).Where(t => !t.IsAbstract))
         {
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
             var def = defMethod?.Invoke(null, null) as RotationModuleDefinition;
@@ -23,10 +23,13 @@ public static class RotationModuleRegistry
                 continue;
             }
 
-            var factory = New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t);
-            res[t] = new(def, factory);
+            _modules[t] = new(def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t));
         }
+    }
 
-        return res;
+    public static void UnloadFrom(Assembly assembly)
+    {
+        foreach (var k in _modules.Keys.Where(k => k.Assembly == assembly).ToList())
+            _modules.Remove(k);
     }
 }
