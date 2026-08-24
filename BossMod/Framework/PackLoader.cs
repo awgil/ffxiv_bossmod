@@ -48,15 +48,15 @@ sealed class PackLoader : IDisposable
             {
                 var curDirectory = _config.ModulePackDirectory;
                 if (_prevDirectory != curDirectory)
-                    SetDirectory(curDirectory);
+                    ReloadFrom(curDirectory);
                 _prevDirectory = curDirectory;
             })
         );
     }
 
-    public void ForceReload() => SetDirectory(_config.ModulePackDirectory);
+    public void ForceReload() => ReloadFrom(_config.ModulePackDirectory);
 
-    private void SetDirectory(string packDirectory)
+    private void ReloadFrom(string packDirectory)
     {
         foreach (var ctx in _loadContexts.Values)
         {
