@@ -95,14 +95,13 @@ public class JsonPresetConverter : JsonConverter<Preset>
         var res = new Preset(jdoc.RootElement.GetProperty(nameof(Preset.Name)).GetString() ?? "");
         foreach (var jm in jdoc.RootElement.GetProperty(nameof(Preset.Modules)).EnumerateObject())
         {
-            var mt = Type.GetType(jm.Name);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (!RotationModuleRegistry.Modules.TryGetValue(jm.Name, out var md))
             {
                 Service.Log($"Error while deserializing preset {res.Name}: failed to find module {jm.Name}");
                 continue;
             }
 
-            var mi = res.AddModule(mt, md.Definition, md.Builder);
+            var mi = res.AddModule(md.ModuleType, md.Definition, md.Builder);
             var m = res.Modules[mi];
             foreach (var js in jm.Value.EnumerateArray())
             {

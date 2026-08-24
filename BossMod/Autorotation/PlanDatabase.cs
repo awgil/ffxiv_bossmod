@@ -60,15 +60,14 @@ public sealed class PlanDatabase
                 {
                     // TODO: rename after some appropriately long wait (typename will be corrected next time the plan database is modified, so eventually nobody will have an old cdplan left)
                     var correctName = PlanPresetConverter.FTBRenames.TryGetValue(enc.Name, out var rename) ? rename : enc.Name;
-                    var encType = Type.GetType(correctName);
-                    var encInfo = encType != null ? BossModuleRegistry.FindByType(encType) : null;
+                    var encInfo = BossModuleRegistry.FindByName(correctName);
                     if (encInfo == null)
                     {
                         Service.Log($"Error while deserializing plan database: failed to find encounter {enc.Name}");
                         continue;
                     }
 
-                    var encData = Plans[encType!] = [];
+                    var encData = Plans[encInfo.ModuleType] = [];
                     foreach (var cls in enc.Value.EnumerateObject())
                     {
                         var job = Enum.Parse<Class>(cls.Name);
@@ -85,7 +84,7 @@ public sealed class PlanDatabase
                                 else if (planList.SelectedIndex > planList.Plans.Count)
                                     --planList.SelectedIndex;
                             }
-                            else if (plan.Encounter != encType || plan.Class != job)
+                            else if (plan.Encounter != encInfo.ModuleType || plan.Class != job)
                             {
                                 Service.Log($"Error while deserializing plan database: plan '{planGuid}' expected for {job} {enc.Name}, but is actually for {plan.Class} {plan.Encounter.FullName}");
                                 foundPlans[planGuid] = plan; // add back, so that it's added to proper bucket later

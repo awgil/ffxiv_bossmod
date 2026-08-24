@@ -76,10 +76,11 @@ sealed class AnalysisManager : IDisposable
             _mapEffectInfo = new(() => new(replays, oid));
             _directorInfo = new(() => new(replays, oid));
             _arenaBounds = new(() => new(replays, oid));
-            if (oid == (uint)Shadowbringers.Ultimate.TEA.OID.BossP1)
-                _teaSpecific = new(() => new(replays, oid));
-            if (oid == (uint)Endwalker.Ultimate.TOP.OID.Boss)
-                _topSpecific = new(() => new(replays, oid));
+            // FIXME
+            //if (oid == (uint)Shadowbringers.Ultimate.TEA.OID.BossP1)
+            //    _teaSpecific = new(() => new(replays, oid));
+            //if (oid == (uint)Endwalker.Ultimate.TOP.OID.Boss)
+            //    _topSpecific = new(() => new(replays, oid));
         }
 
         public void Draw(UITree tree)

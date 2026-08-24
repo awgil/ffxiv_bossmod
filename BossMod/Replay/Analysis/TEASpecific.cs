@@ -1,4 +1,5 @@
-﻿using BossMod.Shadowbringers.Ultimate.TEA;
+﻿// FIXME
+//using BossMod.Shadowbringers.Ultimate.TEA;
 
 namespace BossMod.ReplayAnalysis;
 
@@ -33,6 +34,7 @@ class TEASpecific
 
     public TEASpecific(List<Replay> replays, uint oid)
     {
+        /*
         _plotHandBaits.DataMin = new(0, 0);
         _plotHandBaits.DataMax = new(100, 3);
         _plotHandBaits.TickAdvance = new(5, 1);
@@ -107,6 +109,7 @@ class TEASpecific
                 list.Add(new() { Replay = replay, Timestamp = action.Timestamp, Distance = (p1 - p2).Length(), Damage = ReplayUtils.ActionDamage(action.Targets[0]) });
             }
         }
+        */
     }
 
     public void Draw(UITree tree)

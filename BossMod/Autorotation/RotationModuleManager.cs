@@ -60,10 +60,10 @@ public sealed class RotationModuleManager : IDisposable
         (uint)Roleplay.SID.FreshPerspective, // sapphire weapon quest
 
         // hacking interlude gimmick in Paradigm's Breach boss 3
-        (uint)Shadowbringers.Alliance.A34RedGirl.SID.Program000000,
-        (uint)Shadowbringers.Alliance.A34RedGirl.SID.ProgramFFFFFFF,
+        //(uint)Shadowbringers.Alliance.A34RedGirl.SID.Program000000, (2633)
+        //(uint)Shadowbringers.Alliance.A34RedGirl.SID.ProgramFFFFFFF, (2632)
 
-        (uint)Stormblood.Dungeon.D09DrownedCityOfSkalla.D092TheOldOne.SID.Transfiguration,
+        //(uint)Stormblood.Dungeon.D09DrownedCityOfSkalla.D092TheOldOne.SID.Transfiguration, (1448)
 
         565, // "Transfiguration" from certain pomanders in Palace of the Dead
         439, // "Toad", palace of the dead

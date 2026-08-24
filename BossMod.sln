@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "benchmarks", "benchmarks\be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleLib", "ExampleLib\ExampleLib.csproj", "{0A4B3F30-3460-40EB-BDDA-DE25E49332CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossModules", "BossModules\BossModules.csproj", "{EF338792-2E07-4A65-8923-0B79696B9196}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -35,6 +37,10 @@ Global
 		{A8D1E505-DA3A-4F19-9831-F745718AD97C}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{0A4B3F30-3460-40EB-BDDA-DE25E49332CA}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
 		{0A4B3F30-3460-40EB-BDDA-DE25E49332CA}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{EF338792-2E07-4A65-8923-0B79696B9196}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{EF338792-2E07-4A65-8923-0B79696B9196}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{EF338792-2E07-4A65-8923-0B79696B9196}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{EF338792-2E07-4A65-8923-0B79696B9196}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

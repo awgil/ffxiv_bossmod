@@ -5,11 +5,11 @@ namespace BossMod.Autorotation;
 // database containing all registered rotation module definitions and builder functions
 public static class RotationModuleRegistry
 {
-    public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
+    public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder, Type ModuleType);
 
-    public static IReadOnlyDictionary<Type, Entry> Modules => _modules;
+    public static IReadOnlyDictionary<string, Entry> Modules => _modules;
 
-    private static readonly Dictionary<Type, Entry> _modules = [];
+    private static readonly Dictionary<string, Entry> _modules = [];
 
     public static void ScanAssembly(Assembly assembly)
     {
@@ -23,13 +23,13 @@ public static class RotationModuleRegistry
                 continue;
             }
 
-            _modules[t] = new(def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t));
+            _modules[t.FullName!] = new(def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t), t);
         }
     }
 
     public static void UnloadFrom(Assembly assembly)
     {
-        foreach (var k in _modules.Keys.Where(k => k.Assembly == assembly).ToList())
+        foreach (var (k, _) in _modules.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
             _modules.Remove(k);
     }
 }

@@ -94,18 +94,18 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     }
                 }
                 ImGui.Separator();
-                foreach (var (mt, m) in RotationModuleRegistry.Modules.Where(m => (m.Value.Definition.RelatedBossModule == null || m.Value.Definition.RelatedBossModule == Plan.Encounter) && m.Value.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.Key)))
+                foreach (var m in RotationModuleRegistry.Modules.Values.Where(m => (m.Definition.RelatedBossModule == null || m.Definition.RelatedBossModule == Plan.Encounter) && m.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.ModuleType)))
                 {
                     var added = false;
                     if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
-                        post += AddModuleAction(mt, m);
+                        post += AddModuleAction(m.ModuleType, m);
 
                     if (ImGui.IsItemHovered())
                     {
                         using var tooltip = ImRaii.Tooltip();
                         if (tooltip.Alive)
                         {
-                            UIRotationModule.DescribeModule(mt, m.Definition);
+                            UIRotationModule.DescribeModule(m.ModuleType, m.Definition);
                         }
                     }
                 }

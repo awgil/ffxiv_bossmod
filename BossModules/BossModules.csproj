@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <RootNamespace>BossMod</RootNamespace>
+    <Use_DalamudPackager>false</Use_DalamudPackager>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Numerics" />
+    <Using Include="Lumina.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Dawntrail\DeepDungeon\PilgrimsTraverse\D99TheFinalVerse\Dark.json" />
+    <EmbeddedResource Include="Dawntrail\DeepDungeon\PilgrimsTraverse\D99TheFinalVerse\Light.json" />
+    <EmbeddedResource Include="Global\DeepDungeon\BadTraps.json" />
+    <EmbeddedResource Include="Global\DeepDungeon\Walls.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BossMod\BossMod.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

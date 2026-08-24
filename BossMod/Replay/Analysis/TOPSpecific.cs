@@ -1,4 +1,5 @@
-﻿using BossMod.Endwalker.Ultimate.TOP;
+﻿// FIXME
+//using BossMod.Endwalker.Ultimate.TOP;
 
 namespace BossMod.ReplayAnalysis;
 
@@ -19,6 +20,7 @@ class TOPSpecific
         _plotFlamethrowers.DataMin = new(-180, 0);
         _plotFlamethrowers.DataMax = new(180, 1);
         _plotFlamethrowers.TickAdvance = new(5, 1);
+        /*
         foreach (var replay in replays)
         {
             var aidFlamethrower = ActionID.MakeSpell(AID.FlameThrowerFirst);
@@ -34,6 +36,7 @@ class TOPSpecific
                 }
             }
         }
+        */
     }
 
     public void Draw(UITree tree)

@@ -338,7 +338,7 @@ public sealed class UIPresetEditor
             ImGui.TextUnformatted("Not part of the standard rotation. Use the Healer AI module instead.");
             if (ImGui.Button("Add Healer AI"))
             {
-                var rot = RotationModuleRegistry.Modules[THealerAI];
+                var rot = RotationModuleRegistry.Modules[THealerAI.FullName!];
                 var index = Preset.AddModule(THealerAI, rot.Definition, rot.Builder);
                 Modified = true;
                 SelectModule(index);
@@ -393,9 +393,9 @@ public sealed class UIPresetEditor
                 continue; // skip dev-mode-only module in "production"
             if (m.Value.Definition.RelatedBossModule != null)
                 continue; // don't care about boss-specific modules for presets
-            if (FindModuleByType(m.Key) >= 0)
+            if (FindModuleByType(m.Value.ModuleType) >= 0)
                 continue; // module is already added to preset
-            AddAvailableModule(m.Key, m.Value.Definition, m.Value.Builder, res);
+            AddAvailableModule(m.Value.ModuleType, m.Value.Definition, m.Value.Builder, res);
         }
         return res;
     }

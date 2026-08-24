@@ -59,7 +59,7 @@ public static class ConfigConverter
             {
                 if (config?["CooldownPlans"] is not JsonObject plans)
                     continue;
-                bool isTEA = k == typeof(Shadowbringers.Ultimate.TEA.TEAConfig).FullName;
+                bool isTEA = false; // k == typeof(Shadowbringers.Ultimate.TEA.TEAConfig).FullName;
                 foreach (var (cls, planList) in plans)
                 {
                     if (planList?["Available"] is not JsonArray avail)
