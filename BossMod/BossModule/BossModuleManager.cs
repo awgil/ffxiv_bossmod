@@ -6,7 +6,7 @@ public sealed class BossModuleManager : IDisposable
     public readonly WorldState WorldState;
     public readonly RaidCooldowns RaidCooldowns;
     public readonly BossModuleConfig Config = Service.Config.Get<BossModuleConfig>();
-    private readonly EventSubscriptions _subsciptions;
+    private readonly EventSubscriptions _subscriptions;
 
     public List<BossModule> LoadedModules { get; } = [];
     public Event<BossModule> ModuleLoaded = new();
@@ -34,11 +34,17 @@ public sealed class BossModuleManager : IDisposable
     {
         WorldState = ws;
         RaidCooldowns = new(ws);
-        _subsciptions = new
+        _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(ActorAdded),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
             WorldState.CurrentZoneChanged.Subscribe(OnZoneChange),
+            BossModuleRegistry.Modified.Subscribe(() =>
+            {
+                ForceUnload("registry-update");
+                foreach (var a in WorldState.Actors)
+                    ActorAdded(a);
+            }),
             Config.Modified.ExecuteAndSubscribe(ConfigChanged)
         );
 
@@ -53,7 +59,7 @@ public sealed class BossModuleManager : IDisposable
             m.Dispose();
         LoadedModules.Clear();
 
-        _subsciptions.Dispose();
+        _subscriptions.Dispose();
         RaidCooldowns.Dispose();
     }
 
