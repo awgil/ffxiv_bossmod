@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleLib", "ExampleLib\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Modules", "BossMod.Modules\BossMod.Modules.csproj", "{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Multibox", "BossMod.Multibox\BossMod.Multibox.csproj", "{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -41,6 +43,10 @@ Global
 		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Debug|AnyCPU.Build.0 = Debug|x64
 		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Release|AnyCPU.ActiveCfg = Release|x64
 		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Release|AnyCPU.Build.0 = Release|x64
+		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

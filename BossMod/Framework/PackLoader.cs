@@ -68,12 +68,6 @@ sealed class PackLoader : IDisposable
 
         _loadContexts.Clear();
 
-        var builtinsFile = Path.Join(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "BossMod.Modules.dll");
-        if (Path.Exists(builtinsFile))
-            OnCreated(builtinsFile);
-        else
-            Service.PluginLog.Warning($"Builtin modules are missing, you won't see a whole lot in the UI");
-
         if (!Path.Exists(packDirectory))
             return;
 

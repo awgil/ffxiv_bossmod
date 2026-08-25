@@ -16,13 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Dawntrail\DeepDungeon\PilgrimsTraverse\D99TheFinalVerse\Dark.json" />
-    <EmbeddedResource Include="Dawntrail\DeepDungeon\PilgrimsTraverse\D99TheFinalVerse\Light.json" />
-    <EmbeddedResource Include="Global\DeepDungeon\BadTraps.json" />
-    <EmbeddedResource Include="Global\DeepDungeon\Walls.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BossMod\BossMod.csproj">
       <Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>
