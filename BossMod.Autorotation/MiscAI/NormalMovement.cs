@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation.xan;
-using BossMod.Pathfinding;
+﻿using BossMod.Pathfinding;
 using System.Threading.Tasks;
 
 namespace BossMod.Autorotation.MiscAI;
@@ -193,6 +192,15 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         {
             var distance = thinIce.Extra * 0.1f;
             Hints.AddForbiddenZone(ShapeDistance.Donut(Player.Position, 1, distance - 1), World.FutureTime(2));
+        }
+
+        if (Hints.FindEnemy(primaryTarget) is { } enemy)
+        {
+            if (enemy.Actor.TargetID == Player.InstanceID && enemy.ShouldBeTanked && !enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
+            {
+                var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(goal, 1, 0.5f));
+            }
         }
 
         var speed = World.Client.MoveSpeed;

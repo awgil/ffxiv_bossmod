@@ -26,7 +26,7 @@ public sealed class UIPresetEditor
     private bool _showHiddenTracks;
     private bool _currentModuleHasHealerAI;
 
-    private static readonly string THealerAI = "BossMod.Autorotation.xan.HealerAI";
+    private const string THealerAI = "BossMod.Autorotation.xan.HealerAI";
     private static readonly string[] _misleadingHealerRotations = [
         "BossMod.Autorotation.xan.WHM",
         "BossMod.Autorotation.xan.AST",

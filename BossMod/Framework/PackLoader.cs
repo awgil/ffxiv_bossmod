@@ -132,6 +132,8 @@ sealed class PackLoader : IDisposable
 
     public void Dispose()
     {
+        _watcher.Dispose();
+
         foreach (var c in _loadContexts.Values)
             c.Unload();
     }
