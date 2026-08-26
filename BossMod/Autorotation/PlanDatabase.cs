@@ -26,6 +26,13 @@ public sealed class PlanDatabase
         if (!_planStore.Exists)
             _planStore.Create();
 
+        Load();
+    }
+
+    public void Load()
+    {
+        Plans.Clear();
+
         // first load all actually available plans
         Dictionary<string, Plan> foundPlans = [];
         var serOptions = Serialization.BuildSerializationOptions();

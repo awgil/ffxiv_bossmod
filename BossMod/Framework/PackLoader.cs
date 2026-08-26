@@ -11,9 +11,11 @@ sealed class PackLoader : IDisposable
     {
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            // wtf does this even do, and more importantly, why is it necessary
+            //loadcontext has no idea where these are i guess
             if (assemblyName.Name == "BossMod")
-                return Assembly.GetExecutingAssembly();
+                return typeof(PackLoader).Assembly;
+            if (assemblyName.Name == "FFXIVClientStructs")
+                return typeof(FFXIVClientStructs.FFXIV.Client.Game.Camera).Assembly;
 
             return base.Load(assemblyName);
         }
@@ -77,7 +79,7 @@ sealed class PackLoader : IDisposable
     {
         Service.Log($"loading assembly from {fullPath}");
         byte[] raw;
-        using (var s = File.OpenRead(fullPath))
+        using (var s = Utils.OpenShareable(fullPath))
         {
             raw = new byte[s.Length];
             s.ReadExactly(raw, 0, (int)s.Length);

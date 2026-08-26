@@ -196,6 +196,12 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
         if (Hints.FindEnemy(primaryTarget) is { } enemy)
         {
+            if (World.Client.CountdownRemaining > 0)
+            {
+                if (Player.Class.GetRole() is Role.Tank or Role.Melee)
+                    Hints.GoalZones.Add(Hints.GoalSingleTarget(enemy.Actor.Position + enemy.Actor.Rotation.ToDirection() * 5, 1, 1));
+            }
+
             if (enemy.Actor.TargetID == Player.InstanceID && enemy.ShouldBeTanked && !enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
             {
                 var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;

@@ -8,19 +8,28 @@ public sealed class PresetDatabase
 {
     private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
 
-    public readonly List<Preset> DefaultPresets; // default presets, distributed as part of the plugin
-    public readonly List<Preset> UserPresets; // user-defined presets, stored in user's preset db
+    public readonly List<Preset> DefaultPresets = []; // default presets, distributed as part of the plugin
+    public readonly List<Preset> UserPresets = []; // user-defined presets, stored in user's preset db
     public Event<Preset?, Preset?> PresetModified = new(); // (old, new); old == null if preset is added, new == null if preset is removed
 
     private readonly FileInfo _dbPath;
+    private readonly FileInfo _defaultPath;
 
     public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
 
     public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {
         _dbPath = new(rootPath + ".db.json");
-        DefaultPresets = LoadPresetsFromFile(defaultPresets);
-        UserPresets = LoadPresetsFromFile(_dbPath);
+        _defaultPath = defaultPresets;
+        Load();
+    }
+
+    public void Load()
+    {
+        DefaultPresets.Clear();
+        DefaultPresets.AddRange(LoadPresetsFromFile(_defaultPath));
+        UserPresets.Clear();
+        UserPresets.AddRange(LoadPresetsFromFile(_dbPath));
     }
 
     private List<Preset> LoadPresetsFromFile(FileInfo file)

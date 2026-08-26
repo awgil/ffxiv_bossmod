@@ -88,7 +88,7 @@ public sealed class ModuleViewer : IDisposable
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
 
         _subscriptions = new(
-            BossModuleRegistry.Modified.ExecuteAndSubscribe(Rebuild)
+            BossModuleRegistry.Modified.Subscribe(Rebuild)
         );
     }
 

@@ -677,7 +677,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();
-        _packs.Dispose();
+        _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
         _dtr.Dispose();
@@ -689,5 +689,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder.Dispose();
         _zonemod.Dispose();
         _bossmod.Dispose();
+        _packs.Dispose();
     }
 }
