@@ -23,11 +23,11 @@ sealed class PackLoader : IDisposable
     readonly Dictionary<string, LoadContext> _loadContexts = [];
     private readonly FileSystemWatcher _watcher;
     private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
-    private string _prevDirectory = "";
+    public static readonly string ModuleDir = Path.Join(ReplayHistory.GetStorageDir().FullName, "modules");
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
 
-    private readonly EventSubscriptions _subscriptions;
+    //private readonly EventSubscriptions _subscriptions;
 
     public PackLoader()
     {
@@ -43,15 +43,10 @@ sealed class PackLoader : IDisposable
         _watcher.Filter = "*.dll";
         _watcher.IncludeSubdirectories = true;
 
-        _subscriptions = new(
-            _config.Modified.ExecuteAndSubscribe(() =>
-            {
-                var curDirectory = _config.ModulePackDirectory;
-                if (_prevDirectory != curDirectory)
-                    ReloadFrom(curDirectory);
-                _prevDirectory = curDirectory;
-            })
-        );
+        if (!Directory.Exists(ModuleDir))
+            Directory.CreateDirectory(ModuleDir);
+
+        ReloadFrom(ModuleDir);
     }
 
     public void ForceReload() => ReloadFrom(_config.ModulePackDirectory);
@@ -136,7 +131,7 @@ sealed class PackLoader : IDisposable
 
     public void Dispose()
     {
-        _subscriptions.Dispose();
+        //_subscriptions.Dispose();
 
         foreach (var c in _loadContexts.Values)
             c.Unload();

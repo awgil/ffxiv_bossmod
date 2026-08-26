@@ -357,6 +357,9 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
         if (ShouldUseLostBuff(LostBannerCD, 90))
             Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice), Player, ActionQueue.Priority.Low + (int)OGCDPriority.LostBanner);
 
+        if (World.Client.CountdownRemaining > 0)
+            return;
+
         // ai hints for positioning
         var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, 3) : null;
         var goalAOE = Hints.GoalAOECircle(3);

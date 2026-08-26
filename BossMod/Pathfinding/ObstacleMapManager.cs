@@ -266,7 +266,7 @@ public sealed class ObstacleMapManager : IDisposable
 
             if (File.Exists(UserList.FullName))
             {
-                using var user = UserList.OpenRead();
+                using var user = UserList.OpenShareable();
                 Database.Load(user, false);
             }
         }

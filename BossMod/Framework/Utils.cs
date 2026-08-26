@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -450,4 +451,8 @@ public static partial class Utils
         else
             ImGui.TextUnformatted(text);
     }
+
+    public static FileStream OpenShareable(string path) => File.Open(path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+    public static FileStream OpenShareable(this FileInfo finfo) => finfo.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 }

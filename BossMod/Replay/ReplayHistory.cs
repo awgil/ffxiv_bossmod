@@ -23,7 +23,7 @@ public class ReplayHistory
         var file = Path.Combine(GetStorageDir().FullName, "replay-history.json");
         try
         {
-            using var stream = File.OpenRead(file);
+            using var stream = Utils.OpenShareable(file);
             var m = JsonSerializer.Deserialize<List<ReplayMemory>>(stream);
             return new() { History = m! };
         }
