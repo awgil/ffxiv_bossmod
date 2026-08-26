@@ -1,4 +1,5 @@
-﻿using BossMod.Pathfinding;
+﻿using BossMod.Data;
+using BossMod.Pathfinding;
 using System.Threading.Tasks;
 
 namespace BossMod.Autorotation.MiscAI;
@@ -196,13 +197,17 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
         if (Hints.FindEnemy(primaryTarget) is { } enemy)
         {
-            if (World.Client.CountdownRemaining > 0)
+            // TODO: configurable
+            if (World.Client.CountdownRemaining > 0 && AggroDistance.TryGet(World.CurrentZone, enemy.Actor.NameID, out var aggroDistance))
             {
-                if (Player.Class.GetRole() is Role.Tank or Role.Melee)
-                    Hints.GoalZones.Add(Hints.GoalSingleTarget(enemy.Actor.Position + enemy.Actor.Rotation.ToDirection() * 5, 1, 1));
+                var pt = enemy.Actor.Position + enemy.Actor.DirectionTo(Player) * (aggroDistance + enemy.Actor.HitboxRadius + 0.5f);
+                var dist = pt - Player.Position;
+                if (dist.LengthSq() > 0.01f)
+                    Hints.ForcedMovement = dist.Normalized().ToVec3();
+                return;
             }
 
-            if (enemy.Actor.TargetID == Player.InstanceID && enemy.ShouldBeTanked && !enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
+            if (enemy.Actor.TargetID == Player.InstanceID && !enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
             {
                 var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;
                 Hints.GoalZones.Add(Hints.GoalSingleTarget(goal, 1, 0.5f));

@@ -63,6 +63,7 @@
     <EmbeddedResource Include="Modules\**\*.json" />
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
+    <EmbeddedResource Include="Data\AggroDistance.dat" />
   </ItemGroup>
 
   <ItemGroup>
