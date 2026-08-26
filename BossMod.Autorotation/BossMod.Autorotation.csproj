@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <Use_DalamudPackager>false</Use_DalamudPackager>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Numerics" />
+    <Using Include="Lumina.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BossMod\BossMod.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Target Name="CopyDll" AfterTargets="Build">
+    <Copy SourceFiles="$(OutDir)\$(AssemblyName).dll" DestinationFolder="$(AppData)\vbm\modules" />
+  </Target>
+</Project>

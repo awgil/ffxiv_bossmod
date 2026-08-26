@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Modules", "BossMod.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Multibox", "BossMod.Multibox\BossMod.Multibox.csproj", "{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Autorotation", "BossMod.Autorotation\BossMod.Autorotation.csproj", "{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -51,6 +53,10 @@ Global
 		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Debug|AnyCPU.Build.0 = Debug|x64
 		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Release|AnyCPU.ActiveCfg = Release|x64
 		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Release|AnyCPU.Build.0 = Release|x64
+		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Debug|AnyCPU.ActiveCfg = Debug|x64
+		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Debug|AnyCPU.Build.0 = Debug|x64
+		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Release|AnyCPU.ActiveCfg = Release|x64
+		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Release|AnyCPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

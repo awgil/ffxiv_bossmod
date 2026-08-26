@@ -1,4 +1,4 @@
-﻿using BossMod.Autorotation.xan;
+﻿using BossMod.Autorotation;
 using BossMod.Pathfinding;
 using Dalamud.Bindings.ImGui;
 

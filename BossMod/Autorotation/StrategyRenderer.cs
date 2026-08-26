@@ -1,7 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
-namespace BossMod.Autorotation.xan;
+namespace BossMod.Autorotation;
 
 public class TargetingRenderer : TrackRenderer
 {

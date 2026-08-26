@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Autorotation.xan;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;

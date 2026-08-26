@@ -4,61 +4,6 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
-[Renderer(typeof(TargetingRenderer))]
-public enum Targeting
-{
-    [Option("Use player's target")]
-    Manual,
-    [Option("Automatically pick best target for all actions")]
-    Auto,
-    [Option("Automatically pick best target; player target must be hit")]
-    AutoPrimary,
-    [Option("Automatically pick best target; if player has a target, hit it")]
-    AutoTryPri
-}
-
-[Renderer(typeof(OffensiveStrategyRenderer))]
-public enum OffensiveStrategy
-{
-    Automatic,
-    Delay,
-    Force
-}
-
-[Renderer(typeof(DefaultOnRenderer))]
-public enum EnabledByDefault
-{
-    Enabled,
-    Disabled
-}
-
-[Renderer(typeof(DefaultOffRenderer))]
-public enum DisabledByDefault
-{
-    Disabled,
-    Enabled
-}
-
-public enum AOEStrategy
-{
-    [Option("Use AOE rotation if beneficial")]
-    AOE,
-    [Option("Use single-target rotation")]
-    ST,
-    [Option("Always use AOE rotation, even on one target")]
-    ForceAOE,
-    [Option("Use single-target rotation; do not use ANY actions that can hit multiple targets")]
-    ForceST
-}
-
-public enum SharedTrack { Targeting, AOE, Buffs, Count }
-
-public interface IStrategyCommon
-{
-    public abstract Targeting Targeting { get; }
-    public abstract AOEStrategy AOE { get; }
-}
-
 public abstract class Attackxan<AID, TraitID, TValues>(RotationModuleManager manager, Actor player, PotionType potType = PotionType.None) : Basexan<AID, TraitID, TValues>(manager, player, potType)
     where AID : struct, Enum
     where TraitID : Enum
@@ -664,10 +609,10 @@ static class Extendxan
     public static RotationModuleDefinition DefineSharedTA(this RotationModuleDefinition def)
     {
         def.Define(SharedTrack.Targeting).As<Targeting>("Targeting", uiPriority: 500, renderer: typeof(TargetingRenderer))
-            .AddOption(xan.Targeting.Manual, "Use player's current target for all actions")
-            .AddOption(xan.Targeting.Auto, "Automatically select best target (highest number of nearby targets) for AOE actions")
-            .AddOption(xan.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
-            .AddOption(xan.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
+            .AddOption(Autorotation.Targeting.Manual, "Use player's current target for all actions")
+            .AddOption(Autorotation.Targeting.Auto, "Automatically select best target (highest number of nearby targets) for AOE actions")
+            .AddOption(Autorotation.Targeting.AutoPrimary, "Automatically select best target for AOE actions - ensure player target is hit")
+            .AddOption(Autorotation.Targeting.AutoTryPri, "Automatically select best target for AOE actions - if player has a target, ensure that target is hit");
 
         def.Define(SharedTrack.AOE).As<AOEStrategy>("AOE", uiPriority: 499)
             .AddOption(AOEStrategy.AOE, "Use AOE rotation if beneficial")

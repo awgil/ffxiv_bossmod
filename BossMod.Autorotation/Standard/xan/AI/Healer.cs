@@ -1,5 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using static BossMod.Autorotation.xan.TrackPartyHealth;
+using static BossMod.Autorotation.TrackPartyHealth;
 
 namespace BossMod.Autorotation.xan;
 

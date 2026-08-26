@@ -26,13 +26,13 @@ public sealed class UIPresetEditor
     private bool _showHiddenTracks;
     private bool _currentModuleHasHealerAI;
 
-    private static readonly Type THealerAI = typeof(xan.HealerAI);
-    private static readonly Type[] _misleadingHealerRotations = [
-        typeof(xan.WHM),
-        typeof(xan.AST),
-        typeof(xan.SCH),
-        typeof(xan.SGE),
-        typeof(akechi.AkechiSCH)
+    private static readonly string THealerAI = "BossMod.Autorotation.xan.HealerAI";
+    private static readonly string[] _misleadingHealerRotations = [
+        "BossMod.Autorotation.xan.WHM",
+        "BossMod.Autorotation.xan.AST",
+        "BossMod.Autorotation.xan.SCH",
+        "BossMod.Autorotation.xan.SGE",
+        "BossMod.Autorotation.akechi.AkechiSCH"
     ];
 
     public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
@@ -65,7 +65,7 @@ public sealed class UIPresetEditor
         NameConflict = CheckNameConflict();
         Modified = true;
         _availableModules = BuildAvailableModules();
-        _currentModuleHasHealerAI = preset.Modules.Any(m => m.Type == THealerAI);
+        _currentModuleHasHealerAI = preset.Modules.Any(m => m.Type.FullName == THealerAI);
         SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
@@ -177,7 +177,7 @@ public sealed class UIPresetEditor
             AddAvailableModule(m.Type, m.Definition, m.Builder, _availableModules);
             Preset.Modules.RemoveAt(_selectedModuleIndex);
             Modified = true;
-            _currentModuleHasHealerAI &= m.Type != THealerAI;
+            _currentModuleHasHealerAI &= m.Type.FullName != THealerAI;
             SelectModule(-1);
         }
     }
@@ -200,7 +200,7 @@ public sealed class UIPresetEditor
                 var index = Preset.AddModule(leaf.type, leaf.def, leaf.builder);
                 Modified = true;
                 SelectModule(index);
-                _currentModuleHasHealerAI |= leaf.type == THealerAI;
+                _currentModuleHasHealerAI |= leaf.type.FullName == THealerAI;
                 actions += () => RemoveAvailableModule(cat, leaf.type);
             }
         }
@@ -329,7 +329,7 @@ public sealed class UIPresetEditor
 
     private bool SuggestHealerAI(Preset.ModuleSettings ms)
     {
-        if (!_currentModuleHasHealerAI && _autorotConfig.SuggestHealerAI && _misleadingHealerRotations.Contains(ms.Type))
+        if (!_currentModuleHasHealerAI && _autorotConfig.SuggestHealerAI && _misleadingHealerRotations.Contains(ms.Type.FullName))
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
@@ -338,8 +338,8 @@ public sealed class UIPresetEditor
             ImGui.TextUnformatted("Not part of the standard rotation. Use the Healer AI module instead.");
             if (ImGui.Button("Add Healer AI"))
             {
-                var rot = RotationModuleRegistry.Modules[THealerAI.FullName!];
-                var index = Preset.AddModule(THealerAI, rot.Definition, rot.Builder);
+                var rot = RotationModuleRegistry.Modules[THealerAI];
+                var index = Preset.AddModule(rot.ModuleType, rot.Definition, rot.Builder);
                 Modified = true;
                 SelectModule(index);
                 _currentModuleHasHealerAI = true;

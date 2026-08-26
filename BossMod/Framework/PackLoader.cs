@@ -27,8 +27,6 @@ sealed class PackLoader : IDisposable
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
 
-    //private readonly EventSubscriptions _subscriptions;
-
     public PackLoader()
     {
         _watcher = new()
@@ -105,6 +103,8 @@ sealed class PackLoader : IDisposable
             foreach (var asm in ctx.Assemblies)
                 Unload(asm);
 
+            ctx.Unload();
+
             _loadContexts.Remove(e.FullPath);
         }
     }
@@ -124,6 +124,7 @@ sealed class PackLoader : IDisposable
 
     static void Load(Assembly asm)
     {
+        // TODO: need to rebuild config tree as well
         RotationModuleRegistry.ScanAssembly(asm);
         BossModuleRegistry.ScanAssembly(asm);
         ZoneModuleRegistry.ScanAssembly(asm);
@@ -131,8 +132,6 @@ sealed class PackLoader : IDisposable
 
     public void Dispose()
     {
-        //_subscriptions.Dispose();
-
         foreach (var c in _loadContexts.Values)
             c.Unload();
     }

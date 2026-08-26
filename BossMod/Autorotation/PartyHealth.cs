@@ -1,4 +1,4 @@
-﻿namespace BossMod.Autorotation.xan;
+﻿namespace BossMod.Autorotation;
 
 public class TrackPartyHealth(WorldState World)
 {
@@ -54,6 +54,7 @@ public class TrackPartyHealth(WorldState World)
         1836, // Superbolide
         2685, // Catharsis of Corundum
         (uint)WAR.SID.BloodwhettingDefenseLong,
+        3902, // Vigilant
 
         // everything called "HP Recovery Down"
         2852,

@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation.xan;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
@@ -56,6 +55,61 @@ public enum StrategyCondition : int
 {
     None = 0,
     AssignedRole = 1
+}
+
+[Renderer(typeof(OffensiveStrategyRenderer))]
+public enum OffensiveStrategy
+{
+    Automatic,
+    Delay,
+    Force
+}
+
+[Renderer(typeof(TargetingRenderer))]
+public enum Targeting
+{
+    [Option("Use player's target")]
+    Manual,
+    [Option("Automatically pick best target for all actions")]
+    Auto,
+    [Option("Automatically pick best target; player target must be hit")]
+    AutoPrimary,
+    [Option("Automatically pick best target; if player has a target, hit it")]
+    AutoTryPri
+}
+
+public enum AOEStrategy
+{
+    [Option("Use AOE rotation if beneficial")]
+    AOE,
+    [Option("Use single-target rotation")]
+    ST,
+    [Option("Always use AOE rotation, even on one target")]
+    ForceAOE,
+    [Option("Use single-target rotation; do not use ANY actions that can hit multiple targets")]
+    ForceST
+}
+
+[Renderer(typeof(DefaultOnRenderer))]
+public enum EnabledByDefault
+{
+    Enabled,
+    Disabled
+}
+
+[Renderer(typeof(DefaultOffRenderer))]
+public enum DisabledByDefault
+{
+    Disabled,
+    Enabled
+}
+
+public enum SharedTrack { Targeting, AOE, Buffs, Count }
+
+public interface IStrategyCommon
+{
+    public abstract Targeting Targeting { get; }
+    public abstract AOEStrategy AOE { get; }
 }
 
 [AttributeUsage(AttributeTargets.Field)]
