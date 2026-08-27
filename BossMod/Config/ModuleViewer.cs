@@ -88,7 +88,7 @@ public sealed class ModuleViewer : IDisposable
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
 
         _subscriptions = new(
-            BossModuleRegistry.Modified.Subscribe(Rebuild)
+            BossModuleRegistry.Modified.ExecuteAndSubscribe(Rebuild)
         );
     }
 
@@ -472,16 +472,56 @@ public sealed class ModuleViewer : IDisposable
             }
         }
 
-        var player = _ws.Party.Player();
-        if (player != null)
+        if (Service.IsMock)
+        {
+            foreach (var cls in supportedClasses)
+                if (ImGui.Selectable($"New plan for {cls}..."))
+                    CreateForClass(info, mplans, cls);
+        }
+        else if (_ws.Party.Player() is { } player)
         {
             if (ImGui.Selectable($"New plan for {player.Class}..."))
-            {
-                var plans = mplans.GetOrAdd(player.Class);
-                var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
-                _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
-            }
+                CreateForClass(info, mplans, player.Class);
         }
     }
+
+    private void CreateForClass(BossModuleRegistry.Info info, Dictionary<Class, PlanDatabase.PlanList> mplans, Class cls)
+    {
+        var plans = mplans.GetOrAdd(cls);
+        var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = cls, Level = info.PlanLevel };
+
+        plan.Targeting.Add(new(new StrategyValueTrack())
+        {
+            TimeSinceActivation = -30,
+            WindowLength = 30
+        });
+
+        _planDB!.ModifyPlan(null, plan);
+        UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+    }
+
+    static readonly Class[] supportedClasses = [
+        Class.PLD,
+        Class.MNK,
+        Class.WAR,
+        Class.DRG,
+        Class.BRD,
+        Class.WHM,
+        Class.BLM,
+        Class.SMN,
+        Class.SCH,
+        Class.NIN,
+        Class.MCH,
+        Class.DRK,
+        Class.AST,
+        Class.SAM,
+        Class.RDM,
+        Class.BLU,
+        Class.GNB,
+        Class.DNC,
+        Class.RPR,
+        Class.SGE,
+        Class.VPR,
+        Class.PCT,
+    ];
 }

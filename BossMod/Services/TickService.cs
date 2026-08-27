@@ -128,7 +128,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
         }
 
-        _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+        _rotationDB = new(new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm", "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
 
         if (Service.IsMock)
         {
