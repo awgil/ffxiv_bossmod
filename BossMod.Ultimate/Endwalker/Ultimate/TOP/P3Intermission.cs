@@ -124,7 +124,7 @@ class P3WaveRepeater(BossModule module) : Components.ConcentricAOEs(module, _sha
     }
 }
 
-class P3IntermissionVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.P3IntermissionVoidzone, z => z.EventState == 7);
+class P3IntermissionVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.P3IntermissionVoidzone);
 
 class P3ColossalBlow(BossModule module) : Components.GenericAOEs(module)
 {

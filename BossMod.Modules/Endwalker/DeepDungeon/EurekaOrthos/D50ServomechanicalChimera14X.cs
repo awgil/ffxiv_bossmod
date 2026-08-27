@@ -27,7 +27,7 @@ public enum AID : uint
     TheRamsVoice = 32807, // Boss->self, no cast, range 9 circle
 }
 
-class Cacophony(BossModule module) : Components.Voidzone(module, 6, OID.Cacophony, e => e.EventState == 7, 6);
+class Cacophony(BossModule module) : Components.Voidzone(module, 6, OID.Cacophony, moveHintLength: 6);
 
 class RightbreathedCold(BossModule module) : Components.StandardAOEs(module, AID.RightbreathedCold, new AOEShapeCone(40, 90.Degrees()));
 class LeftbreathedThunder(BossModule module) : Components.StandardAOEs(module, AID.LeftbreathedThunder, new AOEShapeCone(40, 90.Degrees()));

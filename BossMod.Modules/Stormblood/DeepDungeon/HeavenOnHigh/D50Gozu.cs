@@ -20,7 +20,7 @@ public enum AID : uint
 class EyeoftheFire(BossModule module) : Components.CastGaze(module, AID.EyeOfTheFire);
 class RustingClaw(BossModule module) : Components.StandardAOEs(module, AID.RustingClaw, new AOEShapeCone(11.45f, 60.Degrees()));
 class TheSpin(BossModule module) : Components.StandardAOEs(module, AID.TheSpin, new AOEShapeCircle(20));
-class VoidSpark(BossModule module) : Components.Voidzone(module, 8, OID.Gloom, z => z.EventState == 7);
+class VoidSpark(BossModule module) : Components.Voidzone(module, 8, OID.Gloom);
 class WordsofWoe(BossModule module) : Components.StandardAOEs(module, AID.WordsOfWoe, new AOEShapeRect(48.45f, 3));
 
 class D50GozuStates : StateMachineBuilder

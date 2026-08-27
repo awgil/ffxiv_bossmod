@@ -40,8 +40,7 @@ public class Voidzone(BossModule module, float radius, uint oid, Func<Actor, boo
 
     public override void Update()
     {
-        if (IsDeactivated != null)
-            _sources.RemoveAll(IsDeactivated.Invoke);
+        _sources.RemoveAll(a => a.EventState == 7 || IsDeactivated?.Invoke(a) == true);
     }
 
     protected void AddSource(Actor a) => _sources.Add(a);

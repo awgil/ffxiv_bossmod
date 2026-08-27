@@ -56,7 +56,7 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.Sh
     }
 }
 class NaldsWhisper(BossModule module) : Components.StandardAOEs(module, AID.NaldsWhisper, new AOEShapeCircle(20));
-class TheFourWinds(BossModule module) : Components.Voidzone(module, 6, OID.TaintedWindSprite, x => x.EventState == 7);
+class TheFourWinds(BossModule module) : Components.Voidzone(module, 6, OID.TaintedWindSprite);
 
 class AldisSwordOfNaldStates : StateMachineBuilder
 {

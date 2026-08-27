@@ -5,7 +5,7 @@ class KillerSting(BossModule module) : Components.IconSharedTankbuster(module, (
 class BlindingLoveCharge1(BossModule module) : Components.StandardAOEs(module, AID.BlindingLoveCharge1AOE, new AOEShapeRect(45, 5));
 class BlindingLoveCharge2(BossModule module) : Components.StandardAOEs(module, AID.BlindingLoveCharge2AOE, new AOEShapeRect(45, 5));
 class PoisonStingBait(BossModule module) : Components.BaitAwayCast(module, AID.PoisonStingAOE, new AOEShapeCircle(6), true);
-class PoisonStingVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.PoisonStingVoidzone, z => z.EventState == 7);
+class PoisonStingVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.PoisonStingVoidzone);
 class BeeSting(BossModule module) : Components.StackWithCastTargets(module, AID.BeeStingAOE, 6, 4);
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 988, NameID = 12685, PlanLevel = 100)]

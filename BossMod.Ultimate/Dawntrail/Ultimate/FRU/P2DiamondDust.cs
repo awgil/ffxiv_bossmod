@@ -339,7 +339,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
     }
 }
 
-class P2SinboundHolyVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.SinboundHolyVoidzone, z => z.EventState == 7)
+class P2SinboundHolyVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.SinboundHolyVoidzone)
 {
     public bool AIHintsEnabled = true;
 

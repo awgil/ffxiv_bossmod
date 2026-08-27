@@ -75,7 +75,7 @@ class P6AkhMorn(BossModule module) : Components.StackWithCastTargets(module, AID
     }
 }
 
-class P6AkhMornVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.VoidzoneAhkMorn, z => z.EventState == 7);
+class P6AkhMornVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.VoidzoneAhkMorn);
 
 class P6SpreadingEntangledFlames(BossModule module) : Components.UniformStackSpread(module, 4, 5, 2, alwaysShowSpreads: true)
 {
