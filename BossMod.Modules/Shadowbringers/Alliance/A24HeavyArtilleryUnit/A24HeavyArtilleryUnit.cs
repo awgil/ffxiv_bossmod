@@ -109,7 +109,7 @@ class ImpactCrusher(BossModule module) : Components.StandardAOEs(module, AID.Man
 class RevolvingLaser(BossModule module) : Components.StandardAOEs(module, AID.ManeuverRevolvingLaser, new AOEShapeDonut(12, 60));
 class R010Laser(BossModule module) : Components.StandardAOEs(module, AID.R010Laser, new AOEShapeRect(60, 6));
 class R030Hammer(BossModule module) : Components.StandardAOEs(module, AID.R030Hammer, new AOEShapeCircle(18));
-class Energy(BossModule module) : Components.PersistentVoidzone(module, 2, uint.MaxValue, null, 8)
+class Energy(BossModule module) : Components.Voidzone(module, 2, uint.MaxValue, null, 8)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

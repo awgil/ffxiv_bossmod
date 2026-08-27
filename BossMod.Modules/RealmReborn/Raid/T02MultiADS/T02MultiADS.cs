@@ -65,7 +65,7 @@ class Firestream(BossModule module) : Components.StandardAOEs(module, AID.Firest
 class Ballast1(BossModule module) : Components.StandardAOEs(module, AID.BallastAOE1, new AOEShapeCone(5.5f, 135.Degrees()));
 class Ballast2(BossModule module) : Components.StandardAOEs(module, AID.BallastAOE2, new AOEShapeDonutSector(5.5f, 10.5f, 135.Degrees()));
 class Ballast3(BossModule module) : Components.StandardAOEs(module, AID.BallastAOE3, new AOEShapeDonutSector(10.5f, 15.5f, 135.Degrees()));
-class GravityField(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.GravityField, m => m.Enemies(OID.GravityField), 1);
+class GravityField(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.GravityField, m => m.Enemies(OID.GravityField), 1);
 
 class T02AI(BossModule module) : BossComponent(module)
 {

@@ -192,7 +192,7 @@ class StingingTentacle(BossModule module) : Components.GenericAOEs(module)
         return self.Rotation + (diff.Rad >= 0 ? InwardOffset : -InwardOffset);
     }
 }
-class StrewnBubble(BossModule module) : Components.PersistentVoidzone(module, 2.6f, OID.AiryBubble, null, 8)
+class StrewnBubble(BossModule module) : Components.Voidzone(module, 2.6f, OID.AiryBubble, null, 8)
 {
     public override void OnActorCreated(Actor actor)
     {

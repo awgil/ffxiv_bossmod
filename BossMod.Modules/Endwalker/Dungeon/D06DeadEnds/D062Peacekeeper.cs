@@ -24,7 +24,7 @@ public enum AID : uint
 
 class Elimination(BossModule module) : Components.BaitAwayCast(module, AID.Elimination, new AOEShapeRect(46, 5), endsOnCastEvent: true);
 class Decimation(BossModule module) : Components.RaidwideCast(module, AID.Decimation);
-class ElectromagneticRepellant(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.ElectromagneticRepellant, m => m.Enemies(OID.ElectromagneticRepellant).Where(e => e.EventState != 7), 0);
+class ElectromagneticRepellant(BossModule module) : Components.VoidzoneAtCastTarget(module, 9, AID.ElectromagneticRepellant, m => m.Enemies(OID.ElectromagneticRepellant).Where(e => e.EventState != 7), 0);
 class NoFutureGround(BossModule module) : Components.StandardAOEs(module, AID.NoFutureAOE, new AOEShapeCircle(6));
 class NoFutureSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.NoFutureSpread, 6);
 class Peacefire(BossModule module) : Components.StandardAOEs(module, AID.Peacefire, 10);

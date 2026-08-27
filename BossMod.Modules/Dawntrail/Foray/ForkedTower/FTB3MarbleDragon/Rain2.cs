@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FTB3MarbleDragon;
 
-class IceTwister(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Icewind);
+class IceTwister(BossModule module) : Components.Voidzone(module, 5, OID.Icewind);
 
 // 3 puddles north, 3 puddles south, 1 center, activated in an arbitrary illogical order
 class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)

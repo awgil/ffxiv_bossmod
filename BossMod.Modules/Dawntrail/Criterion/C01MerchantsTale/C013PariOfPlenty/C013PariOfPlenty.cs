@@ -637,7 +637,7 @@ class ChillingGleam(BossModule module) : Components.GenericAOEs(module, AID.Chil
 class SpurningFlames(BossModule module) : Components.RaidwideCast(module, AID.SpurningFlames);
 class SpurningFlamesPreEnrage(BossModule module) : Components.RaidwideCast(module, AID.SpurningFlamesPreEnrage);
 class ImpassionedSparks(BossModule module) : Components.StandardAOEs(module, AID.ImpassionedSparksPuddle, 8);
-class BurningPillar(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, AID.BurningPillar, m => m.Enemies(0x1EBF20).Where(e => e.EventState != 7), 0.8f)
+class BurningPillar(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.BurningPillar, m => m.Enemies(0x1EBF20).Where(e => e.EventState != 7), 0.8f)
 {
     public int Groups { get; private set; }
     DateTime _prevCast;
@@ -989,4 +989,3 @@ class C013PariOfPlentyStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1079, NameID = 14274)]
 public class C013PariOfPlenty(WorldState ws, Actor primary) : BossModule(ws, primary, new(-760, -805), new ArenaBoundsSquare(20));
-

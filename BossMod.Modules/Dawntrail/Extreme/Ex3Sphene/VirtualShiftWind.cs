@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Dawntrail.Extreme.Ex3Sphene;
 
 class Aeroquell(BossModule module) : Components.StackWithCastTargets(module, AID.Aeroquell, 5, 4);
-class AeroquellTwister(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Twister);
+class AeroquellTwister(BossModule module) : Components.Voidzone(module, 5, OID.Twister);
 class MissingLink(BossModule module) : Components.Chains(module, (uint)TetherID.MissingLink, default, 25);
 
 class WindOfChange(BossModule module) : Components.Knockback(module, AID.WindOfChange, true)

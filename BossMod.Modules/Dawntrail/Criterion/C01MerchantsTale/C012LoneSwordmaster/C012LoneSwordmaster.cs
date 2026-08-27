@@ -724,7 +724,7 @@ class ResoundingSilence(BossModule module) : Components.SpreadFromIcon(module, (
             hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
     }
 }
-class ResoundingSilencePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.ResoundingSilenceSpread, m => m.Enemies(0x1EBF73).Where(e => e.EventState != 7), 2);
+class ResoundingSilencePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.ResoundingSilenceSpread, m => m.Enemies(0x1EBF73).Where(e => e.EventState != 7), 2);
 class MawOfTheWolf(BossModule module) : Components.StandardAOEs(module, AID.MawOfTheWolf, new AOEShapeRect(80, 40));
 
 class FangsOfTheUnderworld(BossModule module) : Components.IconLineStack(module, 5, 60, (uint)IconID.Fangs, AID.FangsOfTheUnderworldStack, 5.2f)
@@ -978,7 +978,7 @@ class SilentEightRock(BossModule module) : BossComponent(module)
         }
     }
 }
-class RockPuddle(BossModule module) : Components.PersistentVoidzone(module, 2.5f, 0x1EBFC8, e => e.EventState == 7);
+class RockPuddle(BossModule module) : Components.Voidzone(module, 2.5f, 0x1EBFC8, e => e.EventState == 7);
 
 class SteelsbreathBonds(BossModule module) : Components.Chains(module, (uint)TetherID.Chains, chainLength: 30);
 
@@ -1292,4 +1292,3 @@ class C012LoneSwordmasterStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1079, NameID = 14323, PlanLevel = 100)]
 public class C012LoneSwordmaster(WorldState ws, Actor primary) : BossModule(ws, primary, new(170, -815), new ArenaBoundsSquare(20));
-

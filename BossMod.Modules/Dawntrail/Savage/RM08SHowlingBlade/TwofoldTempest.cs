@@ -168,7 +168,7 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
     }
 }
 
-class TwofoldVoidzone : Components.PersistentVoidzoneAtCastTarget
+class TwofoldVoidzone : Components.VoidzoneAtCastTarget
 {
     private readonly List<Actor> _sources = [];
 

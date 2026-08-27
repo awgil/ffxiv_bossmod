@@ -32,7 +32,7 @@ class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(mod
         }
     }
 }
-class Windage(BossModule module) : Components.PersistentVoidzone(module, 6, OID.Whirlwind, m => m.IsDead);
+class Windage(BossModule module) : Components.Voidzone(module, 6, OID.Whirlwind, m => m.IsDead);
 
 class D40BhimaStates : StateMachineBuilder
 {

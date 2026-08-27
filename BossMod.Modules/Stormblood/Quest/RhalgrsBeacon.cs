@@ -103,7 +103,7 @@ class Gunblade(BossModule module) : Components.Knockback(module, AID.Gunblade, s
     }
 }
 
-class ChoppingBlock(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.ChoppingBlock1, m => m.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7), 0);
+class ChoppingBlock(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.ChoppingBlock1, m => m.Enemies(OID.ChoppingBlock).Where(x => x.EventState != 7), 0);
 
 class FordolaRemLupisStates : StateMachineBuilder
 {

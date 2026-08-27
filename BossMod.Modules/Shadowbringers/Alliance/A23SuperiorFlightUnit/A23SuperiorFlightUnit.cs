@@ -106,12 +106,12 @@ class IncendiaryBombingSpread(BossModule module) : Components.BaitAwayIcon(modul
             hints.AddForbiddenZone(p => A23SuperiorFlightUnit.PlatformCenters.Min(c => ShapeDistance.Circle(c, 17)(p)), bait.Activation);
     }
 }
-class IncendiaryBombing(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.IncendiaryBombing, m => m.Enemies(OID.IncendiaryBomb).Where(b => b.EventState != 7), 0.8f);
+class IncendiaryBombing(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.IncendiaryBombing, m => m.Enemies(OID.IncendiaryBomb).Where(b => b.EventState != 7), 0.8f);
 
 class PrecisionGuidedMissile(BossModule module) : Components.BaitAwayCast(module, AID.PrecisionGuidedMissile, new AOEShapeCircle(6), true, true);
 class LethalRevolution(BossModule module) : Components.StandardAOEs(module, AID.LethalRevolution, new AOEShapeCircle(15));
 class StandardSurfaceMissile(BossModule module) : Components.GroupedAOEs(module, [AID.StandardSurfaceMissile, AID.StandardSurfaceMissile1], new AOEShapeCircle(10), maxCasts: 9);
-class IncendiaryBarrage(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 27, AID.IncendiaryBarrage, m => m.Enemies(0x1EB07B).Where(e => e.EventState != 7), 0.8f);
+class IncendiaryBarrage(BossModule module) : Components.VoidzoneAtCastTarget(module, 27, AID.IncendiaryBarrage, m => m.Enemies(0x1EB07B).Where(e => e.EventState != 7), 0.8f);
 class GuidedMissile(BossModule module) : Components.StandardAOEs(module, AID.GuidedMissile, 4);
 class SurfaceMissile(BossModule module) : Components.StandardAOEs(module, AID.SurfaceMissile, 6);
 class AntiPersonnelMissile(BossModule module) : Components.SpreadFromCastTargets(module, AID.AntiPersonnelMissile, 6);
@@ -198,4 +198,3 @@ public class A23SuperiorFlightUnit(WorldState ws, Actor primary) : BossModule(ws
         Arena.Actor(Chi, ArenaColor.Enemy);
     }
 }
-

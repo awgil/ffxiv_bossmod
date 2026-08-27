@@ -38,7 +38,7 @@ class Adds(BossModule module) : Components.AddsMulti(module, [OID.Boss, OID.Yorh
 
 class LongBarreledLaser(BossModule module) : Components.StandardAOEs(module, AID.ManeuverLongBarreledLaser, new AOEShapeRect(70, 4));
 class VoltArray(BossModule module) : Components.CastInterruptHint(module, AID.ManeuverVoltArray, showNameInHint: true);
-class SurfaceMissileImpact(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.SurfaceMissileImpact, m => m.Enemies(0x1E8D9B).Where(e => e.EventState != 7), 0);
+class SurfaceMissileImpact(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.SurfaceMissileImpact, m => m.Enemies(0x1E8D9B).Where(e => e.EventState != 7), 0);
 class HomingMissileImpact(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingMissileImpact, 6);
 
 class A22AddsStates : StateMachineBuilder
@@ -57,4 +57,3 @@ class A22AddsStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 736, NameID = 9652)]
 public class A22Adds(WorldState ws, Actor primary) : BossModule(ws, primary, new(-230, -15), new ArenaBoundsSquare(25));
-

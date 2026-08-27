@@ -314,7 +314,7 @@ class BrutalRain(BossModule module) : Components.StackWithIcon(module, (uint)Ico
     }
 }
 class Plummet(BossModule module) : Components.CastTowers(module, AID.Plummet, 3f, 1);
-class HazardDance(BossModule module) : Components.PersistentVoidzone(module, 2.5f, uint.MaxValue, moveHintLength: 15)
+class HazardDance(BossModule module) : Components.Voidzone(module, 2.5f, uint.MaxValue, moveHintLength: 15)
 {
     public override void OnActorCreated(Actor actor)
     {

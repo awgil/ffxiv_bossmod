@@ -22,7 +22,7 @@ class SanctifiedBlizzardIV(BossModule module) : Components.StandardAOEs(module, 
 class SanctifiedBlizzardII(BossModule module) : Components.StandardAOEs(module, AID.SanctifiedBlizzardII, new AOEShapeCircle(5));
 class SanctifiedFireIII(BossModule module) : Components.StandardAOEs(module, AID.SanctifiedFireIII, 6);
 class SanctifiedBlizzardIII(BossModule module) : Components.StandardAOEs(module, AID.SanctifiedBlizzardIII, new AOEShapeCone(40.5f, 22.5f.Degrees()));
-class Hollow(BossModule module) : Components.PersistentVoidzone(module, 4, OID.Hollow);
+class Hollow(BossModule module) : Components.Voidzone(module, 4, OID.Hollow);
 class HollowTether(BossModule module) : Components.Chains(module, 1, chainLength: 5);
 class SanctifiedFireIV(BossModule module) : Components.SpreadFromCastTargets(module, AID.SanctifiedFireIV1, 10);
 class SanctifiedFlare(BossModule module) : Components.StackWithCastTargets(module, AID.SanctifiedFlare, 6, 1)

@@ -56,7 +56,7 @@ class Helldive(BossModule module) : Components.StackWithCastTargets(module, AID.
 class BroadsideBarrage(BossModule module) : Components.StandardAOEs(module, AID.BroadsideBarrage, new AOEShapeRect(40, 20));
 class BlindsideBarrage(BossModule module) : Components.RaidwideCast(module, AID.BlindsideBarrage, "Raidwide + deathwall appears");
 class RollingBarrage(BossModule module) : Components.StandardAOEs(module, AID.RollingBarrageAOE, new AOEShapeCircle(8));
-class Whirlwind(BossModule module) : Components.PersistentVoidzone(module, 4, OID.Whirlwind);
+class Whirlwind(BossModule module) : Components.Voidzone(module, 4, OID.Whirlwind);
 class Wind(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindVisual, 30, kind: Kind.DirForward);
 class PiercingBarrageCrow(BossModule module) : Components.StandardAOEs(module, AID.PiercingBarrageCrow, new AOEShapeRect(40, 4));
 

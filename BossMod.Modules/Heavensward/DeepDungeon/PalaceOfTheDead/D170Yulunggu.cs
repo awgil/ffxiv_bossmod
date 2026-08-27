@@ -16,7 +16,7 @@ public enum AID : uint
     FangsEnd = 7159, // Boss->player, no cast, single-target
 }
 
-class Douse(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.Douse, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7), 0.8f);
+class Douse(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.Douse, m => m.Enemies(OID.Voidzone).Where(z => z.EventState != 7), 0.8f);
 
 class DouseHaste(BossModule module) : BossComponent(module)
 {

@@ -66,7 +66,7 @@ class FeveredFlagellation(BossModule module) : Components.GenericBaitAway(module
 }
 
 class Exorcise(BossModule module) : Components.StackWithCastTargets(module, AID.ExorciseA, 6);
-class HolyWater(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.HolyWater, m => m.Enemies(OID.HolyWaterVoidzone).Where(z => z.EventState != 7), 0.8f);
+class HolyWater(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.HolyWater, m => m.Enemies(OID.HolyWaterVoidzone).Where(z => z.EventState != 7), 0.8f);
 
 class D012TesleentheForgivenStates : StateMachineBuilder
 {

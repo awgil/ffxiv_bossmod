@@ -153,7 +153,7 @@ class Lunge(BossModule module) : Components.Knockback(module, AID.Lunge)
     }
 }
 class MagicBarrage(BossModule module) : Components.StandardAOEs(module, AID.MagicBarrage, new AOEShapeRect(61, 2.5f), maxCasts: 6);
-class Energy(BossModule module) : Components.PersistentVoidzone(module, 2, OID.Energy, e => e.IsDead, 10);
+class Energy(BossModule module) : Components.Voidzone(module, 2, OID.Energy, e => e.IsDead, 10);
 
 class A31KnaveOfHeartsStates : StateMachineBuilder
 {

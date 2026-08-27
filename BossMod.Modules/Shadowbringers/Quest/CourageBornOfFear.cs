@@ -66,7 +66,7 @@ class SanctifiedFireII(BossModule module) : Components.BaitAwayIcon(module, new 
     }
 }
 
-class FireVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.SanctifiedFireII1, m => m.Enemies(0x29E5).Where(e => e.EventState != 7), 0.25f);
+class FireVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.SanctifiedFireII1, m => m.Enemies(0x29E5).Where(e => e.EventState != 7), 0.25f);
 
 class ImmaculateWarriorStates : StateMachineBuilder
 {

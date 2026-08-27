@@ -70,7 +70,7 @@ class HighCaliberLaser(BossModule module) : Components.StandardAOEs(module, AID.
     }
 }
 
-class EnergyBomb(BossModule module) : Components.PersistentVoidzone(module, 2, uint.MaxValue, null, 8)
+class EnergyBomb(BossModule module) : Components.Voidzone(module, 2, uint.MaxValue, null, 8)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

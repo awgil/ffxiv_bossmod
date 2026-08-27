@@ -36,7 +36,7 @@ class AncientAeroIII(BossModule module) : Components.RaidwideCastDelay(module, A
 
 class SpinningSweep(BossModule module) : Components.StandardAOEs(module, AID.SpinningSweep, new AOEShapeCone(40, 60.Degrees()));
 
-class UnbowedSpirit(BossModule module) : Components.PersistentVoidzone(module, 4, OID.UnbowedSpirit)
+class UnbowedSpirit(BossModule module) : Components.Voidzone(module, 4, OID.UnbowedSpirit)
 {
     enum Mode
     {

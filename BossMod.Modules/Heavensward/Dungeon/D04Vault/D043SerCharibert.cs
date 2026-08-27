@@ -38,7 +38,7 @@ class HolyChain(BossModule module) : Components.Chains(module, (uint)TetherID.Ho
 class AltarPyre(BossModule module) : Components.RaidwideCast(module, AID.AltarPyre);
 class BlackKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.BlackKnightsTour, new AOEShapeRect(40, 2));
 class WhiteKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.WhiteKnightsTour, new AOEShapeRect(40, 2));
-class March(BossModule module) : Components.PersistentVoidzone(module, 2.5f, uint.MaxValue, null, 15)
+class March(BossModule module) : Components.Voidzone(module, 2.5f, uint.MaxValue, null, 15)
 {
     public override void OnActorCreated(Actor actor)
     {

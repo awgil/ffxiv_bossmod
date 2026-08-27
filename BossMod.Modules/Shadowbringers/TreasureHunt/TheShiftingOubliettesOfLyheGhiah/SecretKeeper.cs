@@ -30,7 +30,7 @@ class Buffet(BossModule module) : Components.StandardAOEs(module, AID.Buffet, ne
 class Inhale(BossModule module) : Components.StandardAOEs(module, AID.InhaleBoss, new AOEShapeCone(20, 60.Degrees()));
 class InhalePull(BossModule module) : Components.KnockbackFromCastTarget(module, AID.InhaleBoss, 20, false, 1, new AOEShapeCone(20, 60.Degrees()), Kind.TowardsOrigin, default, true);
 class HeavyScrapline(BossModule module) : Components.StandardAOEs(module, AID.HeavyScrapline, new AOEShapeCircle(11));
-class MoldyPhlegm(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.MoldyPhlegm, m => m.Enemies(OID.ResinVoidzone).Where(z => z.EventState != 7), 0);
+class MoldyPhlegm(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.MoldyPhlegm, m => m.Enemies(OID.ResinVoidzone).Where(z => z.EventState != 7), 0);
 class MoldySneeze(BossModule module) : Components.Cleave(module, AID.MoldySneeze, new AOEShapeCone(12, 60.Degrees()), (uint)OID.Boss);
 class Spin(BossModule module) : Components.StandardAOEs(module, AID.Spin, new AOEShapeCircle(11));
 class Mash(BossModule module) : Components.StandardAOEs(module, AID.Mash, new AOEShapeRect(13, 2));

@@ -24,7 +24,7 @@ class AtomicImpact(BossModule module) : Components.SpreadFromIcon(module, 30, nu
             hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 10), DateTime.MaxValue);
     }
 }
-class AtomicImpactPuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.AtomicImpact, m => m.Enemies(OID.AtomicImpact).Where(e => e.EventState != 7), 1);
+class AtomicImpactPuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.AtomicImpact, m => m.Enemies(OID.AtomicImpact).Where(e => e.EventState != 7), 1);
 
 class StampedeMajesticMeteor(BossModule module) : Components.StandardAOEs(module, AID.MajesticMeteorEcliptic, 6);
 

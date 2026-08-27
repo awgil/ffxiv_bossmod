@@ -21,7 +21,7 @@ public enum AID : uint
 }
 
 class PelagicCleaver(BossModule module) : Components.StandardAOEs(module, AID.PelagicCleaver, new AOEShapeCone(40, 30.Degrees()));
-class FoulWaters(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FoulWaters, m => m.Enemies(OID.Bubble), 0);
+class FoulWaters(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.FoulWaters, m => m.Enemies(OID.Bubble), 0);
 class AquaticLance(BossModule module) : Components.StandardAOEs(module, AID.AquaticLance, new AOEShapeCircle(13));
 class ProtolithicPuncture(BossModule module) : Components.SingleTargetCast(module, AID.ProtolithicPuncture);
 

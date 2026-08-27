@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Unreal.Un1Byakko;
 
-class VoiceOfThunder : Components.PersistentInvertibleVoidzone
+class VoiceOfThunder : Components.InvertibleVoidzone
 {
     public VoiceOfThunder(BossModule module) : base(module, 2, m => m.Enemies(OID.AramitamaSoul).Where(x => !x.IsDead))
     {

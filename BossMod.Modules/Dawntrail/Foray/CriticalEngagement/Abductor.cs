@@ -95,7 +95,7 @@ class Buffet(BossModule module) : Components.Knockback(module)
 
 class Hurricane(BossModule module) : Components.RaidwideCastDelay(module, AID.HurricaneCast, AID.Hurricane, 0.9f);
 
-class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 4, OID.BitingWind, e => e.IsDead, 4);
+class BitingWind(BossModule module) : Components.Voidzone(module, 4, OID.BitingWind, e => e.IsDead, 4);
 
 class TendonRipper(BossModule module) : Components.GenericAOEs(module, AID.TendonRipperCast)
 {

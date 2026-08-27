@@ -80,7 +80,7 @@ class Efface(BossModule module) : Components.SingleTargetCast(module, AID.Efface
 class HighPressureRaidwide(BossModule module) : Components.RaidwideCast(module, AID.HighPressure);
 class HighPressureKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HighPressure, 20, stopAtWall: true);
 class GeyserEruption(BossModule module) : Components.StandardAOEs(module, AID.GeyserEruption, new AOEShapeCircle(8));
-class Geysers(BossModule module) : Components.PersistentVoidzone(module, 4, OID.Geyser, v => v.EventState == 7);
+class Geysers(BossModule module) : Components.Voidzone(module, 4, OID.Geyser, v => v.EventState == 7);
 class Wellbore(BossModule module) : Components.StandardAOEs(module, AID.Wellbore, new AOEShapeCircle(15));
 
 class D042AmphibiousTalosStates : StateMachineBuilder

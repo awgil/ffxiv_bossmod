@@ -33,7 +33,7 @@ class BlizzardIIIIcon(BossModule module) : Components.BaitAwayIcon(module, new A
             CurrentBaits.Clear();
     }
 }
-class BlizzardIIICast(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.BlizzardIII, m => m.Enemies(0x1E8D9C).Where(x => x.EventState != 7), 0);
+class BlizzardIIICast(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.BlizzardIII, m => m.Enemies(0x1E8D9C).Where(x => x.EventState != 7), 0);
 
 class SlickshellCaptainStates : StateMachineBuilder
 {

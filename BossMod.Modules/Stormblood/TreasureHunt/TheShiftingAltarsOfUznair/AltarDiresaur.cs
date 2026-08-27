@@ -84,7 +84,7 @@ class FireballBait(BossModule module) : Components.GenericBaitAway(module)
     }
 }
 
-class FireballVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, OID.FireVoidzone, z => z.EventState == 7);
+class FireballVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.FireVoidzone, z => z.EventState == 7);
 class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);
 class Spin(BossModule module) : Components.Cleave(module, AID.Spin, new AOEShapeCone(9.42f, 60.Degrees()), (uint)OID.BonusAddAltarMatanga);

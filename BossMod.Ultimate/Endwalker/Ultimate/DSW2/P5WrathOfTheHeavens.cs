@@ -167,7 +167,7 @@ class P5WrathOfTheHeavensCauterizeBait(BossModule module) : BossComponent(module
 class P5WrathOfTheHeavensAscalonsMercyRevealed(BossModule module) : Components.BaitAwayEveryone(module, module.Enemies(OID.BossP5).FirstOrDefault(), new AOEShapeCone(50, 15.Degrees()), AID.AscalonsMercyRevealedAOE);
 
 // TODO: detect baiter
-class P5WrathOfTheHeavensLiquidHeaven(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.LiquidHeaven, m => m.Enemies(OID.VoidzoneLiquidHeaven).Where(z => z.EventState != 7), 1.1f);
+class P5WrathOfTheHeavensLiquidHeaven(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHeaven, m => m.Enemies(OID.VoidzoneLiquidHeaven).Where(z => z.EventState != 7), 1.1f);
 
 // TODO: detect baiter
 class P5WrathOfTheHeavensAltarFlare(BossModule module) : Components.StandardAOEs(module, AID.AltarFlareAOE, 8);

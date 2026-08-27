@@ -31,7 +31,7 @@ public enum IconID : uint
 
 class DeployArmaments(BossModule module) : Components.GroupedAOEs(module, [AID.DeployArmaments1, AID.DeployArmaments2, AID.DeployArmaments3], new AOEShapeRect(50, 9));
 class UniversalAssault(BossModule module) : Components.RaidwideCast(module, AID.UniversalAssault);
-class Energy(BossModule module) : Components.PersistentVoidzone(module, 2, uint.MaxValue, null, 8)
+class Energy(BossModule module) : Components.Voidzone(module, 2, uint.MaxValue, null, 8)
 {
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {

@@ -15,7 +15,7 @@ class HiemalStormSpread(BossModule module) : Components.UniformStackSpread(modul
     }
 }
 
-class HiemalStormVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, OID.HiemalStorm, x => x.EventState == 7);
+class HiemalStormVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.HiemalStorm, x => x.EventState == 7);
 class SpiralPierce(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(50, 6), (uint)TetherID.SpiralPierce, AID.SpiralPierce);
 class DimensionalCollapse(BossModule module) : Components.StandardAOEs(module, AID.DimensionalCollapseAOE, 9);
 

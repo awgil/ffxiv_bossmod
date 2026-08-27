@@ -333,7 +333,7 @@ class StrongWindPath(BossModule module) : Components.GenericAOEs(module)
             _aoes.RemoveAt(0);
     }
 }
-class StrongWind(BossModule module) : Components.PersistentVoidzone(module, 23, OID.Whirlwind)
+class StrongWind(BossModule module) : Components.Voidzone(module, 23, OID.Whirlwind)
 {
     public override void OnActorCreated(Actor actor)
     {

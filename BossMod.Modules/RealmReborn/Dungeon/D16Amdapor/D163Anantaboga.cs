@@ -86,7 +86,7 @@ class PlagueDance(BossModule module) : BossComponent(module)
     }
 }
 
-class BubonicCloud(BossModule module) : Components.PersistentVoidzone(module, 11.5f, OID.DarkNova);
+class BubonicCloud(BossModule module) : Components.Voidzone(module, 11.5f, OID.DarkNova);
 
 class D163AnantabogaStates : StateMachineBuilder
 {

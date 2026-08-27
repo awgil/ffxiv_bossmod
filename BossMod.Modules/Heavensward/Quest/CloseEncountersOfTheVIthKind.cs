@@ -28,7 +28,7 @@ class RegulaVanHydrusStates : StateMachineBuilder
 
 class HandOfTheEmpire(BossModule module) : Components.StandardAOEs(module, AID.HandOfTheEmpire, 2);
 
-class Voidzone(BossModule module) : Components.PersistentVoidzone(module, 8, OID.Puddle);
+class Voidzone(BossModule module) : Components.Voidzone(module, 8, OID.Puddle);
 
 class TerminusEst(BossModule module) : Components.GenericAOEs(module, AID.TerminusEstAOE)
 {

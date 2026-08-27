@@ -39,7 +39,7 @@ class EndwalkerStates : StateMachineBuilder
 }
 
 class Megaflare(BossModule module) : Components.StandardAOEs(module, AID.Megaflare, 6);
-class Puddles(BossModule module) : Components.PersistentInvertibleVoidzoneByCast(module, 5, m => m.Enemies(OID.Puddles).Where(e => e.EventState != 7), AID.Hellfire);
+class Puddles(BossModule module) : Components.InvertibleVoidzoneByCast(module, 5, m => m.Enemies(OID.Puddles).Where(e => e.EventState != 7), AID.Hellfire);
 class JudgementBolt(BossModule module) : Components.RaidwideCast(module, AID.JudgementBoltVisual);
 class Hellfire(BossModule module) : Components.RaidwideCast(module, AID.HellfireVisual);
 class StarBeyondStars(BossModule module) : Components.StandardAOEs(module, AID.StarBeyondStarsHelper, new AOEShapeCone(50, 15.Degrees()), 6);

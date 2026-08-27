@@ -108,7 +108,7 @@ class DeathWall(BossModule module) : BossComponent(module)
 
 class DarkThunder(BossModule module) : Components.StandardAOEs(module, AID.DarkThunder, new AOEShapeCircle(1));
 
-class SeaOfPitch(BossModule module) : Components.PersistentVoidzone(module, 4, OID.SeaOfPitch, x => x.EventState == 7);
+class SeaOfPitch(BossModule module) : Components.Voidzone(module, 4, OID.SeaOfPitch, x => x.EventState == 7);
 
 class EndOfDays(BossModule module) : Components.StandardAOEs(module, AID.EndOfDays, new AOEShapeRect(60, 4));
 class EndOfDaysAdds(BossModule module) : Components.StandardAOEs(module, AID.EndOfDaysAdds, new AOEShapeRect(60, 4));

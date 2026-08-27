@@ -19,7 +19,7 @@ public enum AID : uint
 
 }
 
-class TheRamsKeeper(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 9, AID.TheRamsKeeper, m => m.Enemies(OID.Voidzone), 0);
+class TheRamsKeeper(BossModule module) : Components.VoidzoneAtCastTarget(module, 9, AID.TheRamsKeeper, m => m.Enemies(OID.Voidzone), 0);
 class TheRamsKeeperHint(BossModule module) : Components.CastHint(module, AID.TheRamsKeeper, "Interrupt");
 class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(9));
 class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(8, 30));

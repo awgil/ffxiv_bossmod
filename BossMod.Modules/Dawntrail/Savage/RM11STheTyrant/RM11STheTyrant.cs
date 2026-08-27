@@ -19,7 +19,7 @@ class DanceOfDomination2(BossModule module) : Components.RaidwideInstant(module,
 
 class HurricaneExplosion(BossModule module) : Components.StandardAOEs(module, AID.HurricaneExplosion, new AOEShapeRect(60, 5));
 class EyeOfTheHurricane(BossModule module) : Components.StackWithCastTargets(module, AID.EyeOfTheHurricane, 6, 2, 2);
-class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 4, OID.Maelstrom, e => e.EventState == 7);
+class Maelstrom(BossModule module) : Components.Voidzone(module, 4, OID.Maelstrom, e => e.EventState == 7);
 
 class PowerfulGust : Components.GenericBaitAway
 {

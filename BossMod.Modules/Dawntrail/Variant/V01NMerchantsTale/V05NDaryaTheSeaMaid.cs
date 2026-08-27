@@ -293,7 +293,7 @@ class NearFarTide(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class SirenSphere(BossModule module) : Components.PersistentVoidzone(module, 2.5f, OID.SirenSphere, null, 15)
+class SirenSphere(BossModule module) : Components.Voidzone(module, 2.5f, OID.SirenSphere, null, 15)
 {
     public override void OnActorCreated(Actor actor)
     {

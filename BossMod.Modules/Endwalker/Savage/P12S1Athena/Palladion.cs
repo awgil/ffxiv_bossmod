@@ -151,7 +151,7 @@ class PalladionStack : Components.UniformStackSpread
     }
 }
 
-class PalladionVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.PalladionAOE, m => m.Enemies(OID.PalladionVoidzone).Where(z => z.EventState != 7), 0.9f);
+class PalladionVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.PalladionAOE, m => m.Enemies(OID.PalladionVoidzone).Where(z => z.EventState != 7), 0.9f);
 
 class PalladionClearCut(BossModule module) : Components.GenericAOEs(module)
 {

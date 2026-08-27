@@ -52,7 +52,7 @@ class HowlingDarkness(BossModule module) : Components.RaidwideCastDelay(module, 
 class SnakingNecrobreath(BossModule module) : Components.StandardAOEs(module, AID.SnakingNecrobreath, new AOEShapeCone(60, 135.Degrees()));
 
 class GraveMold(BossModule module) : Components.StandardAOEs(module, AID.GraveMold, 8);
-class Necrohaze(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Necrohaze, e => e.IsDead)
+class Necrohaze(BossModule module) : Components.Voidzone(module, 5, OID.Necrohaze, e => e.IsDead)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -80,7 +80,7 @@ class Necrohaze(BossModule module) : Components.PersistentVoidzone(module, 5, OI
     }
 }
 
-class NecrohazeBossPuddle(BossModule module) : Components.PersistentVoidzone(module, 5, OID.AetherialWardPuddle);
+class NecrohazeBossPuddle(BossModule module) : Components.Voidzone(module, 5, OID.AetherialWardPuddle);
 
 class AetherialWard(BossModule module) : Components.DirectionalParry(module, (uint)OID.AetherialWard)
 {

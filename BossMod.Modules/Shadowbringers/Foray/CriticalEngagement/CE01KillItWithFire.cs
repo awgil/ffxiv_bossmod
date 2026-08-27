@@ -37,7 +37,7 @@ public enum SID : uint
     JealousAnaphylaxis = 2302, // Helper->player, extra=0x0
 }
 
-class Pheromones(BossModule module) : Components.PersistentVoidzone(module, 4, OID.Pheromones);
+class Pheromones(BossModule module) : Components.Voidzone(module, 4, OID.Pheromones);
 
 class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "Go to different color!")
 {

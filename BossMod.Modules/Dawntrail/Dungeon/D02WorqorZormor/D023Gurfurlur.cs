@@ -130,7 +130,7 @@ class Sledgehammer(BossModule module) : Components.GenericWildCharge(module, 4, 
     }
 }
 
-class AuraSpheres : Components.PersistentInvertibleVoidzone
+class AuraSpheres : Components.InvertibleVoidzone
 {
     public AuraSpheres(BossModule module) : base(module, 2, m => m.Enemies(OID.AuraSphere).Where(x => !x.IsDead))
     {
@@ -153,7 +153,7 @@ class AuraSpheres : Components.PersistentInvertibleVoidzone
 
 class EnduringGlory(BossModule module) : Components.RaidwideCast(module, AID.EnduringGlory);
 
-class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 5, OID.BitingWind)
+class BitingWind(BossModule module) : Components.Voidzone(module, 5, OID.BitingWind)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

@@ -83,7 +83,7 @@ public enum TetherID : uint
 }
 
 class LaserResistanceTest(BossModule module) : Components.RaidwideCast(module, AID.LaserResistanceTest);
-class ShockingDischarge(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.ShockingDischarge, m => m.Enemies(0x1EAEE6).Where(e => e.EventState != 7), 1.03f);
+class ShockingDischarge(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.ShockingDischarge, m => m.Enemies(0x1EAEE6).Where(e => e.EventState != 7), 1.03f);
 class VariableCombatTestCone(BossModule module) : Components.GroupedAOEs(module, [AID.VariableCombatConeSlow, AID.VariableCombatConeFast], new AOEShapeCone(20, 30.Degrees()));
 class VariableCombatTestCircle(BossModule module) : Components.GroupedAOEs(module, [AID.VariableCombatCircleSlow, AID.VariableCombatCircleFast], new AOEShapeCircle(2));
 class VariableCombatTestDonut(BossModule module) : Components.GroupedAOEs(module, [AID.VariableCombatDonutSlow, AID.VariableCombatDonutFast], new AOEShapeDonut(7, 19));

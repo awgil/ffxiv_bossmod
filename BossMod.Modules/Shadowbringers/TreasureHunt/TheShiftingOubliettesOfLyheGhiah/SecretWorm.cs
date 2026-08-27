@@ -39,7 +39,7 @@ class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydro
 class FreshwaterCannon(BossModule module) : Components.StandardAOEs(module, AID.FreshwaterCannon, new AOEShapeRect(46, 2));
 class AquaBurst(BossModule module) : Components.StandardAOEs(module, AID.AquaBurst, new AOEShapeCircle(10));
 class BrineBreath(BossModule module) : Components.SingleTargetCast(module, AID.BrineBreath);
-class Hydroburst(BossModule module) : Components.PersistentVoidzone(module, 8, OID.Bubble, x => !(!x.IsDead && !(x.CastInfo != null && x.CastInfo.IsSpell(AID.AquaBurst))));
+class Hydroburst(BossModule module) : Components.Voidzone(module, 8, OID.Bubble, x => !(!x.IsDead && !(x.CastInfo != null && x.CastInfo.IsSpell(AID.AquaBurst))));
 
 class Bubble(BossModule module) : Components.GenericBaitAway(module)
 {

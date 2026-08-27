@@ -29,7 +29,7 @@ public enum IconID : uint
     BaitKnockback = 23, // player
 }
 
-class Thunderhead(BossModule module) : Components.PersistentVoidzone(module, 8, OID.Thunderhead);
+class Thunderhead(BossModule module) : Components.Voidzone(module, 8, OID.Thunderhead);
 
 class DadJoke(BossModule module) : Components.Knockback(module)
 {

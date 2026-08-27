@@ -18,7 +18,7 @@ public enum OID : uint
     DirtPile = 0x1EAEAE
 }
 
-class Tribulation(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 3, AID.Tribulation, m => m.Enemies(OID.DirtPile).Where(x => x.EventState != 7), 0);
+class Tribulation(BossModule module) : Components.VoidzoneAtCastTarget(module, 3, AID.Tribulation, m => m.Enemies(OID.DirtPile).Where(x => x.EventState != 7), 0);
 class ImmortalAnathema(BossModule module) : Components.RaidwideCast(module, AID.ImmortalAnathema);
 class DarkPulse(BossModule module) : Components.StackWithCastTargets(module, AID.DarkPulse, 6);
 class DarkWell(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkWell, 5);
@@ -27,7 +27,7 @@ class Shadowbolt(BossModule module) : Components.SingleTargetCast(module, AID.Sh
 
 // not sure about radius, sweep trigger is incredibly janky
 // filter out brooms who are too far outside the arena since they don't affect players and the AOE lingering on minimap is annoying
-class Sweep(BossModule module) : Components.PersistentVoidzone(module, 4, OID.MagickedBroom, b => MathF.Abs(b.Position.X) > 23.5f)
+class Sweep(BossModule module) : Components.Voidzone(module, 4, OID.MagickedBroom, b => MathF.Abs(b.Position.X) > 23.5f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

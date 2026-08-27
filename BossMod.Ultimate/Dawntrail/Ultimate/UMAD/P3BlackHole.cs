@@ -164,7 +164,7 @@ class P3SlapHappyShockwave(BossModule module) : Components.UntelegraphedBait(mod
     }
 }
 
-class P3Blackhole(BossModule module) : Components.PersistentVoidzone(module, 2, OID.BlackHoleP3);
+class P3Blackhole(BossModule module) : Components.Voidzone(module, 2, OID.BlackHoleP3);
 
 class P3Nothingness : Components.BaitAwayTethers
 {

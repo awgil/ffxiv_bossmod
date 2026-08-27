@@ -22,7 +22,7 @@ public enum AID : uint
 
 class WildHorn(BossModule module) : Components.StandardAOEs(module, AID.WildHorn, new AOEShapeCone(18, 45.Degrees()));
 class ZombieBreath(BossModule module) : Components.StandardAOEs(module, AID.ZombieBreath, new AOEShapeRect(60, 3));
-class ZombieJuice(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.ZombieJuice, m => m.Enemies(0x1E972C).Where(e => e.EventState != 7), 1);
+class ZombieJuice(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.ZombieJuice, m => m.Enemies(0x1E972C).Where(e => e.EventState != 7), 1);
 class Thunderbolt(BossModule module) : Components.GenericAOEs(module, AID.Thunderbolt)
 {
     private readonly List<(Actor Caster, DateTime Activation)> Casters = [];
@@ -73,4 +73,3 @@ class ChlevnikStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 15)] // bnpcname=9427
 public class Chlevnik(WorldState ws, Actor primary) : BossModule(ws, primary, new(231, 95), new ArenaBoundsCircle(25));
-

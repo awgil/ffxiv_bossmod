@@ -89,7 +89,7 @@ class BloodyPuddleSpread(BossModule module) : Components.SpreadFromIcon(module, 
             Spreads.Clear();
     }
 }
-class BloodyPuddlePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 8, AID.BloodyPuddle, m => m.Enemies(OID.BloodyPuddle).Where(e => e.EventState != 7), 1);
+class BloodyPuddlePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.BloodyPuddle, m => m.Enemies(OID.BloodyPuddle).Where(e => e.EventState != 7), 1);
 
 class BubbleBurst(BossModule module) : Components.GenericAOEs(module, AID.BubbleBurst)
 {
@@ -140,4 +140,3 @@ class D091KelpieStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 279, NameID = 6907)]
 public class D091Kelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(-220, 4), new ArenaBoundsSquare(15));
-

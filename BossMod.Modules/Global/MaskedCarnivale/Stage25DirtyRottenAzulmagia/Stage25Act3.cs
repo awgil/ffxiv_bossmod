@@ -65,9 +65,9 @@ class ApocalypticBolt(BossModule module) : Components.StandardAOEs(module, AID.A
 class ApocalypticRoar(BossModule module) : Components.StandardAOEs(module, AID.ApocalypticRoar, new AOEShapeCone(36.2f, 60.Degrees()));
 class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheRamsVoice, new AOEShapeCircle(8));
 class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(6, 30));
-class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, OID.Maelstrom);
+class Maelstrom(BossModule module) : Components.Voidzone(module, 8, OID.Maelstrom);
 class Meteor(BossModule module) : Components.StandardAOEs(module, AID.Meteor, 15);
-class MeteorVoidzone(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 10, AID.Meteor, m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0);
+class MeteorVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.Meteor, m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0);
 
 class Hints(BossModule module) : BossComponent(module)
 {

@@ -51,7 +51,7 @@ class BurnishedJoust(BossModule module) : Components.ChargeAOEs(module, AID.Burn
 // note: there are two casters, probably to avoid 32-target limit - we only want to show one
 class GustSlash(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GustSlashAOE, 35, true, 1, null, Kind.DirForward);
 
-class FireShot(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 6, AID.FireShot, m => m.Enemies(OID.FireShot).Where(e => e.EventState != 7), 0);
+class FireShot(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.FireShot, m => m.Enemies(OID.FireShot).Where(e => e.EventState != 7), 0);
 class AirborneExplosion(BossModule module) : Components.StandardAOEs(module, AID.AirborneExplosion, 10);
 class RideDownAOE(BossModule module) : Components.StandardAOEs(module, AID.RideDown, new AOEShapeRect(60, 5));
 

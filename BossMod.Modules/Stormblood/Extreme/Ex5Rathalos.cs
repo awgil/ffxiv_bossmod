@@ -136,7 +136,7 @@ class Mangle2(BossModule module) : Components.GenericAOEs(module, AID.Mangle2Vis
 
 class FireballStack1(BossModule module) : Components.StackWithCastTargets(module, AID.FireballBossFirst, 5);
 class FireballStack2(BossModule module) : Components.StackWithCastTargets(module, AID.FireballBossRest, 5);
-class FirePuddle(BossModule module) : Components.PersistentVoidzoneAtCastTarget(module, 5, AID.FireballFirst, m => m.Enemies(OID.Fireball).Where(e => e.EventState != 7), 0.5f)
+class FirePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.FireballFirst, m => m.Enemies(OID.Fireball).Where(e => e.EventState != 7), 0.5f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -216,4 +216,3 @@ class Ex5RathalosStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 475, NameID = 7221)]
 public class Ex5Rathalos(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(24.5f));
-

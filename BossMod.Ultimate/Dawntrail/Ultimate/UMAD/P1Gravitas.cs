@@ -107,7 +107,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
     }
 }
 
-class P1GravitasPuddle : Components.PersistentVoidzoneAtCastTarget
+class P1GravitasPuddle : Components.VoidzoneAtCastTarget
 {
     readonly List<Actor> _puddles = [];
 
