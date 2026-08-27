@@ -1,5 +1,4 @@
-﻿using BossMod.Data;
-using BossMod.Pathfinding;
+﻿using BossMod.Pathfinding;
 using System.Threading.Tasks;
 
 namespace BossMod.Autorotation.MiscAI;
@@ -193,25 +192,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         {
             var distance = thinIce.Extra * 0.1f;
             Hints.AddForbiddenZone(ShapeDistance.Donut(Player.Position, 1, distance - 1), World.FutureTime(2));
-        }
-
-        if (Hints.FindEnemy(primaryTarget) is { } enemy)
-        {
-            // TODO: configurable
-            if (World.Client.CountdownRemaining > 0 && AggroDistance.TryGet(World.CurrentZone, enemy.Actor.NameID, out var aggroDistance))
-            {
-                var pt = enemy.Actor.Position + enemy.Actor.DirectionTo(Player) * (aggroDistance + enemy.Actor.HitboxRadius + 0.5f);
-                var dist = pt - Player.Position;
-                if (dist.LengthSq() > 0.01f)
-                    Hints.ForcedMovement = dist.Normalized().ToVec3();
-                return;
-            }
-
-            if (enemy.Actor.TargetID == Player.InstanceID && !enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
-            {
-                var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(goal, 1, 0.5f));
-            }
         }
 
         var speed = World.Client.MoveSpeed;

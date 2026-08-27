@@ -97,6 +97,9 @@ public enum SID : uint
     Biolysis = 1895,
     Galvanize = 297, // applied by Adloquium to target, shield
     Sleep = 3, // applied by Repose to target
+    Recitation = 1896, // applied by Recitation to self
+    Protraction = 2710, // applied by Protraction to target
+    Catalyze = 1918, // applied by Adloquium to target
     BanefulImpaction = 3883, // applied by Baneful Impaction to target
     ImpactImminent = 3882, // applied by Chain Stratagem to self
     ChainStratagem = 1221, // applied by Chain Stratagem to target
