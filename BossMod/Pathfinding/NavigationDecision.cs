@@ -42,7 +42,7 @@ public struct NavigationDecision
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
+            RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
         if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
         else if (forbiddenZoneCushion > 0)
@@ -240,6 +240,122 @@ public struct NavigationDecision
 
         if (cushion)
             AddCushion(map);
+    }
+
+    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
+    {
+        // very slight difference in activation times cause issues for pathfinding - cluster them together
+        var zonesFixed = new (Sdf distance, float g)[zones.Count];
+        DateTime clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
+        float clusterG = 0;
+        for (int i = 0; i < zonesFixed.Length; ++i)
+        {
+            var activation = zones[i].activation.Clamp(globalStart, globalEnd);
+            if (activation > clusterEnd)
+            {
+                clusterG = ActivationToG(activation, current);
+                clusterEnd = activation.AddSeconds(0.5f);
+            }
+            zonesFixed[i] = (zones[i].distance, clusterG);
+        }
+
+        // note that a zone can partially intersect a pixel; so what we do is check each corner and set the maxg value of a pixel equal to the minimum of 4 corners
+        // to avoid 4x calculations, we do a slightly tricky loop:
+        // - outer loop fills row i to with g values corresponding to the 'upper edge' of cell i
+        // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
+        // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
+        map.MaxG = clusterG;
+        if (gScratch.Length < map.PixelMaxG.Length)
+            gScratch = new float[map.PixelMaxG.Length];
+        if (dScratch.Length < map.PixelMaxG.Length)
+            dScratch = new bool[map.PixelMaxG.Length];
+        var numBlockedCells = 0;
+
+        // see Map.EnumeratePixels, note that we care about corners rather than centers
+        var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
+        var dx = dy.OrthoL();
+        var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
+
+        int iCell = 0;
+        for (int y = 0; y < map.Height; ++y)
+        {
+            var cx = cy;
+            var (leftG, leftD) = CalculateMaxG(zonesFixed, cx, cushion);
+            for (int x = 0; x < map.Width; ++x)
+            {
+                cx += dx;
+                var (rightG, rightD) = CalculateMaxG(zonesFixed, cx, cushion);
+                dScratch[iCell] = leftD || rightD;
+                gScratch[iCell++] = Math.Min(leftG, rightG);
+                leftD = rightD;
+                leftG = rightG;
+            }
+            cy += dy;
+        }
+        var (bleftG, bleftD) = CalculateMaxG(zonesFixed, cy, cushion);
+        iCell -= map.Width;
+        for (int x = 0; x < map.Width; ++x, ++iCell)
+        {
+            cy += dx;
+            var (brightG, brightD) = CalculateMaxG(zonesFixed, cy, cushion);
+            var bottomD = bleftD || brightD;
+            var bottomG = Math.Min(bleftG, brightG);
+            var jCell = iCell;
+            for (int y = map.Height; y > 0; --y, jCell -= map.Width)
+            {
+                var topG = gScratch[jCell];
+                var topD = dScratch[jCell];
+                var cellG = map.PixelMaxG[jCell] = Math.Min(Math.Min(topG, bottomG), map.PixelMaxG[jCell]);
+                if (cellG != float.MaxValue)
+                {
+                    map.PixelPriority[jCell] = float.MinValue;
+                    ++numBlockedCells;
+                }
+                else if (bottomD || topD)
+                    map.PixelAvoid[jCell] = true;
+                bottomD = topD;
+                bottomG = topG;
+            }
+            bleftD = brightD;
+            bleftG = brightG;
+        }
+
+        if (numBlockedCells == map.Width * map.Height)
+        {
+            // everything is dangerous, clear least dangerous so that pathfinding works reasonably
+            // note that max value could be smaller than MaxG, if more dangerous stuff overlaps it
+            float realMaxG = 0;
+            for (iCell = 0; iCell < numBlockedCells; ++iCell)
+                realMaxG = Math.Max(realMaxG, map.PixelMaxG[iCell]);
+            for (iCell = 0; iCell < numBlockedCells; ++iCell)
+            {
+                if (map.PixelMaxG[iCell] == realMaxG)
+                {
+                    map.PixelMaxG[iCell] = float.MaxValue;
+                    map.PixelPriority[iCell] = 0;
+                }
+            }
+        }
+    }
+
+    private static (float G, bool D) CalculateMaxG(Span<(Sdf d, float g)> zones, WPos p, float cushion)
+    {
+        var g = float.MaxValue;
+        var d = false;
+
+        foreach (ref var z in zones)
+        {
+            var dist = z.d.Distance(p);
+            if (dist < 0)
+            {
+                g = z.g;
+                break;
+            }
+
+            if (dist < cushion)
+                d = true;
+        }
+        return (g, d);
     }
 
     public static void AddCushion(Map map)

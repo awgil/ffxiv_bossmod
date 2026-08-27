@@ -194,10 +194,21 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             Hints.AddForbiddenZone(ShapeDistance.Donut(Player.Position, 1, distance - 1), World.FutureTime(2));
         }
 
-        if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID && !enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
+        if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID)
         {
-            var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(goal, 1, 0.5f));
+            if (!enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
+            {
+                var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(goal, 1, 0.5f));
+            }
+
+            var toDest = enemy.DesiredPosition - enemy.Actor.Position;
+            var toLen = toDest.Length();
+            if (toLen > 0.5f)
+            {
+                var pullLocation = enemy.Actor.Position + toDest.Normalized() * (enemy.Actor.HitboxRadius + enemy.TankDistance + toLen);
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(pullLocation, 1, 5));
+            }
         }
 
         var speed = World.Client.MoveSpeed;

@@ -15,7 +15,7 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         DefineShared(res, IDLimitBreak3);
 
         DefineSimpleConfig(res, Track.PresenceOfMind, "PresenceOfMind", "PoM", 220, WHM.AID.PresenceOfMind, 15);
-        DefineSimpleConfig(res, Track.Regen, "Regen", "", 110, WHM.AID.Regen, 18);
+        DefineSimpleConfig(res, Track.Regen, "Regen", "", 110, WHM.AID.Regen, 18, ActionQueue.Priority.VeryHigh);
 
         res.Define(Track.Cure).As<CureOption>("Cure", "", 100)
             .AddOption(CureOption.None, "Do not use automatically")
