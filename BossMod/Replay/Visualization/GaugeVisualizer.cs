@@ -264,16 +264,16 @@ internal class GaugeVisualizer
         for (var i = 0; i < 5; i++)
         {
             ImGui.SetCursorPos(origin + Scale(i * 18, 75));
-            ImGui.Image(chevron.Handle, new Vector2(32, 32), new Vector2(0, 0), new Vector2(0.5f, 0.5f));
+            ImGui.Image(chevron.Handle, Scale(32, 32), new Vector2(0, 0), new Vector2(0.5f, 0.5f));
             if (gauge.Chakra > i)
             {
                 ImGui.SetCursorPos(origin + Scale(i * 18, 75));
-                ImGui.Image(chevronLit.Handle, new Vector2(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
+                ImGui.Image(chevronLit.Handle, Scale(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
             }
             if (gauge.Chakra > i + 5)
             {
                 ImGui.SetCursorPos(origin + Scale(i * 18, 75));
-                ImGui.Image(chevronOvercap.Handle, new Vector2(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
+                ImGui.Image(chevronOvercap.Handle, Scale(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
             }
         }
     }

@@ -101,6 +101,9 @@ class ReplayDetailsWindow : UIWindow
         _hintsBuilder.Update(_hints, _povSlot, false);
         _rmm.Update(0, false, false);
         var drawnGauge = false;
+
+        var pov = _mgr.WorldState.Party[_povSlot];
+
         if (_mgr.ActiveModule != null)
         {
             if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
@@ -136,7 +139,6 @@ class ReplayDetailsWindow : UIWindow
             drawnGauge = DrawGauge(true);
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));
-            var pov = _mgr.WorldState.Party[_povSlot];
             var povOffsetString = "";
             if (pov != null)
             {
@@ -161,12 +163,12 @@ class ReplayDetailsWindow : UIWindow
             if (_mgr.ActiveModule?.Info?.PlanLevel > 0)
             {
                 ImGui.SameLine();
-                var plans = _rotationDB.Plans.GetPlans(_mgr.ActiveModule.GetType(), _mgr.WorldState.Party.Player()?.Class ?? Class.None);
+                var plans = _rotationDB.Plans.GetPlans(_mgr.ActiveModule.GetType(), pov?.Class ?? Class.None);
                 var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "Plan");
                 if (newSel != plans.SelectedIndex)
                 {
                     plans.SelectedIndex = newSel;
-                    _rotationDB.Plans.ModifyManifest(_mgr.ActiveModule.GetType(), _mgr.WorldState.Party.Player()?.Class ?? Class.None);
+                    _rotationDB.Plans.ModifyManifest(_mgr.ActiveModule.GetType(), pov?.Class ?? Class.None);
                     resetPF = true;
                 }
 
@@ -175,7 +177,7 @@ class ReplayDetailsWindow : UIWindow
                 {
                     if (plans.SelectedIndex < 0)
                     {
-                        var plan = new Plan($"New {plans.Plans.Count + 1}", _mgr.ActiveModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = _mgr.WorldState.Party.Player()?.Class ?? Class.None, Level = _mgr.ActiveModule.Info.PlanLevel };
+                        var plan = new Plan($"New {plans.Plans.Count + 1}", _mgr.ActiveModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = pov?.Class ?? Class.None, Level = _mgr.ActiveModule.Info.PlanLevel };
                         plans.SelectedIndex = plans.Plans.Count;
                         _rotationDB.Plans.ModifyPlan(null, plan);
                     }
@@ -183,7 +185,7 @@ class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_player.Replay, enc, new(1), _rotationDB.Plans, this);
+                        _ = new ReplayTimelineWindow(_player.Replay, enc, BitMask.Build(_povSlot), _rotationDB.Plans, this);
                     }
                 }
             }
@@ -191,10 +193,9 @@ class ReplayDetailsWindow : UIWindow
             // TODO: more fancy action history/queue...
             ImGui.TextUnformatted($"Modules: {_rmm}");
             ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.WorldState.Client.AnimationLock:f3}, Combo={_mgr.WorldState.Client.ComboState.Remaining:f3}, RBIn={_mgr.RaidCooldowns.NextDamageBuffIn():f3}");
-            var player = _mgr.WorldState.Party.Player();
-            if (player != null)
+            if (pov != null)
             {
-                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, player, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f, false);
+                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, pov, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f, false);
                 ImGui.TextUnformatted($"! {best.Action} ({best.Priority:f2}) in {best.Delay:f3} @ {best.Target}");
             }
             foreach (var a in _hints.ActionsToExecute.Entries)
