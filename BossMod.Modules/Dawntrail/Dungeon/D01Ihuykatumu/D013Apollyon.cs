@@ -54,7 +54,7 @@ class HighWind(BossModule module) : Components.RaidwideCast(module, AID.HighWind
 class BladesOfFamine(BossModule module) : Components.StandardAOEs(module, AID.BladesOfFamineAOE, new AOEShapeRect(50, 6));
 class LevinsickleSpark(BossModule module) : Components.StandardAOEs(module, AID.LevinsickleAOESpark, 4);
 class LevinsickleNormal(BossModule module) : Components.StandardAOEs(module, AID.LevinsickleAOENormal, 4);
-class LevinsickleVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.LevinsickleAOESpark, m => m.Enemies(OID.LevinsickleVoidzone).Where(x => x.EventState != 7), 0.8f);
+class LevinsickleVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.LevinsickleAOESpark, OID.LevinsickleVoidzone, 0.8f);
 class WingOfLightning(BossModule module) : Components.StandardAOEs(module, AID.WingOfLightning, new AOEShapeCone(40, 22.5f.Degrees()), 8);
 class ThunderIII(BossModule module) : Components.SpreadFromCastTargets(module, AID.ThunderIIIAOE, 6);
 class WindSickle(BossModule module) : Components.StandardAOEs(module, AID.WindSickle, new AOEShapeDonut(5, 60));

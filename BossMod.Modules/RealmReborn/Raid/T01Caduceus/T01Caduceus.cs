@@ -49,8 +49,8 @@ class HoodSwing(BossModule module) : Components.Cleave(module, AID.HoodSwing, ne
 }
 
 class WhipBack(BossModule module) : Components.StandardAOEs(module, AID.WhipBack, new AOEShapeCone(9, 60.Degrees()));
-class Regorge(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.Regorge, m => m.Enemies(OID.Regorge).Where(z => z.EventState != 7), 2.1f);
-class Syrup(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.Syrup, m => m.Enemies(OID.Syrup).Where(z => z.EventState != 7), 0.3f);
+class Regorge(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.Regorge, OID.Regorge, 2.1f);
+class Syrup(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.Syrup, OID.Syrup, 0.3f);
 
 // TODO: merge happens if bosses are 'close enough' (threshold is >20.82 at least) or have high enough hp difference (>5% at least) and more than 20s passed since split
 class CloneMerge(BossModule module) : BossComponent(module)

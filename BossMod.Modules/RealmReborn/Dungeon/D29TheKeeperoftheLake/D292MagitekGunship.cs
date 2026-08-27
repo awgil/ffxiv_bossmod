@@ -31,7 +31,7 @@ public enum AID : uint
 
 class MagitekGunshipAdds(BossModule module) : Components.AddsMulti(module, [OID.CohortSignifer, OID.CohortSecutor, OID.CohortLaquearius, OID.CohortEques, OID.CohortVanguard]);
 class CarpetBomb(BossModule module) : Components.StandardAOEs(module, AID.CarpetBombLinger, 5);
-class GarleanFireVoid(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.GarleanFire, m => m.Enemies(OID.GarleanFireLinger).Where(z => z.EventState != 7), 0.8f);
+class GarleanFireVoid(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.GarleanFire, OID.GarleanFireLinger, 0.8f);
 class AddDrillCannons(BossModule module) : Components.StandardAOEs(module, AID.DrillCannons, new AOEShapeRect(32.8f, 2.5f));
 class AddOvercharge(BossModule module) : Components.StandardAOEs(module, AID.Overcharge, new AOEShapeCone(10.8f, 60.Degrees()));
 

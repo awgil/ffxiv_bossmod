@@ -67,7 +67,7 @@ class TheRamsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheR
 class TheDragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.TheDragonsVoice, new AOEShapeDonut(6, 30));
 class Maelstrom(BossModule module) : Components.Voidzone(module, 8, OID.Maelstrom);
 class Meteor(BossModule module) : Components.StandardAOEs(module, AID.Meteor, 15);
-class MeteorVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.Meteor, m => m.Enemies(OID.LavaVoidzone).Where(z => z.EventState != 7), 0);
+class MeteorVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.Meteor, OID.LavaVoidzone, 0);
 
 class Hints(BossModule module) : BossComponent(module)
 {

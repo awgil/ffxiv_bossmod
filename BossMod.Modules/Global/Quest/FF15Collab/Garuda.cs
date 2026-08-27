@@ -162,7 +162,7 @@ class MiniSupercell(BossModule module) : Components.GenericBaitAway(module)
 
 class MiniSupercellKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.MiniSupercell2, 50, shape: new AOEShapeRect(45, 3), stopAtWall: true);
 
-class GravitationalForce(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.GravitationalForce2, m => m.Enemies(OID.GravityVoidzone), 0);
+class GravitationalForce(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.GravitationalForce2, OID.GravityVoidzone, 0);
 class MistralGaol(BossModule module) : Components.CastHint(module, AID.MistralGaol, "Prepare for Quick Time Event (spam buttons when it starts)");
 
 class GarudaStates : StateMachineBuilder

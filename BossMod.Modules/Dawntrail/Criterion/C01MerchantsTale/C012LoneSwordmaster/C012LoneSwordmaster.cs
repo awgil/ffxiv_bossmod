@@ -724,7 +724,7 @@ class ResoundingSilence(BossModule module) : Components.SpreadFromIcon(module, (
             hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
     }
 }
-class ResoundingSilencePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.ResoundingSilenceSpread, m => m.Enemies(0x1EBF73).Where(e => e.EventState != 7), 2);
+class ResoundingSilencePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.ResoundingSilenceSpread, 0x1EBF73, 2);
 class MawOfTheWolf(BossModule module) : Components.StandardAOEs(module, AID.MawOfTheWolf, new AOEShapeRect(80, 40));
 
 class FangsOfTheUnderworld(BossModule module) : Components.IconLineStack(module, 5, 60, (uint)IconID.Fangs, AID.FangsOfTheUnderworldStack, 5.2f)

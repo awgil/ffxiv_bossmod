@@ -168,25 +168,13 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
     }
 }
 
-class TwofoldVoidzone : Components.VoidzoneAtCastTarget
+class TwofoldVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 9, AID.TwofoldTempestStack, OID.TwofoldVoidzone, 3.4f)
 {
-    private readonly List<Actor> _sources = [];
-
-    public TwofoldVoidzone(BossModule module) : base(module, 9, AID.TwofoldTempestStack, m => [], 3.4f)
-    {
-        Sources = _ => _sources;
-    }
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if (actor.OID == (uint)OID.TwofoldVoidzone)
-            _sources.Add(actor);
-    }
 
     // this is NOT the same as EventState
     public override void OnActorEState(Actor actor, ushort state)
     {
         if (state == 4)
-            _sources.Remove(actor);
+            RemoveSource(actor);
     }
 }

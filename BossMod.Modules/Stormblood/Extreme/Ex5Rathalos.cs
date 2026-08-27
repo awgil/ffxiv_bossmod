@@ -136,7 +136,7 @@ class Mangle2(BossModule module) : Components.GenericAOEs(module, AID.Mangle2Vis
 
 class FireballStack1(BossModule module) : Components.StackWithCastTargets(module, AID.FireballBossFirst, 5);
 class FireballStack2(BossModule module) : Components.StackWithCastTargets(module, AID.FireballBossRest, 5);
-class FirePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.FireballFirst, m => m.Enemies(OID.Fireball).Where(e => e.EventState != 7), 0.5f)
+class FirePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.FireballFirst, OID.Fireball, 0.5f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

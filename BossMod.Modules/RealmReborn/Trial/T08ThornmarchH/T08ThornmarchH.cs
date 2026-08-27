@@ -69,7 +69,7 @@ class MoogleThrust(BossModule module) : Components.SingleTargetCast(module, AID.
 class MementoMoogle(BossModule module) : Components.RaidwideCast(module, AID.MementoMoogle);
 class PomHolyBoss(BossModule module) : Components.RaidwideCast(module, AID.PomHolyBoss);
 class ThousandKuponzeCharge(BossModule module) : Components.SingleTargetCast(module, AID.ThousandKuponzeCharge);
-class PomBog(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.PomBog, m => m.Enemies(OID.PomBog).Where(a => a.EventState != 7), 0.8f);
+class PomBog(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.PomBog, OID.PomBog, 0.8f);
 class MogStone(BossModule module) : Components.StackWithCastTargets(module, AID.MogStoneAOE, 6, 8);
 class TwinPomMeteor(BossModule module) : Components.CastSharedTankbuster(module, AID.TwinPomMeteorAOE, 6);
 class MogComet(BossModule module) : Components.StandardAOEs(module, AID.MogCometAOE, 6);

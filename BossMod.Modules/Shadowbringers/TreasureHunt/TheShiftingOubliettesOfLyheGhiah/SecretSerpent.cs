@@ -31,7 +31,7 @@ public enum AID : uint
     Telega = 9630, // BonusAdds->self, no cast, single-target, bonus adds disappear
 }
 
-class Douse(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.Douse, m => m.Enemies(OID.WaterVoidzone).Where(z => z.EventState != 7), 0);
+class Douse(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.Douse, OID.WaterVoidzone, 0);
 class FangsEnd(BossModule module) : Components.SingleTargetCast(module, AID.FangsEnd);
 class Drench(BossModule module) : Components.StandardAOEs(module, AID.Drench, new AOEShapeCone(15.29f, 45.Degrees()));
 class Drench2(BossModule module) : Components.StandardAOEs(module, AID.Drench2, new AOEShapeCone(13.45f, 45.Degrees()));

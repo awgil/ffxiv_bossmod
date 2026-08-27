@@ -107,25 +107,12 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
     }
 }
 
-class P1GravitasPuddle : Components.VoidzoneAtCastTarget
+class P1GravitasPuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Gravitas, OID.Gravitas, 0.7f)
 {
-    readonly List<Actor> _puddles = [];
-
-    public P1GravitasPuddle(BossModule module) : base(module, 5, AID.Gravitas, _ => [], 0.7f)
-    {
-        Sources = _ => _puddles;
-    }
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.Gravitas)
-            _puddles.Add(actor);
-    }
-
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Gravitas && state == 0x00100020)
-            _puddles.Remove(actor);
+            RemoveSource(actor);
     }
 }
 

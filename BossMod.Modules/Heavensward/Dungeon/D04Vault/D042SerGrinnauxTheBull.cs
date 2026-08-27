@@ -73,7 +73,7 @@ class FaithUnmoving(BossModule module) : Components.KnockbackFromCastTarget(modu
         }
     }
 }
-class DimensionalRip(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.DimensionalRip, m => m.Enemies(OID.DimensionalRipVoidzone).Where(x => x.EventState != 7), 0.8f);
+class DimensionalRip(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.DimensionalRip, OID.DimensionalRipVoidzone, 0.8f);
 class Rive(BossModule module) : Components.StandardAOEs(module, AID.Rive, new AOEShapeRect(30, 1));
 class AetherialTear(BossModule module) : Components.GenericAOEs(module)
 {

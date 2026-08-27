@@ -27,7 +27,7 @@ public enum AID : uint
 
 class GoldenTongue(BossModule module) : Components.CastHint(module, AID.GoldenTongue, "Can be interrupted, increase its magic damage");
 
-class DarkVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.Dark, m => m.Enemies(OID.DarkVoidzone), 0);
+class DarkVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.Dark, OID.DarkVoidzone, 0);
 
 class Dark(BossModule module) : Components.StandardAOEs(module, AID.Dark, 5);
 

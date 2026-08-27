@@ -462,7 +462,7 @@ class FirePowder(BossModule module) : Components.UniformStackSpread(module, 15, 
 }
 
 class ImpassionedSparks(BossModule module) : Components.StandardAOEs(module, AID.ImpassionedSparksPuddle, 8);
-class BurningPillar(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.BurningPillar, m => m.Enemies(OID.BurningPillar).Where(p => p.EventState != 7), 0);
+class BurningPillar(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.BurningPillar, OID.BurningPillar, 0);
 class FireWell(BossModule module) : Components.StackWithIcon(module, (uint)IconID.FireWell, AID.FireWell, 6, 6);
 
 class V01PariOfPlentyStates : StateMachineBuilder

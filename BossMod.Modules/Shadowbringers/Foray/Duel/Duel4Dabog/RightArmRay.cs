@@ -90,4 +90,4 @@ class RightArmRayBuffed(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class RightArmRayVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.RightArmRayVoidzone, m => m.Enemies(OID.AtomicSphereVoidzone), 0.9f);
+class RightArmRayVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.RightArmRayVoidzone, OID.AtomicSphereVoidzone, 0.9f);

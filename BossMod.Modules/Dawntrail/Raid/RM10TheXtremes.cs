@@ -96,14 +96,14 @@ public enum SID : uint
 
 class HotImpact(BossModule module) : Components.IconSharedTankbuster(module, (uint)IconID.HotImpactSharedTankbuster, AID.HotImpact, 6);
 class AlleyOopInferno(BossModule module) : Components.IconStackSpread(module, 0, (uint)IconID.AlleyOopInfernoSpread, null, AID.AlleyOopInferno1, 0, 5, 0);
-class AlleyOopInfernoVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.AlleyOopInferno1, module => module.Enemies(OID.InfernoVoidzone).Where(z => z.EventState != 7), 0.9f);
+class AlleyOopInfernoVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.AlleyOopInferno1, OID.InfernoVoidzone, 0.9f);
 class CutbackBlaze(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 25.Degrees()), (uint)IconID.CutbackBlaze, AID.CutbackBlaze);
-class CutbackBlazeVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.CutbackBlaze, module => module.Enemies(OID.CutbackBlazeVoidzone).Where(z => z.EventState != 7), 0.9f)
+class CutbackBlazeVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.CutbackBlaze, OID.CutbackBlazeVoidzone, 0.9f)
 {
     public new AOEShapeCone Shape = new(60, 25.Degrees());
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var z in Sources(Module))
+        foreach (var z in Sources)
             yield return new(Shape, z.Position, z.Rotation);
     }
 }
@@ -145,7 +145,7 @@ class DeepVarial(BossModule module) : Components.GenericAOEs(module)
 class DeepImpact(BossModule module) : Components.BaitAwayCast(module, AID.DeepImpact, new AOEShapeCircle(6), true);
 class XtremeSpectacular(BossModule module) : Components.StandardAOEs(module, AID.XtremeSpectacular2, new AOEShapeRect(50f, 15f));
 class HotAerial(BossModule module) : Components.CastTowers(module, AID.HotAerial2, 6, 1);
-class HotAerialVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.HotAerial1, module => module.Enemies(OID.HotAerialVoidzone).Where(z => z.EventState != 7), 0.9f);
+class HotAerialVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.HotAerial1, OID.HotAerialVoidzone, 0.9f);
 class SteamBurst(BossModule module) : Components.StandardAOEs(module, AID.SteamBurst, 9f);
 class Pyrotation(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Pyrotation, AID.Pyrotation1, 6, 0);
 class AlleyOopMaelstrom1(BossModule module) : Components.StandardAOEs(module, AID.AlleyOopMaelstrom1, new AOEShapeCone(60f, 15f.Degrees()));
@@ -195,12 +195,12 @@ class InsaneAir2(BossModule module) : Components.BaitAwayIcon(module, new AOESha
             CurrentBaits.Clear();
     }
 }
-class BlastingSnapVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.BlastingSnap, module => module.Enemies(OID.BlastingSnapVoidzone).Where(z => z.EventState != 7), 0.9f)
+class BlastingSnapVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.BlastingSnap, OID.BlastingSnapVoidzone, 0.9f)
 {
     public new AOEShapeCone Shape = new(60, 15.Degrees());
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var z in Sources(Module))
+        foreach (var z in Sources)
             yield return new(Shape, z.Position, z.Rotation);
     }
 }

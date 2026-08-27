@@ -154,7 +154,7 @@ class LashOfLight(BossModule module) : Components.StandardAOEs(module, AID.LashO
 class WolfsCrossing(BossModule module) : Components.StandardAOEs(module, AID.WolfsCrossing, new AOEShapeCross(40, 4));
 class MawOfTheWolf(BossModule module) : Components.StandardAOEs(module, AID.MawOfTheWolf, new AOEShapeRect(80, 40));
 class EchoingHush(BossModule module) : Components.StandardAOEs(module, AID.EchoingHush, 8);
-class EchoingEightPuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.EchoingEightPuddle, m => m.Enemies(0x1EBF73).Where(e => e.EventState != 7), 2);
+class EchoingEightPuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.EchoingEightPuddle, 0x1EBF73, 2);
 class EchoingEightCross(BossModule module) : Components.StandardAOEs(module, AID.EchoingEightCross, new AOEShapeCross(40, 4));
 class MaleficPortentCounter(BossModule module) : Components.CastCounter(module, AID.MaleficPortent);
 class SteelsbreathBonds(BossModule module) : Components.Chains(module, (uint)TetherID.Chains, chainLength: 30);

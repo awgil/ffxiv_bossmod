@@ -22,7 +22,7 @@ public enum AID : uint
 
 class WildHorn(BossModule module) : Components.StandardAOEs(module, AID.WildHorn, new AOEShapeCone(18, 45.Degrees()));
 class ZombieBreath(BossModule module) : Components.StandardAOEs(module, AID.ZombieBreath, new AOEShapeRect(60, 3));
-class ZombieJuice(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.ZombieJuice, m => m.Enemies(0x1E972C).Where(e => e.EventState != 7), 1);
+class ZombieJuice(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.ZombieJuice, 0x1E972C, 1);
 class Thunderbolt(BossModule module) : Components.GenericAOEs(module, AID.Thunderbolt)
 {
     private readonly List<(Actor Caster, DateTime Activation)> Casters = [];

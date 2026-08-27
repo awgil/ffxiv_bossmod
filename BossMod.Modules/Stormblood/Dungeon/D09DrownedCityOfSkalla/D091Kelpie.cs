@@ -89,7 +89,7 @@ class BloodyPuddleSpread(BossModule module) : Components.SpreadFromIcon(module, 
             Spreads.Clear();
     }
 }
-class BloodyPuddlePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.BloodyPuddle, m => m.Enemies(OID.BloodyPuddle).Where(e => e.EventState != 7), 1);
+class BloodyPuddlePuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.BloodyPuddle, OID.BloodyPuddle, 1);
 
 class BubbleBurst(BossModule module) : Components.GenericAOEs(module, AID.BubbleBurst)
 {

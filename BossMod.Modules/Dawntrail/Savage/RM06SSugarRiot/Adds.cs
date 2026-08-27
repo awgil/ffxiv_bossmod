@@ -135,7 +135,7 @@ class Adds(BossModule module) : BossComponent(module)
 }
 
 class ICraveViolence(BossModule module) : Components.StandardAOEs(module, AID.ICraveViolence, new AOEShapeCircle(6));
-class WaterIII(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.WaterIIISpread, m => m.Enemies(0x1EBD91).Where(o => o.EventState != 7), 1.5f, 5);
+class WaterIII(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.WaterIIISpread, 0x1EBD91, 1.5f, castEventTimeout: 5);
 class WaterIIITether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(8), (uint)TetherID.FeatherRay, centerAtTarget: true)
 {
     public override void Update()

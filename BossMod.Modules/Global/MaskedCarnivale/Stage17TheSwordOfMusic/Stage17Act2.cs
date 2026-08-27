@@ -21,7 +21,7 @@ public enum AID : uint
 
 class GrandStrike(BossModule module) : Components.StandardAOEs(module, AID.GrandStrike, new AOEShapeRect(77.5f, 2));
 class MagitekField(BossModule module) : Components.CastHint(module, AID.MagitekField, "Interruptible, increases its defenses");
-class MagitekRay(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.MagitekRay, m => m.Enemies(OID.MagitekRayVoidzone), 0);
+class MagitekRay(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.MagitekRay, OID.MagitekRayVoidzone, 0);
 class TheHand(BossModule module) : Components.StandardAOEs(module, AID.TheHand, new AOEShapeCone(8, 60.Degrees()));
 class Shred(BossModule module) : Components.StandardAOEs(module, AID.Shred, new AOEShapeRect(6, 2));
 class TheHandKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TheHand, 10, shape: new AOEShapeCone(8, 60.Degrees())); // actual knockback happens a whole 0.9s after snapshot

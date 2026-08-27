@@ -121,7 +121,7 @@ class HoundOutOfHeavenBad(BossModule module) : Components.BaitAwayTethers(module
     }
 }
 
-class ViperPoisonPatterns(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.ViperPoisonPatterns, m => m.Enemies(OID.PoisonVoidzone).Where(z => z.EventState != 7), 0);
+class ViperPoisonPatterns(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.ViperPoisonPatterns, OID.PoisonVoidzone, 0);
 class ConfessionOfFaithLeft(BossModule module) : Components.StandardAOEs(module, AID.ConfessionOfFaithLeft, new AOEShapeCone(60, 46.Degrees(), 20.Degrees())); // TODO: verify; there should not be an offset in reality here...
 class ConfessionOfFaithRight(BossModule module) : Components.StandardAOEs(module, AID.ConfessionOfFaithRight, new AOEShapeCone(60, 46.Degrees(), -20.Degrees())); // TODO: verify; there should not be an offset in reality here...
 class ConfessionOfFaithStack(BossModule module) : Components.StackWithCastTargets(module, AID.ConfessionOfFaithStack, 6);

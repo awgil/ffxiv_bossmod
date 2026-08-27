@@ -1,9 +1,11 @@
 ﻿namespace BossMod.Shadowbringers.Ultimate.TEA;
 
-class P2EarthMissileBaited(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.EarthMissileBaited, m => m.Enemies(OID.VoidzoneEarthMissileBaited).Where(z => z.EventState != 7), 0.9f);
+class P2EarthMissileBaited(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.EarthMissileBaited, OID.VoidzoneEarthMissileBaited, 0.9f);
 
-class P2EarthMissileIce(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.EarthMissileIce, Voidzones, 0.8f) // TODO: verify larger radius...
+class P2EarthMissileIce(BossModule module) : Components.VoidzoneAtCastTarget(module, 10, AID.EarthMissileIce, OID.VoidzoneEarthMissileIceSmall, 0.8f) // TODO: verify larger radius...
 {
+    /*
+    FIXME
     private static IEnumerable<Actor> Voidzones(BossModule m)
     {
         foreach (var z in m.Enemies(OID.VoidzoneEarthMissileIceSmall).Where(z => z.EventState != 7))
@@ -17,6 +19,7 @@ class P2EarthMissileIce(BossModule module) : Components.VoidzoneAtCastTarget(mod
             yield break;
         }
     }
+    */
 }
 
 // note: we use a single spread/stack component for both enumerations and ice missile spreads, since they happen at the same time

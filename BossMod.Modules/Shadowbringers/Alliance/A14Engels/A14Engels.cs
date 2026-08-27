@@ -86,7 +86,7 @@ class IncendiaryBombing(BossModule module) : Components.SpreadFromIcon(module, (
             Spreads.Clear();
     }
 }
-class IncendiaryBombingVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.IncendiaryBombing, m => m.Enemies(OID.IncendiaryBomb).Where(e => e.EventState != 7), 0.1f);
+class IncendiaryBombingVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.IncendiaryBombing, OID.IncendiaryBomb, 0.1f);
 class DiffuseLaser(BossModule module) : Components.RaidwideCast(module, AID.DiffuseLaser);
 
 class LaserSight(BossModule module) : Components.GenericAOEs(module, AID.LaserSight)

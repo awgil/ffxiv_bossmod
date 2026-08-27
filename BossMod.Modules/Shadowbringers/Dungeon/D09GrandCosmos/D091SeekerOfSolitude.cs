@@ -18,7 +18,7 @@ public enum OID : uint
     DirtPile = 0x1EAEAE
 }
 
-class Tribulation(BossModule module) : Components.VoidzoneAtCastTarget(module, 3, AID.Tribulation, m => m.Enemies(OID.DirtPile).Where(x => x.EventState != 7), 0);
+class Tribulation(BossModule module) : Components.VoidzoneAtCastTarget(module, 3, AID.Tribulation, OID.DirtPile, 0);
 class ImmortalAnathema(BossModule module) : Components.RaidwideCast(module, AID.ImmortalAnathema);
 class DarkPulse(BossModule module) : Components.StackWithCastTargets(module, AID.DarkPulse, 6);
 class DarkWell(BossModule module) : Components.SpreadFromCastTargets(module, AID.DarkWell, 5);

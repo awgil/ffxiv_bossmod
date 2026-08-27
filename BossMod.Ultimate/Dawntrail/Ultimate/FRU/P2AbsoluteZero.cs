@@ -38,7 +38,7 @@ class P2HiemalStorm(BossModule module) : Components.StandardAOEs(module, AID.Hie
     }
 }
 
-class P2HiemalRay(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.HiemalRay, module => module.Enemies(OID.HiemalRayVoidzone).Where(z => z.EventState != 7), 0.7f);
+class P2HiemalRay(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.HiemalRay, OID.HiemalRayVoidzone, 0.7f);
 
 // TODO: show hint if ice veil is clipped
 class P2Intermission(BossModule module) : Components.GenericBaitAway(module)

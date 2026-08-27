@@ -16,7 +16,7 @@ public enum AID : uint
     TerribleFlurry = 6610, // _Gen_Whirlwind->self, no cast, range 6 circle
 }
 
-class Stormcoming(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.Stormcoming, m => m.Enemies(OID.Whirlwind).Where(w => w.EventState != 7), 0);
+class Stormcoming(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.Stormcoming, OID.Whirlwind, 0);
 class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, AID.Swiftfeather)
 {
     // 2.3f delay

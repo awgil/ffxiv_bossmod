@@ -16,7 +16,7 @@ public enum AID : uint
 
 class BoulderClap(BossModule module) : Components.StandardAOEs(module, AID.BoulderClap, new AOEShapeCone(14, 60.Degrees()));
 
-class Dreadstorm(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.EarthenHeart, m => m.Enemies(OID.voidzone), 0);
+class Dreadstorm(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.EarthenHeart, OID.voidzone, 0);
 
 class Obliterate(BossModule module) : Components.RaidwideCast(module, AID.Obliterate, "Interruptible raidwide");
 

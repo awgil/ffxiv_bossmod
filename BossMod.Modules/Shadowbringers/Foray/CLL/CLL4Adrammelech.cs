@@ -160,13 +160,13 @@ class WarpedLight(BossModule module) : Components.ChargeAOEs(module, (AID)0, 1.5
 
 class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, new AOEShapeCircle(35));
 class Flare(BossModule module) : Components.SingleTargetCast(module, AID.Flare);
-class Tornado(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.Tornado, m => m.Enemies(OID.Twister).Where(e => e.EventState != 7), 0.7f)
+class Tornado(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.Tornado, OID.Twister, 0.7f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        foreach (var z in Sources(Module))
+        foreach (var z in Sources)
             hints.AddForbiddenZone(ShapeDistance.Capsule(z.Position, z.Rotation.ToDirection(), 3, 6), WorldState.FutureTime(2));
     }
 }

@@ -9,7 +9,8 @@ public class Voidzone(BossModule module, float radius, uint oid, Func<Actor, boo
     public Voidzone(BossModule module, float radius, Enum oid, Func<Actor, bool>? isDeactivated = null, float moveHintLength = 0) : this(module, radius, (uint)(object)oid, isDeactivated, moveHintLength) { }
 
     public AOEShapeCircle Shape { get; init; } = new(radius);
-    public readonly List<Actor> Sources = [];
+    public IReadOnlyList<Actor> Sources => _sources;
+    private readonly List<Actor> _sources = [];
     public readonly uint ID = oid;
     protected Func<Actor, bool>? IsDeactivated = isDeactivated;
     public float MoveHintLength = moveHintLength;
@@ -29,30 +30,38 @@ public class Voidzone(BossModule module, float radius, uint oid, Func<Actor, boo
     public override void OnActorCreated(Actor actor)
     {
         if (actor.OID == ID)
-            Sources.Add(actor);
+            AddSource(actor);
     }
 
     public override void OnActorDestroyed(Actor actor)
     {
-        Sources.Remove(actor);
+        RemoveSource(actor);
     }
 
     public override void Update()
     {
         if (IsDeactivated != null)
-            Sources.RemoveAll(IsDeactivated.Invoke);
+            _sources.RemoveAll(IsDeactivated.Invoke);
     }
+
+    protected void AddSource(Actor a) => _sources.Add(a);
+    protected void RemoveSource(Actor a) => _sources.Remove(a);
 }
 
 // voidzone that appears with some delay at cast target
 // note that if voidzone is predicted by cast start rather than cast event, we have to account for possibility of cast finishing without event (e.g. if actor dies before cast finish)
 // TODO: this has problems when target moves - castevent and spawn position could be quite different
 // TODO: this has problems if voidzone never actually spawns after castevent, eg because of phase changes
-public class VoidzoneAtCastTarget(BossModule module, float radius, Enum? aid, Func<BossModule, IEnumerable<Actor>> sources, float castEventToSpawn, float castEventTimeout = float.MaxValue) : GenericAOEs(module, aid, "GTFO from voidzone!")
+public class VoidzoneAtCastTarget(BossModule module, float radius, Enum aid, uint oid, float castEventToSpawn, Func<Actor, bool>? isDeactivated = null, float castEventTimeout = float.MaxValue) : GenericAOEs(module, aid, "GTFO from voidzone!")
 {
+    public VoidzoneAtCastTarget(BossModule module, float radius, Enum aid, Enum oid, float castEventToSpawn, Func<Actor, bool>? isDeactivated = null, float castEventTimeout = float.MaxValue) : this(module, radius, aid, (uint)(object)oid, castEventToSpawn, isDeactivated, castEventTimeout) { }
+
     public float Radius = radius;
     public AOEShapeCircle Shape { get; init; } = new(radius);
-    public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
+    public IReadOnlyList<Actor> Sources => _sources;
+    private readonly List<Actor> _sources = [];
+    public readonly uint ID = oid;
+    protected Func<Actor, bool>? IsDeactivated = isDeactivated;
     public float CastEventToSpawn { get; init; } = castEventToSpawn;
     protected readonly List<(WPos pos, DateTime time)> _predictedByEvent = [];
     private readonly List<(Actor caster, DateTime time)> _predictedByCast = [];
@@ -65,22 +74,16 @@ public class VoidzoneAtCastTarget(BossModule module, float radius, Enum? aid, Fu
             yield return new(Shape, p.pos, Activation: p.time);
         foreach (var p in _predictedByCast)
             yield return new(Shape, WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, Activation: p.time);
-        foreach (var z in Sources(Module))
+        foreach (var z in Sources)
             yield return new(Shape, z.Position);
     }
 
     public override void Update()
     {
-        if (_predictedByEvent.Count > 0)
-        {
-            if (castEventTimeout < float.MaxValue)
-                _predictedByEvent.RemoveAll(e => (WorldState.CurrentTime - e.time).TotalSeconds > castEventTimeout);
+        if (castEventTimeout < float.MaxValue)
+            _predictedByEvent.RemoveAll(e => e.time.AddSeconds(castEventTimeout) < WorldState.CurrentTime);
 
-            foreach (var s in Sources(Module))
-            {
-                var closest = _predictedByEvent.MinBy(p => p.time);
-            }
-        }
+        _sources.RemoveAll(a => a.EventState == 7 || IsDeactivated?.Invoke(a) == true);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -101,6 +104,26 @@ public class VoidzoneAtCastTarget(BossModule module, float radius, Enum? aid, Fu
         if (spell.Action == WatchedAction)
             _predictedByEvent.Add((WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ, WorldState.FutureTime(CastEventToSpawn)));
     }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == ID)
+            AddSource(actor);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        RemoveSource(actor);
+    }
+
+    protected void AddSource(Actor a)
+    {
+        _sources.Add(a);
+
+        if (_predictedByEvent.Count > 0)
+            _predictedByEvent.RemoveAt(0);
+    }
+    protected void RemoveSource(Actor a) => _sources.Remove(a);
 }
 
 // these are normal voidzones that could be 'inverted' (e.g. when you need to enter a voidzone at specific time to avoid some mechanic)

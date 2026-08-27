@@ -1,6 +1,15 @@
 ﻿namespace BossMod.Endwalker.Extreme.Ex5Rubicante;
 
-class ArchInferno(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.ArchInferno, m => Enumerable.Repeat(m.PrimaryActor, (m.PrimaryActor.CastInfo?.IsSpell(AID.ArchInferno) ?? false) ? 0 : 1), 0);
+class ArchInferno(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.ArchInferno, OID.Boss, 0)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ArchInferno)
+            AddSource(Module.PrimaryActor);
+    }
+
+    public override void OnActorCreated(Actor actor) { }
+}
 class InfernoDevilFirst(BossModule module) : Components.StandardAOEs(module, AID.InfernoDevilFirst, new AOEShapeCircle(10));
 class InfernoDevilRest(BossModule module) : Components.StandardAOEs(module, AID.InfernoDevilRest, new AOEShapeCircle(10));
 class Conflagration(BossModule module) : Components.StandardAOEs(module, AID.Conflagration, new AOEShapeRect(40, 5));
