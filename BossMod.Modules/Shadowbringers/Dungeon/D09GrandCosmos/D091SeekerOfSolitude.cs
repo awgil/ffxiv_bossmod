@@ -27,11 +27,11 @@ class Shadowbolt(BossModule module) : Components.SingleTargetCast(module, AID.Sh
 
 // not sure about radius, sweep trigger is incredibly janky
 // filter out brooms who are too far outside the arena since they don't affect players and the AOE lingering on minimap is annoying
-class Sweep(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.MagickedBroom).Where(b => MathF.Abs(b.Position.X) <= 23.5f))
+class Sweep(BossModule module) : Components.PersistentVoidzone(module, 4, OID.MagickedBroom, b => MathF.Abs(b.Position.X) > 23.5f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var t in Sources(Module))
+        foreach (var t in Sources)
         {
             hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, t.Rotation, 2, 4));
             hints.AddForbiddenZone(ShapeDistance.Capsule(t.Position, t.Rotation, 6, 4), WorldState.FutureTime(2));

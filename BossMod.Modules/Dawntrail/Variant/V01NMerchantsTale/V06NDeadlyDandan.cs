@@ -192,24 +192,12 @@ class StingingTentacle(BossModule module) : Components.GenericAOEs(module)
         return self.Rotation + (diff.Rad >= 0 ? InwardOffset : -InwardOffset);
     }
 }
-class StrewnBubble : Components.PersistentVoidzone
+class StrewnBubble(BossModule module) : Components.PersistentVoidzone(module, 2.6f, OID.AiryBubble, null, 8)
 {
-    private readonly List<Actor> _bubbles = [];
-
-    public StrewnBubble(BossModule module) : base(module, 2.6f, _ => [], 8)
-    {
-        Sources = _ => _bubbles;
-    }
-
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.AiryBubble && !actor.Position.AlmostEqual(Module.Center, 5))
-            _bubbles.Add(actor);
-    }
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID is OID.AiryBubble)
-            _bubbles.Remove(actor);
+            Sources.Add(actor);
     }
 }
 class MawOfTheDeep(BossModule module) : Components.StandardAOEs(module, AID.MawOfTheDeep, 8f, 10);

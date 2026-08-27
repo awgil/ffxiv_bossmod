@@ -118,6 +118,7 @@ public enum AID : uint
 public enum SID : uint
 {
     Doom = 210, // none->player, extra=0x0
+    Neurolink = 344, // none->player, extra=0x0
     Firescorched = 464, // Firehorn->player, extra=0x0
     Icebitten = 465, // Iceclaw->player, extra=0x0
     Thunderstruck = 466, // none->player, extra=0x0

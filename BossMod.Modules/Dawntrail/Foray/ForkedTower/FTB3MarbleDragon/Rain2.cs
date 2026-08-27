@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Dawntrail.Foray.ForkedTower.FTB3MarbleDragon;
 
-class IceTwister(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.Icewind));
+class IceTwister(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Icewind);
 
 // 3 puddles north, 3 puddles south, 1 center, activated in an arbitrary illogical order
 class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)
@@ -50,7 +50,6 @@ class ImitationBlizzard2(BossModule module) : ImitationBlizzard(module, 4)
         {
             if (t.LastFrameMovement != default)
             {
-                Service.Log(t.LastFrameMovement.ToString());
                 var dirCenter = t.Position - Arena.Center;
                 var cw = dirCenter.OrthoR().Dot(t.LastFrameMovement) > 0;
 

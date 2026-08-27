@@ -38,24 +38,12 @@ class HolyChain(BossModule module) : Components.Chains(module, (uint)TetherID.Ho
 class AltarPyre(BossModule module) : Components.RaidwideCast(module, AID.AltarPyre);
 class BlackKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.BlackKnightsTour, new AOEShapeRect(40, 2));
 class WhiteKnightsTour(BossModule module) : Components.StandardAOEs(module, AID.WhiteKnightsTour, new AOEShapeRect(40, 2));
-class March : Components.PersistentVoidzone
+class March(BossModule module) : Components.PersistentVoidzone(module, 2.5f, uint.MaxValue, null, 15)
 {
-    private readonly List<Actor> _knights = [];
-
-    public March(BossModule module) : base(module, 2.5f, _ => [], 15)
-    {
-        Sources = _ => _knights;
-    }
-
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.DawnKnight or OID.DuskKnight && !actor.Position.AlmostEqual(Module.Center, 5))
-            _knights.Add(actor);
-    }
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID is OID.DawnKnight or OID.DuskKnight)
-            _knights.Remove(actor);
+            Sources.Add(actor);
     }
 }
 class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.HolyFlame)

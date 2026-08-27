@@ -26,7 +26,7 @@ class DragonsBreath(BossModule module) : Components.StandardAOEs(module, AID.Dra
 class RamsVoice(BossModule module) : Components.StandardAOEs(module, AID.RamsVoice, new AOEShapeCircle(9.7f));
 class DragonsVoice(BossModule module) : Components.StandardAOEs(module, AID.DragonsVoice, new AOEShapeDonut(7, 30));
 class RamsKeeper(BossModule module) : Components.StandardAOEs(module, AID.RamsKeeper, 6);
-class RamsKeeperVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.RamsKeeper));
+class RamsKeeperVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, OID.RamsKeeper);
 
 class ChaoticChorus(BossModule module) : Components.GenericAOEs(module, AID.ChaoticChorus)
 {

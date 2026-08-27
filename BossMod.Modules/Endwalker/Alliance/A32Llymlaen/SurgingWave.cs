@@ -20,7 +20,7 @@ class SurgingWaveCorridor(BossModule module) : BossComponent(module)
 
 class SurgingWaveAOE(BossModule module) : Components.StandardAOEs(module, AID.SurgingWaveAOE, new AOEShapeCircle(6));
 class SurgingWaveShockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SurgingWaveShockwave, 68, true);
-class SurgingWaveSeaFoam(BossModule module) : Components.PersistentVoidzone(module, 1.5f, m => m.Enemies(OID.SeaFoam).Where(x => !x.IsDead));
+class SurgingWaveSeaFoam(BossModule module) : Components.PersistentVoidzone(module, 1.5f, OID.SeaFoam, x => x.IsDead);
 
 class SurgingWaveFrothingSea(BossModule module) : Components.GenericAOEs(module, AID.SurgingWaveFrothingSea)
 {

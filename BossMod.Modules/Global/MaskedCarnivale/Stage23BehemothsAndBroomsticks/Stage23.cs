@@ -19,7 +19,7 @@ public enum AID : uint
 }
 
 class Charybdis(BossModule module) : Components.StandardAOEs(module, AID.Charybdis, 6);
-class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.Maelstrom));
+class Maelstrom(BossModule module) : Components.PersistentVoidzone(module, 8, OID.Maelstrom);
 class Trounce(BossModule module) : Components.StandardAOEs(module, AID.Trounce, new AOEShapeCone(55.8f, 30.Degrees()));
 class Comet(BossModule module) : Components.StandardAOEs(module, AID.Comet2, 10);
 class EclipticMeteor(BossModule module) : Components.RaidwideCast(module, AID.EclipticMeteor, "Use Diamondback!");

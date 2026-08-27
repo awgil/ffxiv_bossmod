@@ -9,6 +9,8 @@ class Hatch : Components.CastCounter
     private readonly IReadOnlyList<Actor> _neurolinks;
     private BitMask _targets;
 
+    public bool IsTarget(int slot) => _targets[slot];
+
     public Hatch(BossModule module) : base(module, AID.Hatch)
     {
         _orbs = module.Enemies(OID.Oviform);
@@ -32,6 +34,57 @@ class Hatch : Components.CastCounter
             hints.Add("Go to neurolink!", !inNeurolink);
         else if (inNeurolink)
             hints.Add("GTFO from neurolink!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.PrimaryActor.IsTargetable)
+        {
+            var twintania = hints.FindEnemy(Module.PrimaryActor)!;
+            twintania.TankDistance = 0.5f;
+
+            switch (_neurolinks.Count)
+            {
+                case 0:
+                    twintania.DesiredPosition = new(0, -8);
+                    twintania.DesiredRotation = 180.Degrees();
+                    break;
+                case 1:
+                    twintania.DesiredPosition = new(-8, 5);
+                    twintania.DesiredRotation = -60.Degrees();
+                    break;
+                case 2:
+                    twintania.DesiredPosition = new(8, 5);
+                    twintania.DesiredRotation = 60.Degrees();
+                    break;
+            }
+        }
+
+        if (!Active || _neurolinks.Count == 0)
+            return;
+
+        var linkShape = Sdf.Continuous(ShapeDistance.Union([.. _neurolinks.Select(n => ShapeDistance.Circle(n.Position, 2))]));
+
+        if (_targets[slot])
+        {
+            hints.AddForbiddenZone(linkShape.Inverted(), WorldState.FutureTime(2));
+
+            foreach (var (s, t) in Raid.WithSlot().IncludedInMask(_targets))
+                if (s != slot)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 8), WorldState.FutureTime(2));
+        }
+        else
+        {
+            hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
+            foreach (var (_, t) in Raid.WithSlot().IncludedInMask(_targets))
+            {
+                hints.AddForbiddenZone(ShapeDistance.Capsule(Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(t), Module.PrimaryActor.DistanceToPoint(t.Position), 2));
+
+                if (t.FindStatus(SID.Neurolink) != null)
+                    // 2 extra units to account for sudden twister dodge
+                    hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 10));
+            }
+        }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)

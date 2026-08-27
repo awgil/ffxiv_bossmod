@@ -29,7 +29,7 @@ class KuruiYukikaze(BossModule module) : Components.StandardAOEs(module, AID.Kur
 class HissatsuKyuten(BossModule module) : Components.StandardAOEs(module, AID.HissatsuKyuten, new AOEShapeCircle(5.5f));
 class TenkaGoken(BossModule module) : Components.StandardAOEs(module, AID.TenkaGoken, new AOEShapeCone(8.5f, 60.Degrees()));
 class ShinGetsubaku(BossModule module) : Components.StandardAOEs(module, AID.ShinGetsubaku, 6);
-class ShinGetsubakuVoidzone(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.Voidzone).Where(e => e.EventState != 7));
+class ShinGetsubakuVoidzone(BossModule module) : Components.PersistentVoidzone(module, 4, OID.Voidzone, e => e.EventState == 7);
 class MijinGiri(BossModule module) : Components.StandardAOEs(module, AID.MijinGiri, new AOEShapeRect(80, 5));
 class Ugetsuzan(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeDonutSector(2, 7, 90.Degrees()), new AOEShapeDonutSector(7, 12, 90.Degrees()), new AOEShapeDonutSector(12, 17, 90.Degrees())])
 {

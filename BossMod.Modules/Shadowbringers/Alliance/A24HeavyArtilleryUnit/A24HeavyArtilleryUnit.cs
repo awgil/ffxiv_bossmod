@@ -109,19 +109,12 @@ class ImpactCrusher(BossModule module) : Components.StandardAOEs(module, AID.Man
 class RevolvingLaser(BossModule module) : Components.StandardAOEs(module, AID.ManeuverRevolvingLaser, new AOEShapeDonut(12, 60));
 class R010Laser(BossModule module) : Components.StandardAOEs(module, AID.R010Laser, new AOEShapeRect(60, 6));
 class R030Hammer(BossModule module) : Components.StandardAOEs(module, AID.R030Hammer, new AOEShapeCircle(18));
-class Energy : Components.PersistentVoidzone
+class Energy(BossModule module) : Components.PersistentVoidzone(module, 2, uint.MaxValue, null, 8)
 {
-    private readonly List<Actor> _balls = [];
-
-    public Energy(BossModule module) : base(module, 2, _ => [], 8)
-    {
-        Sources = _ => _balls;
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.EnergyBomb)
-            _balls.Remove(caster);
+            Sources.Remove(caster);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -129,9 +122,9 @@ class Energy : Components.PersistentVoidzone
         if (actor.OID == (uint)OID.Energy)
         {
             if (id == 0x11D2)
-                _balls.Add(actor);
+                Sources.Add(actor);
             if (id == 0x11E7)
-                _balls.Remove(actor);
+                Sources.Remove(actor);
         }
     }
 }

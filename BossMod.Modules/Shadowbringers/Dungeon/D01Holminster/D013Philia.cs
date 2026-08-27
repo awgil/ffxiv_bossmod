@@ -53,7 +53,7 @@ public enum SID : uint
     Sludge = 287, // none->player, extra=0x0
 }
 
-class SludgeVoidzone(BossModule module) : Components.PersistentVoidzone(module, 9.8f, m => m.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7));
+class SludgeVoidzone(BossModule module) : Components.PersistentVoidzone(module, 9.8f, OID.SludgeVoidzone, z => z.EventState == 7);
 class ScavengersDaughter(BossModule module) : Components.RaidwideCast(module, AID.ScavengersDaughter);
 class HeadCrusher(BossModule module) : Components.SingleTargetCast(module, AID.HeadCrusher);
 

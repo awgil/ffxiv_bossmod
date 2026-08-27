@@ -31,23 +31,16 @@ public enum IconID : uint
 
 class DeployArmaments(BossModule module) : Components.GroupedAOEs(module, [AID.DeployArmaments1, AID.DeployArmaments2, AID.DeployArmaments3], new AOEShapeRect(50, 9));
 class UniversalAssault(BossModule module) : Components.RaidwideCast(module, AID.UniversalAssault);
-class Energy : Components.PersistentVoidzone
+class Energy(BossModule module) : Components.PersistentVoidzone(module, 2, uint.MaxValue, null, 8)
 {
-    private readonly List<Actor> _balls = [];
-
-    public Energy(BossModule module) : base(module, 2, _ => [], 8)
-    {
-        Sources = _ => _balls;
-    }
-
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Energy)
         {
             if (id == 0x11D2)
-                _balls.Add(actor);
+                Sources.Add(actor);
             else if (id == 0x11E7)
-                _balls.Remove(actor);
+                Sources.Remove(actor);
         }
     }
 }

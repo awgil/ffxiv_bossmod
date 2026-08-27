@@ -293,24 +293,12 @@ class NearFarTide(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class SirenSphere : Components.PersistentVoidzone
+class SirenSphere(BossModule module) : Components.PersistentVoidzone(module, 2.5f, OID.SirenSphere, null, 15)
 {
-    private readonly List<Actor> _spheres = [];
-
-    public SirenSphere(BossModule module) : base(module, 2.5f, _ => [], 15)
-    {
-        Sources = _ => _spheres;
-    }
-
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.SirenSphere && !actor.Position.AlmostEqual(Module.Center, 5))
-            _spheres.Add(actor);
-    }
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID is OID.SirenSphere)
-            _spheres.Remove(actor);
+            Sources.Add(actor);
     }
 }
 class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(8f, 4f));

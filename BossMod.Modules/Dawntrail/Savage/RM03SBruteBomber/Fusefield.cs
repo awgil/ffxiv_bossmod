@@ -50,7 +50,7 @@ class Fusefield(BossModule module) : BossComponent(module)
     }
 }
 
-class FusefieldVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.Boss))
+class FusefieldVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Boss)
 {
     public bool Active;
 

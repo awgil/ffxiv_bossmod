@@ -70,19 +70,12 @@ class HighCaliberLaser(BossModule module) : Components.StandardAOEs(module, AID.
     }
 }
 
-class EnergyBomb : Components.PersistentVoidzone
+class EnergyBomb(BossModule module) : Components.PersistentVoidzone(module, 2, uint.MaxValue, null, 8)
 {
-    private readonly List<Actor> _balls = [];
-
-    public EnergyBomb(BossModule module) : base(module, 2, _ => [], 8)
-    {
-        Sources = _ => _balls;
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.EnergyBomb)
-            _balls.Remove(caster);
+            Sources.Remove(caster);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -90,9 +83,9 @@ class EnergyBomb : Components.PersistentVoidzone
         if (actor.OID == (uint)OID.Turret2)
         {
             if (id == 0x11D2)
-                _balls.Add(actor);
+                Sources.Add(actor);
             if (id == 0x11E7)
-                _balls.Remove(actor);
+                Sources.Remove(actor);
         }
     }
 }

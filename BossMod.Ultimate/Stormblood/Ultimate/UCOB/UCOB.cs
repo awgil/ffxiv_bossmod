@@ -1,14 +1,56 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania);
+class P1Plummet : Components.Cleave
+{
+    public P1Plummet(BossModule module) : base(module, AID.Plummet, new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania)
+    {
+        NextExpected = DateTime.MaxValue;
+    }
+}
 class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 4)
 {
+    int _neurolinkCount = 0;
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        base.OnEventIcon(actor, iconID, targetID);
+        if (iconID == StackIcon)
+        {
+            if (_neurolinkCount == 0)
+                AddStack(actor, WorldState.FutureTime(5.3f), Raid.WithSlot().WhereActor(a => a.Role == Role.Tank).Mask());
+            else
+                AddStack(actor, WorldState.FutureTime(7.4f));
+        }
+    }
 
-        for (var i = 0; i < Stacks.Count; i++)
-            Stacks.Ref(i).ForbiddenPlayers = Raid.WithSlot().WhereActor(a => a.Role == Role.Tank).Mask();
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.Neurolink)
+            _neurolinkCount++;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_neurolinkCount > 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        if (!EnableHints || Stacks.Count == 0)
+            return;
+
+        var stack = Stacks[0];
+
+        var stackDestination = Module.PrimaryActor.Position + new WDir(0, Module.PrimaryActor.HitboxRadius + 3);
+
+        if (stack.Target == actor) // stack target shouldn't move around too much, just plant on boss
+        {
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(stackDestination, new(0, 1), 0.5f, actor.Position, 0.1f), stack.Activation);
+        }
+        else if (!stack.ForbiddenPlayers[slot])
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(stackDestination, stack.Radius - 1), stack.Activation);
+        else
+            hints.AddForbiddenZone(ShapeDistance.Circle(stackDestination, stack.Radius + 0.5f), stack.Activation);
     }
 }
 class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, AID.BahamutsClaw);

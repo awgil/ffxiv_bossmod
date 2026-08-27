@@ -153,12 +153,12 @@ class AuraSpheres : Components.PersistentInvertibleVoidzone
 
 class EnduringGlory(BossModule module) : Components.RaidwideCast(module, AID.EnduringGlory);
 
-class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.BitingWind))
+class BitingWind(BossModule module) : Components.PersistentVoidzone(module, 5, OID.BitingWind)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // we want to dodge out->in
-        foreach (var t in Sources(Module))
+        foreach (var t in Sources)
         {
             var dir = t.Rotation.ToDirection();
             hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 5));

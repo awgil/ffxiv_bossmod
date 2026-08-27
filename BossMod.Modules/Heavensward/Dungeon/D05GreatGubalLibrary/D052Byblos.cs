@@ -70,7 +70,7 @@ class Bibliocide(BossModule module) : Components.BaitAwayTethers(module, new AOE
 class GaleCut(BossModule module) : Components.SingleTargetCast(module, AID.GaleCut);
 class TailSmash(BossModule module) : Components.StandardAOEs(module, AID.TailSmash, new AOEShapeCone(9f + 3f, 45.Degrees()));
 class DeathRay(BossModule module) : Components.StandardAOEs(module, AID.DeathRay, new AOEShapeRect(23f + 3f, 1.5f));
-class TomeWind(BossModule module) : Components.PersistentVoidzone(module, 3, m => m.Enemies(OID.TomeWind).Where(w => !w.IsDead));
+class TomeWind(BossModule module) : Components.PersistentVoidzone(module, 3, OID.TomeWind, w => w.IsDead);
 class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.Page64);
 class D052ByblosStates : StateMachineBuilder
 {

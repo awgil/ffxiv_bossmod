@@ -978,7 +978,7 @@ class SilentEightRock(BossModule module) : BossComponent(module)
         }
     }
 }
-class RockPuddle(BossModule module) : Components.PersistentVoidzone(module, 2.5f, m => m.Enemies(0x1EBFC8).Where(e => e.EventState != 7));
+class RockPuddle(BossModule module) : Components.PersistentVoidzone(module, 2.5f, 0x1EBFC8, e => e.EventState == 7);
 
 class SteelsbreathBonds(BossModule module) : Components.Chains(module, (uint)TetherID.Chains, chainLength: 30);
 

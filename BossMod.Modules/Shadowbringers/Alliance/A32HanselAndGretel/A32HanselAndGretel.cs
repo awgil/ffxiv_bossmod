@@ -149,7 +149,7 @@ class MagicBulletExplosion(BossModule module) : Components.GenericAOEs(module, A
 
 class BloodySweep2(BossModule module) : Components.GroupedAOEs(module, [AID.BloodySweepSlow1, AID.BloodySweepSlow2], new AOEShapeRect(50, 12.5f));
 
-class MagicalConfluence(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.MagicalConfluence).Where(e => e.EventState != 7), 8);
+class MagicalConfluence(BossModule module) : Components.PersistentVoidzone(module, 4, OID.MagicalConfluence, e => e.EventState == 7, 8);
 class Breakthrough(BossModule module) : Components.StandardAOEs(module, AID.Breakthrough, new AOEShapeRect(53, 16));
 // estimate of falloff
 class UnevenFooting(BossModule module) : Components.StandardAOEs(module, AID.UnevenFooting, new AOEShapeCircle(22));

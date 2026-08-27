@@ -164,7 +164,7 @@ class DualBlows(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class BurningSunPuddle(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.BurningSunPuddle).Where(x => x.EventState != 7));
+class BurningSunPuddle(BossModule module) : Components.PersistentVoidzone(module, 6, OID.BurningSunPuddle, x => x.EventState == 7);
 class BrawlEnder(BossModule module) : Components.Knockback(module, AID.BrawlEnderCast, stopAtWall: true)
 {
     private DateTime? Activation;

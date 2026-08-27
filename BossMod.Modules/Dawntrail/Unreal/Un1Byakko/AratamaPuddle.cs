@@ -16,4 +16,4 @@ class AratamaPuddleBait(BossModule module) : Components.SpreadFromIcon(module, (
     }
 }
 
-class AratamaPuddleVoidzone(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.AratamaPuddle).Where(z => z.EventState != 7));
+class AratamaPuddleVoidzone(BossModule module) : Components.PersistentVoidzone(module, 4, OID.AratamaPuddle, z => z.EventState == 7);

@@ -77,7 +77,7 @@ class GallowsMarch(BossModule module) : Components.StatusDrivenForcedMarch(modul
     }
 }
 
-class ShockSphere(BossModule module) : Components.PersistentVoidzone(module, 7, m => m.Enemies(OID.ShockSphere));
+class ShockSphere(BossModule module) : Components.PersistentVoidzone(module, 7, OID.ShockSphere);
 
 class SoulPurge(BossModule module) : Components.GenericAOEs(module)
 {

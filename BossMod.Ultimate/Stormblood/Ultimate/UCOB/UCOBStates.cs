@@ -12,12 +12,12 @@ class UCOBStates : StateMachineBuilder
         SimplePhase(0, Phase1Twintania1, "P1: Twintania pre neurolink 1 (100%-74%)")
             .ActivateOnEnter<Hatch>()
             .ActivateOnEnter<P1Twister>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.FindComponent<Hatch>()?.NumNeurolinkSpawns > 0;
+            .Raw.Update = () => Module.FindComponent<Hatch>()?.NumNeurolinkSpawns > 0;
         SimplePhase(1, Phase1Twintania2, "P1: Twintania pre neurolink 2 (74%-44%)")
             .ActivateOnEnter<P1LiquidHell>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.FindComponent<Hatch>()?.NumNeurolinkSpawns > 1;
+            .Raw.Update = () => Module.FindComponent<Hatch>()?.NumNeurolinkSpawns > 1;
         SimplePhase(2, Phase1Twintania3, "P1: Twintania pre neurolink 3 (44%-0%)")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(3, Phase2, "P2: Nael")
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HPMP.CurHP <= 1 && Module.FindComponent<P2BlockTransition>() == null;
         SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
@@ -183,7 +183,7 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<P1LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1")
             .ActivateOnEnter<P1Fireball>(withFireball)
-            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset());
+            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, !withFireball));
         ComponentCondition<P1LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
         ComponentCondition<P1LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
         ComponentCondition<P1LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);

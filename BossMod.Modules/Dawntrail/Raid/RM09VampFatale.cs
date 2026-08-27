@@ -314,24 +314,17 @@ class BrutalRain(BossModule module) : Components.StackWithIcon(module, (uint)Ico
     }
 }
 class Plummet(BossModule module) : Components.CastTowers(module, AID.Plummet, 3f, 1);
-class HazardDance : Components.PersistentVoidzone
+class HazardDance(BossModule module) : Components.PersistentVoidzone(module, 2.5f, uint.MaxValue, moveHintLength: 15)
 {
-    private readonly List<Actor> _hazards = [];
-
-    public HazardDance(BossModule module) : base(module, 2.5f, _ => [], 15)
-    {
-        Sources = _ => _hazards;
-    }
-
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.Coffinmaker2 or OID.Neckbiter && !actor.Position.AlmostEqual(Module.Center, 5))
-            _hazards.Add(actor);
+            Sources.Add(actor);
     }
     public override void OnActorDestroyed(Actor actor)
     {
         if ((OID)actor.OID is OID.Coffinmaker2 or OID.Neckbiter)
-            _hazards.Remove(actor);
+            Sources.Remove(actor);
     }
 }
 class RM09VampFataleStates : StateMachineBuilder

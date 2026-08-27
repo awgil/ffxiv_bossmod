@@ -23,12 +23,6 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
                 Hints.AddForbiddenZone(ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f), DateTime.MaxValue);
             }
         }
-
-        if (Hints.FindEnemy(primaryTarget) is { } enemy)
-        {
-            if ((OID)enemy.Actor.OID == OID.Twintania)
-                enemy.DesiredRotation = 180.Degrees();
-        }
     }
 
     void SetStance(bool enabled)

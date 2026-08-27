@@ -53,7 +53,7 @@ class Evisceration(BossModule module) : Components.StandardAOEs(module, AID.Evis
 class HotPursuit(BossModule module) : Components.StandardAOEs(module, AID.HotPursuit1, 5);
 class NexusOfThunder(BossModule module) : Components.StandardAOEs(module, AID.NexusOfThunder1, new AOEShapeRect(60, 2.5f));
 class CoiledLevin(BossModule module) : Components.StandardAOEs(module, AID.CoiledLevin1, new AOEShapeCircle(6));
-class LightningVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.LightningVoidzone).Where(x => x.EventState != 7));
+class LightningVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, OID.LightningVoidzone, x => x.EventState == 7);
 
 class ThancredAI(BossModule module) : RotationModule<AutoThancred>(module);
 

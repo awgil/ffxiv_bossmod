@@ -339,7 +339,7 @@ class P2SinboundHoly(BossModule module) : Components.UniformStackSpread(module, 
     }
 }
 
-class P2SinboundHolyVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, m => m.Enemies(OID.SinboundHolyVoidzone).Where(z => z.EventState != 7))
+class P2SinboundHolyVoidzone(BossModule module) : Components.PersistentVoidzone(module, 6, OID.SinboundHolyVoidzone, z => z.EventState == 7)
 {
     public bool AIHintsEnabled = true;
 

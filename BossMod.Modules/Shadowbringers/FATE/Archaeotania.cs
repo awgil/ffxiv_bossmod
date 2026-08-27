@@ -79,7 +79,7 @@ class Megaflare(BossModule module) : Components.UniformStackSpread(module, 6, 0)
 
 class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWaveVisual, 48, kind: Kind.DirForward);
 class WindSlash(BossModule module) : Components.StandardAOEs(module, AID.WindSlashAOE, 8);
-class Windwinder(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.Twister).Where(a => !a.IsDead));
+class Windwinder(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Twister, a => a.IsDead);
 class CivilizationBuster1(BossModule module) : Components.StandardAOEs(module, AID.CivilizationBuster1, new AOEShapeRect(62, 7.5f));
 class CivilizationBuster2(BossModule module) : Components.StandardAOEs(module, AID.CivilizationBuster2, new AOEShapeRect(62, 7.5f));
 class Touchdown(BossModule module) : Components.StandardAOEs(module, AID.Touchdown, new AOEShapeCircle(30)); // TODO: verify falloff

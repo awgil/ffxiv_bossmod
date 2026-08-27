@@ -4,22 +4,42 @@ namespace BossMod.Components;
 // voidzone (circle aoe that stays active for some time) centered at each existing object with specified OID, assumed to be persistent voidzone center
 // for moving 'voidzones', the hints can mark the area in front of each source as dangerous
 // TODO: typically sources are either eventobj's with eventstate != 7 or normal actors that are non dead; other conditions are much rarer
-public class PersistentVoidzone(BossModule module, float radius, Func<BossModule, IEnumerable<Actor>> sources, float moveHintLength = 0) : GenericAOEs(module, default, "GTFO from voidzone!")
+public class PersistentVoidzone(BossModule module, float radius, uint oid, Func<Actor, bool>? isDeactivated = null, float moveHintLength = 0) : GenericAOEs(module, default, "GTFO from voidzone!")
 {
+    public PersistentVoidzone(BossModule module, float radius, Enum oid, Func<Actor, bool>? isDeactivated = null, float moveHintLength = 0) : this(module, radius, (uint)(object)oid, isDeactivated, moveHintLength) { }
+
     public AOEShapeCircle Shape { get; init; } = new(radius);
-    public Func<BossModule, IEnumerable<Actor>> Sources { get; init; } = sources;
+    public readonly List<Actor> Sources = [];
+    public readonly uint ID = oid;
+    protected Func<Actor, bool>? IsDeactivated = isDeactivated;
     public float MoveHintLength = moveHintLength;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Sources(Module).Select(s => new AOEInstance(Shape, s.Position));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Sources.Select(s => new AOEInstance(Shape, s.Position));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var s in Sources(Module))
+        foreach (var s in Sources)
         {
             hints.AddForbiddenZone(Shape.Distance(s.Position, s.Rotation));
             if (MoveHintLength > 0)
                 hints.AddForbiddenZone(ShapeDistance.Capsule(s.Position, s.Rotation, MoveHintLength, Shape.Radius), WorldState.FutureTime(2));
         }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == ID)
+            Sources.Add(actor);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        Sources.Remove(actor);
+    }
+
+    public override void Update()
+    {
+        Sources.RemoveAll(s => s.IsDestroyed || IsDeactivated?.Invoke(s) == true);
     }
 }
 
@@ -56,7 +76,9 @@ public class PersistentVoidzoneAtCastTarget(BossModule module, float radius, Enu
                 _predictedByEvent.RemoveAll(e => (WorldState.CurrentTime - e.time).TotalSeconds > castEventTimeout);
 
             foreach (var s in Sources(Module))
-                _predictedByEvent.RemoveAll(p => p.pos.InCircle(s.Position, Radius));
+            {
+                var closest = _predictedByEvent.MinBy(p => p.time);
+            }
         }
     }
 

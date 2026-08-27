@@ -19,7 +19,7 @@ class EvilSeedBait(BossModule module) : BossComponent(module)
 
 class EvilSeedAOE(BossModule module) : Components.StandardAOEs(module, AID.EvilSeedAOE, 5);
 
-class EvilSeedVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, module => module.Enemies(OID.EvilSeed).Where(z => z.EventState != 7));
+class EvilSeedVoidzone(BossModule module) : Components.PersistentVoidzone(module, 5, OID.EvilSeed, z => z.EventState == 7);
 
 class ThornyVine(BossModule module) : Components.Chains(module, (uint)TetherID.ThornyVine, default, 25)
 {

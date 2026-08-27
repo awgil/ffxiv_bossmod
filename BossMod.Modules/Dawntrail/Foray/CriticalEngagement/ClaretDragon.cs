@@ -52,18 +52,11 @@ class HowlingDarkness(BossModule module) : Components.RaidwideCastDelay(module, 
 class SnakingNecrobreath(BossModule module) : Components.StandardAOEs(module, AID.SnakingNecrobreath, new AOEShapeCone(60, 135.Degrees()));
 
 class GraveMold(BossModule module) : Components.StandardAOEs(module, AID.GraveMold, 8);
-class Necrohaze : Components.PersistentVoidzone
+class Necrohaze(BossModule module) : Components.PersistentVoidzone(module, 5, OID.Necrohaze, e => e.IsDead)
 {
-    readonly List<Actor> _actors = [];
-
-    public Necrohaze(BossModule module) : base(module, 5, m => [])
-    {
-        Sources = _ => _actors;
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var m in Sources(Module))
+        foreach (var m in Sources)
         {
             var rotationHalf = 25;
 
@@ -80,25 +73,14 @@ class Necrohaze : Components.PersistentVoidzone
         }
     }
 
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.Necrohaze)
-            _actors.Add(actor);
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Catching)
-            _actors.Remove(caster);
-    }
-
-    public override void Update()
-    {
-        _actors.RemoveAll(a => a.IsDeadOrDestroyed);
+            Sources.Remove(caster);
     }
 }
 
-class NecrohazeBossPuddle(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.AetherialWardPuddle));
+class NecrohazeBossPuddle(BossModule module) : Components.PersistentVoidzone(module, 5, OID.AetherialWardPuddle);
 
 class AetherialWard(BossModule module) : Components.DirectionalParry(module, (uint)OID.AetherialWard)
 {

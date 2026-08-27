@@ -48,7 +48,7 @@ class P2SoarFlamingHalberd(BossModule module) : Components.UniformStackSpread(mo
     }
 }
 
-class P2SoarFlamingHalberdVoidzone(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.FlamingHalberdVoidzone).Where(z => z.EventState != 7));
+class P2SoarFlamingHalberdVoidzone(BossModule module) : Components.PersistentVoidzone(module, 8, OID.FlamingHalberdVoidzone, z => z.EventState == 7);
 
 class P2SoarDemonicDiveCoolFlame(BossModule module) : Components.UniformStackSpread(module, 7, 8, 7, alwaysShowSpreads: true)
 {

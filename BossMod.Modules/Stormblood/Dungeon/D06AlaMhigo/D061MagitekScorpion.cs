@@ -30,7 +30,7 @@ public enum OID : uint
     Actor1e8536 = 0x1E8536, // R2.000, x0 (spawn during fight), EventObj type
 }
 
-class LockOnPuddle(BossModule module) : Components.PersistentVoidzone(module, 5, m => m.Enemies(OID.LockOnPuddle));
+class LockOnPuddle(BossModule module) : Components.PersistentVoidzone(module, 5, OID.LockOnPuddle);
 class TailLaser(BossModule module) : Components.GenericAOEs(module, AID.TailLaser1)
 {
     private readonly List<AOEInstance> _aoes = [];

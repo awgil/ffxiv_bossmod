@@ -155,7 +155,7 @@ class Ex3SpheneStates : StateMachineBuilder
         Cast(id + 0x300, AID.WorldShatterP1, 3, 5, "Raidwide + platform end")
             .OnExit(() => _module.Arena.Bounds = Ex3Sphene.NormalBounds)
             .SetHint(StateMachine.StateHint.Raidwide);
-        ComponentCondition<AeroquellTwister>(id + 0x310, 2.6f, comp => !comp.Sources(Module).Any())
+        ComponentCondition<AeroquellTwister>(id + 0x310, 2.6f, comp => comp.Sources.Count == 0)
             .DeactivateOnExit<AeroquellTwister>();
 
         P1ProsecutionOfWar(id + 0x1000, 4.5f);

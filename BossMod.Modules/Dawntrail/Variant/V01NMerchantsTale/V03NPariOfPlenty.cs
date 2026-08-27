@@ -333,24 +333,12 @@ class StrongWindPath(BossModule module) : Components.GenericAOEs(module)
             _aoes.RemoveAt(0);
     }
 }
-class StrongWind : Components.PersistentVoidzone
+class StrongWind(BossModule module) : Components.PersistentVoidzone(module, 23, OID.Whirlwind)
 {
-    private readonly List<Actor> _whirlwind = [];
-
-    public StrongWind(BossModule module) : base(module, 23f, _ => [])
-    {
-        Sources = _ => _whirlwind;
-    }
-
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.Whirlwind && !actor.Position.AlmostEqual(Module.Center, 5))
-            _whirlwind.Add(actor);
-    }
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID is OID.Whirlwind)
-            _whirlwind.Remove(actor);
+            Sources.Add(actor);
     }
 }
 class GroupedFireflights(BossModule module) : Components.GroupedAOEs(module, [AID.RightFireflightTwoNights, AID.RightFireflightThreeNights, AID.LeftFireflightTwoNights, AID.LeftFireflightThreeNights], new AOEShapeRect(40f, 2f));

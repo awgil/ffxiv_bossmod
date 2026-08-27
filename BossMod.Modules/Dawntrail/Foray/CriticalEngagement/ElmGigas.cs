@@ -36,7 +36,7 @@ class AncientAeroIII(BossModule module) : Components.RaidwideCastDelay(module, A
 
 class SpinningSweep(BossModule module) : Components.StandardAOEs(module, AID.SpinningSweep, new AOEShapeCone(40, 60.Degrees()));
 
-class UnbowedSpirit(BossModule module) : Components.PersistentVoidzone(module, 4, m => m.Enemies(OID.UnbowedSpirit))
+class UnbowedSpirit(BossModule module) : Components.PersistentVoidzone(module, 4, OID.UnbowedSpirit)
 {
     enum Mode
     {
@@ -61,7 +61,7 @@ class UnbowedSpirit(BossModule module) : Components.PersistentVoidzone(module, 4
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var wind in Sources(Module))
+        foreach (var wind in Sources)
         {
             hints.AddForbiddenZone(ShapeDistance.Circle(wind.Position, 4));
 

@@ -10,7 +10,7 @@ class P2EyeOfTheChakram(BossModule module) : Components.StandardAOEs(module, AID
 class P2HawkBlasterOpticalSight(BossModule module) : Components.StandardAOEs(module, AID.HawkBlasterP2, 10);
 class P2Photon(BossModule module) : Components.CastCounter(module, AID.PhotonAOE);
 class P2SpinCrusher(BossModule module) : Components.StandardAOEs(module, AID.SpinCrusher, new AOEShapeCone(10, 45.Degrees()));
-class P2Drainage(BossModule module) : Components.PersistentVoidzone(module, 8, m => m.Enemies(OID.LiquidRage)); // TODO: verify distance
+class P2Drainage(BossModule module) : Components.PersistentVoidzone(module, 8, OID.LiquidRage); // TODO: verify distance
 
 class P2PropellerWind(BossModule module) : Components.CastLineOfSightAOE(module, AID.PropellerWind, 50, false)
 {
