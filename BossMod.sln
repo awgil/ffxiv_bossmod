@@ -19,9 +19,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleLib", "ExampleLib\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Modules", "BossMod.Modules\BossMod.Modules.csproj", "{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Multibox", "BossMod.Multibox\BossMod.Multibox.csproj", "{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Autorotation", "BossMod.Autorotation\BossMod.Autorotation.csproj", "{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Ultimate", "BossMod.Ultimate\BossMod.Ultimate.csproj", "{DD8F6062-BF8A-4ADB-055B-31C4FD16A153}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,14 +49,14 @@ Global
 		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Debug|AnyCPU.Build.0 = Debug|x64
 		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Release|AnyCPU.ActiveCfg = Release|x64
 		{CCA3AB1B-650A-55C4-75FB-E1FDBAEE4285}.Release|AnyCPU.Build.0 = Release|x64
-		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Debug|AnyCPU.ActiveCfg = Debug|x64
-		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Debug|AnyCPU.Build.0 = Debug|x64
-		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Release|AnyCPU.ActiveCfg = Release|x64
-		{E08EF288-0FD4-42F7-A22A-B1DE1F3B0FB0}.Release|AnyCPU.Build.0 = Release|x64
 		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Debug|AnyCPU.ActiveCfg = Debug|x64
 		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Debug|AnyCPU.Build.0 = Debug|x64
 		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Release|AnyCPU.ActiveCfg = Release|x64
 		{6BD242AF-CFF4-4ADD-BC06-E57734BB84DD}.Release|AnyCPU.Build.0 = Release|x64
+		{DD8F6062-BF8A-4ADB-055B-31C4FD16A153}.Debug|AnyCPU.ActiveCfg = Debug|x64
+		{DD8F6062-BF8A-4ADB-055B-31C4FD16A153}.Debug|AnyCPU.Build.0 = Debug|x64
+		{DD8F6062-BF8A-4ADB-055B-31C4FD16A153}.Release|AnyCPU.ActiveCfg = Release|x64
+		{DD8F6062-BF8A-4ADB-055B-31C4FD16A153}.Release|AnyCPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

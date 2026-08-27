@@ -166,9 +166,11 @@ class UCOBStates : StateMachineBuilder
     private void P1Twister(uint id, float delay, bool withFireball = false)
     {
         ActorCastStart(id, _module.Twintania, AID.Twister, delay, true)
-            .ActivateOnEnter<P1Fireball>(withFireball); // icon appears ~0.1s before cast start
+            .ActivateOnEnter<P1Fireball>(withFireball) // icon appears ~0.1s before cast start
+            .ExecOnEnter<P1Fireball>(c => c.EnableHints = false, withFireball);
         ActorCastEnd(id + 1, _module.Twintania, 2, true);
-        ComponentCondition<P1Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters");
+        ComponentCondition<P1Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters")
+            .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball);
     }
 
     private void P1TwisterFireball(uint id, float delay)
