@@ -75,7 +75,7 @@ class EnergyBomb(BossModule module) : Components.Voidzone(module, 2, uint.MaxVal
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.EnergyBomb)
-            Sources.Remove(caster);
+            RemoveSource(caster);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -83,9 +83,9 @@ class EnergyBomb(BossModule module) : Components.Voidzone(module, 2, uint.MaxVal
         if (actor.OID == (uint)OID.Turret2)
         {
             if (id == 0x11D2)
-                Sources.Add(actor);
+                AddSource(actor);
             if (id == 0x11E7)
-                Sources.Remove(actor);
+                RemoveSource(actor);
         }
     }
 }

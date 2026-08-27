@@ -31,7 +31,7 @@ class FoxshotKB(BossModule module) : Components.Knockback(module, stopAtWall: tr
         if (Casters.FirstOrDefault() is not Actor source)
             return;
 
-        foreach (var whirlwind in ww?.Sources(Module) ?? [])
+        foreach (var whirlwind in ww?.Sources ?? [])
         {
             var dir = ShapeDistance.Cone(source.Position, 30, source.AngleTo(whirlwind), MathF.Atan2(6, (source.Position - whirlwind.Position).Length()).Radians());
             hints.AddForbiddenZone(dir, Module.CastFinishAt(source.CastInfo));

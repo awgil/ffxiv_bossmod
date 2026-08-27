@@ -38,9 +38,9 @@ class Energy(BossModule module) : Components.Voidzone(module, 2, uint.MaxValue, 
         if ((OID)actor.OID == OID.Energy)
         {
             if (id == 0x11D2)
-                Sources.Add(actor);
+                AddSource(actor);
             else if (id == 0x11E7)
-                Sources.Remove(actor);
+                RemoveSource(actor);
         }
     }
 }

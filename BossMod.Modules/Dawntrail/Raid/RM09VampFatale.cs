@@ -319,12 +319,12 @@ class HazardDance(BossModule module) : Components.Voidzone(module, 2.5f, uint.Ma
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.Coffinmaker2 or OID.Neckbiter && !actor.Position.AlmostEqual(Module.Center, 5))
-            Sources.Add(actor);
+            AddSource(actor);
     }
     public override void OnActorDestroyed(Actor actor)
     {
         if ((OID)actor.OID is OID.Coffinmaker2 or OID.Neckbiter)
-            Sources.Remove(actor);
+            RemoveSource(actor);
     }
 }
 class RM09VampFataleStates : StateMachineBuilder

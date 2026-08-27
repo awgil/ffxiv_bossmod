@@ -41,7 +41,7 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.Sh
     {
         winds ??= Module.FindComponent<TheFourWinds>();
 
-        var aoes = (winds?.Sources(Module) ?? []).Select(a => ShapeDistance.Circle(a.Position, 6)).ToList();
+        var aoes = (winds?.Sources ?? []).Select(a => ShapeDistance.Circle(a.Position, 6)).ToList();
         if (aoes.Count == 0)
             return;
 

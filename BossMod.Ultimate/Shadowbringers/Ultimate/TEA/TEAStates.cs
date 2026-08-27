@@ -302,14 +302,14 @@ class TEAStates : StateMachineBuilder
         ComponentCondition<P2Enumeration>(id + 0x60, 2.1f, comp => !comp.Active, "Enumerations + Ice")
             .ActivateOnEnter<P2EarthMissileIce>()
             .DeactivateOnExit<P2Enumeration>();
-        ComponentCondition<P2EarthMissileIce>(id + 0x70, 0.8f, comp => comp.Sources(Module).Any());
+        ComponentCondition<P2EarthMissileIce>(id + 0x70, 0.8f, comp => comp.Sources.Count > 0);
         // +4.0s: ice voidzone grows
         // +5.6s: gelid gaol spawns where tornado is (assuming it is in ice voidzone)
         // +6.3s: tornado is destroyed
         // +6.3s: if any mine is not soaked, they explode now
         // +6.8s: smaller ice voidzone disappears (eventstate 7)
         // +7.7s: fire voidzones disappear (eventstate 7)
-        ComponentCondition<P2EarthMissileIce>(id + 0x80, 9.8f, comp => !comp.Sources(Module).Any(), "Voidzones disappear")
+        ComponentCondition<P2EarthMissileIce>(id + 0x80, 9.8f, comp => comp.Sources.Count == 0, "Voidzones disappear")
             .ExecOnEnter<P2Nisi>(comp => comp.ShowPassHint = 2) // second nisi pass should happen after enumerations are resolved
             .ExecOnEnter<P2CompressedWaterLightning>(comp => comp.ResolveImminent = true) // should start moving to debuff stacks after nisi pass
             .DeactivateOnExit<P2Drainage>()

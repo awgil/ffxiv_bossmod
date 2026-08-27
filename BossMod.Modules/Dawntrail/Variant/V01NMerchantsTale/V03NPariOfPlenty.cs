@@ -338,7 +338,7 @@ class StrongWind(BossModule module) : Components.Voidzone(module, 23, OID.Whirlw
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.Whirlwind && !actor.Position.AlmostEqual(Module.Center, 5))
-            Sources.Add(actor);
+            AddSource(actor);
     }
 }
 class GroupedFireflights(BossModule module) : Components.GroupedAOEs(module, [AID.RightFireflightTwoNights, AID.RightFireflightThreeNights, AID.LeftFireflightTwoNights, AID.LeftFireflightThreeNights], new AOEShapeRect(40f, 2f));

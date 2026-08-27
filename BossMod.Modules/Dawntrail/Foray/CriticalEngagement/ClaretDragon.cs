@@ -76,7 +76,7 @@ class Necrohaze(BossModule module) : Components.Voidzone(module, 5, OID.Necrohaz
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Catching)
-            Sources.Remove(caster);
+            RemoveSource(caster);
     }
 }
 

@@ -298,7 +298,7 @@ class SirenSphere(BossModule module) : Components.Voidzone(module, 2.5f, OID.Sir
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.SirenSphere && !actor.Position.AlmostEqual(Module.Center, 5))
-            Sources.Add(actor);
+            AddSource(actor);
     }
 }
 class AquaSpear(BossModule module) : Components.StandardAOEs(module, AID.AquaSpear1, new AOEShapeRect(8f, 4f));

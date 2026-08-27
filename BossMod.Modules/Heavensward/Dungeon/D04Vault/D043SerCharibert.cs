@@ -43,7 +43,7 @@ class March(BossModule module) : Components.Voidzone(module, 2.5f, uint.MaxValue
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.DawnKnight or OID.DuskKnight && !actor.Position.AlmostEqual(Module.Center, 5))
-            Sources.Add(actor);
+            AddSource(actor);
     }
 }
 class AddsModule(BossModule module) : Components.Adds(module, (uint)OID.HolyFlame)

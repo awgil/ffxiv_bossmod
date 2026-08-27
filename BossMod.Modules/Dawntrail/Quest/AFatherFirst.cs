@@ -257,7 +257,7 @@ class GuloolJaJaStates : StateMachineBuilder
 
     private void BurningSunExit(uint id, float delay)
     {
-        ComponentCondition<BurningSunPuddle>(id, delay, b => !b.Sources(Module).Any(), "Puddles disappear")
+        ComponentCondition<BurningSunPuddle>(id, delay, b => b.Sources.Count == 0, "Puddles disappear")
             .DeactivateOnExit<BurningSun>()
             .DeactivateOnExit<BurningSunPuddle>();
     }

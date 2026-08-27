@@ -197,7 +197,7 @@ class StrewnBubble(BossModule module) : Components.Voidzone(module, 2.6f, OID.Ai
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID is OID.AiryBubble && !actor.Position.AlmostEqual(Module.Center, 5))
-            Sources.Add(actor);
+            AddSource(actor);
     }
 }
 class MawOfTheDeep(BossModule module) : Components.StandardAOEs(module, AID.MawOfTheDeep, 8f, 10);

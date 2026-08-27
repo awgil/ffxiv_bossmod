@@ -412,7 +412,7 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
 
             // first, find a set of allowed angles along the border
             var zoneList = new ArcList(Module.Center, 17);
-            foreach (var z in _voidzones.Sources(Module))
+            foreach (var z in _voidzones.Sources)
                 zoneList.ForbidCircle(z.Position, _voidzones.Shape.Radius);
 
             // now find closest allowed zone
@@ -446,7 +446,7 @@ class P2TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
             var zoneList = new ArcList(actor.Position, SlideDistance);
             zoneList.ForbidInverseCircle(Module.Center, Module.Bounds.Radius);
 
-            foreach (var z in _voidzones.Sources(Module))
+            foreach (var z in _voidzones.Sources)
             {
                 var offset = z.Position - actor.Position;
                 var dist = offset.Length();
