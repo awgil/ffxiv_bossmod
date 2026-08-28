@@ -207,7 +207,14 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             if (toLen > 0.5f)
             {
                 var pullLocation = enemy.Actor.Position + toDest.Normalized() * (enemy.Actor.HitboxRadius + enemy.TankDistance + toLen);
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(pullLocation, 1, 5));
+
+                var pullRect = ShapeDistance.PrecisePosition(pullLocation, new(0, 1), Hints.PathfindMapBounds.MapResolution, Player.Position, 0.1f);
+                Hints.GoalZones.Add(p => pullRect(p) > 0 ? 5 : 0);
+            }
+            else
+            {
+                // stay inside pull range to not move the boss
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(enemy.Actor.Position, enemy.Actor.HitboxRadius + enemy.TankDistance, 0.5f));
             }
         }
 

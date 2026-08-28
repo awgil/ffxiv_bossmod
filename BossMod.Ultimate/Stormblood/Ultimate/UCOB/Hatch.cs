@@ -9,6 +9,10 @@ class Hatch : Components.CastCounter
     private readonly IReadOnlyList<Actor> _neurolinks;
     private BitMask _targets;
 
+    int _numHatches;
+
+    public bool Twister;
+
     public bool IsTarget(int slot) => _targets[slot];
 
     public Hatch(BossModule module) : base(module, AID.Hatch)
@@ -50,6 +54,10 @@ class Hatch : Components.CastCounter
                     break;
                 case 1:
                     twintania.DesiredPosition = new(-8, 5);
+
+                    // TODO: find a melee spot that's easy to get twin out of
+                    //if (_numHatches == 0)
+                    //    twintania.DesiredPosition = new(-7, -8);
                     break;
                 case 2:
                     twintania.DesiredPosition = new(8, 5);
@@ -60,11 +68,22 @@ class Hatch : Components.CastCounter
         if (!Active || _neurolinks.Count == 0)
             return;
 
-        var linkShape = Sdf.Continuous(ShapeDistance.Union([.. _neurolinks.Select(n => ShapeDistance.Circle(n.Position, 2))]));
+        var linkShape = ShapeDistance.Union([.. _neurolinks.Select(n => ShapeDistance.Circle(n.Position, 2))]);
 
         if (_targets[slot])
         {
-            hints.AddForbiddenZone(linkShape.Inverted(), actor.FindStatus(SID.Neurolink, DateTime.MaxValue) == null ? WorldState.FutureTime(2) : default);
+            if (Twister)
+            {
+                // plant near links but not inside
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Union([.. _neurolinks.Select(n => {
+                    var safeDir = Module.PrimaryActor.AngleTo(n);
+                    return ShapeDistance.DonutSector(n.Position, 2, 5, safeDir, 90.Degrees());
+                })])).Inverted(), WorldState.FutureTime(2));
+            }
+            else
+            {
+                hints.AddForbiddenZone(p => -linkShape(p) - 1, actor.FindStatus(SID.Neurolink, DateTime.MaxValue) == null ? WorldState.FutureTime(2) : default);
+            }
 
             foreach (var (s, t) in Raid.WithSlot().IncludedInMask(_targets))
                 if (s != slot)
@@ -72,15 +91,24 @@ class Hatch : Components.CastCounter
         }
         else
         {
-            hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
-            foreach (var (_, t) in Raid.WithSlot().IncludedInMask(_targets))
+            foreach (var orb in _orbs)
             {
-                hints.AddForbiddenZone(ShapeDistance.Capsule(Module.PrimaryActor.Position, Module.PrimaryActor.AngleTo(t), Module.PrimaryActor.DistanceToPoint(t.Position), 2));
-
-                if (t.FindStatus(SID.Neurolink) != null)
-                    // 2 extra units to account for sudden twister dodge
-                    hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 10), WorldState.FutureTime(2));
+                hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, 2));
+                if (orb.LastFrameMovement == default)
+                {
+                    foreach (var (_, target) in Raid.WithSlot().IncludedInMask(_targets))
+                        hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.AngleTo(target), 6, 2), WorldState.FutureTime(2));
+                }
+                else
+                    hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.Rotation, 6, 2), WorldState.FutureTime(2));
             }
+
+            if (_targets.Any())
+                // avoid everything around the neurolink if hatch is active
+                hints.AddForbiddenZone(p => linkShape(p) - 8, DateTime.MaxValue);
+            else
+                // else just avoid it
+                hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
         }
     }
 
@@ -120,6 +148,9 @@ class Hatch : Components.CastCounter
             foreach (var t in spell.Targets)
                 _targets.Clear(Raid.FindSlot(t.ID));
         }
+
+        if ((AID)spell.Action.ID == AID.Hatch)
+            _numHatches++;
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

@@ -170,7 +170,8 @@ class UCOBStates : StateMachineBuilder
             .ExecOnEnter<P1Fireball>(c => c.EnableHints = false, withFireball);
         ActorCastEnd(id + 1, _module.Twintania, 2, true);
         ComponentCondition<P1Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters")
-            .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball);
+            .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball)
+            .ExecOnEnter<Hatch>(h => h.Twister = false);
     }
 
     private void P1TwisterFireball(uint id, float delay)
@@ -183,11 +184,13 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<P1LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1")
             .ActivateOnEnter<P1Fireball>(withFireball)
-            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, !withFireball));
+            .ExecOnEnter<P1Fireball>(f => f.EnableHints = false, withFireball)
+            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, withFireball ? LiquidHell.BaitMode.Random : LiquidHell.BaitMode.Proximity));
         ComponentCondition<P1LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
         ComponentCondition<P1LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
         ComponentCondition<P1LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
-        ComponentCondition<P1LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5");
+        ComponentCondition<P1LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5")
+            .ExecOnExit<P1Fireball>(f => f.EnableHints = true, withFireball);
     }
 
     private void P1LiquidHellFireball(uint id, float delay)
@@ -196,14 +199,15 @@ class UCOBStates : StateMachineBuilder
         P1FireballResolve(id + 0x10, 2.2f);
     }
 
-    private void P1Generate(uint id, float delay)
+    private State P1Generate(uint id, float delay)
     {
-        ActorCast(id, _module.Twintania, AID.Generate, delay, 3, true, "Hatch"); // icon appears ~0.1s before cast start
+        return ActorCast(id, _module.Twintania, AID.Generate, delay, 3, true, "Hatch"); // icon appears ~0.1s before cast start
     }
 
     private void P1GenerateTwister(uint id, float delay)
     {
-        P1Generate(id, delay);
+        P1Generate(id, delay)
+            .ExecOnEnter<Hatch>(h => h.Twister = true);
         P1Twister(id + 0x10, 1.1f);
     }
 

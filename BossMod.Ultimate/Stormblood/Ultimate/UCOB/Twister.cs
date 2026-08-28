@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class Twister(BossModule module) : Components.CastTwister(module, 2, (uint)OID.VoidzoneTwister, AID.Twister, 0.3f, 0.3f)
+class Twister(BossModule module) : Components.CastTwister(module, 2, (uint)OID.VoidzoneTwister, AID.Twister, 0.3f, 0.5f)
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
