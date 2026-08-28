@@ -7,6 +7,8 @@ class PathfindingTest : TestWindow
 {
     private MapVisualizer _visu;
 
+    private bool _useNewRasterizer;
+
     private float _mapResolution = 1;
     private float _mapThreshold = 0.5f;
     private Vector2 _mapCenter;
@@ -45,6 +47,8 @@ class PathfindingTest : TestWindow
         bool rebuild = false;
         if (ImGui.CollapsingHeader("Map setup"))
         {
+            rebuild |= ImGui.Checkbox("Use new rasterizer", ref _useNewRasterizer);
+
             rebuild |= ImGui.DragFloat("Resolution", ref _mapResolution, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic);
             rebuild |= ImGui.DragFloat("Block zone threshold", ref _mapThreshold, 0.1f, -5, 5);
             rebuild |= ImGui.DragFloat2("Center", ref _mapCenter);
@@ -94,13 +98,40 @@ class PathfindingTest : TestWindow
         if (_blockRect)
             zones.Add((Sdf.Continuous(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
         zones.SortBy(z => z.activation);
-        NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sb, _cushion);
+
+        if (_useNewRasterizer)
+            NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _cushion);
+        else
+            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sb, _cushion);
+
+        /*
+        var g1 = MakeCopy(map.PixelMaxG);
+        var p1 = MakeCopy(map.PixelPriority);
+        var a1 = MakeCopy(map.PixelAvoid);
+
+        map.PixelMaxG = Utils.MakeArray(map.PixelMaxG.Length, float.MaxValue);
+        map.PixelPriority = Utils.MakeArray(map.PixelPriority.Length, 0f);
+        map.PixelAvoid = Utils.MakeArray(map.PixelAvoid.Length, false);
+
+        sg = [];
+        sb = [];
+
+        NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _cushion);
+
+        for (var i = 0; i < map.PixelMaxG.Length; i++)
+        {
+            if (map.PixelMaxG[i] != g1[i])
+                Service.Log($"pixel mismatch at {i}: {map.PixelMaxG[i]} != {g1[i]}");
+            if (map.PixelPriority[i] != p1[i])
+                Service.Log($"prio mismatch at {i}: {map.PixelPriority[i]} != {p1[i]}");
+        }
+        */
 
         List<Func<WPos, float>> goals = [];
         goals.Add(new AIHints().GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
         NavigationDecision.RasterizeGoalZones(map, goals, _cushion > 0);
 
-        var visu = new MapVisualizer(map, new(_startingPos), sg);
+        var visu = new MapVisualizer(map, new(_startingPos)/*, sg*/);
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
@@ -108,5 +139,12 @@ class PathfindingTest : TestWindow
             visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
 
         return visu;
+    }
+
+    private static T[] MakeCopy<T>(T[] array)
+    {
+        var n = new T[array.Length];
+        array.CopyTo(n);
+        return n;
     }
 }

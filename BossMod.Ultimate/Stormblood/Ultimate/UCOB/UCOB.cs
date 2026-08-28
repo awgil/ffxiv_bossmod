@@ -44,9 +44,7 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
         var stackDestination = Module.PrimaryActor.Position + new WDir(0, Module.PrimaryActor.HitboxRadius + 3);
 
         if (stack.Target == actor) // stack target shouldn't move around too much, just plant on boss
-        {
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(stackDestination, new(0, 1), 0.5f, actor.Position, 0.1f), stack.Activation);
-        }
         else if (!stack.ForbiddenPlayers[slot])
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(stackDestination, stack.Radius - 1), stack.Activation);
         else

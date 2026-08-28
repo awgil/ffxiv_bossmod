@@ -7,8 +7,7 @@ public class MapVisualizer
 {
     public Map Map;
     public WPos StartPos;
-    private readonly float[] gScratch;
-    public static readonly bool DebugG;
+    private readonly float[]? gScratch;
     public float ScreenPixelSize = 12;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
@@ -21,7 +20,7 @@ public class MapVisualizer
     {
         Map = map;
         StartPos = startPos;
-        this.gScratch = gScratch ?? [];
+        this.gScratch = gScratch;
         _pathfind = BuildPathfind();
         ExecTimed(() => _pathfind.Execute());
     }
@@ -96,7 +95,7 @@ public class MapVisualizer
         }
 
         // highlights blocked grid points, useful for rasterizer debugging but noisy otherwise
-        if (DebugG)
+        if (gScratch != null)
             for (var y = 0; y <= Map.Height; ++y)
                 for (var x = 0; x <= Map.Width; ++x)
                     if (gScratch.BoundSafeAt(y * (Map.Width + 1) + x, float.MinValue) is > float.MinValue and < float.MaxValue)

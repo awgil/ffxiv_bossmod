@@ -42,7 +42,7 @@ public struct NavigationDecision
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
+            RasterizeForbiddenZones/*Old*/(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
         if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
         else if (forbiddenZoneCushion > 0)
@@ -77,18 +77,18 @@ public struct NavigationDecision
     public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
-        var zonesFixed = new (Sdf distance, float g)[zones.Count];
+        var zonesFixed = new List<(Sdf distance, float g)>(zones.Count);
         DateTime clusterEnd = default, globalStart = current, globalEnd = current.AddSeconds(120);
         float clusterG = 0;
-        for (int i = 0; i < zonesFixed.Length; ++i)
+        foreach (var zone in zones)
         {
-            var activation = zones[i].activation.Clamp(globalStart, globalEnd);
+            var activation = zone.activation.Clamp(globalStart, globalEnd);
             if (activation > clusterEnd)
             {
                 clusterG = ActivationToG(activation, current);
                 clusterEnd = activation.AddSeconds(0.5f);
             }
-            zonesFixed[i] = (zones[i].distance, clusterG);
+            zonesFixed.Add((zone.distance, clusterG));
         }
 
         map.MaxG = clusterG;
@@ -99,18 +99,21 @@ public struct NavigationDecision
             dScratch = new bool[lenPlus1];
 
         // TODO: group continuous sdfs with same gscore together
+        //zonesFixed.SortBy(z => (z.g, z.distance.IsContinuous));
         foreach (var (d, g) in zonesFixed)
             RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
 
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         var realMaxG = map.PixelMaxG.Max();
         if (realMaxG < float.MaxValue)
+        {
             for (var i = 0; i < map.PixelMaxG.Length; i++)
                 if (map.PixelMaxG[i] == realMaxG)
                 {
                     map.PixelMaxG[i] = float.MaxValue;
                     map.PixelPriority[i] = 0;
                 }
+        }
     }
 
     public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
@@ -164,8 +167,8 @@ public struct NavigationDecision
                 }
                 else
                 {
-                    distPixels = (int)(distance / map.Resolution);
-                    Array.Fill(gScratch, g, iCell, Math.Min(-distPixels, toRowEnd) + 1);
+                    distPixels = (int)MathF.Ceiling(-distance / map.Resolution);
+                    Array.Fill(gScratch, g, iCell, Math.Min(distPixels, toRowEnd + 1));
                 }
             }
         }

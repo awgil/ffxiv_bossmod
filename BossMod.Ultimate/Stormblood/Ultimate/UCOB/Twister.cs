@@ -7,7 +7,7 @@ class Twister(BossModule module) : Components.CastTwister(module, 2, (uint)OID.V
         foreach (var p in PredictedPositions)
             yield return new(new AOEShapeCircle(3), p, default, PredictedActivation);
         foreach (var p in ActiveTwisters)
-            yield return new(new AOEShapeCircle(1), p.Position);
+            yield return new(new AOEShapeCircle(1.25f), p.Position);
     }
 }
 

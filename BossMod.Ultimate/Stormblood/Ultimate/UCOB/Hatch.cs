@@ -47,15 +47,12 @@ class Hatch : Components.CastCounter
             {
                 case 0:
                     twintania.DesiredPosition = new(0, -8);
-                    twintania.DesiredRotation = 180.Degrees();
                     break;
                 case 1:
                     twintania.DesiredPosition = new(-8, 5);
-                    twintania.DesiredRotation = -60.Degrees();
                     break;
                 case 2:
                     twintania.DesiredPosition = new(8, 5);
-                    twintania.DesiredRotation = 60.Degrees();
                     break;
             }
         }
@@ -67,7 +64,7 @@ class Hatch : Components.CastCounter
 
         if (_targets[slot])
         {
-            hints.AddForbiddenZone(linkShape.Inverted(), WorldState.FutureTime(2));
+            hints.AddForbiddenZone(linkShape.Inverted(), actor.FindStatus(SID.Neurolink, DateTime.MaxValue) == null ? WorldState.FutureTime(2) : default);
 
             foreach (var (s, t) in Raid.WithSlot().IncludedInMask(_targets))
                 if (s != slot)
@@ -82,7 +79,7 @@ class Hatch : Components.CastCounter
 
                 if (t.FindStatus(SID.Neurolink) != null)
                     // 2 extra units to account for sudden twister dodge
-                    hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 10));
+                    hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 10), WorldState.FutureTime(2));
             }
         }
     }
