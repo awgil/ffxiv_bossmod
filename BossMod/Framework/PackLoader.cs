@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.ReplayAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -122,6 +123,7 @@ sealed class PackLoader : IDisposable
         RotationModuleRegistry.UnloadFrom(asm);
         BossModuleRegistry.UnloadFrom(asm);
         ZoneModuleRegistry.UnloadFrom(asm);
+        AnalyzerRegistry.UnloadFrom(asm);
     }
 
     static void Load(Assembly asm)
@@ -130,6 +132,7 @@ sealed class PackLoader : IDisposable
         RotationModuleRegistry.ScanAssembly(asm);
         BossModuleRegistry.ScanAssembly(asm);
         ZoneModuleRegistry.ScanAssembly(asm);
+        AnalyzerRegistry.ScanAssembly(asm);
     }
 
     public void Dispose()

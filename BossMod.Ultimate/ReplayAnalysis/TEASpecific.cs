@@ -1,9 +1,9 @@
-﻿// FIXME
-//using BossMod.Shadowbringers.Ultimate.TEA;
+﻿using BossMod.Shadowbringers.Ultimate.TEA;
 
 namespace BossMod.ReplayAnalysis;
 
-class TEASpecific
+[Analyzer((uint)OID.BossP1, "TEA-specific analysis")]
+public class TEASpecific : CustomAnalyzer
 {
     struct HandBaitData
     {
@@ -32,9 +32,8 @@ class TEASpecific
     private readonly UIPlot _plotSuretyResolvesClose = new();
     private readonly UIPlot _plotSuretyResolvesFar = new();
 
-    public TEASpecific(List<Replay> replays, uint oid)
+    public TEASpecific(List<Replay> replays, uint oid) : base(replays, oid)
     {
-        /*
         _plotHandBaits.DataMin = new(0, 0);
         _plotHandBaits.DataMax = new(100, 3);
         _plotHandBaits.TickAdvance = new(5, 1);
@@ -109,10 +108,9 @@ class TEASpecific
                 list.Add(new() { Replay = replay, Timestamp = action.Timestamp, Distance = (p1 - p2).Length(), Damage = ReplayUtils.ActionDamage(action.Targets[0]) });
             }
         }
-        */
     }
 
-    public void Draw(UITree tree)
+    public override void Draw(UITree tree)
     {
         foreach (var _ in tree.Node("Hand of Prayer/Parting: bait range"))
         {

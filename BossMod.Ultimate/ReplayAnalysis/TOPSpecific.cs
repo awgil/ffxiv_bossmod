@@ -1,9 +1,9 @@
-﻿// FIXME
-//using BossMod.Endwalker.Ultimate.TOP;
+﻿using BossMod.Endwalker.Ultimate.TOP;
 
 namespace BossMod.ReplayAnalysis;
 
-class TOPSpecific
+[Analyzer((uint)OID.Boss, "TOP-specific analysis")]
+public class TOPSpecific : CustomAnalyzer
 {
     struct FlamethrowerData
     {
@@ -15,12 +15,11 @@ class TOPSpecific
     private readonly List<FlamethrowerData> _flamethrowers = [];
     private readonly UIPlot _plotFlamethrowers = new();
 
-    public TOPSpecific(List<Replay> replays, uint oid)
+    public TOPSpecific(List<Replay> replays, uint oid) : base(replays, oid)
     {
         _plotFlamethrowers.DataMin = new(-180, 0);
         _plotFlamethrowers.DataMax = new(180, 1);
         _plotFlamethrowers.TickAdvance = new(5, 1);
-        /*
         foreach (var replay in replays)
         {
             var aidFlamethrower = ActionID.MakeSpell(AID.FlameThrowerFirst);
@@ -36,10 +35,9 @@ class TOPSpecific
                 }
             }
         }
-        */
     }
 
-    public void Draw(UITree tree)
+    public override void Draw(UITree tree)
     {
         foreach (var _ in tree.Node("Flamethrower rotation offsets"))
         {
