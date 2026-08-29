@@ -92,7 +92,7 @@ class ImpactCrusher(BossModule module) : Components.StandardAOEs(module, AID.Man
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (_hintLocation is { } p)
-            hints.GoalZones.Add(hints.GoalSingleTarget(p, 12, 0.5f));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(p, 12, 0.5f));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

@@ -60,7 +60,7 @@ class GiddyBomb(BossModule module) : BossComponent(module)
             return;
 
         var nextBombSpot = BombSpawns[_index % BombSpawns.Length];
-        hints.GoalZones.Add(hints.PullTargetToLocation(Module.PrimaryActor, nextBombSpot));
+        hints.FindEnemy(Module.PrimaryActor)?.DesiredPosition = nextBombSpot;
     }
 }
 class MassiveBurst(BossModule module) : Components.RaidwideCast(module, AID.MassiveBurst, "Knock the Giddy bomb into the boss and let it explode on the boss. \n or else take 99% damage!");

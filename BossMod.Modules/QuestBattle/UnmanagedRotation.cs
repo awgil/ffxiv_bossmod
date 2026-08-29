@@ -20,7 +20,7 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
 
         var primary = World.Actors.Find(player.TargetID);
         if (primary != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primary, effectiveRange));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primary, effectiveRange));
 
         Exec(primary);
     }

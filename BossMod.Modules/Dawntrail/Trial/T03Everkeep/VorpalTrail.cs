@@ -62,7 +62,7 @@ class VorpalTrail(BossModule module) : Components.GenericAOEs(module)
         // Inverted strategy: park the AI at arena center and let rect avoidance pull it off when a
         // sprint actually crosses through. Most pinwheel rects miss exact center between converging
         // dashes, so holding station beats dancing around the perimeter trying to read the next sprint.
-        hints.GoalZones.Add(hints.GoalSingleTarget(Module.Center, CenterAttractRadius, CenterAttractWeight));
+        hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.Center, CenterAttractRadius, CenterAttractWeight));
 
         var inDanger = _fangAOE.Values.Any(a => a.Check(actor.Position)) || _predictedNext.Values.Any(a => a.Check(actor.Position));
         if (inDanger || !_lastUnsafe.ContainsKey(actor.InstanceID))

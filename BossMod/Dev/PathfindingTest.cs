@@ -128,7 +128,7 @@ class PathfindingTest : TestWindow
         */
 
         List<Func<WPos, float>> goals = [];
-        goals.Add(new AIHints().GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
+        goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
         NavigationDecision.RasterizeGoalZones(map, goals, _cushion > 0);
 
         var visu = new MapVisualizer(map, new(_startingPos)/*, sg*/);

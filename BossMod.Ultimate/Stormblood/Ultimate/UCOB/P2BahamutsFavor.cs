@@ -1,5 +1,14 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
+class P2HugNael(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, 10, 0.5f));
+    }
+}
+
 class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread(module, 4, 0, 1)
 {
     public Actor? Target;
@@ -88,30 +97,70 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
 {
     public int NumDeathstorms { get; private set; }
-    private readonly List<(Actor player, DateTime expiration, bool cleansed)> _dooms = [];
-    private readonly List<(WPos predicted, Actor? voidzone)> _cleanses = [];
+
+    class Doom
+    {
+        public required Actor Player;
+        public required DateTime Expiration;
+        public int Order;
+        public bool Cleansed;
+        public WPos? ZonePredicted;
+        public Actor? Voidzone;
+    }
+
+    private readonly List<Doom> _dooms = [];
+    private readonly Doom?[] _doomArray = new Doom?[PartyState.MaxPartySize];
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var doomOrder = _dooms.FindIndex(d => d.player == actor);
-        if (doomOrder >= 0 && !_dooms[doomOrder].cleansed)
-            hints.Add($"Doom {doomOrder + 1}", (_dooms[doomOrder].expiration - WorldState.CurrentTime).TotalSeconds < 3);
+        if (_doomArray[slot] is { } d && !d.Cleansed)
+            hints.Add($"Doom {d.Order + 1}", false);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var doomOrder = _dooms.FindIndex(d => d.player == pc);
-        if (doomOrder >= 0 && !_dooms[doomOrder].cleansed && doomOrder < _cleanses.Count)
-            Arena.AddCircle(_cleanses[doomOrder].voidzone?.Position ?? _cleanses[doomOrder].predicted, 1, ArenaColor.Safe);
+        if (_doomArray[pcSlot] is { Cleansed: false } d)
+        {
+            var pos = d.Voidzone?.Position ?? d.ZonePredicted;
+            if (pos != null)
+                Arena.AddCircle(pos.Value, 1, ArenaColor.Safe);
+        }
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        foreach (var d in _dooms.Where(d => !d.Cleansed && d.Player != pc))
+        {
+            var pos = d.Voidzone?.Position ?? d.ZonePredicted;
+            if (pos == null)
+                continue;
+
+            Arena.ZoneCircle(pos.Value, 1, ArenaColor.AOE);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var d in _dooms.Where(d => !d.Cleansed))
+        {
+            var pos = d.Voidzone?.Position ?? d.ZonePredicted;
+            if (pos == null)
+                continue;
+
+            if (d.Player == actor)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), d.Expiration);
+            else
+                hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 1));
+        }
     }
 
     public override void OnActorCreated(Actor actor)
     {
         if ((OID)actor.OID == OID.VoidzoneSalvation)
         {
-            var index = _cleanses.FindIndex(z => z.voidzone == null && z.predicted.AlmostEqual(actor.Position, 0.5f));
-            if (index >= 0)
-                _cleanses.Ref(index).voidzone = actor;
+            var d = _dooms.FirstOrDefault(d => d.Voidzone == null);
+            if (d != null)
+                d.Voidzone = actor;
             else
                 ReportError($"Failed to find voidzone predicted pos for {actor}");
         }
@@ -121,8 +170,19 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
     {
         if ((SID)status.ID == SID.Doom)
         {
-            _dooms.Add((actor, status.ExpireAt, false));
-            _dooms.SortBy(d => d.expiration);
+            var d = new Doom()
+            {
+                Player = actor,
+                Expiration = status.ExpireAt
+            };
+
+            _dooms.Add(d);
+            _dooms.SortBy(d => d.Expiration);
+            for (var i = 0; i < _dooms.Count; i++)
+                _dooms[i].Order = i;
+
+            if (Raid.TryFindSlot(actor, out var slot))
+                _doomArray[slot] = d;
         }
     }
 
@@ -130,9 +190,9 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
     {
         if ((SID)status.ID == SID.Doom)
         {
-            var index = _dooms.FindIndex(d => d.player == actor);
-            if (index >= 0)
-                _dooms.Ref(index).cleansed = true;
+            var d = _dooms.FirstOrDefault(d => d.Player == actor);
+            if (d != null)
+                d.Cleansed = true;
             else
                 ReportError($"Failed to find doom on {actor}");
         }
@@ -141,7 +201,13 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WingsOfSalvation)
-            _cleanses.Add((spell.LocXZ, null));
+        {
+            var d = _dooms.FirstOrDefault(d => d.ZonePredicted == null);
+            if (d != null)
+                d.ZonePredicted = spell.LocXZ;
+            else
+                ReportError($"No spare dooms for puddle at {spell.LocXZ}");
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -149,7 +215,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
         if ((AID)spell.Action.ID == AID.Deathstorm)
         {
             _dooms.Clear();
-            _cleanses.Clear();
+            Array.Fill(_doomArray, null);
             ++NumDeathstorms;
         }
     }

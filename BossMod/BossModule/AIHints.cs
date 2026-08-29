@@ -33,8 +33,8 @@ public sealed class AIHints
         }
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
-        public WPos DesiredPosition; // tank AI will try to move enemy to this position
-        public Angle DesiredRotation; // tank AI will try to rotate enemy to this angle
+        public WPos? DesiredPosition; // tank AI will try to move enemy to this position
+        public Angle? DesiredRotation; // tank AI will try to rotate enemy to this angle
         public float TankDistance = 2; // enemy will start moving if distance between hitboxes is bigger than this
         public bool ShouldBeTanked; // tank AI will try to tank this enemy
         public bool PreferProvoking; // tank AI will provoke enemy if not targeted
@@ -52,8 +52,6 @@ public sealed class AIHints
             PrioHistory = [];
             if (Service.Config.Get<AIHintsConfig>().PriorityTracing)
                 PrioHistory.Add((priority, $"{prioReason} at {new StackFrame(1, true)}"));
-            DesiredPosition = actor.Position;
-            DesiredRotation = actor.Rotation;
             ShouldBeTanked = shouldBeTanked;
         }
 
@@ -328,15 +326,15 @@ public sealed class AIHints
 
     // goal zones
     // simple goal zone that returns 1 if target is in range, useful for single-target actions
-    public Func<WPos, float> GoalSingleTarget(WPos target, float radius, float weight = 1)
+    public static Func<WPos, float> GoalSingleTarget(WPos target, float radius, float weight = 1)
     {
         var effRsq = radius * radius;
         return p => (p - target).LengthSq() <= effRsq ? weight : 0;
     }
-    public Func<WPos, float> GoalSingleTarget(Actor target, float range, float weight = 1) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
+    public static Func<WPos, float> GoalSingleTarget(Actor target, float range, float weight = 1) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
 
     // simple goal zone that returns 1 if target is in range (usually melee), 2 if it's also in correct positional
-    public Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius, float cushion = 0)
+    public static Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius, float cushion = 0)
     {
         if (positional == Positional.Any)
             return GoalSingleTarget(target, radius); // more efficient implementation
@@ -362,7 +360,7 @@ public sealed class AIHints
             return inPositional ? 2 : 1;
         };
     }
-    public Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3, float cushion = 0) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f, cushion);
+    public static Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3, float cushion = 0) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f, cushion);
 
     // simple goal zone that returns number of targets in aoes; note that performance is a concern for these functions, and perfection isn't required, so eg they ignore forbidden targets, etc
     public Func<WPos, float> GoalAOECircle(float radius)
@@ -406,7 +404,7 @@ public sealed class AIHints
     }
 
     // combined goal zone: returns 'aoe' priority if targets hit are at or above minimum, otherwise returns 'single-target' priority
-    public Func<WPos, float> GoalCombined(Func<WPos, float> singleTarget, Func<WPos, float> aoe, int minAOETargets)
+    public static Func<WPos, float> GoalCombined(Func<WPos, float> singleTarget, Func<WPos, float> aoe, int minAOETargets)
     {
         if (minAOETargets >= 50)
             return singleTarget; // assume aoe is never efficient, so don't bother
@@ -418,7 +416,7 @@ public sealed class AIHints
     }
 
     // goal zone that returns a value between 0 and weight depending on distance to point; useful for downtime movement targets
-    public Func<WPos, float> GoalProximity(WPos destination, float maxDistance, float maxWeight)
+    public static Func<WPos, float> GoalProximity(WPos destination, float maxDistance, float maxWeight)
     {
         var invDist = 1.0f / maxDistance;
         return p =>
@@ -429,20 +427,23 @@ public sealed class AIHints
         };
     }
 
-    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, float destRadius = 2)
+    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float destRadius = 2)
     {
         var enemy = FindEnemy(target);
         if (enemy == null)
             return _ => 0;
 
         var adjRange = enemy.TankDistance + target.HitboxRadius + 0.5f;
-        var desiredToTarget = target.Position - destination;
+        var desiredToTarget = destination - target.Position;
         var leewaySq = destRadius * destRadius;
-        if (desiredToTarget.LengthSq() > leewaySq)
-        {
-            var dest = destination - adjRange * desiredToTarget.Normalized();
-            return GoalSingleTarget(dest, PathfindMapBounds.MapResolution, 10);
-        }
-        return _ => 0;
+
+        // try to stay within pull range
+        if (desiredToTarget.LengthSq() <= leewaySq)
+            return GoalSingleTarget(target.Position, target.HitboxRadius + enemy.TankDistance, 0.5f);
+
+        var dest = destination + adjRange * desiredToTarget.Normalized();
+
+        var sh = ShapeDistance.PrecisePosition(dest, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
+        return p => sh(p) >= 0 ? 10 : 0;
     }
 }

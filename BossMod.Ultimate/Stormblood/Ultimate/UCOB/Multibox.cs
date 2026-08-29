@@ -14,18 +14,18 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         // wall if anyone dies
-        if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead))
-            Hints.ForcedMovement = -Player.DirectionTo(new WPos(0, 0)).ToVec3();
+        //if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead))
+        //    Hints.ForcedMovement = -Player.DirectionTo(new WPos(0, 0)).ToVec3();
 
         var playerAssignment = partyRolesConfig[World.Party.Members[0].ContentId];
 
-        if (!Player.InCombat && World.Client.CountdownRemaining > 0)
+        if (!Player.InCombat && World.Client.CountdownRemaining > 0 && primaryTarget != null)
         {
-            if (primaryTarget != null && World.Client.CountdownRemaining > 2)
-            {
-                var destination = primaryTarget.Position + primaryTarget.DirectionTo(Player) * (14 + primaryTarget.HitboxRadius + 0.5f);
-                Hints.AddForbiddenZone(ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f), DateTime.MaxValue);
-            }
+            var destination = primaryTarget.Position + primaryTarget.DirectionTo(Player) * (14 + primaryTarget.HitboxRadius + 0.5f);
+
+            var sh = ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f);
+
+            Hints.GoalZones.Add(p => sh(p) > 0 ? 5 : 0);
         }
     }
 

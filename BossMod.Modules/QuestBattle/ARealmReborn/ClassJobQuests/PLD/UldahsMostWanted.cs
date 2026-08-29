@@ -28,7 +28,7 @@ internal class UldahsMostWanted(WorldState ws) : QuestBattle(ws)
                 if (captain != null && bruce != null)
                 {
                     var dir = (captain.Position - bruce.Position).Normalized();
-                    hints.GoalZones.Add(hints.GoalSingleTarget(captain.Position + dir * 3, 2));
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(captain.Position + dir * 3, 2));
                 }
             })
             .PauseForCombat(false)

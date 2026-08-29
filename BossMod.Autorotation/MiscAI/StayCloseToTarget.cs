@@ -40,7 +40,7 @@ public sealed class StayCloseToTarget(RotationModuleManager manager, Actor playe
             if (range.As<RangeDefinition>() == RangeDefinition.OnHitbox)
                 Hints.GoalZones.Add(p => p.InDonut(position, radius - 1, radius + 1) ? 0.5f : 0);
             else
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(position, (range.Value.Option + 10f) / 10f + primaryTarget.HitboxRadius, 0.5f));
+                Hints.GoalZones.Add(AIHints.GoalSingleTarget(position, (range.Value.Option + 10f) / 10f + primaryTarget.HitboxRadius, 0.5f));
         }
     }
 }

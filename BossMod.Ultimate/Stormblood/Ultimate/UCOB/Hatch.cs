@@ -5,11 +5,9 @@ class Hatch : Components.CastCounter
     public bool Active = true;
     public int NumNeurolinkSpawns { get; private set; }
     public int NumTargetsAssigned { get; private set; }
-    private readonly IReadOnlyList<Actor> _orbs;
-    private readonly IReadOnlyList<Actor> _neurolinks;
+    private readonly List<Actor> _orbs = [];
+    private readonly List<Actor> _neurolinks = [];
     private BitMask _targets;
-
-    int _numHatches;
 
     public bool Twister;
 
@@ -17,8 +15,6 @@ class Hatch : Components.CastCounter
 
     public Hatch(BossModule module) : base(module, AID.Hatch)
     {
-        _orbs = module.Enemies(OID.Oviform);
-        _neurolinks = module.Enemies(OID.Neurolink);
         KeepOnPhaseChange = true;
     }
 
@@ -51,9 +47,11 @@ class Hatch : Components.CastCounter
             {
                 case 0:
                     twintania.DesiredPosition = new(0, -8);
+                    twintania.DesiredRotation = 180.Degrees();
                     break;
                 case 1:
                     twintania.DesiredPosition = new(-8, 5);
+                    twintania.DesiredRotation = -60.Degrees();
 
                     // TODO: find a melee spot that's easy to get twin out of
                     //if (_numHatches == 0)
@@ -61,6 +59,7 @@ class Hatch : Components.CastCounter
                     break;
                 case 2:
                     twintania.DesiredPosition = new(8, 5);
+                    twintania.DesiredRotation = 60.Degrees();
                     break;
             }
         }
@@ -72,22 +71,24 @@ class Hatch : Components.CastCounter
 
         if (_targets[slot])
         {
+            // tiebreaker
+            var myOrder = _targets.SetBits().OrderBy(b => Raid[b]?.Class ?? Class.None).Index().First(b => b.Item == slot).Index;
+            var myLink = _neurolinks.OrderBy(n => n.InstanceID).Skip(myOrder).First();
+
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(myLink.Position, 5, 0.5f));
+
             if (Twister)
             {
                 // plant near links but not inside
                 hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Union([.. _neurolinks.Select(n => {
                     var safeDir = Module.PrimaryActor.AngleTo(n);
                     return ShapeDistance.DonutSector(n.Position, 2, 5, safeDir, 90.Degrees());
-                })])).Inverted(), WorldState.FutureTime(2));
+                })])).Inverted(), WorldState.FutureTime(8));
             }
             else
             {
-                hints.AddForbiddenZone(p => -linkShape(p) - 1, actor.FindStatus(SID.Neurolink, DateTime.MaxValue) == null ? WorldState.FutureTime(2) : default);
+                hints.AddForbiddenZone(p => -linkShape(p), actor.FindStatus(SID.Neurolink, DateTime.MaxValue) == null ? WorldState.FutureTime(8) : default);
             }
-
-            foreach (var (s, t) in Raid.WithSlot().IncludedInMask(_targets))
-                if (s != slot)
-                    hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, 8), WorldState.FutureTime(2));
         }
         else
         {
@@ -100,12 +101,12 @@ class Hatch : Components.CastCounter
                         hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.AngleTo(target), 6, 2), WorldState.FutureTime(2));
                 }
                 else
-                    hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.Rotation, 6, 2), WorldState.FutureTime(2));
+                    hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.LastFrameMovement.ToAngle(), 6, 2), WorldState.FutureTime(2));
             }
 
             if (_targets.Any())
                 // avoid everything around the neurolink if hatch is active
-                hints.AddForbiddenZone(p => linkShape(p) - 8, DateTime.MaxValue);
+                hints.AddForbiddenZone(p => linkShape(p) - 8.5f, DateTime.MaxValue);
             else
                 // else just avoid it
                 hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
@@ -120,8 +121,8 @@ class Hatch : Components.CastCounter
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Active)
-            foreach (var o in _orbs.Where(o => !o.IsDead))
-                Arena.ZoneCircle(o.Position, 1, ArenaColor.AOE);
+            foreach (var o in _orbs)
+                Arena.ZoneCircle(o.Position, 2, ArenaColor.AOE);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -145,17 +146,31 @@ class Hatch : Components.CastCounter
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
+            _orbs.Remove(caster);
             foreach (var t in spell.Targets)
                 _targets.Clear(Raid.FindSlot(t.ID));
         }
 
-        if ((AID)spell.Action.ID == AID.Hatch)
-            _numHatches++;
+        //if ((AID)spell.Action.ID == AID.Hatch)
+        //    _numHatches++;
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if ((OID)actor.OID == OID.Twintania && id == 0x94)
             ++NumNeurolinkSpawns;
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        switch ((OID)actor.OID)
+        {
+            case OID.Neurolink:
+                _neurolinks.Add(actor);
+                break;
+            case OID.Oviform:
+                _orbs.Add(actor);
+                break;
+        }
     }
 }

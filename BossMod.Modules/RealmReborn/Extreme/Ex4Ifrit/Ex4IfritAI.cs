@@ -23,7 +23,7 @@ class Ex4IfritAICommon(BossModule module) : BossComponent(module)
         boss.AttackStrength = 0.35f;
         boss.DesiredRotation = Angle.FromDirection(Module.PrimaryActor.Position - Module.Center); // point to the wall
         if (!Module.PrimaryActor.Position.InCircle(Module.Center, 13)) // 13 == radius (20) - tank distance (2) - hitbox (5)
-            boss.DesiredPosition = Module.Center + 13 * boss.DesiredRotation.ToDirection();
+            boss.DesiredPosition = Module.Center + 13 * boss.DesiredRotation.Value.ToDirection();
         if (player.Role == Role.Tank)
         {
             if (player.InstanceID == boss.Actor.TargetID)
@@ -229,10 +229,10 @@ class Ex4IfritAINails : Ex4IfritAINormal
                     case OID.Boss:
                         e.Priority = 1; // attack only if it's the only thing to do...
                         UpdateBossTankingProperties(e, actor, assignment);
-                        if (nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation, Incinerate.CleaveShape.HalfAngle))
+                        if (nextNail.Position.InCone(e.Actor.Position, e.DesiredRotation!.Value, Incinerate.CleaveShape.HalfAngle))
                         {
                             var bossToNail = Angle.FromDirection(nextNail.Position - e.Actor.Position);
-                            e.DesiredRotation = bossToNail + (bossToNail.Rad > e.DesiredRotation.Rad ? -75 : 75).Degrees();
+                            e.DesiredRotation = bossToNail + (bossToNail.Rad > e.DesiredRotation!.Value.Rad ? -75 : 75).Degrees();
                         }
                         break;
                     case OID.InfernalNailSmall:
@@ -366,7 +366,7 @@ class Ex4IfritAIHellfire : Ex4IfritAICommon
             boss.Priority = 1;
             boss.StayAtLongRange = true;
             boss.DesiredRotation = Angle.FromDirection(_safespotOffset);
-            boss.DesiredPosition = Module.Center + 13 * boss.DesiredRotation.ToDirection();
+            boss.DesiredPosition = Module.Center + 13 * boss.DesiredRotation.Value.ToDirection();
             boss.PreferProvoking = boss.ShouldBeTanked = assignment == BossTankRole;
         }
 

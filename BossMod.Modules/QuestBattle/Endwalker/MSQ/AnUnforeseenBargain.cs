@@ -10,7 +10,7 @@ class ZeroAI(WorldState ws) : UnmanagedRotation(ws, 3)
 
         var zones = Hints.GoalAOECircle(5);
         if (primaryTarget != null)
-            zones = Hints.GoalCombined(Hints.GoalSingleTarget(primaryTarget, 3), zones, 3);
+            zones = AIHints.GoalCombined(AIHints.GoalSingleTarget(primaryTarget, 3), zones, 3);
 
         Hints.GoalZones.Add(zones);
 

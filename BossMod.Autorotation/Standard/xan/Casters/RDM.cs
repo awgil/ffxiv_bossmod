@@ -180,7 +180,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
             : 20;
 
         if (primaryTarget is { } tar && ManaficLeft <= GCD && (SwordplayStacks > 0 || LowestMana >= comboMana || InMeleeCombo))
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(tar.Actor, 3));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(tar.Actor, 3));
 
         GoalZoneSingle(25);
 

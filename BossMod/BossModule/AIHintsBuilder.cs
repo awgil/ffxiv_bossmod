@@ -246,7 +246,7 @@ public sealed class AIHintsBuilder : IDisposable
             hints.SetPriority(inv, AIHints.Enemy.PriorityInvincible);
     }
 
-    private bool IsValidEnemy(Actor actor) => !actor.IsAlly && actor.Type is ActorType.Enemy or ActorType.Helper;
+    private bool IsValidEnemy(Actor actor) => actor is { Type: ActorType.Enemy or ActorType.Helper, IsAlly: false };
 
     private void OnCastStarted(Actor actor)
     {

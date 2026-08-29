@@ -99,7 +99,7 @@ class Conformity(BossModule module) : Components.GroupedAOEs(module, [AID.Confor
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var d in _dangerous)
-            hints.GoalZones.Add(hints.GoalSingleTarget(d.Position, 20, 0.1f));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(d.Position, 20, 0.1f));
     }
 }
 

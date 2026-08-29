@@ -65,26 +65,26 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
                 hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 18), NextCast);
 
                 // encourage baiter to stay on the opposite half of the arena, because it tends to walk itself into a corner otherwise
-                hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.PrimaryActor.Position, 50, Module.PrimaryActor.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), NextCast);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.PrimaryActor.Position, 50, Module.PrimaryActor.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);
 
                 // don't drop on neurolinks
                 foreach (var nl in Module.Enemies(OID.Neurolink))
                     hints.AddForbiddenZone(ShapeDistance.Circle(nl.Position, 7), NextCast);
             }
             else
-                hints.GoalZones.Add(hints.GoalSingleTarget(Module.PrimaryActor.Position, 16, 0.1f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.PrimaryActor.Position, 16, 0.1f));
         }
 
         if (Mode == BaitMode.Random)
         {
             if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
             {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 16), NextCast);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 16), NextCast.AddSeconds(1.2f * (4 - NumCasts)));
                 hints.AddForbiddenZone(ShapeDistance.Circle(dest, 7), NextCast);
             }
 
             if (Baiter != null && Baiter != actor)
-                hints.GoalZones.Add(hints.GoalSingleTarget(Module.PrimaryActor, 5, 0.5f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.PrimaryActor, 5, 0.5f));
         }
     }
 

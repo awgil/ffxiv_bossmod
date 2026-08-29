@@ -1,10 +1,16 @@
-﻿namespace BossMod.Stormblood.Ultimate.UCOB;
+﻿using static BossMod.PartyRolesConfig;
+
+namespace BossMod.Stormblood.Ultimate.UCOB;
 
 class P2Heavensfall(BossModule module) : Components.Knockback(module, AID.Heavensfall, true)
 {
-    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    public DateTime Activation;
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => [new Source(Module.Center, 11, Activation)];
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        yield return new(Module.Center, 11); // TODO: activation
+        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(new WPos(0, 9), new(0, 1), 0.5f, actor.Position, 0.1f), Activation);
     }
 }
 
@@ -55,6 +61,29 @@ class P2MeteorStream : Components.UniformStackSpread
             ++NumCasts;
             Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
+    {
+        if (Spreads.Count == 8)
+        {
+            var (dist, angle) = assignment switch
+            {
+                Assignment.MT => (9, -11.25f.Degrees()),
+                Assignment.OT => (9, 11.25f.Degrees()),
+                Assignment.H1 => (18, -11.25f.Degrees()),
+                Assignment.H2 => (18, 11.25f.Degrees()),
+                Assignment.M1 => (9, -56.25f.Degrees()),
+                Assignment.M2 => (9, 56.25f.Degrees()),
+                Assignment.R1 => (18, -56.25f.Degrees()),
+                Assignment.R2 => (18, 56.25f.Degrees()),
+                _ => (0, default)
+            };
+
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + angle.ToDirection() * dist, 2), Spreads[0].Activation);
+        }
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 

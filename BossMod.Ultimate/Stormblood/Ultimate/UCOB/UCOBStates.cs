@@ -19,6 +19,7 @@ class UCOBStates : StateMachineBuilder
         SimplePhase(2, Phase1Twintania3, "P1: Twintania pre neurolink 3 (44%-0%)")
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(3, Phase2, "P2: Nael")
+            .ActivateOnEnter<P2HugNael>()
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HPMP.CurHP <= 1 && Module.FindComponent<P2BlockTransition>() == null;
         SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
             .DeactivateOnExit<Hatch>()
@@ -146,6 +147,7 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Plummet>()
+            .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P1Plummet>();
     }
 
@@ -234,6 +236,7 @@ class UCOBStates : StateMachineBuilder
             .ExecOnEnter<Hatch>(comp => comp.Reset())
             .ActivateOnEnter<P2HeavensfallDalamudDive>() // activate asap until twintania untargets current tank
             .ActivateOnEnter<P2Heavensfall>()
+            .ExecOnEnter<P2Heavensfall>(p => p.Activation = Module.WorldState.FutureTime(delay))
             .ActivateOnEnter<P2HeavensfallPillar>()
             .DeactivateOnExit<P2Heavensfall>()
             .DeactivateOnExit<P1Twister>()

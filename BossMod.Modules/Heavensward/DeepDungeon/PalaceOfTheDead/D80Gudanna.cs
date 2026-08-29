@@ -61,7 +61,7 @@ class EncounterHints(BossModule module) : BossComponent(module)
                 break;
             case BossAction.Thunderbolt:
                 // stay near boss to make thunderbolt dodge easier
-                hints.GoalZones.Add(hints.GoalSingleTarget(Module.PrimaryActor.Position, 6, 0.5f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.PrimaryActor.Position, 6, 0.5f));
                 break;
             case BossAction.TrounceEast:
                 // stay in eastward 1/4th of arena to prepare for dodging trounce

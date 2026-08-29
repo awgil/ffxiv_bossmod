@@ -31,7 +31,7 @@ class Tank04Dummies(BossModule module) : BossComponent(module)
         if (count == 3)
         {
             var target = new WPos((maxX - minX) / 2f + minX, (maxZ - minZ) / 2f + minZ);
-            hints.GoalZones.Add(hints.GoalSingleTarget(target, 1f));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(target, 1f));
 
             if (actor.DistanceToPoint(target) < 1f)
             {

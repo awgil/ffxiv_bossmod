@@ -102,7 +102,7 @@ class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
         }
 
         if (melee)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, 3));
 
         UseAction(RID.EWEmbolden, Player, -50);
         UseAction(RID.EWContreSixte, primaryTarget, -50);

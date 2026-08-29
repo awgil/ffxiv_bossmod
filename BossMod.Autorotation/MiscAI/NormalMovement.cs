@@ -177,7 +177,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
         // fallback so that we can automatically start some quest battles xddd (the RP rotation is a component on the module, which isn't active until we pull, so no goal zone)
         if (Hints.GoalZones.Count == 0 && primaryTarget is { IsAlly: false, IsDead: false } && Player.Statuses.Any(s => RotationModuleManager.TransformationStatuses.Contains(s.ID)))
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, 3));
 
         var isSpinning = Player.FindStatus(SID.Spinning) != null;
         // simulate forward forced movement; this is kind of a hack, but it definitely doesn't belong in modules because it's part of the movement constraint
@@ -196,26 +196,14 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
         if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID)
         {
-            if (!enemy.DesiredRotation.AlmostEqual(enemy.Actor.Rotation, 0.1f))
+            if (enemy.DesiredRotation is { } rot)
             {
-                var goal = enemy.Actor.Position + enemy.DesiredRotation.ToDirection() * enemy.Actor.HitboxRadius;
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(goal, 1, 0.5f));
+                var goal = enemy.Actor.Position + rot.ToDirection() * enemy.Actor.HitboxRadius;
+                Hints.GoalZones.Add(AIHints.GoalSingleTarget(goal, 1, 0.5f));
             }
 
-            var toDest = enemy.DesiredPosition - enemy.Actor.Position;
-            var toLen = toDest.Length();
-            if (toLen > 0.5f)
-            {
-                var pullLocation = enemy.Actor.Position + toDest.Normalized() * (enemy.Actor.HitboxRadius + enemy.TankDistance + toLen);
-
-                var pullRect = ShapeDistance.PrecisePosition(pullLocation, new(0, 1), Hints.PathfindMapBounds.MapResolution, Player.Position, 0.1f);
-                Hints.GoalZones.Add(p => pullRect(p) > 0 ? 5 : 0);
-            }
-            else
-            {
-                // stay inside pull range to not move the boss
-                Hints.GoalZones.Add(Hints.GoalSingleTarget(enemy.Actor.Position, enemy.Actor.HitboxRadius + enemy.TankDistance, 0.5f));
-            }
+            if (enemy.DesiredPosition is { } pos)
+                Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, 0.5f));
         }
 
         var speed = World.Client.MoveSpeed;

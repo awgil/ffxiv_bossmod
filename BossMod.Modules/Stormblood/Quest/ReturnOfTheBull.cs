@@ -65,7 +65,7 @@ class Deflect(BossModule module) : BossComponent(module)
         {
             var optimalDeflectPosition = closestSphere.Position with { Z = closestSphere.Position.Z + 1 };
 
-            hints.GoalZones.Add(hints.GoalSingleTarget(optimalDeflectPosition, deflectRadius - 2, 10));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(optimalDeflectPosition, deflectRadius - 2, 10));
 
             if (actor.DistanceToHitbox(closestSphere) < deflectRadius - 1)
                 hints.ActionsToExecute.Push(deflectAction, actor, ActionQueue.Priority.VeryHigh);

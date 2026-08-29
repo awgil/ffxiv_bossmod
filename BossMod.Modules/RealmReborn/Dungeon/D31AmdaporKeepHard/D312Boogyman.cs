@@ -30,21 +30,21 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
                 {
                     if (lastLuminescence.HasValue)
                     {
-                        hints.GoalZones.Add(hints.GoalProximity(lastLuminescence.Value, 0.25f, 10));
+                        hints.GoalZones.Add(AIHints.GoalProximity(lastLuminescence.Value, 0.25f, 10));
                     }
                 }
                 else
                 {
                     foreach (var luminescence in luminescences)
                     {
-                        hints.GoalZones.Add(hints.GoalProximity(luminescence.Position, 0.5f, 10f));
+                        hints.GoalZones.Add(AIHints.GoalProximity(luminescence.Position, 0.5f, 10f));
                         hints.SetPriority(luminescence, 1);
                     }
                 }
             }
             else
             {
-                hints.GoalZones.Add(hints.GoalSingleTarget(invisibles.First(), 1f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(invisibles.First(), 1f));
             }
         }
     }

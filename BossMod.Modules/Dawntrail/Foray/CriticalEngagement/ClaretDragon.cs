@@ -158,7 +158,7 @@ class BreathInThrees(BossModule module) : Components.GroupedAOEs(module, [AID.Br
 
         // ranged should move close to the boss since the subsequent casts are much faster
         if (Casters.FirstOrDefault(c => c.CastInfo!.IsSpell(AID.BreathInThreesSlow)) is { } c1)
-            hints.GoalZones.Add(hints.GoalSingleTarget(c1.Position, 10, 0.5f));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(c1.Position, 10, 0.5f));
     }
 }
 

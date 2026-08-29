@@ -88,7 +88,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .Named("Wounded Imperial")
             .Hints((player, hints) => {
-                hints.GoalZones.Add(hints.GoalSingleTarget(new WPos(105, -259), 3));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(new WPos(105, -259), 3));
                 if (player.Position.AlmostEqual(new WPos(111.218f, -257.802f), 2))
                     hints.WantJump = true;
             })

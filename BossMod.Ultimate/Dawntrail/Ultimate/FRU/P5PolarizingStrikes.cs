@@ -65,7 +65,7 @@ class P5PolarizingStrikes(BossModule module) : Components.GenericAOEs(module)
         {
             // avoid aftershock aoe by moving behind boss
             base.AddAIHints(slot, actor, assignment, hints);
-            hints.GoalZones.Add(hints.GoalSingleTarget(_source.Position - 9 * _source.Rotation.ToDirection(), 1, 0.25f));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(_source.Position - 9 * _source.Rotation.ToDirection(), 1, 0.25f));
         }
         else if (_baitsActive)
         {

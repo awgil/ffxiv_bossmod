@@ -468,9 +468,9 @@ public abstract partial class AutoClear : ZoneModule
 
             if (passage is Actor c && !fullClear)
             {
-                hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 2, 0.5f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 2, 0.5f));
                 // give pathfinder a little help lmao
-                hints.GoalZones.Add(hints.GoalSingleTarget(c.Position, 25, 0.25f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 25, 0.25f));
                 if (player.DistanceToHitbox(c) < player.DistanceToHitbox(coffer) && !_config.OpenChestsFirst)
                     wantCoffer = null;
             }
@@ -479,7 +479,7 @@ public abstract partial class AutoClear : ZoneModule
         if (wantCoffer is Actor xxx)
         {
             wantCoffer = xxx;
-            hints.GoalZones.Add(hints.GoalSingleTarget(xxx.Position, 25));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(xxx.Position, 25));
             if (!playerInAOE)
                 hints.InteractWithTarget ??= coffer;
         }
@@ -488,7 +488,7 @@ public abstract partial class AutoClear : ZoneModule
             hints.AddForbiddenZone(ShapeDistance.Union(revealedTraps));
 
         if (!IsPlayerTransformed(player) && canNavigate && _config.AutoMoveTreasure && hoardLight is Actor h && Palace.GetPomanderState(PomanderID.Intuition).Active)
-            hints.GoalZones.Add(hints.GoalSingleTarget(h.Position, 2, 10));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(h.Position, 2, 10));
 
         var canTarget = _config.AutoClear switch
         {

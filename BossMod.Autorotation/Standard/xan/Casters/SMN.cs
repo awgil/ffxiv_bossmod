@@ -255,7 +255,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CrimsonStrikeReady)
         {
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget.Actor, 3));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget.Actor, 3));
             PushGCD(AID.CrimsonStrike, BestMeleeTarget);
         }
 

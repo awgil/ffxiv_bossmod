@@ -103,7 +103,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
         }
         else if (Spreads.Count > 0 && Stacks.Count == 0)
             // stay under boss for max safety
-            hints.GoalZones.Add(hints.GoalSingleTarget(Module.PrimaryActor.Position, 1));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.PrimaryActor.Position, 1));
     }
 }
 

@@ -19,19 +19,19 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Cure).As<CureOption>("Cure", "", 100)
             .AddOption(CureOption.None, "Do not use automatically")
-            .AddOption(CureOption.Cure, "Use Cure", 2.5f, 0, ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly, 2)
-            .AddOption(CureOption.CureII, "Use Cure II", 2.5f, 0, ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly, 30)
-            .AddOption(CureOption.CureIII, "Use Cure III", 2.5f, 0, ActionTargets.Self | ActionTargets.Party, 40)
+            .AddOption(CureOption.Cure, "Use Cure", 2.5f, 0, ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly, 2, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(CureOption.CureII, "Use Cure II", 2.5f, 0, ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly, 30, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(CureOption.CureIII, "Use Cure III", 2.5f, 0, ActionTargets.Self | ActionTargets.Party, 40, defaultPriority: ActionQueue.Priority.VeryHigh)
             .AddAssociatedActions(WHM.AID.Cure, WHM.AID.CureII, WHM.AID.CureIII);
 
         res.Define(Track.Medica).As<MedicaOption>("Medica", "", 130)
             .AddOption(MedicaOption.None, "Do not use automatically")
-            .AddOption(MedicaOption.MedicaII, "Use Medica II", 2.5f, 15, ActionTargets.Self, 50, 95)
-            .AddOption(MedicaOption.MedicaIII, "Use Medica III", 2.5f, 15, ActionTargets.Self, 96)
+            .AddOption(MedicaOption.MedicaII, "Use Medica II", 2.5f, 15, ActionTargets.Self, 50, 95, defaultPriority: ActionQueue.Priority.VeryHigh)
+            .AddOption(MedicaOption.MedicaIII, "Use Medica III", 2.5f, 15, ActionTargets.Self, 96, defaultPriority: ActionQueue.Priority.VeryHigh)
             .AddAssociatedActions(WHM.AID.MedicaII, WHM.AID.MedicaIII);
 
-        DefineSimpleConfig(res, Track.AfflatusSolace, "AfflatusSolace", "Solace", 105, WHM.AID.AfflatusSolace);
-        DefineSimpleConfig(res, Track.AfflatusRapture, "AfflatusRapture", "Rapture", 125, WHM.AID.AfflatusRapture);
+        DefineSimpleConfig(res, Track.AfflatusSolace, "AfflatusSolace", "Solace", 105, WHM.AID.AfflatusSolace, defaultPriority: ActionQueue.Priority.VeryHigh);
+        DefineSimpleConfig(res, Track.AfflatusRapture, "AfflatusRapture", "Rapture", 125, WHM.AID.AfflatusRapture, defaultPriority: ActionQueue.Priority.VeryHigh);
         DefineSimpleConfig(res, Track.Benediction, "Benediction", "Bene", 300, WHM.AID.Benediction);
 
         res.Define(Track.Asylum).As<SimpleOption>("Asylum", "", 230)

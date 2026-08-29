@@ -69,7 +69,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
         if (IsRanged && !Player.InCombat && primaryTarget is Actor target && !target.InCombat && !target.IsAlly)
             // bandaid fix to help deal with constant LOS issues
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(target, 3, 0.1f));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(target, 3, 0.1f));
 
         SetupKiteZone(strategy, primaryTarget);
 
@@ -172,36 +172,36 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         switch (t)
         {
             case Transformation.Manticore:
-                goal = Hints.GoalSingleTarget(primaryTarget, 3);
+                goal = AIHints.GoalSingleTarget(primaryTarget, 3);
                 numTargets = 1;
                 attack = ActionID.MakeSpell(Roleplay.AID.Pummel);
                 break;
             case Transformation.Succubus:
-                goal = Hints.GoalSingleTarget(primaryTarget, 25);
+                goal = AIHints.GoalSingleTarget(primaryTarget, 25);
                 numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 5);
                 attack = ActionID.MakeSpell(Roleplay.AID.VoidFireII);
                 castTime = 2.5f;
                 break;
             case Transformation.Kuribu:
                 // heavenly judge is ground targeted
-                goal = Hints.GoalSingleTarget(primaryTarget.Position, 25);
+                goal = AIHints.GoalSingleTarget(primaryTarget.Position, 25);
                 numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 6);
                 attack = ActionID.MakeSpell(Roleplay.AID.HeavenlyJudge);
                 castTime = 2.5f;
                 break;
             case Transformation.Dreadnaught:
-                goal = Hints.GoalSingleTarget(primaryTarget, 3);
+                goal = AIHints.GoalSingleTarget(primaryTarget, 3);
                 numTargets = 1;
                 attack = ActionID.MakeSpell(Roleplay.AID.Rotosmash);
                 break;
             case Transformation.Bomb:
                 numTargets = 1;
-                goal = Hints.GoalSingleTarget(primaryTarget, 14);
+                goal = AIHints.GoalSingleTarget(primaryTarget, 14);
                 attack = ActionID.MakeSpell(Roleplay.AID.BigBurst);
                 break;
             case Transformation.Mudball:
                 numTargets = 1;
-                goal = Hints.GoalSingleTarget(primaryTarget.Position, 25);
+                goal = AIHints.GoalSingleTarget(primaryTarget.Position, 25);
                 attack = ActionID.MakeSpell(Roleplay.AID.RockyRoll);
                 break;
             default:

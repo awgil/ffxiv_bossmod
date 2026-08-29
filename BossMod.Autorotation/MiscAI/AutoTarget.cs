@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation.xan;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace BossMod.Autorotation.MiscAI;
 
@@ -52,7 +51,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 
-        res.Define(Track.Treasure).As<Flag>("Treasure", "Open treasure chests", renderer: typeof(DefaultOffRenderer))
+        res.Define(Track.Treasure).As<Flag>("Treasure", "Open treasure chests", renderer: typeof(DefaultOffRenderer), uiPriority: -115)
             .AddOption(Flag.Disabled)
             .AddOption(Flag.Enabled);
 

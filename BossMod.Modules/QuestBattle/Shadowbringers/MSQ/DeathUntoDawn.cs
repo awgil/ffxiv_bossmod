@@ -53,7 +53,7 @@ public class AutoAlisaie(WorldState ws) : UnmanagedRotation(ws, 25)
         }
 
         if (melee)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, 3));
 
         UseAction(RID.ShbFleche, primaryTarget);
         UseAction(RID.ShbContreSixte, primaryTarget);

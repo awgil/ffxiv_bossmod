@@ -9,7 +9,7 @@ class AutoHien(WorldState ws) : UnmanagedRotation(ws, 3)
         if (primaryTarget == null)
             return;
 
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, 3));
+        Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, 3));
 
         var ajisai = StatusDetails(primaryTarget, Roleplay.SID.Ajisai, Player.InstanceID);
 

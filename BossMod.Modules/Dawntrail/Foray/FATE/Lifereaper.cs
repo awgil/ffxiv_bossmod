@@ -67,7 +67,7 @@ class SweepingCharge(BossModule module) : Components.ChargeAOEs(module, AID.Swee
         base.AddAIHints(slot, actor, assignment, hints);
         if (active && sweepingChargeSpell != null)
         {
-            hints.GoalZones.Add(hints.GoalProximity(sweepingChargeSpell.LocXZ, 4, 100));
+            hints.GoalZones.Add(AIHints.GoalProximity(sweepingChargeSpell.LocXZ, 4, 100));
         }
     }
 

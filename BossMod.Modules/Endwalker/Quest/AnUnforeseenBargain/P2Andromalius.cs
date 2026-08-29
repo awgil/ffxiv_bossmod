@@ -75,7 +75,7 @@ class ShieldHint(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Shield is Actor s)
-            hints.GoalZones.Add(hints.GoalSingleTarget(s.Position, 5));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(s.Position, 5));
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

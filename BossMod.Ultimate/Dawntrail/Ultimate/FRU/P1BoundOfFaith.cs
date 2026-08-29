@@ -154,7 +154,7 @@ class P1BoundOfFaithAIStack(BossModule module) : BossComponent(module)
             }
 
             // all else being equal, try staying closer to center
-            hints.GoalZones.Add(hints.GoalSingleTarget(Module.Center, 7.5f, 0.5f));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.Center, 7.5f, 0.5f));
         }
         else
         {
