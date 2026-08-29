@@ -17,6 +17,8 @@ sealed class PackLoader : IDisposable
                 return typeof(PackLoader).Assembly;
             if (assemblyName.Name == "FFXIVClientStructs")
                 return typeof(FFXIVClientStructs.FFXIV.Client.Game.Camera).Assembly;
+            if (assemblyName.Name == "Lumina")
+                return typeof(Lumina.GameData).Assembly;
 
             return base.Load(assemblyName);
         }
