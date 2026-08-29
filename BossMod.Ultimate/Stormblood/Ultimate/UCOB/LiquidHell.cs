@@ -12,7 +12,7 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
     BaitMode Mode;
     DateTime NextCast;
 
-    Actor? Baiter;
+    public Actor? Baiter { get; private set; }
 
     public void Reset(float delay, BaitMode mode)
     {
@@ -29,7 +29,7 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
         {
             NextCast = WorldState.FutureTime(1.2f);
 
-            if (Mode == BaitMode.Random && Baiter == null)
+            if (Mode == BaitMode.Random && (Baiter == null || Baiter.IsDead))
                 Baiter = Raid.WithoutSlot().Closest(spell.TargetXZ);
         }
 
@@ -77,14 +77,14 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
 
         if (Mode == BaitMode.Random)
         {
+            if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment != PartyRolesConfig.Assignment.R1)
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.PrimaryActor.Position + 60.Degrees().ToDirection() * 7, new(0, 1), 0.5f, actor.Position, 0.1f), NextCast);
+
             if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
             {
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 16), NextCast.AddSeconds(1.2f * (4 - NumCasts)));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 11), NextCast.AddSeconds(1.2f * (4 - NumCasts)));
                 hints.AddForbiddenZone(ShapeDistance.Circle(dest, 7), NextCast);
             }
-
-            if (Baiter != null && Baiter != actor)
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.PrimaryActor, 5, 0.5f));
         }
     }
 

@@ -5,9 +5,10 @@ class Hatch : Components.CastCounter
     public bool Active = true;
     public int NumNeurolinkSpawns { get; private set; }
     public int NumTargetsAssigned { get; private set; }
-    private readonly List<Actor> _orbs = [];
+    private readonly List<(Actor orb, DateTime moveStart)> _orbs = [];
     private readonly List<Actor> _neurolinks = [];
     private BitMask _targets;
+    private readonly Actor?[] _assignedLinks = new Actor?[PartyState.MaxPartySize];
 
     public bool Twister;
 
@@ -72,33 +73,32 @@ class Hatch : Components.CastCounter
         if (_targets[slot])
         {
             // tiebreaker
-            var myOrder = _targets.SetBits().OrderBy(b => Raid[b]?.Class ?? Class.None).Index().First(b => b.Item == slot).Index;
-            var myLink = _neurolinks.OrderBy(n => n.InstanceID).Skip(myOrder).First();
+            var myLink = _assignedLinks[slot]!;
+
+            var leewaySeconds = 10f;
+
+            if (_orbs.Count > 0)
+            {
+                var waitMove = MathF.Max(0, (float)(_orbs[0].moveStart - WorldState.CurrentTime).TotalSeconds);
+                leewaySeconds = waitMove + _orbs.Min(o => actor.DistanceToHitbox(o.orb)) / 5f;
+            }
 
             hints.GoalZones.Add(AIHints.GoalSingleTarget(myLink.Position, 5, 0.5f));
 
             if (Twister)
-            {
-                // plant near links but not inside
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Union([.. _neurolinks.Select(n => {
-                    var safeDir = Module.PrimaryActor.AngleTo(n);
-                    return ShapeDistance.DonutSector(n.Position, 2, 5, safeDir, 90.Degrees());
-                })])).Inverted(), WorldState.FutureTime(8));
-            }
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.DonutSector(myLink.Position, 2, 5, Module.PrimaryActor.AngleTo(myLink), 90.Degrees())).Inverted(), WorldState.FutureTime(leewaySeconds));
             else
-            {
-                hints.AddForbiddenZone(p => -linkShape(p), actor.FindStatus(SID.Neurolink, DateTime.MaxValue) == null ? WorldState.FutureTime(8) : default);
-            }
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
         }
         else
         {
-            foreach (var orb in _orbs)
+            foreach (var (orb, t) in _orbs)
             {
                 hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, 2));
                 if (orb.LastFrameMovement == default)
                 {
-                    foreach (var (_, target) in Raid.WithSlot().IncludedInMask(_targets))
-                        hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.AngleTo(target), 6, 2), WorldState.FutureTime(2));
+                    foreach (var h in _neurolinks)
+                        hints.AddForbiddenZone(ShapeDistance.Cone(orb.Position, 6, orb.AngleTo(h), 60.Degrees()), WorldState.FutureTime(2));
                 }
                 else
                     hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.LastFrameMovement.ToAngle(), 6, 2), WorldState.FutureTime(2));
@@ -121,7 +121,7 @@ class Hatch : Components.CastCounter
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         if (Active)
-            foreach (var o in _orbs)
+            foreach (var (o, _) in _orbs)
                 Arena.ZoneCircle(o.Position, 2, ArenaColor.AOE);
     }
 
@@ -138,6 +138,19 @@ class Hatch : Components.CastCounter
         {
             _targets.Set(Raid.FindSlot(actor.InstanceID));
             ++NumTargetsAssigned;
+            if (_targets.NumSetBits() == _neurolinks.Count)
+                AssignLinks();
+        }
+    }
+
+    void AssignLinks()
+    {
+        Array.Fill(_assignedLinks, null);
+
+        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(_targets).OrderBy(p => p.Item2.InstanceID))
+        {
+            var closestLink = _neurolinks.Except(_assignedLinks.Where(l => l != null).Select(l => l!)).Closest(player.Position);
+            _assignedLinks[slot] = closestLink;
         }
     }
 
@@ -146,13 +159,10 @@ class Hatch : Components.CastCounter
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
-            _orbs.Remove(caster);
+            _orbs.RemoveAll(o => o.orb == caster);
             foreach (var t in spell.Targets)
                 _targets.Clear(Raid.FindSlot(t.ID));
         }
-
-        //if ((AID)spell.Action.ID == AID.Hatch)
-        //    _numHatches++;
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -169,8 +179,14 @@ class Hatch : Components.CastCounter
                 _neurolinks.Add(actor);
                 break;
             case OID.Oviform:
-                _orbs.Add(actor);
+                _orbs.Add((actor, WorldState.FutureTime(4)));
                 break;
         }
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.Oviform)
+            _orbs.RemoveAll(o => o.orb == actor);
     }
 }

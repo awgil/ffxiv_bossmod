@@ -8,7 +8,7 @@ class P2Heavensfall(BossModule module) : Components.Knockback(module, AID.Heaven
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => [new Source(Module.Center, 11, Activation)];
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
     {
         hints.AddForbiddenZone(ShapeDistance.PrecisePosition(new WPos(0, 9), new(0, 1), 0.5f, actor.Position, 0.1f), Activation);
     }
@@ -60,6 +60,11 @@ class P2MeteorStream : Components.UniformStackSpread
         {
             ++NumCasts;
             Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+
+            // update activation time for second set
+            if (NumCasts == 4)
+                for (var i = 0; i < 4; i++)
+                    Spreads.Ref(i).Activation = WorldState.FutureTime(3.1f);
         }
     }
 
@@ -99,5 +104,15 @@ class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(m
         {
             CurrentBaits.Add(new(_target, _target, _shape));
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // preposition close to nael
+        if (actor.Role is Role.Melee or Role.Tank)
+            foreach (var b in ActiveBaitsNotOn(actor))
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(b.Target.Position, 6));
     }
 }

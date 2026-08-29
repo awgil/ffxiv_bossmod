@@ -44,9 +44,10 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
 
         if ((AID)spell.Action.ID == AID.LiquidHell && Destination == default && _neurolinkCount > 0)
         {
+            var bossToPuddle = spell.TargetXZ - Module.PrimaryActor.Position;
+            var safeDist = Math.Max(Module.PrimaryActor.HitboxRadius, 7 - bossToPuddle.Length());
             // stack on opposite side of boss from first fireball spawn
-            var dirToBall = -Module.PrimaryActor.DirectionTo(spell.TargetXZ);
-            Destination = Module.PrimaryActor.Position + dirToBall * Module.PrimaryActor.HitboxRadius;
+            Destination = Module.PrimaryActor.Position + bossToPuddle.Normalized() * -safeDist;
         }
     }
 
@@ -58,16 +59,21 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
             return;
         }
 
-        if (!EnableHints || Stacks.Count == 0)
+        if (Stacks.Count == 0)
             return;
 
-        var stack = Stacks[0];
+        var baiter = Module.FindComponent<P1LiquidHell>()?.Baiter;
 
-        if (stack.Target == actor) // stack target shouldn't move around too much, just plant on boss
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Destination, new(0, 1), 0.5f, actor.Position, 0.1f), stack.Activation);
-        else if (!stack.ForbiddenPlayers[slot])
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Destination, stack.Radius - 1), stack.Activation);
-        else
-            hints.AddForbiddenZone(ShapeDistance.Circle(Destination, stack.Radius + 0.5f), stack.Activation);
+        if (EnableHints || baiter != null && baiter != actor)
+        {
+            var stack = Stacks[0];
+
+            if (stack.Target == actor) // stack target shouldn't move around too much, just plant on boss
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Destination, new(0, 1), 0.5f, actor.Position, 0.1f), stack.Activation);
+            else if (!stack.ForbiddenPlayers[slot])
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Destination, stack.Radius - 1), stack.Activation);
+            else
+                hints.AddForbiddenZone(ShapeDistance.Circle(Destination, stack.Radius + 0.5f), stack.Activation);
+        }
     }
 }

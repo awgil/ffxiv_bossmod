@@ -234,6 +234,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P2Heavensfall>(id, delay, comp => comp.NumCasts > 0, "Knockback")
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
             .ExecOnEnter<Hatch>(comp => comp.Reset())
+            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(0, LiquidHell.BaitMode.None))
             .ActivateOnEnter<P2HeavensfallDalamudDive>() // activate asap until twintania untargets current tank
             .ActivateOnEnter<P2Heavensfall>()
             .ExecOnEnter<P2Heavensfall>(p => p.Activation = Module.WorldState.FutureTime(delay))

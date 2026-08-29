@@ -433,7 +433,7 @@ public sealed class AIHints
         if (enemy == null)
             return _ => 0;
 
-        var adjRange = enemy.TankDistance + target.HitboxRadius + 0.5f;
+        var adjRange = enemy.TankDistance + target.HitboxRadius;
         var desiredToTarget = destination - target.Position;
         var leewaySq = destRadius * destRadius;
 
@@ -444,6 +444,6 @@ public sealed class AIHints
         var dest = destination + adjRange * desiredToTarget.Normalized();
 
         var sh = ShapeDistance.PrecisePosition(dest, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
-        return p => sh(p) >= 0 ? 10 : 0;
+        return p => sh(p) > 0 ? 10 : 0;
     }
 }

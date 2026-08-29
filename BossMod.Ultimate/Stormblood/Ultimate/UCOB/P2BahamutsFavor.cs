@@ -4,7 +4,7 @@ class P2HugNael(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+        if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael && nael.IsTargetable)
             hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, 10, 0.5f));
     }
 }
