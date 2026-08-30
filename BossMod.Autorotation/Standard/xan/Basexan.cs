@@ -365,7 +365,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     protected void GoalZoneSingle(float range)
     {
         if (PlayerTarget != null)
-            Hints.GoalZones.Add(GoalSingleTarget(PlayerTarget.Actor, range));
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, range));
     }
 
     protected void GoalZoneCombined(in IStrategyCommon strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
@@ -383,9 +383,9 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         }
         else
         {
-            Hints.GoalZones.Add(GoalCombined(GoalSingleTarget(PlayerTarget.Actor, imminent ? positional : Positional.Any, range), fAoe, minAoe));
+            Hints.GoalZones.Add(GoalCombined(Hints.GoalSingleTarget(PlayerTarget.Actor, imminent ? positional : Positional.Any, Player, World.Actors, range), fAoe, minAoe));
             if (maximumActionRange is float r)
-                Hints.GoalZones.Add(GoalSingleTarget(PlayerTarget.Actor, r, 0.5f));
+                Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, r, 0.5f));
         }
     }
 
@@ -477,7 +477,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "determinism is intentional here")]
     private void PretendCountdown()
     {
-        if (CountdownRemaining == null)
+        if (CountdownRemaining == null || Player.InCombat)
         {
             _cdLockout = DateTime.MinValue;
             _prevCountdown = null;

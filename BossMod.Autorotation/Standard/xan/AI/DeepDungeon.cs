@@ -69,7 +69,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
 
         if (IsRanged && !Player.InCombat && primaryTarget is Actor target && !target.InCombat && !target.IsAlly)
             // bandaid fix to help deal with constant LOS issues
-            Hints.GoalZones.Add(AIHints.GoalSingleTarget(target, 3, 0.1f));
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(target, Player, World.Actors, 3, 0.1f));
 
         SetupKiteZone(strategy, primaryTarget);
 
@@ -172,12 +172,12 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         switch (t)
         {
             case Transformation.Manticore:
-                goal = AIHints.GoalSingleTarget(primaryTarget, 3);
+                goal = Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 3);
                 numTargets = 1;
                 attack = ActionID.MakeSpell(Roleplay.AID.Pummel);
                 break;
             case Transformation.Succubus:
-                goal = AIHints.GoalSingleTarget(primaryTarget, 25);
+                goal = Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 25);
                 numTargets = Hints.NumPriorityTargetsInAOECircle(primaryTarget.Position, 5);
                 attack = ActionID.MakeSpell(Roleplay.AID.VoidFireII);
                 castTime = 2.5f;
@@ -190,13 +190,13 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
                 castTime = 2.5f;
                 break;
             case Transformation.Dreadnaught:
-                goal = AIHints.GoalSingleTarget(primaryTarget, 3);
+                goal = Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 3);
                 numTargets = 1;
                 attack = ActionID.MakeSpell(Roleplay.AID.Rotosmash);
                 break;
             case Transformation.Bomb:
                 numTargets = 1;
-                goal = AIHints.GoalSingleTarget(primaryTarget, 14);
+                goal = Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 14);
                 attack = ActionID.MakeSpell(Roleplay.AID.BigBurst);
                 break;
             case Transformation.Mudball:

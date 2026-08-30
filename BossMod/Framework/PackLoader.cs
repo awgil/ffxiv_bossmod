@@ -90,7 +90,7 @@ sealed class PackLoader : IDisposable
         var context = _loadContexts[fullPath] = new();
         try
         {
-            Load(context.LoadFromStream(new MemoryStream(raw)));
+            Load(context.LoadFromStream(new MemoryStream(raw)), fullPath);
         }
         catch (BadImageFormatException e)
         {
@@ -128,13 +128,19 @@ sealed class PackLoader : IDisposable
         AnalyzerRegistry.UnloadFrom(asm);
     }
 
-    static void Load(Assembly asm)
+    static void Load(Assembly asm, string dllPath)
     {
         // TODO: need to rebuild config tree as well
         RotationModuleRegistry.ScanAssembly(asm);
         BossModuleRegistry.ScanAssembly(asm);
         ZoneModuleRegistry.ScanAssembly(asm);
         AnalyzerRegistry.ScanAssembly(asm);
+
+        Service.Notifications?.AddNotification(new()
+        {
+            Content = $"Loaded {Path.GetFileName(dllPath)}",
+            Type = Dalamud.Interface.ImGuiNotification.NotificationType.Success,
+        });
     }
 
     public void Dispose()

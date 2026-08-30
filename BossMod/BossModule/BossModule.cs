@@ -229,7 +229,9 @@ public abstract class BossModule : IDisposable
         // draw enemies & player
         DrawEnemies(pcSlot, pc);
         if (DebugOpts.DrawAllActors)
-            DrawDebug();
+            DrawAllActors();
+        if (WindowConfig.ShowPullDebug)
+            DrawPulls();
         Arena.Actor(pc, ArenaColor.PC, true);
     }
 
@@ -326,7 +328,7 @@ public abstract class BossModule : IDisposable
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
     }
 
-    private void DrawDebug()
+    private void DrawAllActors()
     {
         List<string> tooltip = [];
         var cursor = ImGui.GetMousePos();
@@ -348,6 +350,26 @@ public abstract class BossModule : IDisposable
 
         if (tooltip.Count > 0)
             ImGui.SetTooltip(string.Join("\n", tooltip));
+    }
+
+    private void DrawPulls()
+    {
+        foreach (var actor in WorldState.Actors.Where(a => a is { IsAlly: false, IsTargetable: true, IsDeadOrDestroyed: false }))
+        {
+            var tankDistance = actor.HitboxRadius + (actor.OID == 0x1FDF ? 0.5f : 2); // TODO: we should just have a static list somewhere, like AggroDistance
+
+            if (WorldState.Actors.Find(actor.TargetID) is { } target)
+            {
+                var toTarget = target.Position - actor.Position;
+                var distToTarget = toTarget.Length();
+                if (distToTarget >= tankDistance)
+                {
+                    var movement = toTarget.Normalized() * (distToTarget - tankDistance);
+                    Arena.AddLine(actor.Position, actor.Position + movement, 0xFFFFFF00);
+                    Arena.AddCircle(actor.Position + movement, 0.5f, 0xFFFFFF00);
+                }
+            }
+        }
     }
 
     private void DrawGlobalHints(BossComponent.GlobalHints hints)

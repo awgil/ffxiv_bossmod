@@ -361,7 +361,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             return;
 
         // ai hints for positioning
-        var goalST = primaryTarget != null ? AIHints.GoalSingleTarget(primaryTarget, 3) : null;
+        var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 3) : null;
         var goalAOE = Hints.GoalAOECircle(3);
         var goal = aoeStrategy switch
         {

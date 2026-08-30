@@ -331,7 +331,13 @@ public sealed class AIHints
         var effRsq = radius * radius;
         return p => (p - target).LengthSq() <= effRsq ? weight : 0;
     }
-    public static Func<WPos, float> GoalSingleTarget(Actor target, float range, float weight = 1) => GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
+    public Func<WPos, float> GoalSingleTarget(Actor target, Actor player, ActorState actorState, float range, float weight = 1)
+    {
+        var f = GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
+        var g = FollowTarget(target, player, actorState, range);
+
+        return p => f(p) + g(p);
+    }
 
     // simple goal zone that returns 1 if target is in range (usually melee), 2 if it's also in correct positional
     public static Func<WPos, float> GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius, float cushion = 0)
@@ -360,7 +366,30 @@ public sealed class AIHints
             return inPositional ? 2 : 1;
         };
     }
-    public static Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, float range = 3, float cushion = 0) => GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f, cushion);
+    public Func<WPos, float> GoalSingleTarget(Actor target, Positional positional, Actor player, ActorState actorState, float range = 3, float cushion = 0)
+    {
+        var f = GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f, cushion);
+        var g = FollowTarget(target, player, actorState, range);
+
+        return p => f(p) + g(p);
+    }
+
+    Func<WPos, float> FollowTarget(Actor target, Actor player, ActorState actorState, float maxRange)
+    {
+        if (target.CastInfo == null && target.TargetID != player.InstanceID && FindEnemy(target) is { } e && actorState.Find(target.TargetID) is { } tt)
+        {
+            var tankDistance = e.Actor.HitboxRadius + e.TankDistance;
+            var targetToTT = tt.Position - target.Position;
+            if (targetToTT.LengthSq() > tankDistance * tankDistance)
+            {
+                var effRange = target.HitboxRadius + maxRange + 0.5f;
+                var expectedPosition = target.Position + targetToTT.Normalized() * MathF.Min(effRange - 1, targetToTT.Length() - tankDistance);
+                return GoalSingleTarget(expectedPosition, effRange, 0.1f);
+            }
+        }
+
+        return _ => 0;
+    }
 
     // simple goal zone that returns number of targets in aoes; note that performance is a concern for these functions, and perfection isn't required, so eg they ignore forbidden targets, etc
     public Func<WPos, float> GoalAOECircle(float radius)

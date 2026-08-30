@@ -425,7 +425,7 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
         }
 
         // ai hints for positioning - ladonsbite is the most restrictive generally
-        var goalST = primaryTarget != null ? AIHints.GoalSingleTarget(primaryTarget, 3) : null;
+        var goalST = primaryTarget != null ? Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 3) : null;
         var goalAOE = primaryTarget != null ? Hints.GoalAOECone(primaryTarget, 12, 45.Degrees()) : null;
         var goal = aoeStrategy switch
         {

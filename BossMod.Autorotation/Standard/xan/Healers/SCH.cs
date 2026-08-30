@@ -132,13 +132,15 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         if (primaryTarget == null || !Player.InCombat)
             return;
 
-        if (strategy.Buffs != OffensiveStrategy.Delay)
+        switch (strategy.Buffs.Value)
         {
-            //if (Eos != null)
-            //    PushOGCD(AID.Dissipation, Player);
-
-            if (RaidBuffsLeft > 15 || RaidBuffsIn > 1000)
+            case OffensiveStrategy.Automatic:
+                if (RaidBuffsLeft > 15 || RaidBuffsIn > 1000)
+                    PushOGCD(AID.ChainStratagem, primaryTarget);
+                break;
+            case OffensiveStrategy.Force:
                 PushOGCD(AID.ChainStratagem, primaryTarget);
+                break;
         }
 
         if (Aetherflow == 0)

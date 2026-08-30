@@ -147,10 +147,14 @@ class Hatch : Components.CastCounter
     {
         Array.Fill(_assignedLinks, null);
 
+        // can't use proximity for assignment because positions are different between clients (if player is moving)
+        List<Actor> linksAvailable = [.. _neurolinks];
+        linksAvailable.SortBy(l => l.InstanceID);
+
         foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(_targets).OrderBy(p => p.Item2.InstanceID))
         {
-            var closestLink = _neurolinks.Except(_assignedLinks.Where(l => l != null).Select(l => l!)).Closest(player.Position);
-            _assignedLinks[slot] = closestLink;
+            _assignedLinks[slot] = linksAvailable[0];
+            linksAvailable.RemoveAt(0);
         }
     }
 

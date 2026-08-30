@@ -44,7 +44,7 @@ class InvisibilityMechanic(BossModule module) : BossComponent(module)
             }
             else
             {
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(invisibles.First(), 1f));
+                hints.GoalZones.Add(hints.GoalSingleTarget(invisibles.First(), actor, WorldState.Actors, 1f));
             }
         }
     }

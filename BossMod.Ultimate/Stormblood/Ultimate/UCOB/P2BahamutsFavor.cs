@@ -62,10 +62,15 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
 }
 
 // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
-class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStackSpread(module, 0, 5, alwaysShowSpreads: true)
+class P2BahamutsFavorChainLightning : Components.UniformStackSpread
 {
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
+
+    public P2BahamutsFavorChainLightning(BossModule module) : base(module, 0, 5, alwaysShowSpreads: true)
+    {
+        ExtraAISpreadThreshold = 0;
+    }
 
     public bool ActiveOrSkipped() => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
@@ -91,6 +96,15 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
                 Spreads.Clear();
                 break;
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
+            foreach (var sp in ActiveSpreadTargets.Exclude(actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(sp.Position, Spreads[0].Radius), Spreads[0].Activation);
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 

@@ -77,8 +77,13 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
 
         if (Mode == BaitMode.Random)
         {
-            if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment != PartyRolesConfig.Assignment.R1)
-                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.PrimaryActor.Position + 60.Degrees().ToDirection() * 7, new(0, 1), 0.5f, actor.Position, 0.1f), NextCast);
+            if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.MT))
+            {
+                var offset = (int)assignment;
+
+                // if potential baiters are too close together, we might predict the wrong player during first cast
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.PrimaryActor.Position + (50 + 5 * offset).Degrees().ToDirection() * 7, new(0, 1), 0.5f, actor.Position, 0.1f), NextCast);
+            }
 
             if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
             {

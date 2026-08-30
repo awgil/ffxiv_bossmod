@@ -29,11 +29,11 @@ class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
             switch (ComboAction)
             {
                 case Roleplay.AID.Aethersaber:
-                    Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, 10));
+                    Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 10));
                     UseAction(Roleplay.AID.Aethercut, primaryTarget);
                     break;
                 case Roleplay.AID.Aethercut:
-                    Hints.GoalZones.Add(AIHints.GoalSingleTarget(primaryTarget, 10));
+                    Hints.GoalZones.Add(Hints.GoalSingleTarget(primaryTarget, Player, World.Actors, 10));
                     UseAction(Roleplay.AID.FinalFlourish, primaryTarget);
                     break;
             }

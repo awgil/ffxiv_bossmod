@@ -178,7 +178,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
             PushOGCD(AID.LucidDreaming, Player);
 
         if (NextGCD is AID.GoblinPunch or AID.Devour && primaryTarget is { } t)
-            Hints.GoalZones.Add(AIHints.GoalSingleTarget(t.Actor, Positional.Front, 3));
+            Hints.GoalZones.Add(Hints.GoalSingleTarget(t.Actor, Positional.Front, Player, World.Actors, 3));
     }
 
     private void TankSpecific(Enemy? primaryTarget)
