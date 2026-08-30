@@ -13,9 +13,8 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        // wall if anyone dies
-        //if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead))
-        //    Hints.ForcedMovement = -Player.DirectionTo(new WPos(0, 0)).ToVec3();
+        if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead) && Bossmods.ActiveModule!.StateMachine.ActivePhaseIndex < 3)
+            Hints.ForcedMovement = -Player.DirectionTo(new WPos(0, 0)).ToVec3();
 
         var playerAssignment = partyRolesConfig[World.Party.Members[0].ContentId];
 

@@ -16,7 +16,8 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
                 Destination = Module.PrimaryActor.Position + Module.PrimaryActor.DirectionTo(Arena.Center) * (Module.PrimaryActor.HitboxRadius + 3);
             }
             else
-                AddStack(actor, WorldState.FutureTime(7.4f));
+                // stack activation is quite delayed, seen 7-7.5 seconds
+                AddStack(actor, WorldState.FutureTime(7));
         }
     }
 

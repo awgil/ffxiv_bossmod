@@ -21,8 +21,8 @@ public sealed class ClassSCHUtility(RotationModuleManager manager, Actor player)
 
         res.Define(Track.Succor).As<SuccorOption>("Succor", "Succor", 200)
             .AddOption(SuccorOption.None, "Do not use automatically")
-            .AddOption(SuccorOption.Succor, "Use Succor", 2, 30, ActionTargets.Self, 35, 95)
-            .AddOption(SuccorOption.Concitation, "Use Concitation", 2, 30, ActionTargets.Self, 96)
+            .AddOption(SuccorOption.Succor, "Use Succor", 2, 30, ActionTargets.Self, 35, 95, ActionQueue.Priority.VeryHigh)
+            .AddOption(SuccorOption.Concitation, "Use Concitation", 2, 30, ActionTargets.Self, 96, defaultPriority: ActionQueue.Priority.VeryHigh)
             .AddAssociatedActions(SCH.AID.Succor, SCH.AID.Concitation);
 
         DefineSimpleConfig(res, Track.FeyIllumination, "Fey Illumination", "F.Illum.", 240, SCH.AID.FeyIllumination, 20);

@@ -93,6 +93,12 @@ class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(mod
             Stacks.Clear();
         base.Update();
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.Count > 0 && Raid.WithoutSlot().Farthest(actor.Position) is { } t)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, StackRadius), Stacks[0].Activation);
+    }
 }
 
 class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 0, 3, alwaysShowSpreads: true)

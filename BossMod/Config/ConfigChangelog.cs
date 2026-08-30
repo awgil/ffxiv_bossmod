@@ -243,18 +243,18 @@ public class ConfigChangelogWindow : UIWindow
     {
         foreach (var n in Service.Config.Nodes)
         {
-            var sinceNode = n.GetType().GetCustomAttribute<ConfigDisplayAttribute>()?.Since;
+            var sinceNode = n.GetCustomAttribute<ConfigDisplayAttribute>()?.Since;
 
-            foreach (var f in n.GetType().GetFields())
+            foreach (var f in n.GetFields())
             {
                 // i don't feel like supporting non bool fields
                 if (f.FieldType != typeof(bool))
                     continue;
 
                 if (sinceNode != null)
-                    yield return new(n, f, Version.Parse(sinceNode));
+                    yield return new(Service.Config.Get<ConfigNode>(n), f, Version.Parse(sinceNode));
                 else if (f.GetCustomAttribute<PropertyDisplayAttribute>()?.Since is string sinceVersion)
-                    yield return new(n, f, Version.Parse(sinceVersion));
+                    yield return new(Service.Config.Get<ConfigNode>(n), f, Version.Parse(sinceVersion));
             }
         }
     }

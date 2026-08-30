@@ -54,9 +54,8 @@ public sealed class Service
     public static ImFontPtr IconFont = ImFontPtr.Null;
     public static ImFontPtr MonoFont = ImFontPtr.Null;
     public static IFontAtlas FontAtlas = null!;
+    public static ConfigRoot Config = null!;
 #pragma warning restore CA2211
-
-    public static readonly ConfigRoot Config = new();
 
     //public static SharpDX.Direct3D11.Device? Device = null;
 }

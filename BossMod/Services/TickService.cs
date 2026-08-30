@@ -98,11 +98,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
-        Service.Config.Initialize();
-        Service.Config.LoadFromFile(dalamud.ConfigFile);
+        Service.Config = new(dalamud.ConfigFile);
 
-        RotationModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
+        Service.Config.ScanAssembly(Assembly.GetExecutingAssembly());
         BossModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
+        RotationModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
+        ZoneModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
 
         _packs = new();
         _hints = new();

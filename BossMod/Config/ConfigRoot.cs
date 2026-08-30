@@ -1,62 +1,59 @@
 ﻿using System.IO;
 using System.Reflection;
+using System.Text.Json;
 
 namespace BossMod;
 
-public class ConfigRoot
+public sealed class ConfigRoot : IDisposable
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
-    private readonly Dictionary<Type, ConfigNode> _nodes = [];
+    record LazyNode(ConfigNode Node, EventSubscription OnModified);
+    private readonly Dictionary<Type, LazyNode?> _nodes = []; // node is null if the type has been registered but the node has never been loaded before
 
-    public IEnumerable<ConfigNode> Nodes => _nodes.Values;
+    public IEnumerable<Type> Nodes => _nodes.Keys;
 
-    public void Initialize()
+    public void ScanAssembly(Assembly assembly)
     {
-        foreach (var t in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
-        {
-            if (Activator.CreateInstance(t) is not ConfigNode inst)
-            {
-                Service.Log($"[Config] Failed to create an instance of {t}");
-                continue;
-            }
-            inst.Modified.Subscribe(Modified.Fire);
-            _nodes[t] = inst;
-        }
+        foreach (var t in Utils.GetDerivedTypes<ConfigNode>(assembly).Where(t => !t.IsAbstract))
+            _nodes.Add(t, null);
     }
 
-    public T Get<T>() where T : ConfigNode => (T)_nodes[typeof(T)];
-    public T Get<T>(Type derived) where T : ConfigNode => (T)_nodes[derived];
+    public void UnloadFrom(Assembly assembly)
+    {
+        foreach (var k in _nodes.Keys.Where(k => k.Assembly == assembly))
+            _nodes.Remove(k);
+    }
+
+    public T Get<T>() where T : ConfigNode => Get<T>(typeof(T));
+    public T Get<T>(Type derived) where T : ConfigNode
+    {
+        if (!_nodes.TryGetValue(derived, out var node))
+            throw new InvalidOperationException($"{derived} is not a valid config type");
+
+        if (node != null)
+            return (T)node.Node;
+
+        var t = (T)Activator.CreateInstance(derived)!;
+        if (_payload.EnumerateObject().FirstOrNull(o => o.Name == derived.FullName) is { } obj)
+            t.Deserialize(obj.Value, _opts);
+
+        _nodes[derived] = new(t, t.Modified.Subscribe(Modified.Fire));
+
+        return t;
+    }
 
     public ConfigListener<T> GetAndSubscribe<T>(Action<T> modified) where T : ConfigNode => new(Get<T>(), modified);
 
-    public void LoadFromFile(FileInfo file)
-    {
-        try
-        {
-            var data = ConfigConverter.Schema.Load(file);
-            using var json = data.document;
-            var ser = Serialization.BuildSerializationOptions();
+    private readonly JsonDocument _document;
+    private readonly JsonElement _payload;
+    private readonly JsonSerializerOptions _opts;
 
-            foreach (var jconfig in data.payload.EnumerateObject())
-            {
-                var type = Type.GetType(jconfig.Name);
-                var node = type != null ? _nodes.GetValueOrDefault(type) : null;
-                try
-                {
-                    node?.Deserialize(jconfig.Value, ser);
-                }
-                catch (AggregateException exc)
-                {
-                    Service.Logger.Warning(exc, "An error occurred while deserializing the plugin config. As a result, some settings may have unexpected values.");
-                }
-            }
-            AssemblyVersion = json.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();
-        }
-        catch (Exception e)
-        {
-            Service.Log($"Failed to load config from {file.FullName}: {e}");
-        }
+    public ConfigRoot(FileInfo file)
+    {
+        _opts = Serialization.BuildSerializationOptions();
+        (_document, _payload) = ConfigConverter.Schema.Load(file);
+        AssemblyVersion = _document.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();
     }
 
     public void SaveToFile(FileInfo file)
@@ -68,10 +65,10 @@ public class ConfigRoot
             {
                 jwriter.WriteStartObject();
                 var ser = Serialization.BuildSerializationOptions();
-                foreach (var (t, n) in _nodes)
+                foreach (var t in _nodes.Keys)
                 {
                     jwriter.WritePropertyName(t.FullName!);
-                    n.Serialize(jwriter, ser);
+                    Get<ConfigNode>(t).Serialize(jwriter, ser);
                 }
                 jwriter.WriteEndObject();
                 jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());
@@ -109,17 +106,17 @@ public class ConfigRoot
         {
             var cmdType = cmd[ranges[0]];
             List<ConfigNode> matchingNodes = [];
-            foreach (var (t, n) in _nodes)
+            foreach (var t in _nodes.Keys)
                 if (t.Name.AsSpan().Contains(cmdType, StringComparison.CurrentCultureIgnoreCase))
                 {
                     // check for exact match
                     if (t.Name.Length == cmdType.Length)
                     {
                         matchingNodes.Clear();
-                        matchingNodes.Add(n);
+                        matchingNodes.Add(Get<ConfigNode>(t));
                         break;
                     }
-                    matchingNodes.Add(n);
+                    matchingNodes.Add(Get<ConfigNode>(t));
                 }
             if (matchingNodes.Count == 0)
             {
@@ -214,4 +211,12 @@ public class ConfigRoot
         : t == typeof(int) ? int.Parse(str)
         : t.IsAssignableTo(typeof(Enum)) ? Enum.Parse(t, str)
         : null;
+
+    public void Dispose()
+    {
+        foreach (var (_, n) in _nodes)
+            n?.OnModified.Dispose();
+
+        _nodes.Clear();
+    }
 }

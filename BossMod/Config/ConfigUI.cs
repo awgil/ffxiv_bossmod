@@ -48,7 +48,7 @@ public sealed class ConfigUI : IDisposable
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
         {
-            nodes[n.GetType()] = new(n);
+            nodes[n] = new(config.Get<ConfigNode>(n));
         }
 
         foreach (var (t, n) in nodes)

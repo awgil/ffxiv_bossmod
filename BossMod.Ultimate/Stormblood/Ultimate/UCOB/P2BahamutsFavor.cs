@@ -105,6 +105,10 @@ class P2BahamutsFavorChainLightning : Components.UniformStackSpread
                 hints.AddForbiddenZone(ShapeDistance.Circle(sp.Position, Spreads[0].Radius), Spreads[0].Activation);
         else
             base.AddAIHints(slot, actor, assignment, hints);
+
+        if (IsSpreadTarget(actor))
+            foreach (var p in Module.Enemies(OID.VoidzoneSalvation))
+                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius), Spreads[0].Activation);
     }
 }
 

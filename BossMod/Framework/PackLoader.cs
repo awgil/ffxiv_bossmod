@@ -122,6 +122,7 @@ sealed class PackLoader : IDisposable
 
     static void Unload(Assembly asm)
     {
+        Service.Config.UnloadFrom(asm);
         RotationModuleRegistry.UnloadFrom(asm);
         BossModuleRegistry.UnloadFrom(asm);
         ZoneModuleRegistry.UnloadFrom(asm);
@@ -131,6 +132,7 @@ sealed class PackLoader : IDisposable
     static void Load(Assembly asm, string dllPath)
     {
         // TODO: need to rebuild config tree as well
+        Service.Config.ScanAssembly(asm);
         RotationModuleRegistry.ScanAssembly(asm);
         BossModuleRegistry.ScanAssembly(asm);
         ZoneModuleRegistry.ScanAssembly(asm);
