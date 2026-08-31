@@ -311,7 +311,7 @@ internal sealed unsafe class DebugInput : IDisposable
         //else if (_gamepadNavigate)
         //{
         //    var dest = new WPos(_dest);
-        //    var dir = (Camera.Instance?.CameraAzimuth ?? 0).Radians() - Angle.FromDirection(dest - (_ws.Party.Player()?.Position ?? dest)) + 180.Degrees();
+        //    var dir = (Camera.Instance()?.CameraAzimuth ?? 0).Radians() - Angle.FromDirection(dest - (_ws.Party.Player()?.Position ?? dest)) + 180.Degrees();
         //    input.GamepadOverridesEnabled = true;
         //    input.GamepadOverrides[3] = (int)(100 * dir.Sin());
         //    input.GamepadOverrides[4] = (int)(100 * dir.Cos());

@@ -104,29 +104,6 @@ class PathfindingTest : TestWindow
         else
             NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sb, _cushion);
 
-        /*
-        var g1 = MakeCopy(map.PixelMaxG);
-        var p1 = MakeCopy(map.PixelPriority);
-        var a1 = MakeCopy(map.PixelAvoid);
-
-        map.PixelMaxG = Utils.MakeArray(map.PixelMaxG.Length, float.MaxValue);
-        map.PixelPriority = Utils.MakeArray(map.PixelPriority.Length, 0f);
-        map.PixelAvoid = Utils.MakeArray(map.PixelAvoid.Length, false);
-
-        sg = [];
-        sb = [];
-
-        NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _cushion);
-
-        for (var i = 0; i < map.PixelMaxG.Length; i++)
-        {
-            if (map.PixelMaxG[i] != g1[i])
-                Service.Log($"pixel mismatch at {i}: {map.PixelMaxG[i]} != {g1[i]}");
-            if (map.PixelPriority[i] != p1[i])
-                Service.Log($"prio mismatch at {i}: {map.PixelPriority[i]} != {p1[i]}");
-        }
-        */
-
         List<Func<WPos, float>> goals = [];
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
         NavigationDecision.RasterizeGoalZones(map, goals, _cushion > 0);
@@ -139,12 +116,5 @@ class PathfindingTest : TestWindow
             visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
 
         return visu;
-    }
-
-    private static T[] MakeCopy<T>(T[] array)
-    {
-        var n = new T[array.Length];
-        array.CopyTo(n);
-        return n;
     }
 }

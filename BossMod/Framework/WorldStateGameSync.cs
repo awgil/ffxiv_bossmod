@@ -228,7 +228,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
             ),
             prevFramePerf,
             GaugeData(),
-            Camera.Instance?.CameraAzimuth.Radians() ?? default
+            Camera.Instance()?.CameraAzimuth.Radians() ?? default
         ));
         if (_ws.CurrentZone != Service.ClientState.TerritoryType || _ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {

@@ -120,18 +120,8 @@ sealed class PackLoader : IDisposable
             _loadContexts[e.FullPath] = ctx;
     }
 
-    static void Unload(Assembly asm)
-    {
-        Service.Config.UnloadFrom(asm);
-        RotationModuleRegistry.UnloadFrom(asm);
-        BossModuleRegistry.UnloadFrom(asm);
-        ZoneModuleRegistry.UnloadFrom(asm);
-        AnalyzerRegistry.UnloadFrom(asm);
-    }
-
     static void Load(Assembly asm, string dllPath)
     {
-        // TODO: need to rebuild config tree as well
         Service.Config.ScanAssembly(asm);
         RotationModuleRegistry.ScanAssembly(asm);
         BossModuleRegistry.ScanAssembly(asm);
@@ -143,6 +133,15 @@ sealed class PackLoader : IDisposable
             Content = $"Loaded {Path.GetFileName(dllPath)}",
             Type = Dalamud.Interface.ImGuiNotification.NotificationType.Success,
         });
+    }
+
+    static void Unload(Assembly asm)
+    {
+        Service.Config.UnloadFrom(asm);
+        RotationModuleRegistry.UnloadFrom(asm);
+        BossModuleRegistry.UnloadFrom(asm);
+        ZoneModuleRegistry.UnloadFrom(asm);
+        AnalyzerRegistry.UnloadFrom(asm);
     }
 
     public void Dispose()

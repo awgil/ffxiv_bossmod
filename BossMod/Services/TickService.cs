@@ -149,8 +149,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
             _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
-            Camera.Instance = new();
-
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
         }
 
@@ -239,7 +237,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
 
         _dtr.Update();
-        Camera.Instance?.Update();
+        Camera.Instance()?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
         _zonemod.ActiveModule?.Update();
@@ -263,7 +261,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_vnavIsReady != null && _vnavIsOnMesh != null)
             CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
 
-        Camera.Instance?.DrawWorldPrimitives();
+        Camera.Instance()?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
     }
 

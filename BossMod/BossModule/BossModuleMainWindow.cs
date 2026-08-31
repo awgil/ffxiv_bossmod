@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using static BossMod.BossModuleConfig;
 
 namespace BossMod;
@@ -126,12 +126,12 @@ public class BossModuleMainWindow : UIWindow
         {
             Vector3 start3 = start.ToVec3(y);
             Vector3 end3 = end.ToVec3(y);
-            Camera.Instance.DrawWorldLine(start3, end3, color);
+            Camera.Instance()?.DrawWorldLine(start3, end3, color);
             var dir = Vector3.Normalize(end3 - start3);
             var arrowStart = end3 - 0.4f * dir;
             var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-            Camera.Instance.DrawWorldLine(arrowStart + offset, end3, color);
-            Camera.Instance.DrawWorldLine(arrowStart - offset, end3, color);
+            Camera.Instance()?.DrawWorldLine(arrowStart + offset, end3, color);
+            Camera.Instance()?.DrawWorldLine(arrowStart - offset, end3, color);
         }
     }
 

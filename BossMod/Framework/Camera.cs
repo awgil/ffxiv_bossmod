@@ -6,7 +6,11 @@ namespace BossMod;
 
 public class Camera
 {
-    public static Camera? Instance;
+    private static Camera? _instance;
+    public static Camera? Instance()
+    {
+        return Service.IsMock ? null : (_instance ??= new());
+    }
 
     public Vector3 Origin;
     public Matrix4x4 View;

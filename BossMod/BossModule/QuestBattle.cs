@@ -630,7 +630,7 @@ public abstract class QuestBattle : ZoneModule
         var current = true;
         foreach (var wp in CurrentWaypoints)
         {
-            Camera.Instance?.DrawWorldLine(start, wp.Position, current ? ArenaColor.Safe : ArenaColor.Danger);
+            Camera.Instance()?.DrawWorldLine(start, wp.Position, current ? ArenaColor.Safe : ArenaColor.Danger);
             current = false;
             start = wp.Position;
         }

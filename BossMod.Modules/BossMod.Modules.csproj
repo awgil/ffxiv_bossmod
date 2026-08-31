@@ -30,6 +30,9 @@
   </ItemGroup>
 
   <Target Name="CopyDll" AfterTargets="Build">
-    <Copy SourceFiles="$(OutDir)\$(AssemblyName).dll" DestinationFolder="$(AppData)\vbm\modules" />
+    <Copy
+        Condition="'$(Configuration)' == 'Debug'"
+        SourceFiles="$(OutDir)\$(AssemblyName).dll"
+        DestinationFolder="$(AppData)\vbm\modules" />
   </Target>
 </Project>

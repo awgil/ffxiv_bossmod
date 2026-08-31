@@ -112,10 +112,10 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
                 var y = player?.PosRot.Y ?? 0;
                 var tl = e.Origin + new WDir(HoveredPixel.x, HoveredPixel.y) * Bitmap.PixelSize;
                 var br = tl + new WDir(Bitmap.PixelSize, Bitmap.PixelSize);
-                Camera.Instance?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
-                Camera.Instance?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
-                Camera.Instance?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
-                Camera.Instance?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
             }
         }
 
@@ -163,10 +163,10 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
                 var y = player?.PosRot.Y ?? 0;
                 var tl = _e.Origin + new WDir(HoveredPixel.x, HoveredPixel.y) * Bitmap.PixelSize;
                 var br = tl + new WDir(Bitmap.PixelSize, Bitmap.PixelSize);
-                Camera.Instance?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
-                Camera.Instance?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
-                Camera.Instance?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
-                Camera.Instance?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
+                Camera.Instance()?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
             }
         }
 

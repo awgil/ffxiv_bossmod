@@ -13,7 +13,7 @@ public static class AggroDistance
 
     static AggroDistance()
     {
-        var contents = Assembly.GetExecutingAssembly().GetManifestResourceStream("BossMod.Data.AggroDistance.dat") ?? throw new InvalidDataException("unable to locate resource");
+        var contents = Assembly.GetExecutingAssembly().GetManifestResourceStream("BossMod.Data.AggroDistance.dat")!;
         using var reader = new StreamReader(contents);
         string? s;
         while ((s = reader.ReadLine()) != null)
