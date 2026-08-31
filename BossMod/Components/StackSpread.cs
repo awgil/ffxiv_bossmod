@@ -120,7 +120,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
                     hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
 
             // and try to stack with closest non-stack/spread player
-            var closest = Raid.WithoutSlot().Where(p => p != actor && !IsSpreadTarget(p) && !IsStackTarget(p)).Closest(actor.Position);
+            var closest = Raid.WithSlot().Where(p => p.Item2 != actor && !IsSpreadTarget(p.Item2) && !IsStackTarget(p.Item2) && !actorStack.ForbiddenPlayers[p.Item1]).Select(p => p.Item2).Closest(actor.Position);
             if (closest != null)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, actorStack.Radius * 0.5f), actorStack.Activation);
         }

@@ -181,6 +181,11 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1049237); // hq grade 3 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1049238); // hq grade 3 gemdraught of mind
 
+    // TODO: remove later, this is for the ucob project
+    public static readonly ActionID IDClamCake = new(ActionType.Item, 1049247);
+    public static readonly ActionID IDFruitcake = new(ActionType.Item, 1049242);
+    public static readonly ActionID IDPopcorn = new(ActionType.Item, 1049240);
+
     // content specific consumables
     public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);
     public static readonly ActionID IDPotionMax = new(ActionType.Item, 1013637);
@@ -227,6 +232,10 @@ public sealed class ActionDefinitions
         RegisterItem(IDPotionEureka, 1.1f);
         RegisterItem(IDPotionUltra, 1.1f);
         RegisterItem(IDPotionPilgrim, 1.1f);
+
+        RegisterItem(IDClamCake, 2.1f);
+        RegisterItem(IDFruitcake, 2.1f);
+        RegisterItem(IDPopcorn, 2.1f);
 
         RegisterItem(IDMiscItemGreens, 1.1f);
 

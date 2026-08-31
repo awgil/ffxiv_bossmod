@@ -73,7 +73,9 @@ class Hatch : Components.CastCounter
         if (_targets[slot])
         {
             // tiebreaker
-            var myLink = _assignedLinks[slot]!;
+            var myLink = _assignedLinks[slot];
+            if (myLink == null)
+                return;
 
             var leewaySeconds = 10f;
 
@@ -104,6 +106,8 @@ class Hatch : Components.CastCounter
                     hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.LastFrameMovement.ToAngle(), 6, 2), WorldState.FutureTime(2));
             }
 
+            // TODO: we need an accurate estimate here because it makes resolving liquid hell + fireball awkward
+            // should just track all targets + orbs in Update()
             if (_targets.Any())
                 // avoid everything around the neurolink if hatch is active
                 hints.AddForbiddenZone(p => linkShape(p) - 8.5f, DateTime.MaxValue);

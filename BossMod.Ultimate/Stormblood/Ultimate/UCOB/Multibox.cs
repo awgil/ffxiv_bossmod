@@ -13,18 +13,32 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead) && Bossmods.ActiveModule!.StateMachine.ActivePhaseIndex < 3)
+        if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead) && Bossmods.ActiveModule!.StateMachine.ActivePhaseIndex < 4)
             Hints.ForcedMovement = -Player.DirectionTo(new WPos(0, 0)).ToVec3();
 
         var playerAssignment = partyRolesConfig[World.Party.Members[0].ContentId];
 
-        if (!Player.InCombat && World.Client.CountdownRemaining > 0 && primaryTarget != null)
+        if (!Player.InCombat && World.Client.CountdownRemaining > 0)
         {
-            var destination = primaryTarget.Position + primaryTarget.DirectionTo(Player) * (14 + primaryTarget.HitboxRadius + 0.5f);
+            if (!(Player.FindStatus(48, DateTime.MaxValue)?.ExpireAt > World.FutureTime(600)))
+            {
+                var food = Player.Role switch
+                {
+                    Role.Healer => ActionDefinitions.IDFruitcake,
+                    Role.Tank => ActionDefinitions.IDClamCake,
+                    _ => ActionDefinitions.IDPopcorn
+                };
+                Hints.ActionsToExecute.Push(food, Player, ActionQueue.Priority.High);
+            }
 
-            var sh = ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f);
+            if (primaryTarget != null)
+            {
+                var destination = primaryTarget.Position + primaryTarget.DirectionTo(Player) * (14 + primaryTarget.HitboxRadius + 0.5f);
 
-            Hints.GoalZones.Add(p => sh(p) > 0 ? 5 : 0);
+                var sh = ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f);
+
+                Hints.GoalZones.Add(p => sh(p) > 0 ? 5 : 0);
+            }
         }
     }
 

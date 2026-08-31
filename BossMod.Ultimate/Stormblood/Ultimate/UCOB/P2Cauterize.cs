@@ -2,12 +2,21 @@
 
 class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 {
-    public int[] BaitOrder = new int[PartyState.MaxPartySize];
+    public record struct Assignment(int Order, DateTime Deadline);
+
+    public Assignment[] BaitOrder = new Assignment[PartyState.MaxPartySize];
     public int NumBaitsAssigned;
+    private int _numHypernovas;
     public List<Actor> Casters = [];
     private readonly List<(Actor actor, int position)> _dragons = []; // position 0 is N, then CW
 
     private static readonly AOEShapeRect _shape = new(52, 10);
+
+    public static readonly WPos[] StandardBaits = [
+        new(17.264f, -9.066f),
+        new(7.612f, 17.953f),
+        new(-16.805f, 9.891f)
+    ];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -16,21 +25,37 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (BaitOrder[slot] >= NextBaitOrder)
-            hints.Add($"Bait {BaitOrder[slot]}", false);
+        if (BaitOrder[slot].Order >= NextBaitOrder)
+            hints.Add($"Bait {BaitOrder[slot].Order}", false);
         base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        var bo = BaitOrder[slot].Order;
+
+        if (bo >= NextBaitOrder)
+        {
+            if (_numHypernovas >= Math.Min(4, bo * 2 - 1))
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(StandardBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
+            else
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(StandardBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (BaitOrder[pcSlot] >= NextBaitOrder)
+        if (BaitOrder[pcSlot].Order >= NextBaitOrder)
         {
-            foreach (var d in DragonsForOrder(BaitOrder[pcSlot]))
+            foreach (var d in DragonsForOrder(BaitOrder[pcSlot].Order))
             {
                 Arena.Actor(d, ArenaColor.Object, true);
                 _shape.Outline(Arena, d.Position, Angle.FromDirection(pc.Position - d.Position));
             }
-            // TODO: safe spots
+
+            Arena.AddCircle(StandardBaits[BaitOrder[pcSlot].Order - 1], 0.5f, ArenaColor.Safe);
         }
     }
 
@@ -66,11 +91,19 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.Hypernova)
+            _numHypernovas++;
+    }
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID is IconID.Cauterize && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
-            BaitOrder[slot] = ++NumBaitsAssigned;
+            BaitOrder[slot] = new(++NumBaitsAssigned, WorldState.FutureTime(7.2f));
         }
     }
 
@@ -103,4 +136,4 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P2Hypernova(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Hypernova, OID.VoidzoneHypernova, 1.4f);
+class P2Hypernova(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Hypernova, OID.VoidzoneHypernova, 1.4f, activationDelay: 2.1f);

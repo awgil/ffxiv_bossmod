@@ -4,30 +4,47 @@ class P2HugNael(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael && nael.IsTargetable)
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, 10, 0.5f));
+        if (hints.FindEnemy(Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault()) is { } nael && nael.Actor.IsTargetable)
+        {
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Actor.Position, 10, 0.5f));
+            nael.TankDistance = 0.5f;
+            // we prefer to keep nael center to give casters/ranged the most options when trying to spread during mechanics
+            nael.DesiredPosition = Arena.Center;
+        }
     }
 }
 
 class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread(module, 4, 0, 1)
 {
     public Actor? Target;
-    private BitMask _forbidden;
+    private BitMask _fire;
+    private BitMask _ice;
     private DateTime _activation;
+
+    public bool FireOut;
 
     public void Show()
     {
         if (Target != null)
-            AddStack(Target, _activation, _forbidden);
+            AddStack(Target, _activation, Forbidden);
     }
+
+    BitMask Forbidden => FireOut ? ~_ice : _fire;
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Firescorched)
         {
-            _forbidden.Set(Raid.FindSlot(actor.InstanceID));
+            _fire.Set(Raid.FindSlot(actor.InstanceID));
             foreach (ref var s in Stacks.AsSpan())
-                s.ForbiddenPlayers = _forbidden;
+                s.ForbiddenPlayers = Forbidden;
+        }
+
+        if ((SID)status.ID == SID.Icebitten)
+        {
+            _ice.Set(Raid.FindSlot(actor.InstanceID));
+            foreach (ref var s in Stacks.AsSpan())
+                s.ForbiddenPlayers = Forbidden;
         }
     }
 
@@ -35,9 +52,16 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
     {
         if ((SID)status.ID == SID.Firescorched)
         {
-            _forbidden.Clear(Raid.FindSlot(actor.InstanceID));
+            _fire.Clear(Raid.FindSlot(actor.InstanceID));
             foreach (ref var s in Stacks.AsSpan())
-                s.ForbiddenPlayers = _forbidden;
+                s.ForbiddenPlayers = Forbidden;
+        }
+
+        if ((SID)status.ID == SID.Icebitten)
+        {
+            _ice.Clear(Raid.FindSlot(actor.InstanceID));
+            foreach (ref var s in Stacks.AsSpan())
+                s.ForbiddenPlayers = Forbidden;
         }
     }
 
@@ -62,15 +86,10 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
 }
 
 // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
-class P2BahamutsFavorChainLightning : Components.UniformStackSpread
+class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStackSpread(module, 0, 5, alwaysShowSpreads: true)
 {
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
-
-    public P2BahamutsFavorChainLightning(BossModule module) : base(module, 0, 5, alwaysShowSpreads: true)
-    {
-        ExtraAISpreadThreshold = 0;
-    }
 
     public bool ActiveOrSkipped() => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
@@ -100,15 +119,23 @@ class P2BahamutsFavorChainLightning : Components.UniformStackSpread
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
-            foreach (var sp in ActiveSpreadTargets.Exclude(actor))
-                hints.AddForbiddenZone(ShapeDistance.Circle(sp.Position, Spreads[0].Radius), Spreads[0].Activation);
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
+        if (!EnableHints)
+            return;
 
         if (IsSpreadTarget(actor))
-            foreach (var p in Module.Enemies(OID.VoidzoneSalvation))
+        {
+            if (actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1))
+                return;
+
+            foreach (var p in Module.Enemies(OID.VoidzoneSalvation).Where(e => e.EventState != 7))
                 hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius), Spreads[0].Activation);
+        }
+
+        foreach (var sp in ActiveSpreadTargets.Exclude(actor))
+            hints.AddForbiddenZone(ShapeDistance.Circle(sp.Position, Spreads[0].Radius + ExtraAISpreadThreshold), Spreads[0].Activation);
+
+        if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] } && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+            hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), DateTime.MaxValue);
     }
 }
 
@@ -166,9 +193,13 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
                 continue;
 
             if (d.Player == actor)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), d.Expiration);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), actor.Position.InCircle(pos.Value, 1) ? default : d.Expiration);
             else
+            {
                 hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 1));
+                // encourage non-dooms to bait next puddle away
+                hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 5), WorldState.FutureTime(2));
+            }
         }
     }
 
@@ -239,4 +270,5 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
     }
 }
 
+// TODO: we need everyone to spread away from non-expired puddles while baits are active
 class P2BahamutsFavorWingsOfSalvation(BossModule module) : Components.StandardAOEs(module, AID.WingsOfSalvation, 4);

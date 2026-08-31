@@ -114,6 +114,18 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
             Spreads.Clear();
         base.Update();
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (IsSpreadTarget(actor) && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+        {
+            var off = (int)assignment;
+            var n = nael.Position;
+            hints.GoalZones.Add(p => p.InCone(n, (off * 45).Degrees(), 22.5f.Degrees()) ? 1 : 0);
+        }
+    }
 }
 
 class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)

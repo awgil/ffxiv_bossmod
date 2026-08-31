@@ -72,7 +72,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         return res;
     }
 
-    private readonly NavigationDecision.Context _navCtx = new();
+    private NavigationDecision.Context CtxActive = new();
+    private NavigationDecision.Context CtxInactive = new();
 
     public const float MeleeRange = 3;
     public const float CasterRange = 25;
@@ -105,7 +106,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             if (_decisionTask.Exception is { } exception)
                 Service.Log($"exception during pathfind: {exception}");
 
-            _decisionTask = NavigationDecision.BuildAsync(_navCtx, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
+            (CtxInactive, CtxActive) = (CtxActive, CtxInactive);
+            _decisionTask = NavigationDecision.BuildAsync(CtxActive, World.CurrentTime, Hints, Player.Position, speed, forbiddenZoneCushion: cushionSize);
         }
 
         return _lastDecision;
@@ -303,11 +305,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
                         // TODO: don't use a _navCtx that's being modified in a background thread; we should hold onto two of them and swap them when the task completes
                         case RangeStrategy.GreedAutomatic:
-                            var uptimeCell = _navCtx.Map.GridToIndex(_navCtx.Map.WorldToGrid(uptimePosition));
-                            var curCell = _navCtx.ThetaStar.StartNodeIndex;
+                            var uptimeCell = CtxInactive.Map.GridToIndex(CtxInactive.Map.WorldToGrid(uptimePosition));
+                            var curCell = CtxInactive.ThetaStar.StartNodeIndex;
                             if (navi.LeewaySeconds > 0)
                             {
-                                if (_navCtx.Map.PixelMaxG.BoundSafeAt(uptimeCell) >= _navCtx.Map.PixelMaxG.BoundSafeAt(curCell))
+                                if (CtxInactive.Map.PixelMaxG.BoundSafeAt(uptimeCell) >= CtxInactive.Map.PixelMaxG.BoundSafeAt(curCell))
                                     navi.Destination = uptimePosition;
                                 else if (Player.DistanceToHitbox(primaryTarget) <= maxRange)
                                     navi.Destination = Player.Position;
@@ -395,17 +397,17 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     private float CalculateUnobstructedPathLength(Angle dir)
     {
-        var start = _navCtx.Map.WorldToGrid(Player.Position);
-        if (!_navCtx.Map.InBounds(start.x, start.y))
+        var start = CtxInactive.Map.WorldToGrid(Player.Position);
+        if (!CtxInactive.Map.InBounds(start.x, start.y))
             return 0;
 
-        var end = _navCtx.Map.WorldToGrid(Player.Position + 100 * dir.ToDirection());
-        var startG = _navCtx.Map.PixelMaxG[_navCtx.Map.GridToIndex(start.x, start.y)];
-        foreach (var p in _navCtx.Map.EnumeratePixelsInLine(start.x, start.y, end.x, end.y))
+        var end = CtxInactive.Map.WorldToGrid(Player.Position + 100 * dir.ToDirection());
+        var startG = CtxInactive.Map.PixelMaxG[CtxInactive.Map.GridToIndex(start.x, start.y)];
+        foreach (var p in CtxInactive.Map.EnumeratePixelsInLine(start.x, start.y, end.x, end.y))
         {
-            if (!_navCtx.Map.InBounds(p.x, p.y) || _navCtx.Map.PixelMaxG[_navCtx.Map.GridToIndex(p.x, p.y)] < startG)
+            if (!CtxInactive.Map.InBounds(p.x, p.y) || CtxInactive.Map.PixelMaxG[CtxInactive.Map.GridToIndex(p.x, p.y)] < startG)
             {
-                var dest = _navCtx.Map.GridToWorld(p.x, p.y, 0.5f, 0.5f);
+                var dest = CtxInactive.Map.GridToWorld(p.x, p.y, 0.5f, 0.5f);
                 return (dest - Player.Position).LengthSq();
             }
         }

@@ -307,6 +307,7 @@ class UCOBStates : StateMachineBuilder
         // +0.8s: bahamut's claw 2
         ComponentCondition<P2BahamutsFavorFireball>(id + 0x132, 1.6f, comp => comp.Target != null)
             .ActivateOnEnter<P2BahamutsFavorFireball>()
+            .ExecOnEnter<P2BahamutsFavorFireball>(f => f.FireOut = true)
             .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show()); // show hint immediately
         // +0.2s: bahamut's claw 3
         // +0.4s: iceball 7
@@ -372,9 +373,11 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<Quote>();
         // +0.9s: iceball 16
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x530, 1.4f, comp => comp.ActiveOrSkipped())
-            .ActivateOnEnter<P2BahamutsFavorChainLightning>();
+            .ActivateOnEnter<P2BahamutsFavorChainLightning>()
+            .ExecOnEnter<P2BahamutsFavorChainLightning>(p => p.EnableHints = false);
         ComponentCondition<P2BahamutsFavorFireball>(id + 0x540, 2.1f, comp => !comp.Active, "Fireball 4")
-            .DeactivateOnExit<P2BahamutsFavorFireball>();
+            .DeactivateOnExit<P2BahamutsFavorFireball>()
+            .ExecOnExit<P2BahamutsFavorChainLightning>(p => p.EnableHints = true);
 
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x600, 0.2f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
             .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>();
@@ -404,11 +407,14 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<Quote>(id, delay, comp => comp.PendingMechanics.Count > 0) // fourth quote
             .ActivateOnEnter<Quote>()
-            .ActivateOnEnter<P2Cauterize>(); // first icon appears together with quote
+            .ActivateOnEnter<P2Cauterize>() // first icon appears together with quote
+            .ExecOnExit<Quote>(q => q.NextActivation = Module.WorldState.FutureTime(14.3f));
         ComponentCondition<P2Cauterize>(id + 1, 4, comp => comp.NumBaitsAssigned >= 2)
             .ActivateOnEnter<P2Hypernova>()
             .ActivateOnEnter<QuoteDalamudDive>()
-            .ActivateOnEnter<QuoteMeteorStream>();
+            .ActivateOnEnter<QuoteMeteorStream>()
+            .ExecOnEnter<QuoteDalamudDive>(q => q.EnableHints = false)
+            .ExecOnEnter<QuoteMeteorStream>(q => q.EnableHints = false);
         ComponentCondition<P2Hypernova>(id + 2, 1.2f, comp => comp.NumCasts >= 1);
         ComponentCondition<P2Hypernova>(id + 3, 1.6f, comp => comp.NumCasts >= 2);
         ComponentCondition<P2Cauterize>(id + 0x10, 0.6f, comp => comp.Casters.Count + comp.NumCasts >= 2, "Divebomb bait 1")
@@ -416,7 +422,9 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P2Cauterize>(id + 0x11, 0.6f, comp => comp.NumBaitsAssigned >= 3);
         ComponentCondition<P2Hypernova>(id + 0x12, 0.4f, comp => comp.NumCasts >= 3);
         ComponentCondition<P2Hypernova>(id + 0x13, 1.6f, comp => comp.NumCasts >= 4);
-        ComponentCondition<P2Cauterize>(id + 0x20, 1.4f, comp => comp.Casters.Count + comp.NumCasts >= 3, "Divebomb bait 2");
+        ComponentCondition<P2Cauterize>(id + 0x20, 1.4f, comp => comp.Casters.Count + comp.NumCasts >= 3, "Divebomb bait 2")
+            .ExecOnExit<QuoteDalamudDive>(q => q.EnableHints = true)
+            .ExecOnExit<QuoteMeteorStream>(q => q.EnableHints = true);
         ComponentCondition<Quote>(id + 0x30, 3.3f, comp => comp.PendingMechanics.Count == 1, "Spread/tankbuster")
             .DeactivateOnExit<QuoteMeteorStream>();
         ComponentCondition<P2Cauterize>(id + 0x40, 0.7f, comp => comp.Casters.Count + comp.NumCasts >= 5, "Divebomb bait 3")

@@ -276,6 +276,9 @@ public sealed class DNC(RotationModuleManager manager, Actor player) : Attackxan
         if (strategy.Buffs.Value == OffensiveStrategy.Delay)
             return false;
 
+        if (strategy.Buffs.Value == OffensiveStrategy.Force)
+            return true;
+
         const float TechStepDuration = 5.5f;
         const float TechFinishDuration = 20f;
 
