@@ -24,12 +24,12 @@ class DebugParty
         ImGui.TableSetupColumn("World");
         ImGui.TableSetupColumn("Position");
         ImGui.TableHeadersRow();
-        for (int i = 0; i < gm->MemberCount; ++i)
+        for (var i = 0; i < gm->MemberCount; ++i)
             DrawPartyMember($"P{i}", ref gm->PartyMembers[i]);
-        for (int i = 0; i < gm->AllianceMembers.Length; ++i)
+        for (var i = 0; i < gm->AllianceMembers.Length; ++i)
             if (gm->AllianceMembers[i].IsValidAllianceMember())
                 DrawPartyMember($"A{i}", ref gm->AllianceMembers[i]);
-        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+        for (var i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
             var id = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
             if (id == 0xE0000000)

@@ -228,7 +228,7 @@ class Unravel(BossModule module) : Components.GenericAOEs(module)
 
             foreach (var pos in CarpetPositions)
             {
-                bool hasVisibleBauble = _baubles.Any(b => b.Position.AlmostEqual(pos, 1f));
+                var hasVisibleBauble = _baubles.Any(b => b.Position.AlmostEqual(pos, 1f));
                 if (!hasVisibleBauble)
                     continue;
 
@@ -365,8 +365,8 @@ class FireflightNights(BossModule module) : Components.GenericAOEs(module)
         if (iconID is not ((uint)IconID.LeftTurnLeft or (uint)IconID.RightTurnRight or (uint)IconID.LeftTurnRight or (uint)IconID.RightTurnLeft))
             return;
 
-        bool even = _aoes.Count % 2 == 0;
-        bool reverseOnEven = iconID is (uint)IconID.LeftTurnLeft or (uint)IconID.RightTurnRight;
+        var even = _aoes.Count % 2 == 0;
+        var reverseOnEven = iconID is (uint)IconID.LeftTurnLeft or (uint)IconID.RightTurnRight;
 
         var rot = (even == reverseOnEven) ? Module.PrimaryActor.Rotation - 180.Degrees() : Module.PrimaryActor.Rotation;
         _aoes.Add(new(new AOEShapeCone(40, 90.Degrees()), Module.PrimaryActor.Position, rot));

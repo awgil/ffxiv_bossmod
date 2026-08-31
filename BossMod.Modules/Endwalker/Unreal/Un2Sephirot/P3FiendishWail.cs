@@ -14,8 +14,8 @@ class P3FiendishWail(BossModule module) : Components.CastCounter(module, AID.Fie
         if (!Active)
             return;
 
-        bool wantToSoak = _physResistMask.Any() ? _physResistMask[slot] : actor.Role == Role.Tank;
-        bool soaking = _towers.InRadius(actor.Position, _radius).Any();
+        var wantToSoak = _physResistMask.Any() ? _physResistMask[slot] : actor.Role == Role.Tank;
+        var soaking = _towers.InRadius(actor.Position, _radius).Any();
         if (wantToSoak)
             hints.Add("Soak the tower!", !soaking);
         else

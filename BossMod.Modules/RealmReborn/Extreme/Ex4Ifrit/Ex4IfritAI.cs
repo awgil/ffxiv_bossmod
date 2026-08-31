@@ -252,7 +252,7 @@ class Ex4IfritAINails : Ex4IfritAINormal
             }
             else if (Module.PrimaryActor.TargetID != actor.InstanceID)
             {
-                bool invertedSW = NailKillOrder.Count <= MinNailsForCWSearingWinds;
+                var invertedSW = NailKillOrder.Count <= MinNailsForCWSearingWinds;
                 if (IsSearingWindTarget(actor))
                 {
                     var dir = !actor.Position.InCircle(Module.Center, 10) ? Angle.FromDirection(actor.Position - Module.Center)

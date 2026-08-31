@@ -58,7 +58,7 @@ class Pinax(BossModule module) : BossComponent(module)
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        string order = _order switch
+        var order = _order switch
         {
             Order.LUWU => "Lightning - ??? - Water - ???",
             Order.WULU => "Water - ??? - Lightning - ???",

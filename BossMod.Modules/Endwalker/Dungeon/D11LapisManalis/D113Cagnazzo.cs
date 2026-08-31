@@ -78,7 +78,7 @@ class HydraulicRam(BossModule module) : Components.GenericAOEs(module)
     {
         if (_casters.Count > 0)
             yield return new(_casters[0].shape, _casters[0].source, _casters[0].direction, _activation, ArenaColor.Danger);
-        for (int i = 1; i < _casters.Count; ++i)
+        for (var i = 1; i < _casters.Count; ++i)
             yield return new(_casters[i].shape, _casters[i].source, _casters[i].direction, _activation);
     }
 
@@ -109,9 +109,9 @@ class Hydrobomb(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 1)
-            for (int i = 0; i < 2; ++i)
+            for (var i = 0; i < 2; ++i)
                 yield return new(circle, _casters[i], default, _activation.AddSeconds(6 - _casters.Count / 2), ArenaColor.Danger);
-        for (int i = 2; i < _casters.Count; ++i)
+        for (var i = 2; i < _casters.Count; ++i)
             yield return new(circle, _casters[i], default, _activation.AddSeconds(MathF.Ceiling(i / 2) + 6 - _casters.Count / 2));
     }
 

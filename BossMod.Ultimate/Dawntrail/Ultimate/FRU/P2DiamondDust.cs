@@ -40,7 +40,7 @@ class P2IcicleImpact(BossModule module) : Components.GenericAOEs(module, AID.Ici
 
     private void MarkAsRisky(int start, int end)
     {
-        for (int i = start; i < end; ++i)
+        for (var i = start; i < end; ++i)
             AOEs.Ref(i).Risky = true;
     }
 }
@@ -166,13 +166,13 @@ class P2DiamondDustSafespots(BossModule module) : BossComponent(module)
         {
             case AID.AxeKick:
                 // out done => cone baiters go in, ice baiters stay
-                for (int i = 0; i < _safeOffs.Length; ++i)
+                for (var i = 0; i < _safeOffs.Length; ++i)
                     if (_safeOffs[i] != default && Raid[i]?.Class.IsSupport() == _supportsBaitCones)
                         _safeOffs[i] = 4 * _safeOffs[i].Normalized();
                 break;
             case AID.ScytheKick:
                 // in done => cone baiters stay, ice baiters go out
-                for (int i = 0; i < _safeOffs.Length; ++i)
+                for (var i = 0; i < _safeOffs.Length; ++i)
                     if (_safeOffs[i] != default && Raid[i]?.Class.IsSupport() != _supportsBaitCones)
                         _safeOffs[i] = 8 * _safeOffs[i].Normalized();
                 break;

@@ -18,7 +18,7 @@ class P2ArrowTrail : Components.Exaflare
         if ((AID)spell.Action.ID == AID.ArrowTrailAOE)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index >= 0)
             {
                 AdvanceLine(Lines[index], caster.Position);

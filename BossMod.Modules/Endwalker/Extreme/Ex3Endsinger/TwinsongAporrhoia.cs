@@ -18,12 +18,12 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
         if (_castsDone >= 3 && !_ringsAssigned)
             return;
 
-        bool inAOE = false;
+        var inAOE = false;
 
         var center = _heads[(int)HeadID.Center];
         if (center.Actor != null)
         {
-            Angle rot = _centerStartingRotation - (_castsDone - center.Rings) * 90.Degrees();
+            var rot = _centerStartingRotation - (_castsDone - center.Rings) * 90.Degrees();
             inAOE = _aoeCenter.Check(actor.Position, center.Actor.Position, rot);
         }
 
@@ -32,7 +32,7 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
             var head = _heads[(int)i];
             if (head.Actor != null)
             {
-                int safeCounter = (i >= HeadID.Safe1 ? 1 : 0) + _castsDone - head.Rings;
+                var safeCounter = (i >= HeadID.Safe1 ? 1 : 0) + _castsDone - head.Rings;
                 AOEShape aoe = (safeCounter & 1) != 0 ? _aoeSafe : _aoeDanger;
                 inAOE |= aoe.Check(actor.Position, head.Actor);
             }
@@ -50,7 +50,7 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
         var center = _heads[(int)HeadID.Center];
         if (center.Actor != null)
         {
-            Angle rot = _centerStartingRotation - (_castsDone - center.Rings) * 90.Degrees();
+            var rot = _centerStartingRotation - (_castsDone - center.Rings) * 90.Degrees();
             _aoeCenter.Draw(Arena, center.Actor.Position, rot);
         }
 
@@ -59,7 +59,7 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
             var head = _heads[(int)i];
             if (head.Actor != null)
             {
-                int safeCounter = (i >= HeadID.Safe1 ? 1 : 0) + _castsDone - head.Rings;
+                var safeCounter = (i >= HeadID.Safe1 ? 1 : 0) + _castsDone - head.Rings;
                 AOEShape aoe = (safeCounter & 1) != 0 ? _aoeSafe : _aoeDanger;
                 aoe.Draw(Arena, head.Actor);
             }
@@ -70,7 +70,7 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
     {
         if ((SID)status.ID == SID.RewindTwinsong)
         {
-            int rings = status.Extra switch
+            var rings = status.Extra switch
             {
                 0x178 => 1,
                 0x179 => 2,
@@ -83,7 +83,7 @@ class TwinsongAporrhoia(BossModule module) : BossComponent(module)
                 return;
             }
 
-            int slot = Array.FindIndex(_heads, ar => ar.Actor == actor);
+            var slot = Array.FindIndex(_heads, ar => ar.Actor == actor);
             if (slot == -1)
             {
                 ReportError($"Unexpected actor for rewind status");

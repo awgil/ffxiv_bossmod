@@ -82,7 +82,7 @@ class NecroticFluid(BossModule module) : Components.Exaflare(module, new AOEShap
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        WPos target = (AID)spell.Action.ID switch
+        var target = (AID)spell.Action.ID switch
         {
             AID.NecroticMist => spell.TargetXZ,
             AID.NecroticFluid => caster.Position,
@@ -91,7 +91,7 @@ class NecroticFluid(BossModule module) : Components.Exaflare(module, new AOEShap
         if (target == default)
             return;
 
-        int index = Lines.FindIndex(item => item.Next.AlmostEqual(target, 1));
+        var index = Lines.FindIndex(item => item.Next.AlmostEqual(target, 1));
         if (index == -1)
         {
             ReportError($"No entry for {target}");

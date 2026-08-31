@@ -129,7 +129,7 @@ class P6SpreadingEntangledFlames(BossModule module) : Components.UniformStackSpr
         if (_wingTail == null)
             yield break;
 
-        float z = Module.Center.Z + (_wingTail.NumAOEs != 1 ? 0 : _voidzonesNorth ? 10 : -10);
+        var z = Module.Center.Z + (_wingTail.NumAOEs != 1 ? 0 : _voidzonesNorth ? 10 : -10);
         if (IsSpreadTarget(actor))
         {
             yield return new WPos(Module.Center.X - 18, z);

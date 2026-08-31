@@ -12,7 +12,7 @@ class TasteOfBloodAndDuelOrDie(BossModule module) : Components.GenericAOEs(modul
         {
             // If the caster did Duel Or Die, the player must get hit by their attack.
             // This is represented by pointing the AOE behind the caster so their front is safe.
-            Angle angle = Duelers.Contains(caster) ? caster.Rotation + 180.Degrees() : caster.Rotation;
+            var angle = Duelers.Contains(caster) ? caster.Rotation + 180.Degrees() : caster.Rotation;
             yield return new AOEInstance(_tasteOfBloodShape, caster.Position, angle);
         }
     }
@@ -39,7 +39,7 @@ class TasteOfBloodAndDuelOrDie(BossModule module) : Components.GenericAOEs(modul
     {
         foreach (var caster in Casters)
         {
-            bool isDueler = Duelers.Contains(caster);
+            var isDueler = Duelers.Contains(caster);
             Arena.Actor(caster, isDueler ? ArenaColor.Danger : ArenaColor.Enemy, true);
         }
     }

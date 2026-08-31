@@ -44,7 +44,7 @@ class PathfindingTest : TestWindow
     {
         _visu.Draw();
 
-        bool rebuild = false;
+        var rebuild = false;
         if (ImGui.CollapsingHeader("Map setup"))
         {
             rebuild |= ImGui.Checkbox("Use new rasterizer", ref _useNewRasterizer);

@@ -13,10 +13,10 @@ class EffectResultReorder
             {
                 foreach (var t in a.Targets)
                 {
-                    bool damageSource = false;
-                    bool damageTarget = false;
-                    bool healSource = false;
-                    bool healTarget = false;
+                    var damageSource = false;
+                    var damageTarget = false;
+                    var healSource = false;
+                    var healTarget = false;
                     foreach (var eff in t.Effects)
                     {
                         if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage)

@@ -405,13 +405,13 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
         }
         else if (_delta != null)
         {
-            for (int i = 0; i < _delta.ArmRotations.Length; ++i)
+            for (var i = 0; i < _delta.ArmRotations.Length; ++i)
             {
                 var pos = Module.Center + _delta.ArmOffset(i);
                 if (Raid.WithoutSlot().Closest(pos) == actor)
                 {
                     var angle = Angle.FromDirection(actor.Position - pos);
-                    for (int j = 0; j < _numRepeats; ++j)
+                    for (var j = 0; j < _numRepeats; ++j)
                     {
                         yield return new(_shape, pos, angle + j * _delta.ArmRotations[i], Risky: false);
                     }
@@ -425,7 +425,7 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID == AID.DeltaHyperPulseFirst && _delta != null)
         {
             var rot = _delta.ArmRotations[_delta.ArmIndex(caster.Position - Module.Center)];
-            for (int i = 0; i < _numRepeats; ++i)
+            for (var i = 0; i < _numRepeats; ++i)
             {
                 _aoes.Add(new(_shape, caster.Position, (spell.Rotation + i * rot).Normalized(), Module.CastFinishAt(spell, i * 0.6f)));
             }

@@ -45,7 +45,7 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        bool haveGaolers = Module.Enemies(OID.GraniteGaoler).Any(a => a.IsTargetable && !a.IsDead);
+        var haveGaolers = Module.Enemies(OID.GraniteGaoler).Any(a => a.IsTargetable && !a.IsDead);
         foreach (var e in hints.PotentialTargets)
         {
             e.StayAtLongRange = true;
@@ -65,8 +65,8 @@ class Ex3TitanAI(BossModule module) : BossComponent(module)
                         // theoretically we can swap to OT right after 1st buster, then MT's vuln will expire right after 3rd buster and he can taunt back
                         // OT's vuln will expire right before 5th buster, so MT will eat 1/4/7/... and OT will eat 2+3/5+6/...
                         // however, in reality phase is going to be extremely short - 1 or 2 tb's?..
-                        bool isCurrentTank = actor.InstanceID == Module.PrimaryActor.TargetID;
-                        bool needTankSwap = !haveGaolers && Module.FindComponent<MountainBuster>() == null && TankVulnStacks() >= 2;
+                        var isCurrentTank = actor.InstanceID == Module.PrimaryActor.TargetID;
+                        var needTankSwap = !haveGaolers && Module.FindComponent<MountainBuster>() == null && TankVulnStacks() >= 2;
                         e.PreferProvoking = e.ShouldBeTanked = isCurrentTank != needTankSwap;
                     }
                     break;

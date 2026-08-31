@@ -16,7 +16,7 @@ public sealed class UIPlanDatabaseEditor
             {
                 selected = -1;
             }
-            for (int i = 0; i < list.Plans.Count; ++i)
+            for (var i = 0; i < list.Plans.Count; ++i)
             {
                 if (ImGui.Selectable(list.Plans[i].Name, selected == i))
                 {

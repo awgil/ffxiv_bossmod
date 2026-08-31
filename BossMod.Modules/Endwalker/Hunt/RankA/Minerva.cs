@@ -37,7 +37,7 @@ class BallisticMissile(BossModule module) : Components.GenericAOEs(module)
         if (!(Module.PrimaryActor.CastInfo?.IsSpell() ?? false))
             return;
 
-        string hint = (AID)Module.PrimaryActor.CastInfo.Action.ID switch
+        var hint = (AID)Module.PrimaryActor.CastInfo.Action.ID switch
         {
             AID.AntiPersonnelBuild or AID.RingBuild => "Select next AOE type",
             AID.BallisticMissileCircleWarning or AID.BallisticMissileDonutWarning => "Select next AOE target",

@@ -15,7 +15,7 @@ class Exaflare(BossModule module) : Components.Exaflare(module, 6)
         if ((AID)spell.Action.ID is AID.ExaflareFirstHit or AID.ExaflareRest)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

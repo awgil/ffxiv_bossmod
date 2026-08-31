@@ -81,8 +81,8 @@ class DarkAndLight(BossModule module) : BossComponent(module)
         if (!ShowSafespots || tether == TetherType.None)
             return null;
 
-        bool isFar = tether == TetherType.Far;
-        Angle dir = actor.Role switch
+        var isFar = tether == TetherType.Far;
+        var dir = actor.Role switch
         {
             Role.Tank => isFar ? 180.Degrees() : -90.Degrees(),
             Role.Healer => isFar ? 0.Degrees() : 90.Degrees(),

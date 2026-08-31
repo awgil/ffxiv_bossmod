@@ -14,7 +14,7 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
     public override void Update()
     {
         _inAnyAOE = new();
-        foreach (int slot in _tetheredPlayers.SetBits())
+        foreach (var slot in _tetheredPlayers.SetBits())
         {
             var target = Raid[slot];
             if (target != null)

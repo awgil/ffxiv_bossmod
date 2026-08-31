@@ -42,7 +42,7 @@ class DirectorsBelone(BossModule module) : BossComponent(module)
             if (_debuffTargets.None())
             {
                 // debuffs not assigned yet => spread and prepare to grab
-                bool stacked = Raid.WithoutSlot().InRadiusExcluding(actor, _debuffPassRange).Any();
+                var stacked = Raid.WithoutSlot().InRadiusExcluding(actor, _debuffPassRange).Any();
                 hints.Add("Debuffs: spread and prepare to handle!", stacked);
             }
             else if (_debuffImmune[slot])
@@ -63,7 +63,7 @@ class DirectorsBelone(BossModule module) : BossComponent(module)
             // we should be passing debuff
             if (_debuffTargets.None())
             {
-                bool badStack = Raid.WithSlot().Exclude(slot).IncludedInMask(_debuffForbidden).OutOfRadius(actor.Position, _debuffPassRange).Any();
+                var badStack = Raid.WithSlot().Exclude(slot).IncludedInMask(_debuffForbidden).OutOfRadius(actor.Position, _debuffPassRange).Any();
                 hints.Add("Debuffs: stack and prepare to pass!", badStack);
             }
             else if (_debuffTargets[slot])
@@ -92,7 +92,7 @@ class DirectorsBelone(BossModule module) : BossComponent(module)
             return;
 
         var failingPlayers = _debuffForbidden & _debuffTargets;
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
         {
             Arena.Actor(player, failingPlayers[i] ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
         }

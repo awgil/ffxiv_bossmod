@@ -43,7 +43,7 @@ class NestOfFlamevipersBaited(BossModule module) : NestOfFlamevipersCommon(modul
         base.AddHints(slot, actor, hints);
         if (Active)
         {
-            bool shouldBait = !_forbiddenPlayers[slot];
+            var shouldBait = !_forbiddenPlayers[slot];
             hints.Add(shouldBait ? "Move closer to bait" : "GTFO to avoid baits", shouldBait != BaitingPlayers[slot]);
         }
     }

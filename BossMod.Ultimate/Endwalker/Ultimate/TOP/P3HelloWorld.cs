@@ -300,7 +300,7 @@ class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
         var role = _initialRoles[slot];
         if (role == PlayerRole.None)
             return -1;
-        for (int i = 0; i < _initialRoles.Length; ++i)
+        for (var i = 0; i < _initialRoles.Length; ++i)
             if (i != slot && _initialRoles[i] == role)
                 return i;
         return -1;
@@ -310,7 +310,7 @@ class P3HelloWorld(BossModule module) : Components.GenericTowers(module)
     {
         // find midpoint for defamation towers
         WDir defamationMid = default;
-        foreach (int i in _defamationTowers.SetBits())
+        foreach (var i in _defamationTowers.SetBits())
             defamationMid += Towers[i].Position - Module.Center;
         var defamationMidDir = Angle.FromDirection(defamationMid);
 

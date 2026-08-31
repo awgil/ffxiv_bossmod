@@ -14,7 +14,7 @@ class ArchaicRockbreakerShockwave(BossModule module) : Components.Knockback(modu
         {
             var offset = actor.Position - Module.Center;
             var dot = Math.Abs(_uplift.WallDirection.Value.ToDirection().Dot(offset.Normalized()));
-            bool againstWall = dot is > 0.9238795f or < 0.3826834f;
+            var againstWall = dot is > 0.9238795f or < 0.3826834f;
             if (againstWall)
                 distance = Module.Bounds.Radius - offset.Length() - 0.5f;
         }

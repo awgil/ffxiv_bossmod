@@ -291,7 +291,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         // so we have to process deletion events first, then creation events; otherwise if an actor is moved to an earlier SpawnIndex, we get data corruption
         // i.e. two copies of the same actor at different indices, then subsequent iterations attempt to delete both actors, throwing an exception on the second attempt
         // TODO: deduplicate code, i really hate touching this function
-        for (int i = 0; i < _actorsByIndex.Length; ++i)
+        for (var i = 0; i < _actorsByIndex.Length; ++i)
         {
             var actor = _actorsByIndex[i];
             var obj = mgr->Objects.IndexSorted[i].Value;
@@ -315,7 +315,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
             }
         }
 
-        for (int i = 0; i < _actorsByIndex.Length; ++i)
+        for (var i = 0; i < _actorsByIndex.Length; ++i)
         {
             var actor = _actorsByIndex[i];
             var obj = mgr->Objects.IndexSorted[i].Value;
@@ -349,7 +349,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         var level = chr != null ? chr->Level : 0;
         var posRot = new Vector4(*obj->GetPosition(), obj->Rotation);
         var hpmp = new ActorHPMP();
-        bool inCombat = false;
+        var inCombat = false;
         if (chr != null)
         {
             hpmp.CurHP = chr->Health;
@@ -446,7 +446,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         var sm = chr != null ? chr->GetStatusManager() : null;
         if (sm != null)
         {
-            for (int i = 0; i < sm->NumValidStatuses; ++i)
+            for (var i = 0; i < sm->NumValidStatuses; ++i)
             {
                 // note: sometimes (Ocean Fishing) remaining-time is weird (I assume too large?) and causes exception in AddSeconds - so we just clamp it to some reasonable range
                 // note: self-cast buffs with duration X will have duration -X until EffectResult (~0.6s later); see autorotation for more details
@@ -467,14 +467,14 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         var aeh = chr != null ? chr->GetActionEffectHandler() : null;
         if (aeh != null)
         {
-            for (int i = 0; i < aeh->IncomingEffects.Length; ++i)
+            for (var i = 0; i < aeh->IncomingEffects.Length; ++i)
             {
                 ref var eff = ref aeh->IncomingEffects[i];
                 ref var prev = ref act.IncomingEffects[i];
                 if ((prev.GlobalSequence, prev.TargetIndex) != (eff.GlobalSequence != 0 ? (eff.GlobalSequence, eff.TargetIndex) : (0, 0)))
                 {
                     var effects = new ActionEffects();
-                    for (int j = 0; j < ActionEffects.MaxCount; ++j)
+                    for (var j = 0; j < ActionEffects.MaxCount; ++j)
                         effects[j] = *(ulong*)eff.Effects.Effects.GetPointer(j);
                     _ws.Execute(new ActorState.OpIncomingEffect(act.InstanceID, i, new(eff.GlobalSequence, eff.TargetIndex, eff.Source, new((ActionType)eff.ActionType, eff.ActionId), effects)));
                 }
@@ -612,7 +612,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private unsafe void UpdatePartyNormal(GroupManager.Group* group, ulong playerContentId)
     {
         // first iterate over previous members, search for match in game state, and reconcile differences - update or remove
-        for (int i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
+        for (var i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
         {
             ref var m = ref _ws.Party.Members[i];
             if (m.ContentId != 0)
@@ -632,7 +632,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         }
 
         // now iterate through game state and add new members; note that there's no need to update existing, it was done in the previous loop
-        for (int i = 0; i < group->MemberCount; ++i)
+        for (var i = 0; i < group->MemberCount; ++i)
         {
             var member = group->PartyMembers.GetPointer(i);
             if (member->ContentId != playerContentId && Array.FindIndex(_ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
@@ -641,7 +641,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         }
         // consider buddies as party members too
         var ui = UIState.Instance();
-        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+        for (var i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
             var instanceID = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
             if (instanceID != InvalidEntityId && _ws.Party.FindSlot(instanceID) < 0)
@@ -658,7 +658,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         // note: we don't support small-group alliance (should we?)
         // unlike normal party, game's alliance slots never change, so we just keep 1:1 mapping
         var isNormalAlliance = group->IsAlliance && !group->IsSmallGroupAlliance;
-        for (int i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
+        for (var i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
             var member = isNormalAlliance ? group->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
             if (member != null && !member->IsValidAllianceMember())
@@ -670,7 +670,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private unsafe void UpdatePartyNPCs()
     {
         var treatAlliesAsParty = _ws.CurrentCFCID != 0; // TODO: think more about it, do we ever care about allies in overworld?..
-        for (int i = PartyState.MaxAllianceSize; i < PartyState.MaxAllies; ++i)
+        for (var i = PartyState.MaxAllianceSize; i < PartyState.MaxAllies; ++i)
         {
             ref var m = ref _ws.Party.Members[i];
             if (m.InstanceId != 0)
@@ -700,7 +700,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private unsafe bool HasBuddy(ulong instanceID)
     {
         var ui = UIState.Instance();
-        for (int i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
+        for (var i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
             if (ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId == instanceID)
                 return true;
         return false;
@@ -708,7 +708,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private int FindFreePartySlot(int firstSlot, int lastSlot)
     {
-        for (int i = firstSlot; i < lastSlot; ++i)
+        for (var i = firstSlot; i < lastSlot; ++i)
             if (!_ws.Party.Members[i].IsValid())
                 return i;
         return -1;
@@ -986,7 +986,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private List<(BozjaHolsterID, byte)> CalcBozjaHolster(Span<byte> contents)
     {
         var res = new List<(BozjaHolsterID, byte)>();
-        for (int i = 0; i < contents.Length; ++i)
+        for (var i = 0; i < contents.Length; ++i)
             if (contents[i] != 0)
                 res.Add(((BozjaHolsterID)i, contents[i]));
         return res;
@@ -1014,7 +1014,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (_netConfig.Data.DumpClientPackets)
         {
             var sb = new StringBuilder($"Client IPC [0x{opcode:X4}]: data=");
-            foreach (byte b in payload)
+            foreach (var b in payload)
                 sb.Append($"{b:X2}");
             _decoder.LogNode(new(sb.ToString()), "");
         }
@@ -1045,7 +1045,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     {
         var count = packet[0];
         var p = (Network.ServerIPC.EffectResultEntry*)(packet + 4);
-        for (int i = 0; i < count; ++i)
+        for (var i = 0; i < count; ++i)
         {
             OnEffectResult(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
             ++p;
@@ -1057,7 +1057,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     {
         var count = packet[0];
         var p = (Network.ServerIPC.EffectResultBasicEntry*)(packet + 4);
-        for (int i = 0; i < count; ++i)
+        for (var i = 0; i < count; ++i)
         {
             OnEffectResult(targetID, p->RelatedActionSequence, p->RelatedTargetIndex);
             ++p;

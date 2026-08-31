@@ -108,7 +108,7 @@ class Snake1(BossModule module) : PetrifactionCommon(module)
         if (ActiveGorgons[option1].priority > ActiveGorgons[option2].priority)
             Utils.Swap(ref option1, ref option2);
 
-        bool flex = _players[assignedSlots[0]].IsExplode == _players[assignedSlots[1]].IsExplode;
+        var flex = _players[assignedSlots[0]].IsExplode == _players[assignedSlots[1]].IsExplode;
         _players[assignedSlots[0]].AssignedSnake = option1;
         _players[assignedSlots[1]].AssignedSnake = flex ? option2 : option1;
         _players[assignedSlots[2]].AssignedSnake = flex ? option1 : option2;

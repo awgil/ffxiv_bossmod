@@ -13,8 +13,8 @@ class SpringCrystalsRect(BossModule module, bool moveCasters, bool risky, float 
     private static List<WPos> InitialSafeZoneCenters(WPos origin)
     {
         List<WPos> res = [];
-        for (int z = -15; z <= 15; z += 10)
-            for (int x = -15; x <= 15; x += 10)
+        for (var z = -15; z <= 15; z += 10)
+            for (var x = -15; x <= 15; x += 10)
                 res.Add(origin + new WDir(x, z));
         return res;
     }

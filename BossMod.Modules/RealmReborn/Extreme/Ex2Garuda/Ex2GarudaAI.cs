@@ -61,7 +61,7 @@ class Ex2GarudaAI(BossModule module) : BossComponent(module)
         }
 
         // don't stand near monoliths to avoid clipping them with friction
-        bool haveMonoliths = false;
+        var haveMonoliths = false;
         foreach (var monolith in Module.Enemies(OID.Monolith).Where(a => !a.IsDead))
         {
             hints.AddForbiddenZone(ShapeDistance.Circle(monolith.Position, 5));

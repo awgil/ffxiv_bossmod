@@ -60,7 +60,7 @@ class Exoterikos(BossModule module) : BossComponent(module)
 
     private IEnumerable<(Actor, AOEShape)> ActiveSources()
     {
-        bool hadSideSquare = false; // we don't show multiple side-squares, since that would cover whole arena and be useless
+        var hadSideSquare = false; // we don't show multiple side-squares, since that would cover whole arena and be useless
         DateTime lastRay = new(); // we only show first rays, otherwise triple rays would cover whole arena and be useless
         foreach (var (actor, shape) in _sources)
         {

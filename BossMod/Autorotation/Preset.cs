@@ -75,7 +75,7 @@ public sealed record class Preset(string Name)
 
     public static Modifier CurrentModifiers()
     {
-        Modifier mods = Modifier.None;
+        var mods = Modifier.None;
         if (ImGui.GetIO().KeyShift)
             mods |= Modifier.Shift;
         if (ImGui.GetIO().KeyCtrl)

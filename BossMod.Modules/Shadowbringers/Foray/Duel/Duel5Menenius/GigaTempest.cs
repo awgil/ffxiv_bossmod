@@ -9,7 +9,7 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
     {
         if ((AID)spell.Action.ID == _aidStart)
         {
-            WDir? advance = GetExaDirection(caster);
+            var advance = GetExaDirection(caster);
             if (advance == null)
                 return;
             Lines.Add(new()
@@ -29,7 +29,7 @@ abstract class GigaTempest(BossModule module, AOEShapeRect shape, AID aidFirst, 
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID == _aidStart || (AID)spell.Action.ID == _aidRest)
         {
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index < 0)
                 return;
             AdvanceLine(Lines[index], caster.Position);

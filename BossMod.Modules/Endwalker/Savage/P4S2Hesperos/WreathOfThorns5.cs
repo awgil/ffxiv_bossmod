@@ -11,7 +11,7 @@ class WreathOfThorns5(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        int order = _playersOrder.IndexOf(actor.InstanceID);
+        var order = _playersOrder.IndexOf(actor.InstanceID);
         if (order >= 0)
         {
             hints.Add($"Order: {order + 1}", false);
@@ -35,7 +35,7 @@ class WreathOfThorns5(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        int order = _playersOrder.IndexOf(pc.InstanceID);
+        var order = _playersOrder.IndexOf(pc.InstanceID);
         if (order >= _castsDone && order < _towersOrder.Count)
             Arena.AddCircle(_towersOrder[order].Position, P4S2.WreathTowerRadius, ArenaColor.Safe);
 

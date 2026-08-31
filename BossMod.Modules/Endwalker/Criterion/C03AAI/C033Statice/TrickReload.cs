@@ -41,7 +41,7 @@ class Trapshooting(BossModule module) : Components.UniformStackSpread(module, 6,
     {
         if ((AID)spell.Action.ID is AID.NTrapshooting1 or AID.NTrapshooting2 or AID.STrapshooting1 or AID.STrapshooting2 && _reload != null)
         {
-            bool stack = NumResolves == 0 ? _reload.FirstStack : !_reload.FirstStack;
+            var stack = NumResolves == 0 ? _reload.FirstStack : !_reload.FirstStack;
             if (stack)
             {
                 var target = Raid.WithoutSlot().FirstOrDefault(); // TODO: dunno how target is selected...

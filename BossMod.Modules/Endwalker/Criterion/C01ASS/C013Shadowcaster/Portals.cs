@@ -10,7 +10,7 @@ static class Portals
         if ((OID)actor.OID != OID.Portal)
             return null;
 
-        int rotation = state switch
+        var rotation = state switch
         {
             0x00400080 => -90, // CW arrows appear
             0x01000200 => +90, // CCW arrows appear

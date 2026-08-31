@@ -165,7 +165,7 @@ class AgeOfEndlessFrost(BossModule module) : Components.GenericAOEs(module)
             }
 
             ++NumCasts;
-            for (int i = 0; i < _angles.Count; ++i)
+            for (var i = 0; i < _angles.Count; ++i)
                 _angles[i] += _increment;
         }
     }

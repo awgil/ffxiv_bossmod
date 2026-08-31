@@ -90,7 +90,7 @@ public class UIBitmapEditor
 
     protected void DrawModeButtons()
     {
-        for (int i = 0; i < _modeNames.Count; ++i)
+        for (var i = 0; i < _modeNames.Count; ++i)
         {
             var active = CurrentMode == i + 1;
             using var color = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, active);
@@ -156,10 +156,10 @@ public class UIBitmapEditor
 
         var c0 = Bitmap.Color0.ToFloat4();
         var c1 = Bitmap.Color1.ToFloat4();
-        for (int y = y0; y < y1; y += numBitmapPixelsPerScreenPixel)
+        for (var y = y0; y < y1; y += numBitmapPixelsPerScreenPixel)
         {
             var corner = tl + new Vector2(screenX0, screenY0);
-            for (int x = x0; x < x1; x += numBitmapPixelsPerScreenPixel)
+            for (var x = x0; x < x1; x += numBitmapPixelsPerScreenPixel)
             {
                 var cornerEnd = corner + new Vector2(numScreenPixelsPerBitmapPixel);
                 var cellTL = Vector2.Max(tl, corner);
@@ -169,8 +169,8 @@ public class UIBitmapEditor
                     float opacity = 0;
                     var subXMax = Math.Min(x1, x + numBitmapPixelsPerScreenPixel);
                     var subYMax = Math.Min(y1, y + numBitmapPixelsPerScreenPixel);
-                    for (int sy = y; sy < subYMax; ++sy)
-                        for (int sx = x; sx < subXMax; ++sx)
+                    for (var sy = y; sy < subYMax; ++sy)
+                        for (var sx = x; sx < subXMax; ++sx)
                             if (Bitmap[sx, sy])
                                 opacity += pixelWeight;
                     var color = Vector4.Lerp(c0, c1, opacity);
@@ -205,12 +205,12 @@ public class UIBitmapEditor
         // grid
         if (ZoomLevel > 1)
         {
-            for (int x = x0 + 1; x < x1; ++x)
+            for (var x = x0 + 1; x < x1; ++x)
             {
                 var off = new Vector2(x * numScreenPixelsPerBitmapPixel, 0);
                 drawLine(borderA + off, borderD + off, 0xffffffff, 1);
             }
-            for (int y = y0 + 1; y < y1; ++y)
+            for (var y = y0 + 1; y < y1; ++y)
             {
                 var off = new Vector2(0, y * numScreenPixelsPerBitmapPixel);
                 drawLine(borderA + off, borderB + off, 0xffffffff, 1);
@@ -292,8 +292,8 @@ public class UIBitmapEditor
             var y0 = Math.Max(0, (int)(Math.Min(p1.Y, p2.Y) - BrushRadius));
             var y1 = Math.Min(Bitmap.Height, (int)(Math.Max(p1.Y, p2.Y) + BrushRadius) + 1);
             var value = CurrentMode == BrushModeId;
-            for (int y = y0; y < y1; ++y)
-                for (int x = x0; x < x1; ++x)
+            for (var y = y0; y < y1; ++y)
+                for (var x = x0; x < x1; ++x)
                     if (intersectBrushRectPixel(x, y) || IntersectCirclePixel(p1, BrushRadius, x, y) || IntersectCirclePixel(p2, BrushRadius, x, y))
                         Bitmap[x, y] = value;
         }

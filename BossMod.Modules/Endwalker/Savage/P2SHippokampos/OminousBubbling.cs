@@ -6,7 +6,7 @@ class OminousBubbling(BossModule module) : Components.CastCounter(module, AID.Om
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        int healersInRange = Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _radius).Count();
+        var healersInRange = Raid.WithoutSlot().Where(a => a.Role == Role.Healer).InRadius(actor.Position, _radius).Count();
         if (healersInRange > 1)
             hints.Add("Hit by two aoes!");
         else if (healersInRange == 0)

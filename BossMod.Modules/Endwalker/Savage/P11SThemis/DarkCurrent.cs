@@ -34,7 +34,7 @@ class DarkCurrent(BossModule module) : Components.GenericAOEs(module)
             // state 00020001 => CW => 00080004 end, 00200010 => CCW => 00800004 end
             var startingAngle = index == 2 ? 90.Degrees() : 0.Degrees();
             var rotation = state == 0x00020001 ? -22.5f.Degrees() : 22.5f.Degrees();
-            for (int i = 0; i < 8; ++i)
+            for (var i = 0; i < 8; ++i)
             {
                 var offset = 13 * (startingAngle + i * rotation).ToDirection();
                 var color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE;

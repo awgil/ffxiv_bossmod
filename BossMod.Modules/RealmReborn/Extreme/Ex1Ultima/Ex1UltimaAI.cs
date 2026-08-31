@@ -13,7 +13,7 @@ class Ex1UltimaAI(BossModule module) : BossComponent(module)
         {
             // default positions: tank boss at the edge facing N, OT south of boss, M1/M2 to the left/right (so that they can slightly adjust for positionals), H1/H2/R1/R2 to S outside ceruleum vent range, all spread somewhat to avoid homing lasers
             // when tanks need to swap, OT moves between boss and MT and taunts; OT needs to ignore diffractive lasers at this point
-            WDir hintOffset = assignment switch
+            var hintOffset = assignment switch
             {
                 PartyRolesConfig.Assignment.M1 => _meleeRange * 45.Degrees().ToDirection(),
                 PartyRolesConfig.Assignment.M2 => _meleeRange * (-45).Degrees().ToDirection(),

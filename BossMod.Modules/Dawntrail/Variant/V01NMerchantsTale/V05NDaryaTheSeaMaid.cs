@@ -435,7 +435,7 @@ class CeaselessCurrent(BossModule module) : Components.Exaflare(module, new AOES
         if ((AID)spell.Action.ID is AID.CeaselessCurrent1 or AID.CeaselessCurrent2)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

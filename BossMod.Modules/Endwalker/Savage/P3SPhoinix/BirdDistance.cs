@@ -15,7 +15,7 @@ class BirdDistance(BossModule module, OID watchedBirdsID) : BossComponent(module
     {
         _birdsAtRisk.Reset();
         var watchedBirds = Module.Enemies(_watchedBirdsID);
-        for (int i = 0; i < watchedBirds.Count; ++i)
+        for (var i = 0; i < watchedBirds.Count; ++i)
         {
             var bird = watchedBirds[i];
             if (!bird.IsDead && watchedBirds.Where(other => other.IsDead).InRadius(bird.Position, _radius).Any())
@@ -28,7 +28,7 @@ class BirdDistance(BossModule module, OID watchedBirdsID) : BossComponent(module
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var watchedBirds = Module.Enemies(_watchedBirdsID);
-        for (int i = 0; i < watchedBirds.Count; ++i)
+        for (var i = 0; i < watchedBirds.Count; ++i)
         {
             var bird = watchedBirds[i];
             if (!bird.IsDead && bird.TargetID == actor.InstanceID && _birdsAtRisk[i])
@@ -43,7 +43,7 @@ class BirdDistance(BossModule module, OID watchedBirdsID) : BossComponent(module
     {
         // draw alive birds tanked by PC and circles around dead birds
         var watchedBirds = Module.Enemies(_watchedBirdsID);
-        for (int i = 0; i < watchedBirds.Count; ++i)
+        for (var i = 0; i < watchedBirds.Count; ++i)
         {
             var bird = watchedBirds[i];
             if (bird.IsDead)

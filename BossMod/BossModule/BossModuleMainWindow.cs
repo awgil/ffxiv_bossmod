@@ -122,10 +122,10 @@ public class BossModuleMainWindow : UIWindow
         if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
             return;
 
-        foreach ((var start, var end, uint color) in arrows)
+        foreach ((var start, var end, var color) in arrows)
         {
-            Vector3 start3 = start.ToVec3(y);
-            Vector3 end3 = end.ToVec3(y);
+            var start3 = start.ToVec3(y);
+            var end3 = end.ToVec3(y);
             Camera.Instance()?.DrawWorldLine(start3, end3, color);
             var dir = Vector3.Normalize(end3 - start3);
             var arrowStart = end3 - 0.4f * dir;

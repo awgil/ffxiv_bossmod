@@ -46,7 +46,7 @@ class P7ExaflaresEdge : Components.Exaflare
 
     private IEnumerable<Line> MainLines()
     {
-        for (int i = 0; i < Lines.Count; i += 3)
+        for (var i = 0; i < Lines.Count; i += 3)
             yield return Lines[i];
     }
 

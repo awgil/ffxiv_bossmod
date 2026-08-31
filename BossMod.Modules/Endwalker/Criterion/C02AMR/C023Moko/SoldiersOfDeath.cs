@@ -33,7 +33,7 @@ class IronRainStorm(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        AOEShapeCircle? shape = (AID)spell.Action.ID switch
+        var shape = (AID)spell.Action.ID switch
         {
             AID.NIronRainFirst or AID.SIronRainFirst => _shapeRain,
             AID.NIronStormFirst or AID.SIronStormFirst => _shapeStorm,

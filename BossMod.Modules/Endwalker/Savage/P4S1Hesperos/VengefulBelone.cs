@@ -17,7 +17,7 @@ class VengefulBelone(BossModule module) : BossComponent(module)
         if (_orbTargets.Count == 0 || _orbsExploded == _orbTargets.Count)
             return; // inactive
 
-        int ruinCount = _playerRuinCount[slot];
+        var ruinCount = _playerRuinCount[slot];
         if (ruinCount > 2 || (ruinCount == 2 && _playerActingRole[slot] != Role.None))
         {
             hints.Add("Failed orbs...");
@@ -51,7 +51,7 @@ class VengefulBelone(BossModule module) : BossComponent(module)
             if (orbRole == Role.None)
                 continue; // this orb has already exploded
 
-            bool lethal = IsOrbLethal(pcSlot, pc, orbRole);
+            var lethal = IsOrbLethal(pcSlot, pc, orbRole);
             Arena.Actor(orb, lethal ? ArenaColor.Enemy : ArenaColor.Danger, true);
 
             var target = WorldState.Actors.Find(orb.Tether.Target);
@@ -69,13 +69,13 @@ class VengefulBelone(BossModule module) : BossComponent(module)
                     ++goodInRange;
             }
 
-            bool goodToExplode = goodInRange == 2 && badInRange == 0;
+            var goodToExplode = goodInRange == 2 && badInRange == 0;
             Arena.AddCircle(orb.Position, _burstRadius, goodToExplode ? ArenaColor.Safe : ArenaColor.Danger);
         }
 
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
         {
-            bool nearLethalOrb = orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID))).InRadius(player.Position, _burstRadius).Any();
+            var nearLethalOrb = orbs.Where(orb => IsOrbLethal(i, player, OrbTarget(orb.InstanceID))).InRadius(player.Position, _burstRadius).Any();
             Arena.Actor(player, nearLethalOrb ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
         }
     }
@@ -139,7 +139,7 @@ class VengefulBelone(BossModule module) : BossComponent(module)
 
     private bool IsOrbLethal(int slot, Actor player, Role orbRole)
     {
-        int ruinCount = _playerRuinCount[slot];
+        var ruinCount = _playerRuinCount[slot];
         if (ruinCount >= 2)
             return true; // any orb is now lethal
 

@@ -63,10 +63,10 @@ class Intemperance(BossModule module) : BossComponent(module)
         }
         else
         {
-            int actorCell = PositionFromCoords(actor.Position);
+            var actorCell = PositionFromCoords(actor.Position);
             if (_playerAssignment != null)
             {
-                int expectedCell = NumExplosions == 1 ? Position2(_playerAssignment[slot]) : Position3(_playerAssignment[slot]);
+                var expectedCell = NumExplosions == 1 ? Position2(_playerAssignment[slot]) : Position3(_playerAssignment[slot]);
                 if (actorCell != expectedCell)
                 {
                     hints.Add("Go to assigned cell!");
@@ -126,7 +126,7 @@ class Intemperance(BossModule module) : BossComponent(module)
             {
                 // on first explosion, assign players to cubes
                 _playerAssignment = new int[PartyState.MaxPartySize];
-                int occupiedMask = 0;
+                var occupiedMask = 0;
                 foreach (var (slot, player) in Raid.WithSlot(true))
                 {
                     var pos = _playerAssignment[slot] = PositionFromCoords(player.Position);
@@ -226,7 +226,7 @@ class Intemperance(BossModule module) : BossComponent(module)
         if (_pattern == Pattern.Symmetrical)
             return pos1; // everyone returns to initial spot
 
-        int swapCorner = SwapCorner();
+        var swapCorner = SwapCorner();
         if (pos1 == swapCorner)
             return 1; // swap-corner goes N
         else if (pos1 == 1)

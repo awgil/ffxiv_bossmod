@@ -202,7 +202,7 @@ public class StateMachineBuilder(BossModule module)
             return fork;
         };
 
-        int nextIndex = 0;
+        var nextIndex = 0;
         var prevInit = _curInitial;
         foreach (var (key, action) in dispatch)
         {

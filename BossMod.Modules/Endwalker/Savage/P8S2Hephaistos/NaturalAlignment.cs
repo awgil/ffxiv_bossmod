@@ -18,7 +18,7 @@ class NaturalAlignment(BossModule module) : Components.GenericStackSpread(module
         if (CurMechanicProgress >= 2 || CurMechanicSource == null)
             return;
 
-        bool firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
+        var firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
         var potentialTargets = Raid.WithSlot().ExcludedFromMask(_targets).Actors().ToList();
         switch (CurMechanic)
         {
@@ -56,7 +56,7 @@ class NaturalAlignment(BossModule module) : Components.GenericStackSpread(module
     {
         if (CurMechanicProgress >= 2 || CurMechanicSource == null)
             return;
-        bool firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
+        var firstPart = CurMechanicProgress == (CurMechanicInverted ? 1 : 0);
         var hint = CurMechanic switch
         {
             Mechanic.StackSpread => firstPart ? "Stack" : "Spread",

@@ -25,7 +25,7 @@ class P3Apocalypse(BossModule module) : Components.GenericAOEs(module)
         }
 
         var activation = WorldState.FutureTime(delay);
-        for (int i = -1; i < 5; ++i)
+        for (var i = -1; i < 5; ++i)
         {
             addAt(i + 1, activation);
             addAt(i, activation);
@@ -96,7 +96,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
     public void ShowOrder(int order)
     {
-        for (int i = 0; i < States.Length; ++i)
+        for (var i = 0; i < States.Length; ++i)
             if (States[i].Order == order && Raid[i] is var player && player != null)
                 AddStack(player, States[i].Expiration);
     }
@@ -156,7 +156,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
         var swap = _config.P3ApocalypseUptime ? FindUptimeSwap(slotPerAssignment) : FindStandardSwap(slotPerAssignment);
         //var debugSwap = swap.Raw;
-        for (int role = 0; role < slotPerAssignment.Length; ++role)
+        for (var role = 0; role < slotPerAssignment.Length; ++role)
         {
             if (!swap[role])
                 continue;
@@ -165,7 +165,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
 
             // find partner to swap with; prioritize same position > neighbour position (eg melee with melee) > anyone that also swaps
             int partnerRole = -1, partnerQuality = -1;
-            for (int candidateRole = role + 1; candidateRole < slotPerAssignment.Length; ++candidateRole)
+            for (var candidateRole = role + 1; candidateRole < slotPerAssignment.Length; ++candidateRole)
             {
                 if (!swap[candidateRole])
                     continue; // this guy doesn't want to swap, skip
@@ -207,7 +207,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
     private bool IsSwapValid(BitMask assignmentSwaps, ReadOnlySpan<int> slotPerAssignment)
     {
         BitMask result = default; // bits 0-3 are set if order N is in G1, 4-7 for G2
-        for (int role = 0; role < slotPerAssignment.Length; ++role)
+        for (var role = 0; role < slotPerAssignment.Length; ++role)
         {
             ref var state = ref States[slotPerAssignment[role]];
             var isGroup2 = state.AssignedGroup == (assignmentSwaps[role] ? 1 : 2);
@@ -236,7 +236,7 @@ class P3ApocalypseDarkWater(BossModule module) : Components.UniformStackSpread(m
     {
         BitMask swap = default;
         Span<int> assignmentPerOrder = [-1, -1, -1, -1];
-        for (int role = 0; role < slotPerAssignment.Length; ++role)
+        for (var role = 0; role < slotPerAssignment.Length; ++role)
         {
             var slot = slotPerAssignment[role];
             var order = States[slot].Order;

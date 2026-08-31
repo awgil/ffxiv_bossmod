@@ -251,7 +251,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     private void DrawEntries(List<ObstacleMapDatabase.Entry> entries)
     {
         Action? modifications = null;
-        for (int i = 0; i < entries.Count; ++i)
+        for (var i = 0; i < entries.Count; ++i)
         {
             using var id = ImRaii.PushId(i);
             var index = i;
@@ -310,7 +310,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
 
     private string GenerateMapName()
     {
-        for (int i = 1; ; ++i)
+        for (var i = 1; ; ++i)
         {
             var name = $"{Obstacles.World.CurrentZone}.{Obstacles.World.CurrentCFCID}.{i}.bmp";
             if (!new FileInfo(Obstacles.SourceFilename(name)).Exists)

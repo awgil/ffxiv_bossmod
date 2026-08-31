@@ -107,7 +107,7 @@ class Upwell(BossModule module) : Components.Exaflare(module, _shapeNarrow)
 
     private int NumExplosions(WPos origin, WDir advance)
     {
-        int count = 0;
+        var count = 0;
 
         while (true)
         {

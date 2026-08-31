@@ -77,7 +77,7 @@ unsafe class DebugQuests
             {
                 foreach (var nnpc in _tree.Node($"NPC {baseId:X}: tribe={entry.TribeId} '{Service.LuminaRow<BeastTribe>(entry.TribeId)?.Name}', ranks={entry.RankRequirementMin}-{entry.RankRequirementMax}, dirty={entry.Dirty}###{baseId}"))
                 {
-                    int i = 0;
+                    var i = 0;
                     foreach (var e in entry.HandlersNormal)
                     {
                         _tree.LeafNode($"[Gx {i++}] {e.Value->QuestId} '{Service.LuminaRow<Quest>(0x10000u | e.Value->QuestId)?.Name}'");
@@ -98,7 +98,7 @@ unsafe class DebugQuests
             {
                 foreach (var nnpc in _tree.Node($"NPC {baseId:X}, outrank={quests.OutrankAll}"))
                 {
-                    int i = 0;
+                    var i = 0;
                     foreach (var q in quests.AllQuests)
                     {
                         // TODO map Unknown11
@@ -188,7 +188,7 @@ unsafe class DebugQuests
                 {
                     foreach (var exactMatch in bools)
                     {
-                        for (int seed = 0; seed < 256; ++seed)
+                        for (var seed = 0; seed < 256; ++seed)
                         {
                             var numAvail = (int)fwk->DailyQuests.CalculateAvailableQuests(null, loc.Bound, (byte)seed, rankInRange, (byte)rank, exactMatch, avail);
                             var ourAvail = CalculateAvailable(_dailyQuests[npcId].AllQuests, (byte)seed, !rankInRange, rank, exactMatch);

@@ -98,17 +98,17 @@ public class Map
 
         var tOff = Width * Height;
         var cy = Center + new Vector2(xmin - Width / 2 + 0.5f, ymin - Height / 2 + 0.5f) * SpaceResolution;
-        for (int y = ymin; y <= ymax; ++y)
+        for (var y = ymin; y <= ymax; ++y)
         {
             var cx = cy;
-            for (int x = xmin; x <= xmax; ++x)
+            for (var x = xmin; x <= xmax; ++x)
             {
                 if (shape(cx))
                 {
                     var xy = y * Width + x;
                     foreach (var (t0, t1) in intTime)
                     {
-                        for (int t = t0; t <= t1; ++t)
+                        for (var t = t0; t <= t1; ++t)
                         {
                             Voxels[t * tOff + xy] = true;
                         }
@@ -141,15 +141,15 @@ public class Map
     // enumerate pixels along line starting from (x1, y1) to (x2, y2); first is not returned, last is returned
     public IEnumerable<(int x, int y)> EnumeratePixelsInLine(int x1, int y1, int x2, int y2)
     {
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        int sx = dx > 0 ? 1 : -1;
-        int sy = dy > 0 ? 1 : -1;
+        var dx = x2 - x1;
+        var dy = y2 - y1;
+        var sx = dx > 0 ? 1 : -1;
+        var sy = dy > 0 ? 1 : -1;
         dx = Math.Abs(dx);
         dy = Math.Abs(dy);
         if (dx >= dy)
         {
-            int err = 2 * dy - dx;
+            var err = 2 * dy - dx;
             do
             {
                 x1 += sx;
@@ -166,7 +166,7 @@ public class Map
         }
         else
         {
-            int err = 2 * dx - dy;
+            var err = 2 * dx - dy;
             do
             {
                 y1 += sy;

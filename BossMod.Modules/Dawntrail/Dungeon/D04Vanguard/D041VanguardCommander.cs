@@ -53,7 +53,7 @@ class EnhancedMobility(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        (AOEShape? side, AOEShape? main, float offset, Angle rotation) = (AID)spell.Action.ID switch
+        (AOEShape? side, var main, float offset, var rotation) = (AID)spell.Action.ID switch
         {
             AID.EnhancedMobilityAOEROut => (_shapeSideOut, _shapeOut, +7, -60.Degrees()),
             AID.EnhancedMobilityAOELOut => (_shapeSideOut, _shapeOut, -7, 60.Degrees()),

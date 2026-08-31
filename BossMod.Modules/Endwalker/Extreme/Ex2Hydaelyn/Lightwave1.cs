@@ -21,7 +21,7 @@ class Lightwave1(BossModule module) : LightwaveCommon(module)
 
             if (Waves.Count > 0)
             {
-                bool leftWave = Waves.Any(w => w.Position.X < 90);
+                var leftWave = Waves.Any(w => w.Position.X < 90);
                 _safeCrystal = new(leftWave ? 110 : 90, 92);
                 _firstHitCrystal = new(100, 86);
                 _secondHitCrystal = new(leftWave ? 90 : 110, 92);
@@ -38,7 +38,7 @@ class Lightwave1(BossModule module) : LightwaveCommon(module)
         if (Waves.Any(w => WaveAOE.Check(actor.Position, w)))
             hints.Add("GTFO from wave!");
 
-        bool safe = NumCasts switch
+        var safe = NumCasts switch
         {
             0 => InSafeCone(_firstHitCrystal, _safeCrystal, actor.Position),
             1 => InSafeCone(_secondHitCrystal, _safeCrystal, actor.Position),

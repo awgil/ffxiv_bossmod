@@ -17,8 +17,8 @@ class WickedStep(BossModule module) : Components.Knockback(module, ignoreImmunes
     {
         base.AddHints(slot, actor, hints);
 
-        bool soaking = _towers.Any(t => t?.Position.InCircle(actor.Position, _towerRadius) ?? false);
-        bool shouldSoak = actor.Role == Role.Tank;
+        var soaking = _towers.Any(t => t?.Position.InCircle(actor.Position, _towerRadius) ?? false);
+        var shouldSoak = actor.Role == Role.Tank;
         if (soaking != shouldSoak)
             hints.Add(shouldSoak ? "Soak the tower!" : "GTFO from tower!");
     }

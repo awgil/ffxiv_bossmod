@@ -25,7 +25,7 @@ class RedHiddenMines(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.IndiscriminateDetonation)
         {
             List<AOEInstance> _detonatingMines = [];
-            for (int i = 0; i < _mines.Count; i++)
+            for (var i = 0; i < _mines.Count; i++)
             {
                 _detonatingMines.Add(new(_shapeExplosion, _mines[i].Origin, Color: ArenaColor.AOE));
             }

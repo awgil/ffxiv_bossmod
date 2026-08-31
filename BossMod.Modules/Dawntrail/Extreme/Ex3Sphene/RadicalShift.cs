@@ -40,7 +40,7 @@ class RadicalShift(BossModule module) : BossComponent(module)
         }
         else if (state is 0x00020001 or 0x00200010)
         {
-            ArenaBoundsCustom? platform = index switch
+            var platform = index switch
             {
                 9 => Ex3Sphene.WindBounds,
                 10 => Ex3Sphene.EarthBounds,

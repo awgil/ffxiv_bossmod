@@ -37,7 +37,7 @@ public static class ReplayUtils
 
     public static int ActionDamage(Replay.ActionTarget a)
     {
-        int res = 0;
+        var res = 0;
         foreach (var eff in a.Effects.Where(eff => eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage && !eff.AtSource))
             res += eff.DamageHealValue;
         return res;

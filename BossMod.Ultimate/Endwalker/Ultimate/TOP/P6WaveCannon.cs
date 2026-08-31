@@ -17,7 +17,7 @@ class P6WaveCannonExaflare(BossModule module) : Components.Exaflare(module, 8)
         if ((AID)spell.Action.ID is AID.P6WaveCannonExaflareFirst or AID.P6WaveCannonExaflareRest)
         {
             ++NumCasts;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");
@@ -61,7 +61,7 @@ class P6WaveCannonWildCharge(BossModule module) : Components.GenericWildCharge(m
         {
             Source = caster;
             // TODO: find out how it selects target...
-            bool targetAssigned = false;
+            var targetAssigned = false;
             foreach (var (i, p) in Raid.WithSlot(true))
             {
                 PlayerRoles[i] = p.Role == Role.Tank ? PlayerRole.Share : targetAssigned ? PlayerRole.ShareNotFirst : PlayerRole.Target;

@@ -56,7 +56,7 @@ class BanishStorm(BossModule module) : Components.Exaflare(module, 6)
         if ((AID)spell.Action.ID == AID.Banish)
         {
             ++NumCasts;
-            for (int i = 0; i < Lines.Count; ++i)
+            for (var i = 0; i < Lines.Count; ++i)
             {
                 if (!Lines[i].Next.AlmostEqual(caster.Position, 1))
                     continue;

@@ -81,11 +81,11 @@ class ShadowFlow(BossModule module) : GenericAOEs(module)
     {
         aoes.RemoveAll(aoe => aoe.Activation < Module.WorldState.CurrentTime);
 
-        foreach (AOEInstance aoe in aoes)
+        foreach (var aoe in aoes)
         {
             yield return aoe;
         }
-        foreach (Actor groveller in Grovellers)
+        foreach (var groveller in Grovellers)
         {
             yield return new AOEInstance(new AOEShapeCircle(6), groveller.Position, Activation: activation);
         }

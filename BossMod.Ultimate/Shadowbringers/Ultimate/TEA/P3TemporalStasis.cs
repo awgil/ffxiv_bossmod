@@ -85,7 +85,7 @@ class P3TemporalStasis(BossModule module) : Components.GenericBaitAway(module, A
     private Actor? FindPartner(int slot)
     {
         var partnerSlot = -1;
-        for (int i = 0; i < _playerMechanics.Length; ++i)
+        for (var i = 0; i < _playerMechanics.Length; ++i)
             if (i != slot && _playerMechanics[i] == _playerMechanics[slot])
                 partnerSlot = i;
         return Raid[partnerSlot];

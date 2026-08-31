@@ -9,8 +9,8 @@ class ArcaneArrayPlot : Components.GenericAOEs
 
     public ArcaneArrayPlot(BossModule module) : base(module)
     {
-        for (int z = -16; z <= 16; z += 8)
-            for (int x = -16; x <= 16; x += 8)
+        for (var z = -16; z <= 16; z += 8)
+            for (var x = -16; x <= 16; x += 8)
                 SafeZoneCenters.Add(Module.Center + new WDir(x, z));
     }
 
@@ -45,13 +45,13 @@ class ArcaneArray(BossModule module) : ArcaneArrayPlot(module)
             var activation = WorldState.FutureTime(4.6f);
             var pos = actor.Position;
             var offset = 8 * actor.Rotation.ToDirection();
-            for (int i = 0; i < 5; ++i)
+            for (var i = 0; i < 5; ++i)
             {
                 Advance(ref pos, ref activation, offset);
             }
             pos -= offset;
             pos += Module.InBounds(pos + offset.OrthoL()) ? offset.OrthoL() : offset.OrthoR();
-            for (int i = 0; i < 5; ++i)
+            for (var i = 0; i < 5; ++i)
             {
                 Advance(ref pos, ref activation, -offset);
             }

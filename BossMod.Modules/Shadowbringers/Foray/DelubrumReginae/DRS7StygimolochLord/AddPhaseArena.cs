@@ -18,8 +18,8 @@ class AddPhaseArena(BossModule module) : BossComponent(module)
     private IEnumerable<WDir> RingBorder(Angle centerOffset, float ringRadius, bool innerBorder)
     {
         float offsetMultiplier = innerBorder ? -1 : 1;
-        Angle halfWidth = (_alcoveWidth / ringRadius).Radians();
-        for (int i = 0; i < 8; ++i)
+        var halfWidth = (_alcoveWidth / ringRadius).Radians();
+        for (var i = 0; i < 8; ++i)
         {
             var centerAlcove = centerOffset + i * 45.Degrees();
             foreach (var p in CurveApprox.CircleArc(ringRadius + offsetMultiplier * (_ringHalfWidth + _alcoveDepth), centerAlcove - halfWidth, centerAlcove + halfWidth, Module.Bounds.MaxApproxError))

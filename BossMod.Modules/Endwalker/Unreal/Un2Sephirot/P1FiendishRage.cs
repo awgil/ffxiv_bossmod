@@ -10,7 +10,7 @@ class P1FiendishRage(BossModule module) : Components.CastCounter(module, AID.Fie
     {
         if (_targets.Any())
         {
-            int numClips = Raid.WithSlot(true).IncludedInMask(_targets).InRadius(actor.Position, _range).Count();
+            var numClips = Raid.WithSlot(true).IncludedInMask(_targets).InRadius(actor.Position, _range).Count();
             if (Module.PrimaryActor.TargetID == actor.InstanceID)
             {
                 if (numClips > 0)

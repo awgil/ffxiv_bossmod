@@ -64,7 +64,7 @@ class MiniArenaTest : TestWindow
 
         if (ImGui.TreeNode("Clipped shape"))
         {
-            for (int i = 0; i < _shapeVertices.Count; ++i)
+            for (var i = 0; i < _shapeVertices.Count; ++i)
             {
                 var v = _shapeVertices[i];
                 if (ImGui.DragFloat3($"Vertex {i}", ref v))
@@ -93,14 +93,14 @@ class MiniArenaTest : TestWindow
 
     private IEnumerable<WPos> KBContour()
     {
-        int cnt = 256;
-        float coeff = 2 * MathF.PI / cnt;
+        var cnt = 256;
+        var coeff = 2 * MathF.PI / cnt;
         WPos kbCenter = new(_kbCenter);
-        WDir centerOffset = kbCenter - _arena.Center;
+        var centerOffset = kbCenter - _arena.Center;
         var c = centerOffset.LengthSq() - _arena.Bounds.Radius * _arena.Bounds.Radius;
-        for (int i = 0; i < cnt; ++i)
+        for (var i = 0; i < cnt; ++i)
         {
-            Angle phi = (i * coeff).Radians();
+            var phi = (i * coeff).Radians();
             var dir = phi.ToDirection();
             var offDotDir = dir.Dot(centerOffset);
             var d = -offDotDir + MathF.Sqrt(offDotDir * offDotDir - c);

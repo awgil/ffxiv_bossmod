@@ -22,9 +22,9 @@ class Mouser(BossModule module) : Components.GenericAOEs(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (int x = -10; x <= 10; x += 10)
+        for (var x = -10; x <= 10; x += 10)
             Arena.AddLine(Module.Center + new WDir(x, -20), Module.Center + new WDir(x, 20), ArenaColor.Border);
-        for (int z = -10; z <= 10; z += 10)
+        for (var z = -10; z <= 10; z += 10)
             Arena.AddLine(Module.Center + new WDir(-20, z), Module.Center + new WDir(20, z), ArenaColor.Border);
     }
 

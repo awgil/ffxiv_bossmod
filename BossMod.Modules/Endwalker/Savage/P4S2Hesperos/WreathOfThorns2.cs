@@ -22,7 +22,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
+        var isTowerSoaker = actor == _darkTH.Item1 || actor == _darkTH.Item2;
         if (CurState == State.DarkDesign)
         {
             if (!isTowerSoaker)
@@ -37,14 +37,14 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
         else
         {
             var curFirePair = (_fireTH.Item1 != null && _fireTH.Item1.Tether.ID != 0) ? _fireTH : ((_fireDD.Item1 != null && _fireDD.Item1.Tether.ID != 0) ? _fireDD : (null, null));
-            bool isFromCurrentPair = actor == curFirePair.Item1 || actor == curFirePair.Item2;
+            var isFromCurrentPair = actor == curFirePair.Item1 || actor == curFirePair.Item2;
             if (isFromCurrentPair)
             {
                 hints.Add("Break tether!");
             }
             else if (curFirePair.Item1 != null && !isTowerSoaker)
             {
-                bool nearFire = actor.Position.InCircle(curFirePair.Item1!.Position, _fireExplosionRadius) || actor.Position.InCircle(curFirePair.Item2!.Position, _fireExplosionRadius);
+                var nearFire = actor.Position.InCircle(curFirePair.Item1!.Position, _fireExplosionRadius) || actor.Position.InCircle(curFirePair.Item2!.Position, _fireExplosionRadius);
                 hints.Add("Stack with breaking tether!", !nearFire);
             }
 
@@ -101,7 +101,7 @@ class WreathOfThorns2(BossModule module) : BossComponent(module)
         }
 
         // draw towers for designated tower soakers
-        bool isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
+        var isTowerSoaker = pc == _darkTH.Item1 || pc == _darkTH.Item2;
         if (isTowerSoaker && CurState != State.Done)
             foreach (var tower in (CurState == State.SecondSet ? SecondSet : FirstSet).Where(IsTower))
                 Arena.AddCircle(tower.Position, P4S2.WreathTowerRadius, CurState == State.DarkDesign ? ArenaColor.Danger : ArenaColor.Safe);

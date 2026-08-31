@@ -336,7 +336,7 @@ class ReplayDetailsWindow : UIWindow
         var posX = actor.Position.X;
         var posZ = actor.Position.Z;
         var rot = actor.Rotation.Deg;
-        bool modified = false;
+        var modified = false;
         ImGui.TableNextColumn();
         modified |= ImGui.DragFloat("###X", ref posX, 0.25f, minx, maxx);
         ImGui.TableNextColumn();
@@ -349,7 +349,7 @@ class ReplayDetailsWindow : UIWindow
         ImGui.TableNextColumn();
         if (actor.HPMP.MaxHP > 0)
         {
-            float frac = Math.Min((float)(actor.HPMP.CurHP + actor.HPMP.Shield) / actor.HPMP.MaxHP, 1);
+            var frac = Math.Min((float)(actor.HPMP.CurHP + actor.HPMP.Shield) / actor.HPMP.MaxHP, 1);
             ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac:#0.#%} ({actor.HPMP.CurHP} + {actor.HPMP.Shield} / {actor.HPMP.MaxHP}) [{actor.PendingHPDifference} pending]");
         }
 
@@ -375,7 +375,7 @@ class ReplayDetailsWindow : UIWindow
             if (tooltip.Alive)
             {
                 string fromString(string prefix, ulong instanceId) => instanceId == 0 ? "" : $", {prefix} {_player.WorldState.Actors.Find(instanceId)?.ToString() ?? instanceId.ToString("X")}";
-                for (int i = 0; i < actor.Statuses.Length; ++i)
+                for (var i = 0; i < actor.Statuses.Length; ++i)
                 {
                     ref var s = ref actor.Statuses[i];
                     if (s.ID != 0)
@@ -391,7 +391,7 @@ class ReplayDetailsWindow : UIWindow
                 {
                     ImGui.TextUnformatted($"[dispel] {Utils.StatusString(s.StatusId)}{fromString("by", s.Effect.SourceInstanceId)}");
                 }
-                for (int i = 0; i < actor.IncomingEffects.Length; ++i)
+                for (var i = 0; i < actor.IncomingEffects.Length; ++i)
                 {
                     ref var inc = ref actor.IncomingEffects[i];
                     if (inc.GlobalSequence != 0)
@@ -423,12 +423,12 @@ class ReplayDetailsWindow : UIWindow
         ImGui.TableSetupColumn("Statuses", ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("Hints", ImGuiTableColumnFlags.WidthFixed, 250);
         ImGui.TableHeadersRow();
-        foreach ((int slot, var player) in _player.WorldState.Party.WithSlot(true))
+        foreach ((var slot, var player) in _player.WorldState.Party.WithSlot(true))
         {
             ImGui.PushID((int)player.InstanceID);
             ImGui.TableNextRow();
 
-            bool isPOV = _povSlot == slot;
+            var isPOV = _povSlot == slot;
             ImGui.TableNextColumn();
             if (ImGui.Checkbox("###POV", ref isPOV) && isPOV)
             {
@@ -451,7 +451,7 @@ class ReplayDetailsWindow : UIWindow
             if (_mgr.ActiveModule != null)
             {
                 var hints = _mgr.ActiveModule.CalculateHintsForRaidMember(slot, player);
-                foreach ((var hint, bool risk) in hints)
+                foreach ((var hint, var risk) in hints)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, risk ? 0xff00ffff : 0xff00ff00);
                     ImGui.TextUnformatted(hint);
@@ -544,7 +544,7 @@ class ReplayDetailsWindow : UIWindow
         _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfCushion);
         _pfVisu.Draw(_pfTree);
 
-        bool rebuild = false;
+        var rebuild = false;
         rebuild |= ImGui.SliderFloat("Zone cushion", ref _pfCushion, 0, 5);
         rebuild |= UICombo.Enum("Ability positional", ref _pfPositional);
         if (rebuild)

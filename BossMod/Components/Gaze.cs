@@ -51,7 +51,7 @@ public abstract class GenericGaze(BossModule module, Enum? aid = default, bool i
     {
         foreach (var eye in ActiveEyes(pcSlot, pc))
         {
-            bool danger = HitByEye(pc, eye) != Inverted;
+            var danger = HitByEye(pc, eye) != Inverted;
             var eyeCenter = IndicatorScreenPos(eye.Position);
             DrawEye(eyeCenter, danger);
 

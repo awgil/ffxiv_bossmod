@@ -15,12 +15,12 @@ class SunshadowTether(BossModule module) : BossComponent(module)
         _playersInAOE.Reset();
         foreach (var bird in ActiveBirds())
         {
-            ulong targetID = BirdTarget(bird);
+            var targetID = BirdTarget(bird);
             var target = targetID != 0 ? WorldState.Actors.Find(targetID) : null;
             if (target != null && target.Position != bird.Position)
             {
                 var dir = (target.Position - bird.Position).Normalized();
-                foreach ((int i, var player) in Raid.WithSlot().Exclude(target))
+                foreach ((var i, var player) in Raid.WithSlot().Exclude(target))
                 {
                     if (player.Position.InRect(bird.Position, dir, 50, 0, _chargeHalfWidth))
                     {
@@ -35,7 +35,7 @@ class SunshadowTether(BossModule module) : BossComponent(module)
     {
         foreach (var bird in ActiveBirds())
         {
-            ulong birdTarget = BirdTarget(bird);
+            var birdTarget = BirdTarget(bird);
             if (birdTarget == actor.InstanceID && bird.Tether.ID != (uint)TetherID.LargeBirdFar)
             {
                 hints.Add("Too close!");
@@ -52,7 +52,7 @@ class SunshadowTether(BossModule module) : BossComponent(module)
     {
         foreach (var bird in ActiveBirds())
         {
-            ulong targetID = BirdTarget(bird);
+            var targetID = BirdTarget(bird);
             var target = (targetID != 0 && targetID != pc.InstanceID) ? WorldState.Actors.Find(targetID) : null;
             if (target != null && target.Position != bird.Position)
             {
@@ -68,7 +68,7 @@ class SunshadowTether(BossModule module) : BossComponent(module)
             return;
 
         // draw all players
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
             Arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
         // draw my tether

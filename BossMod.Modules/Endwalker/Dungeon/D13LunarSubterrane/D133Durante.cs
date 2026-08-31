@@ -58,10 +58,10 @@ class DuplicitousBattery(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_casters.Count > 0)
-            for (int i = 0; i < Math.Clamp(_casters.Count, 1, 16); ++i)
+            for (var i = 0; i < Math.Clamp(_casters.Count, 1, 16); ++i)
                 yield return new(circle, _casters[i].source, default, _casters[i].activation, ArenaColor.Danger);
         if (_casters.Count > 16)
-            for (int i = 16; i < Math.Clamp(_casters.Count, 16, 32); ++i)
+            for (var i = 16; i < Math.Clamp(_casters.Count, 16, 32); ++i)
                 yield return new(circle, _casters[i].source, default, _casters[i].activation, Risky: false);
     }
 

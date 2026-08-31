@@ -151,8 +151,8 @@ class DSW1States : StateMachineBuilder
         castStart.Raw.Comment = $"Adelphel/Grinnaux enrage start";
         castStart.Raw.Update = _ =>
         {
-            bool adelphelCast = _module.SerAdelphel()?.CastInfo?.IsSpell(AID.BrightbladesSteel) ?? false;
-            bool grinnauxCast = _module.SerGrinnaux()?.CastInfo?.IsSpell(AID.TheBullsSteel) ?? false;
+            var adelphelCast = _module.SerAdelphel()?.CastInfo?.IsSpell(AID.BrightbladesSteel) ?? false;
+            var grinnauxCast = _module.SerGrinnaux()?.CastInfo?.IsSpell(AID.TheBullsSteel) ?? false;
             return adelphelCast || grinnauxCast ? 0 : -1;
         };
 
@@ -160,8 +160,8 @@ class DSW1States : StateMachineBuilder
         castEnd.Raw.Comment = "Adelphel/Grinnaux enrage end";
         castEnd.Raw.Update = _ =>
         {
-            bool adelphelDone = _module.SerAdelphel()?.CastInfo == null;
-            bool grinnauxDone = _module.SerGrinnaux()?.CastInfo == null;
+            var adelphelDone = _module.SerAdelphel()?.CastInfo == null;
+            var grinnauxDone = _module.SerGrinnaux()?.CastInfo == null;
             return adelphelDone && grinnauxDone ? 0 : -1;
         };
     }

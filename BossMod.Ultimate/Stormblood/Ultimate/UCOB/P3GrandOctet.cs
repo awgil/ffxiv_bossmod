@@ -88,7 +88,7 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
             case IconID.MegaflareDive:
                 _baitOrder[slot] = ++NumBaitsAssigned;
                 if (NumBaitsAssigned == 7)
-                    for (int i = 0; i < _baitOrder.Length; ++i)
+                    for (var i = 0; i < _baitOrder.Length; ++i)
                         if (_baitOrder[i] == 0)
                             _baitOrder[i] = 8; // twintania bait
                 break;
@@ -126,7 +126,7 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
 
         // bahamut on cardinal => CCW dive order
         // bahamut on intercardinal => CW dive order
-        bool bahamutIntercardinal = ((int)MathF.Round(dirToBaha.Deg / 45) & 1) != 0;
+        var bahamutIntercardinal = ((int)MathF.Round(dirToBaha.Deg / 45) & 1) != 0;
         _diveOrder = bahamutIntercardinal ? -1 : +1;
         var orders = Casters.Select(c => _diveOrder * CCWDirection(Angle.FromDirection(c.Position - Module.Center), dirToBaha)).ToList();
         MemoryExtensions.Sort(orders.AsSpan(), Casters.AsSpan());

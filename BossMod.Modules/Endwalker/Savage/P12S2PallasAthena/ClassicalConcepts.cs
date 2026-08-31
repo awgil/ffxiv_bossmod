@@ -63,7 +63,7 @@ class ClassicalConcepts(BossModule module, bool invert) : BossComponent(module)
     {
         if ((OID)actor.OID is OID.ConceptOfFire or OID.ConceptOfWater or OID.ConceptOfEarth && _hexa.Count + _tri.Count + _sq.Count == 12)
         {
-            for (int col = 0; col < _resolvedShapes.Length; ++col)
+            for (var col = 0; col < _resolvedShapes.Length; ++col)
             {
                 var hexa = _hexa.FirstOrDefault(h => Utils.AlmostEqual(h.PosRot.X, 88 + col * 8, 1));
                 if (hexa == null)

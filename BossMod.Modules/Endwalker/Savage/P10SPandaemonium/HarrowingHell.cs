@@ -13,8 +13,8 @@ class HarrowingHell(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool soaking = _closestTargets[slot];
-        bool shouldSoak = actor.Role == Role.Tank;
+        var soaking = _closestTargets[slot];
+        var shouldSoak = actor.Role == Role.Tank;
         if (soaking != shouldSoak)
             hints.Add(shouldSoak ? "Stay in front of the raid!" : "Go behind tanks!");
     }

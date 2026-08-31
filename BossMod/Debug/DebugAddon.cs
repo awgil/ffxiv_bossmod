@@ -87,8 +87,8 @@ public sealed unsafe class DebugAddon : IDisposable
 
     private string AtkValuesString(AtkValue* values, int count)
     {
-        string res = "[";
-        for (int i = 0; i < count; ++i)
+        var res = "[";
+        for (var i = 0; i < count; ++i)
         {
             if (i > 0)
                 res += ", ";

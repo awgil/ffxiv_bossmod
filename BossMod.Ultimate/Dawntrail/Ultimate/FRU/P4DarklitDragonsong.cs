@@ -69,7 +69,7 @@ class P4DarklitDragonsong(BossModule module) : BossComponent(module)
         AssignE.Set(SelectEastTowerSoaker(TowerSoakers & ~AssignS, playerPrios));
 
         // assignments for baiters in prio order
-        int numAssigned = 0;
+        var numAssigned = 0;
         foreach (var slot in ccwOrderSlots)
         {
             if (!TowerSoakers[slot])

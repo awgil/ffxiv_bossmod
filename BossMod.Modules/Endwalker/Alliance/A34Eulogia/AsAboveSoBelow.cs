@@ -35,7 +35,7 @@ class AsAboveSoBelow(BossModule module) : Components.Exaflare(module, 6)
 
     private void Advance(WPos position, WDir dir)
     {
-        int index = Lines.FindIndex(item => item.Next.AlmostEqual(position, 1) && item.Advance.Dot(dir) > 5);
+        var index = Lines.FindIndex(item => item.Next.AlmostEqual(position, 1) && item.Advance.Dot(dir) > 5);
         if (index == -1)
         {
             ReportError($"Failed to find entry for {position} / {dir}");

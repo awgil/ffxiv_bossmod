@@ -8,7 +8,7 @@ class Uplift(BossModule module) : Components.StandardAOEs(module, AID.Uplift, ne
     {
         if (WallDirection != null)
         {
-            for (int i = 0; i < 4; ++i)
+            for (var i = 0; i < 4; ++i)
             {
                 var center = WallDirection.Value + i * 90.Degrees();
                 Arena.PathArcTo(Module.Center, Module.Bounds.Radius - 0.5f, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);

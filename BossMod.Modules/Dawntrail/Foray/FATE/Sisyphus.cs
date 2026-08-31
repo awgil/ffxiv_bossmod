@@ -94,7 +94,7 @@ class ThriceComeThunder(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        int show = 0;
+        var show = 0;
         foreach (var aoe in aoes.OrderBy(a => a.Activation).Take(2 * waves))
         {
             yield return aoe with { Color = show < waves ? ArenaColor.Danger : ArenaColor.AOE, Risky = show < waves };

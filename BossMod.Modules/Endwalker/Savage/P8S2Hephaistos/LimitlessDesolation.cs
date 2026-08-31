@@ -81,7 +81,7 @@ class LimitlessDesolation : Components.UniformStackSpread
         {
             case 0x00020001: // appear
                 _activeTowers.Set(towerIndex);
-                bool towerForTH = _thRight == towerIndex >= 6;
+                var towerForTH = _thRight == towerIndex >= 6;
                 var (slot, player) = Raid.WithSlot(true).FirstOrDefault(ia => _waitingForTowers[ia.Item1] && ia.Item2.Class.IsSupport() == towerForTH);
                 if (player != null)
                 {

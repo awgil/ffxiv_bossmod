@@ -30,7 +30,7 @@ class CurtainCall(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw other players
-        foreach ((int slot, var player) in Raid.WithSlot().Exclude(pc))
+        foreach ((var slot, var player) in Raid.WithSlot().Exclude(pc))
             Arena.Actor(player, _playerOrder[slot] == _numCasts + 1 ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
 
         // tether
@@ -44,7 +44,7 @@ class CurtainCall(BossModule module) : BossComponent(module)
         if ((SID)status.ID == SID.Thornpricked && Raid.TryFindSlot(actor, out var slot))
         {
             _playerOrder[slot] = 2 * (int)((status.ExpireAt - WorldState.CurrentTime).TotalSeconds / 10); // 2/4/6/8
-            bool ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
+            var ddFirst = Service.Config.Get<P4S2Config>().CurtainCallDDFirst;
             if (ddFirst != actor.Role is Role.Tank or Role.Healer)
                 --_playerOrder[slot];
             _playersInBreakOrder = null;

@@ -41,7 +41,7 @@ class P3GnashAndLash(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        (AOEShape? first, AOEShape? second) = (AID)spell.Action.ID switch
+        (var first, var second) = (AID)spell.Action.ID switch
         {
             AID.GnashAndLash => (_aoeGnash, _aoeLash),
             AID.LashAndGnash => (_aoeLash, _aoeGnash),

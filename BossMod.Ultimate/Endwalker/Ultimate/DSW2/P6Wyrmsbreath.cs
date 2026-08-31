@@ -24,7 +24,7 @@ class P6Wyrmsbreath(BossModule module, bool allowIntersect) : Components.Generic
             if (_tooClose[slot])
                 hints.Add("Stretch the tether!");
 
-            Actor? partner = IgnoredPartner(slot, actor);
+            var partner = IgnoredPartner(slot, actor);
             if (ActiveBaitsOn(actor).Any(b => PlayersClippedBy(b).Any(p => p != partner)))
                 hints.Add("Bait away from raid!");
             if (ActiveBaitsNotOn(actor).Any(b => b.Target != partner && IsClippedBy(actor, b)))
@@ -40,7 +40,7 @@ class P6Wyrmsbreath(BossModule module, bool allowIntersect) : Components.Generic
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        Actor? partner = IgnoredPartner(pcSlot, pc);
+        var partner = IgnoredPartner(pcSlot, pc);
         foreach (var bait in ActiveBaitsNotOn(pc).Where(b => b.Target != partner))
             bait.Shape.Draw(Arena, BaitOrigin(bait), bait.Rotation);
     }

@@ -36,7 +36,7 @@ class RubyGlow3(BossModule module) : RubyGlowCommon(module, AID.RubyReflectionQu
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        int order = (AID)spell.Action.ID switch
+        var order = (AID)spell.Action.ID switch
         {
             AID.TopazClusterHit1 => 0,
             AID.TopazClusterHit2 => 1,

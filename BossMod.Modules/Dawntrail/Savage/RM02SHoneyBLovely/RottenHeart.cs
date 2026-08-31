@@ -55,7 +55,7 @@ class RottenHeartBigBurst(BossModule module) : Components.CastCounter(module, AI
         var order = _order[slot];
         if (order == 0)
             return null;
-        for (int i = 0; i < _order.Length; ++i)
+        for (var i = 0; i < _order.Length; ++i)
             if (i != slot && _order[i] == order)
                 return Raid[i];
         return null;

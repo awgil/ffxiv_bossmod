@@ -232,7 +232,7 @@ class RockBlast(BossModule module) : Components.GenericAOEs(module, AID.RockBlas
             var toCaster = caster.Position - Module.Center;
             var cw = toCaster.OrthoL().Dot(spell.Rotation.ToDirection()) < 0;
             var delta = (cw ? -22.5f : 22.5f).Degrees().ToDirection();
-            for (int i = 0; i < 15; ++i)
+            for (var i = 0; i < 15; ++i)
             {
                 _aoes.Add(new(_shape, Module.Center + toCaster, default, Module.CastFinishAt(spell, i * 0.6f)));
                 toCaster = toCaster.Rotate(delta);

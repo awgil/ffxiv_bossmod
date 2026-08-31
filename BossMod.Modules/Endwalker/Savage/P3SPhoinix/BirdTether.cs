@@ -15,7 +15,7 @@ class BirdTether(BossModule module) : BossComponent(module)
     {
         _playersInAOE.Reset();
         var birdsLarge = Module.Enemies(OID.SunbirdLarge);
-        for (int i = 0; i < Math.Min(birdsLarge.Count, _chains.Length); ++i)
+        for (var i = 0; i < Math.Min(birdsLarge.Count, _chains.Length); ++i)
         {
             if (_chains[i].Item3 == 2)
                 continue; // this is finished
@@ -45,9 +45,9 @@ class BirdTether(BossModule module) : BossComponent(module)
             if (nextTarget != null && nextTarget.Position != bird.Position)
             {
                 var fromTo = nextTarget.Position - bird.Position;
-                float len = fromTo.Length();
+                var len = fromTo.Length();
                 fromTo /= len;
-                foreach ((int j, var player) in Raid.WithSlot().Exclude(nextTarget))
+                foreach ((var j, var player) in Raid.WithSlot().Exclude(nextTarget))
                 {
                     if (player.Position.InRect(bird.Position, fromTo, len, 0, _chargeHalfWidth))
                     {
@@ -61,7 +61,7 @@ class BirdTether(BossModule module) : BossComponent(module)
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         var birdsLarge = Module.Enemies(OID.SunbirdLarge);
-        foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
+        foreach ((var bird, (var p1, var p2, var numCharges)) in birdsLarge.Zip(_chains))
         {
             if (numCharges == 2)
                 continue;
@@ -88,7 +88,7 @@ class BirdTether(BossModule module) : BossComponent(module)
     {
         // draw aoe zones for imminent charges, except one towards player
         var birdsLarge = Module.Enemies(OID.SunbirdLarge);
-        foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
+        foreach ((var bird, (var p1, var p2, var numCharges)) in birdsLarge.Zip(_chains))
         {
             if (numCharges == 2)
                 continue;
@@ -97,7 +97,7 @@ class BirdTether(BossModule module) : BossComponent(module)
             if (nextTarget != null && nextTarget != pc && nextTarget.Position != bird.Position)
             {
                 var fromTo = nextTarget.Position - bird.Position;
-                float len = fromTo.Length();
+                var len = fromTo.Length();
                 Arena.ZoneRect(bird.Position, fromTo / len, len, 0, _chargeHalfWidth, ArenaColor.AOE);
             }
         }
@@ -109,11 +109,11 @@ class BirdTether(BossModule module) : BossComponent(module)
         var birdsLarge = Module.Enemies(OID.SunbirdLarge);
         foreach (var bird in birdsLarge)
             Arena.Actor(bird, ArenaColor.Enemy);
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
             Arena.Actor(player, _playersInAOE[i] ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
 
         // draw chains containing player
-        foreach ((var bird, (var p1, var p2, int numCharges)) in birdsLarge.Zip(_chains))
+        foreach ((var bird, (var p1, var p2, var numCharges)) in birdsLarge.Zip(_chains))
         {
             if (numCharges == 2)
                 continue;

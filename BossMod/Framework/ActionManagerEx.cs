@@ -435,7 +435,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode is AIHints.SpecialMode.Pyretic or AIHints.SpecialMode.PyreticMove && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
 
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
-        bool actionImminent = EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && _movement.IsMoving());
+        var actionImminent = EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && _movement.IsMoving());
         var desiredRotation = CalculateDesiredOrientation(actionImminent);
 
         // execute rotation, if needed
@@ -537,7 +537,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
             return false;
 
-        bool areaTargeted = false;
+        var areaTargeted = false;
         var res = _useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, &areaTargeted);
         if (outOptAreaTargeted != null)
             *outOptAreaTargeted = areaTargeted;
@@ -558,7 +558,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         var preventAutos = _autoAutosTweak.ShouldPreventAutoActivation(ActionManager.GetSpellIdForAction(actionType, actionId));
         if (preventAutos)
             targetSystem->Target = null;
-        bool ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam, a7);
+        var ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam, a7);
         if (preventAutos)
             targetSystem->Target = hardTarget;
         var currSeq = _inst->LastUsedActionSequence;
@@ -663,10 +663,10 @@ public sealed unsafe class ActionManagerEx : IAmex
         var info = new ActorCastEvent(new((ActionType)header->ActionType, header->ActionId), header->AnimationTargetId, header->AnimationLock, header->NumTargets, *targetPos,
             header->GlobalSequence, header->SourceSequence, Network.PacketDecoder.IntToFloatAngle(header->RotationInt));
         var rawEffects = (ulong*)effects;
-        for (int i = 0; i < header->NumTargets; ++i)
+        for (var i = 0; i < header->NumTargets; ++i)
         {
             var targetEffects = new ActionEffects();
-            for (int j = 0; j < ActionEffects.MaxCount; ++j)
+            for (var j = 0; j < ActionEffects.MaxCount; ++j)
                 targetEffects[j] = rawEffects[i * 8 + j];
             info.Targets.Add(new(targets[i], targetEffects));
         }

@@ -41,7 +41,7 @@ class Knockback : BossComponent
             hints.Add("About to be knocked into wall!");
         }
 
-        float aoeRange = _isFlare ? _flareRange : _holyRange;
+        var aoeRange = _isFlare ? _flareRange : _holyRange;
         if (Module.PrimaryActor.TargetID == actor.InstanceID)
         {
             // i'm the current tank - i should gtfo from raid if i'll get the flare -or- if i'm vulnerable (assuming i'll pop invul not to die)
@@ -110,7 +110,7 @@ class Knockback : BossComponent
             return;
 
         var targetPos = target == _knockbackTarget ? _knockbackPos : target.Position;
-        float aoeRange = _isFlare ? _flareRange : _holyRange;
+        var aoeRange = _isFlare ? _flareRange : _holyRange;
         if (target == pc)
         {
             // there will be AOE around me, draw all players to help with positioning - note that we use position adjusted for knockback

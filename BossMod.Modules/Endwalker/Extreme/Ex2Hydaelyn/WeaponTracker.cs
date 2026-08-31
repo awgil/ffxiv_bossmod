@@ -17,7 +17,7 @@ class WeaponTracker(BossModule module) : BossComponent(module)
         if (!AOEImminent)
             return;
 
-        bool inAOE = CurStance switch
+        var inAOE = CurStance switch
         {
             Stance.Sword => _aoeSword.Check(actor.Position, Module.PrimaryActor.Position, 0.Degrees()) || _aoeSword.Check(actor.Position, Module.PrimaryActor.Position, 90.Degrees()),
             Stance.Staff => _aoeStaff.Check(actor.Position, Module.PrimaryActor.Position),

@@ -98,7 +98,7 @@ class IntractableLand(BossModule module) : Components.Exaflare(module, 8)
         if ((AID)spell.Action.ID is AID.IntractableLandFirst or AID.IntractableLandRest)
         {
             var pos = (AID)spell.Action.ID == AID.IntractableLandFirst ? caster.Position : spell.TargetXZ;
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(pos, 1));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(pos, 1));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

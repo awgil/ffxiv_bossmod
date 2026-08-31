@@ -9,8 +9,8 @@ class DarkenedFire(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        bool haveTooClose = false;
-        int numInRange = 0;
+        var haveTooClose = false;
+        var numInRange = 0;
         foreach (var player in Raid.WithoutSlot().Where(player => CanBothBeTargets(player, actor)))
         {
             haveTooClose |= player.Position.InCircle(actor.Position, _minRange);
@@ -31,11 +31,11 @@ class DarkenedFire(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw other potential targets, to simplify positioning
-        bool healerOrTank = pc.Role is Role.Tank or Role.Healer;
+        var healerOrTank = pc.Role is Role.Tank or Role.Healer;
         foreach (var player in Raid.WithoutSlot().Where(player => CanBothBeTargets(player, pc)))
         {
-            bool tooClose = player.Position.InCircle(pc.Position, _minRange);
-            bool inRange = player.Position.InCircle(pc.Position, _maxRange);
+            var tooClose = player.Position.InCircle(pc.Position, _minRange);
+            var inRange = player.Position.InCircle(pc.Position, _maxRange);
             Arena.Actor(player, tooClose ? ArenaColor.Danger : (inRange ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric));
         }
 

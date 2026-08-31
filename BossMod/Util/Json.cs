@@ -11,7 +11,7 @@ public static class Json
 
     public static bool TryRenameNode(this JsonObject parent, string oldKey, string newKey)
     {
-        if (!TryRemoveNode(parent, oldKey, out JsonNode? node))
+        if (!TryRemoveNode(parent, oldKey, out var node))
             return false;
         parent.Add(newKey, node);
         return true;

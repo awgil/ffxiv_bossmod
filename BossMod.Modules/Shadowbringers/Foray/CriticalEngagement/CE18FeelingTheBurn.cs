@@ -98,7 +98,7 @@ class ChainCannonEscort(BossModule module) : Components.GenericAOEs(module)
             var index = _casters.FindIndex(c => c.caster.Position.AlmostEqual(caster.Position, 1));
             if (index >= 0)
             {
-                int numCasts = _casters[index].numCasts + 1;
+                var numCasts = _casters[index].numCasts + 1;
                 if (numCasts >= 6)
                     _casters.RemoveAt(index);
                 else

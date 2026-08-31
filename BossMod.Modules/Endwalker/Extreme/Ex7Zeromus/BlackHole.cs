@@ -91,7 +91,7 @@ class FracturedEventide(BossModule module) : Components.GenericAOEs(module)
         if (_source == null)
             yield break;
 
-        for (int i = NumCasts + 1; i < _maxCasts; ++i)
+        for (var i = NumCasts + 1; i < _maxCasts; ++i)
             yield return new(_shape, _source.Position, _startingRotation + i * _increment, _startingActivation.AddSeconds(0.5f * i));
         if (NumCasts < _maxCasts)
             yield return new(_shape, _source.Position, _startingRotation + NumCasts * _increment, _startingActivation.AddSeconds(0.5f * NumCasts), ArenaColor.Danger);

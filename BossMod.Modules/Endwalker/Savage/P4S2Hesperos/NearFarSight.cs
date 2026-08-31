@@ -30,7 +30,7 @@ class NearFarSight : BossComponent
             return;
 
         var playersByRange = Raid.WithSlot().SortedByRange(Module.PrimaryActor.Position);
-        foreach ((int i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
+        foreach ((var i, var player) in CurState == State.Near ? playersByRange.Take(2) : playersByRange.TakeLast(2))
         {
             _targets.Set(i);
             _inAOE |= Raid.WithSlot().InRadiusExcluding(player, _aoeRadius).Mask();
@@ -42,10 +42,10 @@ class NearFarSight : BossComponent
         if (_targets.None())
             return;
 
-        bool isTarget = _targets[slot];
-        bool shouldBeTarget = actor.Role == Role.Tank;
-        bool isFailing = isTarget != shouldBeTarget;
-        bool shouldBeNear = CurState == State.Near ? shouldBeTarget : !shouldBeTarget;
+        var isTarget = _targets[slot];
+        var shouldBeTarget = actor.Role == Role.Tank;
+        var isFailing = isTarget != shouldBeTarget;
+        var shouldBeNear = CurState == State.Near ? shouldBeTarget : !shouldBeTarget;
         hints.Add(shouldBeNear ? "Stay near boss" : "Stay on max melee", isFailing);
         if (_inAOE[slot])
         {
@@ -58,7 +58,7 @@ class NearFarSight : BossComponent
         if (_targets.None())
             return;
 
-        foreach ((int i, var player) in Raid.WithSlot())
+        foreach ((var i, var player) in Raid.WithSlot())
         {
             if (_targets[i])
             {

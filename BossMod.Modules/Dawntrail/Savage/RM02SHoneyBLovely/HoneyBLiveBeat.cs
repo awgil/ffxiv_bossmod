@@ -53,7 +53,7 @@ class Fracture1(BossModule module) : Fracture(module)
     {
         var forbidden = new BitMask();
         if (_hearts != null)
-            for (int i = 0; i < _hearts.Hearts.Length; ++i)
+            for (var i = 0; i < _hearts.Hearts.Length; ++i)
                 if (_hearts.Hearts[i] == 3)
                     forbidden.Set(i);
         return forbidden;
@@ -69,7 +69,7 @@ class Fracture2(BossModule module) : Fracture(module)
     {
         var forbidden = _spreads;
         if (_hearts != null)
-            for (int i = 0; i < _hearts.Hearts.Length; ++i)
+            for (var i = 0; i < _hearts.Hearts.Length; ++i)
                 if (_hearts.Hearts[i] > 1)
                     forbidden.Set(i);
         return forbidden;
@@ -135,7 +135,7 @@ abstract class Heartsick(BossModule module, bool roles) : Components.StackWithIc
         {
             foreach (ref var stack in Stacks.AsSpan())
             {
-                for (int i = 0; i < _hearts.Hearts.Length; ++i)
+                for (var i = 0; i < _hearts.Hearts.Length; ++i)
                 {
                     stack.ForbiddenPlayers[i] = roles
                         ? (_hearts.Hearts[i] > 0 || stack.Target.Class.IsSupport() != Raid[i]?.Class.IsSupport())

@@ -31,7 +31,7 @@ public class OpcodeMap
         var defaultAddr = ReadRVA(func + 23);
         var imagebase = ReadRVA(func + 30);
         var jumptable = (int*)(imagebase + *(int*)(func + 40));
-        for (int i = 0; i < jumptableSize; ++i)
+        for (var i = 0; i < jumptableSize; ++i)
         {
             var bodyAddr = imagebase + jumptable[i];
             if (bodyAddr == defaultAddr)
@@ -55,7 +55,7 @@ public class OpcodeMap
     private static readonly byte[] BodyPrefix = [0x48, 0x8B, 0x01, 0x4D, 0x8D, 0x4A, 0x10, 0x48, 0xFF];
     private static unsafe int ReadIndexForCaseBody(byte* bodyAddr)
     {
-        for (int i = 0; i < BodyPrefix.Length; ++i)
+        for (var i = 0; i < BodyPrefix.Length; ++i)
             if (bodyAddr[i] != BodyPrefix[i])
                 return -1;
         var vtoff = bodyAddr[BodyPrefix.Length] switch

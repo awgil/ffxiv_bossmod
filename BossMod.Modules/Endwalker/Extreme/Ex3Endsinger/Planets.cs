@@ -102,7 +102,7 @@ class Planets(BossModule module) : BossComponent(module)
     {
         var origin = Module.Center + _planetOffset * caster.Rotation.ToDirection();
         var planets = azure ? _planetsAzure : _planetsFiery;
-        int index = firstOfPair ? 0 : planets.Count;
+        var index = firstOfPair ? 0 : planets.Count;
         planets.Insert(index, origin);
     }
 }

@@ -87,8 +87,8 @@ class InfiniteReach(BossModule module) : Components.GenericAOEs(module, AID.Infi
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        bool haveSets = false;
-        int currentSet = NumCasts / 6;
+        var haveSets = false;
+        var currentSet = NumCasts / 6;
         foreach (var c in _castersRect.Skip(currentSet).Take(1).OfType<Actor>())
         {
             haveSets = true;

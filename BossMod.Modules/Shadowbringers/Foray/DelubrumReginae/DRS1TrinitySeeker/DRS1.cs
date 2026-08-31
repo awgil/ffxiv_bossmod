@@ -27,7 +27,7 @@ public class DRS1(WorldState ws, Actor primary) : BossModule(ws, primary, new(0,
 
     protected override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (int i = 0; i < 4; ++i)
+        for (var i = 0; i < 4; ++i)
         {
             var center = (45 + i * 90).Degrees();
             Arena.PathArcTo(Center, BarricadeRadius, (center - 22.5f.Degrees()).Rad, (center + 22.5f.Degrees()).Rad);

@@ -15,7 +15,7 @@ class IntermissionAdds(BossModule module) : BossComponent(module)
         {
             if (crystal.IsTargetable && !crystal.IsDead)
             {
-                bool isActive = _activeCrystals.Contains(crystal.InstanceID);
+                var isActive = _activeCrystals.Contains(crystal.InstanceID);
                 Arena.Actor(crystal, isActive ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
             }
 

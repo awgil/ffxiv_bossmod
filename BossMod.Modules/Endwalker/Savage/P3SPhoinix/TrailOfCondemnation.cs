@@ -36,8 +36,8 @@ class TrailOfCondemnation(BossModule module) : BossComponent(module)
                 hints.Add("GTFO from aoe!");
             }
             // note: sparks either target all tanks & healers or all dds - so correct pairings are always dd+tank/healer
-            int numStacked = 0;
-            bool goodPair = false;
+            var numStacked = 0;
+            var goodPair = false;
             foreach (var pair in Raid.WithoutSlot().InRadiusExcluding(actor, _aoeRadius))
             {
                 ++numStacked;
@@ -77,7 +77,7 @@ class TrailOfCondemnation(BossModule module) : BossComponent(module)
         // draw all raid members, to simplify positioning
         foreach (var player in Raid.WithoutSlot().Exclude(pc))
         {
-            bool inRange = player.Position.InCircle(pc.Position, _aoeRadius);
+            var inRange = player.Position.InCircle(pc.Position, _aoeRadius);
             Arena.Actor(player, inRange ? ArenaColor.PlayerInteresting : ArenaColor.PlayerGeneric);
         }
 

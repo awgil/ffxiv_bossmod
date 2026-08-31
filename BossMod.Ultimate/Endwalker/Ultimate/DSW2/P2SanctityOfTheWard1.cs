@@ -125,9 +125,9 @@ class P2SanctityOfTheWard1Flares(BossModule module) : Components.GenericAOEs(mod
         if (!Utils.AlmostEqual(MathF.Abs(actor.Position.X - Module.Center.X), 5, 1))
             return default;
 
-        bool right = actor.Position.X > Module.Center.X;
-        bool facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
-        bool cw = right == facingSouth;
+        var right = actor.Position.X > Module.Center.X;
+        var facingSouth = Utils.AlmostEqual(actor.Rotation.Rad, 0, 0.1f);
+        var cw = right == facingSouth;
         var res = new ChargeInfo(actor);
         var firstPointDir = actor.Rotation;
         var angleBetweenPoints = (cw ? -1 : 1) * 112.5f.Degrees();
@@ -220,8 +220,8 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
             var severDirEast = _severStartDir;
             if (severDirEast.Rad < 0)
                 severDirEast += 180.Degrees();
-            bool severDiagonalSE = severDirEast.Rad < MathF.PI / 2;
-            bool chargeCW = _flares.ChargeAngle.Rad < 0;
+            var severDiagonalSE = severDirEast.Rad < MathF.PI / 2;
+            var chargeCW = _flares.ChargeAngle.Rad < 0;
             _chargeEarly = severDiagonalSE == chargeCW;
         }
     }
@@ -264,7 +264,7 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
 
     private void AssignmentReassignIfNeeded(Actor player, bool shouldGoEast)
     {
-        int slot = Raid.FindSlot(player.InstanceID);
+        var slot = Raid.FindSlot(player.InstanceID);
         if (shouldGoEast == _groupEast[slot])
             return; // target is already assigned to correct position, no need to swap
         _groupEast.Toggle(slot);
@@ -272,7 +272,7 @@ class P2SanctityOfTheWard1Hints(BossModule module) : BossComponent(module)
 
     private void AssignmentSwapWithRolePartner(Role[] effRoles, Actor player, bool shouldGoEast)
     {
-        int slot = Raid.FindSlot(player.InstanceID);
+        var slot = Raid.FindSlot(player.InstanceID);
         if (shouldGoEast == _groupEast[slot])
             return; // target is already assigned to correct position, no need to swap
         var role = effRoles[slot];

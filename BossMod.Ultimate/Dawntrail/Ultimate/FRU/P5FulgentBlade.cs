@@ -75,7 +75,7 @@ class P5FulgentBlade : Components.Exaflare
                 _nextBundle = WorldState.FutureTime(1);
             }
 
-            int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1) && item.Rotation.AlmostEqual(spell.Rotation, 0.1f));
+            var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1) && item.Rotation.AlmostEqual(spell.Rotation, 0.1f));
             if (index == -1)
             {
                 ReportError($"Failed to find entry for {caster.InstanceID:X}");

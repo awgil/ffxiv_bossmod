@@ -13,7 +13,7 @@ class ProjectionOfTriumph(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var nextOrder = NextOrder();
-        for (int i = 0; i < _lines.Count; ++i)
+        for (var i = 0; i < _lines.Count; ++i)
         {
             var order = i >= 2 ? nextOrder - 2 : nextOrder;
             if (order is >= 0 and < 4)
@@ -21,7 +21,7 @@ class ProjectionOfTriumph(BossModule module) : Components.GenericAOEs(module)
                 var line = _lines[i];
                 var lineCenter = Module.Center + (-15 + 10 * order) * line.Direction;
                 var ortho = line.Direction.OrthoL();
-                for (int j = -15; j <= 15; j += 10)
+                for (var j = -15; j <= 15; j += 10)
                 {
                     yield return new(line.Shape, lineCenter + j * ortho, default, _nextActivation);
                 }

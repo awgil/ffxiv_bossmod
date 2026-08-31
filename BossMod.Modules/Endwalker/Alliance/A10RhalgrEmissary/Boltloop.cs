@@ -10,7 +10,7 @@ class Boltloop(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        AOEShape? shape = (AID)spell.Action.ID switch
+        var shape = (AID)spell.Action.ID switch
         {
             AID.BoltloopAOE1 => _shapes[0],
             AID.BoltloopAOE2 => _shapes[1],

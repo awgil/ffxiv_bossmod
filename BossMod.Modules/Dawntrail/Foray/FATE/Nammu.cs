@@ -198,7 +198,7 @@ class TwinTides(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        int show = 0;
+        var show = 0;
         foreach (var aoe in aoes)
         {
             yield return aoe with { Color = show == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = show == 0 };

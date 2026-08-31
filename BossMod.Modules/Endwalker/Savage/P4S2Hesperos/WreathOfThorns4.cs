@@ -102,10 +102,10 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw other players
-        foreach ((int slot, var player) in Raid.WithSlot().Exclude(pc))
+        foreach ((var slot, var player) in Raid.WithSlot().Exclude(pc))
         {
             var icon = _playerIcons[slot];
-            bool nextBreaking = _doneTowers < 4 ? icon == IconID.AkanthaiWater : (icon == IconID.AkanthaiDark && NextAOE()?.Tether.Target == player.InstanceID);
+            var nextBreaking = _doneTowers < 4 ? icon == IconID.AkanthaiWater : (icon == IconID.AkanthaiDark && NextAOE()?.Tether.Target == player.InstanceID);
             Arena.Actor(player, nextBreaking ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
         }
 
@@ -128,7 +128,7 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
             else
             {
                 // if player has dark => show AOE radius around blue players and single tower to soak
-                for (int i = 0; i < _playerIcons.Length; ++i)
+                for (var i = 0; i < _playerIcons.Length; ++i)
                 {
                     if (_playerIcons[i] == IconID.AkanthaiWater && Raid[i] is var player && player != null)
                     {
@@ -189,21 +189,21 @@ class WreathOfThorns4(BossModule module) : BossComponent(module)
 
     private WPos DetermineWaterSafeSpot(Actor source)
     {
-        bool ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
+        var ccw = Service.Config.Get<P4S2Config>().Act4WaterBreakCCW;
         var dir = (ccw ? -3 : 3) * 45.Degrees();
         return RotateCW(source.Position, dir, 18);
     }
 
     private Actor? DetermineTowerToSoak(Actor source)
     {
-        bool ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
+        var ccw = Service.Config.Get<P4S2Config>().Act4DarkSoakCCW;
         var pos = RotateCW(source.Position, (ccw ? -1 : 1) * 45.Degrees(), 18);
         return _playerTetherSource.FirstOrDefault(x => x != null && x.Position.InCircle(pos, 4));
     }
 
     private Actor? NextAOE()
     {
-        int nextIndex = Math.Max(0, 4 - _activeTethers);
+        var nextIndex = Math.Max(0, 4 - _activeTethers);
         return _darkOrder != null && nextIndex < _darkOrder.Count ? _darkOrder[nextIndex] : null;
     }
 }

@@ -41,7 +41,7 @@ class UmbraSmash(BossModule module) : Components.Exaflare(module, new AOEShapeRe
                 break;
             case AID.UmbraWave:
                 ++NumCasts;
-                int index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
+                var index = Lines.FindIndex(item => item.Next.AlmostEqual(caster.Position, 1));
                 if (index == -1)
                 {
                     ReportError($"Failed to find entry for {caster.InstanceID:X}");

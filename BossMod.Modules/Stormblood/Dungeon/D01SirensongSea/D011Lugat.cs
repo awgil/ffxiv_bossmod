@@ -37,7 +37,7 @@ class Hydroball(BossModule module) : StackWithCastTargets(module, AID.Hydroball,
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        Actor? actorCheck = WorldState.Party[1];
+        var actorCheck = WorldState.Party[1];
         if (actorCheck != null)
         {
             foreach (var s in ActiveStacks)

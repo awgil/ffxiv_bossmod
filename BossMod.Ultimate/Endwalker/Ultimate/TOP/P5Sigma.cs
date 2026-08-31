@@ -129,14 +129,14 @@ class P5Sigma(BossModule module) : BossComponent(module)
     {
         var northAngle = Angle.FromDirection(_waveCannonNorthDir);
         var waveCannonsPerPair = new BitMask[4];
-        for (int i = 0; i < Players.Length; ++i)
+        for (var i = 0; i < Players.Length; ++i)
         {
             var ps = Players[i];
             if (ps.WaveCannonTarget && ps.Order > 0)
                 waveCannonsPerPair[ps.Order - 1].Set(i);
         }
-        int nextSingle = 0;
-        int nextDouble = 0;
+        var nextSingle = 0;
+        var nextDouble = 0;
         foreach (var mask in waveCannonsPerPair)
         {
             if (mask.NumSetBits() == 2)
@@ -303,7 +303,7 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
 
     private void AssignPlayers(P5Sigma sigma, ref Tower tower, params Angle[] angles)
     {
-        for (int i = 0; i < sigma.Players.Length; ++i)
+        for (var i = 0; i < sigma.Players.Length; ++i)
             if (!angles.Any(a => a.AlmostEqual(sigma.Players[i].SpreadAngle, 0.1f)))
                 tower.ForbiddenSoakers.Set(i);
     }
@@ -323,7 +323,7 @@ class P5SigmaRearLasers(BossModule module) : Components.GenericAOEs(module)
     {
         if (!Active)
             yield break;
-        for (int i = NumCasts + 1; i < 14; ++i)
+        for (var i = NumCasts + 1; i < 14; ++i)
             yield return new(_shape, Module.Center, StartingDir + i * Rotation, _activation.AddSeconds(0.6 * i), Risky: false);
         if (NumCasts < 14)
             yield return new(_shape, Module.Center, StartingDir + NumCasts * Rotation, _activation.AddSeconds(0.6 * NumCasts), ArenaColor.Danger);

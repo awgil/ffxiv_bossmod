@@ -12,7 +12,7 @@ class HurricaneWingAOE(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        AOEShape? shape = ShapeForAction(spell.Action);
+        var shape = ShapeForAction(spell.Action);
         if (shape != null)
         {
             NumCasts = 0;
@@ -23,7 +23,7 @@ class HurricaneWingAOE(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        AOEShape? shape = ShapeForAction(spell.Action);
+        var shape = ShapeForAction(spell.Action);
         if (shape != null)
         {
             AOEs.RemoveAll(aoe => aoe.Shape == shape);

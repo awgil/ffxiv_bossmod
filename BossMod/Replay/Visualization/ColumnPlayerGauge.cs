@@ -74,7 +74,7 @@ public class ColumnPlayerGaugeWAR : ColumnPlayerGauge
     {
         _gauge = Add(new ColumnGenericHistory(timeline, tree, phaseBranches));
 
-        int prevGauge = 0;
+        var prevGauge = 0;
         var prevTime = MinTime();
         foreach (var (time, gauge) in EnumerateGauge<WarriorGauge>())
         {

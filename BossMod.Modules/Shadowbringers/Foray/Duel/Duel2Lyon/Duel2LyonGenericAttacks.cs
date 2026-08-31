@@ -96,7 +96,7 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
         {
-            int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
+            var index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);

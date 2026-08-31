@@ -94,8 +94,8 @@ public sealed class ModuleViewer : IDisposable
 
     private void Rebuild()
     {
-        for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
-            for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
+        for (var i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
+            for (var j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
                 _groups[i, j] = [];
 
         foreach (var info in BossModuleRegistry.RegisteredModules.Values)
@@ -326,11 +326,11 @@ public sealed class ModuleViewer : IDisposable
 
         var modified = false;
 
-        for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
+        for (var i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
         {
             if (_filterExpansions[i])
                 continue;
-            for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
+            for (var j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
             {
                 if (_filterCategories[j])
                     continue;

@@ -96,7 +96,7 @@ class AntlionMarch(BossModule module) : Components.GenericAOEs(module)
     {
         if (_casters.Count > 0)
             yield return new(_casters[0].shape, _casters[0].source, _casters[0].direction, _activation, ArenaColor.Danger);
-        for (int i = 1; i < _casters.Count; ++i)
+        for (var i = 1; i < _casters.Count; ++i)
             yield return new(_casters[i].shape, _casters[i].source, _casters[i].direction, _activation);
     }
 

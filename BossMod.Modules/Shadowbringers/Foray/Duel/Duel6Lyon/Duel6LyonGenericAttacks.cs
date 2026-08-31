@@ -51,7 +51,7 @@ class HeavenAndEarth(BossModule module) : Components.GenericRotatingAOE(module)
     private void UpdateIncrement(Angle increment)
     {
         _increment = increment;
-        for (int i = 0; i < Sequences.Count; i++)
+        for (var i = 0; i < Sequences.Count; i++)
         {
             var sequence = Sequences[i];
             sequence.Increment = _increment;
@@ -162,7 +162,7 @@ class NaturesBlood(BossModule module) : Components.Exaflare(module, 4)
     {
         if (Lines.Count > 0 && (AID)spell.Action.ID is AID.NaturesBlood1 or AID.NaturesBlood2)
         {
-            int index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
+            var index = Lines.FindIndex(item => ((LineWithActor)item).Caster == caster);
             AdvanceLine(Lines[index], caster.Position);
             if (Lines[index].ExplosionsLeft == 0)
                 Lines.RemoveAt(index);

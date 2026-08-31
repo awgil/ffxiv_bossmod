@@ -491,7 +491,7 @@ class WillOfTheUnderworldLOS(BossModule module) : Components.GenericAOEs(module,
 
             _rockUnsafe.TryGetValue(rock.InstanceID, out var flags);
 
-            bool fillCenter = dir.X > 0 ? flags.WestUnsafe : dir.X < 0 && flags.EastUnsafe;
+            var fillCenter = dir.X > 0 ? flags.WestUnsafe : dir.X < 0 && flags.EastUnsafe;
 
             if (fillCenter)
                 _aoes.Add(new AOEInstance(RearRect, rock.Position, attack.Rotation));
@@ -745,7 +745,7 @@ class MagneticBoulders(BossModule module) : Components.GenericAOEs(module, AID.M
     private Actor? GetOppositeRock(Actor rock)
     {
         Actor? best = null;
-        float bestDist = float.MinValue;
+        var bestDist = float.MinValue;
 
         foreach (var other in _rocks)
         {

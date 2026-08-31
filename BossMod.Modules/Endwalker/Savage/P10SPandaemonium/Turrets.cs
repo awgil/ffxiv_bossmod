@@ -18,8 +18,8 @@ class Turrets(BossModule module) : Components.Knockback(module, AID.PealOfCondem
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        int inCount = 0;
-        bool outOfBounds = false;
+        var inCount = 0;
+        var outOfBounds = false;
         foreach (var t in ImminentTurretsWithTargets())
         {
             if (t.source == null || t.target == null || !_shape.Check(actor.Position, t.source.Position, Angle.FromDirection(t.target.Position - t.source.Position)))

@@ -10,13 +10,13 @@ class BladeOfEntropy(BossModule module) : TemperatureAOE(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         var playerTemp = Math.Clamp(Temperature(actor), -2, +2);
-        for (int x = -2; x <= +2; ++x)
+        for (var x = -2; x <= +2; ++x)
         {
-            for (int z = -2; z <= +2; ++z)
+            for (var z = -2; z <= +2; ++z)
             {
                 var cellCenter = Module.Center + 10 * new WDir(x, z);
-                int temperature = 0;
-                int numClips = 0;
+                var temperature = 0;
+                var numClips = 0;
                 DateTime activation = new();
                 foreach (var c in _casters)
                 {

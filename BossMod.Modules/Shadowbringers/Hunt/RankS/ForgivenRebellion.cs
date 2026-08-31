@@ -64,10 +64,10 @@ class SanctifiedBlizzardChain(BossModule module) : Components.GenericRotatingAOE
         }
         foreach (var s in Sequences)
         {
-            int num = Math.Min(s.NumRemainingCasts, s.MaxShownAOEs);
+            var num = Math.Min(s.NumRemainingCasts, s.MaxShownAOEs);
             var rot = s.Rotation;
             var time = s.NextActivation > WorldState.CurrentTime ? s.NextActivation : WorldState.CurrentTime;
-            for (int i = 1; i < num; ++i)
+            for (var i = 1; i < num; ++i)
             {
                 rot += s.Increment;
                 time = time.AddSeconds(s.SecondsBetweenActivations);
