@@ -7,7 +7,6 @@ class P2HugNael(BossModule module) : BossComponent(module)
         if (hints.FindEnemy(Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault()) is { } nael && nael.Actor.IsTargetable)
         {
             hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Actor.Position, 10, 0.5f));
-            nael.TankDistance = 0.5f;
             // we prefer to keep nael center to give casters/ranged the most options when trying to spread during mechanics
             nael.DesiredPosition = Arena.Center;
         }

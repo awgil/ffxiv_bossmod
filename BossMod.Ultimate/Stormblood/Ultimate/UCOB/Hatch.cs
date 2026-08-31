@@ -42,8 +42,6 @@ class Hatch : Components.CastCounter
         if (Module.PrimaryActor.IsTargetable)
         {
             var twintania = hints.FindEnemy(Module.PrimaryActor)!;
-            twintania.TankDistance = 0.5f;
-
             switch (_neurolinks.Count)
             {
                 case 0:

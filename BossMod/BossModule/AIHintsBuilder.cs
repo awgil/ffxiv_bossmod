@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.Data;
+
+namespace BossMod;
 
 // utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
 // when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
@@ -132,6 +134,9 @@ public sealed class AIHintsBuilder : IDisposable
             // maybe unnecessary?
             if (actor.FateID > 0 && actor.FateID == allowedFateID && !Utils.IsBossFate(actor.FateID))
                 enemy.ForbidDOTs = true;
+
+            if (PullDistance.TryGet(actor.OID, out var dist))
+                enemy.TankDistance = dist;
 
             hints.PotentialTargets.Add(enemy);
         }
