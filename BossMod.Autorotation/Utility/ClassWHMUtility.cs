@@ -68,7 +68,8 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.AfflatusSolace), WHM.AID.AfflatusSolace, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.AfflatusRapture), WHM.AID.AfflatusRapture, Player);
         ExecuteSimple(strategy.Option(Track.Benediction), WHM.AID.Benediction, defaultHealTarget);
-        ExecuteSimple(strategy.Option(Track.ThinAir), WHM.AID.ThinAir, Player);
+        if (Player.FindStatus(WHM.SID.ThinAir, DateTime.MaxValue) == null)
+            ExecuteSimple(strategy.Option(Track.ThinAir), WHM.AID.ThinAir, Player);
         ExecuteSimple(strategy.Option(Track.Tetragrammaton), WHM.AID.Tetragrammaton, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.DivineBenison), WHM.AID.DivineBenison, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.PlenaryIndulgence), WHM.AID.PlenaryIndulgence, Player);

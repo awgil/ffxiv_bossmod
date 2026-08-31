@@ -82,6 +82,18 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
             _activation = default;
         }
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (IsStackTarget(actor) && ((UCOB)Module).Nael() is { } nael)
+        {
+            var shape = Sdf.Continuous(ShapeDistance.Circle(nael.Position, 5));
+
+            hints.AddForbiddenZone(FireOut ? shape : shape.Inverted(), Stacks[0].Activation);
+        }
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
 }
 
 // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
@@ -123,18 +135,28 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 
         if (IsSpreadTarget(actor))
         {
-            if (actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1))
-                return;
+            if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+            {
+                if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
+                {
+                    hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), Spreads[0].Activation);
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCone(nael.Position, 100, (nael.Position - Arena.Center).ToAngle(), 90.Degrees()), Spreads[0].Activation);
+                }
+                else if (nael.TargetID != actor.InstanceID)
+                {
+                    // TODO: work out how we can let melees have uptime without them killing the whole party
+                    hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 6.5f), Spreads[0].Activation);
+                }
+            }
 
-            foreach (var p in Module.Enemies(OID.VoidzoneSalvation).Where(e => e.EventState != 7))
-                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius), Spreads[0].Activation);
+            // avoid doom cleanse puddles (unless we are doomed, in which case ignore them)
+            if (!(actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1)))
+                foreach (var p in Module.Enemies(OID.VoidzoneSalvation).Where(e => e.EventState != 7))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius), Spreads[0].Activation);
         }
 
         foreach (var sp in ActiveSpreadTargets.Exclude(actor))
             hints.AddForbiddenZone(ShapeDistance.Circle(sp.Position, Spreads[0].Radius + ExtraAISpreadThreshold), Spreads[0].Activation);
-
-        if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] } && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
-            hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), DateTime.MaxValue);
     }
 }
 

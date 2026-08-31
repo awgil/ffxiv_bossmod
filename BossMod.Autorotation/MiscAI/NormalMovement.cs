@@ -205,7 +205,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
 
             if (enemy.DesiredPosition is { } pos)
-                Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, 0.5f));
+                Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, GCD, 0.5f));
         }
 
         var speed = World.Client.MoveSpeed;

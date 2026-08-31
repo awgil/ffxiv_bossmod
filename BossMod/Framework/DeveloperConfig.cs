@@ -10,5 +10,5 @@ public sealed class DeveloperConfig : ConfigNode
     public bool AutoBitmaps = true;
 
     [PropertyDisplay("Enable module hot-reloading")]
-    public bool HotReload = true; // FIXME: turn off once i launch all the clients
+    public bool HotReload = false;
 }

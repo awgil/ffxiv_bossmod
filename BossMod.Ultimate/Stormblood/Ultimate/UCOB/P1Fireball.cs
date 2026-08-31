@@ -3,6 +3,7 @@
 class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 4)
 {
     int _neurolinkCount = 0;
+    readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
 
     public WPos Destination { get; private set; }
 
@@ -10,9 +11,24 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
     {
         if (iconID == StackIcon)
         {
+            var slot = Raid.FindSlot(actor.InstanceID);
+
             if (_neurolinkCount == 0)
             {
-                AddStack(actor, WorldState.FutureTime(5.3f), Raid.WithSlot().WhereActor(a => a.Role == Role.Tank).Mask());
+                var assignments = _prc.AssignmentsPerSlot(Raid);
+                BitMask forbidden = new();
+                var hAvoid = PartyRolesConfig.Assignment.H1;
+                if (assignments[slot] == hAvoid)
+                    hAvoid = PartyRolesConfig.Assignment.H2;
+
+                for (var i = 0; i < assignments.Length; i++)
+                {
+                    if (assignments[i] is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT || assignments[i] == hAvoid)
+                        forbidden.Set(i);
+                }
+
+                AddStack(actor, WorldState.FutureTime(5.3f), forbidden);
+
                 Destination = Module.PrimaryActor.Position + Module.PrimaryActor.DirectionTo(Arena.Center) * (Module.PrimaryActor.HitboxRadius + 3);
             }
             else

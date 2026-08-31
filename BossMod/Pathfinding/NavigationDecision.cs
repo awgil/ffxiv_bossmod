@@ -42,7 +42,7 @@ public struct NavigationDecision
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones/*Old*/(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
         if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
         else if (forbiddenZoneCushion > 0)
@@ -104,10 +104,11 @@ public struct NavigationDecision
             RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
 
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
-        var realMaxG = map.PixelMaxG.Max();
+        var ipx = map.Width * map.Height;
+        var realMaxG = map.PixelMaxG.Take(ipx).Max();
         if (realMaxG < float.MaxValue)
         {
-            for (var i = 0; i < map.PixelMaxG.Length; i++)
+            for (var i = 0; i < ipx; i++)
                 if (map.PixelMaxG[i] == realMaxG)
                 {
                     map.PixelMaxG[i] = float.MaxValue;
@@ -119,6 +120,7 @@ public struct NavigationDecision
     public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
     {
         Array.Fill(gScratch, float.MinValue);
+        Array.Fill(dScratch, false);
 
         var discrete = !sdf.IsContinuous;
 

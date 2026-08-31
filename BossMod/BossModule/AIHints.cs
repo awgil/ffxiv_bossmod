@@ -456,23 +456,29 @@ public sealed class AIHints
         };
     }
 
-    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float destRadius = 2)
+    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2)
     {
         var enemy = FindEnemy(target);
         if (enemy == null)
             return _ => 0;
 
         var adjRange = enemy.TankDistance + target.HitboxRadius;
-        var desiredToTarget = destination - target.Position;
+        var dirToGoal = destination - target.Position;
+        var distToGoal = dirToGoal.Length() + adjRange;
         var leewaySq = destRadius * destRadius;
 
         // try to stay within pull range
-        if (desiredToTarget.LengthSq() <= leewaySq)
+        if (dirToGoal.LengthSq() <= leewaySq)
             return GoalSingleTarget(target.Position, target.HitboxRadius + enemy.TankDistance, 0.5f);
 
-        var dest = destination + adjRange * desiredToTarget.Normalized();
+        var distance = distToGoal;
+        if (gcd < 0.5f)
+        {
+            var playerEffRange = player.Role is Role.Tank or Role.Melee ? 3 : 25;
+            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + playerEffRange);
+        }
 
-        var sh = ShapeDistance.PrecisePosition(dest, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
+        var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
         return p => sh(p) > 0 ? 10 : 0;
     }
 }

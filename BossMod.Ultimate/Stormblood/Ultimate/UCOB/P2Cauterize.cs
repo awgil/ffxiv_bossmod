@@ -12,10 +12,11 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 
     private static readonly AOEShapeRect _shape = new(52, 10);
 
-    public static readonly WPos[] StandardBaits = [
-        new(17.264f, -9.066f),
-        new(7.612f, 17.953f),
-        new(-16.805f, 9.891f)
+    // todo: make static
+    public readonly WPos[] StandardBaits = [
+        new(18.149f, -9.531f),
+        new(8, 18.874f),
+        new(-17.667f, 10.398f)
     ];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -39,7 +40,12 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
         if (bo >= NextBaitOrder)
         {
             if (_numHypernovas >= Math.Min(4, bo * 2 - 1))
-                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(StandardBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
+            {
+                var dir = StandardBaits[bo - 1] - actor.Position;
+                hints.ForcedMovement = dir.LengthSq() > 0.1f ? dir.ToVec3() : new(0);
+                // TODO: goal cell is too close to the arena border so preciseposition can't handle it, what do we do here 
+                //hints.AddForbiddenZone(ShapeDistance.PrecisePosition(StandardBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
+            }
             else
                 hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(StandardBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline);
         }
@@ -51,7 +57,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
         {
             foreach (var d in DragonsForOrder(BaitOrder[pcSlot].Order))
             {
-                Arena.Actor(d, ArenaColor.Object, true);
+                Arena.ActorInsideBounds(d.Position, d.Rotation, ArenaColor.Object);
                 _shape.Outline(Arena, d.Position, Angle.FromDirection(pc.Position - d.Position));
             }
 

@@ -96,8 +96,8 @@ class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(mod
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Stacks.Count > 0 && Raid.WithoutSlot().Farthest(actor.Position) is { } t)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, StackRadius), Stacks[0].Activation);
+        if (Stacks.Count > 0 && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nael.Position, 2), Stacks[0].Activation);
     }
 }
 
@@ -156,5 +156,16 @@ class QuoteDalamudDive(BossModule module) : Components.GenericBaitAway(module, A
             CurrentBaits.Add(new(target, target, _shape));
         else if (!imminent && CurrentBaits.Count > 0)
             CurrentBaits.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // tank should plant and let party dodge
+        if (!CurrentBaits.Any(b => b.Target == actor))
+            base.AddAIHints(slot, actor, assignment, hints);
+
+        if (actor.Role is Role.Melee or Role.Tank)
+            foreach (var b in CurrentBaits)
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(b.Target.Position, 6));
     }
 }

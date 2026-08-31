@@ -101,14 +101,13 @@ class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(m
     public void Show()
     {
         if (_target != null)
-        {
             CurrentBaits.Add(new(_target, _target, _shape));
-        }
     }
 
     public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
+        if (!CurrentBaits.Any(b => b.Target == actor))
+            base.AddAIHints(slot, actor, assignment, hints);
 
         // preposition close to nael
         if (actor.Role is Role.Melee or Role.Tank)
