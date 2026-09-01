@@ -15,10 +15,30 @@ class P3SeventhUmbralEra(BossModule module) : Components.Knockback(module, AID.S
 class P3CalamitousFlame(BossModule module) : Components.CastCounter(module, AID.CalamitousFlame);
 class P3CalamitousBlaze(BossModule module) : Components.CastCounter(module, AID.CalamitousBlaze);
 
-class P3Preposition(BossModule module) : BossComponent(module)
+class P3BahamutMoon(BossModule module) : Components.Voidzone(module, 8, OID.BahamutMoon)
+{
+    bool _knockbackHappened;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.SeventhUmbralEra)
+            _knockbackHappened = true;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (_knockbackHappened)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, Sources.Any() ? 9.5f : 6));
+    }
+}
+
+class P3BossPositioning(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 7 + 0.25f * (int)assignment));
+        if (hints.FindEnemy(((UCOB)Module).BahamutPrime()) is { } bp)
+            bp.DesiredRotation = 180.Degrees();
     }
 }

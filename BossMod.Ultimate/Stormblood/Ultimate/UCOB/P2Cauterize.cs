@@ -43,6 +43,10 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
             {
                 var dir = StandardBaits[bo - 1] - actor.Position;
                 hints.ForcedMovement = dir.LengthSq() > 0.1f ? dir.ToVec3() : new(0);
+
+                // helper to prevent problematic dashes
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(StandardBaits[bo - 1], 3), DateTime.MaxValue);
+
                 // TODO: goal cell is too close to the arena border so preciseposition can't handle it, what do we do here 
                 //hints.AddForbiddenZone(ShapeDistance.PrecisePosition(StandardBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
             }

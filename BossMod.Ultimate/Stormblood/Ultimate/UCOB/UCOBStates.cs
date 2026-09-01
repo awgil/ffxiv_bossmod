@@ -21,8 +21,11 @@ class UCOBStates : StateMachineBuilder
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(3, Phase2, "P2: Nael")
             .ActivateOnEnter<P2HugNael>()
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HPMP.CurHP <= 1 && Module.FindComponent<P2BlockTransition>() == null;
         SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
+            .ActivateOnEnter<P3BossPositioning>()
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .DeactivateOnExit<Hatch>()
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead && _module.Nael() is var nael && nael != null && nael.IsDead;
         SimplePhase(5, Phase5, "P5: Golden Bahamut")
@@ -462,10 +465,10 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3SeventhUmbralEra>(id, delay, comp => comp.NumCasts > 0, "Knockback")
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
             .ActivateOnEnter<P3SeventhUmbralEra>()
+            .ActivateOnEnter<P3BahamutMoon>()
             .DeactivateOnExit<P3SeventhUmbralEra>();
         ComponentCondition<P3CalamitousFlame>(id + 0x10, 3, comp => comp.NumCasts > 0)
             .ActivateOnEnter<P3CalamitousFlame>()
-            .ActivateOnEnter<P3Preposition>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<P3CalamitousFlame>(id + 0x11, 1, comp => comp.NumCasts > 1)
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -479,7 +482,7 @@ class UCOBStates : StateMachineBuilder
         ActorTargetable(id + 0x100, _module.BahamutPrime, true, 3.0f, "Boss appears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .SetHint(StateMachine.StateHint.DowntimeEnd)
-            .DeactivateOnExit<P3Preposition>();
+            .DeactivateOnExit<P3BahamutMoon>();
     }
 
     private State P3FlareBreath(uint id, float delay)

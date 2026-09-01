@@ -145,14 +145,15 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
                 else if (nael.TargetID != actor.InstanceID)
                 {
                     // TODO: work out how we can let melees have uptime without them killing the whole party
-                    hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 6.5f), Spreads[0].Activation);
+                    // TODO: this kills doom players if the doom puddle is inside the boss hitbox
+                    //hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 6.5f), Spreads[0].Activation);
                 }
             }
 
             // avoid doom cleanse puddles (unless we are doomed, in which case ignore them)
             if (!(actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1)))
                 foreach (var p in Module.Enemies(OID.VoidzoneSalvation).Where(e => e.EventState != 7))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius), Spreads[0].Activation);
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius + ExtraAISpreadThreshold), Spreads[0].Activation);
         }
 
         foreach (var sp in ActiveSpreadTargets.Exclude(actor))
