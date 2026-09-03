@@ -126,6 +126,8 @@ public sealed class TrackAttribute() : Attribute
     public Type? Renderer;
     public ActionID[] ActionIDs = [];
 
+    public StrategyContext Context = StrategyContext.All;
+
     public object Action
     {
         set => Actions = [value];
