@@ -1,15 +1,6 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class Twister(BossModule module) : Components.CastTwister(module, 2, (uint)OID.VoidzoneTwister, AID.Twister, 0.3f, 0.5f)
-{
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var p in PredictedPositions)
-            yield return new(new AOEShapeCircle(3), p, default, PredictedActivation);
-        foreach (var p in ActiveTwisters)
-            yield return new(new AOEShapeCircle(1.25f), p.Position);
-    }
-}
+class Twister(BossModule module) : Components.CastTwister(module, 1.25f, (uint)OID.VoidzoneTwister, AID.Twister, 0.3f, predictBeforeSpawn: 0.8f);
 
 class P1Twister : Twister
 {

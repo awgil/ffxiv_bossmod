@@ -199,7 +199,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             }
 
             // add all other targets to potential targets list (e.g. if modules modify out-of-combat mob priority)
-            if (target.Priority >= 0)
+            if (target.Priority >= 0 || target.ShouldBeTargeted)
                 prioritize(target, target.Priority);
         }
 

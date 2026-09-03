@@ -196,7 +196,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             Hints.AddForbiddenZone(ShapeDistance.Donut(Player.Position, 1, distance - 1), World.FutureTime(2));
         }
 
-        if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID)
+        if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID && !Hints.AvoidMovement)
         {
             if (enemy.DesiredRotation is { } rot)
             {

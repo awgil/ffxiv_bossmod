@@ -9,6 +9,9 @@ class P2HugNael(BossModule module) : BossComponent(module)
             hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Actor.Position, 10, 0.5f));
             // we prefer to keep nael center to give casters/ranged the most options when trying to spread during mechanics
             nael.DesiredPosition = Arena.Center;
+
+            if (nael.Actor.HPMP.CurHP == 1)
+                nael.ShouldBeTargeted = true;
         }
     }
 }
@@ -135,13 +138,12 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 
         if (IsSpreadTarget(actor))
         {
+            hints.AvoidMovement = true;
+
             if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
             {
                 if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
-                {
                     hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), Spreads[0].Activation);
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCone(nael.Position, 100, (nael.Position - Arena.Center).ToAngle(), 90.Degrees()), Spreads[0].Activation);
-                }
                 else if (nael.TargetID != actor.InstanceID)
                 {
                     // TODO: work out how we can let melees have uptime without them killing the whole party

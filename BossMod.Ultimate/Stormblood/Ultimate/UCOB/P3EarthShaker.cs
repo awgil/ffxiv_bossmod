@@ -11,7 +11,30 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
         if (iconID == (uint)IconID.Earthshaker && Module.Enemies(OID.BahamutPrime).FirstOrDefault() is var source && source != null)
         {
             var list = CurrentBaits.Count < 4 ? CurrentBaits : _futureBaits;
-            list.Add(new(source, actor, _shape));
+            list.Add(new(source, actor, _shape, WorldState.FutureTime(5.1f)));
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.FindComponent<P3QuickmarchTrio>() is not { } qmt)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        var dirNorth = (qmt.RelativeNorth - Arena.Center).ToAngle();
+        if (CurrentBaits.FirstOrNull(b => b.Target == actor) is { } bait)
+        {
+            var safeDir = assignment switch
+            {
+                PartyRolesConfig.Assignment.H1 => dirNorth + 45.Degrees(),
+                PartyRolesConfig.Assignment.H2 => dirNorth - 45.Degrees(),
+                _ => dirNorth - 135.Degrees()
+            };
+
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, safeDir, 60, 0, 1), bait.Activation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 3), bait.Activation);
         }
     }
 

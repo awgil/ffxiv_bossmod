@@ -2,14 +2,17 @@
 
 class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 {
-    private Actor? _relNorth;
+    public WPos RelativeNorth { get; private set; }
     private readonly WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
 
-    public bool Active => _relNorth != null;
+    public bool Active => RelativeNorth != default;
+    private DateTime _diveAt;
+    private bool _divesDone;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.Actor(_relNorth, ArenaColor.Object, true);
+        if (Active)
+            Arena.ActorInsideBounds(RelativeNorth, (Arena.Center - RelativeNorth).ToAngle(), ArenaColor.Object);
         var safespot = _safeSpots[pcSlot];
         if (safespot != default)
             Arena.AddCircle(safespot, 1, ArenaColor.Safe);
@@ -17,9 +20,13 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
+        if (_divesDone)
+            return;
+
         if ((OID)actor.OID == OID.BahamutPrime && id == 0x1E43)
         {
-            _relNorth = actor;
+            RelativeNorth = actor.Position;
+            _diveAt = WorldState.FutureTime(5.1f);
             var dirToNorth = Angle.FromDirection(actor.Position - Module.Center);
             foreach (var p in Service.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Raid))
             {
@@ -27,8 +34,27 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
                 var order = p.group & 3;
                 var offset = (60 + order * 20).Degrees();
                 var dir = dirToNorth + (left ? offset : -offset);
-                _safeSpots[p.slot] = Module.Center + 20 * dir.ToDirection();
+                _safeSpots[p.slot] = Module.Center + 19.5f * dir.ToDirection();
             }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_diveAt != default && _safeSpots[slot] != default)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 3), _diveAt);
+
+        if (Module.FindComponent<P3Twister>() is { Predicted: true } or { Active: true })
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 10));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.LunarDive)
+        {
+            _divesDone = true;
+            _diveAt = default;
+            Array.Fill(_safeSpots, default);
         }
     }
 }
@@ -36,7 +62,10 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 class P3TwistingDive(BossModule module) : Components.StandardAOEs(module, AID.TwistingDive, new AOEShapeRect(60, 4));
 class P3LunarDive(BossModule module) : Components.StandardAOEs(module, AID.LunarDive, new AOEShapeRect(60, 4));
 class P3MegaflareDive(BossModule module) : Components.StandardAOEs(module, AID.MegaflareDive, new AOEShapeRect(60, 6));
-class P3Twister(BossModule module) : Components.ImmediateTwister(module, 2, (uint)OID.VoidzoneTwister, 1.4f); // TODO: verify radius
+class P3Twister(BossModule module) : Components.CastTwister(module, 1.25f, (uint)OID.VoidzoneTwister, AID.TwistingDive, 1.4f, predictBeforeSpawn: 0.8f)
+{
+    public bool Predicted => PredictedPositions.Count > 0;
+}
 
 class P3MegaflareSpreadStack : Components.UniformStackSpread
 {
@@ -45,6 +74,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
     public P3MegaflareSpreadStack(BossModule module) : base(module, 5, 5, 3, 3, alwaysShowSpreads: true)
     {
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(2.6f));
+        ExtraAISpreadThreshold = 0;
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -67,6 +97,17 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
                 Stacks.Clear();
                 break;
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (IsStackTarget(actor) && Module.FindComponent<P3QuickmarchTrio>() is { } qmt)
+        {
+            var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2), Stacks[0].Activation);
+        }
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 

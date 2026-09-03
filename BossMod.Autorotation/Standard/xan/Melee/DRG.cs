@@ -128,10 +128,10 @@ public sealed class DRG(RotationModuleManager manager, Actor player) : Attackxan
         {
             if (Player.DistanceToHitbox(primaryTarget) <= 3)
             {
-                if (CountdownRemaining < 0.76f)
+                if (CountdownRemaining < GetApplicationDelay(AID.TrueThrust))
                     PushGCD(AID.TrueThrust, primaryTarget);
             }
-            else if (CountdownRemaining < 0.6f)
+            else if (CountdownRemaining < 0.7f)
                 PushGCD(AID.WingedGlide, primaryTarget);
 
             return;

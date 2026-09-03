@@ -517,14 +517,13 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3MegaflareDive>(id + 0x30, 1.1f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P3MegaflareDive>();
         ComponentCondition<P3MegaflareDive>(id + 0x31, 4, comp => comp.NumCasts > 0, "Dives")
+            .ActivateOnEnter<P3Twister>()
             .ActivateOnEnter<P3TwistingDive>()
             .ActivateOnEnter<P3LunarDive>()
             .DeactivateOnExit<P3TwistingDive>()
             .DeactivateOnExit<P3LunarDive>()
-            .DeactivateOnExit<P3MegaflareDive>()
-            .DeactivateOnExit<P3QuickmarchTrio>();
-        ComponentCondition<P3Twister>(id + 0x40, 1.3f, comp => comp.Active, "Twisters")
-            .ActivateOnEnter<P3Twister>();
+            .DeactivateOnExit<P3MegaflareDive>();
+        ComponentCondition<P3Twister>(id + 0x40, 1.3f, comp => comp.Active, "Twisters");
 
         ComponentCondition<P3MegaflarePuddle>(id + 0x50, 1.8f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P3MegaflareSpreadStack>() // stack icons appear ~0.1s before puddles start
@@ -547,7 +546,8 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3EarthShaker>(id + 0x60, 2.3f, comp => comp.NumCasts > 0, "Baited cones")
             .DeactivateOnExit<P3EarthShaker>();
         ComponentCondition<P3TempestWing>(id + 0x70, 2.0f, comp => comp.NumCasts > 0, "Tethers")
-            .DeactivateOnExit<P3TempestWing>();
+            .DeactivateOnExit<P3TempestWing>()
+            .DeactivateOnExit<P3QuickmarchTrio>();
 
         P3FlareBreath(id + 0x1000, 4.1f);
         P3Flatten(id + 0x2000, 4.1f)

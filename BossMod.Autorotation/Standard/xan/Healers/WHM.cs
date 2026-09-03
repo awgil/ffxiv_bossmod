@@ -12,6 +12,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         public Track<AOEStrategy> AOE;
         [Track("Presence of Mind", Action = AID.PresenceOfMind)]
         public Track<OffensiveStrategy> Buffs;
+        [Track(Action = AID.Assize)]
         public Track<AssizeStrategy> Assize;
 
         [Track(InternalName = "Afflatus Misery")]

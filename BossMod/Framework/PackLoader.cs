@@ -125,7 +125,7 @@ sealed class PackLoader : IDisposable
             _loadContexts[e.FullPath] = ctx;
     }
 
-    static void Load(Assembly asm, string dllPath)
+    void Load(Assembly asm, string dllPath)
     {
         Service.Config.ScanAssembly(asm);
         RotationModuleRegistry.ScanAssembly(asm);
@@ -133,11 +133,12 @@ sealed class PackLoader : IDisposable
         ZoneModuleRegistry.ScanAssembly(asm);
         AnalyzerRegistry.ScanAssembly(asm);
 
-        Service.Notifications?.AddNotification(new()
-        {
-            Content = $"Loaded {Path.GetFileName(dllPath)}",
-            Type = Dalamud.Interface.ImGuiNotification.NotificationType.Success,
-        });
+        if (_watcher.EnableRaisingEvents)
+            Service.Notifications?.AddNotification(new()
+            {
+                Content = $"Loaded {Path.GetFileName(dllPath)}",
+                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Success,
+            });
     }
 
     static void Unload(Assembly asm)

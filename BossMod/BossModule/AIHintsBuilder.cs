@@ -214,17 +214,17 @@ public sealed class AIHintsBuilder : IDisposable
             if (aoe.Caster.IsAlly)
                 continue;
 
+            if (aoe.Caster.CastInfo?.TargetID == player.InstanceID)
+                continue;
+
             var targetPos = aoe.Caster.CastInfo!.LocXZ;
             if (aoe.Target is { } tar && tar != aoe.Caster)
                 targetPos = tar.Position;
             var rot = aoe.Caster.CastInfo!.Rotation;
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
+
             if (aoe.IsCharge)
-            {
-                // ignore charge AOEs that target player, as they presumably can't be avoided
-                if (aoe.Target != player)
-                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
-            }
+                hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
             else if (aoe.Shape is AOEShapeCone cone)
             {
                 // not sure how best to adjust cone shape distance to account for quantization error - we just pretend it is being cast from MaxError units "behind" the reported position and increase radius similarly
@@ -233,9 +233,7 @@ public sealed class AIHintsBuilder : IDisposable
                 hints.AddForbiddenZone(ShapeDistance.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
             }
             else
-            {
                 hints.AddForbiddenZone(aoe.Shape, targetPos, rot, finishAt, aoe.Caster.InstanceID);
-            }
         }
 
         foreach (var gaze in _activeGazes.Values)

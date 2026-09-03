@@ -164,8 +164,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
 
-        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod);
-        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod);
+        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
+        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));

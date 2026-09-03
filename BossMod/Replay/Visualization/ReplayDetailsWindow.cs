@@ -116,7 +116,7 @@ class ReplayDetailsWindow : UIWindow
             }
 
             var drawTimerPre = DateTime.Now;
-            _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true);
+            _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true, _hints);
             var drawTimerPost = DateTime.Now;
 
             if (_showDebug && _mgr.ActiveModule.Raid[_povSlot] is var pc && pc != null)

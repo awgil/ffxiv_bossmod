@@ -162,7 +162,7 @@ public abstract class BossModule : IDisposable
         }
     }
 
-    public void Draw(Angle cameraAzimuth, int pcSlot, bool includeText, bool includeArena)
+    public void Draw(Angle cameraAzimuth, int pcSlot, bool includeText, bool includeArena, AIHints hints)
     {
         var pc = Raid[pcSlot];
         if (pc == null)
@@ -183,7 +183,7 @@ public abstract class BossModule : IDisposable
         if (includeArena)
         {
             Arena.Begin(cameraAzimuth);
-            DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2));
+            DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2), hints);
             Arena.End();
         }
     }
@@ -193,7 +193,7 @@ public abstract class BossModule : IDisposable
 
     static bool IsMelee(Actor pc) => pc is { Role: Role.Melee or Role.Tank } or { Class: Class.RDM };
 
-    public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks)
+    public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks, AIHints hints)
     {
         if (WindowConfig.ShowWaymarks)
             DrawWaymarks();
@@ -231,7 +231,7 @@ public abstract class BossModule : IDisposable
         if (DebugOpts.DrawAllActors)
             DrawAllActors();
         if (WindowConfig.ShowPullDebug)
-            DrawPulls();
+            DrawPulls(hints);
         Arena.Actor(pc, ArenaColor.PC, true);
     }
 
@@ -352,21 +352,21 @@ public abstract class BossModule : IDisposable
             ImGui.SetTooltip(string.Join("\n", tooltip));
     }
 
-    private void DrawPulls()
+    private void DrawPulls(AIHints hints)
     {
-        foreach (var actor in WorldState.Actors.Where(a => a is { IsAlly: false, IsTargetable: true, IsDeadOrDestroyed: false }))
+        foreach (var enemy in hints.PotentialTargets.Where(a => a.Actor is { IsDeadOrDestroyed: false, CastInfo: null }))
         {
-            var tankDistance = actor.HitboxRadius + (actor.OID == 0x1FDF ? 0.5f : 2); // TODO: we should just have a static list somewhere, like AggroDistance
+            var tankDistance = enemy.Actor.HitboxRadius + enemy.TankDistance;
 
-            if (WorldState.Actors.Find(actor.TargetID) is { } target)
+            if (WorldState.Actors.Find(enemy.Actor.TargetID) is { } target)
             {
-                var toTarget = target.Position - actor.Position;
+                var toTarget = target.Position - enemy.Actor.Position;
                 var distToTarget = toTarget.Length();
-                if (distToTarget >= tankDistance)
+                if (distToTarget > tankDistance)
                 {
                     var movement = toTarget.Normalized() * (distToTarget - tankDistance);
-                    Arena.AddLine(actor.Position, actor.Position + movement, 0xFFFFFF00);
-                    Arena.AddCircle(actor.Position + movement, 0.5f, 0xFFFFFF00);
+                    Arena.AddLine(enemy.Actor.Position, enemy.Actor.Position + movement, 0xFFFFFF00);
+                    Arena.AddCircle(enemy.Actor.Position + movement, 0.5f, 0xFFFFFF00);
                 }
             }
         }
