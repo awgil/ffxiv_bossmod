@@ -13,7 +13,7 @@ public static class RotationModuleRegistry
 
     private static readonly Dictionary<string, Entry> _modules = [];
 
-    public static void ScanAssembly(Assembly assembly)
+    private static bool ScanAssembly(Assembly assembly)
     {
         var modified = false;
 
@@ -31,16 +31,28 @@ public static class RotationModuleRegistry
             _modules[t.FullName!] = new(t, def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t));
         }
 
-        if (modified)
-            Modified.Fire();
+        return modified;
     }
 
-    public static void UnloadFrom(Assembly assembly)
+    private static bool UnloadFrom(Assembly assembly)
     {
         var modified = false;
 
         foreach (var (k, _) in _modules.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
             modified |= _modules.Remove(k);
+
+        return modified;
+    }
+
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        var modified = false;
+
+        foreach (var a in old)
+            modified |= UnloadFrom(a);
+
+        foreach (var a in @new)
+            modified |= ScanAssembly(a);
 
         if (modified)
             Modified.Fire();

@@ -18,7 +18,7 @@ public static class ZoneModuleRegistry
 
     private static readonly Dictionary<uint, Info> _modulesByCFC = [];
 
-    public static void ScanAssembly(Assembly assembly)
+    private static bool ScanAssembly(Assembly assembly)
     {
         var modified = false;
 
@@ -39,16 +39,28 @@ public static class ZoneModuleRegistry
             modified = true;
         }
 
-        if (modified)
-            Modified.Fire();
+        return modified;
     }
 
-    public static void UnloadFrom(Assembly assembly)
+    private static bool UnloadFrom(Assembly assembly)
     {
         var modified = false;
 
         foreach (var (k, _) in _modulesByCFC.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
             modified |= _modulesByCFC.Remove(k);
+
+        return modified;
+    }
+
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        var modified = false;
+
+        foreach (var a in old)
+            modified |= UnloadFrom(a);
+
+        foreach (var a in @new)
+            modified |= ScanAssembly(a);
 
         if (modified)
             Modified.Fire();

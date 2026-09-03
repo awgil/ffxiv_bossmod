@@ -9,7 +9,7 @@ public sealed class RotationDatabase : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public RotationDatabase(DirectoryInfo rootPath, FileInfo defaultPresets)
+    public RotationDatabase(DirectoryInfo rootPath, FileInfo defaultPresets, PackLoader loader)
     {
         if (!rootPath.Exists)
             rootPath.Create();
@@ -17,11 +17,7 @@ public sealed class RotationDatabase : IDisposable
         Plans = new(rootPath.FullName + "/plans");
 
         _subscriptions = new(
-            BossModuleRegistry.Modified.Subscribe(() =>
-            {
-                Plans.Load();
-            }),
-            RotationModuleRegistry.Modified.Subscribe(() =>
+            loader.Modified.Subscribe(() =>
             {
                 Presets.Load();
                 Plans.Load();

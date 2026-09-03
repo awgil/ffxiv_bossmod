@@ -181,7 +181,7 @@ public static class BossModuleRegistry
     private static readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
     private static readonly Dictionary<string, Info> _modulesByType = []; // [type fullname] = module info
 
-    public static void ScanAssembly(Assembly assembly)
+    private static bool ScanAssembly(Assembly assembly)
     {
         var modified = false;
 
@@ -198,11 +198,10 @@ public static class BossModuleRegistry
                 Service.Log($"[ModuleRegistry] Two boss modules have same primary actor OID: {t.FullName} and {_modulesByOID[info.PrimaryActorOID].ModuleType.FullName}");
         }
 
-        if (modified)
-            Modified.Fire();
+        return modified;
     }
 
-    public static void UnloadFrom(Assembly assembly)
+    private static bool UnloadFrom(Assembly assembly)
     {
         var modified = false;
 
@@ -211,6 +210,19 @@ public static class BossModuleRegistry
 
         foreach (var (k, _) in _modulesByOID.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
             modified |= _modulesByOID.Remove(k);
+
+        return modified;
+    }
+
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        var modified = false;
+
+        foreach (var a in old)
+            modified |= UnloadFrom(a);
+
+        foreach (var a in @new)
+            modified |= ScanAssembly(a);
 
         foreach (var m in _modulesByType.Values)
             modified |= _modulesByOID.TryAdd(m.PrimaryActorOID, m);

@@ -376,9 +376,6 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         if (!strategy.AOE.AOEOk() || !Unlocked(firstUnlockedAoeAction))
             minAoe = 50;
 
-        if (Hints.AvoidMovement)
-            imminent = false;
-
         if (PlayerTarget == null)
         {
             if (minAoe < 50)

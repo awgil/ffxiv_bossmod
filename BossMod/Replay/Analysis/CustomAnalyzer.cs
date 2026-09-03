@@ -11,16 +11,12 @@ public sealed class AnalyzerAttribute(uint bossOID, string label) : Attribute
 
 public static class AnalyzerRegistry
 {
-    public static readonly Event Modified = new();
-
     public record class Info(Type AnalyzerType, string Label, Func<List<Replay>, uint, CustomAnalyzer> Factory);
 
     private static readonly Dictionary<uint, Info> _analyzers = [];
 
-    public static void ScanAssembly(Assembly assembly)
+    private static void ScanAssembly(Assembly assembly)
     {
-        var modified = false;
-
         foreach (var t in Utils.GetDerivedTypes<CustomAnalyzer>(assembly).Where(t => !t.IsAbstract))
         {
             var attr = t.GetCustomAttribute<AnalyzerAttribute>();
@@ -35,22 +31,21 @@ public static class AnalyzerRegistry
                 continue;
             }
             _analyzers[attr.BossOID] = new(t, attr.Label, New<CustomAnalyzer>.ConstructorDerived<List<Replay>, uint>(t));
-            modified = true;
         }
-
-        if (modified)
-            Modified.Fire();
     }
 
-    public static void UnloadFrom(Assembly assembly)
+    private static void UnloadFrom(Assembly assembly)
     {
-        var modified = false;
-
         foreach (var (k, _) in _analyzers.Where(k => k.Value.AnalyzerType.Assembly == assembly).ToList())
-            modified |= _analyzers.Remove(k);
+            _analyzers.Remove(k);
+    }
 
-        if (modified)
-            Modified.Fire();
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        foreach (var a in old)
+            UnloadFrom(a);
+        foreach (var a in @new)
+            ScanAssembly(a);
     }
 
     public static Info? ByID(uint oid)

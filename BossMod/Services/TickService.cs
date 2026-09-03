@@ -2,6 +2,7 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.ReplayAnalysis;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
@@ -101,9 +102,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.Config = new(dalamud.ConfigFile);
 
         Service.Config.ScanAssembly(Assembly.GetExecutingAssembly());
-        BossModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
-        RotationModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
-        ZoneModuleRegistry.ScanAssembly(Assembly.GetExecutingAssembly());
+        BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
 
         _packs = new();
         _hints = new();
@@ -129,7 +131,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
         }
 
-        _rotationDB = new(new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm", "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+        _rotationDB = new(new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm", "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"), _packs);
 
         if (Service.IsMock)
         {

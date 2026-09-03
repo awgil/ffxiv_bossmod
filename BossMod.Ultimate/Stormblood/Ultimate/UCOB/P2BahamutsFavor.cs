@@ -138,19 +138,11 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 
         if (IsSpreadTarget(actor))
         {
-            hints.AvoidMovement = true;
+            // stop moving around, other players can't react in time due to latency
+            hints.GoalZonesEnabled = false;
 
-            if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
-            {
-                if (Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
-                    hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), Spreads[0].Activation);
-                else if (nael.TargetID != actor.InstanceID)
-                {
-                    // TODO: work out how we can let melees have uptime without them killing the whole party
-                    // TODO: this kills doom players if the doom puddle is inside the boss hitbox
-                    //hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 6.5f), Spreads[0].Activation);
-                }
-            }
+            if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael && Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
+                hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), Spreads[0].Activation);
 
             // avoid doom cleanse puddles (unless we are doomed, in which case ignore them)
             if (!(actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1)))

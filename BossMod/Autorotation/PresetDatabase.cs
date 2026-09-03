@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text.Json;
+using System.Threading;
 
 namespace BossMod.Autorotation;
 
@@ -15,6 +16,8 @@ public sealed class PresetDatabase
     private readonly FileInfo _dbPath;
     private readonly FileInfo _defaultPath;
 
+    private Lock _lock = new();
+
     public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
 
     public PresetDatabase(string rootPath, FileInfo defaultPresets)
@@ -26,10 +29,13 @@ public sealed class PresetDatabase
 
     public void Load()
     {
-        DefaultPresets.Clear();
-        DefaultPresets.AddRange(LoadPresetsFromFile(_defaultPath));
-        UserPresets.Clear();
-        UserPresets.AddRange(LoadPresetsFromFile(_dbPath));
+        lock (_lock)
+        {
+            DefaultPresets.Clear();
+            DefaultPresets.AddRange(LoadPresetsFromFile(_defaultPath));
+            UserPresets.Clear();
+            UserPresets.AddRange(LoadPresetsFromFile(_dbPath));
+        }
     }
 
     private List<Preset> LoadPresetsFromFile(FileInfo file)
@@ -79,7 +85,13 @@ public sealed class PresetDatabase
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c) => AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+    public IEnumerable<Preset> PresetsForClass(Class c)
+    {
+        lock (_lock)
+        {
+            return AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+        }
+    }
 
     public Preset? FindPresetByName(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
     {

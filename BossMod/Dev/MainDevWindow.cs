@@ -42,9 +42,6 @@ class MainDevWindow : UIWindow
                 ConfigModified = false;
             }
 
-        if (ImGui.Button("Reload module packs"))
-            packs.ForceReload();
-
         foreach (var p in packs.Loaded)
             ImGui.Text($"Loaded assembly: {p.FullName}");
 

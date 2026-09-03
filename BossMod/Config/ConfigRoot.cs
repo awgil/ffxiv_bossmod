@@ -25,6 +25,15 @@ public sealed class ConfigRoot : IDisposable
             _nodes.Remove(k);
     }
 
+    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        foreach (var a in old)
+            UnloadFrom(a);
+
+        foreach (var a in @new)
+            ScanAssembly(a);
+    }
+
     public T Get<T>() where T : ConfigNode => Get<T>(typeof(T));
     public T Get<T>(Type derived) where T : ConfigNode
     {

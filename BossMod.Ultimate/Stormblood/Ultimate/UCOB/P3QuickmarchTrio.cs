@@ -34,18 +34,20 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
                 var order = p.group & 3;
                 var offset = (60 + order * 20).Degrees();
                 var dir = dirToNorth + (left ? offset : -offset);
-                _safeSpots[p.slot] = Module.Center + 19.5f * dir.ToDirection();
+                _safeSpots[p.slot] = Module.Center + 20 * dir.ToDirection();
             }
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        // drop twister as close to edge as possible
         if (_diveAt != default && _safeSpots[slot] != default)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 3), _diveAt);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1), _diveAt);
 
-        if (Module.FindComponent<P3Twister>() is { Predicted: true } or { Active: true })
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 10));
+        // dodge twisters toward arena center; once they spawn, players should stop moving so megaflare AOEs get baited close to edge
+        if (Module.FindComponent<P3Twister>() is { Predicted: true })
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 17));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

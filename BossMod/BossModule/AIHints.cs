@@ -143,7 +143,7 @@ public sealed class AIHints
     // other parts of the code can return small (e.g. 0.01) values to slightly (de)prioritize some positions, or large (e.g. 1000) values to effectively soft-override target position (but still utilize pathfinding)
     public List<Func<WPos, float>> GoalZones = [];
 
-    public bool AvoidMovement;
+    public bool GoalZonesEnabled = true;
 
     public class TempObstaclesList : List<Sdf>
     {
@@ -207,7 +207,7 @@ public sealed class AIHints
         InteractWithTarget = null;
         ForbiddenZones.Clear();
         GoalZones.Clear();
-        AvoidMovement = false;
+        GoalZonesEnabled = true;
         TemporaryObstacles.Clear();
         Portals.Clear();
         RecommendedPositional = default;
