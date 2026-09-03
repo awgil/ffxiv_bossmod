@@ -46,8 +46,11 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1), _diveAt);
 
         // dodge twisters toward arena center; once they spawn, players should stop moving so megaflare AOEs get baited close to edge
-        if (Module.FindComponent<P3Twister>() is { Predicted: true })
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 17));
+        var twister = Module.FindComponent<P3Twister>();
+        if (twister?.Predicted == true)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 17), DateTime.MaxValue);
+        else if (twister?.Active == true)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 15), DateTime.MaxValue);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -91,6 +94,8 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
         {
             case AID.MegaflareSpread:
                 Spreads.Clear();
+                if (Stacks.Count > 0)
+                    return;
                 var stackTarget = Raid.WithSlot().IncludedInMask(_stackTargets).FirstOrDefault().Item2; // random target
                 if (stackTarget != null)
                     AddStack(stackTarget, WorldState.FutureTime(4), ~_stackTargets);
@@ -103,15 +108,71 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (IsStackTarget(actor) && Module.FindComponent<P3QuickmarchTrio>() is { } qmt)
+        if (Stacks.Count > 0 && Module.FindComponent<P3QuickmarchTrio>() is { } qmt)
         {
-            var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2), Stacks[0].Activation);
+            var stack = Stacks[0];
+            var isTarget = stack.Target == actor || !stack.ForbiddenPlayers[slot];
+
+            if (isTarget)
+            {
+                var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2), Stacks[0].Activation);
+            }
+
+            return;
         }
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
+
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 
 class P3MegaflarePuddle(BossModule module) : Components.StandardAOEs(module, AID.MegaflarePuddle, 6);
-class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID.TempestWing, (uint)TetherID.TempestWing, 5);
+class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID.TempestWing, (uint)TetherID.TempestWing, 5, 7.3f)
+{
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var side in Tethers)
+        {
+            // green if pov player should take this tether
+            var color = pc.Role == Role.Tank && side.Player.Role != Role.Tank ? ArenaColor.Safe : ArenaColor.Danger;
+
+            // thick yellow line if pov player should pass this tether; thick green line is only used in encounters with specific tether priority (in this case it's random)
+            var thickness = side.Player == pc && pc.Role != Role.Tank ? 2 : 1;
+
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddLine(side.Enemy.Position, side.Player.Position, 0xFF000000, thickness + 1);
+
+            Arena.AddLine(side.Enemy.Position, side.Player.Position, color, thickness);
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (assignment is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT)
+        {
+            if (Tethers.FirstOrNull(t => t.Player == actor) is { Enemy: var tetherSource })
+            {
+                foreach (var ally in Raid.WithoutSlot().Exclude(actor))
+                {
+                    hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
+
+                    if (ally.Role != Role.Tank)
+                        // TODO: do we need to calculate the right cone width or is this good enough
+                        hints.AddForbiddenZone(ShapeDistance.DonutSector(tetherSource.Position, (ally.Position - tetherSource.Position).Length(), 60, tetherSource.AngleTo(ally), 2.Degrees()), Activation);
+                }
+            }
+            else
+            {
+                List<Func<WPos, float>> goal = [];
+
+                foreach (var side in Tethers.Where(t => t.Player.Role != Role.Tank))
+                    goal.Add(ShapeDistance.Union([ShapeDistance.InvertedRect(side.Enemy.Position, side.Player.Position, 1), ShapeDistance.Circle(side.Enemy.Position, 2)]));
+
+                if (goal.Count > 0)
+                    hints.AddForbiddenZone(ShapeDistance.Intersection(goal), Activation);
+            }
+        }
+
+        hints.AddPredictedDamage(TetheredPlayers, Activation, AIHints.PredictedDamageType.Tankbuster);
+    }
+}

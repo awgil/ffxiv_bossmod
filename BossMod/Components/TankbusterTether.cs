@@ -1,26 +1,15 @@
 ﻿namespace BossMod.Components;
 
 // generic component for tankbuster at tethered targets; tanks are supposed to intercept tethers and gtfo from the raid
-public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float radius) : CastCounter(module, aid)
+public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float radius, float activationDelay = 0) : CastCounter(module, aid)
 {
     public uint TID { get; init; } = tetherID;
     public float Radius { get; init; } = radius;
-    private readonly List<(Actor Player, Actor Enemy)> _tethers = [];
-    private BitMask _tetheredPlayers;
-    private BitMask _inAnyAOE; // players hit by aoe, excluding selves
+    protected readonly List<(Actor Player, Actor Enemy)> Tethers = [];
+    protected BitMask TetheredPlayers;
+    public DateTime Activation;
 
-    public bool Active => _tetheredPlayers.Any();
-
-    public override void Update()
-    {
-        _inAnyAOE = new();
-        foreach (var slot in _tetheredPlayers.SetBits())
-        {
-            var target = Raid[slot];
-            if (target != null)
-                _inAnyAOE |= Raid.WithSlot().InRadiusExcluding(target, Radius).Mask();
-        }
-    }
+    public bool Active => TetheredPlayers.Any();
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -29,36 +18,26 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
 
         if (actor.Role == Role.Tank)
         {
-            if (!_tetheredPlayers[slot])
-            {
+            if (!TetheredPlayers[slot])
                 hints.Add("Grab the tether!");
-            }
             else if (Raid.WithoutSlot().InRadiusExcluding(actor, Radius).Any())
-            {
                 hints.Add("GTFO from raid!");
-            }
         }
         else
         {
-            if (_tetheredPlayers[slot])
-            {
+            if (TetheredPlayers[slot])
                 hints.Add("Hit by tankbuster");
-            }
-            if (_inAnyAOE[slot])
-            {
-                hints.Add("GTFO from tanks!");
-            }
         }
     }
 
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
     {
-        if (_tetheredPlayers[playerSlot])
+        if (TetheredPlayers[playerSlot])
             return PlayerPriority.Danger;
 
         // for tanks, other players are interesting, since tank should not clip them
         if (pc.Role == Role.Tank)
-            return _inAnyAOE[playerSlot] ? PlayerPriority.Interesting : PlayerPriority.Normal;
+            return PlayerPriority.Normal;
 
         // for non-tanks, other players are irrelevant
         return PlayerPriority.Irrelevant;
@@ -67,7 +46,7 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // show tethered targets with circles
-        foreach (var side in _tethers)
+        foreach (var side in Tethers)
         {
             if (Arena.Config.ShowOutlinesAndShadows)
                 Arena.AddLine(side.Enemy.Position, side.Player.Position, 0xFF000000, 2);
@@ -83,8 +62,11 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
         var sides = DetermineTetherSides(source, tether);
         if (sides != null)
         {
-            _tethers.Add((sides.Value.Player, sides.Value.Enemy));
-            _tetheredPlayers.Set(sides.Value.PlayerSlot);
+            if (Activation == default)
+                Activation = WorldState.FutureTime(activationDelay);
+
+            Tethers.Add((sides.Value.Player, sides.Value.Enemy));
+            TetheredPlayers.Set(sides.Value.PlayerSlot);
         }
     }
 
@@ -93,8 +75,8 @@ public class TankbusterTether(BossModule module, Enum aid, uint tetherID, float 
         var sides = DetermineTetherSides(source, tether);
         if (sides != null)
         {
-            _tethers.Remove((sides.Value.Player, sides.Value.Enemy));
-            _tetheredPlayers.Clear(sides.Value.PlayerSlot);
+            Tethers.Remove((sides.Value.Player, sides.Value.Enemy));
+            TetheredPlayers.Clear(sides.Value.PlayerSlot);
         }
     }
 

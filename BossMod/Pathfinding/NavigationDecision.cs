@@ -69,7 +69,8 @@ public struct NavigationDecision
             TemporaryObstacles = [.. hints.TemporaryObstacles],
             Portals = [.. hints.Portals],
             ForbiddenZones = [.. hints.ForbiddenZones],
-            GoalZones = [.. hints.GoalZones]
+            GoalZones = [.. hints.GoalZones],
+            GoalZonesEnabled = hints.GoalZonesEnabled
         };
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, forbiddenZoneCushion));
     }

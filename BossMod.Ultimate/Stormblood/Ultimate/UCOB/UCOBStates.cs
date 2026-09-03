@@ -532,6 +532,7 @@ class UCOBStates : StateMachineBuilder
         ActorTargetable(id + 0x52, _module.BahamutPrime, true, 1.2f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .ActivateOnEnter<P3EarthShaker>() // icons appear together with boss reappearing
+            .ExecOnEnter<P3EarthShaker>(s => s.EnableHints = false) // standard strats have tanks get hit by earthshakers, so hints window will get spammy
             .ActivateOnEnter<P3EarthShakerVoidzone>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P3MegaflarePuddle>(id + 0x53, 0.8f, comp => comp.NumCasts > 0)
