@@ -116,8 +116,10 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
             if (isTarget)
             {
                 var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2), Stacks[0].Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2), stack.Activation);
             }
+            else if (actor.Class.IsDD())
+                hints.AddForbiddenZone(ShapeDistance.Circle(stack.Target.Position, StackRadius), stack.Activation);
 
             return;
         }
@@ -166,7 +168,11 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                 List<Func<WPos, float>> goal = [];
 
                 foreach (var side in Tethers.Where(t => t.Player.Role != Role.Tank))
-                    goal.Add(ShapeDistance.Union([ShapeDistance.InvertedRect(side.Enemy.Position, side.Player.Position, 1), ShapeDistance.Circle(side.Enemy.Position, 2)]));
+                {
+                    var toTarget = side.Player.Position - side.Enemy.Position;
+                    var ttDir = toTarget.Normalized();
+                    goal.Add(ShapeDistance.PrecisePosition(WPos.Lerp(side.Player.Position, side.Enemy.Position, 0.5f), new(0, 1), 0.5f, actor.Position, 0.1f));
+                }
 
                 if (goal.Count > 0)
                     hints.AddForbiddenZone(ShapeDistance.Intersection(goal), Activation);

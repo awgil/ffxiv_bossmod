@@ -101,7 +101,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         Service.Config = new(dalamud.ConfigFile);
 
-        Service.Config.ScanAssembly(Assembly.GetExecutingAssembly());
+        Service.Config.Reload([], [Assembly.GetExecutingAssembly()]);
         BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);

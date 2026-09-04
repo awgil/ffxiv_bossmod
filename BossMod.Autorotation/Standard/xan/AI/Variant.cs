@@ -80,7 +80,7 @@ public class VariantAI(RotationModuleManager manager, Actor player) : AIBase<Var
         };
 
         if (canUse && TryFindAction([ClassShared.AID.VariantCure1, ClassShared.AID.VariantCure2, ClassShared.AID.VariantCure3], out var act))
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(act), Player, opt.Priority(ActionQueue.Priority.High + 500));
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(act), Player, opt.Priority(ActionQueue.Priority.ManualGCD - 1));
     }
 
     void Ultimatum(in Strategy strategy)

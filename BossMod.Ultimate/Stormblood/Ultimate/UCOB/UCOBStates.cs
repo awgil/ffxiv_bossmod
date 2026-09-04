@@ -430,7 +430,8 @@ class UCOBStates : StateMachineBuilder
             .ExecOnExit<QuoteDalamudDive>(q => q.EnableHints = true)
             .ExecOnExit<QuoteMeteorStream>(q => q.EnableHints = true);
         ComponentCondition<Quote>(id + 0x30, 3.3f, comp => comp.PendingMechanics.Count == 1, "Spread/tankbuster")
-            .DeactivateOnExit<QuoteMeteorStream>();
+            .DeactivateOnExit<QuoteMeteorStream>()
+            .ExecOnExit<Quote>(q => q.NextActivation = Module.WorldState.FutureTime(2.3f));
         ComponentCondition<P2Cauterize>(id + 0x40, 0.7f, comp => comp.Casters.Count + comp.NumCasts >= 5, "Divebomb bait 3")
             .ActivateOnEnter<QuoteThermionicBeam>();
         ComponentCondition<Quote>(id + 0x50, 1.6f, comp => comp.PendingMechanics.Count == 0, "Tankbuster/stack", 2)

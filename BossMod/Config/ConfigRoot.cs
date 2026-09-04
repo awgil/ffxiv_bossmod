@@ -13,16 +13,17 @@ public sealed class ConfigRoot : IDisposable
 
     public IEnumerable<Type> Nodes => _nodes.Keys;
 
-    public void ScanAssembly(Assembly assembly)
+    private void ScanAssembly(Assembly assembly)
     {
         foreach (var t in Utils.GetDerivedTypes<ConfigNode>(assembly).Where(t => !t.IsAbstract))
             _nodes.Add(t, null);
     }
 
-    public void UnloadFrom(Assembly assembly)
+    private void UnloadFrom(Assembly assembly)
     {
         foreach (var k in _nodes.Keys.Where(k => k.Assembly == assembly))
-            _nodes.Remove(k);
+            if (_nodes.Remove(k, out var node))
+                node?.OnModified.Dispose();
     }
 
     public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
