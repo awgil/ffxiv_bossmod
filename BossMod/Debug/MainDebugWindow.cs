@@ -258,7 +258,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, ws.CurrentTime));
+            ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo));
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
             ImGui.TableNextColumn();

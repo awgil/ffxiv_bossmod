@@ -41,7 +41,7 @@ public sealed record class ActorCastInfo
     public WPos LocXZ => new(Location.XZ());
     public float RemainingTime => TotalTime - ElapsedTime;
     public float NPCTotalTime => TotalTime + NPCFinishDelay;
-    public float NPCRemainingTime => NPCTotalTime - ElapsedTime;
+    public float NPCRemainingTime => RemainingTime <= 0 ? 0 : NPCTotalTime - ElapsedTime;
     public float AdjustedTotalTime => TotalTime + Action.CastTimeExtra();
 
     public bool IsSpell() => Action.Type == ActionType.Spell;

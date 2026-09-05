@@ -22,6 +22,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
         [Track("Samurai: Use Iainuki on best AOE target", Action = PhantomID.Iainuki)]
         public Track<EnabledByDefault> Samurai;
 
+        [Track("Samurai: Use Zeninage during buffs", Action = PhantomID.Zeninage)]
+        public Track<DisabledByDefault> Zeninage;
+
         [Track("Bard: Use Aria/Rime in combat", Actions = [PhantomID.OffensiveAria, PhantomID.HerosRime])]
         public Track<EnabledByDefault> Bard;
 
@@ -505,6 +508,9 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
     void PSam(in Strategy strategy, Actor? primaryTarget)
     {
+        if (strategy.Zeninage.IsEnabled() && primaryTarget?.IsAlly == false && !MidCombo && (Bossmods.RaidCooldowns.DamageBuffLeft(Player, primaryTarget) > GCD || Bossmods.RaidCooldowns.NextDamageBuffIn2() == null))
+            UseAction(PhantomID.Zeninage, primaryTarget, strategy.Zeninage.Priority(PGCDPriority));
+
         if (strategy.Samurai.IsEnabled() && primaryTarget?.IsAlly == false && !MidCombo)
         {
             var prio = strategy.Samurai.Priority(PGCDPriority);

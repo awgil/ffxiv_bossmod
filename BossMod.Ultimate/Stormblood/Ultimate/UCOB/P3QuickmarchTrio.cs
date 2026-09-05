@@ -32,9 +32,9 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
             {
                 var left = p.group < 4;
                 var order = p.group & 3;
-                var offset = (60 + order * 20).Degrees();
-                var dir = dirToNorth + (left ? offset : -offset);
-                _safeSpots[p.slot] = Module.Center + 20 * dir.ToDirection();
+                var offSafe = (60 + order * 20).Degrees();
+                var dirSafe = dirToNorth + (left ? offSafe : -offSafe);
+                _safeSpots[p.slot] = Module.Center + 20 * dirSafe.ToDirection();
             }
         }
     }
@@ -42,15 +42,16 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // drop twister as close to edge as possible
-        if (_diveAt != default && _safeSpots[slot] != default)
+        if (_safeSpots[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1), _diveAt);
 
         // dodge twisters toward arena center; once they spawn, players should stop moving so megaflare AOEs get baited close to edge
-        var twister = Module.FindComponent<P3Twister>();
-        if (twister?.Predicted == true)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 17), DateTime.MaxValue);
-        else if (twister?.Active == true)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 15), DateTime.MaxValue);
+        //if (_spreadSpots[slot] != default)
+        //{
+        //    var twister = Module.FindComponent<P3Twister>();
+        //    if (twister is { Predicted: true } or { Active: true })
+        //        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_spreadSpots[slot], 2));
+        //}
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -108,7 +109,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Stacks.Count > 0 && Module.FindComponent<P3QuickmarchTrio>() is { } qmt)
+        if (Module.FindComponent<P3QuickmarchTrio>() is { } qmt && Stacks.Count > 0)
         {
             var stack = Stacks[0];
             var isTarget = stack.Target == actor || !stack.ForbiddenPlayers[slot];
@@ -116,7 +117,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
             if (isTarget)
             {
                 var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2), stack.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2));
             }
             else if (actor.Class.IsDD())
                 hints.AddForbiddenZone(ShapeDistance.Circle(stack.Target.Position, StackRadius), stack.Activation);
@@ -142,9 +143,13 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
             var thickness = side.Player == pc && pc.Role != Role.Tank ? 2 : 1;
 
             if (Arena.Config.ShowOutlinesAndShadows)
+            {
                 Arena.AddLine(side.Enemy.Position, side.Player.Position, 0xFF000000, thickness + 1);
+                Arena.AddCircle(side.Player.Position, 5, 0xFF000000, 2);
+            }
 
             Arena.AddLine(side.Enemy.Position, side.Player.Position, color, thickness);
+            Arena.AddCircle(side.Player.Position, 5, ArenaColor.Danger);
         }
     }
 
@@ -178,7 +183,13 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                     hints.AddForbiddenZone(ShapeDistance.Intersection(goal), Activation);
             }
         }
+        else
+        {
+            foreach (var side in Tethers.Where(t => t.Player.Role == Role.Tank))
+                hints.AddForbiddenZone(ShapeDistance.Circle(side.Player.Position, 5), Activation);
+        }
 
-        hints.AddPredictedDamage(TetheredPlayers, Activation, AIHints.PredictedDamageType.Tankbuster);
+        if (TetheredPlayers.Any())
+            hints.AddPredictedDamage(TetheredPlayers, Activation, AIHints.PredictedDamageType.Tankbuster);
     }
 }

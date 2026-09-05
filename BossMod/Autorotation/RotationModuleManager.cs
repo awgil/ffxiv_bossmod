@@ -167,6 +167,14 @@ public sealed class RotationModuleManager : IDisposable
         _ => null
     };
 
+    public IEnumerable<Actor> ResolvePartyMembers(StrategyTarget strategy, int param) => strategy switch
+    {
+        StrategyTarget.Self or StrategyTarget.PartyByAssignment or StrategyTarget.PartyWithLowestHP => ResolveTargetOverride(strategy, param) is { } tar ? [tar] : [],
+        StrategyTarget.PartyByFilter => FilteredPartyMembers((StrategyPartyFiltering)param),
+        StrategyTarget.Automatic => WorldState.Party.WithoutSlot(),
+        _ => []
+    };
+
     public WPos ResolveTargetLocation(StrategyTarget strategy, int param, float off1, float off2) => strategy switch
     {
         StrategyTarget.PointAbsolute => new(off1, off2),

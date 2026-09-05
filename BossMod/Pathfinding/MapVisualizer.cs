@@ -46,7 +46,6 @@ public class MapVisualizer
 
         ImGui.Dummy(size);
 
-        // blocked squares / goal
         var nodeIndex = 0;
         var hoverNode = -1;
         for (var y = 0; y < Map.Height; ++y)

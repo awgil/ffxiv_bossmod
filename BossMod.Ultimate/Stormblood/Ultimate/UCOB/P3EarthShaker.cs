@@ -17,25 +17,34 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.FindComponent<P3QuickmarchTrio>() is not { } qmt)
+        if (Module.FindComponent<P3QuickmarchTrio>() is { } qmt)
         {
-            base.AddAIHints(slot, actor, assignment, hints);
+            var dirNorth = (qmt.RelativeNorth - Arena.Center).ToAngle();
+            if (CurrentBaits.FirstOrNull(b => b.Target == actor) is { } bait)
+            {
+                var (safeDir, far) = assignment switch
+                {
+                    PartyRolesConfig.Assignment.H1 => (dirNorth + 45.Degrees(), true),
+                    PartyRolesConfig.Assignment.H2 => (dirNorth - 45.Degrees(), true),
+                    _ => (dirNorth - 135.Degrees(), false)
+                };
+
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, safeDir, 60, 0, 1), bait.Activation);
+                if (far)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 12), bait.Activation);
+            }
+
+            var damage = new BitMask();
+            foreach (var b in CurrentBaits)
+                damage.Set(Raid.FindSlot(b.Target.InstanceID));
+
+            if (damage.Any())
+                hints.AddPredictedDamage(damage, CurrentBaits[0].Activation);
+
             return;
         }
 
-        var dirNorth = (qmt.RelativeNorth - Arena.Center).ToAngle();
-        if (CurrentBaits.FirstOrNull(b => b.Target == actor) is { } bait)
-        {
-            var safeDir = assignment switch
-            {
-                PartyRolesConfig.Assignment.H1 => dirNorth + 45.Degrees(),
-                PartyRolesConfig.Assignment.H2 => dirNorth - 45.Degrees(),
-                _ => dirNorth - 135.Degrees()
-            };
-
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, safeDir, 60, 0, 1), bait.Activation);
-            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 3), bait.Activation);
-        }
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

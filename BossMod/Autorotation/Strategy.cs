@@ -9,6 +9,7 @@ public enum StrategyTarget
     Self,
     PartyByAssignment, // parameter is assignment; won't work if assignments aren't set up properly for a party
     PartyWithLowestHP, // parameter is StrategyPartyFiltering, which filters subset of party members
+    PartyByFilter, // parameter is StrategyPartyFiltering, but multiple targets can be matched
     EnemyWithHighestPriority, // parameter is StrategyEnemySelection, which determines selecton criteria if there are multiple matching enemies
     EnemyByOID, // parameter is oid; not really useful outside planner; selects closest if there are multiple
     PointAbsolute, // absolute x/y coordinates

@@ -93,6 +93,9 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
             var shape = Sdf.Continuous(ShapeDistance.Circle(nael.Position, 5));
 
             hints.AddForbiddenZone(FireOut ? shape : shape.Inverted(), Stacks[0].Activation);
+
+            if (FireOut)
+                hints.GoalZonesEnabled = false;
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);

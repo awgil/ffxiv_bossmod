@@ -363,7 +363,7 @@ class ReplayDetailsWindow : UIWindow
 
         ImGui.TableNextColumn();
         if (actor.CastInfo != null)
-            ImGui.TextUnformatted($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo, _player.WorldState.CurrentTime)}");
+            ImGui.TextUnformatted($"{actor.CastInfo.Action}: {Utils.CastTimeString(actor.CastInfo)}");
 
         ImGui.TableNextColumn();
         var numRealStatuses = actor.Statuses.Count(s => s.ID != 0);

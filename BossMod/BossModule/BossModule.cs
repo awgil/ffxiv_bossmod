@@ -362,7 +362,7 @@ public abstract class BossModule : IDisposable
             {
                 var toTarget = target.Position - enemy.Actor.Position;
                 var distToTarget = toTarget.Length();
-                if (distToTarget > tankDistance + 0.1f)
+                if (distToTarget > tankDistance + 0.5f)
                 {
                     var movement = toTarget.Normalized() * (distToTarget - tankDistance);
                     Arena.AddLine(enemy.Actor.Position, enemy.Actor.Position + movement, 0xFFFFFF00);

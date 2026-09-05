@@ -221,7 +221,7 @@ public sealed class AIHintsBuilder : IDisposable
             if (aoe.Target is { } tar && tar != aoe.Caster)
                 targetPos = tar.Position;
             var rot = aoe.Caster.CastInfo!.Rotation;
-            var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
+            var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.RemainingTime);
 
             if (aoe.IsCharge)
                 hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
@@ -240,7 +240,7 @@ public sealed class AIHintsBuilder : IDisposable
         {
             var target = gaze.Target?.Position ?? gaze.Caster.CastInfo!.LocXZ;
             var rot = gaze.Caster.CastInfo!.Rotation;
-            var finishAt = _ws.FutureTime(gaze.Caster.CastInfo.NPCRemainingTime);
+            var finishAt = _ws.FutureTime(gaze.Caster.CastInfo.RemainingTime);
             if (gaze.Shape.Check(player.Position, target, rot))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(target - player.Position), 45.Degrees(), finishAt));
         }

@@ -24,7 +24,6 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HPMP.CurHP <= 1 && Module.FindComponent<P2BlockTransition>() == null;
         SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
-            .ActivateOnEnter<P3BossPositioning>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .DeactivateOnExit<Hatch>()
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead && _module.Nael() is var nael && nael != null && nael.IsDead;
@@ -481,6 +480,8 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P3CalamitousBlaze>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ActorTargetable(id + 0x100, _module.BahamutPrime, true, 3.0f, "Boss appears")
+            .ActivateOnEnter<P3BossPositioning>()
+            .ExecOnEnter<P3BossPositioning>(p => p.DesiredRotation = 180.Degrees())
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .SetHint(StateMachine.StateHint.DowntimeEnd)
             .DeactivateOnExit<P3BahamutMoon>();
@@ -510,7 +511,8 @@ class UCOBStates : StateMachineBuilder
     {
         ActorCast(id, _module.BahamutPrime, AID.QuickmarchTrio, delay, 4, true);
         ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (quickmarch trio)")
-            .SetHint(StateMachine.StateHint.DowntimeStart);
+            .SetHint(StateMachine.StateHint.DowntimeStart)
+            .ExecOnExit<P3BossPositioning>(p => p.DesiredRotation = null);
         ComponentCondition<P3QuickmarchTrio>(id + 0x20, 1.2f, comp => comp.Active)
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
             .ActivateOnEnter<P3QuickmarchTrio>();
@@ -528,8 +530,10 @@ class UCOBStates : StateMachineBuilder
 
         ComponentCondition<P3MegaflarePuddle>(id + 0x50, 1.8f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P3MegaflareSpreadStack>() // stack icons appear ~0.1s before puddles start
-            .ActivateOnEnter<P3MegaflarePuddle>();
-        ComponentCondition<P3MegaflareSpreadStack>(id + 0x51, 1, comp => comp.Spreads.Count == 0, "Spread");
+            .ActivateOnEnter<P3MegaflarePuddle>()
+            .ExecOnEnter<P3MegaflarePuddle>(p => p.Risky = false);
+        ComponentCondition<P3MegaflareSpreadStack>(id + 0x51, 1, comp => comp.Spreads.Count == 0, "Spread")
+            .ExecOnExit<P3MegaflarePuddle>(p => p.Risky = true);
         ActorTargetable(id + 0x52, _module.BahamutPrime, true, 1.2f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .ActivateOnEnter<P3EarthShaker>() // icons appear together with boss reappearing
