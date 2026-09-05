@@ -12,12 +12,13 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 
     private static readonly AOEShapeRect _shape = new(52, 10);
 
-    // todo: make static
-    public readonly WPos[] StandardBaits = [
+    public static readonly WPos[] StandardBaits = [
         new(18.149f, -9.531f),
         new(8, 18.874f),
         new(-17.667f, 10.398f)
     ];
+
+    public WPos[] CurrentBaits = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -42,10 +43,10 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
             if (_numHypernovas >= Math.Min(4, bo * 2 - 1))
             {
                 hints.PathfindMapBounds = UCOB.PathfindHugBorderBounds;
-                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(StandardBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(CurrentBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
             }
             else
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(StandardBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline);
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-1));
         }
         else if (bo == 0)
         {
@@ -65,7 +66,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
                 _shape.Outline(Arena, d.Position, Angle.FromDirection(pc.Position - d.Position));
             }
 
-            Arena.AddCircle(StandardBaits[BaitOrder[pcSlot].Order - 1], 0.5f, ArenaColor.Safe);
+            Arena.AddCircle(CurrentBaits[BaitOrder[pcSlot].Order - 1], 0.5f, ArenaColor.Safe);
         }
     }
 
@@ -114,6 +115,21 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
         if ((IconID)iconID is IconID.Cauterize && Raid.TryFindSlot(actor.InstanceID, out var slot))
         {
             BaitOrder[slot] = new(++NumBaitsAssigned, WorldState.FutureTime(7.2f));
+
+            if (NumBaitsAssigned == 1)
+            {
+                if (_dragons.Count(d => d.actor.Position.InCone(Arena.Center, 112.5f.Degrees(), 90.Degrees())) == 1)
+                {
+                    // cursed pattern: second dragon is true S; flipping standard baits horizontally will resolve the mechanic hopefully without killing anyone
+                    CurrentBaits = [StandardBaits[2], StandardBaits[1], StandardBaits[0]];
+                    for (var i = 0; i < CurrentBaits.Length; i++)
+                        CurrentBaits[i].X *= -1;
+                }
+                else
+                {
+                    CurrentBaits = StandardBaits;
+                }
+            }
         }
     }
 

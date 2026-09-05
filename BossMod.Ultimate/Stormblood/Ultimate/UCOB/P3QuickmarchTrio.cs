@@ -44,14 +44,6 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
         // drop twister as close to edge as possible
         if (_safeSpots[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1), _diveAt);
-
-        // dodge twisters toward arena center; once they spawn, players should stop moving so megaflare AOEs get baited close to edge
-        //if (_spreadSpots[slot] != default)
-        //{
-        //    var twister = Module.FindComponent<P3Twister>();
-        //    if (twister is { Predicted: true } or { Active: true })
-        //        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_spreadSpots[slot], 2));
-        //}
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -120,7 +112,11 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2));
             }
             else if (actor.Class.IsDD())
+            {
+                var spot = (qmt.RelativeNorth - Arena.Center).ToAngle() - 135.Degrees();
                 hints.AddForbiddenZone(ShapeDistance.Circle(stack.Target.Position, StackRadius), stack.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + spot.ToDirection() * 5, 2));
+            }
 
             return;
         }
@@ -132,6 +128,34 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
 class P3MegaflarePuddle(BossModule module) : Components.StandardAOEs(module, AID.MegaflarePuddle, 6);
 class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID.TempestWing, (uint)TetherID.TempestWing, 5, 7.3f)
 {
+    // determines whether non-tank players should try to avoid tanks
+    // disabled by default, since we assume the tethers spawn on random players, meaning non-tanks should plant and let tanks grab tethers from them; should be set to true after some appropriate amount of delay
+    public bool EnableRaidHints;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!Active)
+            return;
+
+        if (actor.Role == Role.Tank)
+        {
+            if (!TetheredPlayers[slot])
+                hints.Add("Grab a tether!");
+            else if (Raid.WithoutSlot().InRadiusExcluding(actor, Radius).Any() && EnableRaidHints)
+                hints.Add("GTFO from raid!");
+        }
+        else if (EnableRaidHints)
+        {
+            foreach (var t in Tethers)
+            {
+                if (t.Player == actor)
+                    hints.Add("Hit by tankbuster!");
+                else if (actor.Position.InCircle(t.Player.Position, Radius))
+                    hints.Add("GTFO from tank!");
+            }
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var side in Tethers)
@@ -163,9 +187,10 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                 {
                     hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
 
+                    // if we walk behind another player, it will pass the tether to them
+                    // the cone width doesn't really matter here; as long as the pixels are blocked, pathfinder won't try to go through them
                     if (ally.Role != Role.Tank)
-                        // TODO: do we need to calculate the right cone width or is this good enough
-                        hints.AddForbiddenZone(ShapeDistance.DonutSector(tetherSource.Position, (ally.Position - tetherSource.Position).Length(), 60, tetherSource.AngleTo(ally), 2.Degrees()), Activation);
+                        hints.AddForbiddenZone(ShapeDistance.DonutSector(tetherSource.Position, (ally.Position - tetherSource.Position).Length(), 60, tetherSource.AngleTo(ally), 2.Degrees()));
                 }
             }
             else
@@ -185,8 +210,15 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
         }
         else
         {
+            // non tanks need to avoid stealing tethers
             foreach (var side in Tethers.Where(t => t.Player.Role == Role.Tank))
-                hints.AddForbiddenZone(ShapeDistance.Circle(side.Player.Position, 5), Activation);
+                hints.AddForbiddenZone(ShapeDistance.Rect(side.Enemy.Position, side.Player.Position, 1));
+
+            if (EnableRaidHints)
+            {
+                foreach (var side in Tethers.Where(t => t.Player.Role == Role.Tank))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(side.Player.Position, 5), Activation);
+            }
         }
 
         if (TetheredPlayers.Any())

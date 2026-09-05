@@ -117,13 +117,13 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
+        //base.AddAIHints(slot, actor, assignment, hints);
 
         if (IsSpreadTarget(actor) && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
         {
             var off = (int)assignment;
             var n = nael.Position;
-            hints.GoalZones.Add(p => p.InCone(n, (off * 45).Degrees(), 22.5f.Degrees()) ? 1 : 0);
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(nael.Position + (180 + 45 * off).Degrees().ToDirection() * 5, new(0, 1), 0.5f, actor.Position, 0.1f), Spreads[0].Activation);
         }
     }
 }

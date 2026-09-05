@@ -33,6 +33,11 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
                 if (far)
                     hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 12), bait.Activation);
             }
+            else if (actor.Role != Role.Tank)
+            {
+                foreach (var b in CurrentBaits)
+                    hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation, b.Activation);
+            }
 
             var damage = new BitMask();
             foreach (var b in CurrentBaits)
@@ -58,38 +63,22 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
     }
 }
 
-class P3EarthShakerVoidzone(BossModule module) : Components.GenericAOEs(module, default, "GTFO from voidzone!")
+class P3EarthShakerVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.EarthShakerAOE, OID.VoidzoneEarthShaker, 1.4f)
 {
-    private readonly IReadOnlyList<Actor> _voidzones = module.Enemies(OID.VoidzoneEarthShaker);
-    private readonly List<AOEInstance> _predicted = [];
-    private BitMask _targets;
-
-    private static readonly AOEShapeCircle _shape = new(5); // TODO: verify radius
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        foreach (var z in _voidzones.Where(z => z.EventState != 7))
-            yield return new(_shape, z.Position);
-        foreach (var p in _predicted)
-            yield return p;
-    }
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.VoidzoneEarthShaker)
-            _predicted.Clear();
-    }
+    readonly List<Actor> Targets = [];
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.Earthshaker)
-            _targets.Set(Raid.FindSlot(actor.InstanceID));
+            Targets.Add(actor);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.EarthShaker)
-            foreach (var (_, p) in Raid.WithSlot().IncludedInMask(_targets))
-                _predicted.Add(new(_shape, p.Position, default, WorldState.FutureTime(1.4f)));
+        if (spell.Action == WatchedAction && Targets.Count > 0)
+        {
+            _predictedByEvent.Add((Targets[0].Position, WorldState.FutureTime(CastEventToSpawn + ActivationDelay)));
+            Targets.RemoveAt(0);
+        }
     }
 }

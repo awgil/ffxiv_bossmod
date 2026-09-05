@@ -1,7 +1,11 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHell, OID.VoidzoneLiquidHell, 1.3f, activationDelay: 1.8f)
+class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHell, OID.VoidzoneLiquidHell, 1.3f, activationDelay: 1.8f);
+
+class P1LiquidHell : LiquidHell
 {
+    public P1LiquidHell(BossModule module) : base(module) { KeepOnPhaseChange = true; }
+
     public enum BaitMode
     {
         None,
@@ -67,6 +71,9 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
                 // encourage baiter to stay on the opposite half of the arena, because it tends to walk itself into a corner otherwise
                 hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.PrimaryActor.Position, 50, Module.PrimaryActor.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);
 
+                // encourage baiter to stay on arena edge if possible
+                hints.GoalZones.Add(p => p.InDonut(Arena.Center, 18, 22) ? 0.1f : 0);
+
                 // don't drop on neurolinks
                 foreach (var nl in Module.Enemies(OID.Neurolink))
                     hints.AddForbiddenZone(ShapeDistance.Circle(nl.Position, 7), NextCast);
@@ -104,7 +111,16 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
     }
 }
 
-class P1LiquidHell : LiquidHell
+class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
 {
-    public P1LiquidHell(BossModule module) : base(module) { KeepOnPhaseChange = true; }
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (((UCOB)Module).Nael() is not { } nael)
+            return;
+
+        if (NumSources < 5)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, nael.Position, 1));
+    }
 }

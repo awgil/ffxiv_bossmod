@@ -1,6 +1,23 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania);
+class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new AOEShapeCone(12, 60.Degrees()), (uint)OID.Twintania)
+{
+    public bool Soak;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var (origin, target, angle) in OriginsAndTargets())
+        {
+            if (actor != target)
+            {
+                var shape = Shape.GetSdf(origin.Position, angle);
+                if (Soak && assignment == PartyRolesConfig.Assignment.H2)
+                    shape = shape.Inverted();
+                hints.AddForbiddenZone(shape, NextExpected);
+            }
+        }
+    }
+}
 class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, AID.BahamutsClaw);
 class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBreath, new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle
 class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, AID.MornAfah, 4, 8); // TODO: verify radius

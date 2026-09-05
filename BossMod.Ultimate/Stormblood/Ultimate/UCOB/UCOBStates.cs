@@ -70,7 +70,7 @@ class UCOBStates : StateMachineBuilder
         P1Generate(id + 0x10000, 1.2f);
         P1LiquidHellFireball(id + 0x20000, 3.3f);
         P1DeathSentence(id + 0x30000, 5.1f);
-        P1Plummet(id + 0x40000, 3.2f);
+        P1Plummet(id + 0x40000, 3.2f, true);
         P1GenerateTwister(id + 0x50000, 4.1f);
         P1Plummet(id + 0x60000, 4.9f);
         // repeat
@@ -146,11 +146,15 @@ class UCOBStates : StateMachineBuilder
         P5Enrage(id + 0xE0000, 2.1f);
     }
 
-    private void P1Plummet(uint id, float delay)
+    private void P1Plummet(uint id, float delay, bool soak = false)
     {
         ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Plummet>()
-            .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
+            .ExecOnEnter<P1Plummet>(p =>
+            {
+                p.NextExpected = Module.WorldState.FutureTime(delay);
+                p.Soak = soak;
+            })
             .DeactivateOnExit<P1Plummet>();
     }
 
@@ -190,7 +194,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P1LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1")
             .ActivateOnEnter<P1Fireball>(withFireball)
             .ExecOnEnter<P1Fireball>(f => f.EnableHints = false, withFireball)
-            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, withFireball ? LiquidHell.BaitMode.Random : LiquidHell.BaitMode.Proximity));
+            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, withFireball ? Ultimate.UCOB.P1LiquidHell.BaitMode.Random : Ultimate.UCOB.P1LiquidHell.BaitMode.Proximity));
         ComponentCondition<P1LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
         ComponentCondition<P1LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
         ComponentCondition<P1LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
@@ -237,7 +241,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P2Heavensfall>(id, delay, comp => comp.NumCasts > 0, "Knockback")
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
             .ExecOnEnter<Hatch>(comp => comp.Reset())
-            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(0, LiquidHell.BaitMode.None))
+            .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(0, Ultimate.UCOB.P1LiquidHell.BaitMode.None))
             .ActivateOnEnter<P2HeavensfallDalamudDive>() // activate asap until twintania untargets current tank
             .ActivateOnEnter<P2Heavensfall>()
             .ExecOnEnter<P2Heavensfall>(p => p.Activation = Module.WorldState.FutureTime(delay))
@@ -550,7 +554,8 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P3MegaflareSpreadStack>();
 
         ComponentCondition<P3EarthShaker>(id + 0x60, 2.3f, comp => comp.NumCasts > 0, "Baited cones")
-            .DeactivateOnExit<P3EarthShaker>();
+            .DeactivateOnExit<P3EarthShaker>()
+            .ExecOnExit<P3TempestWing>(t => t.EnableRaidHints = true);
         ComponentCondition<P3TempestWing>(id + 0x70, 2.0f, comp => comp.NumCasts > 0, "Tethers")
             .DeactivateOnExit<P3TempestWing>()
             .DeactivateOnExit<P3QuickmarchTrio>();
@@ -562,22 +567,22 @@ class UCOBStates : StateMachineBuilder
 
     private void P3BlackfireTrio(uint id, float delay)
     {
-        ActorCast(id, _module.BahamutPrime, AID.BlackfireTrio, delay, 4, true);
+        ActorCast(id, _module.BahamutPrime, AID.BlackfireTrio, delay, 4, true)
+            .ActivateOnEnter<P3BlackfireTrio>();
         ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (blackfire trio)")
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P3BlackfireTrio>(id + 0x20, 1.2f, comp => comp.Active)
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
-            .ActivateOnEnter<P3BlackfireTrio>()
             .ActivateOnEnter<P3ThermionicBeam>();
         ComponentCondition<P3MegaflareDive>(id + 0x30, 1.2f, comp => comp.Casters.Count > 0, "Dive bait")
             .ActivateOnEnter<P3MegaflareDive>()
-            .ActivateOnEnter<P1LiquidHell>(); // first puddle appears ~0.1s before dive bait
+            .ActivateOnEnter<P3BlackfireLiquidHell>() // first puddle appears ~0.1s before dive bait
+            .ExecOnEnter<P3MegaflareDive>(p => p.Risky = false);
         ComponentCondition<P3ThermionicBeam>(id + 0x40, 2.9f, comp => !comp.Active, "Stack")
             .DeactivateOnExit<P3ThermionicBeam>();
         // +0.5s: 4th liquid hell
         ComponentCondition<P3MegaflareDive>(id + 0x50, 1.0f, comp => comp.NumCasts > 0, "Dive")
-            .DeactivateOnExit<P3MegaflareDive>()
-            .DeactivateOnExit<P3BlackfireTrio>();
+            .DeactivateOnExit<P3MegaflareDive>();
         // +0.7s: 5th liquid hell
 
         ComponentCondition<P3MegaflareTower>(id + 0x100, 2.0f, comp => comp.Towers.Count > 0)
@@ -598,7 +603,8 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         // +0.8s: hypernova 4
         P3Gigaflare(id + 0x210, 0.1f)
-            .DeactivateOnExit<P1LiquidHell>(); // last voidzone disappears ~2.6s before cast end
+            .DeactivateOnExit<P3BlackfireLiquidHell>() // last voidzone disappears ~2.6s before cast end
+            .DeactivateOnExit<P3BlackfireTrio>();
 
         P3FlareBreath(id + 0x1000, 9.2f)
             .DeactivateOnExit<P2Hypernova>(); // last voidzone disappears ~1.3ds

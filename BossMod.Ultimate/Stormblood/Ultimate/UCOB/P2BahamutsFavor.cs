@@ -90,12 +90,10 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
     {
         if (IsStackTarget(actor) && ((UCOB)Module).Nael() is { } nael)
         {
-            var shape = Sdf.Continuous(ShapeDistance.Circle(nael.Position, 5));
-
-            hints.AddForbiddenZone(FireOut ? shape : shape.Inverted(), Stacks[0].Activation);
-
             if (FireOut)
                 hints.GoalZonesEnabled = false;
+            else
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nael.Position, 5), Stacks[0].Activation);
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);
@@ -148,9 +146,10 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
                 hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), Spreads[0].Activation);
 
             // avoid doom cleanse puddles (unless we are doomed, in which case ignore them)
+            // note no activation time specified here, we want to clear the path to the puddle ASAP for other players since they won't want to walk through lightning aoe
             if (!(actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1)))
                 foreach (var p in Module.Enemies(OID.VoidzoneSalvation).Where(e => e.EventState != 7))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius + ExtraAISpreadThreshold), Spreads[0].Activation);
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius + ExtraAISpreadThreshold));
         }
 
         foreach (var sp in ActiveSpreadTargets.Exclude(actor))
