@@ -10,6 +10,8 @@ class Hatch : Components.CastCounter
     private BitMask _targets;
     private readonly Actor?[] _assignedLinks = new Actor?[PartyState.MaxPartySize];
 
+    public const float Radius = 8;
+
     public bool Twister;
 
     public bool IsTarget(int slot) => _targets[slot];
@@ -86,7 +88,7 @@ class Hatch : Components.CastCounter
             hints.GoalZones.Add(AIHints.GoalSingleTarget(myLink.Position, 5, 0.5f));
 
             if (Twister)
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.DonutSector(myLink.Position, 2, 5, Module.PrimaryActor.AngleTo(myLink), 90.Degrees())).Inverted(), WorldState.FutureTime(leewaySeconds));
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.DonutSector(myLink.Position, 3, 5, Module.PrimaryActor.AngleTo(myLink), 90.Degrees())).Inverted(), WorldState.FutureTime(leewaySeconds));
             else
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
         }
@@ -97,21 +99,25 @@ class Hatch : Components.CastCounter
                 hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, 2));
                 if (orb.LastFrameMovement == default)
                 {
-                    foreach (var h in _neurolinks)
-                        hints.AddForbiddenZone(ShapeDistance.Cone(orb.Position, 6, orb.AngleTo(h), 60.Degrees()), WorldState.FutureTime(2));
+                    foreach (var (_, pt) in Raid.WithSlot().IncludedInMask(_targets))
+                        hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.AngleTo(pt), 6, 2), WorldState.FutureTime(2));
                 }
                 else
                     hints.AddForbiddenZone(ShapeDistance.Capsule(orb.Position, orb.LastFrameMovement.ToAngle(), 6, 2), WorldState.FutureTime(2));
             }
 
-            // TODO: we need an accurate estimate here because it makes resolving liquid hell + fireball awkward
-            // should just track all targets + orbs in Update()
-            if (_targets.Any())
-                // avoid everything around the neurolink if hatch is active
-                hints.AddForbiddenZone(p => linkShape(p) - 8.5f, DateTime.MaxValue);
-            else
-                // else just avoid it
-                hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
+            if (_orbs.Count > 0)
+            {
+                foreach (var (_, tar) in Raid.WithSlot().IncludedInMask(_targets))
+                {
+                    var (closest, moveStart) = _orbs.MinBy(o => (o.orb.Position - tar.Position).LengthSq());
+                    var waitMove = MathF.Max(0, (float)(moveStart - WorldState.CurrentTime).TotalSeconds);
+                    var toOrb = (closest.Position - tar.Position).Normalized();
+                    hints.AddForbiddenZone(ShapeDistance.Circle(tar.Position + toOrb, Radius), WorldState.FutureTime(waitMove + tar.DistanceToHitbox(closest) / 5f));
+                }
+            }
+
+            hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
         }
     }
 
@@ -122,16 +128,29 @@ class Hatch : Components.CastCounter
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        if (Active)
-            foreach (var (o, _) in _orbs)
-                Arena.ZoneCircle(o.Position, 2, ArenaColor.AOE);
+        if (!Active)
+            return;
+
+        foreach (var (o, _) in _orbs)
+            Arena.ZoneCircle(o.Position, 2, ArenaColor.AOE);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (Active)
-            foreach (var neurolink in _neurolinks)
-                Arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
+        if (!Active)
+            return;
+
+        foreach (var neurolink in _neurolinks)
+            Arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
+
+        foreach (var (_, player) in Raid.WithSlot().IncludedInMask(_targets))
+        {
+            if (_orbs.Select(o => o.orb).Closest(player.Position) is { } orb)
+            {
+                var off = (orb.Position - player.Position).Normalized();
+                Arena.AddCircle(player.Position + off, Radius, ArenaColor.Danger);
+            }
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)

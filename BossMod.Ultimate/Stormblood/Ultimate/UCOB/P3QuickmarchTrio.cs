@@ -8,6 +8,7 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
     public bool Active => RelativeNorth != default;
     private DateTime _diveAt;
     private bool _divesDone;
+    private bool _tethersDone;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -44,6 +45,13 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
         // drop twister as close to edge as possible
         if (_safeSpots[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1), _diveAt);
+
+        // sometimes we have to take drastic measures to force AI not to spread at the arena edge
+        if (Module.FindComponent<P3Twister>() is { Predicted: true } or { Active: true })
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 18));
+
+        if (_tethersDone && hints.FindEnemy(((UCOB)Module).BahamutPrime()) is { } baha)
+            baha.DesiredRotation = (RelativeNorth - Arena.Center).ToAngle();
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -54,6 +62,9 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
             _diveAt = default;
             Array.Fill(_safeSpots, default);
         }
+
+        if ((AID)spell.Action.ID == AID.TempestWingAOE)
+            _tethersDone = true;
     }
 }
 
@@ -111,11 +122,11 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
                 var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2));
             }
-            else if (actor.Class.IsDD())
+            else
             {
-                var spot = (qmt.RelativeNorth - Arena.Center).ToAngle() - 135.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.Circle(stack.Target.Position, StackRadius), stack.Activation);
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + spot.ToDirection() * 5, 2));
+                // stack target is random
+                foreach (var (_, candidate) in Raid.WithSlot().ExcludedFromMask(stack.ForbiddenPlayers))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(candidate.Position, StackRadius), stack.Activation);
             }
 
             return;
@@ -126,11 +137,15 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
 }
 
 class P3MegaflarePuddle(BossModule module) : Components.StandardAOEs(module, AID.MegaflarePuddle, 6);
-class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID.TempestWing, (uint)TetherID.TempestWing, 5, 7.3f)
+class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID.TempestWingAOE, (uint)TetherID.TempestWing, 5, 7.3f)
 {
     // determines whether non-tank players should try to avoid tanks
     // disabled by default, since we assume the tethers spawn on random players, meaning non-tanks should plant and let tanks grab tethers from them; should be set to true after some appropriate amount of delay
     public bool EnableRaidHints;
+
+    // tethers disappear more than a full second before the AOE goes off
+    private BitMask _lastTethered;
+    private BitMask Targets => TetheredPlayers.Any() ? TetheredPlayers : _lastTethered;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -146,11 +161,11 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
         }
         else if (EnableRaidHints)
         {
-            foreach (var t in Tethers)
+            foreach (var (_, t) in Raid.WithSlot().IncludedInMask(Targets))
             {
-                if (t.Player == actor)
+                if (t == actor)
                     hints.Add("Hit by tankbuster!");
-                else if (actor.Position.InCircle(t.Player.Position, Radius))
+                else if (actor.Position.InCircle(t.Position, Radius))
                     hints.Add("GTFO from tank!");
             }
         }
@@ -175,6 +190,44 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
             Arena.AddLine(side.Enemy.Position, side.Player.Position, color, thickness);
             Arena.AddCircle(side.Player.Position, 5, ArenaColor.Danger);
         }
+
+        if (Tethers.Count == 0)
+            foreach (var (_, p) in Raid.WithSlot().IncludedInMask(Targets))
+            {
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddCircle(p.Position, 5, 0xFF000000, 2);
+                Arena.AddCircle(p.Position, 5, ArenaColor.Danger);
+            }
+    }
+
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        base.OnTethered(source, tether);
+
+        if ((TetherID)tether.ID == TetherID.TempestWing)
+            _lastTethered.Reset();
+    }
+
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
+    {
+        // if tether count is >2 it means that this tether just got passed and the gain event fired before the lose event
+        if ((TetherID)tether.ID == TetherID.TempestWing && Tethers.Count <= 2)
+            _lastTethered.Set(Raid.FindSlot(source.InstanceID));
+
+        base.OnUntethered(source, tether);
+    }
+
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
+    {
+        if (Targets[playerSlot])
+            return PlayerPriority.Danger;
+
+        // for tanks, other players are interesting, since tank should not clip them
+        if (pc.Role == Role.Tank)
+            return PlayerPriority.Normal;
+
+        // for non-tanks, other players are irrelevant
+        return PlayerPriority.Irrelevant;
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -192,6 +245,11 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                     if (ally.Role != Role.Tank)
                         hints.AddForbiddenZone(ShapeDistance.DonutSector(tetherSource.Position, (ally.Position - tetherSource.Position).Length(), 60, tetherSource.AngleTo(ally), 2.Degrees()));
                 }
+            }
+            else if (Targets[slot])
+            {
+                foreach (var ally in Raid.WithoutSlot().Exclude(actor))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
             }
             else
             {
@@ -216,12 +274,12 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
 
             if (EnableRaidHints)
             {
-                foreach (var side in Tethers.Where(t => t.Player.Role == Role.Tank))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(side.Player.Position, 5), Activation);
+                foreach (var (_, target) in Raid.WithSlot().IncludedInMask(Targets))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(target.Position, 5), Activation);
             }
         }
 
-        if (TetheredPlayers.Any())
-            hints.AddPredictedDamage(TetheredPlayers, Activation, AIHints.PredictedDamageType.Tankbuster);
+        if (Targets.Any())
+            hints.AddPredictedDamage(Targets, Activation, AIHints.PredictedDamageType.Tankbuster);
     }
 }

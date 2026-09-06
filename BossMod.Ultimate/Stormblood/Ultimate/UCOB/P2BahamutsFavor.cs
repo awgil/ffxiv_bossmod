@@ -211,7 +211,11 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
                 continue;
 
             if (d.Player == actor)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), actor.Position.InCircle(pos.Value, 1) ? default : d.Expiration);
+            {
+                // despite our best efforts, it's possible that a wings puddle can spawn on top of the cleanse puddle
+                var isCovered = Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.ActiveAOEs(slot, actor).Any(a => pos.Value.InCircle(a.Origin, 4)) == true;
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), isCovered ? default : d.Expiration);
+            }
             else
             {
                 hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 1));

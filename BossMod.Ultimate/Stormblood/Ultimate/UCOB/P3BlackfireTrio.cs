@@ -65,8 +65,40 @@ class P3ThermionicBeam : Components.UniformStackSpread
     }
 }
 
+class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
+{
+    bool _arenaSplitHints = true;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Module.FindComponent<P3BlackfireTrio>() is not { } bft || !_arenaSplitHints)
+            return;
+
+        var numSources = NumSources + _predictedByEvent.Count;
+
+        if (numSources < 5)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 60, 0, 1));
+        else if (numSources == 5)
+        {
+            var relN = bft.RelativeNorth.ToDirection();
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, actor.Class.IsDD() ? relN.OrthoL() : relN.OrthoR()));
+        }
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.MegaflareStack)
+            _arenaSplitHints = false;
+    }
+}
+
 class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.MegaflareTower, 3)
 {
+    BitMask _stackTargets;
+    bool _assigned;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(caster, spell);
@@ -93,15 +125,52 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_stackTargets.Any())
+            base.AddAIHints(slot, actor, assignment, hints);
+
+        // before stack markers appear, everyone should head for arena center, relative south of puddles
+        else if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 3, 3, 30), DateTime.MaxValue);
+    }
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.MegaflareStack)
         {
             var slot = Raid.FindSlot(actor.InstanceID);
+            _stackTargets.Set(slot);
             foreach (ref var t in Towers.AsSpan())
                 t.ForbiddenSoakers.Set(slot);
-            // TODO: consider making per-tower assignments
+            AssignTowers();
         }
+    }
+
+    void AssignTowers()
+    {
+        if (_assigned)
+            return;
+
+        if (Module.FindComponent<P3BlackfireTrio>() is not { } bft)
+            return;
+
+        if (_stackTargets.NumSetBits() != 4)
+            return;
+
+        var relativeN = bft.RelativeNorth.ToDirection();
+
+        var towersOrdered = Towers.Index()
+            .Where(t => (t.Item.Position - Arena.Center).Dot(relativeN.OrthoL()) > 0)
+            .OrderByDescending(t => (t.Item.Position - Arena.Center).Dot(relativeN))
+            .ToList();
+
+        var slotsOrdered = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid).Skip(4).Where(t => !_stackTargets[t]);
+
+        foreach (var ((i, t), s) in towersOrdered.Zip(slotsOrdered))
+            Towers.Ref(i).ForbiddenSoakers = ~BitMask.Build(s);
+
+        _assigned = true;
     }
 }
 
@@ -121,5 +190,13 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
     {
         if ((AID)spell.Action.ID == AID.MegaflareStack)
             Stacks.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.FindComponent<P3BlackfireTrio>() is { } bft && Stacks.Count > 0 && !Stacks[0].ForbiddenPlayers[slot])
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, 2.5f), Stacks[0].Activation);
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }

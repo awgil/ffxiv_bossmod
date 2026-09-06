@@ -354,7 +354,7 @@ public abstract class BossModule : IDisposable
 
     private void DrawPulls(AIHints hints)
     {
-        foreach (var enemy in hints.PotentialTargets.Where(a => a.Actor is { IsDeadOrDestroyed: false, CastInfo: null }))
+        foreach (var enemy in hints.PotentialTargets.Where(a => a.Actor is { IsDeadOrDestroyed: false, CastInfo: null } && a.CanMove))
         {
             var tankDistance = enemy.Actor.HitboxRadius + enemy.TankDistance + 0.5f;
 

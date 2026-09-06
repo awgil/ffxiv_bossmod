@@ -22,21 +22,24 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
             var dirNorth = (qmt.RelativeNorth - Arena.Center).ToAngle();
             if (CurrentBaits.FirstOrNull(b => b.Target == actor) is { } bait)
             {
-                var (safeDir, far) = assignment switch
+                var safeDir = assignment switch
                 {
-                    PartyRolesConfig.Assignment.H1 => (dirNorth + 45.Degrees(), true),
-                    PartyRolesConfig.Assignment.H2 => (dirNorth - 45.Degrees(), true),
-                    _ => (dirNorth - 135.Degrees(), false)
+                    PartyRolesConfig.Assignment.H1 => dirNorth + 45.Degrees(),
+                    PartyRolesConfig.Assignment.H2 => dirNorth - 45.Degrees(),
+                    _ => dirNorth - 135.Degrees()
                 };
 
                 hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, safeDir, 60, 0, 1), bait.Activation);
-                if (far)
-                    hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 12), bait.Activation);
+                // healers should move closer to arena center to be in range of the whole party, in case i.e. R2 gets hit by megaflare
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 8, 0.5f));
             }
             else if (actor.Role != Role.Tank)
             {
                 foreach (var b in CurrentBaits)
                     hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation, b.Activation);
+
+                // this is so fucking stupid
+                hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, -dirNorth.ToDirection()));
             }
 
             var damage = new BitMask();

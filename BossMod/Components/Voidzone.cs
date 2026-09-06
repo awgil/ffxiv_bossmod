@@ -59,7 +59,7 @@ public class VoidzoneAtCastTarget(BossModule module, float radius, Enum aid, uin
     public AOEShapeCircle Shape { get; init; } = new(radius);
     public IEnumerable<Actor> Sources => _sources.Select(a => a.actor);
     public int NumSources => _sources.Count;
-    private readonly List<(Actor actor, DateTime spawn)> _sources = [];
+    protected readonly List<(Actor actor, DateTime spawn)> _sources = [];
     public readonly uint ID = oid;
     protected Func<Actor, bool>? IsDeactivated = isDeactivated;
     public float CastEventToSpawn { get; init; } = castEventToSpawn;

@@ -201,10 +201,10 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             if (enemy.DesiredRotation is { } rot)
             {
                 var goal = enemy.Actor.Position + rot.ToDirection() * enemy.Actor.HitboxRadius;
-                Hints.GoalZones.Add(AIHints.GoalSingleTarget(goal, 1, 0.5f));
+                Hints.GoalZones.Add(p => p.InRect(enemy.Actor.Position, rot, 100, 0, 1) ? 0.5f : 0);
             }
 
-            if (enemy.DesiredPosition is { } pos)
+            if (enemy.CanMove && enemy.DesiredPosition is { } pos)
                 Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, GCD, 0.5f));
         }
 

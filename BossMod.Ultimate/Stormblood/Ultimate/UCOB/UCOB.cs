@@ -8,15 +8,30 @@ class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new 
     {
         foreach (var (origin, target, angle) in OriginsAndTargets())
         {
+            var originE = hints.FindEnemy(origin);
+            originE?.CanMove = false;
+
             if (actor != target)
             {
                 var shape = Shape.GetSdf(origin.Position, angle);
-                if (Soak && assignment == PartyRolesConfig.Assignment.H2)
+                if (Soak && IsSoaker(assignment))
                     shape = shape.Inverted();
                 hints.AddForbiddenZone(shape, NextExpected);
+
+                // non-tanks preposition away from where tank might face boss
+                if (originE?.DesiredRotation is { } rot)
+                {
+                    var predicted = Shape.GetSdf(origin.Position, rot);
+                    if (Soak && IsSoaker(assignment))
+                        predicted = predicted.Inverted();
+                    hints.AddForbiddenZone(predicted, DateTime.MaxValue);
+                }
             }
         }
     }
+
+    // r1 is on hell duty, melees won't take enough damage
+    static bool IsSoaker(PartyRolesConfig.Assignment ass) => ass is PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R2;
 }
 class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, AID.BahamutsClaw);
 class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBreath, new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle

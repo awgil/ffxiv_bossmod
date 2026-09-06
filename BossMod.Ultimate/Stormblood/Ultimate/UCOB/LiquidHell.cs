@@ -1,6 +1,16 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHell, OID.VoidzoneLiquidHell, 1.3f, activationDelay: 1.8f);
+class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHell, OID.VoidzoneLiquidHell, 1.3f, activationDelay: 1.8f)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // we only add hints for spawned fireballs since the activation is so delayed
+        // this helps party not kill themselves during blackfire trio, and gives ranged lots of extra room in p1
+        foreach (var (z, spawn) in _sources)
+            hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
+
+    }
+}
 
 class P1LiquidHell : LiquidHell
 {
@@ -86,10 +96,7 @@ class P1LiquidHell : LiquidHell
         {
             if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.MT))
             {
-                var offset = (int)assignment;
-
-                // if potential baiters are too close together, we might predict the wrong player during first cast
-                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Module.PrimaryActor.Position + (50 + 5 * offset).Degrees().ToDirection() * 7, new(0, 1), 0.5f, actor.Position, 0.1f), NextCast);
+                hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 6), NextCast);
             }
 
             if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
@@ -108,19 +115,5 @@ class P1LiquidHell : LiquidHell
 
         if (Mode == BaitMode.Proximity)
             Baiter = Raid.WithoutSlot().Farthest(Module.PrimaryActor.Position);
-    }
-}
-
-class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (((UCOB)Module).Nael() is not { } nael)
-            return;
-
-        if (NumSources < 5)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, nael.Position, 1));
     }
 }
