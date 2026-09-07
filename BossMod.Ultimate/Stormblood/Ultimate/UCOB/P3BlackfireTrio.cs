@@ -80,10 +80,11 @@ class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
 
         if (numSources < 5)
             hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 60, 0, 1));
-        else if (numSources == 5)
+        else if (numSources == 5 && actor.Position.InRect(Arena.Center, bft.RelativeNorth, 60, 60, 6))
         {
             var relN = bft.RelativeNorth.ToDirection();
-            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, actor.Class.IsDD() ? relN.OrthoL() : relN.OrthoR()));
+            var safety = actor.Class.IsDD() ? relN.OrthoL() : relN.OrthoR();
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + relN * 19 + safety * 7, 2));
         }
     }
 
@@ -98,6 +99,7 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
 {
     BitMask _stackTargets;
     bool _assigned;
+    int _numHypernovas;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -127,12 +129,23 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_stackTargets.Any())
-            base.AddAIHints(slot, actor, assignment, hints);
+        if (!_stackTargets.Any())
+        {
+            if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 3, 3, 30), DateTime.MaxValue);
 
-        // before stack markers appear, everyone should head for arena center, relative south of puddles
-        else if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 3, 3, 30), DateTime.MaxValue);
+            return;
+        }
+
+        foreach (var t in Towers)
+        {
+            if (t.ForbiddenSoakers[slot])
+                hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.Radius + (_numHypernovas < 2 ? 2 : 0)), t.Activation);
+            else if (_numHypernovas < 2)
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(t.Position, t.Radius + 2, t.Radius + 5)).Inverted(), t.Activation); // FIXME hypernova spawn
+            else
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, t.Radius), t.Activation);
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -145,6 +158,14 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
                 t.ForbiddenSoakers.Set(slot);
             AssignTowers();
         }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.Hypernova)
+            _numHypernovas++;
     }
 
     void AssignTowers()

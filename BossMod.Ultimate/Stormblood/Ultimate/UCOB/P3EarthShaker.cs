@@ -17,7 +17,7 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.FindComponent<P3QuickmarchTrio>() is { } qmt)
+        if (Module.FindComponent<P3QuickmarchTrio>() is { } qmt && CurrentBaits.Count > 0)
         {
             var dirNorth = (qmt.RelativeNorth - Arena.Center).ToAngle();
             if (CurrentBaits.FirstOrNull(b => b.Target == actor) is { } bait)
@@ -35,11 +35,7 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
             }
             else if (actor.Role != Role.Tank)
             {
-                foreach (var b in CurrentBaits)
-                    hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation, b.Activation);
-
-                // this is so fucking stupid
-                hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, -dirNorth.ToDirection()));
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, dirNorth + 135.Degrees(), 60, 0, 1), CurrentBaits[0].Activation);
             }
 
             var damage = new BitMask();

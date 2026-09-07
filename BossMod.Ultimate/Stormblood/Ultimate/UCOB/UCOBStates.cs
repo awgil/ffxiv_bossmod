@@ -280,7 +280,8 @@ class UCOBStates : StateMachineBuilder
         ActorCast(id, _module.Nael, AID.BahamutsFavor, delay, 3, true);
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x10, 8, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<Quote>()
-            .ActivateOnEnter<P2BahamutsFavorChainLightning>();
+            .ActivateOnEnter<P2BahamutsFavorChainLightning>()
+            .ExecOnEnter<P2BahamutsFavorChainLightning>(p => p.FirstSet = true);
         ComponentCondition<Quote>(id + 0x11, 0.1f, comp => comp.PendingMechanics.Count > 0); // first quote
         // +1.9s: iceball 1
         // +3.9s: iceball 2
@@ -486,8 +487,6 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P3CalamitousBlaze>()
             .SetHint(StateMachine.StateHint.Raidwide);
         ActorTargetable(id + 0x100, _module.BahamutPrime, true, 3.0f, "Boss appears")
-            .ActivateOnEnter<P3BossPositioning>()
-            .ExecOnEnter<P3BossPositioning>(p => p.DesiredRotation = 180.Degrees())
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .SetHint(StateMachine.StateHint.DowntimeEnd)
             .DeactivateOnExit<P3BahamutMoon>();
@@ -497,6 +496,7 @@ class UCOBStates : StateMachineBuilder
     {
         return ComponentCondition<P3FlareBreath>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P3FlareBreath>()
+            .ExecOnEnter<P3FlareBreath>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P3FlareBreath>()
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
@@ -517,8 +517,7 @@ class UCOBStates : StateMachineBuilder
     {
         ActorCast(id, _module.BahamutPrime, AID.QuickmarchTrio, delay, 4, true);
         ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (quickmarch trio)")
-            .SetHint(StateMachine.StateHint.DowntimeStart)
-            .ExecOnExit<P3BossPositioning>(p => p.DesiredRotation = null);
+            .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P3QuickmarchTrio>(id + 0x20, 1.2f, comp => comp.Active)
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
             .ActivateOnEnter<P3QuickmarchTrio>();

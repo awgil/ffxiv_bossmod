@@ -4,11 +4,11 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 {
     public WPos RelativeNorth { get; private set; }
     private readonly WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
+    private readonly WPos[] _spreadSpots = new WPos[PartyState.MaxPartySize];
 
     public bool Active => RelativeNorth != default;
     private DateTime _diveAt;
     private bool _divesDone;
-    private bool _tethersDone;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -36,6 +36,9 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
                 var offSafe = (60 + order * 20).Degrees();
                 var dirSafe = dirToNorth + (left ? offSafe : -offSafe);
                 _safeSpots[p.slot] = Module.Center + 20 * dirSafe.ToDirection();
+                var offSpread = (90 + (order - 1.5f) * 30).Degrees();
+                var dirSpread = dirToNorth + (left ? offSpread : -offSpread);
+                _spreadSpots[p.slot] = Module.Center + 15 * dirSpread.ToDirection();
             }
         }
     }
@@ -46,12 +49,8 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
         if (_safeSpots[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1), _diveAt);
 
-        // sometimes we have to take drastic measures to force AI not to spread at the arena edge
-        if (Module.FindComponent<P3Twister>() is { Predicted: true } or { Active: true })
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 18));
-
-        if (_tethersDone && hints.FindEnemy(((UCOB)Module).BahamutPrime()) is { } baha)
-            baha.DesiredRotation = (RelativeNorth - Arena.Center).ToAngle();
+        if (Module.FindComponent<P3Twister>() is { Predicted: true })
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_spreadSpots[slot], 1));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -62,9 +61,6 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
             _diveAt = default;
             Array.Fill(_safeSpots, default);
         }
-
-        if ((AID)spell.Action.ID == AID.TempestWingAOE)
-            _tethersDone = true;
     }
 }
 

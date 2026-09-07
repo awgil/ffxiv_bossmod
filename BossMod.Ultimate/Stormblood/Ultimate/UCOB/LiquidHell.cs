@@ -97,6 +97,9 @@ class P1LiquidHell : LiquidHell
             if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.MT))
             {
                 hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 6), NextCast);
+
+                foreach (var p in Raid.WithoutSlot().Exclude(actor))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 0.5f), DateTime.MaxValue);
             }
 
             if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)

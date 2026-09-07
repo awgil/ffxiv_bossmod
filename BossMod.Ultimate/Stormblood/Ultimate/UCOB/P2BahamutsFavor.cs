@@ -106,6 +106,8 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
 
+    public bool FirstSet;
+
     public bool ActiveOrSkipped() => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
@@ -139,11 +141,16 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
 
         if (IsSpreadTarget(actor))
         {
-            // stop moving around, other players can't react in time due to latency
             hints.GoalZonesEnabled = false;
 
-            if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael && Module.FindComponent<Quote>() is { PendingMechanics: [AID.LunarDynamo, ..] })
-                hints.AddForbiddenZone(ShapeDistance.Circle(nael.Position, 4), Spreads[0].Activation);
+            if (FirstSet)
+            {
+                var ordered = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
+                var myOrder = Spreads.OrderBy(s => ordered[Raid.FindSlot(s.Target.InstanceID)]).Index().First(s => s.Item.Target == actor).Index;
+                var myDir = myOrder == 0 ? -45.Degrees() : 45.Degrees();
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(((UCOB)Module).Nael()!.Position + myDir.ToDirection() * 5, 1), Spreads[0].Activation);
+                return;
+            }
 
             // avoid doom cleanse puddles (unless we are doomed, in which case ignore them)
             // note no activation time specified here, we want to clear the path to the puddle ASAP for other players since they won't want to walk through lightning aoe
@@ -214,7 +221,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
             {
                 // despite our best efforts, it's possible that a wings puddle can spawn on top of the cleanse puddle
                 var isCovered = Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.ActiveAOEs(slot, actor).Any(a => pos.Value.InCircle(a.Origin, 4)) == true;
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), isCovered ? default : d.Expiration);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), isCovered ? default : d.Expiration.AddSeconds(-0.5f));
             }
             else
             {

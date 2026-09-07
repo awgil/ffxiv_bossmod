@@ -33,14 +33,3 @@ class P3BahamutMoon(BossModule module) : Components.Voidzone(module, 8, OID.Baha
             hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, Sources.Any() ? 9.5f : 6));
     }
 }
-
-class P3BossPositioning(BossModule module) : BossComponent(module)
-{
-    public Angle? DesiredRotation;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (hints.FindEnemy(((UCOB)Module).BahamutPrime()) is { } bp)
-            bp.DesiredRotation = DesiredRotation;
-    }
-}
