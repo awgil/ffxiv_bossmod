@@ -356,15 +356,13 @@ public abstract class BossModule : IDisposable
     {
         foreach (var enemy in hints.PotentialTargets.Where(a => a.Actor is { IsDeadOrDestroyed: false, CastInfo: null } && a.CanMove))
         {
-            var tankDistance = enemy.Actor.HitboxRadius + enemy.TankDistance + 0.5f;
-
             if (WorldState.Actors.Find(enemy.Actor.TargetID) is { } target)
             {
                 var toTarget = target.Position - enemy.Actor.Position;
-                var distToTarget = toTarget.Length();
-                if (distToTarget > tankDistance + 0.5f)
+                var distToTarget = toTarget.Length() - enemy.Actor.HitboxRadius - target.HitboxRadius;
+                if (distToTarget > enemy.TankDistance)
                 {
-                    var movement = toTarget.Normalized() * (distToTarget - tankDistance);
+                    var movement = toTarget.Normalized() * (distToTarget - enemy.TankDistance);
                     Arena.AddLine(enemy.Actor.Position, enemy.Actor.Position + movement, 0xFFFFFF00);
                     Arena.AddCircle(enemy.Actor.Position + movement, 0.5f, 0xFFFFFF00);
                 }

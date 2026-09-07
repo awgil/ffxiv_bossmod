@@ -16,7 +16,7 @@ public sealed class PresetDatabase
     private readonly FileInfo _dbPath;
     private readonly FileInfo _defaultPath;
 
-    private Lock _lock = new();
+    private readonly Lock _lock = new();
 
     public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
 

@@ -36,9 +36,9 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
                 var offSafe = (60 + order * 20).Degrees();
                 var dirSafe = dirToNorth + (left ? offSafe : -offSafe);
                 _safeSpots[p.slot] = Module.Center + 20 * dirSafe.ToDirection();
-                var offSpread = (90 + (order - 1.5f) * 30).Degrees();
+                var offSpread = (90 + (order - 1.5f) * 35).Degrees();
                 var dirSpread = dirToNorth + (left ? offSpread : -offSpread);
-                _spreadSpots[p.slot] = Module.Center + 15 * dirSpread.ToDirection();
+                _spreadSpots[p.slot] = Module.Center + 12 * dirSpread.ToDirection();
             }
         }
     }
@@ -118,12 +118,11 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
                 var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2));
             }
-            else
-            {
-                // stack target is random
+
+            // everyone else should avoid the stack, it will kill healers and do ~50% to tanks
+            else if (actor.Class.IsSupport())
                 foreach (var (_, candidate) in Raid.WithSlot().ExcludedFromMask(stack.ForbiddenPlayers))
                     hints.AddForbiddenZone(ShapeDistance.Circle(candidate.Position, StackRadius), stack.Activation);
-            }
 
             return;
         }

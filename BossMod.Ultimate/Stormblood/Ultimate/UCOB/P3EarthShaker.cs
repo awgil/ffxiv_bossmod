@@ -30,8 +30,9 @@ class P3EarthShaker(BossModule module) : Components.GenericBaitAway(module, AID.
                 };
 
                 hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, safeDir, 60, 0, 1), bait.Activation);
+                hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 6), bait.Activation);
                 // healers should move closer to arena center to be in range of the whole party, in case i.e. R2 gets hit by megaflare
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 8, 0.5f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 10, 0.5f));
             }
             else if (actor.Role != Role.Tank)
             {

@@ -80,11 +80,20 @@ class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
 
         if (numSources < 5)
             hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 60, 0, 1));
-        else if (numSources == 5 && actor.Position.InRect(Arena.Center, bft.RelativeNorth, 60, 60, 6))
+        else if (numSources == 5)
         {
-            var relN = bft.RelativeNorth.ToDirection();
-            var safety = actor.Class.IsDD() ? relN.OrthoL() : relN.OrthoR();
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + relN * 19 + safety * 7, 2));
+            // force pathfinder to move out of puddle, sometimes casters can get stuck for some reason
+            if (actor.Position.InRect(Arena.Center, bft.RelativeNorth, 60, 60, 6))
+            {
+                var relN = bft.RelativeNorth.ToDirection();
+                var safety = actor.Class.IsDD() ? relN.OrthoL() : relN.OrthoR();
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + relN * 17 + safety * 8, 2));
+            }
+            else
+            {
+                // once we're out of puddles, move toward arena center; hint disappears once enum marker appears
+                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 2, 2, 50), DateTime.MaxValue);
+            }
         }
     }
 

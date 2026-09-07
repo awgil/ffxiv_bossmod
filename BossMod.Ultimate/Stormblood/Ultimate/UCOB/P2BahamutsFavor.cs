@@ -90,9 +90,9 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
     {
         if (IsStackTarget(actor) && ((UCOB)Module).Nael() is { } nael)
         {
-            if (FireOut)
-                hints.GoalZonesEnabled = false;
-            else
+            hints.GoalZonesEnabled = false;
+
+            if (!FireOut)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nael.Position, 5), Stacks[0].Activation);
         }
         else
@@ -219,6 +219,9 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
 
             if (d.Player == actor)
             {
+                if (actor.FindStatus(SID.Thunderstruck)?.ExpireAt < d.Expiration)
+                    return;
+
                 // despite our best efforts, it's possible that a wings puddle can spawn on top of the cleanse puddle
                 var isCovered = Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.ActiveAOEs(slot, actor).Any(a => pos.Value.InCircle(a.Origin, 4)) == true;
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), isCovered ? default : d.Expiration.AddSeconds(-0.5f));

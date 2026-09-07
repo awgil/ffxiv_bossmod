@@ -466,20 +466,20 @@ public sealed class AIHints
         if (enemy == null)
             return _ => 0;
 
-        var adjRange = enemy.TankDistance + target.HitboxRadius;
+        var adjRange = enemy.TankDistance + target.HitboxRadius + player.HitboxRadius;
         var dirToGoal = destination - target.Position;
         var distToGoal = dirToGoal.Length() + adjRange;
         var leewaySq = destRadius * destRadius;
 
         // try to stay within pull range
         if (dirToGoal.LengthSq() <= leewaySq)
-            return GoalSingleTarget(target.Position, target.HitboxRadius + enemy.TankDistance, 0.5f);
+            return GoalSingleTarget(target.Position, adjRange, 0.5f);
 
         var distance = distToGoal;
         if (gcd < 0.5f)
         {
             var playerEffRange = player.Role is Role.Tank or Role.Melee ? 3 : 25;
-            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + playerEffRange);
+            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange);
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);

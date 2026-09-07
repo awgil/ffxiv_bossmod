@@ -61,5 +61,9 @@ internal sealed class SensibleFileWatcher : IDisposable
             Changed.Fire(args);
     }
 
-    public void Dispose() => Watcher.Dispose();
+    public void Dispose()
+    {
+        Watcher.Dispose();
+        _cache.Dispose();
+    }
 }

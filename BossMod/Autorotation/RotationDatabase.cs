@@ -25,5 +25,9 @@ public sealed class RotationDatabase : IDisposable
         );
     }
 
-    public void Dispose() => _subscriptions.Dispose();
+    public void Dispose()
+    {
+        _subscriptions.Dispose();
+        Plans.Dispose();
+    }
 }
