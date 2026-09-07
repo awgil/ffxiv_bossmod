@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace BossMod.Autorotation;
 
 // note: plans in the database are immutable (otherwise eg. manager won't see the changes in active plan)
-public sealed class PlanDatabase
+public sealed class PlanDatabase : IDisposable
 {
     public record class PlanList
     {
@@ -19,12 +19,23 @@ public sealed class PlanDatabase
     private readonly FileInfo _manifestPath;
     private readonly DirectoryInfo _planStore;
 
+    private readonly SensibleFileWatcher _watcher;
+    private readonly EventSubscriptions _subscriptions;
+
+    private readonly Queue<string> _pendingFiles = [];
+
     public PlanDatabase(string rootPath)
     {
         _manifestPath = new(rootPath + ".manifest.json");
         _planStore = new(rootPath);
         if (!_planStore.Exists)
             _planStore.Create();
+
+        _watcher = new(rootPath, filter: "*.json", includeSubdirectories: true)
+        {
+            EnableRaisingEvents = true
+        };
+        _subscriptions = new(_watcher.Changed.Subscribe(OnPlanFileChanged));
 
         Load();
     }
@@ -211,11 +222,13 @@ public sealed class PlanDatabase
         var filename = $"{_planStore.FullName}/{plan.Guid}.json";
         try
         {
+            _pendingFiles.Enqueue(plan.Guid);
             PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions()));
             Service.Log($"Plan saved successfully to '{filename}'");
         }
         catch (Exception ex)
         {
+            _pendingFiles.Dequeue();
             Service.Log($"Failed to write database to '{filename}': {ex}");
         }
     }
@@ -225,12 +238,58 @@ public sealed class PlanDatabase
         var filename = $"{_planStore.FullName}/{plan.Guid}.json";
         try
         {
+            _pendingFiles.Enqueue(plan.Guid);
             new FileInfo(filename).Delete();
             Service.Log($"Plan '{filename}' deleted successfully");
         }
         catch (Exception ex)
         {
+            _pendingFiles.Dequeue();
             Service.Log($"Failed to delete plan '{filename}': {ex}");
         }
+    }
+
+    private void OnPlanFileChanged(FileSystemEventArgs args)
+    {
+        var guid = Path.GetFileNameWithoutExtension(args.FullPath);
+        if (_pendingFiles.TryPeek(out var pp) && pp == guid)
+        {
+            _pendingFiles.Dequeue();
+            return;
+        }
+        Service.Log($"Plan file changed: {guid}");
+
+        var matchingPlan = Plans.Values.SelectMany(v => v.Values.SelectMany(v2 => v2.Plans.Where(p => p.Guid == guid))).FirstOrDefault();
+        if (matchingPlan == null)
+        {
+            Service.Log($"New plan was created - this is not supported by hot reload. Reload the plugin at your earliest convenience!");
+            return;
+        }
+
+        try
+        {
+            var data = PlanPresetConverter.PlanSchema.Load(new(args.FullPath));
+            using var json = data.document;
+            var newPlan = data.payload.Deserialize<Plan>(Serialization.BuildSerializationOptions());
+            if (newPlan != null)
+            {
+                newPlan.Guid = guid;
+                var ix = Plans[matchingPlan.Encounter][matchingPlan.Class].Plans.FindIndex(p => p.Guid == guid);
+                Plans[matchingPlan.Encounter][matchingPlan.Class].Plans[ix] = newPlan;
+                Service.ShowNotification($"Reloaded plan '{guid}' from disk");
+            }
+            else
+                Service.Log($"Modified plan file '{args.FullPath}' failed to load, doing nothing");
+        }
+        catch (Exception ex)
+        {
+            Service.Log($"Failed to parse modified plan file '{args.FullPath}': {ex}");
+        }
+    }
+
+    public void Dispose()
+    {
+        _subscriptions.Dispose();
+        _watcher.Dispose();
     }
 }

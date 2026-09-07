@@ -1,11 +1,8 @@
 ﻿using BossMod.Autorotation;
 using BossMod.ReplayAnalysis;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Threading;
 
 namespace BossMod;
 
@@ -29,10 +26,9 @@ public sealed class PackLoader : IDisposable
 
     // one context per filepath - this is because AssemblyLoadContext doesn't support unloading individual assemblies, and we don't want to force everything to hot reload when one file changes
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
-    private readonly FileSystemWatcher _watcher;
-    private readonly MemoryCache _memCache = new(new MemoryCacheOptions());
+    private readonly SensibleFileWatcher _watcher;
     private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
-    private readonly EventSubscription _modified;
+    private readonly EventSubscriptions _modified;
     public static readonly string ModuleDir = Path.Join(ReplayHistory.GetStorageDir().FullName, "modules");
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
@@ -42,27 +38,22 @@ public sealed class PackLoader : IDisposable
 
     public PackLoader()
     {
-        _watcher = new()
-        {
-            NotifyFilter = NotifyFilters.LastWrite // creation/modification
-                         | NotifyFilters.FileName // deletion
-        };
-        _watcher.Renamed += OnFileRenamed;
-        _watcher.Deleted += OnChangeEvent;
-        _watcher.Changed += OnChangeEvent;
-        _watcher.Error += (sender, e) => Service.Log($"Error: {e.GetException()}");
-        _watcher.Filter = "*.dll";
-        _watcher.IncludeSubdirectories = true;
+        _watcher = new(filter: "*.dll", includeSubdirectories: true);
 
         if (!Directory.Exists(ModuleDir))
             Directory.CreateDirectory(ModuleDir);
 
         ReloadFrom(ModuleDir);
 
-        _modified = _config.Modified.ExecuteAndSubscribe(() =>
-        {
-            _watcher.EnableRaisingEvents = _config.HotReload;
-        });
+        _modified = new(
+            _config.Modified.ExecuteAndSubscribe(() =>
+            {
+                _watcher.EnableRaisingEvents = _config.HotReload;
+            }),
+            _watcher.Renamed.Subscribe(OnFileRenamed),
+            _watcher.Changed.Subscribe(f => OnFileChanged(f.FullPath)),
+            _watcher.Deleted.Subscribe(f => OnFileDeleted(f.FullPath))
+        );
     }
 
     private void ReloadFrom(string packDirectory)
@@ -80,29 +71,10 @@ public sealed class PackLoader : IDisposable
         Modified.Fire();
     }
 
-    private void OnChangeEvent(object sender, FileSystemEventArgs args)
-    {
-        Service.PluginLog.Verbose($"firing {args.ChangeType} {args.FullPath}");
-        var cts = new CancellationTokenSource();
-        cts.CancelAfter(TimeSpan.FromSeconds(1));
-        _memCache.Set(args.FullPath, args, new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.NeverRemove).AddExpirationToken(new CancellationChangeToken(cts.Token)).RegisterPostEvictionCallback(OnCacheEntryRemoved));
-    }
-
-    private void OnFileRenamed(object sender, RenamedEventArgs e)
+    private void OnFileRenamed(RenamedEventArgs e)
     {
         if (_loadContexts.Remove(e.OldFullPath, out var ctx))
             _loadContexts[e.FullPath] = ctx;
-    }
-
-    private void OnCacheEntryRemoved(object key, object? value, EvictionReason reason, object? state)
-    {
-        if (reason != EvictionReason.TokenExpired || value is not FileSystemEventArgs e)
-            return;
-
-        if (e.ChangeType.HasFlag(WatcherChangeTypes.Deleted))
-            OnFileDeleted(e.FullPath);
-        else
-            OnFileChanged(e.FullPath);
     }
 
     private void OnFileChanged(string fullPath)

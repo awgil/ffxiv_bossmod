@@ -33,7 +33,7 @@ public sealed class AIHints
         }
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
-        public bool CanMove;
+        public bool CanMove = true;
         public WPos? DesiredPosition; // tank AI will try to move enemy to this position
         public Angle? DesiredRotation; // tank AI will try to rotate enemy to this angle
         public float TankDistance = 2; // enemy will start moving if distance between hitboxes is bigger than this

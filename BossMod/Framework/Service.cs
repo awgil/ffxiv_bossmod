@@ -1,5 +1,6 @@
 ﻿using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
@@ -43,6 +44,8 @@ public sealed class Service
 
     public static void ChatMessage(string msg) => ChatGui.Print(msg, "VBM");
     public static void ChatError(string msg) => ChatGui.PrintError(msg, "VBM");
+
+    public static void ShowNotification(string msg, NotificationType type = NotificationType.Success) => Notifications?.AddNotification(new() { Content = msg, Type = type });
 
     public static Lumina.GameData LuminaGameData = null!;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData.GetExcelSheet<T>();
