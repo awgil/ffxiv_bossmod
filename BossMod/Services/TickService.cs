@@ -107,9 +107,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
 
-        _packs = new();
-        _hints = new();
-
         var configDir = dalamud.ConfigDirectory.FullName;
         if (Service.IsMock)
         {
@@ -125,13 +122,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             MultiboxUnlock.Exec();
         }
 
+        MigratePlans(configDir);
+
+        _packs = new();
+        _hints = new();
+
         if (!Service.IsMock)
         {
             _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
             _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
         }
 
-        _rotationDB = new(new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm", "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"), _packs);
+        _rotationDB = new(new(Path.Join(Plugin.GetStorageDir(), "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"), _packs);
 
         if (Service.IsMock)
         {
@@ -659,6 +661,32 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         ImGui.SetClipboardText($"```{diag.ToString()}```");
 
         Service.ChatMessage("Diagnostic data has been copied to your clipboard.");
+    }
+
+    private static void MigratePlans(string pluginConfigDir)
+    {
+        var source = Path.Join(pluginConfigDir, "autorot");
+
+        // no autorot dir means fresh install
+        if (!Path.Exists(source))
+        {
+            Service.PluginLog.Verbose($"[Migrator] No configs, nothing to do.");
+            return;
+        }
+
+        var destination = Path.Join(Plugin.GetStorageDir(), "autorot");
+
+        if (File.Exists(Path.Join(destination, ".migrate-ok")))
+        {
+            Service.PluginLog.Verbose($"[Migrator] Nothing to do.");
+            return;
+        }
+
+        Utils.CopyRecursive(source, destination);
+
+        File.Create(Path.Join(destination, ".migrate-ok"));
+
+        Service.Log($"[Migrator] Done.");
     }
 
     protected override void Dispose(bool disposing)

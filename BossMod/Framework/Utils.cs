@@ -455,4 +455,20 @@ public static partial class Utils
     public static FileStream OpenShareable(string path, FileMode mode = FileMode.OpenOrCreate) => File.Open(path, mode, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 
     public static FileStream OpenShareable(this FileInfo finfo, FileMode mode = FileMode.OpenOrCreate) => finfo.Open(mode, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+    public static void CopyRecursive(string sourceDir, string targetDir) => CopyRecursive(new DirectoryInfo(sourceDir), new DirectoryInfo(targetDir));
+
+    public static void CopyRecursive(DirectoryInfo sourceDir, DirectoryInfo targetDir)
+    {
+        Directory.CreateDirectory(targetDir.FullName);
+
+        foreach (var fi in sourceDir.GetFiles())
+            fi.CopyTo(Path.Combine(targetDir.FullName, fi.Name), true);
+
+        foreach (var subsource in sourceDir.GetDirectories())
+        {
+            var subtarget = targetDir.CreateSubdirectory(subsource.Name);
+            CopyRecursive(subsource, subtarget);
+        }
+    }
 }

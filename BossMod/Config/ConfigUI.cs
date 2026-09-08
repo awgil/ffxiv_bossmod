@@ -21,7 +21,7 @@ public sealed class ConfigUI : IDisposable
         public List<string> Path = [];
     }
 
-    private static Dictionary<Type, PropertyRenderer> _customRenderers = [];
+    private static readonly Dictionary<Type, PropertyRenderer> _customRenderers = [];
 
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();

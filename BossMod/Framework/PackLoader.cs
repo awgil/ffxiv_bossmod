@@ -29,7 +29,7 @@ public sealed class PackLoader : IDisposable
     private readonly SensibleFileWatcher _watcher;
     private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
     private readonly EventSubscriptions _modified;
-    public static readonly string ModuleDir = Path.Join(ReplayHistory.GetStorageDir().FullName, "modules");
+    public static readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), "modules");
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
 
@@ -40,8 +40,7 @@ public sealed class PackLoader : IDisposable
     {
         _watcher = new(filter: "*.dll", includeSubdirectories: true);
 
-        if (!Directory.Exists(ModuleDir))
-            Directory.CreateDirectory(ModuleDir);
+        Directory.CreateDirectory(ModuleDir);
 
         ReloadFrom(ModuleDir);
 

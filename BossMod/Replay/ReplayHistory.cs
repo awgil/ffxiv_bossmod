@@ -9,18 +9,9 @@ public class ReplayHistory
 {
     public List<ReplayMemory> History = [];
 
-    public static DirectoryInfo GetStorageDir()
-    {
-        var dir = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm"));
-        if (!dir.Exists)
-            dir.Create();
-
-        return dir;
-    }
-
     public static ReplayHistory Load()
     {
-        var file = Path.Combine(GetStorageDir().FullName, "replay-history.json");
+        var file = Path.Combine(Plugin.GetStorageDir(), "replay-history.json");
         try
         {
             using var stream = Utils.OpenShareable(file);
@@ -41,7 +32,7 @@ public class ReplayHistory
 
     public void Save()
     {
-        var file = Path.Combine(GetStorageDir().FullName, "replay-history.json");
+        var file = Path.Combine(Plugin.GetStorageDir(), "replay-history.json");
         using var stream = File.Create(file);
         JsonSerializer.Serialize(stream, History);
     }
