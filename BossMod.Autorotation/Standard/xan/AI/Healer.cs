@@ -403,7 +403,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         {
             if (ratio < 0.5)
             {
-                var canLustrate = gauge.Aetherflow > 0 && Unlocked(BossMod.SCH.AID.Lustrate);
+                // aetherflow is too valuable
+                var canLustrate = false; // gauge.Aetherflow > 0 && Unlocked(BossMod.SCH.AID.Lustrate);
                 if (canLustrate)
                     UseOGCD(BossMod.SCH.AID.Lustrate, target);
                 else

@@ -25,6 +25,7 @@ class UCOBStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HPMP.CurHP <= 1 && Module.FindComponent<P2BlockTransition>() == null;
         SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .ActivateOnEnter<P3BahamutPositioning>()
             .DeactivateOnExit<Hatch>()
             .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead && _module.Nael() is var nael && nael != null && nael.IsDead;
         SimplePhase(5, Phase5, "P5: Golden Bahamut")
@@ -471,6 +472,11 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<P3SeventhUmbralEra>(id, delay, comp => comp.NumCasts > 0, "Knockback")
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
+            .ExecOnEnter<P3BahamutPositioning>(b =>
+            {
+                b.DesiredPosition = Module.Arena.Center;
+                b.DesiredRotation = 180.Degrees();
+            })
             .ActivateOnEnter<P3SeventhUmbralEra>()
             .ActivateOnEnter<P3BahamutMoon>()
             .DeactivateOnExit<P3SeventhUmbralEra>();
@@ -623,7 +629,8 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<Quote>(id + 0x20, 2.3f, comp => comp.PendingMechanics.Count > 0)
             .ExecOnEnter<Hatch>(comp => comp.Active = false)
             .ActivateOnEnter<Quote>()
-            .ActivateOnEnter<P3AethericProfusion>();
+            .ActivateOnEnter<P3AethericProfusion>()
+            .ActivateOnEnter<P3DynamoTetherHelper>();
         ComponentCondition<Quote>(id + 0x30, 5.1f, comp => comp.PendingMechanics.Count == 2, "In/spread")
             .ActivateOnEnter<QuoteIronChariotLunarDynamo>()
             .ActivateOnEnter<QuoteRavenDive>();
@@ -631,11 +638,11 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P3TempestWing>()
             .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
             .DeactivateOnExit<QuoteRavenDive>();
-        ComponentCondition<P3TempestWing>(id + 0x50, 2.9f, comp => comp.NumCasts > 0, "Tethers")
+        ComponentCondition<P3AethericProfusion>(id + 0x50, 3.5f, comp => comp.NumCasts > 0, "Neurolinks")
             .ExecOnEnter<P3AethericProfusion>(comp => comp.Active = true)
-            .DeactivateOnExit<P3TempestWing>();
-        ComponentCondition<P3AethericProfusion>(id + 0x60, 0.9f, comp => comp.NumCasts > 0, "Neurolinks")
             .DeactivateOnExit<P3AethericProfusion>();
+        ComponentCondition<P3TempestWing>(id + 0x60, 0.4f, comp => comp.NumCasts > 0, "Tethers")
+            .DeactivateOnExit<P3TempestWing>();
 
         ActorTargetable(id + 0x100, _module.BahamutPrime, true, 2.2f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)

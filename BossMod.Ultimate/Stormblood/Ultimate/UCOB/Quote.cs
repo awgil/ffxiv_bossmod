@@ -119,11 +119,25 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
     {
         //base.AddAIHints(slot, actor, assignment, hints);
 
-        if (IsSpreadTarget(actor) && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+        if (IsSpreadTarget(actor))
         {
             var off = (int)assignment;
-            var n = nael.Position;
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(nael.Position + (180 + 45 * off).Degrees().ToDirection() * 5, new(0, 1), 0.5f, actor.Position, 0.1f), Spreads[0].Activation);
+
+            WPos center;
+            Angle north;
+
+            if (((UCOB)Module).Nael() is { IsTargetable: true, Position: var p })
+            {
+                center = p;
+                north = 180.Degrees();
+            }
+            else
+            {
+                center = Arena.Center;
+                north = (((UCOB)Module).BahamutPrime()!.Position - center).ToAngle();
+            }
+
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(center + (north.Deg - 45 * off).Degrees().ToDirection() * 5, new(0, 1), 0.5f, actor.Position, 0.1f), Spreads[0].Activation);
         }
     }
 }

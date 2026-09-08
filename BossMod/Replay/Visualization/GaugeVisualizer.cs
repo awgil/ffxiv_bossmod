@@ -53,6 +53,9 @@ internal class GaugeVisualizer
             case Class.DRK:
                 DrawDRK(player, clientState);
                 break;
+            case Class.SCH:
+                DrawSCH(player, clientState);
+                break;
             case Class.MNK:
                 DrawMNK(player, clientState);
                 break;
@@ -191,6 +194,16 @@ internal class GaugeVisualizer
             if (Service.Texture.GetFromGame("ui/uld/JobHudDRK0_hr1.tex").TryGetWrap(out var wrap, out _))
                 ImGui.Image(wrap.Handle, Scale(28, 28), new Vector2(0.8526f, 0), new Vector2(0.9263f, 0.0946f));
         }
+    }
+
+    private void DrawSCH(Actor player, ClientState clientState)
+    {
+        var gauge = clientState.GetGauge<ScholarGauge>();
+        var origin = ImGui.GetCursorPos();
+
+        DrawDiamond(origin, "sch_aetherflow", gauge.Aetherflow > 0, [-50, 100, 0]);
+        DrawDiamond(origin + Scale(19, 0), "sch_aetherflow", gauge.Aetherflow > 1, [-50, 100, 0]);
+        DrawDiamond(origin + Scale(38, 0), "sch_aetherflow", gauge.Aetherflow > 2, [-50, 100, 0]);
     }
 
     private void DrawMNK(Actor player, ClientState clientState)

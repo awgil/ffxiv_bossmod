@@ -46,14 +46,6 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
             _neurolinkCount++;
     }
 
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        base.DrawArenaForeground(pcSlot, pc);
-
-        if (Destination != default)
-            Arena.AddCircle(Destination, 0.5f, ArenaColor.Safe, 2);
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == StackAction)

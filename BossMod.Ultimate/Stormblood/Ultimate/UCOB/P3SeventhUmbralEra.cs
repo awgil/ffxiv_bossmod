@@ -15,7 +15,8 @@ class P3SeventhUmbralEra(BossModule module) : Components.Knockback(module, AID.S
 class P3CalamitousFlame(BossModule module) : Components.CastCounter(module, AID.CalamitousFlame);
 class P3CalamitousBlaze(BossModule module) : Components.CastCounter(module, AID.CalamitousBlaze);
 
-class P3BahamutMoon(BossModule module) : Components.Voidzone(module, 8, OID.BahamutMoon)
+// actually 8 units, but normalmove tends to walk into it for some reason
+class P3BahamutMoon(BossModule module) : Components.Voidzone(module, 8.5f, OID.BahamutMoon)
 {
     bool _knockbackHappened;
 
@@ -30,6 +31,21 @@ class P3BahamutMoon(BossModule module) : Components.Voidzone(module, 8, OID.Baha
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (_knockbackHappened)
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, Sources.Any() ? 9.5f : 6));
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, Sources.Any() ? 10 : 6));
+    }
+}
+
+class P3BahamutPositioning(BossModule module) : BossComponent(module)
+{
+    public WPos? DesiredPosition;
+    public Angle? DesiredRotation;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (hints.FindEnemy(((UCOB)Module).BahamutPrime()) is { } b)
+        {
+            b.DesiredRotation ??= DesiredRotation;
+            b.DesiredPosition ??= DesiredPosition;
+        }
     }
 }

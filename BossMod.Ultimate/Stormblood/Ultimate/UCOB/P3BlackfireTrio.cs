@@ -26,6 +26,8 @@ class P3BlackfireTrio : Components.CastCounter
         {
             _nael = actor;
             RelativeNorth = (actor.Position - Arena.Center).ToAngle();
+            if (Module.FindComponent<P3BahamutPositioning>() is { } bp)
+                bp.DesiredRotation = RelativeNorth;
         }
     }
 
@@ -224,9 +226,20 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.FindComponent<P3BlackfireTrio>() is { } bft && Stacks.Count > 0 && !Stacks[0].ForbiddenPlayers[slot])
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, 2.5f), Stacks[0].Activation);
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
+        if (Stacks is not ([var st, ..]))
+            return;
+
+        // avoid all stack targets
+        if (st.ForbiddenPlayers[slot])
+        {
+            foreach (var (_, player) in Raid.WithSlot().ExcludedFromMask(st.ForbiddenPlayers))
+                hints.AddForbiddenZone(ShapeDistance.Circle(player.Position, StackRadius), st.Activation);
+        }
+
+        // bft: stack spot is relative south of puddles
+        else if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, 2.5f), st.Activation);
+        }
     }
 }
