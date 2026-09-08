@@ -123,6 +123,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
 
         MigratePlans(configDir);
+        CopyLibraries(dalamud.AssemblyLocation);
 
         _packs = new();
         _hints = new();
@@ -687,6 +688,27 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         File.Create(Path.Join(destination, ".migrate-ok"));
 
         Service.Log($"[Migrator] Done.");
+    }
+
+    private static void CopyLibraries(FileInfo assemblyLocation)
+    {
+        var modulesDir = Path.Join(Plugin.GetStorageDir(), "modules");
+        var assemblyDir = assemblyLocation.DirectoryName!;
+
+        Directory.CreateDirectory(modulesDir);
+
+        void copy(string filename)
+        {
+            var src = Path.Join(assemblyDir, filename);
+            if (File.Exists(src))
+                File.Copy(src, Path.Join(modulesDir, filename));
+            else
+                Service.PluginLog.Verbose($"{filename} missing from assembly directory, is this a dev build?");
+        }
+
+        copy("BossMod.Autorotation.dll");
+        copy("BossMod.Modules.dll");
+        copy("BossMod.Ultimate.dll");
     }
 
     protected override void Dispose(bool disposing)

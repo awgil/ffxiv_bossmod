@@ -26,6 +26,8 @@ static class Program
         "Dalamud.Common",
         "FFXIVClientStructs",
         "Lumina",
+        "NativeFileDialogSharp",
+        "Serilog",
         "Serilog.Sinks.Console",
         "TerraFX.Interop.Windows"
     ];
