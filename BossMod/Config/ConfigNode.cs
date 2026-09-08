@@ -24,7 +24,7 @@ public sealed class SectionStartAttribute(string label = "", bool separator = tr
 
 // attribute that specifies how config node field or enumeration value is shown in the UI
 [AttributeUsage(AttributeTargets.Field)]
-public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", string? since = null, string? depends = null, string[]? tags = null, Type? customRenderer = null) : Attribute
+public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", string? since = null, string? depends = null, string[]? tags = null, Type? renderer = null) : Attribute
 {
     public string Label { get; } = label;
     public uint Color { get; } = color;
@@ -32,7 +32,7 @@ public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffff
     public string? Since { get; } = since;
     public string? Depends { get; } = depends;
     public string[] Tags { get; } = tags ?? [];
-    public Type? Renderer { get; } = customRenderer;
+    public Type? Renderer { get; } = renderer;
 }
 
 // attribute that specifies combobox should be used for displaying int/bool property

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>7.5.5.13</Version>
+    <Version>7.5.6.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,7 +41,8 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
-    <PackageReference Include="DalaMock.Core" Version="6.1.8" />
+    <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
+    <!-- <PackageReference Include="DalaMock.Core" Version="6.1.8" /> -->
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +67,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="DalamudPackager.targets" />
     <None Include="DefaultRotationPresets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

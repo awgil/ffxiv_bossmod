@@ -21,10 +21,9 @@
     </ProjectReference>
   </ItemGroup>
 
-  <Target Name="CopyDll" AfterTargets="Build">
+  <Target Name="CopyDll" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
     <Copy
-        Condition="'$(Configuration)' == 'Debug'"
-        SourceFiles="$(OutDir)\$(AssemblyName).dll"
-        DestinationFolder="$(AppData)\vbm\modules" />
+      SourceFiles="$(OutDir)\$(AssemblyName).dll"
+      DestinationFolder="$(AppData)\vbm\modules" />
   </Target>
 </Project>

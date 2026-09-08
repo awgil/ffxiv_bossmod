@@ -22,31 +22,6 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
         }
       },
-      "DalaMock.Core": {
-        "type": "Transitive",
-        "resolved": "6.1.8",
-        "contentHash": "VWxRNMY6hQlaPS2Onru6wZiARDhqIe1tnNTV4Kc0r0ogokiAgl+gAYBjtrJ6in5kHD54t5n2YJ1Qqht637PpYg==",
-        "dependencies": {
-          "Autofac": "9.0.0",
-          "DalaMock.Shared": "6.1.2",
-          "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
-          "Microsoft.Extensions.Configuration": "10.0.1",
-          "Microsoft.Extensions.DependencyModel": "10.0.1",
-          "Microsoft.Extensions.Hosting": "10.0.1",
-          "Microsoft.Extensions.Hosting.Abstractions": "10.0.1",
-          "Microsoft.Extensions.Localization": "10.0.7",
-          "Microsoft.Extensions.ObjectPool": "10.0.1",
-          "NativeFileDialogSharp": "0.5.0",
-          "Newtonsoft.Json": "13.0.4",
-          "Serilog": "4.3.0",
-          "Serilog.Extensions.Logging": "10.0.0",
-          "SixLabors.Fonts": "2.1.3",
-          "StbiSharp": "1.2.1",
-          "Veldrid": "4.9.0",
-          "Veldrid.SDL2": "4.9.0",
-          "Veldrid.StartupUtilities": "4.9.0"
-        }
-      },
       "DalaMock.Host": {
         "type": "Transitive",
         "resolved": "6.1.6",
@@ -578,6 +553,29 @@
           "DalamudPackager": "[15.0.0, )",
           "Microsoft.Extensions.Caching.Memory": "[10.0.11, )",
           "System.Data.Sqlite": "[2.0.2, )"
+        }
+      },
+      "dalamock.core": {
+        "type": "Project",
+        "dependencies": {
+          "Autofac": "[9.0.0, )",
+          "DalaMock.Shared": "[6.1.2, )",
+          "Microsoft.DotNet.PlatformAbstractions": "[3.1.6, )",
+          "Microsoft.Extensions.Configuration": "[10.0.1, )",
+          "Microsoft.Extensions.DependencyModel": "[10.0.1, )",
+          "Microsoft.Extensions.Hosting": "[10.0.1, )",
+          "Microsoft.Extensions.Hosting.Abstractions": "[10.0.1, )",
+          "Microsoft.Extensions.Localization": "[10.0.7, )",
+          "Microsoft.Extensions.ObjectPool": "[10.0.1, )",
+          "NativeFileDialogSharp": "[0.5.0, )",
+          "Newtonsoft.Json": "[13.0.4, )",
+          "Serilog": "[4.3.0, )",
+          "Serilog.Extensions.Logging": "[10.0.0, )",
+          "SixLabors.Fonts": "[2.1.3, )",
+          "StbiSharp": "[1.2.1, )",
+          "Veldrid": "[4.9.0, )",
+          "Veldrid.SDL2": "[4.9.0, )",
+          "Veldrid.StartupUtilities": "[4.9.0, )"
         }
       }
     }

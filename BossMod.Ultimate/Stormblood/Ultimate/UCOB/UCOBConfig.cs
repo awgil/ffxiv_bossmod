@@ -22,7 +22,7 @@ public class UCOBConfig() : ConfigNode()
     public GroupAssignmentUnique P3HeavensfallTrioTowers = new() { Assignments = [7, 0, 6, 1, 5, 2, 4, 3] };
 
     [SectionStart("AI-only settings")]
-    [PropertyDisplay("P1: players assigned to soak Plummet (for LB)", customRenderer: typeof(RolesRenderer))]
+    [PropertyDisplay("P1: players assigned to soak Plummet (for LB)", renderer: typeof(RolesRenderer))]
     public BitMask P1PlummetTargets = new();
 }
 
