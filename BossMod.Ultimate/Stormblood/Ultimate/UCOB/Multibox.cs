@@ -6,7 +6,7 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
 {
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Auto-UCOB", "It does what it says", "AI", "xan", RotationModuleQuality.Basic, new(~0ul), 70, 70, RelatedBossModule: typeof(UCOB));
+        return new RotationModuleDefinition("Auto-UCOB", "Auto-food, auto-wall, prepull position", "AI", "xan", RotationModuleQuality.WIP, new(~0ul), 70, 70, RelatedBossModule: typeof(UCOB));
     }
 
     private readonly PartyRolesConfig partyRolesConfig = Service.Config.Get<PartyRolesConfig>();

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace BossMod;
@@ -23,7 +24,7 @@ public sealed class SectionStartAttribute(string label = "", bool separator = tr
 
 // attribute that specifies how config node field or enumeration value is shown in the UI
 [AttributeUsage(AttributeTargets.Field)]
-public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", string? since = null, string? depends = null, string[]? tags = null) : Attribute
+public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", string? since = null, string? depends = null, string[]? tags = null, Type? customRenderer = null) : Attribute
 {
     public string Label { get; } = label;
     public uint Color { get; } = color;
@@ -31,6 +32,7 @@ public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffff
     public string? Since { get; } = since;
     public string? Depends { get; } = depends;
     public string[] Tags { get; } = tags ?? [];
+    public Type? Renderer { get; } = customRenderer;
 }
 
 // attribute that specifies combobox should be used for displaying int/bool property
@@ -112,4 +114,9 @@ public sealed class ConfigListener<T>(T data, Action<T> modified) : IDisposable 
     private readonly EventSubscription _listener = data.Modified.ExecuteAndSubscribe(() => modified(data));
 
     public void Dispose() => _listener.Dispose();
+}
+
+public abstract class PropertyRenderer
+{
+    public abstract bool Draw(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, object value, ConfigRoot root, UITree tree, WorldState ws);
 }

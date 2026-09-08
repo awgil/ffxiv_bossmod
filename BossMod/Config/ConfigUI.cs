@@ -21,6 +21,8 @@ public sealed class ConfigUI : IDisposable
         public List<string> Path = [];
     }
 
+    private static Dictionary<Type, PropertyRenderer> _customRenderers = [];
+
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
@@ -284,7 +286,8 @@ public sealed class ConfigUI : IDisposable
         Color v => DrawProperty(attrs, nested, node, member, v),
         Color[] v => DrawProperty(attrs, nested, node, member, v),
         GroupAssignment v => DrawProperty(attrs, nested, node, member, v, root, tree, ws),
-        _ => false
+        object v => DrawCustom(attrs, nested, node, member, v, root, tree, ws),
+        null => false
     };
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, bool v)
@@ -540,6 +543,27 @@ public sealed class ConfigUI : IDisposable
             }
         }
         return modified;
+    }
+
+    private static bool DrawCustom(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, object value, ConfigRoot root, UITree tree, WorldState ws)
+    {
+        if (attrs.Renderer != null)
+        {
+            if (!_customRenderers.TryGetValue(attrs.Renderer, out var r))
+            {
+                if (Activator.CreateInstance(attrs.Renderer) is PropertyRenderer p)
+                {
+                    _customRenderers.Add(attrs.Renderer, p);
+                    r = p;
+                }
+                else
+                    throw new InvalidOperationException($"Invalid renderer type for {member}, must inherit from PropertyRenderer");
+            }
+
+            return r.Draw(attrs, nested, node, member, value, root, tree, ws);
+        }
+
+        return false;
     }
 
     private static void DrawPropertyContextMenu(ConfigNode node, FieldInfo member, GroupAssignment v)

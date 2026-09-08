@@ -30,8 +30,7 @@ class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new 
         }
     }
 
-    // r1 is on hell duty, melees won't take enough damage
-    static bool IsSoaker(PartyRolesConfig.Assignment ass) => ass is PartyRolesConfig.Assignment.H1 or PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R2;
+    static bool IsSoaker(PartyRolesConfig.Assignment ass) => Service.Config.Get<UCOBConfig>().P1PlummetTargets[(int)ass];
 }
 class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, AID.BahamutsClaw);
 class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBreath, new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle

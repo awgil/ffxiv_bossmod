@@ -15,18 +15,22 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
 
             if (_neurolinkCount == 0)
             {
-                var assignments = _prc.AssignmentsPerSlot(Raid);
                 BitMask forbidden = new();
-                if (assignments.Length > 0)
-                {
-                    var hAvoid = PartyRolesConfig.Assignment.H1;
-                    if (assignments[slot] == hAvoid)
-                        hAvoid = PartyRolesConfig.Assignment.H2;
 
-                    for (var i = 0; i < assignments.Length; i++)
+                if (Service.Config.Get<UCOBConfig>().P1Fireball1LBHints)
+                {
+                    var assignments = _prc.AssignmentsPerSlot(Raid);
+                    if (assignments.Length > 0)
                     {
-                        if (assignments[i] is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT || assignments[i] == hAvoid)
-                            forbidden.Set(i);
+                        var hAvoid = PartyRolesConfig.Assignment.H1;
+                        if (assignments[slot] == hAvoid)
+                            hAvoid = PartyRolesConfig.Assignment.H2;
+
+                        for (var i = 0; i < assignments.Length; i++)
+                        {
+                            if (assignments[i] is PartyRolesConfig.Assignment.MT or PartyRolesConfig.Assignment.OT || assignments[i] == hAvoid)
+                                forbidden.Set(i);
+                        }
                     }
                 }
 
