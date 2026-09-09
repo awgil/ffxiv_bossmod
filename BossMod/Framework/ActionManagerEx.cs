@@ -447,6 +447,8 @@ public sealed unsafe class ActionManagerEx : IAmex
             FaceDirection(desiredRotation.Value);
         }
 
+        var autoDismount = false;
+
         if (actionImminent)
         {
             var actionAdj = NormalizeActionForQueue(AutoQueue.Action);
@@ -462,7 +464,7 @@ public sealed unsafe class ActionManagerEx : IAmex
             else if (_dismountTweak.IsMountPreventingAction(actionAdj))
             {
                 Service.Log("[AMEx] Trying to dismount...");
-                _hints.WantDismount |= _dismountTweak.AutoDismountEnabled;
+                autoDismount = _dismountTweak.AutoDismountEnabled;
             }
             else
             {
@@ -486,7 +488,9 @@ public sealed unsafe class ActionManagerEx : IAmex
                 _inst->UseAction(CSActionType.GeneralAction, 1);
         }
 
-        if (_hints.WantDismount && !_movement.FollowPathActive() && _dismountTweak.AllowDismount())
+        var shouldDismount = _hints.WantDismount && _dismountTweak.AllowManualDismount() || autoDismount && _dismountTweak.AllowAutoDismount();
+
+        if (!_movement.FollowPathActive() && shouldDismount)
             _inst->UseAction(CSActionType.GeneralAction, 23);
 
         if (MacroCapture && RaptureShellModule.Instance()->MacroCurrentLine < 0)
