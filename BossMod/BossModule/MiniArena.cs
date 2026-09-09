@@ -166,7 +166,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     {
         thickness *= Config.ThicknessScale;
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
+        var sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathLineTo(sCenter);
         drawlist.PathArcTo(sCenter, radius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);
@@ -177,7 +177,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     {
         thickness *= Config.ThicknessScale;
         var sCenter = WorldPositionToScreenPosition(center);
-        float sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
+        var sDir = MathF.PI / 2 - centerDirection.Rad + CameraAzimuth.Rad;
         var drawlist = ImGui.GetWindowDrawList();
         drawlist.PathArcTo(sCenter, innerRadius / Bounds.Radius * ScreenHalfSize, sDir + halfAngle.Rad, sDir - halfAngle.Rad);
         drawlist.PathArcTo(sCenter, outerRadius / Bounds.Radius * ScreenHalfSize, sDir - halfAngle.Rad, sDir + halfAngle.Rad);

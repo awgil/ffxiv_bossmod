@@ -141,8 +141,7 @@ sealed class IPCProvider : IDisposable
 
         bool addTransientStrategy(string presetName, string moduleTypeName, string trackName, string value, StrategyTarget target = StrategyTarget.Automatic, int targetParam = 0)
         {
-            var mt = Type.GetType(moduleTypeName);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (!RotationModuleRegistry.Modules.TryGetValue(moduleTypeName, out var md))
                 return false;
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
@@ -168,7 +167,7 @@ sealed class IPCProvider : IDisposable
                     throw new ArgumentException($"unhandled config type {x.GetType()}");
             }
 
-            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
+            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == md.ModuleType);
             if (ms == null)
                 return false;
             var setting = new Preset.ModuleSetting(default, iTrack, tempValue);
@@ -184,13 +183,12 @@ sealed class IPCProvider : IDisposable
 
         Register("Presets.ClearTransientStrategy", (string presetName, string moduleTypeName, string trackName) =>
         {
-            var mt = Type.GetType(moduleTypeName);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (!RotationModuleRegistry.Modules.TryGetValue(moduleTypeName, out var md))
                 return false;
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
                 return false;
-            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
+            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == md.ModuleType);
             if (ms == null)
                 return false;
             var index = ms.TransientSettings.FindIndex(s => s.Track == iTrack);
@@ -201,10 +199,9 @@ sealed class IPCProvider : IDisposable
         });
         Register("Presets.ClearTransientModuleStrategies", (string presetName, string moduleTypeName) =>
         {
-            var mt = Type.GetType(moduleTypeName);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (!RotationModuleRegistry.Modules.TryGetValue(moduleTypeName, out var md))
                 return false;
-            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == mt);
+            var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == md.ModuleType);
             if (ms == null)
                 return false;
             ms.TransientSettings.Clear();

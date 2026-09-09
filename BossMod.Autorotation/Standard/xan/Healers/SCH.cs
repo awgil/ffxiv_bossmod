@@ -1,0 +1,228 @@
+﻿using BossMod.SCH;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
+
+namespace BossMod.Autorotation.xan;
+
+public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<AID, TraitID, SCH.Strategy>(manager, player, PotionType.Mind)
+{
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track("Chain Stratagem", Actions = [AID.ChainStratagem, AID.Dissipation])]
+        public Track<OffensiveStrategy> Buffs;
+        [Track("Fairy placement")]
+        public Track<FairyPlacement> FairyPlace;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
+    public enum FairyPlacement
+    {
+        [Option("Leave fairy alone")]
+        Manual,
+        [Option("Automatically use Heel when combat ends", Context = StrategyContext.Preset)]
+        AutoHeel,
+        [Option("Automatically place fairy at arena center, if applicable, and automatically Heel when combat ends")]
+        FullAuto,
+        [Option("Place fairy at specified location", Targets = ActionTargets.Area, Context = StrategyContext.Plan)]
+        Specific
+    }
+
+    public static RotationModuleDefinition Definition()
+    {
+        return new RotationModuleDefinition("xan SCH", "Scholar", "Standard rotation (xan)|Healers", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.SCH), 100).WithStrategies<Strategy>();
+    }
+
+    public enum GCDPriority
+    {
+        None = 0,
+        Filler = 2
+    }
+
+    public int Aetherflow;
+    public int FairyGauge;
+    public float SeraphTimer;
+    public bool FairyGone;
+
+    public float ImpactImminent;
+    public float TargetDotLeft;
+    public int NumAOETargets;
+    public int NumRangedAOETargets;
+
+    public enum PetOrder
+    {
+        None = 0,
+        Follow = 2,
+        Place = 3
+    }
+
+    public PetOrder FairyOrder;
+
+    private Actor? Eos;
+    private Enemy? BestDotTarget;
+    private Enemy? BestRangedAOETarget;
+
+    private DateTime _summonWait;
+
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
+    {
+        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
+
+        var gauge = World.Client.GetGauge<ScholarGauge>();
+        Aetherflow = gauge.Aetherflow;
+        FairyGauge = gauge.FairyGauge;
+        SeraphTimer = gauge.SeraphTimer * 0.001f;
+        FairyGone = gauge.DismissedFairy > 0;
+
+        var pet = World.Client.ActivePet;
+
+        Eos = pet.InstanceID == 0xE0000000 ? null : World.Actors.Find(pet.InstanceID);
+
+        FairyOrder = (PetOrder)pet.Order;
+
+        ImpactImminent = StatusLeft(SID.ImpactImminent);
+
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
+        (BestRangedAOETarget, NumRangedAOETargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        NumAOETargets = NumMeleeAOETargets(strategy);
+
+        // annoying hack to work around delay between no-pet status ending and pet actor reappearing
+        if (Eos != null || FairyGone)
+            _summonWait = World.CurrentTime.AddSeconds(1);
+
+        if (Eos == null && !FairyGone && World.CurrentTime > _summonWait)
+            PushGCD(AID.SummonEos, Player);
+
+        OGCD(strategy, primaryTarget);
+
+        OrderFairy(strategy);
+
+        if (primaryTarget == null)
+            return;
+
+        if (CountdownRemaining > 0)
+        {
+            if (CountdownRemaining <= GetCastTime(AID.Broil1))
+                PushGCD(AID.Broil1, primaryTarget);
+
+            return;
+        }
+
+        if (!CanFitGCD(TargetDotLeft, 1))
+            PushGCD(AID.Bio1, BestDotTarget, GCDPriority.Filler, useOnDyingTarget: false);
+
+        if (RaidBuffsLeft > 0 && !CanFitGCD(RaidBuffsLeft, 1))
+            PushGCD(AID.Bio1, BestDotTarget, GCDPriority.Filler, useOnDyingTarget: false);
+
+        // for about 8 levels starting at 46, art of war (aoe) is our best single target action
+        var rangeToTarget = Unlocked(AID.ArtOfWar1) && !Unlocked(AID.Broil1) ? 5 : 25;
+
+        var needAOETargets = Unlocked(AID.Broil1) ? 2 : 1;
+
+        GoalZoneCombined(strategy, rangeToTarget, Hints.GoalAOECircle(5), AID.ArtOfWar1, needAOETargets);
+
+        if (NumAOETargets >= needAOETargets)
+            PushGCD(AID.ArtOfWar1, Player);
+
+        PushGCD(AID.Ruin1, primaryTarget, GCDPriority.Filler, useOnDyingTarget: false);
+
+        // instant cast - fallback for movement
+        PushGCD(AID.Ruin2, primaryTarget, GCDPriority.Filler, useOnDyingTarget: false);
+    }
+
+    private void OGCD(Strategy strategy, Enemy? primaryTarget)
+    {
+        if (primaryTarget == null || !Player.InCombat)
+            return;
+
+        switch (strategy.Buffs.Value)
+        {
+            case OffensiveStrategy.Automatic:
+                if (RaidBuffsLeft > 15 || RaidBuffsIn > 1000)
+                    PushOGCD(AID.ChainStratagem, primaryTarget);
+                break;
+            case OffensiveStrategy.Force:
+                PushOGCD(AID.ChainStratagem, primaryTarget);
+                break;
+        }
+
+        if (Aetherflow == 0)
+            PushOGCD(AID.Aetherflow, Player);
+
+        if (Aetherflow > 0 && CanWeave(AID.Aetherflow, Aetherflow))
+            PushOGCD(AID.EnergyDrain, primaryTarget);
+
+        if (ImpactImminent > 0)
+            PushOGCD(AID.BanefulImpaction, BestRangedAOETarget);
+
+        if (MP <= Player.HPMP.MaxMP * 0.7f)
+            PushOGCD(AID.LucidDreaming, Player);
+    }
+
+    private DateTime _fairyMoveTimer;
+
+    private void OrderFairy(Strategy strategy)
+    {
+        if (Eos == null)
+            return;
+
+        void autoheel()
+        {
+            if (FairyOrder != PetOrder.Follow && !Player.InCombat && CountdownRemaining == null)
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 2), null, ActionQueue.Priority.VeryHigh);
+        }
+
+        void autoplace()
+        {
+            if (FairyOrder != PetOrder.Place && (Player.InCombat || CountdownRemaining > 0))
+            {
+                if (Bossmods.ActiveModule?.Arena.Center is WPos p)
+                    Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 3), null, ActionQueue.Priority.VeryHigh, targetPos: p.ToVec3(Player.PosRot.Y));
+            }
+        }
+
+        switch (strategy.FairyPlace.Value)
+        {
+            case FairyPlacement.Manual:
+                return;
+            case FairyPlacement.AutoHeel:
+                autoheel();
+                return;
+            case FairyPlacement.FullAuto:
+                autoheel();
+                autoplace();
+                return;
+            case FairyPlacement.Specific:
+                var dest = ResolveTargetLocation(strategy.FairyPlace.TrackRaw);
+                if (dest == default // no destination, user messed up
+                || Eos.Position.AlmostEqual(dest, 1) // fairy already in position (we can't check current FairyOrder, because she may already be Placed, i.e. at arena center)
+                || _fairyMoveTimer > World.CurrentTime // spam prevention
+                )
+                    return;
+
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 3), null, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(Player.PosRot.Y));
+                _fairyMoveTimer = World.FutureTime(1);
+                break;
+        }
+    }
+
+    static readonly SID[] DotStatus = [SID.Bio1, SID.Bio2, SID.Biolysis];
+
+    private float DotDuration(Actor? x)
+    {
+        if (x == null)
+            return float.MaxValue;
+
+        foreach (var stat in DotStatus)
+        {
+            var dur = StatusDetails(x, (uint)stat, Player.InstanceID).Left;
+            if (dur > 0)
+                return dur;
+        }
+
+        return 0;
+    }
+}

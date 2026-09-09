@@ -25,7 +25,7 @@ public class FloodFill
         _moves.Add((0, -ir));
         _moves.Add((ir, 0));
         _moves.Add((-ir, 0));
-        for (int x = 1; x <= l; ++x)
+        for (var x = 1; x <= l; ++x)
         {
             var y = (int)Math.Sqrt(rsq - x * x);
             _moves.Add((x, y));
@@ -54,9 +54,9 @@ public class FloodFill
         var tPrev = (NextT - 1) * _map.Width * _map.Height;
         var tNext = NextT * _map.Width * _map.Height;
         var minY = int.MaxValue;
-        for (int y = 0; y < _map.Height; ++y)
+        for (var y = 0; y < _map.Height; ++y)
         {
-            for (int x = 0; x < _map.Width; ++x)
+            for (var x = 0; x < _map.Width; ++x)
             {
                 var xy = y * _map.Width + x;
                 if (_map.Voxels[tNext + xy])

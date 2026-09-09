@@ -21,6 +21,8 @@ public sealed class ConfigUI : IDisposable
         public List<string> Path = [];
     }
 
+    private static readonly Dictionary<Type, PropertyRenderer> _customRenderers = [];
+
     private readonly List<UINode> _roots = [];
     private readonly UITree _tree = new();
     private readonly UITabs _tabs = new();
@@ -48,7 +50,7 @@ public sealed class ConfigUI : IDisposable
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
         {
-            nodes[n.GetType()] = new(n);
+            nodes[n] = new(config.Get<ConfigNode>(n));
         }
 
         foreach (var (t, n) in nodes)
@@ -188,7 +190,7 @@ public sealed class ConfigUI : IDisposable
             var value = field.GetValue(node);
             using (ImRaii.Disabled(disabled))
             {
-                if (DrawProperty(props.Label, props.Tooltip, nested, node, field, value, root, tree, ws))
+                if (DrawProperty(props, nested, node, field, value, root, tree, ws))
                 {
                     node.Modified.Fire();
                 }
@@ -274,26 +276,27 @@ public sealed class ConfigUI : IDisposable
         ImGui.GetWindowDrawList().AddText(pos + (sBox - size) * 0.5f, ImGui.GetColorU32(ImGuiCol.Text), bar);
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
     {
-        bool v => DrawProperty(label, tooltip, nested, node, member, v),
-        Enum v => DrawProperty(label, tooltip, nested, node, member, v),
-        float v => DrawProperty(label, tooltip, nested, node, member, v),
-        int v => DrawProperty(label, tooltip, nested, node, member, v),
-        string v => DrawProperty(label, tooltip, nested, node, member, v),
-        Color v => DrawProperty(label, tooltip, nested, node, member, v),
-        Color[] v => DrawProperty(label, tooltip, nested, node, member, v),
-        GroupAssignment v => DrawProperty(label, tooltip, nested, node, member, v, root, tree, ws),
-        _ => false
+        bool v => DrawProperty(attrs, nested, node, member, v),
+        Enum v => DrawProperty(attrs, nested, node, member, v),
+        float v => DrawProperty(attrs, nested, node, member, v),
+        int v => DrawProperty(attrs, nested, node, member, v),
+        string v => DrawProperty(attrs, nested, node, member, v),
+        Color v => DrawProperty(attrs, nested, node, member, v),
+        Color[] v => DrawProperty(attrs, nested, node, member, v),
+        GroupAssignment v => DrawProperty(attrs, nested, node, member, v, root, tree, ws),
+        object v => DrawCustom(attrs, nested, node, member, v, root, tree, ws),
+        null => false
     };
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, bool v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, bool v)
     {
-        DrawHelp(tooltip, nested);
+        DrawHelp(attrs.Tooltip, nested);
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
         if (combo != null)
         {
-            if (UICombo.Bool(label, combo.Values, ref v))
+            if (UICombo.Bool(attrs.Label, combo.Values, ref v))
             {
                 member.SetValue(node, v);
                 return true;
@@ -301,7 +304,7 @@ public sealed class ConfigUI : IDisposable
         }
         else
         {
-            if (ImGui.Checkbox(label, ref v))
+            if (ImGui.Checkbox(attrs.Label, ref v))
             {
                 member.SetValue(node, v);
                 return true;
@@ -310,20 +313,37 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, Enum v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Enum v)
     {
-        DrawHelp(tooltip, nested);
-        if (UICombo.Enum(label, ref v))
+        DrawHelp(attrs.Tooltip, nested);
+
+        if (member.GetCustomAttribute<PropertyRadioAttribute>() != null)
         {
-            member.SetValue(node, v);
-            return true;
+            var values = Enum.GetValues(v.GetType()).Cast<Enum>().ToArray();
+            var ix = Array.IndexOf(values, v);
+            ImGui.Text($"{attrs.Label}:");
+            ImGui.SameLine();
+            if (UICombo.Radio(v.GetType(), ref ix, true))
+            {
+                member.SetValue(node, values[ix]);
+                return true;
+            }
         }
+        else
+        {
+            if (UICombo.Enum(attrs.Label, ref v))
+            {
+                member.SetValue(node, v);
+                return true;
+            }
+        }
+
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, float v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, float v)
     {
-        DrawHelp(tooltip, nested);
+        DrawHelp(attrs.Tooltip, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         if (slider != null)
         {
@@ -331,7 +351,7 @@ public sealed class ConfigUI : IDisposable
             if (slider.Logarithmic)
                 flags |= ImGuiSliderFlags.Logarithmic;
             ImGui.SetNextItemWidth(MathF.Min(ImGui.GetWindowWidth() * 0.30f, 175));
-            if (ImGui.DragFloat(label, ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags))
+            if (ImGui.DragFloat(attrs.Label, ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags))
             {
                 member.SetValue(node, v);
                 return true;
@@ -339,7 +359,7 @@ public sealed class ConfigUI : IDisposable
         }
         else
         {
-            if (ImGui.InputFloat(label, ref v))
+            if (ImGui.InputFloat(attrs.Label, ref v))
             {
                 member.SetValue(node, v);
                 return true;
@@ -348,9 +368,9 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, int v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, int v)
     {
-        DrawHelp(tooltip, nested);
+        DrawHelp(attrs.Tooltip, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         if (slider != null)
         {
@@ -358,7 +378,7 @@ public sealed class ConfigUI : IDisposable
             if (slider.Logarithmic)
                 flags |= ImGuiSliderFlags.Logarithmic;
             ImGui.SetNextItemWidth(MathF.Min(ImGui.GetWindowWidth() * 0.30f, 175));
-            if (ImGui.DragInt(label, ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags))
+            if (ImGui.DragInt(attrs.Label, ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags))
             {
                 member.SetValue(node, v);
                 return true;
@@ -366,7 +386,7 @@ public sealed class ConfigUI : IDisposable
         }
         else
         {
-            if (ImGui.InputInt(label, ref v))
+            if (ImGui.InputInt(attrs.Label, ref v))
             {
                 member.SetValue(node, v);
                 return true;
@@ -375,10 +395,10 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, string v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, string v)
     {
-        DrawHelp(tooltip, nested);
-        if (ImGui.InputText(label, ref v, 256))
+        DrawHelp(attrs.Tooltip, nested);
+        if (ImGui.InputText(attrs.Label, ref v, 256))
         {
             member.SetValue(node, v);
             return true;
@@ -386,11 +406,11 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, Color v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color v)
     {
-        DrawHelp(tooltip, nested);
+        DrawHelp(attrs.Tooltip, nested);
         var col = v.ToFloat4();
-        if (ImGui.ColorEdit4(label, ref col, ImGuiColorEditFlags.PickerHueWheel))
+        if (ImGui.ColorEdit4(attrs.Label, ref col, ImGuiColorEditFlags.PickerHueWheel))
         {
             member.SetValue(node, Color.FromFloat4(col));
             return true;
@@ -398,14 +418,14 @@ public sealed class ConfigUI : IDisposable
         return false;
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, Color[] v)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color[] v)
     {
         var modified = false;
-        for (int i = 0; i < v.Length; ++i)
+        for (var i = 0; i < v.Length; ++i)
         {
-            DrawHelp(tooltip, nested);
+            DrawHelp(attrs.Tooltip, nested);
             var col = v[i].ToFloat4();
-            if (ImGui.ColorEdit4($"{label} {i}", ref col, ImGuiColorEditFlags.PickerHueWheel))
+            if (ImGui.ColorEdit4($"{attrs.Label} {i}", ref col, ImGuiColorEditFlags.PickerHueWheel))
             {
                 v[i] = Color.FromFloat4(col);
                 member.SetValue(node, v);
@@ -447,13 +467,13 @@ public sealed class ConfigUI : IDisposable
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - paddingX);
     }
 
-    private static bool DrawProperty(string label, string tooltip, bool nested, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
             return false;
 
-        var haveTooltip = tooltip.Length > 0;
+        var haveTooltip = attrs.Tooltip.Length > 0;
         var havePresetButton = member.GetCustomAttributes<GroupPresetAttribute>().Any();
 
         var spaced = haveTooltip || havePresetButton;
@@ -461,11 +481,11 @@ public sealed class ConfigUI : IDisposable
         ImGui.AlignTextToFramePadding();
         if (havePresetButton)
         {
-            DrawGroupPresetIndicator(label, tooltip, () => DrawPropertyContextMenu(node, member, v));
+            DrawGroupPresetIndicator(attrs.Label, attrs.Tooltip, () => DrawPropertyContextMenu(node, member, v));
         }
         else if (haveTooltip)
         {
-            UIMisc.HelpMarker(tooltip);
+            UIMisc.HelpMarker(attrs.Tooltip);
             ImGui.SameLine();
         }
         else
@@ -481,7 +501,7 @@ public sealed class ConfigUI : IDisposable
             DrawNesting();
 
         var modified = false;
-        foreach (var tn in tree.Node(label, false, v.Validate() ? 0xffffffff : 0xff00ffff))
+        foreach (var tn in tree.Node(attrs.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff))
         {
             using var indent = ImRaii.PushIndent();
             using var table = ImRaii.Table("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit);
@@ -495,11 +515,11 @@ public sealed class ConfigUI : IDisposable
             ImGui.TableHeadersRow();
 
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
-            for (int i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
+            for (var i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
             {
                 var r = (PartyRolesConfig.Assignment)i;
                 ImGui.TableNextRow();
-                for (int c = 0; c < group.Names.Length; ++c)
+                for (var c = 0; c < group.Names.Length; ++c)
                 {
                     ImGui.TableNextColumn();
                     if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
@@ -515,7 +535,7 @@ public sealed class ConfigUI : IDisposable
                     modified = true;
                 }
 
-                string name = r.ToString();
+                var name = r.ToString();
                 if (assignments.Length > 0)
                     name += $" ({ws.Party[assignments[i]]?.Name})";
                 ImGui.TableNextColumn();
@@ -525,13 +545,34 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
+    private static bool DrawCustom(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, object value, ConfigRoot root, UITree tree, WorldState ws)
+    {
+        if (attrs.Renderer != null)
+        {
+            if (!_customRenderers.TryGetValue(attrs.Renderer, out var r))
+            {
+                if (Activator.CreateInstance(attrs.Renderer) is PropertyRenderer p)
+                {
+                    _customRenderers.Add(attrs.Renderer, p);
+                    r = p;
+                }
+                else
+                    throw new InvalidOperationException($"Invalid renderer type for {member}, must inherit from PropertyRenderer");
+            }
+
+            return r.Draw(attrs, nested, node, member, value, root, tree, ws);
+        }
+
+        return false;
+    }
+
     private static void DrawPropertyContextMenu(ConfigNode node, FieldInfo member, GroupAssignment v)
     {
         foreach (var preset in member.GetCustomAttributes<GroupPresetAttribute>())
         {
             if (ImGui.MenuItem(preset.Name))
             {
-                for (int i = 0; i < preset.Preset.Length; ++i)
+                for (var i = 0; i < preset.Preset.Length; ++i)
                     v.Assignments[i] = preset.Preset[i];
                 node.Modified.Fire();
             }

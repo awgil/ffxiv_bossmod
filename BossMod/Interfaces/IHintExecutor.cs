@@ -71,11 +71,12 @@ internal sealed class HintExecutor(WorldState ws, IMovementOverride movementOver
 
         var obj = GetActorObject(target);
 
-        // 50 in-game units is the maximum distance before nameplates stop rendering (making the mob effectively untargetable)
+        // 50 in-game units is the maximum distance before nameplates stop rendering
+        // if you target something and then move further away, the client automatically untargets at 54.5 units
         // targeting a mob that isn't visible is bad UX
         if (ws.Party.Player() is { } player)
         {
-            var distSq = (player.PosRot.XYZ() - target.PosRot.XYZ()).LengthSquared();
+            var distSq = (player.Position - target.Position).LengthSq();
             if (distSq < 2500)
                 *targetPtr = obj;
         }

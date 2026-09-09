@@ -32,7 +32,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
 
     public void DrawConfig(UITree tree)
     {
-        for (int i = 0; i < _columns.Length; ++i)
+        for (var i = 0; i < _columns.Length; ++i)
         {
             var (p, c, l) = _encounter.PartyMembers[i];
             foreach (var n in tree.Node($"{c} {ReplayUtils.ParticipantString(p, p.WorldExistence.FirstOrDefault().Start)}"))

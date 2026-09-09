@@ -52,7 +52,7 @@ public class ColumnGenericHistory : Timeline.Column
     {
         if (!e.Visible)
             return false;
-        int branchID = Tree.Phases[e.AttachNode.PhaseID].StartingNode.BranchID + PhaseBranches[e.AttachNode.PhaseID];
+        var branchID = Tree.Phases[e.AttachNode.PhaseID].StartingNode.BranchID + PhaseBranches[e.AttachNode.PhaseID];
         return branchID >= e.AttachNode.BranchID && branchID < e.AttachNode.BranchID + e.AttachNode.NumBranches;
     }
 

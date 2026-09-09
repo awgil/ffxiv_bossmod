@@ -365,7 +365,14 @@ public sealed class ReplayManager : IDisposable
     private void SaveHistory()
     {
         _replayHistory.History = [.. _replayEntries.Where(r => !r.Disposing).Select(r => new ReplayMemory(r.Path, r.Window?.IsOpen ?? false, r.Window?.CurrentTime ?? default))];
-        _replayHistory.Save();
+        try
+        {
+            _replayHistory.Save();
+        }
+        catch (IOException ex)
+        {
+            Service.PluginLog.Warning(ex, "Unable to save replay history");
+        }
     }
 
     private void RestoreHistory()

@@ -5,15 +5,19 @@ namespace BossMod.Autorotation;
 // database containing all registered rotation module definitions and builder functions
 public static class RotationModuleRegistry
 {
-    public readonly record struct Entry(RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
+    public static readonly Event Modified = new();
 
-    public static readonly Dictionary<Type, Entry> Modules = BuildModules();
+    public readonly record struct Entry(Type ModuleType, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
 
-    private static Dictionary<Type, Entry> BuildModules()
+    public static IReadOnlyDictionary<string, Entry> Modules => _modules;
+
+    private static readonly Dictionary<string, Entry> _modules = [];
+
+    private static bool ScanAssembly(Assembly assembly)
     {
-        Dictionary<Type, Entry> res = [];
+        var modified = false;
 
-        foreach (var t in Utils.GetDerivedTypes<RotationModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
+        foreach (var t in Utils.GetDerivedTypes<RotationModule>(assembly).Where(t => !t.IsAbstract))
         {
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
             var def = defMethod?.Invoke(null, null) as RotationModuleDefinition;
@@ -23,10 +27,34 @@ public static class RotationModuleRegistry
                 continue;
             }
 
-            var factory = New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t);
-            res[t] = new(def, factory);
+            modified = true;
+            _modules[t.FullName!] = new(t, def, New<RotationModule>.ConstructorDerived<RotationModuleManager, Actor>(t));
         }
 
-        return res;
+        return modified;
+    }
+
+    private static bool UnloadFrom(Assembly assembly)
+    {
+        var modified = false;
+
+        foreach (var (k, _) in _modules.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
+            modified |= _modules.Remove(k);
+
+        return modified;
+    }
+
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        var modified = false;
+
+        foreach (var a in old)
+            modified |= UnloadFrom(a);
+
+        foreach (var a in @new)
+            modified |= ScanAssembly(a);
+
+        if (modified)
+            Modified.Fire();
     }
 }

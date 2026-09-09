@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.Autorotation.xan;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
@@ -259,7 +258,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(elem.CastInfo.Action.ToString());
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo, ws.CurrentTime));
+            ImGui.TextUnformatted(Utils.CastTimeString(elem.CastInfo));
             ImGui.TableNextColumn();
             ImGui.TextUnformatted(Utils.Vec3String(elem.CastInfo.Location));
             ImGui.TableNextColumn();
@@ -466,7 +465,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("Value");
         ImGui.TableHeadersRow();
-        for (int i = 0; i < 74; ++i)
+        for (var i = 0; i < 74; ++i)
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn();

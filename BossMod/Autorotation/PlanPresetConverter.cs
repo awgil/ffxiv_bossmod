@@ -110,10 +110,13 @@ public static class PlanPresetConverter
             {
                 if (m.TryGetPropertyValue("BossMod.Autorotation.MiscAI.AutoTarget", out var node))
                 {
-                    foreach (var obj in node!.AsArray())
+                    if (node is JsonArray arr)
                     {
-                        if (obj?["Track"]?.AsValue().GetValue<string>() == "General" && obj?["Option"]?.AsValue().GetValue<string>() == "Conservative")
-                            obj["Option"] = "Aggressive";
+                        foreach (var obj in arr)
+                        {
+                            if (obj?["Track"]?.AsValue().GetValue<string>() == "General" && obj?["Option"]?.AsValue().GetValue<string>() == "Conservative")
+                                obj["Option"] = "Aggressive";
+                        }
                     }
                 }
             }
@@ -149,6 +152,9 @@ public static class PlanPresetConverter
                             {
                                 foreach (var (defName, defNode) in entries!.AsObject())
                                 {
+                                    if (defNode?.GetValueKind() != System.Text.Json.JsonValueKind.String)
+                                        continue;
+
                                     var defVal = defNode!.GetValue<string>()!;
                                     if (optionRenames.FirstOrNull(r => r.Module == modName && r.Option == defName && r.Before == defVal) is { } rename)
                                         defNode.ReplaceWith(rename.After);

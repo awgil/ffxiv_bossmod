@@ -1,5 +1,6 @@
 ﻿using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
@@ -44,6 +45,8 @@ public sealed class Service
     public static void ChatMessage(string msg) => ChatGui.Print(msg, "VBM");
     public static void ChatError(string msg) => ChatGui.PrintError(msg, "VBM");
 
+    public static void ShowNotification(string msg, NotificationType type = NotificationType.Success) => Notifications?.AddNotification(new() { Content = msg, Type = type });
+
     public static Lumina.GameData LuminaGameData = null!;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData.GetExcelSheet<T>();
     public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>()?.GetRowOrDefault(row);
@@ -54,9 +57,8 @@ public sealed class Service
     public static ImFontPtr IconFont = ImFontPtr.Null;
     public static ImFontPtr MonoFont = ImFontPtr.Null;
     public static IFontAtlas FontAtlas = null!;
+    public static ConfigRoot Config = null!;
 #pragma warning restore CA2211
-
-    public static readonly ConfigRoot Config = new();
 
     //public static SharpDX.Direct3D11.Device? Device = null;
 }

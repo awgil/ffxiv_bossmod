@@ -33,7 +33,7 @@ class ParticipantInfo : CommonEnumInfo
                 foreach (var (commonOID, participants) in enc.ParticipantsByOID)
                 {
                     var data = _data.GetOrAdd(commonOID);
-                    int spawnedPreFight = 0;
+                    var spawnedPreFight = 0;
                     foreach (var p in participants.Where(p => !IsIgnored(p) && p.EffectiveExistence.Start <= minExistence))
                     {
                         data.Types.Add(p.Type);

@@ -2,6 +2,7 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.ReplayAnalysis;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
@@ -17,6 +18,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,11 +99,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
-        Service.Config.Initialize();
-        Service.Config.LoadFromFile(dalamud.ConfigFile);
+        Service.Config = new(dalamud.ConfigFile);
 
-        _packs = new();
-        _hints = new();
+        Service.Config.Reload([], [Assembly.GetExecutingAssembly()]);
+        BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
 
         var configDir = dalamud.ConfigDirectory.FullName;
         if (Service.IsMock)
@@ -118,13 +122,19 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             MultiboxUnlock.Exec();
         }
 
+        MigratePlans(configDir);
+        CopyLibraries(dalamud.AssemblyLocation);
+
+        _packs = new();
+        _hints = new();
+
         if (!Service.IsMock)
         {
             _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
             _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
         }
 
-        _rotationDB = new(new(Path.Join(configDir, "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"));
+        _rotationDB = new(new(Path.Join(Plugin.GetStorageDir(), "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"), _packs);
 
         if (Service.IsMock)
         {
@@ -144,8 +154,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
             _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
-            Camera.Instance = new();
-
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
         }
 
@@ -161,8 +169,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
         _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
 
-        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod);
-        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod);
+        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
+        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
@@ -171,7 +179,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (Service.IsMock)
         {
             Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
-            _ = new MainDevWindow(dalamud) { IsOpen = true };
+            _ = new MainDevWindow(dalamud, _packs) { IsOpen = true };
         }
         else
         {
@@ -234,7 +242,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
 
         _dtr.Update();
-        Camera.Instance?.Update();
+        Camera.Instance()?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
         _zonemod.ActiveModule?.Update();
@@ -258,7 +266,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_vnavIsReady != null && _vnavIsOnMesh != null)
             CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
 
-        Camera.Instance?.DrawWorldPrimitives();
+        Camera.Instance()?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
     }
 
@@ -656,6 +664,53 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.ChatMessage("Diagnostic data has been copied to your clipboard.");
     }
 
+    private static void MigratePlans(string pluginConfigDir)
+    {
+        var source = Path.Join(pluginConfigDir, "autorot");
+
+        // no autorot dir means fresh install
+        if (!Path.Exists(source))
+        {
+            Service.PluginLog.Verbose($"[Migrator] No configs, nothing to do.");
+            return;
+        }
+
+        var destination = Path.Join(Plugin.GetStorageDir(), "autorot");
+
+        if (File.Exists(Path.Join(destination, ".migrate-ok")))
+        {
+            Service.PluginLog.Verbose($"[Migrator] Nothing to do.");
+            return;
+        }
+
+        Utils.CopyRecursive(source, destination);
+
+        File.Create(Path.Join(destination, ".migrate-ok"));
+
+        Service.Log($"[Migrator] Done.");
+    }
+
+    private static void CopyLibraries(FileInfo assemblyLocation)
+    {
+        var modulesDir = Path.Join(Plugin.GetStorageDir(), "modules");
+        var assemblyDir = assemblyLocation.DirectoryName!;
+
+        Directory.CreateDirectory(modulesDir);
+
+        void copy(string filename)
+        {
+            var src = Path.Join(assemblyDir, filename);
+            if (File.Exists(src))
+                File.Copy(src, Path.Join(modulesDir, filename), true);
+            else
+                Service.PluginLog.Verbose($"{filename} missing from assembly directory, is this a dev build?");
+        }
+
+        copy("BossMod.Autorotation.dll");
+        copy("BossMod.Modules.dll");
+        copy("BossMod.Ultimate.dll");
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -673,7 +728,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _configUI.Dispose();
-        _packs.Dispose();
+        _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
         _dtr.Dispose();
@@ -685,5 +740,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder.Dispose();
         _zonemod.Dispose();
         _bossmod.Dispose();
+        _packs.Dispose();
     }
 }

@@ -49,8 +49,8 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         else if (Stacks.FindIndex(s => s.Target == actor) is var iStack && iStack >= 0)
         {
             var stack = Stacks[iStack];
-            int numStacked = 1; // always stacked with self
-            bool stackedWithOtherStackOrAvoid = false;
+            var numStacked = 1; // always stacked with self
+            var stackedWithOtherStackOrAvoid = false;
             foreach (var (j, other) in Raid.WithSlot().InRadiusExcluding(actor, stack.Radius))
             {
                 ++numStacked;
@@ -60,8 +60,8 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         }
         else
         {
-            int numParticipatingStacks = 0;
-            int numUnsatisfiedStacks = 0;
+            var numParticipatingStacks = 0;
+            var numUnsatisfiedStacks = 0;
             foreach (var s in ActiveStacks.Where(s => !s.ForbiddenPlayers[slot]))
             {
                 if (actor.Position.InCircle(s.Target.Position, s.Radius))
@@ -120,7 +120,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
                     hints.AddForbiddenZone(ShapeDistance.Circle(stackWith.Target.Position, stackWith.Radius), stackWith.Activation);
 
             // and try to stack with closest non-stack/spread player
-            var closest = Raid.WithoutSlot().Where(p => p != actor && !IsSpreadTarget(p) && !IsStackTarget(p)).Closest(actor.Position);
+            var closest = Raid.WithSlot().Where(p => p.Item2 != actor && !IsSpreadTarget(p.Item2) && !IsStackTarget(p.Item2) && !actorStack.ForbiddenPlayers[p.Item1]).Select(p => p.Item2).Closest(actor.Position);
             if (closest != null)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, actorStack.Radius * 0.5f), actorStack.Activation);
         }

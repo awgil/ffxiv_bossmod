@@ -45,6 +45,7 @@ public enum Class : byte
     SGE = 40,
     VPR = 41,
     PCT = 42,
+    BST = 43,
 }
 
 public enum ClassCategory

@@ -1,0 +1,134 @@
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+
+namespace BossMod.Autorotation.xan;
+
+public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<MeleeAI.Strategy>(manager, player)
+{
+    public struct Strategy
+    {
+        [Track("Second Wind", InternalName = "Second Wind", Action = ClassShared.AID.SecondWind)]
+        public Track<EnabledByDefault> SecondWind;
+        [Track(Action = ClassShared.AID.Bloodbath)]
+        public Track<EnabledByDefault> Bloodbath;
+        [Track(Action = ClassShared.AID.LegSweep)]
+        public Track<EnabledByDefault> Stun;
+        [Track("Limit Break", InternalName = "Limit Break", Actions = [ClassShared.AID.Braver, ClassShared.AID.Bladedance])]
+        public Track<EnabledByDefault> LimitBreak;
+
+        [Track(Actions = [BossMod.MNK.AID.Thunderclap, BossMod.DRG.AID.WingedGlide, BossMod.NIN.AID.Shukuchi, BossMod.SAM.AID.HissatsuGyoten, BossMod.RPR.AID.HellsIngress, BossMod.VPR.AID.Slither])]
+        public Track<EnabledByDefault> Dash;
+    }
+
+    public static RotationModuleDefinition Definition()
+    {
+        return new RotationModuleDefinition("Melee DPS AI", "Utilities for melee", "AI (xan)", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.PGL, Class.MNK, Class.LNC, Class.DRG, Class.ROG, Class.NIN, Class.SAM, Class.RPR, Class.VPR), 100).WithStrategies<Strategy>();
+    }
+
+    public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
+    {
+        if (Player.Statuses.Any(x => x.ID is (uint)BossMod.NIN.SID.TenChiJin or (uint)BossMod.NIN.SID.Mudra or 1092))
+            return;
+
+        // second wind
+        if (strategy.SecondWind.IsEnabled() && Player.InCombat && Player.PendingHPRatio <= 0.5)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
+
+        // bloodbath
+        if (strategy.Bloodbath.IsEnabled() && Player.InCombat && Player.PendingHPRatio <= 0.3)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bloodbath), Player, ActionQueue.Priority.Medium);
+
+        // low blow
+        if (strategy.Stun.IsEnabled() && NextChargeIn(ClassShared.AID.LegSweep) == 0)
+        {
+            var stunnableEnemy = Hints.PotentialTargets.FirstOrDefault(e => ShouldStun(e) && Player.DistanceToHitbox(e.Actor) <= 3);
+            if (stunnableEnemy != null)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.LegSweep), stunnableEnemy.Actor, ActionQueue.Priority.VeryLow);
+        }
+
+        // TODO move to bozja ai
+        /*
+        if (Player.FindStatus(2324) != null && Bossmods.ActiveModule?.Info?.GroupType is BossModuleInfo.GroupType.BozjaDuel)
+        {
+            var gcdLength = ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
+            var fopLeft = Player.FindStatus(2346) is ActorStatus st ? StatusDuration(st.ExpireAt) : 0;
+            if (GCD + gcdLength < fopLeft)
+                Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
+        }
+        */
+
+        AutoDash(strategy, primaryTarget);
+        AutoLB(strategy, primaryTarget);
+    }
+
+    private void AutoLB(in Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.LimitBreak.IsEnabled() || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1 || Bossmods.ActiveModule is null)
+            return;
+
+        switch (World.Party.LimitBreakLevel)
+        {
+            case 1:
+                break;
+            case 2:
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Bladedance), primaryTarget, ActionQueue.Priority.VeryHigh, castTime: 3);
+                break;
+            case 3:
+                var lb3 = Player.Class switch
+                {
+                    Class.PGL or Class.MNK => ClassMNKUtility.IDLimitBreak3,
+                    Class.LNC or Class.DRG => ClassDRGUtility.IDLimitBreak3,
+                    Class.ROG or Class.NIN => ClassNINUtility.IDLimitBreak3,
+                    Class.SAM => ClassSAMUtility.IDLimitBreak3,
+                    Class.RPR => ClassRPRUtility.IDLimitBreak3,
+                    Class.VPR => ClassVPRUtility.IDLimitBreak3,
+                    _ => default
+                };
+                if (lb3 != default)
+                    Hints.ActionsToExecute.Push(lb3, primaryTarget, ActionQueue.Priority.VeryHigh, castTime: 4.5f);
+                break;
+        }
+    }
+
+    private void AutoDash(in Strategy strategy, Actor? primaryTarget)
+    {
+        if (!strategy.Dash.IsEnabled() || primaryTarget is not { IsAlly: false })
+            return;
+
+        switch (Player.Class)
+        {
+            // simple dashes
+            case Class.MNK:
+                if (Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.MNK.AID.Thunderclap), primaryTarget, ActionQueue.Priority.Low);
+                break;
+            case Class.DRG:
+                if (Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.DRG.AID.WingedGlide), primaryTarget, ActionQueue.Priority.Low);
+                break;
+            case Class.VPR:
+                if (Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.VPR.AID.Slither), primaryTarget, ActionQueue.Priority.Low);
+                break;
+
+            // simple dash with a little bit of sauce
+            case Class.SAM:
+                if (World.Client.GetGauge<SamuraiGauge>().Kenki >= 10 && Player.DistanceToHitbox(primaryTarget) > 5)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SAM.AID.HissatsuGyoten), primaryTarget, ActionQueue.Priority.Low);
+                break;
+
+            case Class.RPR:
+                if (Player.DistanceToHitbox(primaryTarget) > 7.5f)
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.RPR.AID.HellsIngress), Player, ActionQueue.Priority.Low, facingAngle: Player.AngleTo(primaryTarget));
+                break;
+
+            case Class.NIN:
+                var toHitbox = Player.DistanceToHitbox(primaryTarget);
+                if (toHitbox > 5)
+                {
+                    var travelDir = Player.DirectionTo(primaryTarget) * Math.Min(toHitbox + 0.5f, 20);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.NIN.AID.Shukuchi), null, ActionQueue.Priority.Low, targetPos: (Player.Position + travelDir).ToVec3(Player.PosRot.Y));
+                }
+                break;
+        }
+    }
+}

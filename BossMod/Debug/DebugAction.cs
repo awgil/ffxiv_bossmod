@@ -100,7 +100,7 @@ sealed unsafe class DebugAction : IDisposable
             var rotationType = mnemonic != null ? Type.GetType($"BossMod.{mnemonic}Rotation")?.GetNestedType("AID") : null;
             ImGui.TextUnformatted($"Hover action: {hover.DetailKind} {hover.ActionId} (base={hover.BaseActionId}) ({mnemonic}: {rotationType?.GetEnumName(hover.ActionId)})");
 
-            string name = "";
+            var name = "";
             var type = FFXIVClientStructs.FFXIV.Client.Game.ActionType.None;
             uint unlockLink = 0;
             if (hover.DetailKind == Dalamud.Game.Gui.DetailKind.Action) // action
@@ -155,8 +155,8 @@ sealed unsafe class DebugAction : IDisposable
         }
         else if (Service.GameGui.HoveredItem != 0)
         {
-            uint itemID = (uint)Service.GameGui.HoveredItem % 1000000;
-            bool isHQ = Service.GameGui.HoveredItem / 1000000 > 0;
+            var itemID = (uint)Service.GameGui.HoveredItem % 1000000;
+            var isHQ = Service.GameGui.HoveredItem / 1000000 > 0;
             ImGui.TextUnformatted($"Hover item: {Service.GameGui.HoveredItem}");
             ImGui.TextUnformatted($"Name: {Service.LuminaRow<Lumina.Excel.Sheets.Item>(itemID)?.Name}{(isHQ ? " (HQ)" : "")}");
             ImGui.TextUnformatted($"Count: {FFXIVClientStructs.FFXIV.Client.Game.InventoryManager.Instance()->GetInventoryItemCount(itemID, isHQ, false, false)}");
@@ -193,7 +193,7 @@ sealed unsafe class DebugAction : IDisposable
         }
         ImGui.TextUnformatted($"Excel rows: pending={cd->DutyActionManager.PendingContentExActionRowId}, current={cd->DutyActionManager.CurrentContentExActionRowId}");
         ImGui.TextUnformatted($"Num valid slots: {cd->DutyActionManager.NumValidSlots}, actions present={cd->DutyActionManager.ActionActive[0] && cd->DutyActionManager.NumValidSlots > 0}");
-        for (int i = 0; i < cd->DutyActionManager.NumValidSlots; ++i)
+        for (var i = 0; i < cd->DutyActionManager.NumValidSlots; ++i)
         {
             var chargeText = i < 2 ? $"{cd->DutyActionManager.CurCharges[i]}/{cd->DutyActionManager.MaxCharges[i]}" : "?/?";
             ImGui.TextUnformatted($"[{i}]: action={new ActionID(ActionType.Spell, cd->DutyActionManager.ActionId[i])}, active={cd->DutyActionManager.ActionActive[i]}, charges={chargeText}");

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <_Publish Include="..\BossMod.Autorotation\BossMod.Autorotation.csproj" />
+    <_Publish Include="..\BossMod.Modules\BossMod.Modules.csproj" />
+    <_Publish Include="..\BossMod.Ultimate\BossMod.Ultimate.csproj" />
+  </ItemGroup>
+
+  <Target Name="PackageDev" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" AssemblyName="$(AssemblyName)" MakeZip="false" />
+  </Target>
+
+  <Target Name="PackagePublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+    <MSBuild Projects="@(_Publish)">
+      <Output TaskParameter="TargetOutputs" ItemName="ChildLibraries" />
+    </MSBuild>
+    <Copy SourceFiles="@(ChildLibraries)" DestinationFolder="$(OutputPath)/publish" />
+
+    <DalamudPackager
+      ProjectDir="$(ProjectDir)"
+      OutputPath="$(OutputPath)/publish"
+      AssemblyName="$(AssemblyName)"
+      MakeZip="true" />
+  </Target>
+</Project>

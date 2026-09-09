@@ -12,13 +12,17 @@ public sealed class ZoneModuleInfoAttribute(uint cfcId, uint territoryID = 0) : 
 
 public static class ZoneModuleRegistry
 {
+    public static readonly Event Modified = new();
+
     public record class Info(Type ModuleType, ZoneModuleInfoAttribute Desc, Func<WorldState, ZoneModule> Factory);
 
     private static readonly Dictionary<uint, Info> _modulesByCFC = [];
 
-    static ZoneModuleRegistry()
+    private static bool ScanAssembly(Assembly assembly)
     {
-        foreach (var t in Utils.GetDerivedTypes<ZoneModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
+        var modified = false;
+
+        foreach (var t in Utils.GetDerivedTypes<ZoneModule>(assembly).Where(t => !t.IsAbstract))
         {
             var attr = t.GetCustomAttribute<ZoneModuleInfoAttribute>();
             if (attr == null)
@@ -32,7 +36,34 @@ public static class ZoneModuleRegistry
                 continue;
             }
             _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));
+            modified = true;
         }
+
+        return modified;
+    }
+
+    private static bool UnloadFrom(Assembly assembly)
+    {
+        var modified = false;
+
+        foreach (var (k, _) in _modulesByCFC.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
+            modified |= _modulesByCFC.Remove(k);
+
+        return modified;
+    }
+
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        var modified = false;
+
+        foreach (var a in old)
+            modified |= UnloadFrom(a);
+
+        foreach (var a in @new)
+            modified |= ScanAssembly(a);
+
+        if (modified)
+            Modified.Fire();
     }
 
     public static ZoneModule? CreateModule(WorldState ws, uint cfcId)

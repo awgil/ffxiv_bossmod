@@ -65,7 +65,7 @@ public class UITree
 
         ImGui.PushID((int)id);
         ImGui.PushStyleColor(ImGuiCol.Text, color);
-        bool open = ImGui.TreeNodeEx(text, flags);
+        var open = ImGui.TreeNodeEx(text, flags);
         ImGui.PopStyleColor();
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {

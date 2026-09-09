@@ -6,7 +6,7 @@ public sealed class BossModuleManager : IDisposable
     public readonly WorldState WorldState;
     public readonly RaidCooldowns RaidCooldowns;
     public readonly BossModuleConfig Config = Service.Config.Get<BossModuleConfig>();
-    private readonly EventSubscriptions _subsciptions;
+    private readonly EventSubscriptions _subscriptions;
 
     public List<BossModule> LoadedModules { get; } = [];
     public Event<BossModule> ModuleLoaded = new();
@@ -34,11 +34,17 @@ public sealed class BossModuleManager : IDisposable
     {
         WorldState = ws;
         RaidCooldowns = new(ws);
-        _subsciptions = new
+        _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(ActorAdded),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
             WorldState.CurrentZoneChanged.Subscribe(OnZoneChange),
+            BossModuleRegistry.Modified.Subscribe(() =>
+            {
+                ForceUnload("registry-update");
+                foreach (var a in WorldState.Actors)
+                    ActorAdded(a);
+            }),
             Config.Modified.ExecuteAndSubscribe(ConfigChanged)
         );
 
@@ -53,21 +59,21 @@ public sealed class BossModuleManager : IDisposable
             m.Dispose();
         LoadedModules.Clear();
 
-        _subsciptions.Dispose();
+        _subscriptions.Dispose();
         RaidCooldowns.Dispose();
     }
 
     public void Update()
     {
         // update all loaded modules, handle activation/deactivation
-        int bestPriority = 0;
+        var bestPriority = 0;
         BossModule? bestModule = null;
-        bool anyModuleActivated = false;
-        for (int i = 0; i < LoadedModules.Count; ++i)
+        var anyModuleActivated = false;
+        for (var i = 0; i < LoadedModules.Count; ++i)
         {
             var m = LoadedModules[i];
-            bool wasActive = m.StateMachine.ActiveState != null;
-            bool allowUpdate = !_wipeInProgress && (wasActive || !LoadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType())); // hack: forbid activating multiple modules of the same type
+            var wasActive = m.StateMachine.ActiveState != null;
+            var allowUpdate = !_wipeInProgress && (wasActive || !LoadedModules.Any(other => other.StateMachine.ActiveState != null && other.GetType() == m.GetType())); // hack: forbid activating multiple modules of the same type
             bool isActive;
             try
             {
@@ -106,7 +112,7 @@ public sealed class BossModuleManager : IDisposable
             }
 
             // module remains loaded
-            int priority = ModuleDisplayPriority(m);
+            var priority = ModuleDisplayPriority(m);
             if (priority > bestPriority)
             {
                 bestPriority = priority;
@@ -206,7 +212,7 @@ public sealed class BossModuleManager : IDisposable
 
     private void ConfigChanged()
     {
-        int demoIndex = LoadedModules.FindIndex(m => m is DemoModule);
+        var demoIndex = LoadedModules.FindIndex(m => m is DemoModule);
         if (Config.ShowDemo && demoIndex < 0)
             LoadModule(CreateDemoModule());
         else if (!Config.ShowDemo && demoIndex >= 0)

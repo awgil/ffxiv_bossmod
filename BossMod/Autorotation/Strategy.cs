@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation.xan;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
@@ -10,6 +9,7 @@ public enum StrategyTarget
     Self,
     PartyByAssignment, // parameter is assignment; won't work if assignments aren't set up properly for a party
     PartyWithLowestHP, // parameter is StrategyPartyFiltering, which filters subset of party members
+    PartyByFilter, // parameter is StrategyPartyFiltering, but multiple targets can be matched
     EnemyWithHighestPriority, // parameter is StrategyEnemySelection, which determines selecton criteria if there are multiple matching enemies
     EnemyByOID, // parameter is oid; not really useful outside planner; selects closest if there are multiple
     PointAbsolute, // absolute x/y coordinates
@@ -58,6 +58,61 @@ public enum StrategyCondition : int
     AssignedRole = 1
 }
 
+[Renderer(typeof(OffensiveStrategyRenderer))]
+public enum OffensiveStrategy
+{
+    Automatic,
+    Delay,
+    Force
+}
+
+[Renderer(typeof(TargetingRenderer))]
+public enum Targeting
+{
+    [Option("Use player's target")]
+    Manual,
+    [Option("Automatically pick best target for all actions")]
+    Auto,
+    [Option("Automatically pick best target; player target must be hit")]
+    AutoPrimary,
+    [Option("Automatically pick best target; if player has a target, hit it")]
+    AutoTryPri
+}
+
+public enum AOEStrategy
+{
+    [Option("Use AOE rotation if beneficial")]
+    AOE,
+    [Option("Use single-target rotation")]
+    ST,
+    [Option("Always use AOE rotation, even on one target")]
+    ForceAOE,
+    [Option("Use single-target rotation; do not use ANY actions that can hit multiple targets")]
+    ForceST
+}
+
+[Renderer(typeof(DefaultOnRenderer))]
+public enum EnabledByDefault
+{
+    Enabled,
+    Disabled
+}
+
+[Renderer(typeof(DefaultOffRenderer))]
+public enum DisabledByDefault
+{
+    Disabled,
+    Enabled
+}
+
+public enum SharedTrack { Targeting, AOE, Buffs, Count }
+
+public interface IStrategyCommon
+{
+    public abstract Targeting Targeting { get; }
+    public abstract AOEStrategy AOE { get; }
+}
+
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class TrackAttribute() : Attribute
 {
@@ -71,6 +126,8 @@ public sealed class TrackAttribute() : Attribute
     public float UiPriority;
     public Type? Renderer;
     public ActionID[] ActionIDs = [];
+
+    public StrategyContext Context = StrategyContext.All;
 
     public object Action
     {

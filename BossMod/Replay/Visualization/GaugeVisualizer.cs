@@ -53,6 +53,9 @@ internal class GaugeVisualizer
             case Class.DRK:
                 DrawDRK(player, clientState);
                 break;
+            case Class.SCH:
+                DrawSCH(player, clientState);
+                break;
             case Class.MNK:
                 DrawMNK(player, clientState);
                 break;
@@ -193,6 +196,16 @@ internal class GaugeVisualizer
         }
     }
 
+    private void DrawSCH(Actor player, ClientState clientState)
+    {
+        var gauge = clientState.GetGauge<ScholarGauge>();
+        var origin = ImGui.GetCursorPos();
+
+        DrawDiamond(origin, "sch_aetherflow", gauge.Aetherflow > 0, [-50, 100, 0]);
+        DrawDiamond(origin + Scale(19, 0), "sch_aetherflow", gauge.Aetherflow > 1, [-50, 100, 0]);
+        DrawDiamond(origin + Scale(38, 0), "sch_aetherflow", gauge.Aetherflow > 2, [-50, 100, 0]);
+    }
+
     private void DrawMNK(Actor player, ClientState clientState)
     {
         var gauge = clientState.GetGauge<MonkGauge>();
@@ -264,16 +277,16 @@ internal class GaugeVisualizer
         for (var i = 0; i < 5; i++)
         {
             ImGui.SetCursorPos(origin + Scale(i * 18, 75));
-            ImGui.Image(chevron.Handle, new Vector2(32, 32), new Vector2(0, 0), new Vector2(0.5f, 0.5f));
+            ImGui.Image(chevron.Handle, Scale(32, 32), new Vector2(0, 0), new Vector2(0.5f, 0.5f));
             if (gauge.Chakra > i)
             {
                 ImGui.SetCursorPos(origin + Scale(i * 18, 75));
-                ImGui.Image(chevronLit.Handle, new Vector2(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
+                ImGui.Image(chevronLit.Handle, Scale(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
             }
             if (gauge.Chakra > i + 5)
             {
                 ImGui.SetCursorPos(origin + Scale(i * 18, 75));
-                ImGui.Image(chevronOvercap.Handle, new Vector2(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
+                ImGui.Image(chevronOvercap.Handle, Scale(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
             }
         }
     }

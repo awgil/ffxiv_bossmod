@@ -6,6 +6,7 @@ public class GenericTwister(BossModule module, float radius, uint oid, Enum? aid
 {
     private readonly AOEShapeCircle _shape = new(radius);
     private readonly uint _twisterOID = oid;
+    public readonly float Radius = radius;
     protected IReadOnlyList<Actor> Twisters = module.Enemies(oid);
     protected DateTime PredictedActivation;
     protected List<WPos> PredictedPositions = [];
@@ -13,11 +14,13 @@ public class GenericTwister(BossModule module, float radius, uint oid, Enum? aid
     public IEnumerable<Actor> ActiveTwisters => Twisters.Where(v => v.EventState != 7);
     public bool Active => ActiveTwisters.Any();
 
-    public void AddPredicted(float activationDelay)
+    public void AddPredicted(float activationDelay) => AddPredicted(WorldState.FutureTime(activationDelay));
+
+    public void AddPredicted(DateTime activationTime)
     {
         PredictedPositions.Clear();
         PredictedPositions.AddRange(Raid.WithoutSlot().Select(a => a.Position));
-        PredictedActivation = WorldState.FutureTime(activationDelay);
+        PredictedActivation = activationTime;
     }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -35,46 +38,37 @@ public class GenericTwister(BossModule module, float radius, uint oid, Enum? aid
     }
 }
 
-// twister that activates immediately on init
-public class ImmediateTwister : GenericTwister
-{
-    public ImmediateTwister(BossModule module, float radius, uint oid, float activationDelay) : base(module, radius, oid)
-    {
-        AddPredicted(activationDelay);
-    }
-}
-
 // twister that activates on cast end, or slightly before
-public class CastTwister(BossModule module, float radius, uint oid, Enum aid, float activationDelay, float predictBeforeCastEnd = 0) : GenericTwister(module, radius, oid, aid)
+public class CastTwister(BossModule module, float radius, uint oid, Enum aid, float spawnDelay, float predictBeforeSpawn = 0) : GenericTwister(module, radius, oid, aid)
 {
-    private readonly float _activationDelay = activationDelay; // from cast-end to twister spawn
-    private readonly float _predictBeforeCastEnd = predictBeforeCastEnd;
-    private DateTime _predictStart = DateTime.MaxValue;
+    public readonly float SpawnDelay = spawnDelay; // from cast event to twister spawn
+    public readonly float PredictionTime = predictBeforeSpawn;
+    private DateTime _predictAt = DateTime.MaxValue;
+    private DateTime _spawnAt;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var p in PredictedPositions)
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, Radius * 3), PredictedActivation);
+        foreach (var p in ActiveTwisters)
+            hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, Radius));
+    }
 
     public override void Update()
     {
-        if (PredictedPositions.Count == 0 && Twisters.Count == 0 && WorldState.CurrentTime >= _predictStart)
+        if (PredictedPositions.Count == 0 && Twisters.Count == 0 && WorldState.CurrentTime >= _predictAt)
         {
-            AddPredicted(_predictBeforeCastEnd + _activationDelay);
-            _predictStart = DateTime.MaxValue;
+            AddPredicted(_spawnAt);
+            _predictAt = DateTime.MaxValue;
         }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == WatchedAction && _predictStart == DateTime.MaxValue)
+        if (spell.Action == WatchedAction)
         {
-            _predictStart = Module.CastFinishAt(spell, -_predictBeforeCastEnd);
-        }
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action == WatchedAction && _predictStart < DateTime.MaxValue)
-        {
-            // cast finished earlier than expected, just activate things now
-            AddPredicted(_activationDelay);
-            _predictStart = DateTime.MaxValue;
+            _spawnAt = Module.CastFinishAt(spell, SpawnDelay);
+            _predictAt = _spawnAt.AddSeconds(-PredictionTime);
         }
     }
 }

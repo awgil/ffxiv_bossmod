@@ -140,6 +140,8 @@ public class BossModuleConfig : ConfigNode
     [SectionStart]
     [PropertyDisplay("Show movement hints in world")]
     public bool ShowWorldArrows = false;
+    [PropertyDisplay("Show predicted mob movements (based on aggro and pull distance)")]
+    public bool ShowPullDebug = false;
 
     public List<string> DisabledModules = [];
     public List<BossModuleInfo.Category> DisabledCategories = [];

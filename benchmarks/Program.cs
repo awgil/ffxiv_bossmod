@@ -5,7 +5,6 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using BossMod;
 using Microsoft.VSDiagnostics;
-using SharpDX;
 
 namespace vbenchmark;
 
@@ -24,9 +23,9 @@ public class RasterizeTest
         coords = new WPos[120 * 120];
         for (var i = 0; i < coords.Length; i++)
         {
-            var x0 = rand.NextFloat(-30, 30);
-            var z0 = rand.NextFloat(-30, 30);
-            coords[i] = arenaCenter + new WDir(x0, z0);
+            var x0 = rand.NextDouble() * 60 - 30;
+            var z0 = rand.NextDouble() * 60 - 30;
+            coords[i] = arenaCenter + new WDir((float)x0, (float)z0);
         }
 
         _tris = BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Poly.Triangulate();

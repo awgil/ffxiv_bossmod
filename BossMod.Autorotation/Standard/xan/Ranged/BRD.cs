@@ -1,0 +1,234 @@
+﻿using BossMod.BRD;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
+
+namespace BossMod.Autorotation.xan;
+
+public sealed class BRD(RotationModuleManager manager, Actor player) : Attackxan<AID, TraitID, BRD.Strategy>(manager, player, PotionType.Dexterity)
+{
+    public struct Strategy : IStrategyCommon
+    {
+        public Track<Targeting> Targeting;
+        public Track<AOEStrategy> AOE;
+        [Track(Actions = [AID.BattleVoice, AID.RadiantFinale], MinLevel = 50)]
+        public Track<OffensiveStrategy> Buffs;
+
+        readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
+        readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
+    public static RotationModuleDefinition Definition()
+    {
+        return new RotationModuleDefinition("xan BRD", "Bard", "Standard rotation (xan)|Ranged", "xan", RotationModuleQuality.Basic, BitMask.Build(Class.ARC, Class.BRD), 100).WithStrategies<Strategy>();
+    }
+
+    public enum Song : byte
+    {
+        None,
+        MagesBallad,
+        ArmysPaeon,
+        WanderersMinuet
+    }
+
+    [Flags]
+    public enum CodaSongs : byte
+    {
+        None = 0,
+        MagesBallad = 1,
+        ArmysPaeon = 2,
+        WanderersMinuet = 4
+    }
+
+    public float SongTimer;
+    public byte Repertoire;
+    public byte Soul;
+    public Song CurrentSong;
+    public Song PreviousSong;
+    public CodaSongs Coda;
+
+    public float HawksEye;
+    public float Barrage;
+    public float RagingStrikes;
+    public float BlastArrow;
+    public float BattleVoice;
+    public float ResonantArrow;
+    public float RadiantEncore;
+
+    public (float Min, float Wind, float Poison) TargetDotLeft;
+
+    public float? NextProc => SongTimer is > 3 and < 45 ? SongTimer - SongTimer % 3f : null;
+
+    public int NumCircleTargets; // 25/5y circle - shadowbite and a bunch of other stuff
+    public int NumConeTargets; // 12y/90(?)deg cone - regular aoe gcds
+    public int NumLineTargets; // 25y/4y rect - apex arrow and stuff
+
+    private Enemy? BestCircleTarget;
+    private Enemy? BestConeTarget;
+    private Enemy? BestLineTarget;
+    private Enemy? BestDotTarget;
+
+    public int Codas => (Coda.HasFlag(CodaSongs.MagesBallad) ? 1 : 0) + (Coda.HasFlag(CodaSongs.ArmysPaeon) ? 1 : 0) + (Coda.HasFlag(CodaSongs.WanderersMinuet) ? 1 : 0);
+
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
+    {
+        SelectPrimaryTarget(strategy, ref primaryTarget, 25);
+
+        var gauge = World.Client.GetGauge<BardGauge>();
+
+        SongTimer = gauge.SongTimer * 0.001f;
+        Repertoire = gauge.Repertoire;
+        Soul = gauge.SoulVoice;
+
+        CurrentSong = (Song)((byte)gauge.SongFlags & 3);
+        PreviousSong = (Song)(((byte)gauge.SongFlags >> 2) & 3);
+        Coda = (CodaSongs)((byte)gauge.SongFlags >> 4);
+
+        HawksEye = StatusLeft(SID.HawksEye);
+        Barrage = StatusLeft(SID.Barrage);
+        RagingStrikes = StatusLeft(SID.RagingStrikes);
+        BlastArrow = StatusLeft(SID.BlastArrowReady);
+        BattleVoice = StatusLeft(SID.BattleVoice);
+        ResonantArrow = StatusLeft(SID.ResonantArrowReady);
+        RadiantEncore = StatusLeft(SID.RadiantEncoreReady);
+
+        (BestDotTarget, TargetDotLeft) = SelectDotTarget(strategy, primaryTarget, DotDuration, 2);
+
+        (BestCircleTarget, NumCircleTargets) = SelectTarget(strategy, primaryTarget, 25, IsSplashTarget);
+        (BestConeTarget, NumConeTargets) = SelectTarget(strategy, primaryTarget, 12,
+            (primary, other) => TargetInAOECone(other, Player.Position, 12, Player.DirectionTo(primary), 45.Degrees()));
+        (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 25, Is25yRectTarget);
+
+        OGCD(strategy, primaryTarget);
+
+        if (CountdownRemaining > 0)
+        {
+            if (CountdownRemaining < GetApplicationDelay(AID.Stormbite))
+                PushGCD(AID.Stormbite, primaryTarget);
+
+            return;
+        }
+
+        if (primaryTarget != null)
+            GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 45.Degrees()), AID.QuickNock, minAoe: 2);
+
+        var ijDelay = GetApplicationDelay(AID.IronJaws);
+
+        if (CanFitGCD(TargetDotLeft.Min - ijDelay) && !CanFitGCD(TargetDotLeft.Min - ijDelay, 1))
+            PushGCD(AID.IronJaws, BestDotTarget);
+
+        if (!CanFitGCD(TargetDotLeft.Wind, 1))
+            PushGCD(AID.Windbite, BestDotTarget);
+
+        if (!CanFitGCD(TargetDotLeft.Poison, 1))
+            PushGCD(AID.VenomousBite, BestDotTarget);
+
+        if (BlastArrow > GCD)
+            PushGCD(AID.BlastArrow, BestLineTarget, setRotation: NumLineTargets > 1);
+
+        if (ShouldApexArrow(strategy))
+            PushGCD(AID.ApexArrow, BestLineTarget, setRotation: NumLineTargets > 1);
+
+        if (RadiantEncore > GCD)
+            PushGCD(AID.RadiantEncore, BestCircleTarget);
+
+        if (HawksEye > GCD || Barrage > GCD)
+        {
+            var aoeGain = Barrage > GCD ? 3 : 2;
+            if (NumCircleTargets >= aoeGain)
+                PushGCD(AID.WideVolley, BestCircleTarget);
+
+            PushGCD(AID.StraightShot, primaryTarget);
+        }
+
+        if (ResonantArrow > GCD)
+            PushGCD(AID.ResonantArrow, BestCircleTarget);
+
+        if (NumConeTargets > 1)
+            PushGCD(AID.QuickNock, BestConeTarget, setRotation: true);
+
+        PushGCD(AID.HeavyShot, primaryTarget);
+    }
+
+    private (float Min, float Wind, float Poison) DotDuration(Actor? primaryTarget)
+    {
+        if (primaryTarget == null)
+            return (float.MaxValue, float.MaxValue, float.MaxValue);
+
+        var wind = MathF.Max(StatusDetails(primaryTarget, SID.Windbite, Player.InstanceID, 45).Left, StatusDetails(primaryTarget, SID.Stormbite, Player.InstanceID, 45).Left);
+        var poison = MathF.Max(StatusDetails(primaryTarget, SID.VenomousBite, Player.InstanceID, 45).Left, StatusDetails(primaryTarget, SID.CausticBite, Player.InstanceID, 45).Left);
+
+        return (MathF.Min(wind, poison), wind, poison);
+    }
+
+    private void OGCD(in Strategy strategy, Enemy? primaryTarget)
+    {
+        if (!Player.InCombat || primaryTarget == null)
+            return;
+
+        if (SongTimer < 12)
+            PushOGCD(AID.WanderersMinuet, Player);
+
+        if (CurrentSong == Song.WanderersMinuet && (Repertoire == 3 || NextProc == null && Repertoire > 0) && NumCircleTargets > 0)
+            PushOGCD(AID.PitchPerfect, BestCircleTarget);
+
+        if (SongTimer < 3)
+            PushOGCD(AID.MagesBallad, Player);
+
+        if (SongTimer < 3)
+            PushOGCD(AID.ArmysPaeon, Player);
+
+        PushOGCD(AID.EmpyrealArrow, primaryTarget);
+
+        if (strategy.Buffs != OffensiveStrategy.Delay)
+        {
+            PushOGCD(AID.BattleVoice, Player, delay: GCD - 0.8f);
+
+            var canRadiant = BattleVoice > 0 || CombatTimer > 30 && CanWeave(AID.BattleVoice);
+
+            if (canRadiant && Codas > 0)
+                PushOGCD(AID.RadiantFinale, Player);
+
+            if (!CanWeave(AID.BattleVoice))
+                PushOGCD(AID.RagingStrikes, Player);
+
+            if (!CanWeave(AID.RagingStrikes))
+                PushOGCD(AID.Barrage, Player);
+        }
+
+        // if raging strikes is active, use all charges
+        if (RagingStrikes > 0
+            // if max charges within a GCD-ish, use one
+            || CanWeave(MaxChargesIn(AID.Bloodletter), 0.6f, 1)
+            // if mage's ballad, we might get a cd reset at any moment
+            || CurrentSong == Song.MagesBallad && MaxChargesIn(AID.Bloodletter) < 15)
+        {
+            if (NumCircleTargets > 1)
+                PushOGCD(AID.RainOfDeath, BestCircleTarget);
+
+            PushOGCD(AID.Bloodletter, primaryTarget);
+        }
+
+        if (!CanWeave(AID.RagingStrikes))
+        {
+            PushOGCD(AID.Sidewinder, primaryTarget);
+            PushOGCD(AID.EmpyrealArrow, primaryTarget);
+        }
+    }
+
+    private bool ShouldApexArrow(in Strategy strategy)
+    {
+        // can't use
+        if (Soul < 80)
+            return false;
+
+        // buff alignment for 2min
+        if (strategy.Buffs == OffensiveStrategy.Delay)
+            return false;
+
+        if (ReadyIn(AID.RagingStrikes) > 55)
+            return ReadyIn(AID.RagingStrikes) < 60 || Soul == 100;
+
+        // use in 2min
+        return RagingStrikes > GCD;
+    }
+}

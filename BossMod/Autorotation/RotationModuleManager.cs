@@ -60,10 +60,10 @@ public sealed class RotationModuleManager : IDisposable
         (uint)Roleplay.SID.FreshPerspective, // sapphire weapon quest
 
         // hacking interlude gimmick in Paradigm's Breach boss 3
-        (uint)Shadowbringers.Alliance.A34RedGirl.SID.Program000000,
-        (uint)Shadowbringers.Alliance.A34RedGirl.SID.ProgramFFFFFFF,
+        //(uint)Shadowbringers.Alliance.A34RedGirl.SID.Program000000, (2633)
+        //(uint)Shadowbringers.Alliance.A34RedGirl.SID.ProgramFFFFFFF, (2632)
 
-        (uint)Stormblood.Dungeon.D09DrownedCityOfSkalla.D092TheOldOne.SID.Transfiguration,
+        //(uint)Stormblood.Dungeon.D09DrownedCityOfSkalla.D092TheOldOne.SID.Transfiguration, (1448)
 
         565, // "Transfiguration" from certain pomanders in Palace of the Dead
         439, // "Toad", palace of the dead
@@ -102,6 +102,7 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Client.ActionFailedLoS.Subscribe(OnLoSFailed),
             Database.Presets.PresetModified.Subscribe(OnPresetModified),
             WorldState.IsPvPAreaChanged.Subscribe(a => DirtyActiveModules(true)),
+            RotationModuleRegistry.Modified.Subscribe(() => DirtyActiveModules(true)),
             _aiConfig.Modified.Subscribe(() => DirtyActiveModules(true))
         );
     }
@@ -164,6 +165,14 @@ public sealed class RotationModuleManager : IDisposable
         StrategyTarget.EnemyWithHighestPriority => Hints.PriorityTargets.MaxBy(RateEnemy((StrategyEnemySelection)param))?.Actor,
         StrategyTarget.EnemyByOID => Player != null && (uint)param is var oid && oid != 0 ? Hints.PotentialTargets.Where(e => e.Actor.OID == oid).MinBy(e => (e.Actor.Position - Player.Position).LengthSq())?.Actor : null,
         _ => null
+    };
+
+    public IEnumerable<Actor> ResolvePartyMembers(StrategyTarget strategy, int param) => strategy switch
+    {
+        StrategyTarget.Self or StrategyTarget.PartyByAssignment or StrategyTarget.PartyWithLowestHP => ResolveTargetOverride(strategy, param) is { } tar ? [tar] : [],
+        StrategyTarget.PartyByFilter => FilteredPartyMembers((StrategyPartyFiltering)param),
+        StrategyTarget.Automatic => WorldState.Party.WithoutSlot(),
+        _ => []
     };
 
     public WPos ResolveTargetLocation(StrategyTarget strategy, int param, float off1, float off2) => strategy switch
@@ -281,7 +290,7 @@ public sealed class RotationModuleManager : IDisposable
         if (player != null)
         {
             var isRPMode = player.Statuses.Any(IsTransformStatus);
-            for (int i = 0; i < modules.Count; ++i)
+            for (var i = 0; i < modules.Count; ++i)
             {
                 var def = modules[i].Definition;
                 if (!def.Classes[(int)player.Class] || player.Level < def.MinLevel || player.Level > def.MaxLevel)

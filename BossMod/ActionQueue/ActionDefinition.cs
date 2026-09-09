@@ -181,6 +181,11 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1049237); // hq grade 3 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1049238); // hq grade 3 gemdraught of mind
 
+    // TODO: remove later, this is for the ucob project
+    public static readonly ActionID IDClamCake = new(ActionType.Item, 1049247);
+    public static readonly ActionID IDFruitcake = new(ActionType.Item, 1049242);
+    public static readonly ActionID IDPopcorn = new(ActionType.Item, 1049240);
+
     // content specific consumables
     public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);
     public static readonly ActionID IDPotionMax = new(ActionType.Item, 1013637);
@@ -228,6 +233,10 @@ public sealed class ActionDefinitions
         RegisterItem(IDPotionUltra, 1.1f);
         RegisterItem(IDPotionPilgrim, 1.1f);
 
+        RegisterItem(IDClamCake, 2.1f);
+        RegisterItem(IDFruitcake, 2.1f);
+        RegisterItem(IDPopcorn, 2.1f);
+
         RegisterItem(IDMiscItemGreens, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
@@ -264,18 +273,18 @@ public sealed class ActionDefinitions
 
     // smart targeting utility: return target (if friendly) or other tank (if available) or null (otherwise)
     public static Actor? FindCoTank(WorldState ws, Actor player) => ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
-    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
+    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints _) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
 
     // smart targeting utility: return target (if friendly) or any esunable player (if any) or self (otherwise)
     public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
-    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
+    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints _) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)
     {
         BitMask res = default;
         var cjc = _cjcSheet?.GetRowOrDefault(data.ClassJobCategory.RowId);
         if (cjc != null)
-            for (int i = 1; i < _cjcSheet!.Columns.Count; ++i)
+            for (var i = 1; i < _cjcSheet!.Columns.Count; ++i)
                 res[i - 1] = cjc.Value.ReadBoolColumn(i);
         return res;
     }
@@ -293,7 +302,7 @@ public sealed class ActionDefinitions
     // see ActionManager.CanUseActionOnTarget
     public ActionTargets SpellAllowedTargets(Lumina.Excel.Sheets.Action data)
     {
-        ActionTargets res = ActionTargets.None;
+        var res = ActionTargets.None;
         if (data.CanTargetSelf)
             res |= ActionTargets.Self;
         if (data.CanTargetParty)
@@ -450,7 +459,7 @@ public sealed class ActionDefinitions
     private void RegisterBozja(BozjaHolsterID id)
     {
         var normalAction = BozjaActionID.GetNormal(id);
-        bool isItem = normalAction == BozjaActionID.GetHolster(id);
+        var isItem = normalAction == BozjaActionID.GetHolster(id);
         RegisterSpell(normalAction, instantAnimLock: isItem ? 1.1f : 0.6f);
         if (!isItem)
         {

@@ -36,9 +36,9 @@ internal sealed class DTRProvider : IDisposable
 
     public void Dispose()
     {
-        _autorotationEntry.Remove();
-        _aiEntry.Remove();
-        _statsEntry.Remove();
+        _autorotationEntry.Dispose();
+        _aiEntry.Dispose();
+        _statsEntry.Dispose();
     }
 
     public void Update()

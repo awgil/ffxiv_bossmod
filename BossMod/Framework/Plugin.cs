@@ -4,6 +4,7 @@ using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
 using Dalamud.Plugin;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 namespace BossMod;
 
@@ -26,4 +27,6 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
+
+    public static string GetStorageDir() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm");
 }

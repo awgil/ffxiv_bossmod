@@ -1,7 +1,7 @@
 ﻿namespace BossMod.AI;
 
 [ConfigDisplay(Name = "AI Configuration", Order = 8)]
-sealed class AIConfig : ConfigNode
+public sealed class AIConfig : ConfigNode
 {
     [PropertyDisplay("Enable")]
     public bool Enabled = false;

@@ -26,7 +26,7 @@ public sealed class ObstacleMapManager : IDisposable
     private (ObstacleMapDatabase.Entry entry, Bitmap data)? _tempMap;
     private Task? _generationTask;
 
-    public readonly DirectoryInfo UserRoot = new(Path.Join(ReplayHistory.GetStorageDir().FullName, "obstacles"));
+    public readonly DirectoryInfo UserRoot = new(Path.Join(Plugin.GetStorageDir(), "obstacles"));
     public readonly FileInfo UserList;
 
     public readonly string SourceRoot;
@@ -41,8 +41,7 @@ public sealed class ObstacleMapManager : IDisposable
 
         UserList = new(Path.Join(UserRoot.FullName, "maplist.json"));
         SourceRoot = _config.MapSourcePath;
-        if (!UserRoot.Exists)
-            UserRoot.Create();
+        Directory.CreateDirectory(UserRoot.FullName);
 
         ReloadDatabase();
     }
@@ -266,7 +265,7 @@ public sealed class ObstacleMapManager : IDisposable
 
             if (File.Exists(UserList.FullName))
             {
-                using var user = UserList.OpenRead();
+                using var user = UserList.OpenShareable();
                 Database.Load(user, false);
             }
         }

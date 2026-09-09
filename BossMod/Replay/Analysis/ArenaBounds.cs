@@ -20,19 +20,19 @@ class ArenaBounds
                 {
                     foreach (var p in ps)
                     {
-                        int iStart = p.PosRotHistory.UpperBound(enc.Time.Start);
+                        var iStart = p.PosRotHistory.UpperBound(enc.Time.Start);
                         if (iStart > 0)
                             --iStart;
-                        int iEnd = p.PosRotHistory.UpperBound(enc.Time.End);
-                        int iNextDead = p.DeadHistory.UpperBound(enc.Time.Start);
-                        for (int i = iStart; i < iEnd; ++i)
+                        var iEnd = p.PosRotHistory.UpperBound(enc.Time.End);
+                        var iNextDead = p.DeadHistory.UpperBound(enc.Time.Start);
+                        for (var i = iStart; i < iEnd; ++i)
                         {
                             var t = p.PosRotHistory.Keys[i];
                             var pos = p.PosRotHistory.Values[i].XYZ();
                             if (iNextDead < p.DeadHistory.Count && p.DeadHistory.Keys[iNextDead] <= t)
                                 ++iNextDead;
-                            bool dead = iNextDead > 0 && p.DeadHistory.Values[iNextDead - 1];
-                            uint color = dead ? 0xff404040 : p.Type is ActorType.Enemy ? 0xff00ffff : 0xff808080;
+                            var dead = iNextDead > 0 && p.DeadHistory.Values[iNextDead - 1];
+                            var color = dead ? 0xff404040 : p.Type is ActorType.Enemy ? 0xff00ffff : 0xff808080;
                             _points.Add((replay, p, t, pos, color));
                             _plot.DataMin.X = Math.Min(_plot.DataMin.X, pos.X);
                             _plot.DataMin.Y = Math.Min(_plot.DataMin.Y, pos.Z);

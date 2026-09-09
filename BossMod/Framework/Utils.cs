@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -60,7 +61,7 @@ public static partial class Utils
     public static string StatusString(uint statusID) => $"{statusID} '{Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.Name ?? "<not found>"}'";
     public static string StatusTimeString(DateTime expireAt, DateTime now) => $"{Math.Max(0, (expireAt - now).TotalSeconds):f3}";
     public static string CastTimeString(float current, float total) => $"{current:f2}/{total:f2}";
-    public static string CastTimeString(ActorCastInfo cast, DateTime now) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
+    public static string CastTimeString(ActorCastInfo cast) => CastTimeString(cast.ElapsedTime, cast.TotalTime);
     public static string LogMessageString(uint id) => $"{id} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(id)?.Text}'";
 
     public static readonly Func<uint, bool> StatusIsRemovable = Memoize((uint statusID) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(statusID)?.CanDispel ?? false);
@@ -139,7 +140,7 @@ public static partial class Utils
     // lumina extensions
     public static int FindIndex<T>(this Lumina.Excel.Collection<T> collection, Func<T, bool> predicate) where T : struct
     {
-        for (int i = 0; i < collection.Count; ++i)
+        for (var i = 0; i < collection.Count; ++i)
             if (predicate(collection[i]))
                 return i;
         return -1;
@@ -226,8 +227,8 @@ public static partial class Utils
         int first = 0, size = list.Count;
         while (size > 0)
         {
-            int step = size / 2;
-            int mid = first + step;
+            var step = size / 2;
+            var mid = first + step;
             if (list.Keys[mid].CompareTo(test) < 0)
             {
                 first = mid + 1;
@@ -247,8 +248,8 @@ public static partial class Utils
         int first = 0, size = list.Count;
         while (size > 0)
         {
-            int step = size / 2;
-            int mid = first + step;
+            var step = size / 2;
+            var mid = first + step;
             if (list.Keys[mid].CompareTo(test) <= 0)
             {
                 first = mid + 1;
@@ -292,19 +293,19 @@ public static partial class Utils
     }
 
     // useful for grouping AOEs on radar; input must already be sorted in activation order
-    public static IEnumerable<T> TakeWhileTime<T>(IEnumerable<T> source, Func<T, DateTime> getTimestamp, float delay)
+    public static IEnumerable<T> TakeSpan<T>(this IEnumerable<T> items, Func<T, DateTime> getTimestamp, TimeSpan span)
     {
         DateTime nextTs = default;
-        foreach (var s in source)
+        foreach (var item in items)
         {
-            var ts = getTimestamp(s);
+            var ts = getTimestamp(item);
             if (nextTs == default)
                 nextTs = ts;
 
-            if (ts > nextTs.AddSeconds(delay))
-                yield break;
+            if (ts > nextTs + span)
+                break;
 
-            yield return s;
+            yield return item;
         }
     }
 
@@ -316,8 +317,8 @@ public static partial class Utils
     {
         list.Sort();
         var span = list.AsSpan();
-        int last = 0;
-        for (int i = 1; i < list.Count; ++i)
+        var last = 0;
+        for (var i = 1; i < list.Count; ++i)
         {
             if (!span[i].Equals(span[last]))
             {
@@ -430,20 +431,6 @@ public static partial class Utils
             }
     }
 
-    public static IEnumerable<Components.GenericAOEs.AOEInstance> TakeSpan(this IEnumerable<Components.GenericAOEs.AOEInstance> aoes, TimeSpan ts)
-    {
-        DateTime deadline = default;
-        foreach (var aoe in aoes)
-        {
-            if (deadline == default)
-                deadline = aoe.Activation + ts;
-            if (aoe.Activation >= deadline)
-                break;
-
-            yield return aoe;
-        }
-    }
-
     public static Vector3 ToSystem(this Lumina.Data.Parsing.Common.Vector3 v) => new(v.X, v.Y, v.Z);
 
     public static void TextOutlined(string text, Color outlineColor)
@@ -463,5 +450,25 @@ public static partial class Utils
         }
         else
             ImGui.TextUnformatted(text);
+    }
+
+    public static FileStream OpenShareable(string path, FileMode mode = FileMode.OpenOrCreate) => File.Open(path, mode, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+    public static FileStream OpenShareable(this FileInfo finfo, FileMode mode = FileMode.OpenOrCreate) => finfo.Open(mode, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+    public static void CopyRecursive(string sourceDir, string targetDir) => CopyRecursive(new DirectoryInfo(sourceDir), new DirectoryInfo(targetDir));
+
+    public static void CopyRecursive(DirectoryInfo sourceDir, DirectoryInfo targetDir)
+    {
+        Directory.CreateDirectory(targetDir.FullName);
+
+        foreach (var fi in sourceDir.GetFiles())
+            fi.CopyTo(Path.Combine(targetDir.FullName, fi.Name), true);
+
+        foreach (var subsource in sourceDir.GetDirectories())
+        {
+            var subtarget = targetDir.CreateSubdirectory(subsource.Name);
+            CopyRecursive(subsource, subtarget);
+        }
     }
 }

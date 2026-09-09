@@ -7,6 +7,8 @@ class PathfindingTest : TestWindow
 {
     private MapVisualizer _visu;
 
+    private bool _useNewRasterizer;
+
     private float _mapResolution = 1;
     private float _mapThreshold = 0.5f;
     private Vector2 _mapCenter;
@@ -42,9 +44,11 @@ class PathfindingTest : TestWindow
     {
         _visu.Draw();
 
-        bool rebuild = false;
+        var rebuild = false;
         if (ImGui.CollapsingHeader("Map setup"))
         {
+            rebuild |= ImGui.Checkbox("Use new rasterizer", ref _useNewRasterizer);
+
             rebuild |= ImGui.DragFloat("Resolution", ref _mapResolution, 0.1f, 0.1f, 10, "%.1f", ImGuiSliderFlags.Logarithmic);
             rebuild |= ImGui.DragFloat("Block zone threshold", ref _mapThreshold, 0.1f, -5, 5);
             rebuild |= ImGui.DragFloat2("Center", ref _mapCenter);
@@ -94,13 +98,17 @@ class PathfindingTest : TestWindow
         if (_blockRect)
             zones.Add((Sdf.Continuous(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
         zones.SortBy(z => z.activation);
-        NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _cushion);
+
+        if (_useNewRasterizer)
+            NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _cushion);
+        else
+            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sb, _cushion);
 
         List<Func<WPos, float>> goals = [];
-        goals.Add(new AIHints().GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
+        goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
         NavigationDecision.RasterizeGoalZones(map, goals, _cushion > 0);
 
-        var visu = new MapVisualizer(map, new(_startingPos));
+        var visu = new MapVisualizer(map, new(_startingPos)/*, sg*/);
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));

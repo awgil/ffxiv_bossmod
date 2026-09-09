@@ -38,7 +38,7 @@ public class ColumnEnemyDetails : Timeline.ColumnGroup
 
     private void DrawColumnToggle(IToggleableColumn col, string name)
     {
-        bool visible = col.Visible;
+        var visible = col.Visible;
         if (ImGui.Checkbox(name, ref visible))
         {
             col.Visible = visible;
