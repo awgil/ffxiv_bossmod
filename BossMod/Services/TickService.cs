@@ -701,7 +701,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             var src = Path.Join(assemblyDir, filename);
             if (File.Exists(src))
-                File.Copy(src, Path.Join(modulesDir, filename));
+                File.Copy(src, Path.Join(modulesDir, filename), true);
             else
                 Service.PluginLog.Verbose($"{filename} missing from assembly directory, is this a dev build?");
         }

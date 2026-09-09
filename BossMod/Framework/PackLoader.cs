@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using BossMod.ReplayAnalysis;
+using Dalamud.Plugin;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -15,10 +16,14 @@ public sealed class PackLoader : IDisposable
             //loadcontext has no idea where these are i guess
             if (assemblyName.Name == "BossMod")
                 return typeof(PackLoader).Assembly;
+            if (assemblyName.Name == "Dalamud")
+                return typeof(IDalamudPluginInterface).Assembly;
             if (assemblyName.Name == "FFXIVClientStructs")
                 return typeof(FFXIVClientStructs.FFXIV.Client.Game.Camera).Assembly;
             if (assemblyName.Name == "Lumina")
                 return typeof(Lumina.GameData).Assembly;
+            if (assemblyName.Name == "Lumina.Excel")
+                return typeof(Lumina.Excel.Sheets.Action).Assembly;
 
             return base.Load(assemblyName);
         }
