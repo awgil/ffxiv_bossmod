@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using BossMod.ReplayAnalysis;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
 using System.IO;
 using System.Reflection;
@@ -13,11 +14,14 @@ public sealed class PackLoader : IDisposable
     {
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            //loadcontext has no idea where these are i guess
+            // assemblies from parent
+            // TODO: doc page says you can return null here to make these load from the parent context, but that doesn't seem to work for me
             if (assemblyName.Name == "BossMod")
                 return typeof(PackLoader).Assembly;
             if (assemblyName.Name == "Dalamud")
                 return typeof(IDalamudPluginInterface).Assembly;
+            if (assemblyName.Name == "Dalamud.Bindings.ImGui")
+                return typeof(ImGuiCol).Assembly;
             if (assemblyName.Name == "FFXIVClientStructs")
                 return typeof(FFXIVClientStructs.FFXIV.Client.Game.Camera).Assembly;
             if (assemblyName.Name == "Lumina")
