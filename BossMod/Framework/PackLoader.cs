@@ -2,6 +2,7 @@
 using BossMod.ReplayAnalysis;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
+using System.Data.SQLite;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -28,6 +29,8 @@ public sealed class PackLoader : IDisposable
                 return typeof(Lumina.GameData).Assembly;
             if (assemblyName.Name == "Lumina.Excel")
                 return typeof(Lumina.Excel.Sheets.Action).Assembly;
+            if (assemblyName.Name == "System.Data.SQLite")
+                return typeof(SQLiteBlob).Assembly;
 
             return base.Load(assemblyName);
         }

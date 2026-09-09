@@ -489,6 +489,6 @@ class D99TheFinalVerseStates : StateMachineBuilder
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1041, NameID = 14037)]
 public class D99TheFinalVerse(WorldState ws, Actor primary) : BossModule(ws, primary, new(-600, -300), new ArenaBoundsRect(20, 15))
 {
-    public static readonly RelSimplifiedComplexPolygon LightShape = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Light.json");
-    public static readonly RelSimplifiedComplexPolygon DarkShape = Utils.LoadFromAssembly<RelSimplifiedComplexPolygon>("BossMod.Modules.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Dark.json");
+    public static readonly RelSimplifiedComplexPolygon LightShape = Utils.LoadResource<RelSimplifiedComplexPolygon>("BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Light.json");
+    public static readonly RelSimplifiedComplexPolygon DarkShape = Utils.LoadResource<RelSimplifiedComplexPolygon>("BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D99TheFinalVerse.Dark.json");
 }

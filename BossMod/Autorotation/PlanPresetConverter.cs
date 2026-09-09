@@ -138,7 +138,7 @@ public static class PlanPresetConverter
 
         res.Converters.Add((j, _, _) =>
         {
-            var optionRenames = Utils.LoadFromAssembly<List<OptionRename>>("BossMod.Autorotation.OptionRenames.json");
+            var optionRenames = Utils.LoadResource<List<OptionRename>>("BossMod.Autorotation.OptionRenames.json");
 
             foreach (var m in EnumerateEntriesModules(j, plan))
             {

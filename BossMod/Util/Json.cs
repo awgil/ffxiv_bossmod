@@ -20,9 +20,15 @@ public static class Json
 
 public static partial class Utils
 {
-    public static T LoadFromAssembly<T>(string resourceName)
+    public static StreamReader LoadResource(string resourceName)
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName) ?? throw new InvalidDataException($"unable to locate resource {resourceName}");
+        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName) ?? throw new InvalidDataException($"unable to locate resource {resourceName}");
+        return new StreamReader(stream);
+    }
+
+    public static T LoadResource<T>(string resourceName)
+    {
+        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName) ?? throw new InvalidDataException($"unable to locate resource {resourceName}");
         using var reader = new StreamReader(stream);
         using var jreader = new JsonTextReader(reader);
         return new JsonSerializer().Deserialize<T>(jreader) ?? throw new InvalidDataException($"unable to load json from file");

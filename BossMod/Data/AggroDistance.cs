@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Reflection;
-
-namespace BossMod.Data;
+﻿namespace BossMod.Data;
 
 public static class AggroDistance
 {
@@ -13,8 +10,7 @@ public static class AggroDistance
 
     static AggroDistance()
     {
-        var contents = Assembly.GetExecutingAssembly().GetManifestResourceStream("BossMod.Data.AggroDistance.dat")!;
-        using var reader = new StreamReader(contents);
+        using var reader = Utils.LoadResource("BossMod.Data.AggroDistance.dat");
         string? s;
         while ((s = reader.ReadLine()) != null)
         {

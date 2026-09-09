@@ -123,8 +123,8 @@ public abstract partial class AutoClear : ZoneModule
             })
         );
 
-        LoadedFloors = Utils.LoadFromAssembly<Dictionary<string, Floor<Wall>>>("BossMod.Modules.Global.DeepDungeon.Walls.json");
-        ProblematicTrapLocations = Utils.LoadFromAssembly<List<WPos>>("BossMod.Modules.Global.DeepDungeon.BadTraps.json");
+        LoadedFloors = Utils.LoadResource<Dictionary<string, Floor<Wall>>>("BossMod.Global.DeepDungeon.Walls.json");
+        ProblematicTrapLocations = Utils.LoadResource<List<WPos>>("BossMod.Global.DeepDungeon.BadTraps.json");
     }
 
     protected override void Dispose(bool disposing)
