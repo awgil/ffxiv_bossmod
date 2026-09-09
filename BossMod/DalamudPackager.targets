@@ -14,11 +14,11 @@
     <MSBuild Projects="@(_Publish)" BuildInParallel="true">
       <Output TaskParameter="TargetOutputs" ItemName="ChildLibraries" />
     </MSBuild>
-    <Copy SourceFiles="@(ChildLibraries)" DestinationFolder="$(OutputPath)/publish" />
+    <Copy SourceFiles="@(ChildLibraries)" DestinationFolder="$(PublishDir)" />
 
     <DalamudPackager
       ProjectDir="$(ProjectDir)"
-      OutputPath="$(OutputPath)/publish"
+      OutputPath="$(PublishDir)"
       AssemblyName="$(AssemblyName)"
       MakeZip="true" />
   </Target>
