@@ -11,7 +11,7 @@
   </Target>
 
   <Target Name="PackagePublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
-    <MSBuild Projects="@(_Publish)">
+    <MSBuild Projects="@(_Publish)" BuildInParallel="true">
       <Output TaskParameter="TargetOutputs" ItemName="ChildLibraries" />
     </MSBuild>
     <Copy SourceFiles="@(ChildLibraries)" DestinationFolder="$(OutputPath)/publish" />
