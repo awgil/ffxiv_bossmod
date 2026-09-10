@@ -131,7 +131,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.Seedsower); // animLock=???
         d.RegisterSpell(AID.CloudSkim1); // animLock=???
         d.RegisterSpell(AID.Vileskin); // animLock=???
-        d.RegisterSpell(AID.ShieldCharge); // animLock=???
+        d.RegisterSpell(AID.ShieldCharge, instantAnimLock: 1.1f); // animLock=???
         d.RegisterSpell(AID.Rally); // animLock=???
         d.RegisterSpell(AID.RallyingCheer); // animLock=???
         d.RegisterSpell(AID.RisenFall); // animLock=???

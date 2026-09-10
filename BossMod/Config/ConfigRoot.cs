@@ -46,7 +46,16 @@ public sealed class ConfigRoot : IDisposable
 
         var t = (T)Activator.CreateInstance(derived)!;
         if (_payload.EnumerateObject().FirstOrNull(o => o.Name == derived.FullName) is { } obj)
-            t.Deserialize(obj.Value, _opts);
+        {
+            try
+            {
+                t.Deserialize(obj.Value, _opts);
+            }
+            catch (AggregateException ex)
+            {
+                Service.PluginLog.Warning(ex, $"An error occurred while deserializing config option '{derived.FullName}'. It will have its default value.");
+            }
+        }
 
         _nodes[derived] = new(t, t.Modified.Subscribe(Modified.Fire));
 
@@ -62,8 +71,24 @@ public sealed class ConfigRoot : IDisposable
     public ConfigRoot(FileInfo file)
     {
         _opts = Serialization.BuildSerializationOptions();
-        (_document, _payload) = ConfigConverter.Schema.Load(file);
-        AssemblyVersion = _document.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();
+
+        if (file.Exists)
+        {
+            try
+            {
+                (_document, _payload) = ConfigConverter.Schema.Load(file);
+                AssemblyVersion = _document.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();
+                return;
+            }
+            catch (Exception ex)
+            {
+                Service.PluginLog.Warning(ex, "Unable to load plugin configuration; a blank configuration will be loaded instead");
+            }
+        }
+
+        // fallback for both missing file (first install) and corrupted config
+        _document = JsonDocument.Parse("""{"payload":{}}""");
+        _payload = _document.RootElement.GetProperty("payload");
     }
 
     public void SaveToFile(FileInfo file)
