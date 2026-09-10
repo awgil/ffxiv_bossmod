@@ -253,5 +253,7 @@ public sealed class ConfigRoot : IDisposable
             n?.OnModified.Dispose();
 
         _nodes.Clear();
+
+        _document.Dispose();
     }
 }
