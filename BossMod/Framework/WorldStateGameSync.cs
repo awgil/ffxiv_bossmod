@@ -803,6 +803,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (!MemoryExtensions.SequenceEqual(_ws.Client.BlueMageSpells.AsSpan(), actionManager->BlueMageActions))
             _ws.Execute(new ClientState.OpBlueMageSpellsChange(actionManager->BlueMageActions.ToArray()));
 
+        if (!MemoryExtensions.SequenceEqual(_ws.Client.BeastmasterBeasts.AsSpan(), actionManager->BeastmasterPets))
+            _ws.Execute(new ClientState.OpBeastmasterBeastsChanged(actionManager->BeastmasterPets.ToArray()));
+
         var levels = uiState->PlayerState.ClassJobLevels;
         if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));

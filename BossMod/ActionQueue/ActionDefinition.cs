@@ -57,6 +57,21 @@ public enum ActionAspect : byte
     Physical
 }
 
+// for beastmaster; these are somehow not in sheets
+public enum ActionAffinity : byte
+{
+    None = 0,
+    Rampant = 1,
+    Durant = 2,
+    Eldritch = 3,
+    Volant = 4,
+
+    Red = Rampant,
+    Blue = Durant,
+    Yellow = Eldritch,
+    Green = Volant
+}
+
 // this contains all information about player actions that we care about (for action tweaks, autorotation, etc)
 // some of the data is available in sheets, however unfortunately quite a bit is hardcoded in game functions; it often uses current player data
 // however, we need this information outside game (ie in uidev) and for different players of different classes/levels (ie for replay analysis)
@@ -486,6 +501,60 @@ public sealed class ActionDefinitions
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }
     public void RegisterChargeIncreaseTrait<AID, TraitID>(AID aid, TraitID traitId) where AID : Enum where TraitID : Enum => RegisterChargeIncreaseTrait(ActionID.MakeSpell(aid), (uint)(object)traitId);
+
+    public static readonly ActionAffinity[] TrickAffinity = [
+        ActionAffinity.None,
+        ActionAffinity.Red,    // cu sith, cone
+        ActionAffinity.Red,    // squirrel, line (in both directions)
+        ActionAffinity.Red,    // lamb, line
+        ActionAffinity.Blue,   // pugil, cone
+        ActionAffinity.Red,    // opo, circle
+        ActionAffinity.Yellow, // dodo, cone
+        ActionAffinity.Yellow, // coblyn, ST
+        ActionAffinity.Red,    // diremite, ST
+        ActionAffinity.Blue,   // megacrab, circle
+        ActionAffinity.Green,  // wespe, ST (poison)
+        ActionAffinity.Green,  // vulture, cone
+        ActionAffinity.Red,    // mandragora, ST
+        ActionAffinity.Yellow, // geshunpest, circle
+        ActionAffinity.Red,    // puk, circle
+        ActionAffinity.Blue,   // crab, cone
+        ActionAffinity.Blue,   // mantis, ST
+        ActionAffinity.Yellow, // slime, ST (lifesteal)
+        ActionAffinity.Blue,   // dullahan, cone
+        ActionAffinity.Green,  // bat, ST (lifesteal)
+        ActionAffinity.Green,  // flytrap, cone (poison)
+        ActionAffinity.Blue,   // ziz, cone
+        ActionAffinity.Red,    // cactuar, line
+        ActionAffinity.Yellow, // golem, cone
+        ActionAffinity.Blue,   // apkallu, ST
+        ActionAffinity.Yellow, // turtle, circle
+        ActionAffinity.Red,    // buffalo, cone
+        ActionAffinity.Blue,   // uragnite, cone
+        ActionAffinity.Yellow, // worm, cone
+        ActionAffinity.Red,    // spriggan, cone
+        ActionAffinity.Red,    // goob, line
+        ActionAffinity.Yellow, // gigantoad, circle
+        ActionAffinity.Green,  // colibri, ST
+        ActionAffinity.Yellow, // coeurl, ST
+        ActionAffinity.Blue,   // raptor, cone
+        ActionAffinity.Red,    // drake, cone
+        ActionAffinity.Yellow, // treant, circle
+        ActionAffinity.Red,    // antling, ST
+        ActionAffinity.Red,    // chimera, cone
+        ActionAffinity.Red,    // morbol, line
+        ActionAffinity.Green,  // ghost, cone
+        ActionAffinity.Blue,   // salamander, cone
+        ActionAffinity.Blue,   // cobra, ST (poison)
+        ActionAffinity.Blue,   // hydra, ST
+        ActionAffinity.Green,  // damselfly, circle
+        ActionAffinity.Yellow, // rotting goob, ST
+        ActionAffinity.Green,  // zu, circle
+        ActionAffinity.Blue,   // ice golem, cone
+        ActionAffinity.Blue,   // karlabos, ST
+        ActionAffinity.Yellow, // rafflesia, circle
+        ActionAffinity.Yellow, // behemoth, cone
+    ];
 }
 
 public abstract class Defs

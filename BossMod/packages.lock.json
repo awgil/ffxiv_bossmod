@@ -4,12 +4,12 @@
     "net10.0-windows7.0": {
       "DalaMock.Core": {
         "type": "Direct",
-        "requested": "[6.1.8, )",
-        "resolved": "6.1.8",
-        "contentHash": "VWxRNMY6hQlaPS2Onru6wZiARDhqIe1tnNTV4Kc0r0ogokiAgl+gAYBjtrJ6in5kHD54t5n2YJ1Qqht637PpYg==",
+        "requested": "[6.1.9, )",
+        "resolved": "6.1.9",
+        "contentHash": "LQSMQAyUlJDOtHRwT/C1gatv7DK4MrvwwNy3gSwC1ROrSLRmrPVCABv8G/Shn4gImrWlvDjA9t+X080pVx1ciQ==",
         "dependencies": {
           "Autofac": "9.0.0",
-          "DalaMock.Shared": "6.1.2",
+          "DalaMock.Shared": "6.1.9",
           "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
           "Microsoft.Extensions.Configuration": "10.0.1",
           "Microsoft.Extensions.DependencyModel": "10.0.1",
@@ -30,12 +30,12 @@
       },
       "DalaMock.Host": {
         "type": "Direct",
-        "requested": "[6.1.6, )",
-        "resolved": "6.1.6",
-        "contentHash": "2UommI5hwk3X5LxpaO4BpXPMb131iGRBK3wGYilBF8AKmK6Hv/VTuZ/qTqfr2Q4GwoufXQsyFKwZ1fy4fBBgLg==",
+        "requested": "[6.1.9, )",
+        "resolved": "6.1.9",
+        "contentHash": "JiWAKj8NokubRJe2g/jAoTRnEh674NJda8JMRTG68/aKozdBRUGhG3HS+vrUHxMED5+xuVl9y3ZIkhdoAF0blA==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "DalaMock.Shared": "6.1.2",
+          "DalaMock.Shared": "6.1.9",
           "Microsoft.Extensions.Hosting": "10.0.4",
           "Microsoft.Extensions.Hosting.Abstractions": "10.0.4",
           "Microsoft.Extensions.ObjectPool": "10.0.4"
@@ -43,9 +43,9 @@
       },
       "DalaMock.Shared": {
         "type": "Direct",
-        "requested": "[6.1.2, )",
-        "resolved": "6.1.2",
-        "contentHash": "kzxZ0yPUrojRZJACyWCNzR/HSiVsY28w8UA3ll+II5xFT4XPJYmTe1XdVTVirqjyogrn4edjGbFbZD4nhO7u9g==",
+        "requested": "[6.1.9, )",
+        "resolved": "6.1.9",
+        "contentHash": "f0Lg55BD4rmJULjXpDO40JYK+wKeVxItg2+RAPVDBmMnZ1pJzyiI7AX6oV93BEEjk2UteAJ66JSLdC+G7cNZsw==",
         "dependencies": {
           "Autofac": "9.0.0"
         }

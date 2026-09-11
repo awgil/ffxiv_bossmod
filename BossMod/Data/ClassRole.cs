@@ -93,6 +93,7 @@ public static class ClassRole
         Class.ARC or Class.BRD or Class.MCH or Class.DNC => ClassCategory.PhysRanged,
         Class.THM or Class.BLM or Class.ACN or Class.SMN or Class.RDM or Class.PCT => ClassCategory.Caster,
         Class.BLU => allowLimited ? ClassCategory.Limited : ClassCategory.Caster,
+        Class.BST => allowLimited ? ClassCategory.Limited : ClassCategory.Melee,
         _ => ClassCategory.Undefined
     };
 
