@@ -2,15 +2,29 @@
 
 namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P2Heavensfall(BossModule module) : Components.Knockback(module, AID.Heavensfall, true)
+class Heavensfall(BossModule module) : Components.Knockback(module, AID.Heavensfall, true)
 {
     public DateTime Activation;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => [new Source(Module.Center, 11, Activation)];
+}
 
+class P2Heavensfall(BossModule module) : Heavensfall(module)
+{
     public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
     {
         hints.AddForbiddenZone(ShapeDistance.PrecisePosition(new WPos(0, 9), new(0, 1), 0.5f, actor.Position, 0.1f), Activation);
+    }
+}
+
+class P3Heavensfall(BossModule module) : Heavensfall(module)
+{
+    public bool EnableHints;
+
+    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
+    {
+        if (EnableHints)
+            hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(Arena.Center, 8.5f, 10)).Inverted(), Activation);
     }
 }
 

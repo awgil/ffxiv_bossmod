@@ -1,5 +1,22 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
+class P3HeavensfallPreposition(BossModule module) : Components.CastCounter(module, AID.HeavensfallTrio)
+{
+    // heavensfall cast start to dive bait
+    private readonly DateTime _diveAt = module.WorldState.FutureTime(8.5f);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (((UCOB)Module).BahamutPrime() is not { } baha)
+            return;
+
+        if (baha.IsTargetable)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 5), _diveAt.AddSeconds(-1));
+        else
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 1), _diveAt);
+    }
+}
+
 class P3HeavensfallTrio(BossModule module) : BossComponent(module)
 {
     private Actor? _nael;
@@ -8,6 +25,8 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
     private readonly WPos[] _safeSpots = new WPos[PartyState.MaxPartySize];
 
     public bool Active => _nael != null;
+
+    private bool _divesStarted;
 
     private static readonly Angle[] _offsetsNaelCenter = [10.Degrees(), 80.Degrees(), 100.Degrees(), 170.Degrees()];
     private static readonly Angle[] _offsetsNaelSide = [60.Degrees(), 80.Degrees(), 100.Degrees(), 120.Degrees()];
@@ -39,6 +58,18 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_divesStarted)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_safeSpots[slot], 1));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.MegaflareDive)
+            _divesStarted = true;
+    }
+
     private void InitIfReady()
     {
         if (_nael == null || _twin == null || _baha == null)
@@ -67,6 +98,16 @@ class P3HeavensfallTrio(BossModule module) : BossComponent(module)
 
 class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, AID.MegaflareTower, 3)
 {
+    bool _knockbackDone;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.Heavensfall)
+            _knockbackDone = true;
+    }
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         base.OnCastStarted(caster, spell);
@@ -94,6 +135,24 @@ class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, AID
         if (cwDist < -5f) // towers are ~22.5 degrees apart
             cwDist += 360;
         return cwDist;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!EnableHints)
+            return;
+
+        if (_knockbackDone)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+
+        if (Towers.FirstOrNull(t => !t.ForbiddenSoakers[slot]) is { } myTower)
+        {
+            var dir = myTower.Position - Arena.Center;
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(Arena.Center, 30, dir.ToAngle(), 5.Degrees()), myTower.Activation.AddSeconds(-2.5f));
+        }
     }
 }
 

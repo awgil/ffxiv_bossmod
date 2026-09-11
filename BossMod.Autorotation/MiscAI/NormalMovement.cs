@@ -198,14 +198,16 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
         if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID)
         {
-            if (enemy.DesiredRotation is { } rot)
-            {
-                var goal = enemy.Actor.Position + rot.ToDirection() * enemy.Actor.HitboxRadius;
-                Hints.GoalZones.Add(p => p.InRect(enemy.Actor.Position, rot, 100, 0, 1) ? 0.5f : 0);
-            }
-
             if (enemy.CanMove && enemy.DesiredPosition is { } pos)
                 Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, GCD, 0.5f));
+
+            if (enemy.DesiredRotation is { } rot)
+            {
+                var dist = (enemy.Actor.Position - Player.Position).Length();
+                var goal = enemy.Actor.Position + rot.ToDirection() * dist;
+                var sh = ShapeDistance.PrecisePosition(goal, new(0, 1), Hints.PathfindMapBounds.MapResolution, Player.Position, 0.1f);
+                Hints.GoalZones.Add(p => sh(p) > 0 ? 0.5f : 0);
+            }
         }
 
         var speed = World.Client.MoveSpeed;

@@ -100,7 +100,7 @@ class P1LiquidHell : LiquidHell
                 hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 6), NextCast);
 
                 foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 0.5f), DateTime.MaxValue);
+                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1), DateTime.MaxValue);
             }
 
             if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)

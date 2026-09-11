@@ -11,6 +11,8 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
     private bool _divesDone;
     private bool _earthshakersDone;
 
+    public bool PuddleDodgeHint;
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Active)
@@ -55,6 +57,9 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 
         if (Module.FindComponent<P3Twister>() is { Predicted: true } or { Active: true } && _spreadSpots[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_spreadSpots[slot], 1));
+
+        if (PuddleDodgeHint)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 13));
 
         if (_earthshakersDone && actor.InstanceID != ((UCOB)Module).BahamutPrime()?.TargetID)
             hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, (Arena.Center - RelativeNorth).Normalized()), DateTime.MaxValue);

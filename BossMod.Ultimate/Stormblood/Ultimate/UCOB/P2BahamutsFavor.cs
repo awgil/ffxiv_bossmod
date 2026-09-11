@@ -146,6 +146,8 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
             if (FirstSet)
             {
                 var ordered = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
+                if (ordered.Length == 0)
+                    return;
                 var myOrder = Spreads.OrderBy(s => ordered[Raid.FindSlot(s.Target.InstanceID)]).Index().First(s => s.Item.Target == actor).Index;
                 var myDir = myOrder == 0 ? -45.Degrees() : 45.Degrees();
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(((UCOB)Module).Nael()!.Position + myDir.ToDirection() * 5, 1), Spreads[0].Activation);

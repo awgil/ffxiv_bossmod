@@ -543,16 +543,18 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P3MegaflareSpreadStack>() // stack icons appear ~0.1s before puddles start
             .ActivateOnEnter<P3MegaflarePuddle>()
             .ExecOnEnter<P3MegaflarePuddle>(p => p.Risky = false);
-        ComponentCondition<P3MegaflareSpreadStack>(id + 0x51, 1, comp => comp.Spreads.Count == 0, "Spread")
-            .ExecOnExit<P3MegaflarePuddle>(p => p.Risky = true);
+        ComponentCondition<P3MegaflareSpreadStack>(id + 0x51, 1, comp => comp.Spreads.Count == 0, "Spread");
         ActorTargetable(id + 0x52, _module.BahamutPrime, true, 1.2f, "Boss reappears")
+            .ExecOnEnter<P3MegaflarePuddle>(p => p.Risky = true)
+            .ExecOnEnter<P3QuickmarchTrio>(p => p.PuddleDodgeHint = true)
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .ActivateOnEnter<P3EarthShaker>() // icons appear together with boss reappearing
             .ExecOnEnter<P3EarthShaker>(s => s.EnableHints = false) // standard strats have tanks get hit by earthshakers, so hints window will get spammy
             .ActivateOnEnter<P3EarthShakerVoidzone>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P3MegaflarePuddle>(id + 0x53, 0.8f, comp => comp.NumCasts > 0)
-            .DeactivateOnExit<P3MegaflarePuddle>();
+            .DeactivateOnExit<P3MegaflarePuddle>()
+            .ExecOnExit<P3QuickmarchTrio>(p => p.PuddleDodgeHint = false);
         ComponentCondition<P3TempestWing>(id + 0x54, 0.3f, comp => comp.Active)
             .ActivateOnEnter<P3TempestWing>();
         ComponentCondition<P3Twister>(id + 0x55, 0.7f, comp => !comp.Active)
@@ -642,7 +644,8 @@ class UCOBStates : StateMachineBuilder
             .ExecOnEnter<P3AethericProfusion>(comp => comp.Active = true)
             .DeactivateOnExit<P3AethericProfusion>();
         ComponentCondition<P3TempestWing>(id + 0x60, 0.4f, comp => comp.NumCasts > 0, "Tethers")
-            .DeactivateOnExit<P3TempestWing>();
+            .DeactivateOnExit<P3TempestWing>()
+            .DeactivateOnExit<P3DynamoTetherHelper>();
 
         ActorTargetable(id + 0x100, _module.BahamutPrime, true, 2.2f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
@@ -663,7 +666,8 @@ class UCOBStates : StateMachineBuilder
 
     private void P3HeavensfallTrio(uint id, float delay)
     {
-        ActorCast(id, _module.BahamutPrime, AID.HeavensfallTrio, delay, 4, true);
+        ActorCast(id, _module.BahamutPrime, AID.HeavensfallTrio, delay, 4, true)
+            .ActivateOnEnter<P3HeavensfallPreposition>();
         ActorTargetable(id + 0x10, _module.BahamutPrime, false, 2.1f, "Boss disappears (heavensfall trio)")
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P3HeavensfallTrio>(id + 0x20, 1.2f, comp => comp.Active)
@@ -671,26 +675,35 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P3HeavensfallTrio>();
 
         ComponentCondition<P3MegaflareDive>(id + 0x30, 1.2f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<P3MegaflareDive>();
+            .ActivateOnEnter<P3MegaflareDive>()
+            .ActivateOnEnter<P3Twister>()
+            .DeactivateOnExit<P3HeavensfallPreposition>();
         ComponentCondition<P3MegaflareDive>(id + 0x40, 4, comp => comp.NumCasts > 0, "Dives")
             .ActivateOnEnter<P3TwistingDive>()
             .DeactivateOnExit<P3TwistingDive>()
             .DeactivateOnExit<P3MegaflareDive>()
             .DeactivateOnExit<P3HeavensfallTrio>();
-        ComponentCondition<P3Twister>(id + 0x50, 1.3f, comp => comp.Active, "Twisters")
-            .ActivateOnEnter<P3Twister>();
+        ComponentCondition<P3Twister>(id + 0x50, 1.3f, comp => comp.Active, "Twisters");
 
         ComponentCondition<P3HeavensfallTowers>(id + 0x60, 0.7f, comp => comp.Towers.Count > 0)
-            .ActivateOnEnter<P3HeavensfallTowers>();
+            .ActivateOnEnter<P3HeavensfallTowers>()
+            .ExecOnEnter<P3HeavensfallTowers>(p => p.EnableHints = false);
         ComponentCondition<P3MegaflarePuddle>(id + 0x61, 1.0f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P3MegaflarePuddle>()
-            .ActivateOnEnter<P2Heavensfall>();
+            .ActivateOnEnter<P3Heavensfall>()
+            .ExecOnEnter<P3Heavensfall>(p =>
+            {
+                p.Activation = Module.WorldState.FutureTime(4.6f);
+                p.EnableHints = false;
+            })
+            .ExecOnExit<P3Heavensfall>(p => p.EnableHints = true)
+            .ExecOnExit<P3HeavensfallTowers>(p => p.EnableHints = true);
         ComponentCondition<P3MegaflarePuddle>(id + 0x62, 3, comp => comp.NumCasts > 0)
             .DeactivateOnExit<P3MegaflarePuddle>();
-        ComponentCondition<P2Heavensfall>(id + 0x63, 1.6f, comp => comp.NumCasts > 0, "Knockback")
+        ComponentCondition<P3Heavensfall>(id + 0x63, 1.6f, comp => comp.NumCasts > 0, "Knockback")
             .ActivateOnEnter<P2HeavensfallPillar>()
             .DeactivateOnExit<P3Twister>() // twisters disappear ~0.5s before knockback
-            .DeactivateOnExit<P2Heavensfall>();
+            .DeactivateOnExit<P3Heavensfall>();
         ComponentCondition<P3HeavensfallTowers>(id + 0x64, 2.4f, comp => comp.NumCasts > 0, "Towers")
             .DeactivateOnExit<P3HeavensfallTowers>();
 

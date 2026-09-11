@@ -33,7 +33,7 @@ class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new 
     static bool IsSoaker(PartyRolesConfig.Assignment ass) => Service.Config.Get<UCOBConfig>().P1PlummetTargets[(int)ass];
 }
 class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, AID.BahamutsClaw);
-class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBreath, new AOEShapeCone(29.2f, 45.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle
+class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBreath, new AOEShapeCone(29.2f, 46.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle
 class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, AID.MornAfah, 4, 8); // TODO: verify radius
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280, PlanLevel = 70)]
@@ -63,5 +63,12 @@ public class UCOB(WorldState ws, Actor primary) : BossModule(ws, primary, new(0,
         Arena.Actor(Twintania(), ArenaColor.Enemy);
         Arena.Actor(Nael(), ArenaColor.Enemy);
         Arena.Actor(BahamutPrime(), ArenaColor.Enemy);
+    }
+
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.CalculateModuleAIHints(slot, actor, assignment, hints);
+
+        hints.GoalZones.Add(_ => 0.1f);
     }
 }
