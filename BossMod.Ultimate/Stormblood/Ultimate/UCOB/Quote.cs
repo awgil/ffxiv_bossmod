@@ -126,15 +126,24 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
             WPos center;
             Angle north;
 
-            if (((UCOB)Module).Nael() is { IsTargetable: true, Position: var p })
+            var ucob = (UCOB)Module;
+
+            // p2: clock spots around nael
+            if (ucob.Nael() is { IsTargetable: true, Position: var p })
             {
                 center = p;
                 north = 180.Degrees();
             }
-            else
+            // p3 FRT: clock spots around arena center, relative north pointing towards bahamut so tanks naturally get tethers
+            else if (ucob.BahamutPrime() is { } baha)
             {
                 center = Arena.Center;
-                north = (((UCOB)Module).BahamutPrime()!.Position - center).ToAngle();
+                north = (baha.Position - center).ToAngle();
+            }
+            else
+            {
+                ReportError("nael and baha are missing, help!!!");
+                return;
             }
 
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(center + (north.Deg - 45 * off).Degrees().ToDirection() * 5, new(0, 1), 0.5f, actor.Position, 0.1f), Spreads[0].Activation);
@@ -146,6 +155,8 @@ class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(modul
 {
     private readonly Quote? _quote = module.FindComponent<Quote>();
 
+    public bool Fixed;
+
     public override void Update()
     {
         var spreadImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.MeteorStream;
@@ -154,6 +165,37 @@ class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(modul
         else if (!spreadImminent && Spreads.Count > 0)
             Spreads.Clear();
         base.Update();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // fellruin: fixed spread spots, as usual
+        if (Fixed && IsSpreadTarget(actor) && ((UCOB)Module).BahamutPrime() is { } baha && SpreadSpot(baha, assignment) is var spot && spot != default)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(spot, 1), Spreads[0].Activation);
+            return;
+        }
+
+        // p2: normal spread
+        base.AddAIHints(slot, actor, assignment, hints);
+    }
+
+    private WPos SpreadSpot(Actor bahamut, PartyRolesConfig.Assignment assignment)
+    {
+        var relN = (bahamut.Position - Arena.Center).ToAngle();
+
+        return assignment switch
+        {
+            PartyRolesConfig.Assignment.MT => bahamut.Position + (relN + 45.Degrees()).ToDirection() * 5,
+            PartyRolesConfig.Assignment.OT => bahamut.Position + (relN - 45.Degrees()).ToDirection() * 5,
+            PartyRolesConfig.Assignment.M1 => bahamut.Position + (relN - 45.Degrees()).ToDirection() * -5,
+            PartyRolesConfig.Assignment.M2 => bahamut.Position + (relN + 45.Degrees()).ToDirection() * -5,
+            PartyRolesConfig.Assignment.H1 => bahamut.Position + (relN - 45.Degrees()).ToDirection() * -5 + relN.ToDirection() * -8,
+            PartyRolesConfig.Assignment.H2 => bahamut.Position + (relN + 45.Degrees()).ToDirection() * -5 + relN.ToDirection() * -8,
+            PartyRolesConfig.Assignment.R1 => bahamut.Position + (relN - 45.Degrees()).ToDirection() * -12 + relN.ToDirection() * -8,
+            PartyRolesConfig.Assignment.R2 => bahamut.Position + (relN + 45.Degrees()).ToDirection() * -12 + relN.ToDirection() * -8,
+            _ => default,
+        };
     }
 }
 

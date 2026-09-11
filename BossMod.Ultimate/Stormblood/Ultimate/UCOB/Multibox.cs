@@ -42,6 +42,7 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
         }
     }
 
+    /*
     void SetStance(bool enabled)
     {
         var (stance, stanceBuff) = Player.Class switch
@@ -60,4 +61,5 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
         if (enabled != haveStance)
             Hints.ActionsToExecute.Push(stance, Player, ActionQueue.Priority.Medium);
     }
+    */
 }

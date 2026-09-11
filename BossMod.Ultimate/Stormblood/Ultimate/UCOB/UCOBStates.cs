@@ -647,6 +647,7 @@ class UCOBStates : StateMachineBuilder
         ActorTargetable(id + 0x100, _module.BahamutPrime, true, 2.2f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
             .ActivateOnEnter<QuoteMeteorStream>()
+            .ExecOnEnter<QuoteMeteorStream>(m => m.Fixed = true)
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCastStart(id + 0x101, _module.BahamutPrime, AID.Gigaflare, 0.1f, true);
         ComponentCondition<Quote>(id + 0x102, 1.2f, comp => comp.PendingMechanics.Count == 0, "Spread")

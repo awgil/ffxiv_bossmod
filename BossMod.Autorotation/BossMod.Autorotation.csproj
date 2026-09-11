@@ -14,10 +14,22 @@
     <Using Include="Lumina.Extensions" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AnalysisMode>All</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\BossMod\BossMod.csproj">
       <Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+
+    <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+      <PrivateAssets>All</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
 

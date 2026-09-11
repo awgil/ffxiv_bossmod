@@ -40,7 +40,7 @@ class VoidBlizzardIII(BossModule module) : Components.StandardAOEs(module, AID.V
 class AbyssalSwing(BossModule module) : Components.Cleave(module, AID.AbyssalSwing, new AOEShapeCone(6f + 1.5f, 45.Degrees()))
 {
     private readonly List<Actor> _biblioklepts = [];
-    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
+    private new IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
     {
         foreach (var b in _biblioklepts)
         {

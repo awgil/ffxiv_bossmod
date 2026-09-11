@@ -114,6 +114,5 @@ public sealed class ClassSCHUtilityEx(RotationModuleManager manager, Actor playe
             else
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.DeploymentTactics), target, ActionQueue.Priority.High);
         }
-
     }
 }

@@ -2,7 +2,7 @@
 
 class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 4)
 {
-    int _neurolinkCount = 0;
+    int _neurolinkCount;
     readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
 
     public WPos Destination { get; private set; }

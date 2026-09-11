@@ -285,9 +285,16 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
         }
         else
         {
-            // non tanks need to avoid stealing tethers
-            foreach (var side in Tethers.Where(t => t.Player.Role == Role.Tank))
-                hints.AddForbiddenZone(ShapeDistance.Rect(side.Enemy.Position, side.Player.Position, 1), TetherDeadline);
+            foreach (var side in Tethers)
+            {
+                // don't steal from tank
+                if (side.Player.Role == Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.Rect(side.Enemy.Position, side.Player.Position, 1), TetherDeadline);
+
+                // don't move too close to source, or tank will be unable to grab tether
+                if (side.Player == actor)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(side.Enemy.Position, 2));
+            }
 
             if (EnableRaidHints)
             {

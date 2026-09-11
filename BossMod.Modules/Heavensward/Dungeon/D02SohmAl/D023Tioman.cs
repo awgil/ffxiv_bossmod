@@ -38,7 +38,7 @@ public enum IconID : uint
 class AbyssicBuster(BossModule module) : Components.Cleave(module, AID.AbyssicBuster, new AOEShapeCone(25, 45.Degrees()))
 {
     private readonly List<Actor> _boss = [];
-    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
+    private new IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
     {
         foreach (var b in _boss)
         {
