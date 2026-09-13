@@ -5,10 +5,11 @@ public enum OID : uint
     Boss = 0x40BA, // R5.250, x1
     Helper = 0x233C, // R0.500, x?, Helper type
     AethericCharge = 0x40BB, // R1.500-2.200, x?, sphere for Arcane Armaments
+    SpearMarker = 0x40BD, // R0.500, x5, middle-path water spear tether source
+    HammerBeacon = 0x40E0, // R1.000, x?, Hammer Landing jump markers
     DrakeFamiliarLarge = 0x40BF, // R2.700, x?, Cloud to Ground visual (stormy)
     DrakeFamiliar = 0x4135, // R1.000, x?, Cloud to Ground exaflares (stormy)
     AnalaFamiliar = 0x4134, // R1.000, x?, Scalding Waves (fair skies)
-    Unknown = 0x40E0, // R1.000, x?
 }
 
 public enum AID : uint
@@ -22,9 +23,20 @@ public enum AID : uint
     RavagingAxe = 35722, // AethericCharge->self, 2.0s cast, range 14 circle
     RingingQuoits = 35723, // AethericCharge->self, 2.0s cast, range 5-18 donut
 
-    ArcaneArmamentsSpearHammer = 35728, // Boss->self, 5.0s cast, single-target, spawn spears/hammers
+    ArcaneArmamentsSpearHammer = 35728, // Boss->self, 5.0s cast, single-target, left-path spears (Rout) / hammers
     Rout = 35729, // Boss->location, 5.0s cast, range 45 width 16 rect
     RoutRepeat = 35730, // Boss->location, no cast, range 45 width 16 rect
+
+    ArcaneArmamentsHammers = 35724, // Boss->self, 5.0s cast, single-target, spawn hammer beacons
+    HammerLanding = 35725, // Boss->location, 8.0s cast, range 40 circle, knockback
+    HammerLandingRepeat = 35726, // Boss->location, no cast, range 40 circle, knockback
+
+    // Middle path
+    ArcaneArmamentsWaterSpears = 35743, // Boss->self, 8.0s cast, single-target, tether spear markers
+    ElementalImpact = 35744, // Helper->self, 6.5s cast, range 14 circle
+    FlowingLanceCW = 35745, // Helper->self, 8.0s cast, range 24 width 12 cross (turns right / CW)
+    FlowingLanceCCW = 36049, // Helper->self, 8.0s cast, range 24 width 12 cross (turns left / CCW)
+    FlowingLanceRest = 35746, // Helper->self, 1.0s cast, range 24 width 12 cross
 
     VioletStorm = 35733, // Boss->self, 5.5s cast, range 32 120-degree cone
     Howl = 35734, // Boss->self, 4.0s cast, single-target, summon familiars (left path)
@@ -42,10 +54,19 @@ public enum TetherID : uint
 {
     Axe = 256, // Ravaging Axe (circle)
     Quoit = 257, // Ringing Quoits (donut)
+    Hammer = 249, // HammerBeacon->Boss, current hammer target
+    WaterSpear = 258, // SpearMarker->Boss
+}
+
+public enum IconID : uint
+{
+    TurnRight = 235, // Helper->self, Flowing Lance CW (-15 degrees)
+    TurnLeft = 236, // Helper->self, Flowing Lance CCW (+15 degrees)
 }
 
 class MadeMagic(BossModule module) : Components.RaidwideCast(module, AID.MadeMagic);
 class VioletStorm(BossModule module) : Components.StandardAOEs(module, AID.VioletStorm, new AOEShapeCone(32, 60.Degrees()));
+class ElementalImpact(BossModule module) : Components.StandardAOEs(module, AID.ElementalImpact, 14);
 
 class ScaldingWaves(BossModule module) : Components.StandardAOEs(module, AID.ScaldingWaves, new AOEShapeRect(40, 5))
 {
@@ -143,7 +164,7 @@ class ArcaneArmaments(BossModule module) : Components.GenericAOEs(module)
 class Rout(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(WPos From, WPos To, DateTime Activation)> _charges = [];
-    private bool _armed; // from SpearHammer
+    private bool _armed;
 
     public bool Active => _armed || _charges.Count > 0;
 
@@ -180,11 +201,183 @@ class Rout(BossModule module) : Components.GenericAOEs(module)
             return;
 
         ++NumCasts;
-        if (_charges.Count > 0) // resolve in order
+        if (_charges.Count > 0)
             _charges.RemoveAt(0);
         if (_charges.Count == 0)
             _armed = false;
     }
+}
+
+class HammerLanding(BossModule module) : Components.Knockback(module, default, maxCasts: 3)
+{
+    private readonly List<WPos> _landings = [];
+    private DateTime _firstActivation;
+
+    private const float Distance = 20;
+    private const float BeaconMinRadius = 10;
+    private static readonly AOEShapeCircle _shape = new(40);
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        for (var i = NumCasts; i < _landings.Count; ++i)
+            yield return new(_landings[i], Distance, _firstActivation.AddSeconds(2.1f * i), _shape);
+    }
+
+    public override void Update()
+    {
+        if (_firstActivation == default || _landings.Count >= 3)
+            return;
+        TryAddBeacons();
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID != AID.HammerLanding)
+            return;
+
+        _landings.Clear();
+        NumCasts = 0;
+        _firstActivation = Module.CastFinishAt(spell);
+        _landings.Add(spell.LocXZ);
+        TryAddBeacons();
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is not (AID.HammerLanding or AID.HammerLandingRepeat))
+            return;
+
+        ++NumCasts;
+        if (NumCasts >= _landings.Count)
+        {
+            _landings.Clear();
+            _firstActivation = default;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_firstActivation == default || NumCasts >= _landings.Count)
+            return;
+
+        var origin = _landings[NumCasts];
+        var activation = _firstActivation.AddSeconds(2.1f * NumCasts);
+        if (IsImmune(slot, activation))
+            return;
+
+        WDir dir;
+        if (NumCasts + 1 < _landings.Count)
+        {
+            dir = _landings[NumCasts + 1] - origin;
+        }
+        else if (_landings.Count >= 3)
+        {
+            dir = Module.Center - origin;
+        }
+        else
+        {
+            // stay close to origin until next beacon is known
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(origin, 0.5f), activation);
+            return;
+        }
+
+        if (dir.LengthSq() < 0.01f)
+            return;
+
+        var aim = dir.Normalized();
+        hints.AddForbiddenZone(ShapeDistance.InvertedRect(origin, aim, 4, 0, 0.4f), activation);
+        hints.GoalZones.Add(AIHints.GoalProximity(origin + aim * 2, 1.5f, 80));
+    }
+
+    private void TryAddBeacons()
+    {
+        foreach (var b in Module.Enemies(OID.HammerBeacon))
+        {
+            if ((b.Position - Module.Center).LengthSq() < BeaconMinRadius * BeaconMinRadius)
+                continue;
+            if (_landings.Any(l => l.AlmostEqual(b.Position, 1)))
+                continue;
+            _landings.Add(b.Position);
+        }
+    }
+}
+
+class FlowingLance(BossModule module) : Components.GenericAOEs(module)
+{
+    private class Lance(WPos origin, Angle baseRot, Angle increment, DateTime firstActivation)
+    {
+        public WPos Origin = origin;
+        public Angle BaseRot = baseRot;
+        public Angle Increment = increment;
+        public DateTime FirstActivation = firstActivation;
+        public int NumFinished;
+        public DateTime? ImminentOverride;
+    }
+
+    private readonly List<Lance> _lances = [];
+    private static readonly AOEShapeCross _shape = new(24, 6);
+    private const int TotalCasts = 7;
+    private const int MaxShown = 2;
+    private const float Step = 2.1f;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var l in _lances)
+        {
+            var remaining = TotalCasts - l.NumFinished;
+            if (remaining <= 0)
+                continue;
+
+            var show = Math.Min(MaxShown, remaining);
+            for (var i = 0; i < show; ++i)
+            {
+                var idx = l.NumFinished + i;
+                var rot = l.BaseRot + idx * l.Increment;
+                var time = i == 0 && l.ImminentOverride is { } im ? im : l.FirstActivation.AddSeconds(Step * idx);
+                yield return new(_shape, l.Origin, rot, time, i == 0 ? ArenaColor.Danger : ArenaColor.AOE);
+            }
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.FlowingLanceCW:
+                _lances.Add(new(caster.Position, spell.Rotation, -15.Degrees(), Module.CastFinishAt(spell)));
+                break;
+            case AID.FlowingLanceCCW:
+                _lances.Add(new(caster.Position, spell.Rotation, 15.Degrees(), Module.CastFinishAt(spell)));
+                break;
+            case AID.FlowingLanceRest:
+                if (FindLance(caster.Position, spell.LocXZ) is { } l)
+                {
+                    l.BaseRot = spell.Rotation - l.NumFinished * l.Increment;
+                    l.ImminentOverride = Module.CastFinishAt(spell);
+                }
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is not (AID.FlowingLanceCW or AID.FlowingLanceCCW or AID.FlowingLanceRest))
+            return;
+
+        if (FindLance(caster.Position, spell.TargetXZ) is not { } l)
+        {
+            ReportError($"Failed to find FlowingLance near {caster.Position}");
+            return;
+        }
+
+        ++l.NumFinished;
+        ++NumCasts;
+        l.ImminentOverride = null;
+        if (l.NumFinished >= TotalCasts)
+            _lances.Remove(l);
+    }
+
+    private Lance? FindLance(WPos casterPos, WPos locXZ) => _lances.FirstOrDefault(l => l.Origin.AlmostEqual(casterPos, 1)) ?? _lances.FirstOrDefault(l => l.Origin.AlmostEqual(locXZ, 1));
 }
 
 class CloudToGround(BossModule module) : Components.Exaflare(module, 6, AID.CloudToGroundFirst)
@@ -194,7 +387,7 @@ class CloudToGround(BossModule module) : Components.Exaflare(module, 6, AID.Clou
         if (spell.Action == WatchedAction)
         {
             var advance = 6 * spell.Rotation.ToDirection();
-            var max = Math.Clamp((int)(Module.Bounds.Radius * 2 / 6) + 1, 1, 8); // limit to arena bounds
+            var max = Math.Clamp((int)(Module.Bounds.Radius * 2 / 6) + 1, 1, 8);
             Lines.Add(new()
             {
                 Next = caster.Position,
@@ -254,6 +447,9 @@ class V011QuaquaStates : StateMachineBuilder
             .ActivateOnEnter<MadeMagic>()
             .ActivateOnEnter<ArcaneArmaments>()
             .ActivateOnEnter<Rout>()
+            .ActivateOnEnter<HammerLanding>()
+            .ActivateOnEnter<ElementalImpact>()
+            .ActivateOnEnter<FlowingLance>()
             .ActivateOnEnter<VioletStorm>()
             .ActivateOnEnter<ScaldingWaves>()
             .ActivateOnEnter<CloudToGround>();
@@ -261,4 +457,4 @@ class V011QuaquaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12527)]
-public class V011Quaqua(WorldState ws, Actor primary) : BossModule(ws, primary, new(-538, 94), new ArenaBoundsCircle(19.5f));
+public class V011Quaqua(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z), new ArenaBoundsCircle(20f));
