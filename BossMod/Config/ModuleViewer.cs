@@ -1,4 +1,4 @@
-﻿using BossMod.Autorotation;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -76,6 +76,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.Variant, contentType.GetRow(30), "Variant Dungeons");
         Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30), "Criterion Dungeons");
         Customize(BossModuleInfo.Category.HallOfTheNovice, contentType.GetRow(20), "Hall of the Novice");
+        Customize(BossModuleInfo.Category.CrucibleOfTheUnbroken, contentType.GetRow(40), "Crucible of the Unbroken");
 
         var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
@@ -414,6 +415,12 @@ public sealed class ModuleViewer : IDisposable
                 var mcSort = uint.Parse(mcRow.ShortCode.ToString().AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
                 var mcName = $"Stage {mcSort}: {FixCase(mcRow.Name)}";
                 return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
+            case BossModuleInfo.GroupType.CrucibleOfTheUnbroken:
+                groupId |= module.GroupID;
+                var cruRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
+                var cruSort = uint.Parse(cruRow.ShortCode.ToString().AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
+                var cruName = $"{FixCase(cruRow.Name)}";
+                return (new(cruName, groupId, cruSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
                 return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
@@ -523,5 +530,6 @@ public sealed class ModuleViewer : IDisposable
         Class.SGE,
         Class.VPR,
         Class.PCT,
+        Class.BST,
     ];
 }

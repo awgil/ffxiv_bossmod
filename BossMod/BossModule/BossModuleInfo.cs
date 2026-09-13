@@ -1,4 +1,4 @@
-﻿namespace BossMod;
+namespace BossMod;
 
 public static class BossModuleInfo
 {
@@ -37,6 +37,7 @@ public static class BossModuleInfo
         TreasureHunt,
         PVP,
         MaskedCarnivale,
+        CrucibleOfTheUnbroken,
         GoldSaucer,
         HallOfTheNovice,
         Quantum,
@@ -49,6 +50,7 @@ public static class BossModuleInfo
         None,
         CFC, // group id is ContentFinderCondition row
         MaskedCarnivale, // group id is ContentFinderCondition row
+        CrucibleOfTheUnbroken, // group id is ContentFinderCondition row
         RemovedUnreal, // group id is ContentFinderCondition row
         Quest, // group id is Quest row
         Fate, // group id is Fate row
