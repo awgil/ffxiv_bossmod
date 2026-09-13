@@ -147,6 +147,8 @@ class P2BahamutsFavorChainLightning : Components.UniformStackSpread
         if (IsSpreadTarget(actor))
         {
             hints.GoalZonesEnabled = false;
+            // don't you dare use a gap closer
+            hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
 
             if (FirstSet)
             {

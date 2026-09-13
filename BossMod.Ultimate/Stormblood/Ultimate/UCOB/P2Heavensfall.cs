@@ -48,14 +48,9 @@ class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
 
 class P2ThermionicBurst(BossModule module) : Components.StandardAOEs(module, AID.ThermionicBurst, new AOEShapeCone(24.5f, 11.25f.Degrees()));
 
-class P2MeteorStream : Components.UniformStackSpread
+class MeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
 {
     public int NumCasts;
-
-    public P2MeteorStream(BossModule module) : base(module, 0, 4, alwaysShowSpreads: true)
-    {
-        AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(5.6f));
-    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -69,6 +64,14 @@ class P2MeteorStream : Components.UniformStackSpread
                 for (var i = 0; i < 4; i++)
                     Spreads.Ref(i).Activation = WorldState.FutureTime(3.1f);
         }
+    }
+}
+
+class P2MeteorStream : MeteorStream
+{
+    public P2MeteorStream(BossModule module) : base(module)
+    {
+        AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(5.6f));
     }
 
     public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)

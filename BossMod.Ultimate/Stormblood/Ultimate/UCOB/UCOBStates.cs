@@ -741,20 +741,21 @@ class UCOBStates : StateMachineBuilder
 
         ComponentCondition<Hatch>(id + 0x20, 2.2f, comp => comp.NumTargetsAssigned > 0)
             .ExecOnEnter<Hatch>(comp => comp.Reset())
-            .ActivateOnEnter<P2MeteorStream>();
+            .ActivateOnEnter<P3TenstrikeMeteorStream>()
+            .ExecOnExit<P3TenstrikeMeteorStream>(p => p.HatchAssigned = true);
         ActorCast(id + 0x30, _module.Twintania, AID.Generate, 0.1f, 3, true, "Hatch 1");
-        ComponentCondition<P2MeteorStream>(id + 0x40, 0.9f, comp => comp.NumCasts > 0);
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x40, 0.9f, comp => comp.NumCasts > 0);
         ComponentCondition<Hatch>(id + 0x41, 0.1f, comp => comp.NumTargetsAssigned > 3);
         ActorCastStart(id + 0x50, _module.Twintania, AID.Generate, 0.1f, true);
-        ComponentCondition<P2MeteorStream>(id + 0x51, 0.8f, comp => comp.NumCasts > 1);
-        ComponentCondition<P2MeteorStream>(id + 0x52, 1.0f, comp => comp.NumCasts > 2); // first set of hatches explode around this point
-        ComponentCondition<P2MeteorStream>(id + 0x53, 1.0f, comp => comp.NumCasts > 3);
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x51, 0.8f, comp => comp.NumCasts > 1);
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x52, 1.0f, comp => comp.NumCasts > 2); // first set of hatches explode around this point
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x53, 1.0f, comp => comp.NumCasts > 3);
         ActorCastEnd(id + 0x54, _module.Twintania, 0.2f, true, "Hatch 2");
-        ComponentCondition<P2MeteorStream>(id + 0x55, 0.8f, comp => comp.NumCasts > 4);
-        ComponentCondition<P2MeteorStream>(id + 0x56, 1.0f, comp => comp.NumCasts > 5);
-        ComponentCondition<P2MeteorStream>(id + 0x57, 1.0f, comp => comp.NumCasts > 6); // second set of hatches explode around this point
-        ComponentCondition<P2MeteorStream>(id + 0x58, 1.0f, comp => comp.NumCasts > 7)
-            .DeactivateOnExit<P2MeteorStream>();
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x55, 0.8f, comp => comp.NumCasts > 4);
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x56, 1.0f, comp => comp.NumCasts > 5);
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x57, 1.0f, comp => comp.NumCasts > 6); // second set of hatches explode around this point
+        ComponentCondition<P3TenstrikeMeteorStream>(id + 0x58, 1.0f, comp => comp.NumCasts > 7)
+            .DeactivateOnExit<P3TenstrikeMeteorStream>();
 
         ComponentCondition<P3EarthShaker>(id + 0x100, 0.9f, comp => comp.CurrentBaits.Count > 0)
             .ActivateOnEnter<P3EarthShaker>();

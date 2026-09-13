@@ -59,7 +59,7 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_spreadSpots[slot], 1));
 
         if (PuddleDodgeHint)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 13));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 10));
 
         if (_earthshakersDone && actor.InstanceID != ((UCOB)Module).BahamutPrime()?.TargetID)
             hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, (Arena.Center - RelativeNorth).Normalized()), DateTime.MaxValue);

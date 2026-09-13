@@ -22,13 +22,7 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
         {
             if (!(Player.FindStatus(48, DateTime.MaxValue)?.ExpireAt > World.FutureTime(600)))
             {
-                var food = Player.Role switch
-                {
-                    Role.Healer => ActionDefinitions.IDFruitcake,
-                    Role.Tank => ActionDefinitions.IDClamCake,
-                    _ => ActionDefinitions.IDPopcorn
-                };
-                Hints.ActionsToExecute.Push(food, Player, ActionQueue.Priority.High);
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPopcorn, Player, ActionQueue.Priority.High);
             }
 
             if (primaryTarget != null)

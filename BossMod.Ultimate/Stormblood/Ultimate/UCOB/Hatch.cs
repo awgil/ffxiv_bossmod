@@ -8,7 +8,17 @@ class Hatch : Components.CastCounter
     private readonly List<(Actor orb, DateTime moveStart)> _orbs = [];
     private readonly List<Actor> _neurolinks = [];
     private BitMask _targets;
+    private BitMask _tenstrikeUntargeted;
     private readonly Actor?[] _assignedLinks = new Actor?[PartyState.MaxPartySize];
+    private readonly List<InterceptState> _intercepts = [];
+
+    class InterceptState(int first, int second)
+    {
+        public int First = first;
+        public int Second = second;
+        public Actor? Link = null;
+        public int NumHits = 0;
+    }
 
     public const float Radius = 8;
 
@@ -31,6 +41,8 @@ class Hatch : Components.CastCounter
     {
         if (!Active)
             return;
+
+        hints.Add($"Targets: {string.Join(", ", Raid.WithSlot().IncludedInMask(_targets).Select(a => a.Item2.Name))}", false);
 
         var inNeurolink = _neurolinks.InRadius(actor.Position, 2).Any();
         if (_targets[slot])
@@ -79,18 +91,33 @@ class Hatch : Components.CastCounter
 
             var leewaySeconds = 10f;
 
+            Actor? closestOrb = null;
+
             if (_orbs.Count > 0)
             {
                 var waitMove = MathF.Max(0, (float)(_orbs[0].moveStart - WorldState.CurrentTime).TotalSeconds);
-                leewaySeconds = waitMove + _orbs.Min(o => actor.DistanceToHitbox(o.orb)) / 5f;
+                (closestOrb, var dist) = _orbs.Select(o => (o.orb, actor.DistanceToHitbox(o.orb))).MinBy(o => o.Item2);
+                leewaySeconds = waitMove + dist / 5f;
             }
 
             hints.GoalZones.Add(AIHints.GoalSingleTarget(myLink.Position, 5, 0.5f));
+
+            if (closestOrb is { LastFrameMovement: var m } && m != default)
+            {
+                var src = closestOrb.Position;
+                var dir = m.Normalized();
+                hints.GoalZones.Add(p => p.InRect(src, dir * 1000, 1) ? 1 : 0);
+            }
 
             if (Twister)
                 hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.DonutSector(myLink.Position, 3, 5, Module.PrimaryActor.AngleTo(myLink), 90.Degrees())).Inverted(), WorldState.FutureTime(leewaySeconds));
             else
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
+        }
+        else if (_tenstrikeUntargeted[slot])
+        {
+            // non participating players should gtfo to give allies space to preposition
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 19));
         }
         else
         {
@@ -113,11 +140,28 @@ class Hatch : Components.CastCounter
                     var (closest, moveStart) = _orbs.MinBy(o => (o.orb.Position - tar.Position).LengthSq());
                     var waitMove = MathF.Max(0, (float)(moveStart - WorldState.CurrentTime).TotalSeconds);
                     var toOrb = (closest.Position - tar.Position).Normalized();
-                    hints.AddForbiddenZone(ShapeDistance.Circle(tar.Position + toOrb, Radius), WorldState.FutureTime(waitMove + tar.DistanceToHitbox(closest) / 5f));
+                    // radius = 8 tested extensively to work fine in P1, but first baiters get clipped by it in P3...i don't know
+                    hints.AddForbiddenZone(ShapeDistance.Circle(tar.Position + toOrb, Radius + 1), WorldState.FutureTime(waitMove + tar.DistanceToHitbox(closest) / 5f));
                 }
             }
 
             hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
+        }
+
+        if (_intercepts.FirstOrDefault(i => i.NumHits == 1 && i.First == slot) is { Link: { } li })
+        {
+            var linkDir = (li.Position - Arena.Center).Normalized();
+
+            // first hatch player should dodge directly backwards to wall
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center + linkDir * 15, Arena.Center + linkDir * 22, 1));
+        }
+
+        if (_intercepts.FirstOrDefault(i => i.NumHits == 0 && i.Second == slot) is { Link: { } link })
+        {
+            var linkPos = link.Position;
+            var linkDir = (linkPos - Arena.Center).Normalized();
+            var adj = linkDir.OrthoR();
+            hints.GoalZones.Add(p => p.InRect(linkPos, adj * 100, 2) ? 10 : 0);
         }
     }
 
@@ -166,9 +210,16 @@ class Hatch : Components.CastCounter
 
     void AssignLinks()
     {
-        Array.Fill(_assignedLinks, null);
+        if (_targets.NumSetBits() == 3)
+            AssignTenstrike();
+        else
+            AssignP1();
+    }
 
-        // can't use proximity for assignment because positions are different between clients (if player is moving)
+    // can't use proximity for assignment during p1 because players are moving
+    void AssignP1()
+    {
+        Array.Fill(_assignedLinks, null);
         List<Actor> linksAvailable = [.. _neurolinks];
         linksAvailable.SortBy(l => l.InstanceID);
 
@@ -179,6 +230,34 @@ class Hatch : Components.CastCounter
         }
     }
 
+    void AssignTenstrike()
+    {
+        if (_tenstrikeUntargeted.Any())
+            return;
+
+        Array.Fill(_assignedLinks, null);
+
+        List<(int slot, Actor player)> set1 = [];
+        List<(int slot, Actor player)> set2 = [];
+
+        foreach (var (slot, player) in Raid.WithSlot())
+        {
+            (_targets[slot] ? set1 : set2).Add((slot, player));
+        }
+
+        foreach (var link in _neurolinks)
+        {
+            var closest = set1.MinBy(p => p.player.DistanceToPoint(link.Position));
+            set1.Remove(closest);
+            var closestFriend = set2.MinBy(p => p.player.DistanceToPoint(link.Position));
+            set2.Remove(closestFriend);
+            _assignedLinks[closest.slot] = _assignedLinks[closestFriend.slot] = link;
+            _intercepts.Add(new(closest.slot, closestFriend.slot) { Link = link });
+        }
+
+        _tenstrikeUntargeted = set2.Mask();
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
@@ -186,7 +265,22 @@ class Hatch : Components.CastCounter
             ++NumCasts;
             _orbs.RemoveAll(o => o.orb == caster);
             foreach (var t in spell.Targets)
-                _targets.Clear(Raid.FindSlot(t.ID));
+            {
+                if (Raid.TryFindSlot(t.ID, out var slot))
+                {
+                    _targets.Clear(slot);
+                    for (var i = 0; i < _intercepts.Count; i++)
+                    {
+                        if (_intercepts[i].First == slot)
+                        {
+                            _intercepts[i].NumHits++;
+                            _targets.Set(_intercepts[i].Second);
+                        }
+                        else if (_intercepts[i].Second == slot)
+                            _intercepts[i].NumHits++;
+                    }
+                }
+            }
         }
     }
 

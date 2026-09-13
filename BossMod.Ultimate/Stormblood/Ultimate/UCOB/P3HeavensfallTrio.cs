@@ -233,7 +233,7 @@ class P3ThermionicBurst(BossModule module) : P2ThermionicBurst(module)
         var numAoes = 0;
         foreach (var aoe in ActiveAOEs(slot, actor))
         {
-            if (aoe.Activation > WorldState.CurrentTime)
+            if (aoe.Activation > WorldState.CurrentTime || NumCasts < 2)
             {
                 hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
                 if (++numAoes >= 2)
