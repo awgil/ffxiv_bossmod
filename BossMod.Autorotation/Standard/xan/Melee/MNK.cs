@@ -138,6 +138,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         ForceOpo,
         [Option("Use 3 GCDs before next RoF window, regardless of current form", MinLevel = 50)]
         ForceMinus3,
+        [Option("Use ASAP unless under the effect of Form Shift")]
+        ForceNoShift,
         [Option("Use ASAP", MinLevel = 50)]
         Force,
         [Option("Do not use", MinLevel = 50)]
@@ -726,7 +728,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         // forced usage
-        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null)
+        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null || pbstrat == PBStrategy.ForceNoShift && FormShiftLeft == 0)
         {
             use();
             return;

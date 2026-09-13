@@ -473,7 +473,7 @@ public sealed class AIHints
 
         // try to stay within pull range
         if (dirToGoal.LengthSq() <= leewaySq)
-            return GoalSingleTarget(target.Position, adjRange, 0.5f);
+            return GoalSingleTarget(target.Position, adjRange, 0.1f);
 
         var distance = distToGoal;
         if (gcd < 0.5f)
@@ -483,6 +483,6 @@ public sealed class AIHints
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
-        return p => sh(p) > 0 ? 10 : 0;
+        return p => sh(p) >= 0 ? 10 : 0;
     }
 }

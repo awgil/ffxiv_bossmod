@@ -46,7 +46,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(CurrentBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
             }
             else
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-2));
         }
         else if (bo == 0)
         {
@@ -162,4 +162,4 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P2Hypernova(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Hypernova, OID.VoidzoneHypernova, 1.4f, activationDelay: 2.1f);
+class P2Hypernova(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Hypernova, OID.VoidzoneHypernova, 1.4f, activationDelay: 2);

@@ -6,7 +6,7 @@ namespace BossMod;
 
 public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float cushionSize)
 {
-    private readonly MapVisualizer?[] _zoneVisualizers = new MapVisualizer?[hints.ForbiddenZones.Count];
+    private readonly MapVisualizer?[] _zoneVisualizers = new MapVisualizer?[hints.ForbiddenZones.Count + hints.GoalZones.Count];
     private MapVisualizer? _pathfindVisualizer;
     private readonly NavigationDecision.Context _naviCtx = new();
     private NavigationDecision _navi;
@@ -33,8 +33,18 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
             {
                 foreach (var _2 in tree.Node($"[{i}] activated at {Math.Max(0, (hints.ForbiddenZones[i].activation - ws.CurrentTime).TotalSeconds):f3}"))
                 {
-                    _zoneVisualizers[i] ??= BuildZoneVisualizer(hints.ForbiddenZones[i].shape);
-                    _zoneVisualizers[i]!.Draw();
+                    (_zoneVisualizers[i] ??= BuildZoneVisualizer(hints.ForbiddenZones[i].shape)).Draw();
+                }
+            }
+        }
+        var off = hints.ForbiddenZones.Count;
+        foreach (var _1 in tree.Node("Goal zones", hints.GoalZones.Count == 0))
+        {
+            for (var i = 0; i < hints.GoalZones.Count; i++)
+            {
+                foreach (var _2 in tree.Node($"[{i}]"))
+                {
+                    (_zoneVisualizers[i + off] ??= BuildGoalVisualizer(hints.GoalZones[i])).Draw();
                 }
             }
         }
@@ -78,6 +88,14 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         var dScratch = new bool[(map.Width + 1) * (map.Height + 1)];
         NavigationDecision.RasterizeForbiddenZone(map, shape, 0, ref gScratch, ref dScratch, 0);
         return new MapVisualizer(map, player.Position, gScratch);
+    }
+
+    private MapVisualizer BuildGoalVisualizer(Func<WPos, float> shape)
+    {
+        var map = new Map();
+        hints.InitPathfindMap(map);
+        NavigationDecision.RasterizeGoalZones(map, [shape], false);
+        return new MapVisualizer(map, player.Position);
     }
 
     private MapVisualizer BuildPathfindingVisualizer()

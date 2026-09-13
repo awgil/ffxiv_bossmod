@@ -36,8 +36,12 @@ public sealed class ClassSCHUtilityEx(RotationModuleManager manager, Actor playe
         return new RotationModuleDefinition("Utility: SCH (extra)", "Extra stuff for SCH", "Utility for planner", "xan", RotationModuleQuality.Ok, BitMask.Build(Class.SCH), 100).WithStrategies<Strategy>();
     }
 
+    bool HaveSwift;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        HaveSwift = Player.FindStatus(ClassShared.SID.Swiftcast)?.ExpireAt > World.FutureTime(GCD);
+
         Shield(strategy, ref primaryTarget);
         Spreadlo(strategy, ref primaryTarget);
     }
@@ -60,12 +64,12 @@ public sealed class ClassSCHUtilityEx(RotationModuleManager manager, Actor playe
         if (shieldPlayers.InRadius(Player.Position, 20).Count() > 1)
         {
             var shield = ActionUnlocked(SCH.AID.Concitation) ? SCH.AID.Concitation : SCH.AID.Succor;
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(shield), Player, strategy.Shield.Priority(), castTime: 2);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(shield), Player, strategy.Shield.Priority(), castTime: HaveSwift ? 0 : 2);
             return;
         }
 
         foreach (var p in shieldPlayers)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Adloquium), p, strategy.Shield.Priority(), castTime: 2);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Adloquium), p, strategy.Shield.Priority(), castTime: HaveSwift ? 0 : 2);
     }
 
     void Spreadlo(in Strategy strategy, ref Actor? primaryTarget)
@@ -110,7 +114,7 @@ public sealed class ClassSCHUtilityEx(RotationModuleManager manager, Actor playe
         if (canShield)
         {
             if (target.FindStatus(SCH.SID.Galvanize, DateTime.MaxValue) == null)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Adloquium), target, strategy.Spreadlo.Priority());
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.Adloquium), target, strategy.Spreadlo.Priority(), castTime: HaveSwift ? 0 : 2);
             else
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(SCH.AID.DeploymentTactics), target, ActionQueue.Priority.High);
         }

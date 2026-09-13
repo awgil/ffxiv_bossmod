@@ -78,9 +78,9 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
         if (Stacks.Count == 0)
             return;
 
-        var baiter = Module.FindComponent<P1LiquidHell>()?.Baiter;
+        var baiters = Module.FindComponent<P1LiquidHell>()?.Baiters;
 
-        if (EnableHints || baiter != null && baiter != actor)
+        if (EnableHints || baiters.HasValue && !baiters.Value[slot])
         {
             var stack = Stacks[0];
 

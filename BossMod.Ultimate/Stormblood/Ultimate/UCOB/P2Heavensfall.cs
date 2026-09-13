@@ -17,17 +17,6 @@ class P2Heavensfall(BossModule module) : Heavensfall(module)
     }
 }
 
-class P3Heavensfall(BossModule module) : Heavensfall(module)
-{
-    public bool EnableHints;
-
-    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
-    {
-        if (EnableHints)
-            hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(Arena.Center, 8.5f, 10)).Inverted(), Activation);
-    }
-}
-
 class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
 {
     private AOEInstance? _aoe;

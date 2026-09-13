@@ -26,7 +26,7 @@ class P1LiquidHell : LiquidHell
     BaitMode Mode;
     DateTime NextCast;
 
-    public Actor? Baiter { get; private set; }
+    public BitMask Baiters;
 
     public void Reset(float delay, BaitMode mode)
     {
@@ -43,15 +43,15 @@ class P1LiquidHell : LiquidHell
         {
             NextCast = WorldState.FutureTime(1.2f);
 
-            if (Mode == BaitMode.Random && (Baiter == null || Baiter.IsDead))
-                Baiter = Raid.WithoutSlot().Closest(spell.TargetXZ);
+            if (Mode == BaitMode.Random && !Baiters.Any())
+                Baiters |= Raid.WithSlot().InRadius(spell.TargetXZ, 1).Mask();
         }
 
         if (NumCasts >= 5)
         {
             NextCast = default;
             Mode = BaitMode.None;
-            Baiter = null;
+            Baiters.Reset();
         }
     }
 
@@ -96,14 +96,9 @@ class P1LiquidHell : LiquidHell
         if (Mode == BaitMode.Random)
         {
             if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.MT))
-            {
                 hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 6), NextCast);
 
-                foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1), DateTime.MaxValue);
-            }
-
-            if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
+            if (Baiters[slot] && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
             {
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 11), NextCast.AddSeconds(1.2f * (4 - NumCasts)));
                 hints.AddForbiddenZone(ShapeDistance.Circle(dest, 7), NextCast);
@@ -111,13 +106,13 @@ class P1LiquidHell : LiquidHell
         }
     }
 
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => player == Baiter ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Baiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 
     public override void Update()
     {
         base.Update();
 
         if (Mode == BaitMode.Proximity)
-            Baiter = Raid.WithoutSlot().Farthest(Module.PrimaryActor.Position);
+            Baiters = BitMask.Build(Raid.WithSlot().Farthest(Module.PrimaryActor.Position).Item1);
     }
 }

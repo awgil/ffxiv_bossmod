@@ -78,6 +78,17 @@ class QuoteIronChariotLunarDynamo(BossModule module) : Components.GenericAOEs(mo
         if (shape != null && _quote?.Source != null)
             yield return new(shape, _quote.Source.Position, default, _quote.NextActivation);
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var shape in ActiveAOEs(slot, actor))
+        {
+            if (shape.Shape is AOEShapeDonut d)
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(shape.Origin, d.InnerRadius), shape.Activation);
+            else
+                hints.AddForbiddenZone(shape.Distance, shape.Activation);
+        }
+    }
 }
 
 class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(module, 4, 0, 8)

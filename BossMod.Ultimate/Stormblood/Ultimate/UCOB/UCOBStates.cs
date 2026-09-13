@@ -661,7 +661,8 @@ class UCOBStates : StateMachineBuilder
 
         P3FlareBreath(id + 0x1000, 5.4f);
         P3Flatten(id + 0x2000, 5.2f);
-        P3FlareBreath(id + 0x3000, 5.2f);
+        P3FlareBreath(id + 0x3000, 5.2f)
+            .ExecOnExit<P3BahamutPositioning>(p => p.Reset());
     }
 
     private void P3HeavensfallTrio(uint id, float delay)
@@ -681,8 +682,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3MegaflareDive>(id + 0x40, 4, comp => comp.NumCasts > 0, "Dives")
             .ActivateOnEnter<P3TwistingDive>()
             .DeactivateOnExit<P3TwistingDive>()
-            .DeactivateOnExit<P3MegaflareDive>()
-            .DeactivateOnExit<P3HeavensfallTrio>();
+            .DeactivateOnExit<P3MegaflareDive>();
         ComponentCondition<P3Twister>(id + 0x50, 1.3f, comp => comp.Active, "Twisters");
 
         ComponentCondition<P3HeavensfallTowers>(id + 0x60, 0.7f, comp => comp.Towers.Count > 0)
@@ -691,12 +691,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3MegaflarePuddle>(id + 0x61, 1.0f, comp => comp.Casters.Count > 0)
             .ActivateOnEnter<P3MegaflarePuddle>()
             .ActivateOnEnter<P3Heavensfall>()
-            .ExecOnEnter<P3Heavensfall>(p =>
-            {
-                p.Activation = Module.WorldState.FutureTime(4.6f);
-                p.EnableHints = false;
-            })
-            .ExecOnExit<P3Heavensfall>(p => p.EnableHints = true)
+            .ExecOnEnter<P3Heavensfall>(p => p.Activation = Module.WorldState.FutureTime(4.6f))
             .ExecOnExit<P3HeavensfallTowers>(p => p.EnableHints = true);
         ComponentCondition<P3MegaflarePuddle>(id + 0x62, 3, comp => comp.NumCasts > 0)
             .DeactivateOnExit<P3MegaflarePuddle>();
@@ -705,21 +700,21 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P3Twister>() // twisters disappear ~0.5s before knockback
             .DeactivateOnExit<P3Heavensfall>();
         ComponentCondition<P3HeavensfallTowers>(id + 0x64, 2.4f, comp => comp.NumCasts > 0, "Towers")
+            .ActivateOnEnter<P3ThermionicBurst>() // we use the tower cast event to assign each player a starting position for their dodges
             .DeactivateOnExit<P3HeavensfallTowers>();
 
-        ComponentCondition<P2ThermionicBurst>(id + 0x100, 1.6f, comp => comp.Casters.Count > 0)
-            .ActivateOnEnter<P2ThermionicBurst>();
+        ComponentCondition<P3ThermionicBurst>(id + 0x100, 1.6f, comp => comp.Casters.Count > 0);
         // +2.0s: second pair, then every 0.5s
 
-        ComponentCondition<P2Hypernova>(id + 0x110, 1.6f, comp => comp.NumCasts > 0)
-            .ActivateOnEnter<P2Hypernova>();
-        ComponentCondition<P2ThermionicBurst>(id + 0x120, 1.4f, comp => comp.NumCasts > 0, "Pizza start");
-        ComponentCondition<P2Hypernova>(id + 0x130, 0.2f, comp => comp.NumCasts > 1);
-        ComponentCondition<P2Hypernova>(id + 0x140, 1.6f, comp => comp.NumCasts > 2);
-        ComponentCondition<P3HeavensfallFireball>(id + 0x150, 0.9f, comp => comp.Active)
+        ComponentCondition<P3HeavensfallHypernova>(id + 0x110, 1.6f, comp => comp.NumCasts > 0)
+            .ActivateOnEnter<P3HeavensfallHypernova>()
             .ActivateOnEnter<P3HeavensfallFireball>();
-        ComponentCondition<P2ThermionicBurst>(id + 0x160, 2.5f, comp => comp.Casters.Count == 0, "Pizza end")
-            .DeactivateOnExit<P2ThermionicBurst>();
+        ComponentCondition<P3ThermionicBurst>(id + 0x120, 1.4f, comp => comp.NumCasts > 0, "Pizza start");
+        ComponentCondition<P3HeavensfallHypernova>(id + 0x130, 0.2f, comp => comp.NumCasts > 1);
+        ComponentCondition<P3HeavensfallHypernova>(id + 0x140, 1.6f, comp => comp.NumCasts > 2);
+        ComponentCondition<P3HeavensfallFireball>(id + 0x150, 0.9f, comp => comp.Active);
+        ComponentCondition<P3ThermionicBurst>(id + 0x160, 2.5f, comp => comp.Casters.Count == 0, "Pizza end")
+            .DeactivateOnExit<P3ThermionicBurst>();
 
         ActorTargetable(id + 0x170, _module.BahamutPrime, true, 1.4f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
@@ -729,10 +724,11 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P3HeavensfallFireball>();
         ActorCastEnd(id + 0x173, _module.BahamutPrime, 4.8f, true, "Raidwide")
             .DeactivateOnExit<P2HeavensfallPillar>()
+            .DeactivateOnExit<P3HeavensfallTrio>()
             .SetHint(StateMachine.StateHint.Raidwide);
 
         P3FlareBreath(id + 0x1000, 9.2f)
-            .DeactivateOnExit<P2Hypernova>();
+            .DeactivateOnExit<P3HeavensfallHypernova>();
         P3FlareBreath(id + 0x2000, 2.1f);
         P3FlareBreath(id + 0x3000, 2.1f);
     }

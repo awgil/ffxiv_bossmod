@@ -69,6 +69,9 @@ public class UCOB(WorldState ws, Actor primary) : BossModule(ws, primary, new(0,
     {
         base.CalculateModuleAIHints(slot, actor, assignment, hints);
 
+        // TODO: pathfinder doesn't try to move out of blocked pixels unless the destination has a goal value > 0
+        // we can run into blocked pixels e.g. when baiting p2 divebombs since they have to be close to the edge
+        // this should be fixed in navigationdecision
         hints.GoalZones.Add(_ => 0.1f);
     }
 }

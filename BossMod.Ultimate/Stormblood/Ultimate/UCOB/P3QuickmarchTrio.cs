@@ -137,7 +137,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
             if (isTarget)
             {
                 var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 1));
             }
 
             // everyone else should avoid the stack, it will kill healers and do ~50% to tanks
@@ -260,7 +260,8 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
             {
                 foreach (var (aslot, ally) in Raid.WithSlot().Exclude(actor))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
+                    // trying to dodge allies causes too much variance, plant and let them gtfo
+                    //hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
 
                     // if we walk behind another player, it will pass the tether to them
                     // the cone width doesn't really matter here; as long as the pixels are blocked, pathfinder won't try to go through them
@@ -268,12 +269,7 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                         hints.AddForbiddenZone(ShapeDistance.DonutSector(tetherSource.Position, (ally.Position - tetherSource.Position).Length(), 60, tetherSource.AngleTo(ally), 2.Degrees()));
                 }
             }
-            else if (Targets[slot])
-            {
-                foreach (var ally in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
-            }
-            else
+            else if (!Targets[slot])
             {
                 List<Func<WPos, float>> goal = [];
 
@@ -300,12 +296,14 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                 if (side.Player == actor)
                     hints.AddForbiddenZone(ShapeDistance.Circle(side.Enemy.Position, 2));
             }
+        }
 
-            if (EnableRaidHints)
-            {
-                foreach (var (_, target) in Raid.WithSlot().IncludedInMask(Targets))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(target.Position, 5), Activation);
-            }
+        // non-tanks avoid tanks, OT avoid MT
+        // (if both tanks avoid each other they kill everyone)
+        if (EnableRaidHints && assignment != PartyRolesConfig.Assignment.MT)
+        {
+            foreach (var (_, target) in Raid.WithSlot().IncludedInMask(Targets).Exclude(actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(target.Position, 5), Activation);
         }
 
         if (Targets.Any())

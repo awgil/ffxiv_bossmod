@@ -57,6 +57,8 @@ public enum AID : uint
     IntentionalComboSunstrider = 44914, // L8, instant, range 100, single-target, targets=Hostile, animLock=0 (triggered)
     IntentionalComboMoonstalker = 44915, // L8, instant, range 100, single-target, targets=Hostile, animLock=0 (triggered)
     InfinitiveComboUniversality = 44916, // L50, instant, range 100, single-target, targets=Hostile, animLock=0 (triggered)
+
+    Snarl = 46571, // duty action, beast shirk
 }
 
 public enum TraitID : uint
@@ -140,6 +142,8 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.IntentionalComboSunstrider);
         d.RegisterSpell(AID.IntentionalComboMoonstalker);
         d.RegisterSpell(AID.InfinitiveComboUniversality);
+
+        d.RegisterSpell(AID.Snarl);
 
         Customize(d);
     }

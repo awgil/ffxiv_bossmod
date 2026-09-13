@@ -40,6 +40,12 @@ class P3BahamutPositioning(BossModule module) : BossComponent(module)
     public WPos? DesiredPosition;
     public Angle? DesiredRotation;
 
+    public void Reset()
+    {
+        DesiredPosition = null;
+        DesiredRotation = null;
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (hints.FindEnemy(((UCOB)Module).BahamutPrime()) is { } b)
