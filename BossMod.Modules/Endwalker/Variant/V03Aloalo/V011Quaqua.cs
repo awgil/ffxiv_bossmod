@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Variant.V03Aloalo.V011Quaqua;
+namespace BossMod.Endwalker.Variant.V03Aloalo.V011Quaqua;
 
 public enum OID : uint
 {
@@ -10,6 +10,8 @@ public enum OID : uint
     DrakeFamiliarLarge = 0x40BF, // R2.700, x?, Cloud to Ground visual (stormy)
     DrakeFamiliar = 0x4135, // R1.000, x?, Cloud to Ground exaflares (stormy)
     AnalaFamiliar = 0x4134, // R1.000, x?, Scalding Waves (fair skies)
+    PoisonPuddle = 0x1EB94A, // R0.500, EventObj type, growing poison pools (4+ flowers path)
+    PursuitCharge = 0x40BC, // R1.500, x?, chasing orb for Arcane Pursuit (both statues repaired)
 }
 
 public enum AID : uint
@@ -48,13 +50,22 @@ public enum AID : uint
     CloudToGround = 35739, // DrakeFamiliarLarge->self, 4.0s cast, single-target, visual
     CloudToGroundFirst = 35740, // DrakeFamiliar->self, 5.0s cast, range 6 circle
     CloudToGroundRest = 35741, // DrakeFamiliar->self, 1.0s cast, range 6 circle
+
+    ArcaneArmamentsPoisonSpears = 35747, // Boss->self, 8.0s cast, single-target
+
+    ArcaneIntervention = 35758, // Helper->self, 5.0s cast, range 50 circle, gaze
+
+    ArcanePursuit = 35748, // Boss->self, 5.0s cast, single-target, spawn chasing orbs
+    FellForces = 35749, // PursuitCharge->player, no cast, single-target, contact damage (range 1)
+    ArcanePursuitLaser = 35750, // Helper->self, 5.0s cast, range 50 width 6 rect (destroys orbs, harmless to players)
+    ArcanePursuitLaserSecond = 35757, // Helper->self, 5.0s cast, range 50 width 6 rect
 }
 
 public enum TetherID : uint
 {
     Axe = 256, // Ravaging Axe (circle)
     Quoit = 257, // Ringing Quoits (donut)
-    Hammer = 249, // HammerBeacon->Boss, current hammer target
+    Hammer = 249, // HammerBeacon->Boss
     WaterSpear = 258, // SpearMarker->Boss
 }
 
@@ -67,6 +78,176 @@ public enum IconID : uint
 class MadeMagic(BossModule module) : Components.RaidwideCast(module, AID.MadeMagic);
 class VioletStorm(BossModule module) : Components.StandardAOEs(module, AID.VioletStorm, new AOEShapeCone(32, 60.Degrees()));
 class ElementalImpact(BossModule module) : Components.StandardAOEs(module, AID.ElementalImpact, 14);
+
+class ArcaneIntervention(BossModule module) : Components.CastGaze(module, AID.ArcaneIntervention);
+
+class ArcanePursuit(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<Actor> _lasers = [];
+    private static readonly AOEShapeRect _laser = new(50, 3);
+    private const float KeepAway = 3.5f;
+
+    private IEnumerable<Actor> Charges => Module.Enemies(OID.PursuitCharge).Where(c => !c.IsDead);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var c in Charges)
+            yield return new(new AOEShapeCircle(KeepAway), c.Position);
+        // safe zones
+        foreach (var l in _lasers)
+            if (l.CastInfo != null)
+                yield return new(_laser, l.Position, l.CastInfo.Rotation, Module.CastFinishAt(l.CastInfo), ArenaColor.SafeFromAOE, Risky: false, Inverted: true);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        var near = Charges.FirstOrDefault(c => actor.Position.InCircle(c.Position, KeepAway));
+        if (near != null)
+            hints.Add("Away from orb!");
+        else if (_lasers.Count > 0 && Charges.Any())
+            hints.Add("Lead orb into statue laser!", false);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Charges)
+        {
+            hints.AddForbiddenZone(ShapeDistance.Circle(c.Position, KeepAway));
+            hints.AddForbiddenZone(ShapeDistance.Capsule(c.Position, c.Rotation.ToDirection(), 8, KeepAway), WorldState.FutureTime(2));
+        }
+
+        foreach (var l in _lasers)
+        {
+            if (l.CastInfo == null)
+                continue;
+            var rot = l.CastInfo.Rotation;
+            var origin = l.Position;
+            var finish = Module.CastFinishAt(l.CastInfo);
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(origin, rot, 50, 0, 3), finish);
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var c in Charges)
+        {
+            var target = WorldState.Actors.Find(c.TargetID);
+            if (target != null)
+            {
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddLine(c.Position, target.Position, 0xFF000000, 2);
+                Arena.AddLine(c.Position, target.Position, target == pc ? ArenaColor.Danger : ArenaColor.PlayerGeneric);
+            }
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.ArcanePursuitLaser or AID.ArcanePursuitLaserSecond)
+            _lasers.Add(caster);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.ArcanePursuitLaser or AID.ArcanePursuitLaserSecond)
+            _lasers.Remove(caster);
+    }
+}
+
+class ArcaneArmamentsPoison(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<(Actor Actor, DateTime Spawn)> _puddles = [];
+    private bool _armamentsActive;
+
+    private const float PuddleStartRadius = 6;
+    private const float PuddleMaxRadius = 16;
+    private const float GrowSeconds = 14;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var (puddle, spawn) in _puddles)
+        {
+            var t = (float)(WorldState.CurrentTime - spawn).TotalSeconds;
+            var radius = Math.Clamp(PuddleStartRadius + (PuddleMaxRadius - PuddleStartRadius) * (t / GrowSeconds), PuddleStartRadius, PuddleMaxRadius);
+            yield return new(new AOEShapeCircle(radius), puddle.Position, default, spawn);
+            if (radius < PuddleMaxRadius - 0.5f)
+                yield return new(new AOEShapeCircle(PuddleMaxRadius), puddle.Position, default, spawn.AddSeconds(GrowSeconds), ArenaColor.AOE, Risky: false);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ArcaneArmamentsPoisonSpears)
+        {
+            _armamentsActive = true;
+            _puddles.Clear();
+        }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ArcaneArmamentsPoisonSpears)
+            _armamentsActive = true; // puddles still inbound briefly after cast
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.PoisonPuddle)
+        {
+            _puddles.Add((actor, WorldState.CurrentTime));
+            _armamentsActive = false;
+        }
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        _puddles.RemoveAll(p => p.Actor == actor);
+    }
+
+    public override void OnActorEState(Actor actor, ushort state)
+    {
+        if ((OID)actor.OID == OID.PoisonPuddle)
+            _puddles.RemoveAll(p => p.Actor == actor);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        var origins = _puddles.Count > 0
+            ? [.. _puddles.Select(p => p.Actor.Position)]
+            : _armamentsActive ? ActiveSpears().Select(s => s.Position).ToList() : [];
+        if (origins.Count < 2)
+            return;
+
+        // midpoint between furthest spears
+        WPos a = default, b = default;
+        var best = 0f;
+        for (var i = 0; i < origins.Count; ++i)
+        {
+            for (var j = i + 1; j < origins.Count; ++j)
+            {
+                var d = (origins[i] - origins[j]).LengthSq();
+                if (d > best)
+                {
+                    best = d;
+                    a = origins[i];
+                    b = origins[j];
+                }
+            }
+        }
+
+        var mid = a + (b - a) * 0.5f;
+        var toWall = mid - Module.Center;
+        if (toWall.LengthSq() < 0.01f)
+            return;
+        var safe = Module.Center + toWall.Normalized() * (Module.Bounds.Radius - 1.5f);
+        hints.GoalZones.Add(AIHints.GoalProximity(safe, 3, 40));
+    }
+
+    private IEnumerable<Actor> ActiveSpears()
+        => Module.Enemies(OID.SpearMarker).Where(s => !s.IsDead && s.Tether.ID == (uint)TetherID.WaterSpear);
+}
 
 class ScaldingWaves(BossModule module) : Components.StandardAOEs(module, AID.ScaldingWaves, new AOEShapeRect(40, 5))
 {
@@ -449,10 +630,13 @@ class V011QuaquaStates : StateMachineBuilder
             .ActivateOnEnter<Rout>()
             .ActivateOnEnter<HammerLanding>()
             .ActivateOnEnter<ElementalImpact>()
+            .ActivateOnEnter<ArcaneArmamentsPoison>()
             .ActivateOnEnter<FlowingLance>()
             .ActivateOnEnter<VioletStorm>()
             .ActivateOnEnter<ScaldingWaves>()
-            .ActivateOnEnter<CloudToGround>();
+            .ActivateOnEnter<CloudToGround>()
+            .ActivateOnEnter<ArcaneIntervention>()
+            .ActivateOnEnter<ArcanePursuit>();
     }
 }
 
