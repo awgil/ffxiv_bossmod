@@ -1,41 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Use_DalamudPackager>false</Use_DalamudPackager>
+    <RootNamespace>BossMod</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Using Include="System" />
-    <Using Include="System.Collections" />
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.Collections.Immutable" />
-    <Using Include="System.Linq" />
-    <Using Include="System.Numerics" />
-    <Using Include="Lumina.Extensions" />
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AnalysisMode>All</AnalysisMode>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BossMod\BossMod.csproj">
-      <Private>false</Private>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </ProjectReference>
-
-    <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <OutputItemType>Analyzer</OutputItemType>
-      <PrivateAssets>All</PrivateAssets>
-    </ProjectReference>
-  </ItemGroup>
-
-  <Target Name="CopyDll" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <Copy
-      SourceFiles="$(OutDir)\$(AssemblyName).dll"
-      DestinationFolder="$(AppData)\vbm\modules" />
-  </Target>
+  <Import Project="..\Module.targets" />
 </Project>

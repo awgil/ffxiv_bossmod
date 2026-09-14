@@ -576,9 +576,20 @@
           "DalaMock.Host": "[6.1.9, )",
           "DalaMock.Shared": "[6.1.9, )",
           "DalamudPackager": "[15.0.0, )",
+          "FFXIVClientStructs": "[1.0.0, )",
+          "InteropGenerator.Runtime": "[1.0.0, )",
           "Microsoft.Extensions.Caching.Memory": "[10.0.12, )",
           "System.Data.Sqlite": "[2.0.4, )"
         }
+      },
+      "ffxivclientstructs": {
+        "type": "Project",
+        "dependencies": {
+          "InteropGenerator.Runtime": "[1.0.0, )"
+        }
+      },
+      "interopgenerator.runtime": {
+        "type": "Project"
       }
     }
   }

@@ -4,34 +4,7 @@
     <Version>7.5.6.5</Version>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Using Include="System" />
-    <Using Include="System.Collections" />
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.Collections.Immutable" />
-    <Using Include="System.Linq" />
-    <Using Include="System.Numerics" />
-    <Using Include="Lumina.Extensions" />
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AnalysisMode>All</AnalysisMode>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <LocalCS>false</LocalCS>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(LocalCS)' == 'true'">
-    <Use_Dalamud_FFXIVClientStructs>false</Use_Dalamud_FFXIVClientStructs>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(LocalCS)' == 'true'">
-    <ProjectReference Include="..\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
-    <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
-  </ItemGroup>
+  <Import Project="..\Common.targets" />
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputType>Exe</OutputType>
@@ -66,7 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="DalamudPackager.targets" />
     <None Include="DefaultRotationPresets.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

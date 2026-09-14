@@ -23,6 +23,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     // (BST has no AOE actions)
     public override void Exec(in Strategy strategy, AIHints.Enemy? primaryTarget)
     {
+        //var gauge = World.Client.GetGauge<BeastmasterGauge>();
+
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
         if (ComboLastMove == AID.AxebladeBite)
