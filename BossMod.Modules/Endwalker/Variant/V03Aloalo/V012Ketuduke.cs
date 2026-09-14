@@ -14,6 +14,7 @@ public enum OID : uint
     WavefoamBubble = 0x4094, // R1.200, x?, route 2 stand-in bubbles
     BubbleStrewer = 0x1EB936, // R0.500, EventObj type, Strewn Bubbles lines
     AloaloZaratan = 0x409A, // R1.120, x?, route 3 sand pile snakes
+    AloaloOgrebon = 0x4098, // R2.340, x?, route 4 stone pile fish
 }
 
 public enum AID : uint
@@ -73,11 +74,19 @@ public enum AID : uint
     HundredLashingsVisual = 35480, // AloaloZaratan->self, 14.4+1.1s cast, single-target, visual
     HundredLashings = 35479, // AloaloZaratan->self, 15.5s cast, range 60 180-degree cone (ground)
     HundredLashingsElevated = 35481, // Helper->self, 15.5s cast, single-target, elevated (misses)
+
+    BubbleRiptide = 35458, // WavefoamBubble->player, no cast, single-target, pull into bubble
+    BubbleFetters = 35459, // WavefoamBubble->player, no cast, single-target, bind in bubble
+    UpdraftStone = 35477, // Boss->self, 6.0s cast, single-target, elevate bubble
+    UpdraftStoneAOE = 35478, // Helper->self, 8.0s cast, range 35 circle, visual
+    AerialShock = 35483, // AloaloOgrebon->self, 8.6+1.1s cast, single-target, visual
+    AerialShockAOE = 35484, // Helper->self, 9.7s cast, range 35 circle
 }
 
 public enum SID : uint
 {
-    Bubble = 3745, // on bubbled spring crystals / Zaratan (extra=0xC8)
+    Bubble = 3745, // on bubbled spring crystals / Zaratan / Ogrebon (extra=0xC8)
+    BubbleNet = 3744, // WavefoamBubble->player, extra=0x64
 }
 
 public enum TetherID : uint
@@ -385,10 +394,36 @@ class Hydrosurge(BossModule module) : Components.GenericAOEs(module)
 
 class WavefoamBubbles(BossModule module) : Components.GenericTowers(module)
 {
+    private bool _ogrebonBubbled;
+
+    public override void Update()
+    {
+        var ogrebon = Module.Enemies(OID.AloaloOgrebon).FirstOrDefault(o => !o.IsDeadOrDestroyed);
+        if (ogrebon == null)
+        {
+            _ogrebonBubbled = false;
+            return;
+        }
+
+        _ogrebonBubbled = ogrebon.FindStatus(SID.Bubble) != null;
+        if (_ogrebonBubbled)
+            Towers.Clear();
+        else
+        {
+            foreach (var b in Module.Enemies(OID.WavefoamBubble))
+                if (!Towers.Any(t => t.Position.AlmostEqual(b.Position, 1)))
+                    Towers.Add(new(b.Position, 2, activation: WorldState.FutureTime(8)));
+        }
+    }
+
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID.WavefoamBubble)
-            Towers.Add(new(actor.Position, 2, activation: WorldState.FutureTime(12)));
+        if ((OID)actor.OID != OID.WavefoamBubble)
+            return;
+        // if fish is bubbled, don't soak towers
+        if (Module.Enemies(OID.AloaloOgrebon).Any(o => !o.IsDeadOrDestroyed && o.FindStatus(SID.Bubble) != null))
+            return;
+        Towers.Add(new(actor.Position, 2, activation: WorldState.FutureTime(12)));
     }
 
     public override void OnActorDestroyed(Actor actor)
@@ -399,12 +434,49 @@ class WavefoamBubbles(BossModule module) : Components.GenericTowers(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.FlukeTyphoonAnila)
+        if ((AID)spell.Action.ID is AID.FlukeTyphoonAnila or AID.AerialShockAOE or AID.UpdraftStoneAOE)
             Towers.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_ogrebonBubbled)
+        {
+            foreach (var b in Module.Enemies(OID.WavefoamBubble))
+                hints.AddForbiddenZone(ShapeDistance.Circle(b.Position, 2));
+            return;
+        }
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 
 class FlukeTyphoonAnila(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FlukeTyphoonAnila, 20, ignoreImmunes: true, shape: new AOEShapeRect(40, 20), kind: Kind.DirForward);
+
+class AerialShock(BossModule module) : Components.GenericAOEs(module, AID.AerialShockAOE)
+{
+    private AOEInstance? _aoe;
+    private static readonly AOEShapeCircle _shape = new(35);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_aoe is not { } aoe)
+            yield break;
+        var ogrebonBubbled = Module.Enemies(OID.AloaloOgrebon).Any(o => o.FindStatus(SID.Bubble) != null);
+        yield return ogrebonBubbled ? aoe with { Color = ArenaColor.SafeFromAOE, Risky = false } : aoe;
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoe = new(_shape, caster.Position, default, Module.CastFinishAt(spell));
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoe = null;
+    }
+}
 
 class HundredLashings(BossModule module) : Components.GenericAOEs(module)
 {
@@ -476,7 +548,8 @@ class V012KetudukeStates : StateMachineBuilder
             .ActivateOnEnter<WavefoamBubbles>()
             .ActivateOnEnter<FlukeTyphoonAnila>()
             .ActivateOnEnter<Roar>()
-            .ActivateOnEnter<HundredLashings>();
+            .ActivateOnEnter<HundredLashings>()
+            .ActivateOnEnter<AerialShock>();
     }
 }
 
