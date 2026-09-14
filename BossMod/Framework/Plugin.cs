@@ -13,10 +13,10 @@ public class Plugin : HostedPlugin
 {
     public string Name => "Boss Mod";
 
-    public Plugin(IDalamudPluginInterface dalamud, IEnumerable<ISigScanner> maybeSigScanner, IDataManager dataManager) : base(dalamud)
+    public Plugin(IDalamudPluginInterface dalamud, ISigScanner sigScanner, IDataManager dataManager) : base(dalamud)
     {
 #if LOCAL_CS
-        InteropGenerator.Runtime.Resolver.GetInstance.Setup(maybeSigScanner.First().SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
+        InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
         FFXIVClientStructs.Interop.Generated.Addresses.Register();
         InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
 #endif

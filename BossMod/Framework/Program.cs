@@ -17,7 +17,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, IDataManager dataManager) : Plugin(dalamud, [], dataManager)
+    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, IDataManager dataManager) : Plugin(dalamud, null!, dataManager)
     {
         public override IReplacementContainer ReplacementContainer { get; } = mrc;
     }

@@ -1,4 +1,6 @@
 ﻿using BossMod.BST;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -9,6 +11,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        public Track<EnabledByDefault> ShieldCharge;
+
+        [Track("Refresh One With Nature out of combat")]
+        public Track<EnabledByDefault> Resummon;
+
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
     }
@@ -18,14 +25,99 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         return new RotationModuleDefinition("xan BST", "Beastmaster", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BST), 100).WithStrategies<Strategy>();
     }
 
+    protected override float GetCastTime(AID aid) => aid switch
+    {
+        // cast time is fixed
+        AID.FirstBattlehorn or AID.SecondBattlehorn or AID.ThirdBattlehorn => 1,
+        _ => 0
+    };
+
+    bool HavePet;
+    BeastmasterAffinity TrickAffinity;
+    int LastUsedHorn;
+    bool OneWithNature;
+
+    Enemy? BestJumpTarget;
+    int NumJumpTargets;
+    Enemy? BestLineTarget;
+    int NumLineTargets;
+
     // Trick must be used on the targeted enemy; tooltip data (range/shape) refers to the action used by the pet
     // for now, we only try to select a suitable AOE target if Trick is a targeted circle, since we can't predict where the pet will stand (e.g. if it's out of range, it will run up to the target first)
     // (BST has no AOE actions)
-    public override void Exec(in Strategy strategy, AIHints.Enemy? primaryTarget)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        //var gauge = World.Client.GetGauge<BeastmasterGauge>();
+        var gauge = World.Client.GetGauge<BeastmasterGauge>();
 
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
+
+        (BestJumpTarget, NumJumpTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
+        (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
+
+        HavePet = false;
+        if (gauge.ActiveBattlehornIndex > 0)
+        {
+            LastUsedHorn = gauge.ActiveBattlehornIndex;
+            HavePet = true;
+        }
+        OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
+        TrickAffinity = ActionDefinitions.TrickAffinity[HavePet ? World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1] : 0];
+
+        // level 50 3 chain infinitive combo
+        if (Unlocked(TraitID.InstinctualMastery) && HavePet)
+        {
+            // infinitive combo finisher
+            if (gauge.TPGauge == 250 && gauge.CurrentAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
+                UseAxe(Cycle(gauge.CurrentAffinity), primaryTarget, 100);
+
+            if (gauge.CurrentAffinity == Cycle(TrickAffinity, Direction.CCW))
+            {
+                if (gauge.FamiliarTPGauge >= 100)
+                    PushOGCD(AID.Trick, primaryTarget, 90);
+
+                if (gauge.MasteredInstinct > 1)
+                    PushOGCD(AID.Rally, Player, 80);
+                if (gauge.NaturalInstinct > 0)
+                    PushOGCD(AID.RallyingCheer, Player, 80);
+            }
+
+            if (gauge.MasteredInstinct > 1 && gauge.NaturalInstinct > 0 && gauge.TPGauge >= 100 && CanWeave(AID.Rally, 1) && CanWeave(AID.RallyingCheer, 1))
+            {
+                if (gauge.CurrentAffinity == TrickAffinity)
+                    UseAxe(Cycle(gauge.CurrentAffinity, Direction.CCW), primaryTarget, 70);
+
+                if (gauge.FamiliarTPGauge >= 100)
+                    PushOGCD(AID.Trick, primaryTarget, 60);
+            }
+        }
+
+        // player -> pet combo for gems for cheer
+        // TODO: i don't know if building pet gems is worth anything before 50
+        if (Unlocked(TraitID.WildHeartIV) && gauge.NaturalInstinct < 3)
+        {
+            if (gauge.FamiliarTPGauge >= 100 && gauge.CurrentAffinity != BeastmasterAffinity.None)
+                PushOGCD(AID.Trick, primaryTarget, 20);
+
+            if (gauge.FamiliarTPGauge >= 100 && gauge.TPGauge >= 100 && HavePet)
+                UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? 10 : 1);
+        }
+
+        // pet -> player combo for gems for rally
+        if (Unlocked(TraitID.WildHeartIII) && gauge.MasteredInstinct < 3)
+        {
+            if (gauge.TPGauge >= 100 && gauge.CurrentAffinity != BeastmasterAffinity.None)
+                UseAxe(Cycle(gauge.CurrentAffinity), primaryTarget, 20);
+
+            if (gauge.FamiliarTPGauge >= 100 && gauge.TPGauge >= 100 && HavePet)
+                PushOGCD(AID.Trick, primaryTarget, gauge.MasteredInstinct < 2 ? 10 : 1);
+        }
+
+        // TODO: pet aoe targeting
+        if (HavePet)
+            PushOGCD(AID.TemperedRelease, primaryTarget);
+
+        if (strategy.ShieldCharge.IsEnabled() && MaxChargesIn(AID.ShieldCharge) < 60)
+            PushOGCD(AID.ShieldCharge, BestJumpTarget);
 
         if (ComboLastMove == AID.AxebladeBite)
             PushGCD(AID.Shieldsplitter, primaryTarget);
@@ -37,5 +129,65 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         if (PlayerTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, 3));
+
+        if (strategy.Resummon.IsEnabled() && !Player.InCombat && Unlocked(TraitID.BattlehornMastery) && !OneWithNature)
+        {
+            if (HavePet)
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
+            else if (LastUsedHorn > 0)
+            {
+                var horn = LastUsedHorn switch
+                {
+                    1 => AID.FirstBattlehorn,
+                    2 => AID.SecondBattlehorn,
+                    3 => AID.ThirdBattlehorn,
+                    _ => AID.None
+                };
+
+                PushOGCD(horn, Player, 10);
+            }
+        }
+
+        if (!HavePet)
+        {
+            AID[] horns = [AID.FirstBattlehorn, AID.SecondBattlehorn, AID.ThirdBattlehorn];
+            foreach (var (slot, h) in World.Client.BeastmasterBeasts.Zip(horns))
+                if (slot > 0 && ReadyIn(h) == 0)
+                    PushOGCD(h, Player);
+        }
+    }
+
+    enum Direction
+    {
+        CW,
+        CCW
+    }
+
+    static BeastmasterAffinity Cycle(BeastmasterAffinity b, Direction dir = Direction.CW) => b switch
+    {
+        BeastmasterAffinity.Volant => dir == Direction.CW ? BeastmasterAffinity.Rampant : BeastmasterAffinity.Eldritch,
+        BeastmasterAffinity.Rampant => dir == Direction.CW ? BeastmasterAffinity.Durant : BeastmasterAffinity.Volant,
+        BeastmasterAffinity.Durant => dir == Direction.CW ? BeastmasterAffinity.Eldritch : BeastmasterAffinity.Rampant,
+        BeastmasterAffinity.Eldritch => dir == Direction.CW ? BeastmasterAffinity.Volant : BeastmasterAffinity.Durant,
+        BeastmasterAffinity.Sunstrider => BeastmasterAffinity.Moonstalker,
+        BeastmasterAffinity.Moonstalker => BeastmasterAffinity.Sunstrider,
+        _ => BeastmasterAffinity.None
+    };
+
+    (AID, Enemy?) GetAxe(BeastmasterAffinity b) => b switch
+    {
+        BeastmasterAffinity.Rampant => (AID.AvalancheAxe, null),
+        BeastmasterAffinity.Durant => (AID.MistralAxe, null),
+        BeastmasterAffinity.Eldritch => (AID.SpinningAxe, null),
+        BeastmasterAffinity.Volant => (AID.GaleAxe, null),
+        BeastmasterAffinity.Sunstrider => (AID.BrutalRage, BestJumpTarget),
+        BeastmasterAffinity.Moonstalker => NumLineTargets > NumJumpTargets ? (AID.Calamity, BestLineTarget) : (AID.HawkishTalons, BestJumpTarget),
+        _ => (AID.None, null)
+    };
+
+    void UseAxe(BeastmasterAffinity b, Enemy? primaryTarget, int priority = 1)
+    {
+        var (a, t) = GetAxe(b);
+        PushOGCD(a, t ?? primaryTarget, priority);
     }
 }

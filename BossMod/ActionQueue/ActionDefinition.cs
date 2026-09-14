@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using System.Reflection;
 
 namespace BossMod;
 
@@ -55,21 +56,6 @@ public enum ActionAspect : byte
     Thunder,
     Water,
     Physical
-}
-
-// for beastmaster; these are somehow not in sheets
-public enum ActionAffinity : byte
-{
-    None = 0,
-    Rampant = 1,
-    Durant = 2,
-    Eldritch = 3,
-    Volant = 4,
-
-    Red = Rampant,
-    Blue = Durant,
-    Yellow = Eldritch,
-    Green = Volant
 }
 
 // this contains all information about player actions that we care about (for action tweaks, autorotation, etc)
@@ -502,58 +488,58 @@ public sealed class ActionDefinitions
     }
     public void RegisterChargeIncreaseTrait<AID, TraitID>(AID aid, TraitID traitId) where AID : Enum where TraitID : Enum => RegisterChargeIncreaseTrait(ActionID.MakeSpell(aid), (uint)(object)traitId);
 
-    public static readonly ActionAffinity[] TrickAffinity = [
-        ActionAffinity.None,
-        ActionAffinity.Red,    // cu sith, cone
-        ActionAffinity.Red,    // squirrel, line (in both directions)
-        ActionAffinity.Red,    // lamb, line
-        ActionAffinity.Blue,   // pugil, cone
-        ActionAffinity.Red,    // opo, circle
-        ActionAffinity.Yellow, // dodo, cone
-        ActionAffinity.Yellow, // coblyn, ST
-        ActionAffinity.Red,    // diremite, ST
-        ActionAffinity.Blue,   // megacrab, circle
-        ActionAffinity.Green,  // wespe, ST (poison)
-        ActionAffinity.Green,  // vulture, cone
-        ActionAffinity.Red,    // mandragora, ST
-        ActionAffinity.Yellow, // geshunpest, circle
-        ActionAffinity.Red,    // puk, circle
-        ActionAffinity.Blue,   // crab, cone
-        ActionAffinity.Blue,   // mantis, ST
-        ActionAffinity.Yellow, // slime, ST (lifesteal)
-        ActionAffinity.Blue,   // dullahan, cone
-        ActionAffinity.Green,  // bat, ST (lifesteal)
-        ActionAffinity.Green,  // flytrap, cone (poison)
-        ActionAffinity.Blue,   // ziz, cone
-        ActionAffinity.Red,    // cactuar, line
-        ActionAffinity.Yellow, // golem, cone
-        ActionAffinity.Blue,   // apkallu, ST
-        ActionAffinity.Yellow, // turtle, circle
-        ActionAffinity.Red,    // buffalo, cone
-        ActionAffinity.Blue,   // uragnite, cone
-        ActionAffinity.Yellow, // worm, cone
-        ActionAffinity.Red,    // spriggan, cone
-        ActionAffinity.Red,    // goob, line
-        ActionAffinity.Yellow, // gigantoad, circle
-        ActionAffinity.Green,  // colibri, ST
-        ActionAffinity.Yellow, // coeurl, ST
-        ActionAffinity.Blue,   // raptor, cone
-        ActionAffinity.Red,    // drake, cone
-        ActionAffinity.Yellow, // treant, circle
-        ActionAffinity.Red,    // antling, ST
-        ActionAffinity.Red,    // chimera, cone
-        ActionAffinity.Red,    // morbol, line
-        ActionAffinity.Green,  // ghost, cone
-        ActionAffinity.Blue,   // salamander, cone
-        ActionAffinity.Blue,   // cobra, ST (poison)
-        ActionAffinity.Blue,   // hydra, ST
-        ActionAffinity.Green,  // damselfly, circle
-        ActionAffinity.Yellow, // rotting goob, ST
-        ActionAffinity.Green,  // zu, circle
-        ActionAffinity.Blue,   // ice golem, cone
-        ActionAffinity.Blue,   // karlabos, ST
-        ActionAffinity.Yellow, // rafflesia, circle
-        ActionAffinity.Yellow, // behemoth, cone
+    public static readonly BeastmasterAffinity[] TrickAffinity = [
+        BeastmasterAffinity.None,
+        BeastmasterAffinity.Rampant,    // cu sith, cone
+        BeastmasterAffinity.Rampant,    // squirrel, line (in both directions)
+        BeastmasterAffinity.Rampant,    // lamb, line
+        BeastmasterAffinity.Durant,   // pugil, cone
+        BeastmasterAffinity.Rampant,    // opo, circle
+        BeastmasterAffinity.Eldritch, // dodo, cone
+        BeastmasterAffinity.Eldritch, // coblyn, ST
+        BeastmasterAffinity.Rampant,    // diremite, ST
+        BeastmasterAffinity.Durant,   // megacrab, circle
+        BeastmasterAffinity.Volant,  // wespe, ST (poison)
+        BeastmasterAffinity.Volant,  // vulture, cone
+        BeastmasterAffinity.Rampant,    // mandragora, ST
+        BeastmasterAffinity.Eldritch, // geshunpest, circle
+        BeastmasterAffinity.Rampant,    // puk, circle
+        BeastmasterAffinity.Durant,   // crab, cone
+        BeastmasterAffinity.Durant,   // mantis, ST
+        BeastmasterAffinity.Eldritch, // slime, ST (lifesteal)
+        BeastmasterAffinity.Durant,   // dullahan, cone
+        BeastmasterAffinity.Volant,  // bat, ST (lifesteal)
+        BeastmasterAffinity.Volant,  // flytrap, cone (poison)
+        BeastmasterAffinity.Durant,   // ziz, cone
+        BeastmasterAffinity.Rampant,    // cactuar, line
+        BeastmasterAffinity.Eldritch, // golem, cone
+        BeastmasterAffinity.Durant,   // apkallu, ST
+        BeastmasterAffinity.Eldritch, // turtle, circle
+        BeastmasterAffinity.Rampant,    // buffalo, cone
+        BeastmasterAffinity.Durant,   // uragnite, cone
+        BeastmasterAffinity.Eldritch, // worm, cone
+        BeastmasterAffinity.Rampant,    // spriggan, cone
+        BeastmasterAffinity.Rampant,    // goob, line
+        BeastmasterAffinity.Eldritch, // gigantoad, circle
+        BeastmasterAffinity.Volant,  // colibri, ST
+        BeastmasterAffinity.Eldritch, // coeurl, ST
+        BeastmasterAffinity.Durant,   // raptor, cone
+        BeastmasterAffinity.Rampant,    // drake, cone
+        BeastmasterAffinity.Eldritch, // treant, circle
+        BeastmasterAffinity.Rampant,    // antling, ST
+        BeastmasterAffinity.Rampant,    // chimera, cone
+        BeastmasterAffinity.Rampant,    // morbol, line
+        BeastmasterAffinity.Volant,  // ghost, cone
+        BeastmasterAffinity.Durant,   // salamander, cone
+        BeastmasterAffinity.Durant,   // cobra, ST (poison)
+        BeastmasterAffinity.Durant,   // hydra, ST
+        BeastmasterAffinity.Volant,  // damselfly, circle
+        BeastmasterAffinity.Eldritch, // rotting goob, ST
+        BeastmasterAffinity.Volant,  // zu, circle
+        BeastmasterAffinity.Durant,   // ice golem, cone
+        BeastmasterAffinity.Durant,   // karlabos, ST
+        BeastmasterAffinity.Eldritch, // rafflesia, circle
+        BeastmasterAffinity.Eldritch, // behemoth, cone
     ];
 }
 

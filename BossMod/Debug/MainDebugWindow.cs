@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -92,7 +93,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         {
             DrawEffects();
         }
-        /*
         if (ImGui.CollapsingHeader("Gauge"))
         {
             var gauge = ws.Client.GaugePayload;
@@ -100,7 +100,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
             var as_ = ws.Client.GetGauge<BeastmasterGauge>();
             Dalamud.Utility.Util.ShowObject(as_);
         }
-        */
         if (ImGui.CollapsingHeader("Map effects"))
         {
             _debugMapEffect.Draw();
