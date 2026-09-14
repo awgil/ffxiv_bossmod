@@ -33,6 +33,8 @@ public class TrackPartyHealth(WorldState World)
         public float StdDevCurrent;
         public float AvgPredicted;
         public float StdDevPredicted;
+        public int LowestNPCSlotCurrent = -1;
+        public int LowestNPCSlotPredicted = -1;
     }
 
     public const float AOEBreakpointHPVariance = 0.25f;
@@ -83,6 +85,10 @@ public class TrackPartyHealth(WorldState World)
         var meanCur2 = 0f;
         var minCur = float.MaxValue;
         var minSlotCur = -1;
+        var minNPCPred = float.MaxValue;
+        var minNPCSlotPred = -1;
+        var minNPCCur = float.MaxValue;
+        var minNPCSlotCur = -1;
 
         foreach (var slot in _trackedActors.SetBits())
         {
@@ -99,25 +105,25 @@ public class TrackPartyHealth(WorldState World)
             if (act.PendingHPDifferences.Any(p => -p.Value >= act.HPMP.MaxHP))
                 continue;
 
+            var valCurrent = CurrentRatio(p);
+            var valPredicted = p.PredictedHPRatio;
+
+            if (p.Slot >= PartyState.MaxPartySize)
+            {
+                Lowest(valCurrent, p.Slot, ref minNPCCur, ref minNPCSlotCur);
+                Lowest(valPredicted, p.Slot, ref minNPCPred, ref minNPCSlotPred);
+                continue;
+            }
+
             count++;
 
-            var valCurrent = p.DoomRemaining > 0 ? 0.01f : p.CurrentHPRatio;
-            if (valCurrent < minCur)
-            {
-                minCur = valCurrent;
-                minSlotCur = p.Slot;
-            }
+            Lowest(valCurrent, p.Slot, ref minCur, ref minSlotCur);
             var deltaCur = valCurrent - meanCur;
             meanCur += deltaCur / count;
             var deltaCur2 = valCurrent - meanCur;
             meanCur2 += deltaCur * deltaCur2;
 
-            var valPredicted = p.PredictedHPRatio;
-            if (valPredicted < minPred)
-            {
-                minPred = valPredicted;
-                minSlotPred = p.Slot;
-            }
+            Lowest(valPredicted, p.Slot, ref minPred, ref minSlotPred);
             var deltaPred = valPredicted - meanPred;
             meanPred += deltaPred / count;
             var deltaPred2 = valPredicted - meanPred;
@@ -134,15 +140,36 @@ public class TrackPartyHealth(WorldState World)
             AvgPredicted = meanPred,
             StdDevCurrent = MathF.Sqrt(varianceCur),
             StdDevPredicted = MathF.Sqrt(variancePred),
-            Count = count
+            Count = count,
+            LowestNPCSlotCurrent = minNPCSlotCur,
+            LowestNPCSlotPredicted = minNPCSlotPred
         };
+
+        static void Lowest(float val, int slot, ref float min, ref int minSlot)
+        {
+            if (val < min)
+            {
+                min = val;
+                minSlot = slot;
+            }
+        }
+    }
+
+    private static float CurrentRatio(PartyMemberState p) => p.DoomRemaining > 0 ? 0.01f : p.CurrentHPRatio;
+
+    private (Actor Target, PartyMemberState State)? BestSTTarget(bool partyQualifies, int partySlot, int npcSlot, Func<PartyMemberState, float> ratio)
+    {
+        var slot = partyQualifies ? partySlot : -1;
+        if (npcSlot >= 0 && (slot < 0 || ratio(PartyMemberStates[npcSlot]) < ratio(PartyMemberStates[slot])))
+            slot = npcSlot;
+        return slot >= 0 ? (World.Party[slot]!, PartyMemberStates[slot]) : null;
     }
 
     private PartyHealthState CalcPartyHealthInArea(WPos center, float radius) => CalculatePartyHealthState(act => act.Position.InCircle(center, radius));
 
-    public (Actor Target, PartyMemberState State)? BestSTHealTarget => PartyHealth.StdDevCurrent > AOEBreakpointHPVariance || PartyHealth.Count == 1 ? (World.Party[PartyHealth.LowestHPSlotCurrent]!, PartyMemberStates[PartyHealth.LowestHPSlotCurrent]) : null;
+    public (Actor Target, PartyMemberState State)? BestSTHealTarget => BestSTTarget(PartyHealth.StdDevCurrent > AOEBreakpointHPVariance || PartyHealth.Count == 1, PartyHealth.LowestHPSlotCurrent, PartyHealth.LowestNPCSlotCurrent, CurrentRatio);
 
-    public (Actor Target, PartyMemberState State)? BestSTHealTargetPredicted => PartyHealth.StdDevPredicted > AOEBreakpointHPVariance || PartyHealth.Count == 1 ? (World.Party[PartyHealth.LowestHPSlotPredicted]!, PartyMemberStates[PartyHealth.LowestHPSlotPredicted]) : null;
+    public (Actor Target, PartyMemberState State)? BestSTHealTargetPredicted => BestSTTarget(PartyHealth.StdDevPredicted > AOEBreakpointHPVariance || PartyHealth.Count == 1, PartyHealth.LowestHPSlotPredicted, PartyHealth.LowestNPCSlotPredicted, p => p.PredictedHPRatio);
 
     public bool ShouldHealInArea(WPos center, float radius, float hpThreshold)
     {
