@@ -8,8 +8,10 @@ public enum OID : uint
     SpringCrystalSphere = 0x4092, // R4.200, x?, polyhedron crystals (point-blank Saturate)
     SpringCrystalRect = 0x4093, // R4.200, x?, flat crystals (line Saturate)
     AiryBubble = 0x4095, // R1.300, x?, Blowing Bubbles
-    ZealBlindZozone = 0x4096, // R0.500, x?, route 1 NPC
-    SummonedApa = 0x4113, // R2.880, x?, Water III
+    ZealBlindZozone = 0x4096, // R0.500, x?, route 1/2 NPC
+    SummonedApa = 0x4113, // R2.880, x?, Water III / Wavefoam
+    SummonedAnila = 0x4097, // R2.400, x?, route 2 Fluke Typhoon
+    WavefoamBubble = 0x4094, // R1.200, x?, route 2 stand-in bubbles
     BubbleStrewer = 0x1EB936, // R0.500, EventObj type, Strewn Bubbles lines
 }
 
@@ -51,10 +53,16 @@ public enum AID : uint
     Hydroblast = 35491, // Boss->player, 5.0s cast, single-target, tankbuster
     HydroblastAOE = 35492, // Helper->player, no cast, range 5 circle
 
-    // Route 1: Zozone revenge
     Summon = 35470, // ZealBlindZozone->self, 3.0s cast, single-target
     WaterIII = 36116, // SummonedApa->self, 10.0s cast, single-target, proximity
     WaterIIIApply = 36125, // SummonedApa->player, no cast, single-target
+
+    TidalWave = 36113, // Boss->self, 2.2+0.8s cast, single-target, visual
+    TidalWaveAOE = 36114, // Helper->self, 6.0s cast, range 46 width 46 rect, knockback
+    Hydrosurge = 35467, // Boss->self, 5.2+0.8s cast, single-target, visual
+    HydrosurgeAOE = 35468, // Helper->self, 6.0s cast, single-target, starts persistent mid-line
+    Wavefoam = 36115, // SummonedApa->self, 3.0s cast, single-target, spawn WavefoamBubble
+    FlukeTyphoonAnila = 35471, // SummonedAnila->self, 8.0s cast, range 40 width 40 rect, knock bubbled players across
 }
 
 public enum SID : uint
@@ -156,7 +164,13 @@ class SpringCrystals(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeCircle _sphere = new(8);
     private static readonly AOEShapeRect _rect = new(38, 5, 38);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Select(a => a.AOE);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        // make not risky for hints if Hydrosurge is active so AI doesn't try to cross the midline
+        var soften = Module.FindComponent<Hydrosurge>()?.Active == true;
+        foreach (var a in _aoes)
+            yield return soften ? a.AOE with { Color = ArenaColor.AOE, Risky = false } : a.AOE;
+    }
 
     public override void OnActorCreated(Actor actor)
     {
@@ -314,6 +328,72 @@ class BlowingBubbles(BossModule module) : BossComponent(module)
     }
 }
 
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWaveAOE, 27, ignoreImmunes: true, shape: new AOEShapeRect(46, 23), kind: Kind.DirForward)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+        {
+            if (c.CastInfo == null || IsImmune(slot, Module.CastFinishAt(c.CastInfo)))
+                continue;
+            // stay near wave origin
+            var origin = c.Position;
+            var activation = Module.CastFinishAt(c.CastInfo);
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(origin, 8), activation);
+            hints.GoalZones.Add(AIHints.GoalProximity(origin, 4, 60));
+        }
+    }
+}
+
+class Hydrosurge(BossModule module) : Components.GenericAOEs(module)
+{
+    private AOEInstance? _aoe;
+    private static readonly AOEShapeRect _shape = new(20, 5, 20);
+
+    public bool Active => _aoe != null;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_aoe is { } aoe)
+            yield return aoe;
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.HydrosurgeAOE)
+            _aoe = new(_shape, caster.Position, spell.Rotation, WorldState.CurrentTime);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.FlukeTyphoonAnila)
+            _aoe = null;
+    }
+}
+
+class WavefoamBubbles(BossModule module) : Components.GenericTowers(module)
+{
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.WavefoamBubble)
+            Towers.Add(new(actor.Position, 2, activation: WorldState.FutureTime(12)));
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.WavefoamBubble)
+            Towers.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 1));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.FlukeTyphoonAnila)
+            Towers.Clear();
+    }
+}
+
+class FlukeTyphoonAnila(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FlukeTyphoonAnila, 20, ignoreImmunes: true, shape: new AOEShapeRect(40, 20), kind: Kind.DirForward);
+
 class V012KetudukeStates : StateMachineBuilder
 {
     public V012KetudukeStates(BossModule module) : base(module)
@@ -327,9 +407,13 @@ class V012KetudukeStates : StateMachineBuilder
             .ActivateOnEnter<Hydroblast>()
             .ActivateOnEnter<WaterIII>()
             .ActivateOnEnter<Twintides>()
-            .ActivateOnEnter<BlowingBubbles>();
+            .ActivateOnEnter<BlowingBubbles>()
+            .ActivateOnEnter<TidalWave>()
+            .ActivateOnEnter<Hydrosurge>()
+            .ActivateOnEnter<WavefoamBubbles>()
+            .ActivateOnEnter<FlukeTyphoonAnila>();
     }
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12605)]
-public class V012Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z), new ArenaBoundsSquare(19.5f));
+public class V012Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new(-790, -395), new ArenaBoundsSquare(20));
