@@ -58,7 +58,8 @@ public enum AID : uint
     IntentionalComboMoonstalker = 44915, // L8, instant, range 100, single-target, targets=Hostile, animLock=0 (triggered)
     InfinitiveComboUniversality = 44916, // L50, instant, range 100, single-target, targets=Hostile, animLock=0 (triggered)
 
-    Snarl = 46571, // duty action, beast shirk
+    Challenge = 46750, // crucible provoke
+    Snarl = 46751, // crucible shirk + cover
 }
 
 public enum TraitID : uint

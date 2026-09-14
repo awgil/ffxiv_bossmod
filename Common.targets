@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LocalCS>false</LocalCS>
+    <LocalCS>true</LocalCS>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(LocalCS)' == 'true'">
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LocalCS)' == 'true'">
-    <ProjectReference Include="..\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
-    <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
   </ItemGroup>
 </Project>

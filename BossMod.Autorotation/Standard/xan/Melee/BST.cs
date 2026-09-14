@@ -13,6 +13,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         public Track<EnabledByDefault> ShieldCharge;
 
+        public Track<EnabledByDefault> TemperedRelease;
+
         [Track("Refresh One With Nature out of combat")]
         public Track<EnabledByDefault> Resummon;
 
@@ -42,9 +44,9 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     Enemy? BestLineTarget;
     int NumLineTargets;
 
-    // Trick must be used on the targeted enemy; tooltip data (range/shape) refers to the action used by the pet
-    // for now, we only try to select a suitable AOE target if Trick is a targeted circle, since we can't predict where the pet will stand (e.g. if it's out of range, it will run up to the target first)
-    // (BST has no AOE actions)
+    // TODO: 4-chain opener
+    // TODO: parting blow
+    // TODO: pet AOE target selection (probably only for targeted circles)
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         var gauge = World.Client.GetGauge<BeastmasterGauge>();
@@ -113,7 +115,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // TODO: pet aoe targeting
-        if (HavePet)
+        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature)
             PushOGCD(AID.TemperedRelease, primaryTarget);
 
         if (strategy.ShieldCharge.IsEnabled() && MaxChargesIn(AID.ShieldCharge) < 60)

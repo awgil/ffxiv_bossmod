@@ -80,6 +80,7 @@ public sealed class ModuleViewer : IDisposable
         var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
+        Customize(BossModuleInfo.Category.Crucible, playStyle.GetRow(35));
         Customize(BossModuleInfo.Category.Hunt, playStyle.GetRow(10));
 
         _iconFATE = contentType.GetRow(8).Icon;
