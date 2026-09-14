@@ -7,7 +7,8 @@ public enum OID : uint
     Rodiaki = 0x403C, // R2.000, x?, Faunal Figure armadillos
     ArrowBright = 0x1EB941, // R0.500, EventObj type, Arcane Plot arrows
     ArrowDim = 0x1EB942, // R0.500, EventObj type, Arcane Plot redirect arrows
-    Kapokapo = 0x403B, // R2.040, x?, route 6 donuts
+    Kapokapo = 0x403B, // R2.040, x?, route 6 Floral Figure seedlings
+    AloaloGolem = 0x403D, // R1.900, x?, route 7 Constructive Figure golems
 }
 
 public enum AID : uint
@@ -20,7 +21,8 @@ public enum AID : uint
 
     ArcaneBlightVisual1 = 34927, // Boss->self, 6.0s cast, single-target
     ArcaneBlightVisual2 = 34928, // Boss->self, 6.0s cast, single-target
-    ArcaneBlightVisual3 = 34930, // Boss->self, 6.0s cast, single-target
+    ArcaneBlightVisual3 = 34929, // Boss->self, 6.0s cast, single-target
+    ArcaneBlightVisual4 = 34930, // Boss->self, 6.0s cast, single-target
     ArcaneBlight = 34931, // Helper->self, 6.0s cast, range 60 270-degree cone
 
     ArcanePlot = 34933, // Boss->self, 5.0s cast, single-target
@@ -40,6 +42,12 @@ public enum AID : uint
 
     FloralFigure = 34944, // Boss->self, 3.0s cast, single-target, spawn Kapokapo
     RollingSpout = 34945, // Kapokapo->self, 5.0s cast, range 4-12 donut
+
+    ConstructiveFigure = 34948, // Boss->self, 3.0s cast, single-target, spawn AloaloGolem
+    AeroII = 34949, // AloaloGolem->self, 9.3s cast, range 50 width 8 rect
+
+    VolcanicCoordinates = 36140, // Boss->self, 3.0s cast, single-target, visual
+    VolcanicCoordinatesAOE = 36141, // Helper->location, 5.0s cast, range 6 circle
 }
 
 public enum SID : uint
@@ -337,12 +345,7 @@ class CalculatedTrajectory : Components.GenericForcedMarch
         base.DrawArenaForeground(pcSlot, pc);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (!Module.InBounds(pos))
-            return true;
-        return Module.FindComponent<ArcanePlot>()?.IsTileUnsafe(pos) ?? false;
-    }
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (Module.FindComponent<ArcanePlot>()?.IsTileUnsafe(pos) ?? false);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -449,8 +452,9 @@ class CalculatedTrajectory : Components.GenericForcedMarch
 
 class FlailSmash(BossModule module) : Components.ProximityAOEs(module, AID.FlailSmash, 25);
 class FlailSmashLong(BossModule module) : Components.ProximityAOEs(module, AID.FlailSmashLong, 25);
-class FloralFigure(BossModule module) : Components.CastHint(module, AID.FloralFigure, "Kapokapo seedlings spawning");
 class RollingSpout(BossModule module) : Components.StandardAOEs(module, AID.RollingSpout, new AOEShapeDonut(4, 12));
+class AeroII(BossModule module) : Components.StandardAOEs(module, AID.AeroII, new AOEShapeRect(50, 4));
+class VolcanicCoordinates(BossModule module) : Components.StandardAOEs(module, AID.VolcanicCoordinatesAOE, 6);
 
 class V013TheLalaStates : StateMachineBuilder
 {
@@ -466,10 +470,11 @@ class V013TheLalaStates : StateMachineBuilder
             .ActivateOnEnter<CalculatedTrajectory>()
             .ActivateOnEnter<FlailSmash>()
             .ActivateOnEnter<FlailSmashLong>()
-            .ActivateOnEnter<FloralFigure>()
-            .ActivateOnEnter<RollingSpout>();
+            .ActivateOnEnter<RollingSpout>()
+            .ActivateOnEnter<AeroII>()
+            .ActivateOnEnter<VolcanicCoordinates>();
     }
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12639)]
-public class V013TheLala(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z + 5.762f), new ArenaBoundsSquare(20));
+public class V013TheLala(WorldState ws, Actor primary) : BossModule(ws, primary, new(135, -870), new ArenaBoundsSquare(20));
