@@ -13,6 +13,7 @@ public enum OID : uint
     SummonedAnila = 0x4097, // R2.400, x?, route 2 Fluke Typhoon
     WavefoamBubble = 0x4094, // R1.200, x?, route 2 stand-in bubbles
     BubbleStrewer = 0x1EB936, // R0.500, EventObj type, Strewn Bubbles lines
+    AloaloZaratan = 0x409A, // R1.120, x?, route 3 sand pile snakes
 }
 
 public enum AID : uint
@@ -63,11 +64,20 @@ public enum AID : uint
     HydrosurgeAOE = 35468, // Helper->self, 6.0s cast, single-target, starts persistent mid-line
     Wavefoam = 36115, // SummonedApa->self, 3.0s cast, single-target, spawn WavefoamBubble
     FlukeTyphoonAnila = 35471, // SummonedAnila->self, 8.0s cast, range 40 width 40 rect, knock bubbled players across
+
+    Roar = 35474, // Boss->self, 5.0s cast, single-target, summon Zaratan
+    BubbleNetSand = 35475, // Boss->self, 4.1+0.9s cast, single-target, visual (bubble one Zaratan)
+    BubbleNetSandAOE = 35476, // Helper->self, 5.0s cast, range 65 circle, raidwide
+    Updraft = 36111, // Boss->self, 6.5+0.5s cast, single-target, elevate bubbled Zaratan
+    UpdraftAOE = 36112, // Helper->self, 7.0s cast, range 35 circle, visual
+    HundredLashingsVisual = 35480, // AloaloZaratan->self, 14.4+1.1s cast, single-target, visual
+    HundredLashings = 35479, // AloaloZaratan->self, 15.5s cast, range 60 180-degree cone (ground)
+    HundredLashingsElevated = 35481, // Helper->self, 15.5s cast, single-target, elevated (misses)
 }
 
 public enum SID : uint
 {
-    Bubble = 3745, // on bubbled spring crystals (extra=0xC8)
+    Bubble = 3745, // on bubbled spring crystals / Zaratan (extra=0xC8)
 }
 
 public enum TetherID : uint
@@ -78,8 +88,10 @@ public enum TetherID : uint
 
 class TidalRoar(BossModule module) : Components.RaidwideCastDelay(module, AID.TidalRoar, AID.TidalRoarAOE, 1);
 class BubbleNet(BossModule module) : Components.RaidwideCast(module, AID.BubbleNetAOE);
+class BubbleNetSand(BossModule module) : Components.RaidwideCast(module, AID.BubbleNetSandAOE);
 class Hydrobomb(BossModule module) : Components.StandardAOEs(module, AID.HydrobombAOE, 5);
 class Hydroblast(BossModule module) : Components.SingleTargetCast(module, AID.Hydroblast);
+class Roar(BossModule module) : Components.CastHint(module, AID.Roar, "Zaratan adds spawning");
 
 class WaterIII(BossModule module) : Components.GenericAOEs(module, AID.WaterIII)
 {
@@ -394,6 +406,56 @@ class WavefoamBubbles(BossModule module) : Components.GenericTowers(module)
 
 class FlukeTyphoonAnila(BossModule module) : Components.KnockbackFromCastTarget(module, AID.FlukeTyphoonAnila, 20, ignoreImmunes: true, shape: new AOEShapeRect(40, 20), kind: Kind.DirForward);
 
+class HundredLashings(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<(Actor Caster, AOEInstance AOE, bool Bubbled)> _aoes = [];
+    private static readonly AOEShapeCone _shape = new(60, 90.Degrees());
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var a in _aoes)
+        {
+            // bubbled half safe
+            yield return a.Bubbled ? (a.AOE with { Color = ArenaColor.SafeFromAOE, Risky = false }) : a.AOE;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID != AID.HundredLashings)
+            return;
+        var bubbled = caster.FindStatus((uint)SID.Bubble) != null;
+        _aoes.Add((caster, new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)), bubbled));
+    }
+
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if ((SID)status.ID != SID.Bubble || (OID)actor.OID != OID.AloaloZaratan)
+            return;
+        var i = _aoes.FindIndex(a => a.Caster == actor);
+        if (i >= 0)
+        {
+            var e = _aoes[i];
+            _aoes[i] = (e.Caster, e.AOE, true);
+        }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.HundredLashings or AID.HundredLashingsVisual or AID.HundredLashingsElevated)
+            _aoes.RemoveAll(a => a.Caster == caster || a.Caster.InstanceID == caster.InstanceID);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.HundredLashings or AID.HundredLashingsElevated)
+        {
+            _aoes.RemoveAll(a => a.Caster == caster || a.AOE.Origin.AlmostEqual(caster.Position, 1));
+            ++NumCasts;
+        }
+    }
+}
+
 class V012KetudukeStates : StateMachineBuilder
 {
     public V012KetudukeStates(BossModule module) : base(module)
@@ -401,6 +463,7 @@ class V012KetudukeStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<TidalRoar>()
             .ActivateOnEnter<BubbleNet>()
+            .ActivateOnEnter<BubbleNetSand>()
             .ActivateOnEnter<SpringCrystals>()
             .ActivateOnEnter<StrewnBubbles>()
             .ActivateOnEnter<Hydrobomb>()
@@ -411,7 +474,9 @@ class V012KetudukeStates : StateMachineBuilder
             .ActivateOnEnter<TidalWave>()
             .ActivateOnEnter<Hydrosurge>()
             .ActivateOnEnter<WavefoamBubbles>()
-            .ActivateOnEnter<FlukeTyphoonAnila>();
+            .ActivateOnEnter<FlukeTyphoonAnila>()
+            .ActivateOnEnter<Roar>()
+            .ActivateOnEnter<HundredLashings>();
     }
 }
 
