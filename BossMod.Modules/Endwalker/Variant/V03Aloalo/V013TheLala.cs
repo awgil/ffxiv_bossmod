@@ -7,6 +7,7 @@ public enum OID : uint
     Rodiaki = 0x403C, // R2.000, x?, Faunal Figure armadillos
     ArrowBright = 0x1EB941, // R0.500, EventObj type, Arcane Plot arrows
     ArrowDim = 0x1EB942, // R0.500, EventObj type, Arcane Plot redirect arrows
+    Kapokapo = 0x403B, // R2.040, x?, route 6 donuts
 }
 
 public enum AID : uint
@@ -36,6 +37,9 @@ public enum AID : uint
     FaunalFigure = 34946, // Boss->self, 3.0s cast, single-target, spawn Rodiaki
     FlailSmash = 34947, // Rodiaki->location, 7.5s cast, range 80 circle, proximity
     FlailSmashLong = 35436, // Rodiaki->location, 20.0s cast, range 80 circle, proximity (with Arcane Plot)
+
+    FloralFigure = 34944, // Boss->self, 3.0s cast, single-target, spawn Kapokapo
+    RollingSpout = 34945, // Kapokapo->self, 5.0s cast, range 4-12 donut
 }
 
 public enum SID : uint
@@ -445,6 +449,8 @@ class CalculatedTrajectory : Components.GenericForcedMarch
 
 class FlailSmash(BossModule module) : Components.ProximityAOEs(module, AID.FlailSmash, 25);
 class FlailSmashLong(BossModule module) : Components.ProximityAOEs(module, AID.FlailSmashLong, 25);
+class FloralFigure(BossModule module) : Components.CastHint(module, AID.FloralFigure, "Kapokapo seedlings spawning");
+class RollingSpout(BossModule module) : Components.StandardAOEs(module, AID.RollingSpout, new AOEShapeDonut(4, 12));
 
 class V013TheLalaStates : StateMachineBuilder
 {
@@ -459,7 +465,9 @@ class V013TheLalaStates : StateMachineBuilder
             .ActivateOnEnter<TargetedLight>()
             .ActivateOnEnter<CalculatedTrajectory>()
             .ActivateOnEnter<FlailSmash>()
-            .ActivateOnEnter<FlailSmashLong>();
+            .ActivateOnEnter<FlailSmashLong>()
+            .ActivateOnEnter<FloralFigure>()
+            .ActivateOnEnter<RollingSpout>();
     }
 }
 
