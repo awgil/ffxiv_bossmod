@@ -136,6 +136,61 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show player hints and warnings")]
     public bool ShowPlayerHints = true;
 
+    public enum TimelineRemindersDir
+    {
+        [PropertyDisplay("Right to left")]
+        RightToLeft,
+        [PropertyDisplay("Left to right")]
+        LeftToRight,
+        [PropertyDisplay("Bottom to top")]
+        BottomToTop,
+        [PropertyDisplay("Top to bottom")]
+        TopToBottom
+    }
+
+    // timeline reminders settings
+    [SectionStart]
+    [PropertyDisplay("Enable timeline reminders", tooltip: "Shows a separate overlay with upcoming cooldown-plan actions as a sliding timeline, similar to WoW's TimelineReminders addon")]
+    public bool TimelineRemindersEnabled = false;
+
+    [PropertyDisplay("Lookahead (seconds)", tooltip: "How many seconds before a planned action's cast window opens it starts appearing on the timeline", depends: nameof(TimelineRemindersEnabled))]
+    [PropertySlider(1, 120, Speed = 1)]
+    public float TimelineRemindersLookahead = 30;
+
+    [PropertyDisplay("Max upcoming occurrences per track", tooltip: "How many future occurrences of the same repeating action can be shown on the timeline at once", depends: nameof(TimelineRemindersEnabled))]
+    [PropertySlider(1, 10, Speed = 1)]
+    public int TimelineRemindersMaxPerTrack = 1;
+
+    [PropertyDisplay("Icon size", depends: nameof(TimelineRemindersEnabled))]
+    [PropertySlider(8, 128, Speed = 1)]
+    public int TimelineRemindersIconSize = 40;
+
+    [PropertyDisplay("Countdown text size", depends: nameof(TimelineRemindersEnabled))]
+    [PropertySlider(0.1f, 100, Speed = 1)]
+    public float TimelineRemindersFontSize = 17;
+
+    [PropertyDisplay("Speed (pixels/second)", tooltip: "How fast icons travel toward the 'now' line. Icons too far out to fit on screen at this speed pile up at the far edge and start sliding once there's room", depends: nameof(TimelineRemindersEnabled))]
+    [PropertySlider(1, 500, Speed = 1)]
+    public float TimelineRemindersSpeed = 35;
+
+    [PropertyDisplay("Direction", tooltip: "Which way icons travel as their cast window approaches", depends: nameof(TimelineRemindersEnabled))]
+    public TimelineRemindersDir TimelineRemindersDirection = TimelineRemindersDir.RightToLeft;
+
+    public enum TimelineRemindersTextPos
+    {
+        [PropertyDisplay("Top")]
+        Top,
+        [PropertyDisplay("Bottom")]
+        Bottom,
+        [PropertyDisplay("Left")]
+        Left,
+        [PropertyDisplay("Right")]
+        Right
+    }
+
+    [PropertyDisplay("Countdown text position", tooltip: "Where the countdown number is drawn relative to the icon", depends: nameof(TimelineRemindersEnabled))]
+    public TimelineRemindersTextPos TimelineRemindersTextPosition = TimelineRemindersTextPos.Bottom;
+
     // misc. settings
     [SectionStart]
     [PropertyDisplay("Show movement hints in world")]

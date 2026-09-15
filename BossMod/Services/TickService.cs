@@ -54,6 +54,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private readonly BossModuleMainWindow _wndBossmod;
     private readonly BossModuleHintsWindow _wndBossmodHints;
+    private readonly BossModuleTimelineRemindersWindow _wndTimelineReminders;
     private readonly ZoneModuleWindow _wndZone;
     private readonly ReplayManagementWindow _wndReplay;
     private readonly UIRotationWindow _wndRotation;

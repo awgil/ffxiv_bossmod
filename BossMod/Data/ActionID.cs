@@ -66,6 +66,12 @@ public readonly record struct ActionID(uint Raw)
         _ => 0
     };
 
+    public readonly uint Icon() => Type switch
+    {
+        ActionType.Spell => Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.Icon ?? 0,
+        _ => 0
+    };
+
     public readonly float CastTime() => Type switch
     {
         ActionType.Spell => (Service.LuminaRow<Lumina.Excel.Sheets.Action>(ID)?.Cast100ms ?? 0) * 0.1f,
