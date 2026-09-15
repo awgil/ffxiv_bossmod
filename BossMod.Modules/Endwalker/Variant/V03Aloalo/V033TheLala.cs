@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Variant.V03Aloalo.V013TheLala;
+namespace BossMod.Endwalker.Variant.V03Aloalo.V033TheLala;
 
 public enum OID : uint
 {
@@ -456,9 +456,9 @@ class RollingSpout(BossModule module) : Components.StandardAOEs(module, AID.Roll
 class AeroII(BossModule module) : Components.StandardAOEs(module, AID.AeroII, new AOEShapeRect(50, 4));
 class VolcanicCoordinates(BossModule module) : Components.StandardAOEs(module, AID.VolcanicCoordinatesAOE, 6);
 
-class V013TheLalaStates : StateMachineBuilder
+class V033TheLalaStates : StateMachineBuilder
 {
-    public V013TheLalaStates(BossModule module) : base(module)
+    public V033TheLalaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<InfernoTheorem>()
@@ -477,4 +477,4 @@ class V013TheLalaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12639, Contributors = "croizat")]
-public class V013TheLala(WorldState ws, Actor primary) : BossModule(ws, primary, new(135, -870), new ArenaBoundsSquare(20));
+public class V033TheLala(WorldState ws, Actor primary) : BossModule(ws, primary, new(135, -870), new ArenaBoundsSquare(20));

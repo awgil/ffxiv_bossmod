@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Variant.V03Aloalo.V015Loquloqui;
+﻿namespace BossMod.Endwalker.Variant.V03Aloalo.V035Loquloqui;
 
 public enum OID : uint
 {
@@ -422,9 +422,9 @@ class Shockwave(BossModule module) : Components.Knockback(module, AID.Shockwave,
     }
 }
 
-class V015LoquloquiStates : StateMachineBuilder
+class V035LoquloquiStates : StateMachineBuilder
 {
-    public V015LoquloquiStates(BossModule module) : base(module)
+    public V035LoquloquiStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<LongLostLight>()
@@ -443,4 +443,4 @@ class V015LoquloquiStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12636, Contributors = "croizat")]
-public class V015Loquloqui(WorldState ws, Actor primary) : BossModule(ws, primary, new(950, -860), Arenas.Initial);
+public class V035Loquloqui(WorldState ws, Actor primary) : BossModule(ws, primary, new(950, -860), Arenas.Initial);

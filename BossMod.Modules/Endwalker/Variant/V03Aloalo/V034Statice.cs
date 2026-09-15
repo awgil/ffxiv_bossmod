@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Variant.V03Aloalo.V014Statice;
+namespace BossMod.Endwalker.Variant.V03Aloalo.V034Statice;
 
 public enum OID : uint
 {
@@ -609,9 +609,9 @@ class JackInTheBox(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class V014StaticeStates : StateMachineBuilder
+class V034StaticeStates : StateMachineBuilder
 {
-    public V014StaticeStates(BossModule module) : base(module)
+    public V034StaticeStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<AeroIV>()
@@ -638,4 +638,4 @@ class V014StaticeStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12506, Contributors = "croizat")]
-public class V014Statice(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, -833), new ArenaBoundsCircle(20));
+public class V034Statice(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, -833), new ArenaBoundsCircle(20));

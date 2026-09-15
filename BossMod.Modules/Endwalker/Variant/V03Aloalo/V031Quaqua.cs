@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Variant.V03Aloalo.V011Quaqua;
+namespace BossMod.Endwalker.Variant.V03Aloalo.V031Quaqua;
 
 public enum OID : uint
 {
@@ -620,9 +620,9 @@ class CloudToGround(BossModule module) : Components.Exaflare(module, 6, AID.Clou
     }
 }
 
-class V011QuaquaStates : StateMachineBuilder
+class V031QuaquaStates : StateMachineBuilder
 {
-    public V011QuaquaStates(BossModule module) : base(module)
+    public V031QuaquaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<MadeMagic>()
@@ -641,4 +641,4 @@ class V011QuaquaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12527, Contributors = "croizat")]
-public class V011Quaqua(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z), new ArenaBoundsCircle(20f));
+public class V031Quaqua(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z), new ArenaBoundsCircle(20f));

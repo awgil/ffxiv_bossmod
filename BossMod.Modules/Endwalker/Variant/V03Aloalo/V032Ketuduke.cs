@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Variant.V03Aloalo.V012Ketuduke;
+﻿namespace BossMod.Endwalker.Variant.V03Aloalo.V032Ketuduke;
 
 public enum OID : uint
 {
@@ -528,9 +528,9 @@ class HundredLashings(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class V012KetudukeStates : StateMachineBuilder
+class V032KetudukeStates : StateMachineBuilder
 {
-    public V012KetudukeStates(BossModule module) : base(module)
+    public V032KetudukeStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<TidalRoar>()
@@ -554,4 +554,4 @@ class V012KetudukeStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12605, Contributors = "croizat")]
-public class V012Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new(-790, -395), new ArenaBoundsSquare(20));
+public class V032Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new(-790, -395), new ArenaBoundsSquare(20));
