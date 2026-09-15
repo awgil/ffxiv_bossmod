@@ -37,16 +37,16 @@ class DebugGraphics
         do
         {
             var nodeText = $"{SceneNodeText(o)}###{(IntPtr)o}";
-            ImGuiTreeNodeFlags nodeFlags = (o->ChildObject != null ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf) | ImGuiTreeNodeFlags.OpenOnArrow;
-            bool showNode = !_showGraphicsLeafCharactersOnly || o->ChildObject != null || o->GetObjectType() == ObjectType.CharacterBase;
+            var nodeFlags = (o->ChildObject != null ? ImGuiTreeNodeFlags.None : ImGuiTreeNodeFlags.Leaf) | ImGuiTreeNodeFlags.OpenOnArrow;
+            var showNode = !_showGraphicsLeafCharactersOnly || o->ChildObject != null || o->GetObjectType() == ObjectType.CharacterBase;
             if (showNode && ImGui.TreeNodeEx(nodeText, nodeFlags))
             {
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 {
-                    bool watched = _watchedRenderObjects.ContainsKey((IntPtr)o);
+                    var watched = _watchedRenderObjects.ContainsKey((IntPtr)o);
                     if (!watched)
                     {
-                        int size = 0x80;
+                        var size = 0x80;
                         switch (o->GetObjectType())
                         {
                             case ObjectType.CharacterBase:
@@ -118,7 +118,7 @@ class DebugGraphics
         foreach (var v in _watchedRenderObjects)
         {
             var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-            Camera.Instance?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
+            Camera.Instance()?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
         }
     }
 
@@ -128,7 +128,7 @@ class DebugGraphics
             return;
 
         var w = new WatchedRenderObject();
-        for (int i = 0; i < size / 4; ++i)
+        for (var i = 0; i < size / 4; ++i)
             w.Data.Add(((uint*)o)[i]);
         _watchedRenderObjects.Add((IntPtr)o, w);
     }
@@ -138,7 +138,7 @@ class DebugGraphics
         var start = o;
         do
         {
-            WatchedRenderObject? watch = _watchedRenderObjects.GetValueOrDefault((IntPtr)o);
+            var watch = _watchedRenderObjects.GetValueOrDefault((IntPtr)o);
             if (watch != null)
                 UpdateWatchedMod(o, watch);
 
@@ -153,10 +153,10 @@ class DebugGraphics
     {
         w.Live = true;
 
-        int start = 0;
-        for (int i = 0; i < w.Modifications.Count; ++i)
+        var start = 0;
+        for (var i = 0; i < w.Modifications.Count; ++i)
         {
-            (int end, int nextStart) = w.Modifications[i];
+            (var end, var nextStart) = w.Modifications[i];
             var mods = CheckUnmodRange((uint*)o, w, start, end);
             if (mods != null)
             {
@@ -170,7 +170,7 @@ class DebugGraphics
         if (endMods != null)
             w.Modifications.AddRange(endMods);
 
-        for (int i = 0; i < w.Data.Count; ++i)
+        for (var i = 0; i < w.Data.Count; ++i)
             w.Data[i] = ((uint*)o)[i];
     }
 
@@ -184,7 +184,7 @@ class DebugGraphics
         List<(int, int)> res = [];
         while (start < end)
         {
-            int m = start + 1;
+            var m = start + 1;
             while (m < end && o[m] != w.Data[m])
                 ++m;
 
@@ -198,7 +198,7 @@ class DebugGraphics
 
     private void DrawMods(WatchedRenderObject w)
     {
-        int start = 0;
+        var start = 0;
         var sb = new StringBuilder();
         foreach ((var end, var nextStart) in w.Modifications)
         {
@@ -360,33 +360,33 @@ class DebugGraphics
         if (_overlayStep.X < 1 || _overlayStep.Y < 1)
             return;
 
-        int mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
-        int mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
-        float y = Service.ObjectTable.LocalPlayer.Position.Y;
+        var mx = (int)(_overlayMaxOffset.X / _overlayStep.X);
+        var mz = (int)(_overlayMaxOffset.Y / _overlayStep.Y);
+        var y = Service.ObjectTable.LocalPlayer.Position.Y;
         if (_overlayCircle)
         {
             var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
-            for (int ir = 0; ir <= mx; ++ir)
+            for (var ir = 0; ir <= mx; ++ir)
             {
-                Camera.Instance.DrawWorldCircle(center, ir * _overlayStep.X, ArenaColor.PC);
+                Camera.Instance()?.DrawWorldCircle(center, ir * _overlayStep.X, ArenaColor.PC);
             }
-            for (int ia = 0; ia < 8; ++ia)
+            for (var ia = 0; ia < 8; ++ia)
             {
                 var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
-                Camera.Instance.DrawWorldLine(center - offset, center + offset, ArenaColor.PC);
+                Camera.Instance()?.DrawWorldLine(center - offset, center + offset, ArenaColor.PC);
             }
         }
         else
         {
-            for (int ix = -mx; ix <= mx; ++ix)
+            for (var ix = -mx; ix <= mx; ++ix)
             {
                 var x = _overlayCenter.X + ix * _overlayStep.X;
-                Camera.Instance.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
+                Camera.Instance()?.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
             }
-            for (int iz = -mz; iz <= mz; ++iz)
+            for (var iz = -mz; iz <= mz; ++iz)
             {
                 var z = _overlayCenter.Y + iz * _overlayStep.Y;
-                Camera.Instance.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
+                Camera.Instance()?.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
             }
         }
     }

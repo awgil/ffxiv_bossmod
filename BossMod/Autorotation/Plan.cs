@@ -62,15 +62,13 @@ public class JsonPlanConverter : JsonConverter<Plan>
         using var jdoc = JsonDocument.ParseValue(ref reader);
         var name = jdoc.RootElement.GetProperty(nameof(Plan.Name)).GetString() ?? "";
         var encName = jdoc.RootElement.GetProperty(nameof(Plan.Encounter)).GetString() ?? "";
-        var encType = Type.GetType(encName);
-        var encInfo = encType != null ? BossModuleRegistry.FindByType(encType) : null;
-        if (encInfo == null)
+        if (BossModuleRegistry.FindByName(encName) is not { } encInfo)
         {
             Service.Log($"Error while deserializing plan {name}: failed to find encounter {encName}");
             return null;
         }
 
-        var res = new Plan(name, encType!)
+        var res = new Plan(name, encInfo.ModuleType)
         {
             Class = Enum.Parse<Class>(jdoc.RootElement.GetProperty(nameof(Plan.Class)).GetString() ?? ""),
             Level = jdoc.RootElement.GetProperty(nameof(Plan.Level)).GetInt32()
@@ -81,14 +79,13 @@ public class JsonPlanConverter : JsonConverter<Plan>
         }
         foreach (var jm in jdoc.RootElement.GetProperty(nameof(Plan.Modules)).EnumerateObject())
         {
-            var mt = Type.GetType(jm.Name);
-            if (mt == null || !RotationModuleRegistry.Modules.TryGetValue(mt, out var md))
+            if (!RotationModuleRegistry.Modules.TryGetValue(jm.Name, out var md))
             {
                 Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find module {jm.Name}");
                 continue;
             }
 
-            var mi = res.AddModule(mt, md.Definition, md.Builder);
+            var mi = res.AddModule(md.ModuleType, md.Definition, md.Builder);
             var m = res.Modules[mi].Tracks;
             foreach (var jt in jm.Value.EnumerateObject())
             {
@@ -203,7 +200,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
         foreach (var m in value.Modules)
         {
             writer.WriteStartObject(m.Type.FullName!);
-            for (int iTrack = 0; iTrack < m.Tracks.Count; ++iTrack)
+            for (var iTrack = 0; iTrack < m.Tracks.Count; ++iTrack)
             {
                 var track = m.Tracks[iTrack];
                 if (track.Count == 0)
@@ -221,7 +218,7 @@ public class JsonPlanConverter : JsonConverter<Plan>
                 writer.WriteEndArray();
             }
             writer.WriteStartObject("_defaults");
-            for (int iDef = 0; iDef < m.Defaults.Count; ++iDef)
+            for (var iDef = 0; iDef < m.Defaults.Count; ++iDef)
             {
                 var def = m.Defaults[iDef];
                 if (def == default)

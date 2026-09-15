@@ -53,6 +53,7 @@ public sealed class Replay
         public readonly List<Cast> Casts = [];
         public readonly SortedList<DateTime, uint> EventObjectAnimation = [];
         public readonly SortedList<DateTime, byte> EventState = [];
+        public readonly SortedList<DateTime, ActorModelState> ModelState = [];
         public readonly SortedList<DateTime, ushort> ActionTimeline = [];
         public float MinRadius = float.MaxValue;
         public float MaxRadius = float.MinValue;
@@ -72,7 +73,7 @@ public sealed class Replay
 
         private T? HistoryEntryAt<T>(SortedList<DateTime, T> history, DateTime t)
         {
-            int next = history.UpperBound(t);
+            var next = history.UpperBound(t);
             return next == 0 ? default : history.Values[next - 1];
         }
     }

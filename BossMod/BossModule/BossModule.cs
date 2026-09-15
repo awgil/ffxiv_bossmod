@@ -69,7 +69,7 @@ public abstract class BossModule : IDisposable
         // execute callbacks for existing state
         foreach (var actor in WorldState.Actors)
         {
-            bool nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
+            var nonPlayer = actor.Type is not ActorType.Player and not ActorType.Pet and not ActorType.Chocobo;
             if (nonPlayer)
             {
                 comp.OnActorCreated(actor);
@@ -80,7 +80,7 @@ public abstract class BossModule : IDisposable
                 comp.OnTargetable(actor);
             if (actor.Tether.ID != 0)
                 comp.OnTethered(actor, actor.Tether);
-            for (int i = 0; i < actor.Statuses.Length; ++i)
+            for (var i = 0; i < actor.Statuses.Length; ++i)
                 if (actor.Statuses[i].ID != 0)
                     comp.OnStatusGain(actor, actor.Statuses[i]);
         }
@@ -88,7 +88,7 @@ public abstract class BossModule : IDisposable
 
     public void DeactivateComponent<T>() where T : BossComponent
     {
-        int count = _components.RemoveAll(x => x is T);
+        var count = _components.RemoveAll(x => x is T);
         if (count == 0)
             ReportError(null, $"State {StateMachine.ActiveState?.ID:X}: Could not find a component of type {typeof(T)} to deactivate");
     }
@@ -162,7 +162,7 @@ public abstract class BossModule : IDisposable
         }
     }
 
-    public void Draw(Angle cameraAzimuth, int pcSlot, bool includeText, bool includeArena)
+    public void Draw(Angle cameraAzimuth, int pcSlot, bool includeText, bool includeArena, AIHints hints)
     {
         var pc = Raid[pcSlot];
         if (pc == null)
@@ -183,7 +183,7 @@ public abstract class BossModule : IDisposable
         if (includeArena)
         {
             Arena.Begin(cameraAzimuth);
-            DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2));
+            DrawArena(pcSlot, pc, pcHints.Any(h => h.Item2), hints);
             Arena.End();
         }
     }
@@ -193,7 +193,7 @@ public abstract class BossModule : IDisposable
 
     static bool IsMelee(Actor pc) => pc is { Role: Role.Melee or Role.Tank } or { Class: Class.RDM };
 
-    public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks)
+    public virtual void DrawArena(int pcSlot, Actor pc, bool haveRisks, AIHints hints)
     {
         if (WindowConfig.ShowWaymarks)
             DrawWaymarks();
@@ -229,7 +229,9 @@ public abstract class BossModule : IDisposable
         // draw enemies & player
         DrawEnemies(pcSlot, pc);
         if (DebugOpts.DrawAllActors)
-            DrawDebug();
+            DrawAllActors();
+        if (WindowConfig.ShowPullDebug)
+            DrawPulls(hints);
         Arena.Actor(pc, ArenaColor.PC, true);
     }
 
@@ -303,7 +305,7 @@ public abstract class BossModule : IDisposable
     // if the player isn't participating in the encounter, continuing to run the module will
     // - interfere with generic solver (best case scenario)
     // - crash the module (e.g. if a caster disappears because the player moves too far from them) (worst case scenario)
-    protected virtual bool AllowedToActivate() { return true; }
+    protected virtual bool AllowedToActivate() { return WorldState.Client.ActiveFate.ID == PrimaryActor.FateID; }
 
     // called during update if module is active; should return true if module is to be reset (i.e. deleted and new instance recreated for same actor)
     // default implementation never resets, but it's useful for outdoor bosses that can be leashed
@@ -326,7 +328,7 @@ public abstract class BossModule : IDisposable
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
     }
 
-    private void DrawDebug()
+    private void DrawAllActors()
     {
         List<string> tooltip = [];
         var cursor = ImGui.GetMousePos();
@@ -350,6 +352,24 @@ public abstract class BossModule : IDisposable
             ImGui.SetTooltip(string.Join("\n", tooltip));
     }
 
+    private void DrawPulls(AIHints hints)
+    {
+        foreach (var enemy in hints.PotentialTargets.Where(a => a.Actor is { IsDeadOrDestroyed: false, CastInfo: null } && a.CanMove))
+        {
+            if (WorldState.Actors.Find(enemy.Actor.TargetID) is { } target)
+            {
+                var toTarget = target.Position - enemy.Actor.Position;
+                var distToTarget = toTarget.Length() - enemy.Actor.HitboxRadius - target.HitboxRadius;
+                if (distToTarget > enemy.TankDistance)
+                {
+                    var movement = toTarget.Normalized() * (distToTarget - enemy.TankDistance);
+                    Arena.AddLine(enemy.Actor.Position, enemy.Actor.Position + movement, 0xFFFFFF00);
+                    Arena.AddCircle(enemy.Actor.Position + movement, 0.5f, 0xFFFFFF00);
+                }
+            }
+        }
+    }
+
     private void DrawGlobalHints(BossComponent.GlobalHints hints)
     {
         using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
@@ -363,7 +383,7 @@ public abstract class BossModule : IDisposable
 
     private void DrawPlayerHints(BossComponent.TextHints hints)
     {
-        foreach ((var hint, bool risk) in hints)
+        foreach ((var hint, var risk) in hints)
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
             Utils.TextOutlined(hint, ActualShadowColor);
@@ -428,7 +448,7 @@ public abstract class BossModule : IDisposable
         {
             var (prio, color) = CalculateHighestPriority(pcSlot, pc, slot, player);
 
-            bool isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
+            var isFocus = WorldState.Client.FocusTargetId == player.InstanceID;
             if (prio == BossComponent.PlayerPriority.Irrelevant && !WindowConfig.ShowIrrelevantPlayers && !(isFocus && WindowConfig.ShowFocusTargetPlayer))
                 continue;
 
@@ -579,7 +599,7 @@ public abstract class BossModule : IDisposable
 
     private void OnActorEAnim(Actor actor, ushort p1, ushort p2)
     {
-        uint state = ((uint)p1 << 16) | p2;
+        var state = ((uint)p1 << 16) | p2;
         foreach (var comp in _components)
             comp.OnActorEAnim(actor, state);
     }

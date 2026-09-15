@@ -67,7 +67,7 @@ public abstract class ColumnStateMachine(Timeline timeline, StateMachineTree tre
         }
 
         // draw node itself
-        bool showNode = true;
+        var showNode = true;
         showNode &= DrawUnnamedNodes || node.State.Name.Length > 0;
         showNode &= !DrawTankbusterNodesOnly || node.State.EndHint.HasFlag(StateMachine.StateHint.Tankbuster);
         showNode &= !DrawRaidwideNodesOnly || node.State.EndHint.HasFlag(StateMachine.StateHint.Raidwide);
@@ -101,8 +101,8 @@ public abstract class ColumnStateMachine(Timeline timeline, StateMachineTree tre
 
     private Vector2 NodeScreenPos(StateMachineTree.Node? node, int fallbackBranch, bool singleColumn, float phaseStart)
     {
-        int branch = singleColumn ? 0 : (node?.BranchID ?? fallbackBranch);
-        float time = node?.Time ?? 0;
+        var branch = singleColumn ? 0 : (node?.BranchID ?? fallbackBranch);
+        var time = node?.Time ?? 0;
         return Timeline.ColumnCoordsToScreenCoords(_nodeHOffset + branch * PixelsPerBranch, phaseStart + time);
     }
 

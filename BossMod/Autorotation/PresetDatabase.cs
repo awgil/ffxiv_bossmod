@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text.Json;
+using System.Threading;
 
 namespace BossMod.Autorotation;
 
@@ -8,19 +9,33 @@ public sealed class PresetDatabase
 {
     private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
 
-    public readonly List<Preset> DefaultPresets; // default presets, distributed as part of the plugin
-    public readonly List<Preset> UserPresets; // user-defined presets, stored in user's preset db
+    public readonly List<Preset> DefaultPresets = []; // default presets, distributed as part of the plugin
+    public readonly List<Preset> UserPresets = []; // user-defined presets, stored in user's preset db
     public Event<Preset?, Preset?> PresetModified = new(); // (old, new); old == null if preset is added, new == null if preset is removed
 
     private readonly FileInfo _dbPath;
+    private readonly FileInfo _defaultPath;
+
+    private readonly Lock _lock = new();
 
     public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
 
     public PresetDatabase(string rootPath, FileInfo defaultPresets)
     {
         _dbPath = new(rootPath + ".db.json");
-        DefaultPresets = LoadPresetsFromFile(defaultPresets);
-        UserPresets = LoadPresetsFromFile(_dbPath);
+        _defaultPath = defaultPresets;
+        Load();
+    }
+
+    public void Load()
+    {
+        lock (_lock)
+        {
+            DefaultPresets.Clear();
+            DefaultPresets.AddRange(LoadPresetsFromFile(_defaultPath));
+            UserPresets.Clear();
+            UserPresets.AddRange(LoadPresetsFromFile(_dbPath));
+        }
     }
 
     private List<Preset> LoadPresetsFromFile(FileInfo file)
@@ -70,7 +85,13 @@ public sealed class PresetDatabase
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c) => AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+    public IEnumerable<Preset> PresetsForClass(Class c)
+    {
+        lock (_lock)
+        {
+            return AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+        }
+    }
 
     public Preset? FindPresetByName(ReadOnlySpan<char> name, StringComparison cmp = StringComparison.CurrentCultureIgnoreCase)
     {

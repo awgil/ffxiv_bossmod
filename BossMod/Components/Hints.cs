@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Components;
 
-abstract class GenericInvincible(BossModule module, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : BossComponent(module)
+public abstract class GenericInvincible(BossModule module, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : BossComponent(module)
 {
     public bool EnableHints = true;
 
@@ -19,7 +19,7 @@ abstract class GenericInvincible(BossModule module, string hint = "Attacking inv
     }
 }
 
-class InvincibleStatus(BossModule module, uint statusId, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : GenericInvincible(module, hint, priority)
+public class InvincibleStatus(BossModule module, uint statusId, string hint = "Attacking invincible target!", int priority = AIHints.Enemy.PriorityInvincible) : GenericInvincible(module, hint, priority)
 {
     protected readonly List<Actor> _actors = [];
 

@@ -33,7 +33,7 @@ public class ColumnActorStatuses : Timeline.ColumnGroup
     {
         foreach (ref var c in _columns.AsSpan())
         {
-            bool visible = c.col?.Width > 0;
+            var visible = c.col?.Width > 0;
             if (ImGui.Checkbox($"{Utils.StatusString(c.sid)} from {ReplayUtils.ParticipantString(c.source, c.source?.WorldExistence.FirstOrDefault().Start ?? default)}", ref visible))
             {
                 c.col ??= BuildColumn(c.sid, c.source);

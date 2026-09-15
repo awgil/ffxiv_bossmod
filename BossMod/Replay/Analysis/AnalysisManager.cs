@@ -2,9 +2,9 @@
 
 namespace BossMod.ReplayAnalysis;
 
-sealed class AnalysisManager : IDisposable
+public sealed class AnalysisManager : IDisposable
 {
-    private class Lazy<T>(Func<T> init)
+    public class Lazy<T>(Func<T> init)
     {
         private readonly Func<T> _init = init;
         private T? _impl;
@@ -62,8 +62,7 @@ sealed class AnalysisManager : IDisposable
         private readonly Lazy<MapEffectInfo> _mapEffectInfo;
         private readonly Lazy<DirectorInfo> _directorInfo;
         private readonly Lazy<ArenaBounds> _arenaBounds;
-        private readonly Lazy<TEASpecific>? _teaSpecific;
-        private readonly Lazy<TOPSpecific>? _topSpecific;
+        private readonly List<(string, Lazy<CustomAnalyzer>)> _customAnalyzers = [];
 
         public PerEncounter(List<Replay> replays, uint oid)
         {
@@ -76,10 +75,8 @@ sealed class AnalysisManager : IDisposable
             _mapEffectInfo = new(() => new(replays, oid));
             _directorInfo = new(() => new(replays, oid));
             _arenaBounds = new(() => new(replays, oid));
-            if (oid == (uint)Shadowbringers.Ultimate.TEA.OID.BossP1)
-                _teaSpecific = new(() => new(replays, oid));
-            if (oid == (uint)Endwalker.Ultimate.TOP.OID.Boss)
-                _topSpecific = new(() => new(replays, oid));
+            if (AnalyzerRegistry.ByID(oid) is { } info)
+                _customAnalyzers.Add((info.Label, new(() => info.Factory(replays, oid))));
         }
 
         public void Draw(UITree tree)
@@ -111,13 +108,9 @@ sealed class AnalysisManager : IDisposable
             foreach (var n in tree.Node("Arena bounds"))
                 _arenaBounds.Get().Draw(tree);
 
-            if (_teaSpecific != null)
-                foreach (var n in tree.Node("TEA-specific analysis"))
-                    _teaSpecific.Get().Draw(tree);
-
-            if (_topSpecific != null)
-                foreach (var n in tree.Node("TOP-specific analysis"))
-                    _topSpecific.Get().Draw(tree);
+            foreach (var (label, analyzer) in _customAnalyzers)
+                foreach (var n in tree.Node(label))
+                    analyzer.Get().Draw(tree);
         }
     }
 

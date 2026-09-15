@@ -207,7 +207,7 @@ internal sealed unsafe class DebugInput : IDisposable
                     _ => $"gamepad{v - 0xA7}"
                 };
                 string printBinding(ushort v) => $"{((v & 0x100) != 0 ? "shift+" : "")}{((v & 0x200) != 0 ? "ctrl+" : "")}{((v & 0x400) != 0 ? "alt+" : "")}{((v & 0xF800) != 0 ? "?+" : "")}{bindString((byte)v)} ({v:X4})";
-                for (int i = 0; i < idata->KeybindCount; ++i)
+                for (var i = 0; i < idata->KeybindCount; ++i)
                 {
                     _tree.LeafNode($"{i} = {string.Join(", ", Enumerable.Range(0, 5).Select(j => printBinding(idata->Keybinds[i].Bindings[j])))}");
                 }
@@ -311,7 +311,7 @@ internal sealed unsafe class DebugInput : IDisposable
         //else if (_gamepadNavigate)
         //{
         //    var dest = new WPos(_dest);
-        //    var dir = (Camera.Instance?.CameraAzimuth ?? 0).Radians() - Angle.FromDirection(dest - (_ws.Party.Player()?.Position ?? dest)) + 180.Degrees();
+        //    var dir = (Camera.Instance()?.CameraAzimuth ?? 0).Radians() - Angle.FromDirection(dest - (_ws.Party.Player()?.Position ?? dest)) + 180.Degrees();
         //    input.GamepadOverridesEnabled = true;
         //    input.GamepadOverrides[3] = (int)(100 * dir.Sin());
         //    input.GamepadOverrides[4] = (int)(100 * dir.Cos());

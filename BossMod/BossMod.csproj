@@ -1,38 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>7.5.5.8</Version>
+    <Version>7.5.6.5</Version>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Using Include="System" />
-    <Using Include="System.Collections" />
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.Collections.Immutable" />
-    <Using Include="System.Linq" />
-    <Using Include="System.Numerics" />
-    <Using Include="Lumina.Extensions" />
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AnalysisMode>All</AnalysisMode>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <LocalCS>false</LocalCS>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(LocalCS)' == 'true'">
-    <Use_Dalamud_FFXIVClientStructs>false</Use_Dalamud_FFXIVClientStructs>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(LocalCS)' == 'true'">
-    <ProjectReference Include="..\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
-    <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
-  </ItemGroup>
-
+  <Import Project="..\Common.targets" />
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputType>Exe</OutputType>
@@ -42,15 +14,16 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
-    <PackageReference Include="DalaMock.Core" Version="6.1.8" />
+    <PackageReference Include="DalaMock.Core" Version="6.1.9" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalaMock.Host" Version="6.1.6" />
-    <PackageReference Include="DalaMock.Shared" Version="6.1.2" />
     <Reference Include="Dalamud.Common" Private="false" />
     <Reference Include="TerraFX.Interop.Windows" Private="false" />
-    <PackageReference Include="System.Data.Sqlite" Version="2.0.2" />
+    <PackageReference Include="DalaMock.Host" Version="6.1.9" />
+    <PackageReference Include="DalaMock.Shared" Version="6.1.9" />
+    <PackageReference Include="System.Data.Sqlite" Version="2.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
 
     <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -60,9 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Modules\**\*.json" />
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
+    <EmbeddedResource Include="Data\AggroDistance.dat" />
   </ItemGroup>
 
   <ItemGroup>

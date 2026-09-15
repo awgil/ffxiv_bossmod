@@ -38,7 +38,7 @@ public class Cleave(BossModule module, Enum? aid, AOEShape shape, uint enemyOID 
         }
     }
 
-    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
+    protected IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
     {
         foreach (var enemy in _enemies)
         {

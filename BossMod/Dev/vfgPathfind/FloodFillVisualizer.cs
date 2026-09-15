@@ -66,11 +66,11 @@ public class FloodFillVisualizer
         var dl = ImGui.GetWindowDrawList();
 
         // blocked squares / goal
-        int nodeIndex = 0;
+        var nodeIndex = 0;
         var goalY = Map.WorldToGrid(new(0, 0, EndZ)).y;
         for (int y = ScrollY, ymax = Math.Min(Map.Height, ScrollY + h); y < ymax; ++y)
         {
-            for (int x = 0; x < Map.Width; ++x, ++nodeIndex)
+            for (var x = 0; x < Map.Width; ++x, ++nodeIndex)
             {
                 var corner = tl + new Vector2(x, y - ScrollY) * ScreenPixelSize;
                 var cornerEnd = corner + new Vector2(ScreenPixelSize, ScreenPixelSize);
@@ -80,14 +80,14 @@ public class FloodFillVisualizer
                 if (reachable)
                 {
                     var alpha = 0.5f; // 1 - (pix.MaxG > 0 ? pix.MaxG / Map.MaxG : 0);
-                    uint c = 128 + (uint)(alpha * 127);
+                    var c = 128 + (uint)(alpha * 127);
                     c = c | (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
                 else if (y == goalY)
                 {
                     var alpha = 1;// pix.Priority / Map.MaxPriority;
-                    uint c = 128 + (uint)(alpha * 127);
+                    var c = 128 + (uint)(alpha * 127);
                     c = (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
@@ -107,12 +107,12 @@ public class FloodFillVisualizer
         // grid
         if (ScreenPixelSize > 4)
         {
-            for (int x = 1; x < Map.Width; ++x)
+            for (var x = 1; x < Map.Width; ++x)
             {
                 var off = new Vector2(x * ScreenPixelSize, 0);
                 dl.AddLine(tl + off, bl + off, 0xffffffff, 1);
             }
-            for (int y = 1; y < h; ++y)
+            for (var y = 1; y < h; ++y)
             {
                 var off = new Vector2(0, y * ScreenPixelSize);
                 dl.AddLine(tl + off, tr + off, 0xffffffff, 1);
@@ -147,7 +147,7 @@ public class FloodFillVisualizer
             var fromS = tl + new Vector2(from.x + 0.5f, fromY + 0.5f) * ScreenPixelSize;
             //if (CurrT == 0 && fromY >= 0 && fromY <= h)
             //    dl.AddCircle(fromS, ScreenPixelSize / 2, 0xffff0000);
-            for (int i = 1; i < Path.Count; ++i)
+            for (var i = 1; i < Path.Count; ++i)
             {
                 var to = Map.WorldToGrid(Path[i].XYZ());
                 var toY = to.y - ScrollY;

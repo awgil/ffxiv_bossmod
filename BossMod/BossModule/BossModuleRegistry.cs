@@ -4,6 +4,8 @@ namespace BossMod;
 
 public static class BossModuleRegistry
 {
+    public static readonly Event Modified = new();
+
     public class Info
     {
         public Type ModuleType;
@@ -81,7 +83,7 @@ public static class BossModuleRegistry
                 iidType = null;
             }
 
-            uint primaryOID = infoAttr?.PrimaryActorOID ?? 0;
+            var primaryOID = infoAttr?.PrimaryActorOID ?? 0;
             if (primaryOID == 0 && oidType != null)
             {
                 if (Enum.TryParse(oidType, "Boss", out var oid))
@@ -177,19 +179,56 @@ public static class BossModuleRegistry
     }
 
     private static readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
-    private static readonly Dictionary<Type, Info> _modulesByType = []; // [module-type] = module info
+    private static readonly Dictionary<string, Info> _modulesByType = []; // [type fullname] = module info
 
-    static BossModuleRegistry()
+    private static bool ScanAssembly(Assembly assembly)
     {
-        foreach (var t in Utils.GetDerivedTypes<BossModule>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
+        var modified = false;
+
+        foreach (var t in Utils.GetDerivedTypes<BossModule>(assembly).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {
             var info = Info.Build(t);
             if (info == null)
                 continue;
-            _modulesByType[t] = info;
+            if (t.FullName == null)
+                continue;
+            modified = true;
+            _modulesByType[t.FullName] = info;
             if (!_modulesByOID.TryAdd(info.PrimaryActorOID, info))
                 Service.Log($"[ModuleRegistry] Two boss modules have same primary actor OID: {t.FullName} and {_modulesByOID[info.PrimaryActorOID].ModuleType.FullName}");
         }
+
+        return modified;
+    }
+
+    private static bool UnloadFrom(Assembly assembly)
+    {
+        var modified = false;
+
+        foreach (var (k, _) in _modulesByType.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
+            modified |= _modulesByType.Remove(k);
+
+        foreach (var (k, _) in _modulesByOID.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
+            modified |= _modulesByOID.Remove(k);
+
+        return modified;
+    }
+
+    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    {
+        var modified = false;
+
+        foreach (var a in old)
+            modified |= UnloadFrom(a);
+
+        foreach (var a in @new)
+            modified |= ScanAssembly(a);
+
+        foreach (var m in _modulesByType.Values)
+            modified |= _modulesByOID.TryAdd(m.PrimaryActorOID, m);
+
+        if (modified)
+            Modified.Fire();
     }
 
     private static readonly BossModuleConfig _config = Service.Config.Get<BossModuleConfig>();
@@ -197,7 +236,8 @@ public static class BossModuleRegistry
     public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modulesByOID;
 
     public static Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
-    public static Info? FindByType(Type type) => _modulesByType.GetValueOrDefault(type);
+    public static Info? FindByName(string typeName) => _modulesByType.GetValueOrDefault(typeName);
+    public static Info? FindByType(Type t) => t.FullName == null ? null : FindByName(t.FullName);
 
     public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(ws, primary);
 

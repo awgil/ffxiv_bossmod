@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using static BossMod.BossModuleConfig;
 
 namespace BossMod;
@@ -8,13 +8,15 @@ public class BossModuleMainWindow : UIWindow
 {
     private readonly BossModuleManager _mgr;
     private readonly ZoneModuleManager _zmm;
+    private readonly AIHints _hints;
 
     private const string _windowID = "###Boss module";
 
-    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base(_windowID, false, new(400, 400))
+    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base(_windowID, false, new(400, 400))
     {
         _mgr = mgr;
         _zmm = zmm;
+        _hints = hints;
         RespectCloseHotkey = false;
     }
 
@@ -107,7 +109,7 @@ public class BossModuleMainWindow : UIWindow
         {
             try
             {
-                _mgr.ActiveModule.Draw(_mgr.Config.RotateArena ? _mgr.WorldState.Client.CameraAzimuth : default, PartyState.PlayerSlot, !_mgr.Config.HintsInSeparateWindow, true);
+                _mgr.ActiveModule.Draw(_mgr.Config.RotateArena ? _mgr.WorldState.Client.CameraAzimuth : default, PartyState.PlayerSlot, !_mgr.Config.HintsInSeparateWindow, true, _hints);
             }
             catch (Exception ex)
             {
@@ -122,16 +124,16 @@ public class BossModuleMainWindow : UIWindow
         if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
             return;
 
-        foreach ((var start, var end, uint color) in arrows)
+        foreach ((var start, var end, var color) in arrows)
         {
-            Vector3 start3 = start.ToVec3(y);
-            Vector3 end3 = end.ToVec3(y);
-            Camera.Instance.DrawWorldLine(start3, end3, color);
+            var start3 = start.ToVec3(y);
+            var end3 = end.ToVec3(y);
+            Camera.Instance()?.DrawWorldLine(start3, end3, color);
             var dir = Vector3.Normalize(end3 - start3);
             var arrowStart = end3 - 0.4f * dir;
             var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-            Camera.Instance.DrawWorldLine(arrowStart + offset, end3, color);
-            Camera.Instance.DrawWorldLine(arrowStart - offset, end3, color);
+            Camera.Instance()?.DrawWorldLine(arrowStart + offset, end3, color);
+            Camera.Instance()?.DrawWorldLine(arrowStart - offset, end3, color);
         }
     }
 

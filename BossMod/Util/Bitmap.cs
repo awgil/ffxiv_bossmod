@@ -41,9 +41,9 @@ public sealed class Bitmap
                 return; // nothing to copy
 
             // note: this could be optimized if needed...
-            for (int y = r.Top; y < r.Bottom; ++y)
+            for (var y = r.Top; y < r.Bottom; ++y)
             {
-                for (int x = r.Left; x < r.Right; ++x)
+                for (var x = r.Left; x < r.Right; ++x)
                 {
                     dest[x + offX, y + offY] = Bitmap[x, y];
                 }

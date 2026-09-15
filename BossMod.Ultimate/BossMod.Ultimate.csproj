@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <RootNamespace>BossMod</RootNamespace>
+  </PropertyGroup>
+
+  <Import Project="..\Module.targets" />
+</Project>

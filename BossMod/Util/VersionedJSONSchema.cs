@@ -36,7 +36,7 @@ public sealed class VersionedJSONSchema
             JsonValueKind.Array => JsonArray.Create(jpayload)!,
             _ => throw new ArgumentException($"Config file {file.FullName} has unsupported payload type {jpayload.ValueKind}")
         };
-        for (int i = version - MinSupportedVersion; i < Converters.Count; ++i)
+        for (var i = version - MinSupportedVersion; i < Converters.Count; ++i)
             converted = Converters[i](converted, version, file);
 
         // backup the old version and write out new one

@@ -225,7 +225,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
         return (dirH - ForwardMovementDirection(), dirV);
     }
 
-    private Angle ForwardMovementDirection() => _legacyMode ? Camera.Instance!.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
+    private Angle ForwardMovementDirection() => _legacyMode ? Camera.Instance()!.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
 
     private bool PlayerHasMisdirection()
     {
@@ -233,7 +233,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
         var sm = player != null && player->IsCharacter() ? player->GetStatusManager() : null;
         if (sm == null)
             return false;
-        for (int i = 0; i < sm->NumValidStatuses; ++i)
+        for (var i = 0; i < sm->NumValidStatuses; ++i)
             if (sm->Status[i].StatusId is 1422 or 2936 or 3694 or 3909)
                 return true;
         return false;

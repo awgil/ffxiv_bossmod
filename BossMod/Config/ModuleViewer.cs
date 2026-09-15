@@ -35,6 +35,8 @@ public sealed class ModuleViewer : IDisposable
 
     private string _searchText = "";
 
+    private readonly EventSubscriptions _subscriptions;
+
     public ModuleViewer(PlanDatabase? planDB, WorldState ws)
     {
         _planDB = planDB;
@@ -84,8 +86,16 @@ public sealed class ModuleViewer : IDisposable
         _iconHunt = (uint)playStyle.GetRow(10).Icon;
 
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
-        for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
-            for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
+
+        _subscriptions = new(
+            BossModuleRegistry.Modified.ExecuteAndSubscribe(Rebuild)
+        );
+    }
+
+    private void Rebuild()
+    {
+        for (var i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
+            for (var j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
                 _groups[i, j] = [];
 
         foreach (var info in BossModuleRegistry.RegisteredModules.Values)
@@ -124,6 +134,7 @@ public sealed class ModuleViewer : IDisposable
 
     public void Dispose()
     {
+        _subscriptions.Dispose();
     }
 
     public void Draw(UITree tree, WorldState ws)
@@ -315,11 +326,11 @@ public sealed class ModuleViewer : IDisposable
 
         var modified = false;
 
-        for (int i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
+        for (var i = 0; i < (int)BossModuleInfo.Expansion.Count; ++i)
         {
             if (_filterExpansions[i])
                 continue;
-            for (int j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
+            for (var j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
             {
                 if (_filterCategories[j])
                     continue;
@@ -461,16 +472,56 @@ public sealed class ModuleViewer : IDisposable
             }
         }
 
-        var player = _ws.Party.Player();
-        if (player != null)
+        if (Service.IsMock)
+        {
+            foreach (var cls in supportedClasses)
+                if (ImGui.Selectable($"New plan for {cls}..."))
+                    CreateForClass(info, mplans, cls);
+        }
+        else if (_ws.Party.Player() is { } player)
         {
             if (ImGui.Selectable($"New plan for {player.Class}..."))
-            {
-                var plans = mplans.GetOrAdd(player.Class);
-                var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = info.PlanLevel };
-                _planDB.ModifyPlan(null, plan);
-                UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
-            }
+                CreateForClass(info, mplans, player.Class);
         }
     }
+
+    private void CreateForClass(BossModuleRegistry.Info info, Dictionary<Class, PlanDatabase.PlanList> mplans, Class cls)
+    {
+        var plans = mplans.GetOrAdd(cls);
+        var plan = new Plan($"New {plans.Plans.Count + 1}", info.ModuleType) { Guid = Guid.NewGuid().ToString(), Class = cls, Level = info.PlanLevel };
+
+        plan.Targeting.Add(new(new StrategyValueTrack())
+        {
+            TimeSinceActivation = -30,
+            WindowLength = 30
+        });
+
+        _planDB!.ModifyPlan(null, plan);
+        UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+    }
+
+    static readonly Class[] supportedClasses = [
+        Class.PLD,
+        Class.MNK,
+        Class.WAR,
+        Class.DRG,
+        Class.BRD,
+        Class.WHM,
+        Class.BLM,
+        Class.SMN,
+        Class.SCH,
+        Class.NIN,
+        Class.MCH,
+        Class.DRK,
+        Class.AST,
+        Class.SAM,
+        Class.RDM,
+        Class.BLU,
+        Class.GNB,
+        Class.DNC,
+        Class.RPR,
+        Class.SGE,
+        Class.VPR,
+        Class.PCT,
+    ];
 }

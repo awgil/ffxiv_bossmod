@@ -57,6 +57,21 @@ public enum ActionAspect : byte
     Physical
 }
 
+// for beastmaster; these are somehow not in sheets
+public enum ActionAffinity : byte
+{
+    None = 0,
+    Rampant = 1,
+    Durant = 2,
+    Eldritch = 3,
+    Volant = 4,
+
+    Red = Rampant,
+    Blue = Durant,
+    Yellow = Eldritch,
+    Green = Volant
+}
+
 // this contains all information about player actions that we care about (for action tweaks, autorotation, etc)
 // some of the data is available in sheets, however unfortunately quite a bit is hardcoded in game functions; it often uses current player data
 // however, we need this information outside game (ie in uidev) and for different players of different classes/levels (ie for replay analysis)
@@ -181,6 +196,11 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDPotionInt = new(ActionType.Item, 1049237); // hq grade 3 gemdraught of intelligence
     public static readonly ActionID IDPotionMnd = new(ActionType.Item, 1049238); // hq grade 3 gemdraught of mind
 
+    // TODO: remove later, this is for the ucob project
+    public static readonly ActionID IDClamCake = new(ActionType.Item, 1049247);
+    public static readonly ActionID IDFruitcake = new(ActionType.Item, 1049242);
+    public static readonly ActionID IDPopcorn = new(ActionType.Item, 1049240);
+
     // content specific consumables
     public static readonly ActionID IDPotionSustaining = new(ActionType.Item, 20309);
     public static readonly ActionID IDPotionMax = new(ActionType.Item, 1013637);
@@ -228,6 +248,10 @@ public sealed class ActionDefinitions
         RegisterItem(IDPotionUltra, 1.1f);
         RegisterItem(IDPotionPilgrim, 1.1f);
 
+        RegisterItem(IDClamCake, 2.1f);
+        RegisterItem(IDFruitcake, 2.1f);
+        RegisterItem(IDPopcorn, 2.1f);
+
         RegisterItem(IDMiscItemGreens, 1.1f);
 
         // special content actions - bozja, deep dungeons, etc
@@ -264,18 +288,18 @@ public sealed class ActionDefinitions
 
     // smart targeting utility: return target (if friendly) or other tank (if available) or null (otherwise)
     public static Actor? FindCoTank(WorldState ws, Actor player) => ws.Party.WithoutSlot().Exclude(player).FirstOrDefault(a => a.Role == Role.Tank);
-    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
+    public static Actor? SmartTargetCoTank(WorldState ws, Actor player, Actor? primaryTarget, AIHints _) => SmartTargetFriendly(primaryTarget) ?? FindCoTank(ws, player);
 
     // smart targeting utility: return target (if friendly) or any esunable player (if any) or self (otherwise)
     public static Actor? FindEsunaTarget(WorldState ws) => ws.Party.WithoutSlot().FirstOrDefault(p => p.Statuses.Any(s => Utils.StatusIsRemovable(s.ID)));
-    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints hints) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
+    public static Actor? SmartTargetEsunable(WorldState ws, Actor player, Actor? primaryTarget, AIHints _) => SmartTargetFriendly(primaryTarget) ?? FindEsunaTarget(ws) ?? player;
 
     public BitMask SpellAllowedClasses(Lumina.Excel.Sheets.Action data)
     {
         BitMask res = default;
         var cjc = _cjcSheet?.GetRowOrDefault(data.ClassJobCategory.RowId);
         if (cjc != null)
-            for (int i = 1; i < _cjcSheet!.Columns.Count; ++i)
+            for (var i = 1; i < _cjcSheet!.Columns.Count; ++i)
                 res[i - 1] = cjc.Value.ReadBoolColumn(i);
         return res;
     }
@@ -293,7 +317,7 @@ public sealed class ActionDefinitions
     // see ActionManager.CanUseActionOnTarget
     public ActionTargets SpellAllowedTargets(Lumina.Excel.Sheets.Action data)
     {
-        ActionTargets res = ActionTargets.None;
+        var res = ActionTargets.None;
         if (data.CanTargetSelf)
             res |= ActionTargets.Self;
         if (data.CanTargetParty)
@@ -450,7 +474,7 @@ public sealed class ActionDefinitions
     private void RegisterBozja(BozjaHolsterID id)
     {
         var normalAction = BozjaActionID.GetNormal(id);
-        bool isItem = normalAction == BozjaActionID.GetHolster(id);
+        var isItem = normalAction == BozjaActionID.GetHolster(id);
         RegisterSpell(normalAction, instantAnimLock: isItem ? 1.1f : 0.6f);
         if (!isItem)
         {
@@ -477,6 +501,60 @@ public sealed class ActionDefinitions
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }
     public void RegisterChargeIncreaseTrait<AID, TraitID>(AID aid, TraitID traitId) where AID : Enum where TraitID : Enum => RegisterChargeIncreaseTrait(ActionID.MakeSpell(aid), (uint)(object)traitId);
+
+    public static readonly ActionAffinity[] TrickAffinity = [
+        ActionAffinity.None,
+        ActionAffinity.Red,    // cu sith, cone
+        ActionAffinity.Red,    // squirrel, line (in both directions)
+        ActionAffinity.Red,    // lamb, line
+        ActionAffinity.Blue,   // pugil, cone
+        ActionAffinity.Red,    // opo, circle
+        ActionAffinity.Yellow, // dodo, cone
+        ActionAffinity.Yellow, // coblyn, ST
+        ActionAffinity.Red,    // diremite, ST
+        ActionAffinity.Blue,   // megacrab, circle
+        ActionAffinity.Green,  // wespe, ST (poison)
+        ActionAffinity.Green,  // vulture, cone
+        ActionAffinity.Red,    // mandragora, ST
+        ActionAffinity.Yellow, // geshunpest, circle
+        ActionAffinity.Red,    // puk, circle
+        ActionAffinity.Blue,   // crab, cone
+        ActionAffinity.Blue,   // mantis, ST
+        ActionAffinity.Yellow, // slime, ST (lifesteal)
+        ActionAffinity.Blue,   // dullahan, cone
+        ActionAffinity.Green,  // bat, ST (lifesteal)
+        ActionAffinity.Green,  // flytrap, cone (poison)
+        ActionAffinity.Blue,   // ziz, cone
+        ActionAffinity.Red,    // cactuar, line
+        ActionAffinity.Yellow, // golem, cone
+        ActionAffinity.Blue,   // apkallu, ST
+        ActionAffinity.Yellow, // turtle, circle
+        ActionAffinity.Red,    // buffalo, cone
+        ActionAffinity.Blue,   // uragnite, cone
+        ActionAffinity.Yellow, // worm, cone
+        ActionAffinity.Red,    // spriggan, cone
+        ActionAffinity.Red,    // goob, line
+        ActionAffinity.Yellow, // gigantoad, circle
+        ActionAffinity.Green,  // colibri, ST
+        ActionAffinity.Yellow, // coeurl, ST
+        ActionAffinity.Blue,   // raptor, cone
+        ActionAffinity.Red,    // drake, cone
+        ActionAffinity.Yellow, // treant, circle
+        ActionAffinity.Red,    // antling, ST
+        ActionAffinity.Red,    // chimera, cone
+        ActionAffinity.Red,    // morbol, line
+        ActionAffinity.Green,  // ghost, cone
+        ActionAffinity.Blue,   // salamander, cone
+        ActionAffinity.Blue,   // cobra, ST (poison)
+        ActionAffinity.Blue,   // hydra, ST
+        ActionAffinity.Green,  // damselfly, circle
+        ActionAffinity.Yellow, // rotting goob, ST
+        ActionAffinity.Green,  // zu, circle
+        ActionAffinity.Blue,   // ice golem, cone
+        ActionAffinity.Blue,   // karlabos, ST
+        ActionAffinity.Yellow, // rafflesia, circle
+        ActionAffinity.Yellow, // behemoth, cone
+    ];
 }
 
 public abstract class Defs

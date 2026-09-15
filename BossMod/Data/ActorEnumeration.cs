@@ -164,7 +164,7 @@ public static class ActorEnumeration
     public static WPos PositionCentroid(this IEnumerable<Actor> range)
     {
         WDir sum = default;
-        int count = 0;
+        var count = 0;
         foreach (var a in range)
         {
             sum += a.Position.ToWDir();

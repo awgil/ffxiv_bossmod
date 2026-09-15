@@ -16,7 +16,8 @@ public sealed class AutorotationConfig : ConfigNode
         Icon
     }
 
-    [PropertyDisplay("Show autorotation preset in the server info bar")]
+    [PropertyDisplay("Show active presets in server bar")]
+    [PropertyRadio]
     public DtrStatus ShowDTR = DtrStatus.None;
 
     [PropertyDisplay("Show performance stats in the server info bar")]

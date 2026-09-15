@@ -17,12 +17,12 @@ class EffectResultMispredict
         {
             foreach (var a in r.Actions)
             {
-                bool unexpected = false;
+                var unexpected = false;
 
                 foreach (var t in a.Targets)
                 {
-                    bool expectConfirmSource = false;
-                    bool expectConfirmTarget = false;
+                    var expectConfirmSource = false;
+                    var expectConfirmTarget = false;
                     foreach (var eff in t.Effects)
                     {
                         if (eff.Type is ActionEffectType.Damage or ActionEffectType.BlockedDamage or ActionEffectType.ParriedDamage or ActionEffectType.Heal or ActionEffectType.ApplyStatusEffectTarget or ActionEffectType.ApplyStatusEffectSource or ActionEffectType.RecoveredFromStatusEffect)
@@ -35,8 +35,8 @@ class EffectResultMispredict
                                 expectConfirmTarget = true;
                         }
                     }
-                    bool haveConfirmSource = t.ConfirmationSource != default;
-                    bool haveConfirmTarget = t.ConfirmationTarget != default;
+                    var haveConfirmSource = t.ConfirmationSource != default;
+                    var haveConfirmTarget = t.ConfirmationTarget != default;
                     if (IsRelevant(showMissing, expectConfirmSource, haveConfirmSource) || IsRelevant(showMissing, expectConfirmTarget, haveConfirmTarget))
                     {
                         unexpected = true;

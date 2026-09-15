@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using BossMod.Data;
+
+namespace BossMod;
 
 // utility that recalculates ai hints based on different data sources (eg active bossmodule, etc)
 // when there is no active bossmodule (eg in outdoor or on trash), we try to guess things based on world state (eg actor casts)
@@ -133,6 +135,9 @@ public sealed class AIHintsBuilder : IDisposable
             if (actor.FateID > 0 && actor.FateID == allowedFateID && !Utils.IsBossFate(actor.FateID))
                 enemy.ForbidDOTs = true;
 
+            if (PullDistance.TryGet(actor.OID, out var dist))
+                enemy.TankDistance = dist;
+
             hints.PotentialTargets.Add(enemy);
         }
     }
@@ -209,17 +214,17 @@ public sealed class AIHintsBuilder : IDisposable
             if (aoe.Caster.IsAlly)
                 continue;
 
+            if (aoe.Caster.CastInfo?.TargetID == player.InstanceID)
+                continue;
+
             var targetPos = aoe.Caster.CastInfo!.LocXZ;
             if (aoe.Target is { } tar && tar != aoe.Caster)
                 targetPos = tar.Position;
             var rot = aoe.Caster.CastInfo!.Rotation;
-            var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.NPCRemainingTime);
+            var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.RemainingTime);
+
             if (aoe.IsCharge)
-            {
-                // ignore charge AOEs that target player, as they presumably can't be avoided
-                if (aoe.Target != player)
-                    hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
-            }
+                hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
             else if (aoe.Shape is AOEShapeCone cone)
             {
                 // not sure how best to adjust cone shape distance to account for quantization error - we just pretend it is being cast from MaxError units "behind" the reported position and increase radius similarly
@@ -228,16 +233,14 @@ public sealed class AIHintsBuilder : IDisposable
                 hints.AddForbiddenZone(ShapeDistance.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
             }
             else
-            {
                 hints.AddForbiddenZone(aoe.Shape, targetPos, rot, finishAt, aoe.Caster.InstanceID);
-            }
         }
 
         foreach (var gaze in _activeGazes.Values)
         {
             var target = gaze.Target?.Position ?? gaze.Caster.CastInfo!.LocXZ;
             var rot = gaze.Caster.CastInfo!.Rotation;
-            var finishAt = _ws.FutureTime(gaze.Caster.CastInfo.NPCRemainingTime);
+            var finishAt = _ws.FutureTime(gaze.Caster.CastInfo.RemainingTime);
             if (gaze.Shape.Check(player.Position, target, rot))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(target - player.Position), 45.Degrees(), finishAt));
         }
@@ -246,7 +249,7 @@ public sealed class AIHintsBuilder : IDisposable
             hints.SetPriority(inv, AIHints.Enemy.PriorityInvincible);
     }
 
-    private bool IsValidEnemy(Actor actor) => !actor.IsAlly && actor.Type is ActorType.Enemy or ActorType.Helper;
+    private bool IsValidEnemy(Actor actor) => actor is { Type: ActorType.Enemy or ActorType.Helper, IsAlly: false };
 
     private void OnCastStarted(Actor actor)
     {

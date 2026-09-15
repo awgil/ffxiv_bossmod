@@ -37,7 +37,7 @@ public static class UIStrategyValue
         var targetDetails = value.Target switch
         {
             StrategyTarget.PartyByAssignment => ((PartyRolesConfig.Assignment)value.TargetParam).ToString(),
-            StrategyTarget.PartyWithLowestHP => PreviewParam((StrategyPartyFiltering)value.TargetParam),
+            StrategyTarget.PartyWithLowestHP or StrategyTarget.PartyByFilter => PreviewParam((StrategyPartyFiltering)value.TargetParam),
             StrategyTarget.EnemyWithHighestPriority => $"{(StrategyEnemySelection)value.TargetParam}",
             StrategyTarget.EnemyByOID => $"{(moduleInfo?.ObjectIDType != null ? Enum.ToObject(moduleInfo.ObjectIDType, (uint)value.TargetParam).ToString() : "???")} (0x{value.TargetParam:X})",
             StrategyTarget.PointWaymark => $"{(Waymark)value.TargetParam}",
@@ -67,7 +67,7 @@ public static class UIStrategyValue
         {
             if (combo)
             {
-                for (int i = 0; i < cfg.Options.Count; ++i)
+                for (var i = 0; i < cfg.Options.Count; ++i)
                 {
                     var opt = cfg.Options[i];
                     if (level < opt.MinLevel || level > opt.MaxLevel)
@@ -108,7 +108,7 @@ public static class UIStrategyValue
         if (overridePriority)
         {
             var priority = value.PriorityOverride;
-            int upperBound = Array.FindIndex(PriorityBaselines, b => b.Value > priority);
+            var upperBound = Array.FindIndex(PriorityBaselines, b => b.Value > priority);
             var baselineIndex = upperBound switch
             {
                 -1 => PriorityBaselines.Length - 1,
@@ -123,7 +123,7 @@ public static class UIStrategyValue
             {
                 if (combo)
                 {
-                    for (int i = 0; i < PriorityBaselines.Length; ++i)
+                    for (var i = 0; i < PriorityBaselines.Length; ++i)
                     {
                         if (ImGui.Selectable(PriorityBaselines[i].Name, i == baselineIndex))
                         {
@@ -172,6 +172,7 @@ public static class UIStrategyValue
                 modified |= DrawEditorTargetParamCombo<PartyRolesConfig.Assignment>(ref value.TargetParam, "Assignment");
                 break;
             case StrategyTarget.PartyWithLowestHP:
+            case StrategyTarget.PartyByFilter:
                 if (supportedTargets.HasFlag(ActionTargets.Self))
                     modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.IncludeSelf, "Allow self", false);
                 modified |= DrawEditorTargetParamFlags(ref value.TargetParam, StrategyPartyFiltering.ExcludeTanks, "Allow tanks", true);

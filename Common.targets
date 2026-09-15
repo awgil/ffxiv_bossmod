@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Collections.Immutable" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Numerics" />
+    <Using Include="Lumina.Extensions" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AnalysisMode>All</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LocalCS>false</LocalCS>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(LocalCS)' == 'true'">
+    <Use_Dalamud_FFXIVClientStructs>false</Use_Dalamud_FFXIVClientStructs>
+    <DefineConstants>LOCAL_CS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(LocalCS)' == 'true'">
+    <ProjectReference Include="..\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+    <ProjectReference Include="..\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+  </ItemGroup>
+</Project>

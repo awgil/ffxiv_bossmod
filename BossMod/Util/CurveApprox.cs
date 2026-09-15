@@ -10,8 +10,8 @@ public static class CurveApprox
     {
         // select max angle such that tesselation error is smaller than desired
         // error = R * (1 - cos(phi/2)) => cos(phi/2) = 1 - error/R
-        float tessAngle = 2 * MathF.Acos(1 - MathF.Min(maxError / radius, 1));
-        int tessNumSegments = (int)MathF.Ceiling(angularLength.Rad / tessAngle);
+        var tessAngle = 2 * MathF.Acos(1 - MathF.Min(maxError / radius, 1));
+        var tessNumSegments = (int)MathF.Ceiling(angularLength.Rad / tessAngle);
         tessNumSegments = (tessNumSegments + 1) & ~1; // round up to even for symmetry
         return Math.Clamp(tessNumSegments, 4, 512);
     }
@@ -20,9 +20,9 @@ public static class CurveApprox
     // winding: points are in CCW order
     public static IEnumerable<WDir> Circle(float radius, float maxError)
     {
-        int numSegments = CalculateCircleSegments(radius, (2 * MathF.PI).Radians(), maxError);
+        var numSegments = CalculateCircleSegments(radius, (2 * MathF.PI).Radians(), maxError);
         var angle = (2 * MathF.PI / numSegments).Radians();
-        for (int i = 0; i < numSegments; ++i) // note: do not include last point
+        for (var i = 0; i < numSegments; ++i) // note: do not include last point
             yield return PolarToCartesian(radius, i * angle);
     }
     public static IEnumerable<WPos> Circle(WPos center, float radius, float maxError) => Circle(radius, maxError).Select(off => center + off);
@@ -32,9 +32,9 @@ public static class CurveApprox
     public static IEnumerable<WDir> CircleArc(float radius, Angle angleStart, Angle angleEnd, float maxError)
     {
         var length = angleEnd - angleStart;
-        int numSegments = CalculateCircleSegments(radius, length.Abs(), maxError);
+        var numSegments = CalculateCircleSegments(radius, length.Abs(), maxError);
         var angle = length / numSegments;
-        for (int i = 0; i <= numSegments; ++i)
+        for (var i = 0; i <= numSegments; ++i)
             yield return PolarToCartesian(radius, angleStart + i * angle);
     }
     public static IEnumerable<WPos> CircleArc(WPos center, float radius, Angle angleStart, Angle angleEnd, float maxError) => CircleArc(radius, angleStart, angleEnd, maxError).Select(off => center + off);
@@ -50,9 +50,9 @@ public static class CurveApprox
 
     public static IEnumerable<WDir> Ellipse(float axis1, float axis2, float maxError)
     {
-        int numSegments = CalculateCircleSegments((axis1 + axis2) / 2f, (2 * MathF.PI).Radians(), maxError);
+        var numSegments = CalculateCircleSegments((axis1 + axis2) / 2f, (2 * MathF.PI).Radians(), maxError);
         var angle = (2 * MathF.PI / numSegments).Radians();
-        for (int i = 0; i < numSegments; ++i)
+        for (var i = 0; i < numSegments; ++i)
         {
             var t = i * angle;
             yield return new WDir(axis1 * t.Cos(), axis2 * t.Sin());

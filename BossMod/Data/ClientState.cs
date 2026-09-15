@@ -50,6 +50,7 @@ public sealed class ClientState
     public const int NumCooldownGroups = 87;
     public const int NumClassLevels = 35; // see ClassJob.ExpArrayIndex
     public const int NumBlueMageSpells = 24;
+    public const int NumBeastmasterBeasts = 3;
 
     public float? CountdownRemaining;
     public Angle CameraAzimuth; // updated every frame by the frame-start event
@@ -64,6 +65,7 @@ public sealed class ClientState
     public readonly byte[] BozjaHolster = new byte[(int)BozjaHolsterID.Count]; // number of copies in holster per item
     public readonly uint[] BlueMageSpells = new uint[NumBlueMageSpells];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
+    public readonly byte[] BeastmasterBeasts = new byte[NumBeastmasterBeasts];
     public Fate ActiveFate;
     public Pet ActivePet;
     public Companion ActiveCompanion;
@@ -152,6 +154,9 @@ public sealed class ClientState
 
         if (BlueMageSpells.Any(a => a != 0))
             yield return new OpBlueMageSpellsChange(BlueMageSpells);
+
+        if (BeastmasterBeasts.Any(a => a != 0))
+            yield return new OpBeastmasterBeastsChanged(BeastmasterBeasts);
 
         if (ClassJobLevels.Any(a => a != 0))
             yield return new OpClassJobLevelsChange(ClassJobLevels);
@@ -376,6 +381,25 @@ public sealed class ClientState
         public override void Write(ReplayRecorder.Output output)
         {
             output.EmitFourCC("CBLU"u8);
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
+                output.Emit(e);
+        }
+    }
+
+    public Event<OpBeastmasterBeastsChanged> BeastmasterBeastsChanged = new();
+    public sealed record class OpBeastmasterBeastsChanged(byte[] Values) : WorldState.Operation
+    {
+        public readonly byte[] Values = Values;
+
+        protected override void Exec(WorldState ws)
+        {
+            Array.Copy(Values, ws.Client.BeastmasterBeasts, NumBeastmasterBeasts);
+            ws.Client.BeastmasterBeastsChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CBST"u8);
             output.Emit((byte)Values.Length);
             foreach (var e in Values)
                 output.Emit(e);

@@ -57,7 +57,7 @@ class StateTransitionTimings
                 }
 
                 var enter = enc.Time.Start;
-                for (int i = 0; i < enc.States.Count; ++i)
+                for (var i = 0; i < enc.States.Count; ++i)
                 {
                     var from = enc.States[i];
                     var to = i < enc.States.Count - 1 ? enc.States[i + 1].ID : uint.MaxValue;
@@ -118,7 +118,7 @@ class StateTransitionTimings
             {
                 foreach (var inst in m.Instances)
                 {
-                    bool warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
+                    var warn = Math.Abs(inst.Duration - m.AvgTime) > m.StdDev;
                     tree.LeafNode($"{inst.Duration:f2}: {LocationString(inst.Replay, inst.Encounter, inst.Time)}", warn ? 0xff00ffff : 0xffffffff, () => TransitionInstanceContextMenu(from, toID, m, inst, ref actions), select: () => _selected = inst);
                 }
             }

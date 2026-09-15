@@ -6,11 +6,13 @@ public class BossModuleHintsWindow : UIWindow
 {
     private readonly BossModuleManager _mgr;
     private readonly ZoneModuleManager _zmm;
+    private readonly AIHints _hints;
 
-    public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm) : base("Boss module hints", false, new(400, 100))
+    public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base("Boss module hints", false, new(400, 100))
     {
         _mgr = mgr;
         _zmm = zmm;
+        _hints = hints;
         RespectCloseHotkey = false;
     }
 
@@ -34,7 +36,7 @@ public class BossModuleHintsWindow : UIWindow
         {
             try
             {
-                _mgr.ActiveModule?.Draw(default, PartyState.PlayerSlot, true, false);
+                _mgr.ActiveModule?.Draw(default, PartyState.PlayerSlot, true, false, _hints);
             }
             catch (Exception ex)
             {

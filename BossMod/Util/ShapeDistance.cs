@@ -55,6 +55,8 @@ public struct Sdf
             return (p) => sd(p) ? float.MinValue : float.MaxValue;
         }
     }
+
+    public readonly bool IsContinuous => Type == SdfType.Continuous;
 }
 
 public static class ShapeDistance

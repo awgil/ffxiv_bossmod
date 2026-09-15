@@ -1,5 +1,5 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Pathfinding;
 
@@ -7,6 +7,7 @@ public class MapVisualizer
 {
     public Map Map;
     public WPos StartPos;
+    private readonly float[]? gScratch;
     public float ScreenPixelSize = 12;
     public List<(WPos center, float ir, float or, Angle dir, Angle halfWidth)> Sectors = [];
     public List<(WPos origin, float lenF, float lenB, float halfWidth, Angle dir)> Rects = [];
@@ -15,10 +16,11 @@ public class MapVisualizer
     private ThetaStar _pathfind;
     private float _lastExecTime;
 
-    public MapVisualizer(Map map, WPos startPos)
+    public MapVisualizer(Map map, WPos startPos, float[]? gScratch = null)
     {
         Map = map;
         StartPos = startPos;
+        this.gScratch = gScratch;
         _pathfind = BuildPathfind();
         ExecTimed(() => _pathfind.Execute());
     }
@@ -44,12 +46,11 @@ public class MapVisualizer
 
         ImGui.Dummy(size);
 
-        // blocked squares / goal
-        int nodeIndex = 0;
-        int hoverNode = -1;
-        for (int y = 0; y < Map.Height; ++y)
+        var nodeIndex = 0;
+        var hoverNode = -1;
+        for (var y = 0; y < Map.Height; ++y)
         {
-            for (int x = 0; x < Map.Width; ++x, ++nodeIndex)
+            for (var x = 0; x < Map.Width; ++x, ++nodeIndex)
             {
                 var corner = tl + new Vector2(x, y) * ScreenPixelSize;
                 var cornerEnd = corner + new Vector2(ScreenPixelSize, ScreenPixelSize);
@@ -63,14 +64,14 @@ public class MapVisualizer
                 else if (pixMaxG < float.MaxValue)
                 {
                     var alpha = 1 - (pixMaxG > 0 ? pixMaxG / Map.MaxG : 0);
-                    uint c = 128 + (uint)(alpha * 127);
+                    var c = 128 + (uint)(alpha * 127);
                     c = c | (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
                 else if (pixPriority > 0)
                 {
                     var alpha = Map.MaxPriority > 0 ? pixPriority / Map.MaxPriority : 1;
-                    uint c = 128 + (uint)(alpha * 127);
+                    var c = 128 + (uint)(alpha * 127);
                     c = (c << 8) | 0xff000000;
                     dl.AddRectFilled(corner, cornerEnd, c);
                 }
@@ -92,6 +93,13 @@ public class MapVisualizer
             }
         }
 
+        // highlights blocked grid points, useful for rasterizer debugging but noisy otherwise
+        if (gScratch != null)
+            for (var y = 0; y <= Map.Height; ++y)
+                for (var x = 0; x <= Map.Width; ++x)
+                    if (gScratch.BoundSafeAt(y * (Map.Width + 1) + x, float.MinValue) is > float.MinValue and < float.MaxValue)
+                        dl.AddCircleFilled(tl + new Vector2(x, y) * ScreenPixelSize, 4, 0xFF0000FF);
+
         // border
         dl.AddLine(tl, tr, 0xffffffff, 2);
         dl.AddLine(tr, br, 0xffffffff, 2);
@@ -99,12 +107,12 @@ public class MapVisualizer
         dl.AddLine(bl, tl, 0xffffffff, 2);
 
         // grid
-        for (int x = 1; x < Map.Width; ++x)
+        for (var x = 1; x < Map.Width; ++x)
         {
             var off = new Vector2(x * ScreenPixelSize, 0);
             dl.AddLine(tl + off, bl + off, 0xffffffff, 1);
         }
-        for (int y = 1; y < Map.Height; ++y)
+        for (var y = 1; y < Map.Height; ++y)
         {
             var off = new Vector2(0, y * ScreenPixelSize);
             dl.AddLine(tl + off, tr + off, 0xffffffff, 1);
@@ -239,7 +247,7 @@ public class MapVisualizer
         }
         else
         {
-            float sDir = MathF.PI / 2 - dir.Rad;
+            var sDir = MathF.PI / 2 - dir.Rad;
             dl.PathArcTo(sCenter, ir / Map.Resolution * ScreenPixelSize, sDir + halfWidth.Rad, sDir - halfWidth.Rad);
             dl.PathArcTo(sCenter, or / Map.Resolution * ScreenPixelSize, sDir - halfWidth.Rad, sDir + halfWidth.Rad);
             dl.PathStroke(0xff0000ff, ImDrawFlags.Closed, 1);

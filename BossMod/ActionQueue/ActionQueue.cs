@@ -44,7 +44,7 @@ public sealed class ActionQueue
     {
         Entries.SortByReverse(e => (e.Priority, -e.Expire));
         Entry best = default;
-        float deadline = float.MaxValue; // any candidate we consider, if executed, should allow executing next action by this deadline
+        var deadline = float.MaxValue; // any candidate we consider, if executed, should allow executing next action by this deadline
         foreach (ref var candidate in Entries.AsSpan())
         {
             if (candidate.Priority < Priority.Minimal)

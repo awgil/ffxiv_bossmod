@@ -1,4 +1,6 @@
-﻿namespace BossMod.SCH;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+
+namespace BossMod.SCH;
 
 public enum AID : uint
 {
@@ -96,7 +98,11 @@ public enum SID : uint
     Bio2 = 189, // applied by Bio2 to target, dot
     Biolysis = 1895,
     Galvanize = 297, // applied by Adloquium to target, shield
+    Aetherflow = 304, // applied by Aetherflow to self
     Sleep = 3, // applied by Repose to target
+    Recitation = 1896, // applied by Recitation to self
+    Protraction = 2710, // applied by Protraction to target
+    Catalyze = 1918, // applied by Adloquium to target
     BanefulImpaction = 3883, // applied by Baneful Impaction to target
     ImpactImminent = 3882, // applied by Chain Stratagem to self
     ChainStratagem = 1221, // applied by Chain Stratagem to target
@@ -167,5 +173,9 @@ public sealed class Definitions : Defs
         d.Spell(AID.Broil2)!.AllowExecute =
         d.Spell(AID.Broil3)!.AllowExecute =
         d.Spell(AID.Broil4)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f);
+
+        d.Spell(AID.SacredSoil)!.AllowExecute =
+        d.Spell(AID.Excogitation)!.AllowExecute =
+        d.Spell(AID.Indomitability)!.AllowExecute = (ws, _, _, _) => ws.Client.GetGauge<ScholarGauge>().Aetherflow > 0;
     }
 }

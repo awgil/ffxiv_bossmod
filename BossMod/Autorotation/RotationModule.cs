@@ -166,7 +166,7 @@ public sealed record class RotationModuleDefinition(string DisplayName, string D
                             MinLevel = NonDefault(fieldSettings.MinLevel, trackInfo.MinLevel, 1),
                             MaxLevel = NonDefault(fieldSettings.MaxLevel, trackInfo.MaxLevel, int.MaxValue),
                             DefaultPriority = NonDefault(fieldSettings.DefaultPriority, trackInfo.DefaultPriority, ActionQueue.Priority.Medium),
-                            Context = NonDefault(fieldSettings.Context, StrategyContext.All),
+                            Context = NonDefault(fieldSettings.Context, trackInfo.Context, StrategyContext.All),
                             Color = fieldSettings.Color
                         });
                     }
