@@ -12,6 +12,10 @@ public enum OID : uint
     HomingPattern = 0x4051, // R1.000, x?, Dartboard homing dart
     Dart = 0x1EB931, // R0.500, EventObj type, Dartboard
     WhoopeeCushion = 0x1EB932, // R0.500, EventObj type, route 9 cushions
+    SurprisingMissile = 0x405B, // R1.000, x?, route 10 Present Box
+    SurprisingStaff = 0x405C, // R1.000, x?, route 10 Present Box
+    SurprisingWeapon = 0x4057, // R0.450, x?, route 10 Present Box
+    SurprisingWeaponAlt = 0x4059, // R0.450, x?, route 10 Present Box
 }
 
 public enum AID : uint
@@ -51,9 +55,17 @@ public enum AID : uint
 
     Dartboard = 35128, // Boss->self, 3.0s cast, single-target
     Thunderstorm = 35129, // Helper->self, 3.0s cast, range 5 circle
-    Meteor = 35130, // Helper->self, no cast, range 60 circle
+    Meteor = 35130, // Helper->self, no cast, range 60 circle, dartboard red (raidwide)
     BarbedLightning = 36075, // Helper->self, no cast, range ?-20 donut
-    HunksOfJunk = 35132, // Helper->player, no cast, range 6 circle
+    HunksOfJunk = 35132, // Helper->player, no cast, range 6 circle dartboard blue (spread)
+    HappySurprise = 35133, // Boss->self, no cast, range 60 circle, dartboard green (speed boost)
+    Sledgemagic = 35131, // Helper->self, 4.0s cast, range 40 circle, dartboard yellow proximity
+    SurprisingWeaponAutoAttack = 35138, // SurprisingWeapon->player, no cast, single-target
+
+    PresentBox = 35134, // Boss->self, 4.0s cast, single-target, spawn staves/missiles/weapon
+    FaerieRing = 35135, // SurprisingStaff->self, 3.0s cast, range 6-12 donut
+    FaerieRoad = 35136, // SurprisingStaff->self, 3.0s cast, range 45 width 8 rect
+    MissileBurst = 35137, // SurprisingMissile->player, no cast, single-target, kill if missile reaches
 }
 
 public enum IconID : uint
@@ -66,6 +78,11 @@ public enum IconID : uint
     Order6 = 395, // ConeSlice
     RotateCW = 156, // BallOfFire
     RotateCCW = 157, // BallOfFire
+}
+
+public enum TetherID : uint
+{
+    Follow = 17, // SurprisingMissile/SurprisingWeapon->player
 }
 
 class AeroIV(BossModule module) : Components.RaidwideCast(module, AID.AeroIV);
@@ -328,6 +345,7 @@ class FireSpread(BossModule module) : Components.GenericAOEs(module)
 class Thunderstorm(BossModule module) : Components.StandardAOEs(module, AID.Thunderstorm, 5);
 class Meteor(BossModule module) : Components.CastHint(module, AID.Meteor, "Raidwide");
 class HunksOfJunk(BossModule module) : Components.CastHint(module, AID.HunksOfJunk, "Damage to each player");
+class Sledgemagic(BossModule module) : Components.ProximityAOEs(module, AID.Sledgemagic, 15);
 
 class WhoopeeCushion(BossModule module) : Components.GenericTowers(module, AID.FairFlight)
 {
@@ -364,6 +382,162 @@ class WhoopeeCushion(BossModule module) : Components.GenericTowers(module, AID.F
 
 class FairFlight(BossModule module) : Components.RaidwideCast(module, AID.FairFlight, "Knock up — land on a cushion!");
 
+class FaerieRing(BossModule module) : Components.StandardAOEs(module, AID.FaerieRing, new AOEShapeDonut(6, 12)); // TODO: verify inner
+class FaerieRoad(BossModule module) : Components.StandardAOEs(module, AID.FaerieRoad, new AOEShapeRect(45, 4));
+
+class SurprisingMissile(BossModule module) : Components.GenericAOEs(module)
+{
+    private const float ForwardExtend = 2f;
+
+    private IEnumerable<Actor> Missiles => Module.Enemies(OID.SurprisingMissile).Where(m => !m.IsDead);
+
+    private static float Radius(Actor m) => m.HitboxRadius + 0.5f;
+
+    private Actor? TetherTarget(Actor missile)
+    {
+        if (missile.Tether.Target != 0 && WorldState.Actors.Find(missile.Tether.Target) is { } t && t.Type is ActorType.Player or ActorType.DutySupport)
+            return t;
+        foreach (var p in Raid.WithoutSlot(true))
+            if (p.Tether.Target == missile.InstanceID)
+                return p;
+        return null;
+    }
+
+    private static WDir TravelDir(Actor m, Actor target)
+        => (target.Position - m.Position).LengthSq() > 0.01f ? (target.Position - m.Position).Normalized() : m.Rotation.ToDirection();
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var m in Missiles)
+        {
+            if (TetherTarget(m) is not { } target)
+                continue;
+            var r = Radius(m);
+            var dir = TravelDir(m, target);
+            // add a forward rect to account for ping
+            yield return new(new AOEShapeRect(ForwardExtend + r, r, r), m.Position, Angle.FromDirection(dir));
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        foreach (var m in Missiles)
+        {
+            if (TetherTarget(m) is not { } target)
+                continue;
+            var r = Radius(m);
+            var dir = TravelDir(m, target);
+            if (actor.Position.InRect(m.Position, dir, ForwardExtend + r, r, r))
+            {
+                hints.Add("Away from missile!");
+                return;
+            }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var m in Missiles)
+        {
+            if (TetherTarget(m) is not { } target)
+                continue;
+            var r = Radius(m);
+            var dir = TravelDir(m, target);
+            hints.AddForbiddenZone(ShapeDistance.Capsule(m.Position, dir, ForwardExtend, r));
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var m in Missiles)
+        {
+            if (TetherTarget(m) is not { } target)
+                continue;
+            Arena.Actor(m, ArenaColor.Danger, true);
+            Arena.AddLine(m.Position, target.Position, ArenaColor.Danger);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.MissileBurst)
+            ++NumCasts;
+    }
+}
+
+class SurprisingWeapon(BossModule module) : Components.GenericAOEs(module)
+{
+    private const float KeepAway = 3f;
+    private const float ForwardExtend = 2f;
+
+    private static bool IsWeapon(uint oid) => oid is (uint)OID.SurprisingWeapon or (uint)OID.SurprisingWeaponAlt;
+
+    private IEnumerable<Actor> Weapons => WorldState.Actors.Where(a => IsWeapon(a.OID) && !a.IsDead);
+
+    private Actor? TetherTarget(Actor weapon)
+    {
+        if (weapon.Tether.Target != 0 && WorldState.Actors.Find(weapon.Tether.Target) is { } t && t.Type is ActorType.Player or ActorType.DutySupport)
+            return t;
+        foreach (var p in Raid.WithoutSlot(true))
+            if (p.Tether.Target == weapon.InstanceID)
+                return p;
+        return null;
+    }
+
+    private static WDir TravelDir(Actor w, Actor target)
+        => (target.Position - w.Position).LengthSq() > 0.01f ? (target.Position - w.Position).Normalized() : w.Rotation.ToDirection();
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var w in Weapons)
+        {
+            if (TetherTarget(w) is not { } target)
+                continue;
+            var dir = TravelDir(w, target);
+            yield return new(new AOEShapeRect(ForwardExtend + KeepAway, KeepAway, KeepAway), w.Position, Angle.FromDirection(dir));
+        }
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        foreach (var w in Weapons)
+        {
+            if (TetherTarget(w) is not { } target || target != actor)
+                continue;
+            var dir = TravelDir(w, target);
+            if (actor.Position.InRect(w.Position, dir, ForwardExtend + KeepAway, KeepAway, KeepAway))
+            {
+                hints.Add("Away from surprising weapon!");
+                return;
+            }
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var w in Weapons)
+        {
+            if (TetherTarget(w) is not { } target)
+                continue;
+            if (target != actor)
+                continue;
+            var dir = TravelDir(w, target);
+            hints.AddForbiddenZone(ShapeDistance.Capsule(w.Position, dir, ForwardExtend, KeepAway));
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var w in Weapons)
+        {
+            if (TetherTarget(w) is not { } target)
+                continue;
+            Arena.Actor(w, ArenaColor.Object, true);
+            Arena.AddLine(w.Position, target.Position, target == pc ? ArenaColor.Danger : ArenaColor.Safe);
+        }
+    }
+}
+
 class V014StaticeStates : StateMachineBuilder
 {
     public V014StaticeStates(BossModule module) : base(module)
@@ -381,8 +555,13 @@ class V014StaticeStates : StateMachineBuilder
             .ActivateOnEnter<Thunderstorm>()
             .ActivateOnEnter<Meteor>()
             .ActivateOnEnter<HunksOfJunk>()
+            .ActivateOnEnter<Sledgemagic>()
             .ActivateOnEnter<WhoopeeCushion>()
-            .ActivateOnEnter<FairFlight>();
+            .ActivateOnEnter<FairFlight>()
+            .ActivateOnEnter<FaerieRing>()
+            .ActivateOnEnter<FaerieRoad>()
+            .ActivateOnEnter<SurprisingMissile>()
+            .ActivateOnEnter<SurprisingWeapon>();
     }
 }
 
