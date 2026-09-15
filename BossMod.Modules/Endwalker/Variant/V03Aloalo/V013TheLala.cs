@@ -476,5 +476,5 @@ class V013TheLalaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12639)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12639, Contributors = "croizat")]
 public class V013TheLala(WorldState ws, Actor primary) : BossModule(ws, primary, new(135, -870), new ArenaBoundsSquare(20));

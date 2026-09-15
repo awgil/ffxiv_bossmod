@@ -442,5 +442,5 @@ class V015LoquloquiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12636)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12636, Contributors = "croizat")]
 public class V015Loquloqui(WorldState ws, Actor primary) : BossModule(ws, primary, new(950, -860), Arenas.Initial);
