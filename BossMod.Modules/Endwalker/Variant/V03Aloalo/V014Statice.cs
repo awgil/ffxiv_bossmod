@@ -16,6 +16,7 @@ public enum OID : uint
     SurprisingStaff = 0x405C, // R1.000, x?, route 10 Present Box
     SurprisingWeapon = 0x4057, // R0.450, x?, route 10 Present Box
     SurprisingWeaponAlt = 0x4059, // R0.450, x?, route 10 Present Box
+    TreasureBox = 0x4056, // R3.500, x?, route 11
 }
 
 public enum AID : uint
@@ -66,6 +67,9 @@ public enum AID : uint
     FaerieRing = 35135, // SurprisingStaff->self, 3.0s cast, range 6-12 donut
     FaerieRoad = 35136, // SurprisingStaff->self, 3.0s cast, range 45 width 8 rect
     MissileBurst = 35137, // SurprisingMissile->player, no cast, single-target, kill if missile reaches
+
+    JackInTheBox = 35126, // Boss->self, 4.0s cast, single-target, spawn treasure coffers
+    TreasureBurst = 35127, // TreasureBox->self, 1.0s cast, range 15 circle
 }
 
 public enum IconID : uint
@@ -88,7 +92,29 @@ public enum TetherID : uint
 class AeroIV(BossModule module) : Components.RaidwideCast(module, AID.AeroIV);
 class ShockingAbandon(BossModule module) : Components.SingleTargetCast(module, AID.ShockingAbandon);
 
-class HiddenMine(BossModule module) : Components.Voidzone(module, 5, OID.Mine);
+class HiddenMine(BossModule module) : Components.GenericAOEs(module, AID.HiddenMine)
+{
+    private bool _active = true;
+    private static readonly AOEShapeCircle _shape = new(5);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_active)
+            yield return new(_shape, Module.Center);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.Mine)
+            _active = false;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.HiddenMine)
+            _active = false;
+    }
+}
 
 class SurpriseNeedle(BossModule module) : Components.StandardAOEs(module, AID.SurpriseNeedle, new AOEShapeRect(40, 1));
 class FourTonzeWeight(BossModule module) : Components.StandardAOEs(module, AID.FourTonzeWeight, 4);
@@ -194,7 +220,6 @@ class TrickReload(BossModule module) : BossComponent(module)
 
 class TriggerHappy(BossModule module) : Components.StandardAOEs(module, AID.TriggerHappyAOE, new AOEShapeCone(40, 30.Degrees()));
 
-// TODO: confirm qty/angle
 class FireSpread(BossModule module) : Components.GenericAOEs(module)
 {
     public struct Sequence
@@ -382,7 +407,7 @@ class WhoopeeCushion(BossModule module) : Components.GenericTowers(module, AID.F
 
 class FairFlight(BossModule module) : Components.RaidwideCast(module, AID.FairFlight, "Knock up — land on a cushion!");
 
-class FaerieRing(BossModule module) : Components.StandardAOEs(module, AID.FaerieRing, new AOEShapeDonut(6, 12)); // TODO: verify inner
+class FaerieRing(BossModule module) : Components.StandardAOEs(module, AID.FaerieRing, new AOEShapeDonut(6, 12));
 class FaerieRoad(BossModule module) : Components.StandardAOEs(module, AID.FaerieRoad, new AOEShapeRect(45, 4));
 
 class SurprisingMissile(BossModule module) : Components.GenericAOEs(module)
@@ -538,6 +563,52 @@ class SurprisingWeapon(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class JackInTheBox(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<(Actor Caster, DateTime Activation)> _aoes = [];
+    private static readonly AOEShapeCircle _shape = new(15);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+        => _aoes.Select(a => new AOEInstance(_shape, a.Caster.Position, default, a.Activation));
+
+    public override void Update()
+    {
+        foreach (var b in Module.Enemies(OID.TreasureBox))
+            if (b.PosRot != b.PrevPosRot)
+                Mark(b);
+    }
+
+    public override void OnActorModelStateChange(Actor actor, byte modelState, byte animState1, byte animState2)
+    {
+        if ((OID)actor.OID == OID.TreasureBox)
+            Mark(actor);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID != AID.TreasureBurst)
+            return;
+        var i = _aoes.FindIndex(a => a.Caster == caster);
+        if (i >= 0)
+            _aoes[i] = (caster, Module.CastFinishAt(spell));
+        else
+            _aoes.Add((caster, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.TreasureBurst)
+            _aoes.RemoveAll(a => a.Caster == caster);
+    }
+
+    private void Mark(Actor box)
+    {
+        if (_aoes.Any(a => a.Caster == box))
+            return;
+        _aoes.Add((box, WorldState.CurrentTime));
+    }
+}
+
 class V014StaticeStates : StateMachineBuilder
 {
     public V014StaticeStates(BossModule module) : base(module)
@@ -561,7 +632,8 @@ class V014StaticeStates : StateMachineBuilder
             .ActivateOnEnter<FaerieRing>()
             .ActivateOnEnter<FaerieRoad>()
             .ActivateOnEnter<SurprisingMissile>()
-            .ActivateOnEnter<SurprisingWeapon>();
+            .ActivateOnEnter<SurprisingWeapon>()
+            .ActivateOnEnter<JackInTheBox>();
     }
 }
 
