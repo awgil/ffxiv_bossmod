@@ -1,4 +1,5 @@
-﻿namespace BossMod.Global.Crucible.WyvernPiece;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Global.Crucible.WyvernPiece;
 
 public enum OID : uint
 {

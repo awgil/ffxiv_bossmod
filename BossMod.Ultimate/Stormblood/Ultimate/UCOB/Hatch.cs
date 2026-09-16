@@ -16,8 +16,8 @@ class Hatch : Components.CastCounter
     {
         public int First = first;
         public int Second = second;
-        public Actor? Link = null;
-        public int NumHits = 0;
+        public Actor? Link;
+        public int NumHits;
     }
 
     public const float Radius = 8;
