@@ -90,7 +90,7 @@ class ArcanePlot(BossModule module) : Components.GenericAOEs(module)
 
     public bool IsTileUnsafe(WPos pos) => _aoes.Any(a => a.Check(pos));
 
-    public WPos[] ActiveTileOrigins => [.. _aoes.Select(a => a.Origin)];
+    public IEnumerable<WPos> ActiveTileOrigins => _aoes.Select(a => a.Origin);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

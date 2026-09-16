@@ -21,7 +21,7 @@ public enum AID : uint
     EdensFlare = 15767, // Boss->self, 4.0s cast, range 5-60 donut
     ViceAndVirtueLines = 17636, // Boss->self, 6.0s cast, single-target
     ViceOfVanity = 17639, // 233C->self, no cast, range 100+R width 6 rect - actual damage of ViceAndVirtueLines
-    _Ability_ = 18051, // Boss->location, no cast, ???
+    Unk1 = 18051, // Boss->location, no cast, ???
     PureLight = 15779, // Boss->self, 10.5s cast, range 60 width 60 rect
     DeltaAttack = 17642, // Boss->self, 4.5s cast, single-target, casts several mechanics at once, which are all telegraphed individually.
     EdensBlizzardIII = 17644, // 233C->self, 5.0s cast, range 10 circle
