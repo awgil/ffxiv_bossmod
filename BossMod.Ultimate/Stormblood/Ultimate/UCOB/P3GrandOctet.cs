@@ -31,6 +31,27 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
             hints.Add($"Move {(_diveOrder < 0 ? "CW" : "CCW")}");
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // before nael has picked a target, everyone stand mid
+        if (NumCasts == 0 && AOEs.Count == 0)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 1));
+            return;
+        }
+
+        var order = _baitOrder[slot];
+        if (order > 0 && order <= Casters.Count && _diveOrder != 0)
+        {
+            var source = Casters[order - 1];
+            var goalA = (source.Position - Arena.Center).ToAngle();
+            goalA += (_diveOrder * 34).Degrees(); // approximation, i ain't doing no trigonometry
+            hints.GoalZones.Add(AIHints.GoalProximity(Arena.Center + goalA.ToDirection() * 21, 10, 5));
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         // draw safespot

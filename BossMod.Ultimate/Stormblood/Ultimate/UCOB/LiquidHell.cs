@@ -4,8 +4,10 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // we only add hints for spawned fireballs since the activation is so delayed
-        // this helps party not kill themselves during blackfire trio, and gives ranged lots of extra room in p1
+        // it should be possible to only draw hints for active puddles since the delay is so long, but in practice, baiter gets burns about 5% of the time
+        foreach (var p in _predictedByEvent)
+            if (p.time < WorldState.FutureTime(0.5f))
+                hints.AddForbiddenZone(Shape, p.pos, default, p.time);
         foreach (var (z, spawn) in _sources)
             hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
 

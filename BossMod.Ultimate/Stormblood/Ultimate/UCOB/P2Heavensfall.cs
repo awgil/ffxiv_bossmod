@@ -51,20 +51,6 @@ class P2ThermionicBurst(BossModule module) : Components.StandardAOEs(module, AID
 class MeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
 {
     public int NumCasts;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID == AID.MeteorStream)
-        {
-            ++NumCasts;
-            Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
-
-            // update activation time for second set
-            if (NumCasts == 4)
-                for (var i = 0; i < 4; i++)
-                    Spreads.Ref(i).Activation = WorldState.FutureTime(3.1f);
-        }
-    }
 }
 
 class P2MeteorStream : MeteorStream
@@ -95,6 +81,20 @@ class P2MeteorStream : MeteorStream
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.MeteorStream)
+        {
+            ++NumCasts;
+            Spreads.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID);
+
+            // update activation time for second set
+            if (NumCasts == 4)
+                for (var i = 0; i < Spreads.Count; i++)
+                    Spreads.Ref(i).Activation = WorldState.FutureTime(3.1f);
+        }
     }
 }
 

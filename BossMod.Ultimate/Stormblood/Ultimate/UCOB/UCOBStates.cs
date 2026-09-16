@@ -548,8 +548,7 @@ class UCOBStates : StateMachineBuilder
             .ExecOnEnter<P3MegaflarePuddle>(p => p.Risky = true)
             .ExecOnEnter<P3QuickmarchTrio>(p => p.PuddleDodgeHint = true)
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
-            .ActivateOnEnter<P3EarthShaker>() // icons appear together with boss reappearing
-            .ExecOnEnter<P3EarthShaker>(s => s.EnableHints = false) // standard strats have tanks get hit by earthshakers, so hints window will get spammy
+            .ActivateOnEnter<P3QuickmarchEarthShaker>() // icons appear together with boss reappearing
             .ActivateOnEnter<P3EarthShakerVoidzone>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P3MegaflarePuddle>(id + 0x53, 0.8f, comp => comp.NumCasts > 0)
@@ -562,8 +561,8 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3MegaflareSpreadStack>(id + 0x56, 1, comp => comp.Stacks.Count == 0, "Enumeration")
             .DeactivateOnExit<P3MegaflareSpreadStack>();
 
-        ComponentCondition<P3EarthShaker>(id + 0x60, 2.3f, comp => comp.NumCasts > 0, "Baited cones")
-            .DeactivateOnExit<P3EarthShaker>()
+        ComponentCondition<P3QuickmarchEarthShaker>(id + 0x60, 2.3f, comp => comp.NumCasts > 0, "Baited cones")
+            .DeactivateOnExit<P3QuickmarchEarthShaker>()
             .ExecOnExit<P3TempestWing>(t => t.EnableRaidHints = true);
         ComponentCondition<P3TempestWing>(id + 0x70, 3.3f, comp => comp.NumCasts > 0, "Tethers")
             .DeactivateOnExit<P3TempestWing>();
@@ -742,6 +741,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<Hatch>(id + 0x20, 2.2f, comp => comp.NumTargetsAssigned > 0)
             .ExecOnEnter<Hatch>(comp => comp.Reset())
             .ActivateOnEnter<P3TenstrikeMeteorStream>()
+            .ActivateOnEnter<P3TenstrikeEarthShaker>()
             .ExecOnExit<P3TenstrikeMeteorStream>(p => p.HatchAssigned = true);
         ActorCast(id + 0x30, _module.Twintania, AID.Generate, 0.1f, 3, true, "Hatch 1");
         ComponentCondition<P3TenstrikeMeteorStream>(id + 0x40, 0.9f, comp => comp.NumCasts > 0);
@@ -757,14 +757,13 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3TenstrikeMeteorStream>(id + 0x58, 1.0f, comp => comp.NumCasts > 7)
             .DeactivateOnExit<P3TenstrikeMeteorStream>();
 
-        ComponentCondition<P3EarthShaker>(id + 0x100, 0.9f, comp => comp.CurrentBaits.Count > 0)
-            .ActivateOnEnter<P3EarthShaker>();
+        ComponentCondition<P3TenstrikeEarthShaker>(id + 0x100, 0.9f, comp => comp.CurrentBaits.Count > 0);
         ActorTargetable(id + 0x110, _module.BahamutPrime, true, 5.2f, "Boss reappears") // second set of earthshaker icons appear at the same time
             .ActivateOnEnter<P3EarthShakerVoidzone>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
-        ComponentCondition<P3EarthShaker>(id + 0x111, 0.1f, comp => comp.NumCasts > 0, "Baited cones 1");
-        ComponentCondition<P3EarthShaker>(id + 0x120, 5.0f, comp => comp.NumCasts > 4, "Baited cones 2")
-            .DeactivateOnExit<P3EarthShaker>();
+        ComponentCondition<P3TenstrikeEarthShaker>(id + 0x111, 0.1f, comp => comp.NumCasts > 0, "Baited cones 1");
+        ComponentCondition<P3TenstrikeEarthShaker>(id + 0x120, 5.0f, comp => comp.NumCasts > 4, "Baited cones 2")
+            .DeactivateOnExit<P3TenstrikeEarthShaker>();
 
         P3Gigaflare(id + 0x1000, 2.1f);
         P3Flatten(id + 0x2000, 7.2f)

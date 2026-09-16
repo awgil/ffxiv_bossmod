@@ -8,7 +8,7 @@ class Hatch : Components.CastCounter
     private readonly List<(Actor orb, DateTime moveStart)> _orbs = [];
     private readonly List<Actor> _neurolinks = [];
     private BitMask _targets;
-    private BitMask _tenstrikeUntargeted;
+    private BitMask _nontargets;
     private readonly Actor?[] _assignedLinks = new Actor?[PartyState.MaxPartySize];
     private readonly List<InterceptState> _intercepts = [];
 
@@ -25,6 +25,8 @@ class Hatch : Components.CastCounter
     public bool Twister;
 
     public bool IsTarget(int slot) => _targets[slot];
+    // only set for tenstrike
+    public bool IsUntargeted(int slot) => _nontargets[slot];
 
     public Hatch(BossModule module) : base(module, AID.Hatch)
     {
@@ -41,8 +43,6 @@ class Hatch : Components.CastCounter
     {
         if (!Active)
             return;
-
-        hints.Add($"Targets: {string.Join(", ", Raid.WithSlot().IncludedInMask(_targets).Select(a => a.Item2.Name))}", false);
 
         var inNeurolink = _neurolinks.InRadius(actor.Position, 2).Any();
         if (_targets[slot])
@@ -114,11 +114,6 @@ class Hatch : Components.CastCounter
             else
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
         }
-        else if (_tenstrikeUntargeted[slot])
-        {
-            // non participating players should gtfo to give allies space to preposition
-            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 19));
-        }
         else
         {
             foreach (var (orb, t) in _orbs)
@@ -153,7 +148,7 @@ class Hatch : Components.CastCounter
             var linkDir = (li.Position - Arena.Center).Normalized();
 
             // first hatch player should dodge directly backwards to wall
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center + linkDir * 15, Arena.Center + linkDir * 22, 1));
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center + linkDir * 17, Arena.Center + linkDir * 22, 1));
         }
 
         if (_intercepts.FirstOrDefault(i => i.NumHits == 0 && i.Second == slot) is { Link: { } link })
@@ -185,14 +180,16 @@ class Hatch : Components.CastCounter
             return;
 
         foreach (var neurolink in _neurolinks)
+        {
             Arena.AddCircle(neurolink.Position, 2, _targets[pcSlot] ? ArenaColor.Safe : ArenaColor.Danger);
 
-        foreach (var (_, player) in Raid.WithSlot().IncludedInMask(_targets))
-        {
-            if (_orbs.Select(o => o.orb).Closest(player.Position) is { } orb)
+            foreach (var player in Raid.WithoutSlot().InRadius(neurolink.Position, 2))
             {
-                var off = (orb.Position - player.Position).Normalized();
-                Arena.AddCircle(player.Position + off, Radius, ArenaColor.Danger);
+                if (_orbs.Select(o => o.orb).Closest(player.Position) is { } orb)
+                {
+                    var off = (orb.Position - player.Position).Normalized();
+                    Arena.AddCircle(player.Position + off, Radius, ArenaColor.Danger);
+                }
             }
         }
     }
@@ -232,7 +229,7 @@ class Hatch : Components.CastCounter
 
     void AssignTenstrike()
     {
-        if (_tenstrikeUntargeted.Any())
+        if (_nontargets.Any())
             return;
 
         Array.Fill(_assignedLinks, null);
@@ -245,7 +242,7 @@ class Hatch : Components.CastCounter
             (_targets[slot] ? set1 : set2).Add((slot, player));
         }
 
-        foreach (var link in _neurolinks)
+        foreach (var link in _neurolinks.OrderBy(n => n.InstanceID))
         {
             var closest = set1.MinBy(p => p.player.DistanceToPoint(link.Position));
             set1.Remove(closest);
@@ -255,7 +252,7 @@ class Hatch : Components.CastCounter
             _intercepts.Add(new(closest.slot, closestFriend.slot) { Link = link });
         }
 
-        _tenstrikeUntargeted = set2.Mask();
+        _nontargets = set2.Mask();
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
