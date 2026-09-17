@@ -12,6 +12,7 @@ public enum OID : uint
     AnalaFamiliar = 0x4134, // R1.000, x?, Scalding Waves (fair skies)
     PoisonPuddle = 0x1EB94A, // R0.500, EventObj type, growing poison pools (4+ flowers path)
     PursuitCharge = 0x40BC, // R1.500, x?, chasing orb for Arcane Pursuit (both statues repaired)
+    AnalaFamiliarLarge = 0x40BE, // R1.500, x0 (spawn during fight), initial Scalding Waves casters (fair skies)
 }
 
 public enum AID : uint
@@ -45,6 +46,8 @@ public enum AID : uint
 
     // Fair skies - analas
     ScaldingWaves = 35731, // Helper->self, 2.7-3.0s cast, range 40 width 10 rect
+    ScaldingWavesFairSkies = 35735, // AnalaFamiliarLarge->self, 5.0s cast, range 50 width 8 rect
+    ScaldingWavesFairSkiesRepeat = 35736, // AnalaFamiliar->self, no cast, range 50 width 4 rect
 
     // Stormy - drakes
     CloudToGround = 35739, // DrakeFamiliarLarge->self, 4.0s cast, single-target, visual
@@ -261,6 +264,81 @@ class ScaldingWaves(BossModule module) : Components.StandardAOEs(module, AID.Sca
     }
 }
 
+class ScaldingWavesFairSkies(BossModule module) : Components.Exaflare(module, new AOEShapeRect(25, 2, 25))
+{
+    private readonly List<Actor> _initialCasters = [];
+    private static readonly AOEShapeRect _initialShape = new(50, 4);
+    private const float FirstOffset = 6;
+    private const float Advance = 4;
+    private const float FirstDelay = 2.8f;
+    private const float Step = 2.1f;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var caster in _initialCasters)
+            if (caster.CastInfo is { } cast)
+                yield return new(_initialShape, cast.LocXZ, cast.Rotation, Module.CastFinishAt(cast));
+        foreach (var aoe in base.ActiveAOEs(slot, actor))
+            yield return aoe;
+    }
+
+    public override void OnActorDestroyed(Actor actor) => _initialCasters.Remove(actor);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ScaldingWavesFairSkies)
+        {
+            if (_initialCasters.Count == 0)
+            {
+                Lines.Clear();
+                NumCasts = 0;
+            }
+            _initialCasters.Add(caster);
+            var side = spell.Rotation.ToDirection().OrthoL();
+            AddLine(caster.Position + FirstOffset * side, Advance * side, spell.Rotation, Module.CastFinishAt(spell, FirstDelay));
+            AddLine(caster.Position - FirstOffset * side, -Advance * side, spell.Rotation, Module.CastFinishAt(spell, FirstDelay));
+        }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ScaldingWavesFairSkies)
+            _initialCasters.Remove(caster);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.ScaldingWavesFairSkiesRepeat)
+        {
+            ++NumCasts;
+            var line = Lines.MinBy(l => (l.Next - caster.Position).LengthSq());
+            if (line != null && line.Next.AlmostEqual(caster.Position, 1))
+            {
+                AdvanceLine(line, caster.Position);
+                if (line.ExplosionsLeft == 0)
+                    Lines.Remove(line);
+            }
+        }
+    }
+
+    private void AddLine(WPos next, WDir advance, Angle rotation, DateTime activation)
+    {
+        var count = 0;
+        for (var p = next; (p - Module.Center).Length() <= Module.Bounds.Radius + 2.5f; p += advance)
+            ++count;
+        Lines.Add(new()
+        {
+            Next = next,
+            Advance = advance,
+            Rotation = rotation,
+            NextExplosion = activation,
+            TimeToMove = Step,
+            ExplosionsLeft = count,
+            MaxShownExplosions = 2
+        });
+    }
+}
+
 class ArcaneArmaments(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(ulong InstanceID, AOEInstance AOE)> _aoes = [];
@@ -395,7 +473,7 @@ class HammerLanding(BossModule module) : Components.Knockback(module, default, m
     private DateTime _firstActivation;
 
     private const float Distance = 20;
-    private const float BeaconMinRadius = 10;
+    private const float BeaconMinRadius = 13;
     private static readonly AOEShapeCircle _shape = new(40);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
@@ -634,6 +712,7 @@ class V031QuaquaStates : StateMachineBuilder
             .ActivateOnEnter<FlowingLance>()
             .ActivateOnEnter<VioletStorm>()
             .ActivateOnEnter<ScaldingWaves>()
+            .ActivateOnEnter<ScaldingWavesFairSkies>()
             .ActivateOnEnter<CloudToGround>()
             .ActivateOnEnter<ArcaneIntervention>()
             .ActivateOnEnter<ArcanePursuit>();
