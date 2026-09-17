@@ -81,6 +81,9 @@ public enum AID : uint
     UpdraftStoneAOE = 35478, // Helper->self, 8.0s cast, range 35 circle, visual
     AerialShock = 35483, // AloaloOgrebon->self, 8.6+1.1s cast, single-target, visual
     AerialShockAOE = 35484, // Helper->self, 9.7s cast, range 35 circle
+
+    Riptide = 35465, // AiryBubble->player, no cast, single-target
+    Fetters = 35466, // AiryBubble->player, no cast, single-target
 }
 
 public enum SID : uint
