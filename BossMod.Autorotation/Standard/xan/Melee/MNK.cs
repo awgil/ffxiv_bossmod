@@ -251,13 +251,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
     public bool ForcedLunar => BeastCount > 1 && BeastChakra[0] == BeastChakra[1] && !HaveBothNadi;
     public bool ForcedSolar => BeastCount > 1 && BeastChakra[0] != BeastChakra[1] && !HaveBothNadi;
 
-    public int AOEBreakpoint => BeastCount > 0
-        // for blitzes
-        ? 2
-        // rockbreaker is a gain on 3 at 22.1% crit but i aint calculating that
-        : Unlocked(AID.ShadowOfTheDestroyer) && EffectiveForm == Form.OpoOpo && OpoStacks == 0
-            ? 3
-            : 4;
+    // rockbreaker is a gain on 3 at 22.1% crit but i aint calculating that
+    public int AOEBreakpoint => Unlocked(AID.ShadowOfTheDestroyer) && EffectiveForm == Form.OpoOpo && OpoStacks == 0 ? 3 : 4;
     public bool UseAOE => NumAOETargets >= AOEBreakpoint;
 
     public int BuffedGCDsLeft => FireLeft > GCD ? (int)MathF.Floor((FireLeft - GCD) / AttackGCDLength) + 1 : 0;
@@ -450,7 +445,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         UpdatePositionals(primaryTarget, ref pos);
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, BeastCount > 0 ? 2 : AOEBreakpoint, maximumActionRange: 20);
 
         OGCD(strategy, primaryTarget);
     }

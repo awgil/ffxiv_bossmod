@@ -18,7 +18,12 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
 
 class P1LiquidHell : LiquidHell
 {
-    public P1LiquidHell(BossModule module) : base(module) { KeepOnPhaseChange = true; }
+    public P1LiquidHell(BossModule module) : base(module)
+    {
+        _assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+
+        KeepOnPhaseChange = true;
+    }
 
     public enum BaitMode
     {
@@ -30,6 +35,8 @@ class P1LiquidHell : LiquidHell
     BaitMode Mode;
 
     public BitMask Baiters;
+
+    readonly int[] _assignments;
 
     public void Reset(float delay, BaitMode mode)
     {
@@ -64,14 +71,12 @@ class P1LiquidHell : LiquidHell
 
         if (Mode == BaitMode.Proximity)
         {
-            var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
-
-            if (assignments.Length == 0)
+            if (_assignments.Length == 0)
                 return;
 
             bool isBaiter;
 
-            var slotR1 = assignments[(int)PartyRolesConfig.Assignment.R1];
+            var slotR1 = _assignments[(int)PartyRolesConfig.Assignment.R1];
             if (Module.FindComponent<Hatch>()?.IsTarget(slotR1) == true)
                 isBaiter = assignment == PartyRolesConfig.Assignment.H1;
             else
