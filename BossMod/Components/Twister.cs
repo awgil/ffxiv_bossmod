@@ -43,8 +43,8 @@ public class CastTwister(BossModule module, float radius, uint oid, Enum aid, fl
 {
     public readonly float SpawnDelay = spawnDelay; // from cast event to twister spawn
     public readonly float PredictionTime = predictBeforeSpawn;
-    private DateTime _predictAt = DateTime.MaxValue;
-    private DateTime _spawnAt;
+    protected DateTime _predictAt = DateTime.MaxValue;
+    protected DateTime _spawnAt;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

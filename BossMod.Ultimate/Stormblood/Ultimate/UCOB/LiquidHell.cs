@@ -2,11 +2,13 @@
 
 class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHell, OID.VoidzoneLiquidHell, 1.3f, activationDelay: 1.8f)
 {
+    protected DateTime NextCast;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         // it should be possible to only draw hints for active puddles since the delay is so long, but in practice, baiter gets burns about 5% of the time
         foreach (var p in _predictedByEvent)
-            if (p.time < WorldState.FutureTime(0.5f))
+            if (p.time < WorldState.FutureTime(1))
                 hints.AddForbiddenZone(Shape, p.pos, default, p.time);
         foreach (var (z, spawn) in _sources)
             hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
@@ -26,7 +28,6 @@ class P1LiquidHell : LiquidHell
     }
 
     BaitMode Mode;
-    DateTime NextCast;
 
     public BitMask Baiters;
 
@@ -116,5 +117,45 @@ class P1LiquidHell : LiquidHell
 
         if (Mode == BaitMode.Proximity)
             Baiters = BitMask.Build(Raid.WithSlot().Farthest(Module.PrimaryActor.Position).Item1);
+    }
+}
+
+class P3LiquidHell : LiquidHell
+{
+    public P3LiquidHell(BossModule module) : base(module)
+    {
+        NextCast = module.WorldState.FutureTime(8.2f);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (assignment == PartyRolesConfig.Assignment.R1 && Module.Enemies(OID.Twintania).FirstOrDefault() is { } twin)
+        {
+            if (_predictedByEvent.Count + _sources.Count == 0)
+                hints.GoalZones.Add(AIHints.GoalProximity(new(4, 20), 10, 1));
+
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(twin.Position, 50, twin.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);
+
+            if (NextCast != default)
+            {
+                hints.AddForbiddenZone(ShapeDistance.Circle(twin.Position, 18), NextCast);
+
+                foreach (var nl in Module.Enemies(OID.Neurolink))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(nl.Position, 7), NextCast);
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if (spell.Action == WatchedAction)
+            NextCast = WorldState.FutureTime(1.2f);
+
+        if (NumCasts >= 5)
+            NextCast = default;
     }
 }

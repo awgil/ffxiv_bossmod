@@ -17,7 +17,7 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P1LiquidHell>()
             .Raw.Update = () => Module.FindComponent<Hatch>()?.NumNeurolinkSpawns > 1;
         SimplePhase(2, Phase1Twintania3, "P1: Twintania pre neurolink 3 (44%-0%)")
-            .OnEnter(() => module.FindComponent<Hatch>()?.Twister = false)
+            .OnEnter(() => module.FindComponent<Hatch>()?.WaitForTwister.Reset())
             .Raw.Update = () => !Module.PrimaryActor.IsTargetable;
         SimplePhase(3, Phase2, "P2: Nael")
             .ActivateOnEnter<P2HugNael>()
@@ -181,7 +181,7 @@ class UCOBStates : StateMachineBuilder
         ActorCastEnd(id + 1, _module.Twintania, 2, true);
         ComponentCondition<P1Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters")
             .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball)
-            .ExecOnEnter<Hatch>(h => h.Twister = false);
+            .ExecOnEnter<Hatch>(h => h.WaitForTwister.Reset());
     }
 
     private void P1TwisterFireball(uint id, float delay)
@@ -217,7 +217,7 @@ class UCOBStates : StateMachineBuilder
     private void P1GenerateTwister(uint id, float delay)
     {
         P1Generate(id, delay)
-            .ExecOnEnter<Hatch>(h => h.Twister = true);
+            .ExecOnEnter<Hatch>(h => h.WaitForTwister = new(0xff));
         P1Twister(id + 0x10, 1.1f);
     }
 
@@ -592,20 +592,20 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P3MegaflareDive>();
         // +0.7s: 5th liquid hell
 
-        ComponentCondition<P3MegaflareTower>(id + 0x100, 2.0f, comp => comp.Towers.Count > 0)
-            .ActivateOnEnter<P3MegaflareTower>()
+        ComponentCondition<P3BlackfireTower>(id + 0x100, 2.0f, comp => comp.Towers.Count > 0)
+            .ActivateOnEnter<P3BlackfireTower>()
             .ActivateOnEnter<P2Hypernova>()
-            .ExecOnEnter<P3MegaflareTower>(p => p.EnableHints = false);
+            .ExecOnEnter<P3BlackfireTower>(p => p.EnableHints = false);
         ComponentCondition<P3MegaflareStack>(id + 0x101, 0.9f, comp => comp.Active)
             .ActivateOnEnter<P3MegaflareStack>()
-            .ExecOnExit<P3MegaflareTower>(t => t.EnableHints = true);
+            .ExecOnExit<P3BlackfireTower>(t => t.EnableHints = true);
         // +3.2s: hypernova 1
         // +4.8s: hypernova 2
         ComponentCondition<P3MegaflareStack>(id + 0x110, 5.1f, comp => !comp.Active, "Enumeration")
             .DeactivateOnExit<P3MegaflareStack>();
         // +1.4s: hypernova 3
-        ComponentCondition<P3MegaflareTower>(id + 0x120, 1.9f, comp => comp.NumCasts > 0, "Towers")
-            .DeactivateOnExit<P3MegaflareTower>();
+        ComponentCondition<P3BlackfireTower>(id + 0x120, 1.9f, comp => comp.NumCasts > 0, "Towers")
+            .DeactivateOnExit<P3BlackfireTower>();
 
         ActorTargetable(id + 0x200, _module.BahamutPrime, true, 0.3f, "Boss reappears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
@@ -739,7 +739,11 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<Hatch>(id + 0x20, 2.2f, comp => comp.NumTargetsAssigned > 0)
-            .ExecOnEnter<Hatch>(comp => comp.Reset())
+            .ExecOnEnter<Hatch>(comp =>
+            {
+                comp.CurrentPhase = Hatch.Phase.Tenstrike;
+                comp.Reset();
+            })
             .ActivateOnEnter<P3TenstrikeMeteorStream>()
             .ActivateOnEnter<P3TenstrikeEarthShaker>()
             .ExecOnExit<P3TenstrikeMeteorStream>(p => p.HatchAssigned = true);
@@ -786,23 +790,30 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P3GrandOctet>(id + 0x34, 2, comp => comp.NumBaitsAssigned >= 6);
         ComponentCondition<P3GrandOctet>(id + 0x40, 9, comp => comp.NumBaitsAssigned >= 7, "Bahamut bait");
         ComponentCondition<P3GrandOctet>(id + 0x50, 4.3f, comp => comp.NumCasts >= 7);
-        ComponentCondition<P3MegaflareTower>(id + 0x60, 1.8f, comp => comp.Towers.Count > 0)
-            .ActivateOnEnter<P3MegaflareTower>();
+        ComponentCondition<P3GrandOctetTower>(id + 0x60, 1.8f, comp => comp.Towers.Count > 0)
+            .ActivateOnEnter<P3GrandOctetTower>()
+            .ActivateOnEnter<P3Twister>();
         ComponentCondition<P3MegaflareStack>(id + 0x61, 0.9f, comp => comp.Active)
             .ActivateOnEnter<P3MegaflareStack>();
-        ComponentCondition<P3GrandOctet>(id + 0x70, 2.3f, comp => comp.AOEs.Count > 0, "Twintania bait");
+        ComponentCondition<P3GrandOctet>(id + 0x70, 2.3f, comp => comp.AOEs.Count > 0, "Twintania bait")
+            .ExecOnExit<P3GrandOctetTower>(t => t.EnableHints = true);
         ComponentCondition<P3MegaflareStack>(id + 0x71, 2.8f, comp => !comp.Active, "Stack")
             .DeactivateOnExit<P3MegaflareStack>();
         ComponentCondition<P3GrandOctet>(id + 0x72, 1.2f, comp => comp.NumCasts >= 8)
             .DeactivateOnExit<P3GrandOctet>();
-        ComponentCondition<P3MegaflareTower>(id + 0x73, 0.8f, comp => comp.NumCasts > 0, "Towers")
-            .ActivateOnEnter<P3Twister>()
-            .DeactivateOnExit<P3MegaflareTower>();
+        ComponentCondition<P3GrandOctetTower>(id + 0x73, 0.8f, comp => comp.NumCasts > 0, "Towers")
+            .DeactivateOnExit<P3GrandOctetTower>();
         ComponentCondition<P3Twister>(id + 0x74, 0.5f, comp => comp.Active, "Twisters");
 
         ActorTargetable(id + 0x1000, _module.Twintania, true, 15.9f, "Adds appear")
-            .ExecOnEnter<Hatch>(comp => comp.Active = true)
+            .ActivateOnEnter<P4AddsPositioning>()
+            .ExecOnEnter<Hatch>(comp =>
+            {
+                comp.Active = true;
+                comp.CurrentPhase = Hatch.Phase.Adds;
+            })
             .DeactivateOnExit<P3Twister>()
+            .DeactivateOnExit<P3BahamutPositioning>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 
@@ -810,28 +821,30 @@ class UCOBStates : StateMachineBuilder
     private void P4PlummetBahamutsClaw(uint id, float delay)
     {
         ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
-            .ActivateOnEnter<LiquidHell>()
+            .ActivateOnEnter<P3LiquidHell>()
             .ActivateOnEnter<Twister>()
             .ActivateOnEnter<P1Plummet>()
             .ActivateOnEnter<P2BahamutsClaw>() // 1st cast happens at the same time
-            .DeactivateOnExit<P1Plummet>();
+            .DeactivateOnExit<P1Plummet>()
+            .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay));
         ComponentCondition<P2BahamutsClaw>(id + 0x10, 3.2f, comp => comp.NumCasts > 4, "5-hit tankbuster end")
             .DeactivateOnExit<P2BahamutsClaw>();
     }
 
     private void P4LiquidHell(uint id, float delay)
     {
-        ComponentCondition<LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1");
-        ComponentCondition<LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
-        ComponentCondition<LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
-        ComponentCondition<LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
-        ComponentCondition<LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5");
+        ComponentCondition<P3LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1");
+        ComponentCondition<P3LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
+        ComponentCondition<P3LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
+        ComponentCondition<P3LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
+        ComponentCondition<P3LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5");
     }
 
     private void P4Twister(uint id, float delay)
     {
         ActorCast(id, _module.Twintania, AID.Twister, delay, 2, true); // icon appears ~0.1s before cast start
-        ComponentCondition<Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters");
+        ComponentCondition<Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters")
+            .ExecOnExit<Hatch>(h => h.WaitForTwister.Reset());
     }
 
     private void P4GenerateTwister(uint id, float delay)
@@ -870,7 +883,7 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P2Ravensbeak>()
             .DeactivateOnExit<P1DeathSentence>()
             .DeactivateOnExit<P2Ravensbeak>()
-            .DeactivateOnExit<LiquidHell>() // TODO: reconsider - prep for next cycle
+            .DeactivateOnExit<P3LiquidHell>() // TODO: reconsider - prep for next cycle
             .DeactivateOnExit<Twister>()
             .SetHint(StateMachine.StateHint.Tankbuster);
     }

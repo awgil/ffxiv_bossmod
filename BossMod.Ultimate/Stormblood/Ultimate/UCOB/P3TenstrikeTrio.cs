@@ -21,7 +21,8 @@ class P3TenstrikeMeteorStream : MeteorStream
             {
                 var sign = order > 3 ? -1 : 1;
 
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (180 + (22.5f + 45 * (order % 4)) * sign).Degrees().ToDirection() * 9, 1));
+                // intentionally asymmetrical (175 vs 180), you can guess why
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Arena.Center + (175 + (22.5f + 45 * (order % 4)) * sign).Degrees().ToDirection() * 9, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
             }
 
             return;

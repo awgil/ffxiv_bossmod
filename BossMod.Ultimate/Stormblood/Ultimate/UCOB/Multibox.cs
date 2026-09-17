@@ -20,7 +20,7 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
 
         if (!Player.InCombat && World.Client.CountdownRemaining > 0)
         {
-            if (!(Player.FindStatus(48, DateTime.MaxValue)?.ExpireAt > World.FutureTime(600)))
+            if (!(Player.FindStatus(48, DateTime.MaxValue)?.ExpireAt > World.FutureTime(1020)))
             {
                 Hints.ActionsToExecute.Push(ActionDefinitions.IDPopcorn, Player, ActionQueue.Priority.High);
             }

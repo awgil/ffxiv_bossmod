@@ -10,7 +10,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
-        [Track("Chain Stratagem", Actions = [AID.ChainStratagem, AID.Dissipation])]
+        [Track("Chain Stratagem", Actions = [AID.ChainStratagem, AID.Dissipation], Targets = ActionTargets.Hostile)]
         public Track<OffensiveStrategy> Buffs;
         [Track("Fairy placement")]
         public Track<FairyPlacement> FairyPlace;
@@ -142,10 +142,10 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         {
             case OffensiveStrategy.Automatic:
                 if (RaidBuffsLeft > 15 || RaidBuffsIn > 1000)
-                    PushOGCD(AID.ChainStratagem, primaryTarget);
+                    UsePlanned(strategy.Buffs, AID.ChainStratagem, primaryTarget);
                 break;
             case OffensiveStrategy.Force:
-                PushOGCD(AID.ChainStratagem, primaryTarget);
+                UsePlanned(strategy.Buffs, AID.ChainStratagem, primaryTarget);
                 break;
         }
 

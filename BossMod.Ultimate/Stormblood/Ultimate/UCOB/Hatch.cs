@@ -22,7 +22,16 @@ class Hatch : Components.CastCounter
 
     public const float Radius = 8;
 
-    public bool Twister;
+    public BitMask WaitForTwister;
+
+    public enum Phase
+    {
+        P1,
+        Tenstrike,
+        Adds
+    }
+
+    public Phase CurrentPhase = Phase.P1;
 
     public bool IsTarget(int slot) => _targets[slot];
     // only set for tenstrike
@@ -55,7 +64,9 @@ class Hatch : Components.CastCounter
     {
         if (Module.PrimaryActor.IsTargetable)
         {
-            var twintania = hints.FindEnemy(Module.PrimaryActor)!;
+            var twintania = hints.FindEnemy(Module.PrimaryActor);
+            if (twintania == null)
+                return;
             switch (_neurolinks.Count)
             {
                 case 0:
@@ -109,7 +120,7 @@ class Hatch : Components.CastCounter
                 hints.GoalZones.Add(p => p.InRect(src, dir * 1000, 1) ? 1 : 0);
             }
 
-            if (Twister)
+            if (WaitForTwister[slot])
                 hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.DonutSector(myLink.Position, 3, 5, Module.PrimaryActor.AngleTo(myLink), 90.Degrees())).Inverted(), WorldState.FutureTime(leewaySeconds));
             else
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
@@ -207,10 +218,18 @@ class Hatch : Components.CastCounter
 
     void AssignLinks()
     {
-        if (_targets.NumSetBits() == 3)
-            AssignTenstrike();
-        else
-            AssignP1();
+        switch (CurrentPhase)
+        {
+            case Phase.P1:
+                AssignP1();
+                break;
+            case Phase.Tenstrike:
+                AssignTenstrike();
+                break;
+            case Phase.Adds:
+                AssignAdds();
+                break;
+        }
     }
 
     // can't use proximity for assignment during p1 because players are moving
@@ -227,6 +246,7 @@ class Hatch : Components.CastCounter
         }
     }
 
+    // assumption is that players are stationary in spread spots, so proximity is fine
     void AssignTenstrike()
     {
         if (_nontargets.Any())
@@ -253,6 +273,61 @@ class Hatch : Components.CastCounter
         }
 
         _nontargets = set2.Mask();
+    }
+
+    void AssignAdds()
+    {
+        Array.Fill(_assignedLinks, null);
+        _intercepts.Clear();
+
+        if (_neurolinks.Count != 3)
+            return;
+
+        var roles = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
+
+        if (roles.Length == 0)
+            return;
+
+        Actor?[] links = [.. _neurolinks.OrderBy(n => n.Position.Z < 0 ? 0 : n.Position.X > 0 ? 1 : 2)];
+
+        var toAssign = new BitMask(_targets.Raw);
+
+        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(toAssign))
+        {
+            switch (roles[slot])
+            {
+                case PartyRolesConfig.Assignment.M1:
+                    _assignedLinks[slot] = links[0];
+                    links[0] = null;
+                    toAssign.Clear(slot);
+                    break;
+                case PartyRolesConfig.Assignment.M2:
+                    _assignedLinks[slot] = links[1];
+                    links[1] = null;
+                    toAssign.Clear(slot);
+                    break;
+                case PartyRolesConfig.Assignment.R1:
+                    _assignedLinks[slot] = links[2];
+                    WaitForTwister.Set(slot);
+                    links[2] = null;
+                    toAssign.Clear(slot);
+                    break;
+            }
+        }
+
+        // hatch assignments are fucked up due to deaths or missing role assignments, it's a free for all
+        if (toAssign.NumSetBits() > 1)
+        {
+            Array.Fill(_assignedLinks, null);
+            return;
+        }
+
+        foreach (var (slot, player) in Raid.WithSlot().IncludedInMask(toAssign))
+        {
+            _assignedLinks[slot] = links.FirstOrDefault(l => l != null);
+            if (links.Last() != null)
+                WaitForTwister[slot] = true;
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

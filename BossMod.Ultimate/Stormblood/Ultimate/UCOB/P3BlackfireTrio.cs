@@ -106,8 +106,11 @@ class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
     }
 }
 
-class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.MegaflareTower, 3)
+class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.MegaflareTower, 3);
+
+class P3BlackfireTower(BossModule module) : P3MegaflareTower(module)
 {
+    readonly P3BlackfireTrio bft = module.FindComponent<P3BlackfireTrio>()!;
     BitMask _stackTargets;
     bool _assigned;
     int _numHypernovas;
@@ -116,7 +119,7 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
     {
         base.OnCastStarted(caster, spell);
 
-        if (spell.Action == WatchedAction && Towers.Count == 4 && Module.FindComponent<P3BlackfireTrio>() is { } bft)
+        if (spell.Action == WatchedAction && Towers.Count == 4)
         {
             var dirN = bft.RelativeNorth.ToDirection();
 
@@ -142,8 +145,7 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
     {
         if (!_stackTargets.Any())
         {
-            if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
-                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 3, 3, 30), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, bft.RelativeNorth, 3, 3, 30), DateTime.MaxValue);
 
             return;
         }
@@ -184,9 +186,6 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
         if (_assigned)
             return;
 
-        if (Module.FindComponent<P3BlackfireTrio>() is not { } bft)
-            return;
-
         if (_stackTargets.NumSetBits() != 4)
             return;
 
@@ -208,6 +207,8 @@ class P3MegaflareTower(BossModule module) : Components.CastTowers(module, AID.Me
 
 class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module, 5, 0, 4, 4)
 {
+    bool _twinBait;
+
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.MegaflareStack)
@@ -216,6 +217,12 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
                 AddStack(actor, WorldState.FutureTime(5), new(0xff));
             Stacks.Ref(0).ForbiddenPlayers.Clear(Raid.FindSlot(actor.InstanceID));
         }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.TwistingDive)
+            _twinBait = true;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -240,6 +247,18 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
         else if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
         {
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, 2.5f), st.Activation);
+        }
+
+        // GO: stack on wall on the opposite side of the twin bait
+        // if the baiter has to run through a tower to get to the stack they might hit a tower player
+        else if (Module.FindComponent<P3GrandOctet>() is { Twintania: { } twin, BaitOrder: var b, DiveOrder: var d })
+        {
+            // player is baiting twin, don't move
+            if (b[slot] == 8 && !_twinBait)
+                return;
+
+            var toTwin = (twin.Position - Arena.Center).ToAngle() - (20 * d).Degrees();
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + toTwin.ToDirection() * 19, 1), st.Activation);
         }
     }
 }

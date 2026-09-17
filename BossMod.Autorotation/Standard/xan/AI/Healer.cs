@@ -9,7 +9,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     {
         [Option("Heal everyone")]
         Enabled,
-        [Option("Babysit main tank (i.e. target-of-target)")]
+        [Option("Babysit specific target (default: current main tank)", Targets = ActionTargets.Self | ActionTargets.Party)]
         Babysit,
         [Option("Don't heal")]
         Disabled
@@ -18,8 +18,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     public struct Strategy
     {
         public Track<RaiseStrategy> Raise;
+
         [Track("Raise targets")]
         public Track<RaiseUtil.Targets> RaiseTargets;
+
         [Track(Actions = [
             BossMod.WHM.AID.CureII, BossMod.WHM.AID.DivineBenison, BossMod.WHM.AID.Tetragrammaton, BossMod.WHM.AID.Benediction, BossMod.WHM.AID.AfflatusSolace, BossMod.WHM.AID.Regen,
 
@@ -30,6 +32,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             BossMod.SGE.AID.Soteria, BossMod.SGE.AID.Taurochole, BossMod.SGE.AID.Haima, BossMod.SGE.AID.Krasis, BossMod.SGE.AID.Diagnosis, BossMod.SGE.AID.EukrasianDiagnosis, BossMod.SGE.AID.Druochole
         ])]
         public Track<HealMode> Heal;
+
         [Track(InternalName = "Esuna2", Action = ClassShared.AID.Esuna)]
         public Track<HintedStrategy> Esuna;
 
@@ -67,6 +70,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         return new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100).WithStrategies<Strategy>();
     }
 
+    private int ResolveHealTarget(in Strategy strategy) => strategy.Heal.TrackRaw.Target switch
+    {
+        StrategyTarget.Automatic => World.Actors.Find(Player.TargetID) is { } t ? World.Party.FindSlot(t.TargetID) : -1,
+        _ => World.Party.FindSlot(Manager.ResolveTargetOverride(strategy.Heal.TrackRaw.Target, strategy.Heal.TrackRaw.TargetParam)?.InstanceID ?? 0)
+    };
+
     private void HealSingleSoon(in Strategy strategy, Action<Actor, float> healFun)
     {
         switch (strategy.Heal.Value)
@@ -76,7 +85,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     healFun(a, b.PredictedHPRatio);
                 break;
             case HealMode.Babysit:
-                var targetSlot = World.Actors.Find(Player.TargetID) is { } t ? World.Party.FindSlot(t.TargetID) : -1;
+                var targetSlot = ResolveHealTarget(strategy);
+
                 if (targetSlot >= 0)
                     healFun(World.Party[targetSlot]!, Health.PartyMemberStates[targetSlot].PredictedHPRatio);
                 break;
@@ -92,7 +102,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     healFun(a, b.PredictedHPRatio);
                 break;
             case HealMode.Babysit:
-                var targetSlot = World.Actors.Find(Player.TargetID) is { } t ? World.Party.FindSlot(t.TargetID) : -1;
+                var targetSlot = ResolveHealTarget(strategy);
+
                 if (targetSlot >= 0)
                     healFun(World.Party[targetSlot]!, Health.PartyMemberStates[targetSlot].CurrentHPRatio);
                 break;

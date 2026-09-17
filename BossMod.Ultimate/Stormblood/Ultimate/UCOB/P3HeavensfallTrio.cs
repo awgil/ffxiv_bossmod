@@ -195,10 +195,10 @@ class P3HeavensfallFireball(BossModule module) : Components.StackWithIcon(module
         switch (_numHypernovas)
         {
             case 3:
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 8), DateTime.MaxValue);
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 8));
                 break;
             case 2:
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 15), DateTime.MaxValue);
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 15));
                 break;
         }
     }
@@ -230,16 +230,13 @@ class P3ThermionicBurst(BossModule module) : P2ThermionicBurst(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var numAoes = 0;
         foreach (var aoe in ActiveAOEs(slot, actor))
-        {
-            if (aoe.Activation > WorldState.CurrentTime)
+            if (aoe.Rotation.AlmostEqual(_startingSlice[slot], 15.Degrees().Rad) && aoe.Activation > WorldState.CurrentTime)
             {
+                hints.GoalZonesEnabled = false;
                 hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
-                if (++numAoes >= 2)
-                    break;
+                break;
             }
-        }
 
         if (NumCasts < 16 && _startingSlice[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, _startingSlice[slot], 40, -2, 1.5f));
@@ -250,12 +247,16 @@ class P3HeavensfallHypernova(BossModule module) : P2Hypernova(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
-
         foreach (var p in _predictedByEvent)
         {
             var dir = p.pos - Arena.Center;
-            hints.AddForbiddenZone(ShapeDistance.Rect(p.pos, dir.ToAngle(), 50, 0, 5), p.time);
+            hints.AddForbiddenZone(ShapeDistance.Rect(p.pos, dir.ToAngle(), 50, -1, 5), p.time);
         }
+
+        // hack: if a hypernova lands on us during reverse pizza dodge, it scares pathfinder into not moving sideways quickly enough, so we'll have to pretend it's not there until the player is out of danger
+        //if (Module.FindComponent<P3ThermionicBurst>()?.ActiveAOEs(slot, actor).SkipWhile(c => c.Activation == WorldState.CurrentTime).Take(2).Any(c => c.Check(actor.Position)) == true)
+        //    return;
+
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 }

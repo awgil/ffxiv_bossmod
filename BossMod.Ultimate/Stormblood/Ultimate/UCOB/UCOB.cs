@@ -9,7 +9,8 @@ class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new 
         foreach (var (origin, target, angle) in OriginsAndTargets())
         {
             var originE = hints.FindEnemy(origin);
-            originE?.CanMove = false;
+            if (NextExpected < WorldState.FutureTime(1.5f))
+                originE?.CanMove = false;
 
             if (actor != target)
             {
