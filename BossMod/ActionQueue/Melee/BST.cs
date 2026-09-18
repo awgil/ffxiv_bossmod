@@ -84,8 +84,35 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
+    OneWithNature = 4601, // applied by First Battlehorn, Second Battlehorn, Third Battlehorn to self
+    LingeringVantage = 4614, // applied by Borrow, Borrow, Borrow, Borrow, Borrow, Borrow, Borrow, Borrow to self
+    EvasionUp = 2402, // applied by Cloud Skim, Cloud Skim to self
+    Vileskin = 4620, // applied by Vileskin to self
+    Beastskin = 4621, // applied by Beastskin to self
+    SeedsSown = 4622, // applied by Seedsower to target
+    Scaleskin = 4623, // applied by Scaleskin to self
 
-    OneWithNature = 4601, // applied by battlehorns to self, allows Borrow or Tempered Release
+    BeastKinship = 4644,
+    VileKinship = 4645,
+    CloudKinship = 4646,
+    SeedKinship = 4647,
+    WaveKinship = 4648,
+    ScaleKinship = 4649,
+    SoulKinship = 4650,
+    AshKinship = 4651,
+}
+
+public enum Kinship : byte
+{
+    None,
+    Beast,
+    Vile,
+    Cloud,
+    Seed,
+    Wave,
+    Scale,
+    Soul,
+    Ash
 }
 
 public sealed class Definitions : Defs
@@ -146,6 +173,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.IntentionalComboMoonstalker);
         d.RegisterSpell(AID.InfinitiveComboUniversality);
 
+        d.RegisterSpell(AID.Challenge);
         d.RegisterSpell(AID.Snarl);
 
         Customize(d);

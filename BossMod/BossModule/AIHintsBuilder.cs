@@ -135,8 +135,11 @@ public sealed class AIHintsBuilder : IDisposable
             if (actor.FateID > 0 && actor.FateID == allowedFateID && !Utils.IsBossFate(actor.FateID))
                 enemy.ForbidDOTs = true;
 
-            if (PullDistance.TryGet(actor.OID, out var dist))
+            if (EnemyBehavior.TryGetTankDistance(actor.OID, out var dist))
                 enemy.TankDistance = dist;
+
+            if (actor.Type == ActorType.Part || EnemyBehavior.MovementDisabled.Contains(actor.OID))
+                enemy.CanMove = false;
 
             hints.PotentialTargets.Add(enemy);
         }

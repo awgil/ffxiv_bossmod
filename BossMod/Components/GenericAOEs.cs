@@ -152,7 +152,7 @@ public class ProximityAOEs(BossModule module, Enum aid, float radius) : Standard
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (Casters is [{ CastInfo: var castInfo }, ..])
-            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(castInfo));
+        foreach (var caster in Casters)
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), Module.CastFinishAt(caster.CastInfo));
     }
 }

@@ -34,15 +34,18 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    bool HavePet;
-    BeastmasterAffinity TrickAffinity;
-    int LastUsedHorn;
-    bool OneWithNature;
+    public bool HavePet => CurrentPet > 0;
+    public byte CurrentPet;
+    public BeastmasterAffinity TrickAffinity;
+    public Kinship Kinship;
+    public float KinshipLeft;
+    public int LastUsedHorn;
+    public bool OneWithNature;
 
-    Enemy? BestJumpTarget;
-    int NumJumpTargets;
-    Enemy? BestLineTarget;
-    int NumLineTargets;
+    private Enemy? BestJumpTarget;
+    private int NumJumpTargets;
+    private Enemy? BestLineTarget;
+    private int NumLineTargets;
 
     // TODO: 4-chain opener
     // TODO: parting blow
@@ -53,17 +56,18 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
-        (BestJumpTarget, NumJumpTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
-        (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
-
-        HavePet = false;
+        CurrentPet = 0;
         if (gauge.ActiveBattlehornIndex > 0)
         {
             LastUsedHorn = gauge.ActiveBattlehornIndex;
-            HavePet = true;
+            CurrentPet = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
         }
         OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
-        TrickAffinity = ActionDefinitions.TrickAffinity[HavePet ? World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1] : 0];
+        TrickAffinity = ActionDefinitions.TrickAffinity[CurrentPet];
+        (Kinship, KinshipLeft) = GetKinship();
+
+        (BestJumpTarget, NumJumpTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
+        (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
 
         // level 50 3 chain infinitive combo
         if (Unlocked(TraitID.InstinctualMastery) && HavePet)
@@ -115,7 +119,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // TODO: pet aoe targeting
-        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature)
+        // 10 = wespe (final sting)
+        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPet != 10)
             PushOGCD(AID.TemperedRelease, primaryTarget);
 
         if (strategy.ShieldCharge.IsEnabled() && MaxChargesIn(AID.ShieldCharge) < 60)
@@ -132,7 +137,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         if (PlayerTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, 3));
 
-        if (strategy.Resummon.IsEnabled() && !Player.InCombat && Unlocked(TraitID.BattlehornMastery) && !OneWithNature)
+        if (strategy.Resummon.IsEnabled() && !Player.InCombat && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && Kinship == Kinship.None)
         {
             if (HavePet)
                 Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
@@ -191,5 +196,30 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     {
         var (a, t) = GetAxe(b);
         PushOGCD(a, t ?? primaryTarget, priority);
+    }
+
+    (Kinship, float) GetKinship()
+    {
+        foreach (var s in Player.Statuses)
+        {
+            var k = (SID)s.ID switch
+            {
+                SID.BeastKinship => Kinship.Beast,
+                SID.VileKinship => Kinship.Vile,
+                SID.CloudKinship => Kinship.Cloud,
+                SID.SeedKinship => Kinship.Seed,
+                SID.WaveKinship => Kinship.Wave,
+                SID.ScaleKinship => Kinship.Scale,
+                SID.SoulKinship => Kinship.Soul,
+                SID.AshKinship => Kinship.Ash,
+                _ => Kinship.None
+            };
+            if (k != default)
+            {
+                var duration = s.ExpireAt > World.CurrentTime ? (float)(s.ExpireAt - World.CurrentTime).TotalSeconds : float.MaxValue;
+                return (k, duration);
+            }
+        }
+        return (Kinship.None, 0);
     }
 }
