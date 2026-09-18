@@ -7,9 +7,7 @@
   <Import Project="..\Module.targets" />
 
   <ItemGroup>
-    <EmbeddedResource Include="Dawntrail\DeepDungeon\PilgrimsTraverse\D99TheFinalVerse\Dark.json" />
-    <EmbeddedResource Include="Dawntrail\DeepDungeon\PilgrimsTraverse\D99TheFinalVerse\Light.json" />
-    <EmbeddedResource Include="Global\DeepDungeon\BadTraps.json" />
-    <EmbeddedResource Include="Global\DeepDungeon\Walls.json" />
+    <EmbeddedResource Include="Dawntrail\**\*.json" />
+    <EmbeddedResource Include="Global\**\*.json" />
   </ItemGroup>
 </Project>

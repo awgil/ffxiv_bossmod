@@ -67,6 +67,7 @@ class Tsunami(BossModule module) : Components.KnockbackFromCastTarget(module, AI
         }
     }
 }
+class Dreadwash(BossModule module) : Components.CastInterruptHint(module, AID._Spell_Dreadwash);
 
 class YmirPieceStates : StateMachineBuilder
 {
@@ -79,6 +80,7 @@ class YmirPieceStates : StateMachineBuilder
             .ActivateOnEnter<WaterII>()
             .ActivateOnEnter<BlanketThunder>()
             .ActivateOnEnter<Tsunami>()
+            .ActivateOnEnter<Dreadwash>()
             .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed && ((YmirPiece)module).Sahagin is { IsDeadOrDestroyed: true };
     }
 }

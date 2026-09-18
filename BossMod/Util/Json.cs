@@ -22,7 +22,7 @@ public static partial class Utils
 {
     public static StreamReader LoadResource(string resourceName)
     {
-        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName) ?? throw new InvalidDataException($"unable to locate resource {resourceName}");
+        var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName) ?? throw new InvalidDataException($"unable to locate resource {resourceName}");
         return new StreamReader(stream);
     }
 
