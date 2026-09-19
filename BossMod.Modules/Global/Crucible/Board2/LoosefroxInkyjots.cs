@@ -93,47 +93,7 @@ class LoosefroxInkyjotsStates : StateMachineBuilder
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14561)]
 public class LoosefroxInkyjots(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, -420), CustomBounds)
 {
-    public static readonly ArenaBounds CustomBounds = MakeCustomBounds();
-
-    private static ArenaBoundsCustom MakeCustomBounds()
-    {
-        //List<List<WDir>> polys = [];
-
-        //using (var contents = Utils.LoadResource("BossMod.Global.Crucible.Board2.LoosefroxInkyjots.dat"))
-        //{
-        //    string? line;
-
-        //    while ((line = contents.ReadLine()) != null)
-        //    {
-        //        List<WDir> poly = [];
-        //        foreach (var pos in line.Split(';', StringSplitOptions.RemoveEmptyEntries))
-        //        {
-        //            var coords = pos.Split(',');
-        //            if (coords.Length != 2)
-        //                throw new InvalidOperationException("corrupt data");
-
-        //            if (!float.TryParse(coords[0], out var x))
-        //                throw new InvalidOperationException("corrupt data");
-
-        //            if (!float.TryParse(coords[1], out var z))
-        //                throw new InvalidOperationException("corrupt data");
-
-        //            poly.Add(new WPos(x, z) - new WPos(520, -420));
-        //        }
-        //        polys.Add(poly);
-        //    }
-        //}
-
-        //var p = polys[0];
-        //polys.RemoveAt(0);
-
-        //var clipper = new PolygonClipper();
-        //var arena = clipper.UnionAll(new(p), [.. polys.Select(p => new PolygonClipper.Operand(p))]);
-
-        //Service.Log(JsonConvert.SerializeObject(arena));
-
-        return new(27, Utils.LoadResource<RelSimplifiedComplexPolygon>("BossMod.Global.Crucible.Board2.FinalBoss.json"));
-    }
+    public static readonly ArenaBoundsCustom CustomBounds = new(27, Utils.LoadResource<RelSimplifiedComplexPolygon>("BossMod.Global.Crucible.Board2.FinalBoss.json"));
 
     public Actor? Worm { get; private set; }
 
