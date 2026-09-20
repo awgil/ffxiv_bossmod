@@ -41,6 +41,15 @@ static class Program
         AppDomain.CurrentDomain.AssemblyResolve += delegate (object? sender, ResolveEventArgs args)
         {
             var libName = args.Name.Split(',').FirstOrDefault();
+
+#if LOCAL_CS
+            if (libName == "FFXIVClientStructs")
+            {
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location);
+                return Assembly.LoadFrom(Path.Join(root, "FFXIVClientStructs.dll"));
+            }
+#endif
+
             return libName != null && SupportedLibs.Contains(libName) ? Assembly.LoadFrom(Path.Join(dalapath, $"{libName}.dll")) : null;
         };
 
