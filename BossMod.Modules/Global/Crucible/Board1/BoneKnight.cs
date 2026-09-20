@@ -33,6 +33,17 @@ class ForwardGuard(BossModule module) : Components.DirectionalParry(module, (uin
         if ((AID)spell.Action.ID == AID.ForwardGuard)
             PredictParrySide(caster.InstanceID, Side.Front);
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        foreach (var (id, targetState) in _actorStates)
+        {
+            if (targetState != 0 && hints.FindEnemy(WorldState.Actors.Find(id)) is { } e && e.Actor.TargetID == actor.InstanceID)
+                e.PreferShirking = true;
+        }
+    }
 }
 
 class BoneKnightStates : StateMachineBuilder

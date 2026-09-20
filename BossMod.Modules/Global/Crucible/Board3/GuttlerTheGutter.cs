@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Global.Crucible.GuttlerTheGutter;
+﻿namespace BossMod.Global.Crucible.GuttlerTheGutter;
 
 public enum OID : uint
 {
@@ -107,8 +106,8 @@ class BeastlyAura(BossModule module) : Components.Knockback(module, AID._Weapons
         foreach (var c in Casters)
         {
             var ci = c.CastInfo!;
-            yield return new(ci.LocXZ, 20, Module.CastFinishAt(ci), new AOEShapeRect(80, 40), ci.Rotation + 90.Degrees(), Kind.DirForward);
-            yield return new(ci.LocXZ, 20, Module.CastFinishAt(ci), new AOEShapeRect(80, 40), ci.Rotation - 90.Degrees(), Kind.DirForward);
+            yield return new(ci.LocXZ, 20, Module.CastFinishAt(ci), new AOEShapeRect(80, 80), ci.Rotation + 90.Degrees(), Kind.DirForward);
+            yield return new(ci.LocXZ, 20, Module.CastFinishAt(ci), new AOEShapeRect(80, 80), ci.Rotation - 90.Degrees(), Kind.DirForward);
         }
     }
 

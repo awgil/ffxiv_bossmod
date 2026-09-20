@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Global.Crucible.CavalierPiece;
+﻿namespace BossMod.Global.Crucible.CavalierPiece;
 
 public enum OID : uint
 {
@@ -34,7 +33,8 @@ public enum TetherID : uint
     _Gen_Tether_chn_m0237_yami_x2 = 398, // 4C92->Boss
 }
 
-class BoneBishop(BossModule module) : Components.Adds(module, (uint)OID._Gen_BoneBishop, 1);
+// TODO prio: adds enrage after a set time which gives DD, plus if they all die at once, you get 5 valfodrs which fills the whole arena
+class BoneBishop(BossModule module) : Components.Adds(module, (uint)OID._Gen_BoneBishop);
 class Steelripper(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Steelripper1, new AOEShapeCone(60, 65.Degrees()));
 class Menace(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Menace1, 20);
 class CrushingBlade(BossModule module) : Components.Knockback(module, AID._Weaponskill_CrushingBlade)
