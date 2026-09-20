@@ -142,7 +142,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
 
-        if (AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
+        if (AutoQueue.Priority < ActionQueue.Priority.ManualEmergency && !AutoQueue.Force)
         {
             if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold + ApplicationDelay.Get(AutoQueue.Action)))
                 AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent

@@ -45,7 +45,7 @@ static class Program
 #if LOCAL_CS
             if (libName == "FFXIVClientStructs")
             {
-                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location);
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 return Assembly.LoadFrom(Path.Join(root, "FFXIVClientStructs.dll"));
             }
 #endif

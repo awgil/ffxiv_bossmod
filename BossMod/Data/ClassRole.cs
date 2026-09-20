@@ -102,7 +102,9 @@ public static class ClassRole
         ClassCategory.Tank => Role.Tank,
         ClassCategory.Healer => Role.Healer,
         ClassCategory.Melee => Role.Melee,
-        ClassCategory.PhysRanged or ClassCategory.Caster or ClassCategory.Limited => Role.Ranged,
+        ClassCategory.PhysRanged or ClassCategory.Caster => Role.Ranged,
+        _ when cls == Class.BLU => Role.Ranged,
+        _ when cls == Class.BST => Role.Melee,
         _ => Role.None
     };
     public static Role2 GetRole2(this Class cls) => cls.GetClassCategory() switch

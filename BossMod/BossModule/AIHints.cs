@@ -39,6 +39,7 @@ public sealed class AIHints
         public float TankDistance = 2; // enemy will start moving if distance between hitboxes is bigger than this
         public bool ShouldBeTanked; // tank AI will try to tank this enemy
         public bool PreferProvoking; // tank AI will provoke enemy if not targeted
+        public bool PreferShirking; // TODO: better name
         public bool ForbidDOTs; // if true, dots on target are forbidden
         public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
         public bool ShouldBeStunned; // if set, AI will stun if possible
