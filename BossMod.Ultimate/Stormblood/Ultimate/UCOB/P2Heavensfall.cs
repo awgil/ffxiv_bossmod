@@ -110,6 +110,14 @@ class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(m
             CurrentBaits.Add(new(_target, _target, _shape));
     }
 
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if (spell.Action == WatchedAction)
+            CurrentBaits.Clear();
+    }
+
     public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
     {
         if (!CurrentBaits.Any(b => b.Target == actor))
@@ -118,6 +126,9 @@ class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(m
         // preposition close to nael
         if (actor.Role is Role.Melee or Role.Tank)
             foreach (var b in ActiveBaitsNotOn(actor))
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(b.Target.Position, 6));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(b.Target.Position, 6, 1));
+
+        if (NumCasts > 0 && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { IsTargetable: false } nael)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius));
     }
 }

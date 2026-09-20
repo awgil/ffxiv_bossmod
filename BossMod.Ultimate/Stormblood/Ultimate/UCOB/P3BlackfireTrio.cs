@@ -3,6 +3,7 @@
 class P3BlackfireTrio : Components.CastCounter
 {
     private Actor? _nael;
+    private int _numHypernovas;
 
     public DateTime BaitAt;
     public Angle RelativeNorth { get; private set; }
@@ -37,10 +38,21 @@ class P3BlackfireTrio : Components.CastCounter
             BaitAt = default;
     }
 
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.Hypernova)
+            _numHypernovas++;
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (BaitAt != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 1), BaitAt);
+
+        if (_numHypernovas >= 2)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 7.7f, 0.5f));
     }
 }
 

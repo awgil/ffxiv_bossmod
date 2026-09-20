@@ -87,7 +87,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             case HealMode.Babysit:
                 var targetSlot = ResolveHealTarget(strategy);
 
-                if (targetSlot >= 0)
+                if (targetSlot >= 0 && Health.PartyMemberStates[targetSlot].NoHealStatusRemaining < 1.5f && !World.Party[targetSlot]!.IsDead)
                     healFun(World.Party[targetSlot]!, Health.PartyMemberStates[targetSlot].PredictedHPRatio);
                 break;
         }
@@ -104,7 +104,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             case HealMode.Babysit:
                 var targetSlot = ResolveHealTarget(strategy);
 
-                if (targetSlot >= 0)
+                if (targetSlot >= 0 && Health.PartyMemberStates[targetSlot].NoHealStatusRemaining < 1.5f && !World.Party[targetSlot]!.IsDead)
                     healFun(World.Party[targetSlot]!, Health.PartyMemberStates[targetSlot].CurrentHPRatio);
                 break;
         }

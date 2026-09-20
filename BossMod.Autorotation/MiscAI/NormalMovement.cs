@@ -328,7 +328,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         if (distSq <= 0.01f)
         {
             // we're already very close to destination
-            // TODO: what should we do if forced-movement is already set to something?.. not sure who could set it, some other module?..
             Hints.ForcedMovement = default;
             return;
         }

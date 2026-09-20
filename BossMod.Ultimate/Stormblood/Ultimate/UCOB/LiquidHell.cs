@@ -6,13 +6,15 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // it should be possible to only draw hints for active puddles since the delay is so long, but in practice, baiter gets burns about 5% of the time
-        foreach (var p in _predictedByEvent)
-            if (p.time < WorldState.FutureTime(1))
-                hints.AddForbiddenZone(Shape, p.pos, default, p.time);
+        // baiter gets burns about 5% of the time regardless of how early we dodge, just go next
         foreach (var (z, spawn) in _sources)
-            hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
-
+        {
+            if (actor.Position.InCircle(z.Position, 6))
+                hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
+            else
+                // forbid AI from dodging into fire to avoid twisters
+                hints.TemporaryObstacles.Add(ShapeDistance.Circle(z.Position, 6));
+        }
     }
 }
 
@@ -138,7 +140,7 @@ class P3LiquidHell : LiquidHell
 
         if (assignment == PartyRolesConfig.Assignment.R1 && Module.Enemies(OID.Twintania).FirstOrDefault() is { } twin)
         {
-            if (_predictedByEvent.Count + _sources.Count == 0)
+            if (NumCasts == 0)
                 hints.GoalZones.Add(AIHints.GoalProximity(new(4, 20), 10, 1));
 
             hints.AddForbiddenZone(ShapeDistance.InvertedCone(twin.Position, 50, twin.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);

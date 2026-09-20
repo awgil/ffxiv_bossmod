@@ -132,16 +132,16 @@ class UCOBStates : StateMachineBuilder
     {
         P5Teraflare(id, 4.1f);
         P5MornAfah(id + 0x10000, 0.1f);
-        P5AhkMorn(id + 0x20000, 2.2f, 3);
+        P5AkhMorn(id + 0x20000, 2.2f, 3);
         P5Exaflare(id + 0x30000, 5.1f);
-        P5AhkMorn(id + 0x40000, 7.1f, 4);
+        P5AkhMorn(id + 0x40000, 7.1f, 4);
         P5MornAfah(id + 0x50000, 7.3f);
         P5Exaflare(id + 0x60000, 8.2f);
         P5MornAfah(id + 0x70000, 7.1f);
-        P5AhkMorn(id + 0x80000, 8.2f, 5);
+        P5AkhMorn(id + 0x80000, 8.2f, 5);
         P5Exaflare(id + 0x90000, 7.2f);
         P5MornAfah(id + 0xA0000, 7.1f);
-        P5AhkMorn(id + 0xB0000, 8.2f, 6);
+        P5AkhMorn(id + 0xB0000, 8.2f, 6);
         P5Exaflare(id + 0xC0000, 7.1f);
         P5MornAfah(id + 0xD0000, 7.1f);
         P5Enrage(id + 0xE0000, 2.1f);
@@ -265,10 +265,10 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P2ThermionicBurst>();
 
         ComponentCondition<P2HeavensfallDalamudDive>(id + 0x30, 0.4f, comp => comp.NumCasts > 0, "Tankbuster")
-            .DeactivateOnExit<P2HeavensfallDalamudDive>()
             .SetHint(StateMachine.StateHint.Tankbuster);
         ActorTargetable(id + 0x31, _module.Nael, true, 2, "Boss appears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
+            .DeactivateOnExit<P2HeavensfallDalamudDive>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         P2BahamutsClaw(id + 0x40, 0.3f)
@@ -702,11 +702,11 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P3ThermionicBurst>() // we use the tower cast event to assign each player a starting position for their dodges
             .DeactivateOnExit<P3HeavensfallTowers>();
 
-        ComponentCondition<P3ThermionicBurst>(id + 0x100, 1.6f, comp => comp.Casters.Count > 0);
+        ComponentCondition<P3ThermionicBurst>(id + 0x100, 1.6f, comp => comp.Casters.Count > 0)
+            .ActivateOnEnter<P3HeavensfallHypernova>();
         // +2.0s: second pair, then every 0.5s
 
         ComponentCondition<P3HeavensfallHypernova>(id + 0x110, 1.6f, comp => comp.NumCasts > 0)
-            .ActivateOnEnter<P3HeavensfallHypernova>()
             .ActivateOnEnter<P3HeavensfallFireball>();
         ComponentCondition<P3ThermionicBurst>(id + 0x120, 1.4f, comp => comp.NumCasts > 0, "Pizza start");
         ComponentCondition<P3HeavensfallHypernova>(id + 0x130, 0.2f, comp => comp.NumCasts > 1);
@@ -910,15 +910,17 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    private void P5AhkMorn(uint id, float delay, int count)
+    private void P5AkhMorn(uint id, float delay, int count)
     {
-        ActorCast(id, _module.BahamutPrime, AID.AkhMorn, delay, 4, true, "Tankbuster hit 1")
-            .ActivateOnEnter<P5AhkMorn>()
+        var iteration = count - 2;
+        ActorCast(id, _module.BahamutPrime, AID.AkhMorn, delay, 4, true, $"Tankbuster {iteration} start")
+            .ActivateOnEnter<P5AkhMorn>()
+            .ExecOnEnter<P5AkhMorn>(m => m.Shared = iteration is 1 or 4)
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<P5AhkMorn>(id + 0x10, 2.1f, comp => comp.NumCasts >= 2)
+        ComponentCondition<P5AkhMorn>(id + 0x10, 2.1f, comp => comp.NumCasts >= 2)
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<P5AhkMorn>(id + 0x20, 1.1f * (count - 2), comp => comp.NumCasts >= count, $"Tankbuster hint {count}")
-            .DeactivateOnExit<P5AhkMorn>()
+        ComponentCondition<P5AkhMorn>(id + 0x20, 1.1f * (count - 2), comp => comp.NumCasts >= count, $"Tankbuster {iteration} end")
+            .DeactivateOnExit<P5AkhMorn>()
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
 

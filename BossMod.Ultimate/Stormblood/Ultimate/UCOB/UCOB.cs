@@ -35,7 +35,17 @@ class P1Plummet(BossModule module) : Components.Cleave(module, AID.Plummet, new 
 }
 class P2BahamutsClaw(BossModule module) : Components.CastCounter(module, AID.BahamutsClaw);
 class P3FlareBreath(BossModule module) : Components.Cleave(module, AID.FlareBreath, new AOEShapeCone(29.2f, 46.Degrees()), (uint)OID.BahamutPrime); // TODO: verify angle
-class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, AID.MornAfah, 4, 8); // TODO: verify radius
+class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, AID.MornAfah, 4, 8)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.Count > 0 && Module.Enemies(OID.BahamutPrime).FirstOrDefault() is { } bp)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(bp.Position, 2), Stacks[0].Activation);
+            hints.AddPredictedDamage(new(0xFF), Stacks[0].Activation);
+        }
+    }
+}
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280, PlanLevel = 70)]
 public class UCOB(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(21))

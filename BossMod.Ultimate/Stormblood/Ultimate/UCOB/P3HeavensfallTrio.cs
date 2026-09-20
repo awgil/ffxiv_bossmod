@@ -163,10 +163,9 @@ class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, AID
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_knockbackDone)
-        {
+        if (_knockbackDone && actor.PendingKnockbacks.Count == 0)
             base.AddAIHints(slot, actor, assignment, hints);
-        }
+
         else if (Towers.FirstOrNull(t => !t.ForbiddenSoakers[slot]) is { } myTower)
         {
             var dir = myTower.Position - Arena.Center;
@@ -181,82 +180,95 @@ class P3HeavensfallTowers(BossModule module) : Components.CastTowers(module, AID
 
 class P3HeavensfallFireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 8)
 {
-    int _numHypernovas;
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Stacks.Count > 0)
-        {
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 2), Stacks[0].Activation);
-            return;
-        }
-
-        // last hypernova to stack going off is 6 seconds
-        switch (_numHypernovas)
-        {
-            case 3:
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 8));
-                break;
-            case 2:
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 15));
-                break;
-        }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        base.OnEventCast(caster, spell);
-
-        if ((AID)spell.Action.ID == AID.Hypernova)
-            _numHypernovas++;
     }
 }
 
 class P3ThermionicBurst(BossModule module) : P2ThermionicBurst(module)
 {
-    private readonly Angle[] _startingSlice = new Angle[PartyState.MaxPartySize];
+    bool _towersDone;
+    int _rotation; // 0 if unknown, 1 cw, -1 ccw
+    Angle? _start;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         base.OnEventCast(caster, spell);
 
         if ((AID)spell.Action.ID == AID.MegaflareTower)
+            _towersDone = true;
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
         {
-            foreach (var target in spell.Targets)
-                if (Raid.TryFindSlot(target.ID, out var slot))
-                    _startingSlice[slot] = (spell.TargetXZ - Arena.Center).ToAngle() - 11.25f.Degrees();
+            if (Casters.Count == 0 && NumCasts == 0)
+                _start = spell.Rotation;
+
+            if (Casters.Count == 2)
+                _rotation = Casters.Any(c => c.CastInfo!.Rotation.AlmostEqual(spell.Rotation + 22.5f.Degrees(), 0.1f)) ? 1 : -1;
         }
+
+        base.OnCastStarted(caster, spell);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-            if (aoe.Rotation.AlmostEqual(_startingSlice[slot], 15.Degrees().Rad) && aoe.Activation > WorldState.CurrentTime)
-            {
-                hints.GoalZonesEnabled = false;
-                hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
-                break;
-            }
+        base.AddAIHints(slot, actor, assignment, hints);
 
-        if (NumCasts < 16 && _startingSlice[slot] != default)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, _startingSlice[slot], 40, -2, 1.5f));
+        //if (_towersDone && Casters.Count == 0 && NumCasts == 0)
+        //    hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 13));
+
+        if (_start is { } s)
+        {
+            if (_rotation != 0)
+            {
+                var ctr = Arena.Center;
+
+                var bias = s + (_rotation * 5).Degrees();
+                var h = 11.25f.Degrees().Cos();
+
+                hints.GoalZones.Add(p =>
+                {
+                    var c = (p - ctr).Normalized().Dot(bias.ToDirection());
+                    return MathF.Abs(c) >= h ? 1 : 0;
+                });
+            }
+            else
+            {
+                hints.AddForbiddenZone(ShapeDistance.Intersection([ShapeDistance.InvertedCircle(Arena.Center + (s + 90.Degrees()).ToDirection() * 20, 2), ShapeDistance.InvertedCircle(Arena.Center + (s - 90.Degrees()).ToDirection() * 20, 2)]), DateTime.MaxValue);
+            }
+        }
     }
 }
 
 class P3HeavensfallHypernova(BossModule module) : P2Hypernova(module)
 {
+    int _numSpawned;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var p in _predictedByEvent)
-        {
-            var dir = p.pos - Arena.Center;
-            hints.AddForbiddenZone(ShapeDistance.Rect(p.pos, dir.ToAngle(), 50, -1, 5), p.time);
-        }
-
-        // hack: if a hypernova lands on us during reverse pizza dodge, it scares pathfinder into not moving sideways quickly enough, so we'll have to pretend it's not there until the player is out of danger
-        //if (Module.FindComponent<P3ThermionicBurst>()?.ActiveAOEs(slot, actor).SkipWhile(c => c.Activation == WorldState.CurrentTime).Take(2).Any(c => c.Check(actor.Position)) == true)
-        //    return;
-
         base.AddAIHints(slot, actor, assignment, hints);
+
+        if (_numSpawned >= 3)
+            return;
+
+        hints.GoalZones.Add(AIHints.GoalProximity(Arena.Center, 10, 5));
+
+        var total = _predictedByEvent.Count + _sources.Count;
+        if (total < 3)
+            // preserve at least a 1 unit gap between possible hypernova positions and pillar voidzone
+            hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, default(Angle), 10, 10, 10));
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        base.OnActorCreated(actor);
+
+        if ((OID)actor.OID == OID.VoidzoneHypernova)
+            _numSpawned++;
     }
 }
