@@ -22,31 +22,6 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
         }
       },
-      "DalaMock.Core": {
-        "type": "Transitive",
-        "resolved": "6.1.9",
-        "contentHash": "LQSMQAyUlJDOtHRwT/C1gatv7DK4MrvwwNy3gSwC1ROrSLRmrPVCABv8G/Shn4gImrWlvDjA9t+X080pVx1ciQ==",
-        "dependencies": {
-          "Autofac": "9.0.0",
-          "DalaMock.Shared": "6.1.9",
-          "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
-          "Microsoft.Extensions.Configuration": "10.0.1",
-          "Microsoft.Extensions.DependencyModel": "10.0.1",
-          "Microsoft.Extensions.Hosting": "10.0.1",
-          "Microsoft.Extensions.Hosting.Abstractions": "10.0.1",
-          "Microsoft.Extensions.Localization": "10.0.7",
-          "Microsoft.Extensions.ObjectPool": "10.0.1",
-          "NativeFileDialogSharp": "0.5.0",
-          "Newtonsoft.Json": "13.0.4",
-          "Serilog": "4.3.0",
-          "Serilog.Extensions.Logging": "10.0.0",
-          "SixLabors.Fonts": "2.1.3",
-          "StbiSharp": "1.2.1",
-          "Veldrid": "4.9.0",
-          "Veldrid.SDL2": "4.9.0",
-          "Veldrid.StartupUtilities": "4.9.0"
-        }
-      },
       "DalaMock.Host": {
         "type": "Transitive",
         "resolved": "6.1.9",
@@ -580,6 +555,29 @@
           "InteropGenerator.Runtime": "[1.0.0, )",
           "Microsoft.Extensions.Caching.Memory": "[10.0.12, )",
           "System.Data.Sqlite": "[2.0.4, )"
+        }
+      },
+      "dalamock.core": {
+        "type": "Project",
+        "dependencies": {
+          "Autofac": "[9.0.0, )",
+          "DalaMock.Shared": "[6.1.9, )",
+          "Microsoft.DotNet.PlatformAbstractions": "[3.1.6, )",
+          "Microsoft.Extensions.Configuration": "[10.0.1, )",
+          "Microsoft.Extensions.DependencyModel": "[10.0.1, )",
+          "Microsoft.Extensions.Hosting": "[10.0.1, )",
+          "Microsoft.Extensions.Hosting.Abstractions": "[10.0.1, )",
+          "Microsoft.Extensions.Localization": "[10.0.7, )",
+          "Microsoft.Extensions.ObjectPool": "[10.0.1, )",
+          "NativeFileDialogSharp": "[0.5.0, )",
+          "Newtonsoft.Json": "[13.0.4, )",
+          "Serilog": "[4.3.0, )",
+          "Serilog.Extensions.Logging": "[10.0.0, )",
+          "SixLabors.Fonts": "[2.1.3, )",
+          "StbiSharp": "[1.2.1, )",
+          "Veldrid": "[4.9.0, )",
+          "Veldrid.SDL2": "[4.9.0, )",
+          "Veldrid.StartupUtilities": "[4.9.0, )"
         }
       },
       "ffxivclientstructs": {

@@ -42,6 +42,10 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     public int LastUsedHorn;
     public bool OneWithNature;
 
+    public byte TP;
+    public byte PetTP;
+    public BeastmasterAffinity ComboAffinity;
+
     private Enemy? BestJumpTarget;
     private int NumJumpTargets;
     private Enemy? BestLineTarget;
@@ -52,11 +56,14 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     // TODO: pet AOE target selection (probably only for targeted circles)
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
-        var gauge = World.Client.GetGauge<BeastmasterGauge>();
-
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
 
+        var gauge = World.Client.GetGauge<BeastmasterGauge>();
+
         CurrentPet = 0;
+        TP = gauge.TPGauge;
+        PetTP = gauge.FamiliarTPGauge;
+        ComboAffinity = gauge.CurrentAffinity;
         if (gauge.ActiveBattlehornIndex > 0)
         {
             LastUsedHorn = gauge.ActiveBattlehornIndex;
@@ -64,7 +71,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
         OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
         TrickAffinity = ActionDefinitions.TrickAffinity[CurrentPet];
-        (Kinship, KinshipLeft) = GetKinship();
+        (Kinship, KinshipLeft) = CurrentKinship;
 
         (BestJumpTarget, NumJumpTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
@@ -73,12 +80,12 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         if (Unlocked(TraitID.InstinctualMastery) && HavePet)
         {
             // infinitive combo finisher
-            if (gauge.TPGauge == 250 && gauge.CurrentAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
-                UseAxe(Cycle(gauge.CurrentAffinity), primaryTarget, 100);
+            if (TP == 250 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
+                UseAxe(Cycle(ComboAffinity), primaryTarget, 100);
 
-            if (gauge.CurrentAffinity == Cycle(TrickAffinity, Direction.CCW))
+            if (ComboAffinity == Cycle(TrickAffinity, Direction.CCW))
             {
-                if (gauge.FamiliarTPGauge >= 100)
+                if (PetTP >= 100)
                     PushOGCD(AID.Trick, primaryTarget, 90);
 
                 if (gauge.MasteredInstinct > 1)
@@ -87,12 +94,12 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                     PushOGCD(AID.RallyingCheer, Player, 80);
             }
 
-            if (gauge.MasteredInstinct > 1 && gauge.NaturalInstinct > 0 && gauge.TPGauge >= 100 && CanWeave(AID.Rally, 1) && CanWeave(AID.RallyingCheer, 1))
+            if (gauge.MasteredInstinct > 1 && gauge.NaturalInstinct > 0 && TP >= 100 && CanWeave(AID.Rally, 1) && CanWeave(AID.RallyingCheer, 1))
             {
-                if (gauge.CurrentAffinity == TrickAffinity)
-                    UseAxe(Cycle(gauge.CurrentAffinity, Direction.CCW), primaryTarget, 70);
+                if (ComboAffinity == TrickAffinity)
+                    UseAxe(Cycle(ComboAffinity, Direction.CCW), primaryTarget, 70);
 
-                if (gauge.FamiliarTPGauge >= 100)
+                if (PetTP >= 100)
                     PushOGCD(AID.Trick, primaryTarget, 60);
             }
         }
@@ -101,20 +108,20 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         // TODO: i don't know if building pet gems is worth anything before 50
         if (Unlocked(TraitID.WildHeartIV) && gauge.NaturalInstinct < 3)
         {
-            if (gauge.FamiliarTPGauge >= 100 && gauge.CurrentAffinity != BeastmasterAffinity.None)
+            if (PetTP >= 100 && ComboAffinity != BeastmasterAffinity.None)
                 PushOGCD(AID.Trick, primaryTarget, 20);
 
-            if (gauge.FamiliarTPGauge >= 100 && gauge.TPGauge >= 100 && HavePet)
+            if (PetTP >= 100 && TP >= 100 && HavePet)
                 UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? 10 : 1);
         }
 
         // pet -> player combo for gems for rally
         if (Unlocked(TraitID.WildHeartIII) && gauge.MasteredInstinct < 3)
         {
-            if (gauge.TPGauge >= 100 && gauge.CurrentAffinity != BeastmasterAffinity.None)
-                UseAxe(Cycle(gauge.CurrentAffinity), primaryTarget, 20);
+            if (TP >= 100 && ComboAffinity != BeastmasterAffinity.None)
+                UseAxe(Cycle(ComboAffinity), primaryTarget, 20);
 
-            if (gauge.FamiliarTPGauge >= 100 && gauge.TPGauge >= 100 && HavePet)
+            if (PetTP >= 100 && TP >= 100 && HavePet)
                 PushOGCD(AID.Trick, primaryTarget, gauge.MasteredInstinct < 2 ? 10 : 1);
         }
 
@@ -194,32 +201,41 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
     void UseAxe(BeastmasterAffinity b, Enemy? primaryTarget, int priority = 1)
     {
+        if (b is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker && TP < 250)
+            b = Cycle(TrickAffinity, Direction.CCW); // TODO: specify in args
+
+        if (b is BeastmasterAffinity.Rampant or BeastmasterAffinity.Durant or BeastmasterAffinity.Eldritch or BeastmasterAffinity.Volant && TP == 250)
+            b = BeastmasterAffinity.Sunstrider;
+
         var (a, t) = GetAxe(b);
         PushOGCD(a, t ?? primaryTarget, priority);
     }
 
-    (Kinship, float) GetKinship()
+    (Kinship, float) CurrentKinship
     {
-        foreach (var s in Player.Statuses)
+        get
         {
-            var k = (SID)s.ID switch
+            foreach (var s in Player.Statuses)
             {
-                SID.BeastKinship => Kinship.Beast,
-                SID.VileKinship => Kinship.Vile,
-                SID.CloudKinship => Kinship.Cloud,
-                SID.SeedKinship => Kinship.Seed,
-                SID.WaveKinship => Kinship.Wave,
-                SID.ScaleKinship => Kinship.Scale,
-                SID.SoulKinship => Kinship.Soul,
-                SID.AshKinship => Kinship.Ash,
-                _ => Kinship.None
-            };
-            if (k != default)
-            {
-                var duration = s.ExpireAt > World.CurrentTime ? (float)(s.ExpireAt - World.CurrentTime).TotalSeconds : float.MaxValue;
-                return (k, duration);
+                var k = (SID)s.ID switch
+                {
+                    SID.BeastKinship => Kinship.Beast,
+                    SID.VileKinship => Kinship.Vile,
+                    SID.CloudKinship => Kinship.Cloud,
+                    SID.SeedKinship => Kinship.Seed,
+                    SID.WaveKinship => Kinship.Wave,
+                    SID.ScaleKinship => Kinship.Scale,
+                    SID.SoulKinship => Kinship.Soul,
+                    SID.AshKinship => Kinship.Ash,
+                    _ => Kinship.None
+                };
+                if (k != default)
+                {
+                    var duration = s.ExpireAt > World.CurrentTime ? (float)(s.ExpireAt - World.CurrentTime).TotalSeconds : float.MaxValue;
+                    return (k, duration);
+                }
             }
+            return (Kinship.None, 0);
         }
-        return (Kinship.None, 0);
     }
 }
