@@ -189,17 +189,8 @@ class P3HeavensfallFireball(BossModule module) : Components.StackWithIcon(module
 
 class P3ThermionicBurst(BossModule module) : P2ThermionicBurst(module)
 {
-    bool _towersDone;
     int _rotation; // 0 if unknown, 1 cw, -1 ccw
     Angle? _start;
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        base.OnEventCast(caster, spell);
-
-        if ((AID)spell.Action.ID == AID.MegaflareTower)
-            _towersDone = true;
-    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -218,9 +209,6 @@ class P3ThermionicBurst(BossModule module) : P2ThermionicBurst(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-
-        //if (_towersDone && Casters.Count == 0 && NumCasts == 0)
-        //    hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 13));
 
         if (_start is { } s)
         {
