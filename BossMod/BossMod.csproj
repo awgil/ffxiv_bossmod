@@ -14,8 +14,8 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
-    <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
-    <!-- <PackageReference Include="DalaMock.Core" Version="6.1.9" /> -->
+    <!-- <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" /> -->
+    <PackageReference Include="DalaMock.Core" Version="6.1.9" />
   </ItemGroup>
 
   <ItemGroup>
