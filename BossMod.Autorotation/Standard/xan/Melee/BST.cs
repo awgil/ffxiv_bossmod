@@ -171,11 +171,28 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         if (PlayerTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, 3));
 
-        if (strategy.Resummon.IsEnabled() && !Player.InCombat && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && gauge.KinshipBattlehornIndex != gauge.ActiveBattlehornIndex)
+        // summon first available pet
+        // TOOD: this should give the preborrowed pet lowest priority, so we should do 1 -> 3 -> 2 if 2 is borrowed
+        if (!HavePet && strategy.Summon.IsEnabled())
+        {
+            AID[] horns = [AID.FirstBattlehorn, AID.SecondBattlehorn, AID.ThirdBattlehorn];
+            foreach (var (slot, h) in World.Client.BeastmasterBeasts.Zip(horns))
+                if (slot > 0 && ReadyIn(h) == 0)
+                    PushOGCD(h, Player);
+        }
+
+        if (!Player.InCombat)
+            Prep(strategy, gauge);
+    }
+
+    void Prep(in Strategy strategy, in BeastmasterGauge gauge)
+    {
+        // resummon
+        if (strategy.Resummon.IsEnabled() && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && gauge.KinshipBattlehornIndex != gauge.ActiveBattlehornIndex)
         {
             if (HavePet)
                 Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
-            else if (LastUsedHorn > 0)
+            else if (LastUsedHorn > 0 && LastUsedHorn != gauge.KinshipBattlehornIndex)
             {
                 var horn = LastUsedHorn switch
                 {
@@ -192,28 +209,19 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         // preborrow. note that preborrow must be performed with a different pet than the one we plan to use, because resummoning that pet will remove the buff; this is what gauge.KinshipBattlehornIndex tracks
         // presumably designed to prevent players from using all available TRs PLUS a borrowed skill within the 90s duration of borrow (in standard rotation you use each beast for 30 seconds or so due to Parting Blow cooldown)
         // TODO this should not be hardcoded to horn 3
-        if (!Player.InCombat && strategy.Preborrow.IsEnabled() && World.Client.BeastmasterBeasts[2] > 0)
+        if (strategy.Preborrow.IsEnabled() && World.Client.BeastmasterBeasts[2] > 0)
         {
             if (gauge.Classification == 0)
             {
-                if (gauge.ActiveBattlehornIndex == 3)
-                    PushOGCD(AID.Borrow, Player);
+                if (gauge.ActiveBattlehornIndex > 1)
+                    PushOGCD(AID.Borrow, Player, 10);
                 else
-                    PushOGCD(AID.ThirdBattlehorn, Player);
+                    PushOGCD(AID.ThirdBattlehorn, Player, 10);
             }
-            else if (gauge.KinshipBattlehornIndex == 3 && gauge.ActiveBattlehornIndex == 3)
-                PushOGCD(AID.FirstBattlehorn, Player);
+            else if (gauge.KinshipBattlehornIndex > 1 && gauge.ActiveBattlehornIndex == gauge.KinshipBattlehornIndex)
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
         }
 
-        // summon first available pet
-        // TOOD: this should give the preborrowed pet lowest priority, so we should do 1 -> 3 -> 2 if 2 is borrowed
-        if (!HavePet && strategy.Summon.IsEnabled())
-        {
-            AID[] horns = [AID.FirstBattlehorn, AID.SecondBattlehorn, AID.ThirdBattlehorn];
-            foreach (var (slot, h) in World.Client.BeastmasterBeasts.Zip(horns))
-                if (slot > 0 && ReadyIn(h) == 0)
-                    PushOGCD(h, Player);
-        }
     }
 
     enum Direction
