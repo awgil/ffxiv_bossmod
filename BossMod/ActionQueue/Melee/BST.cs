@@ -1,4 +1,6 @@
-﻿namespace BossMod.BST;
+﻿using System.Runtime.InteropServices;
+
+namespace BossMod.BST;
 
 public enum AID : uint
 {
@@ -188,4 +190,35 @@ public sealed class Definitions : Defs
             d.Spell(AID.HawkishTalons)!.AllowExecute =
             d.Spell(AID.RisenFall)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
+}
+
+public enum BeastmasterAffinity : byte
+{
+    None = 0,
+    Volant = 1,
+    Rampant = 2,
+    Durant = 3,
+    Eldritch = 4,
+    Sunstrider = 5,
+    Moonstalker = 6
+}
+
+[StructLayout(LayoutKind.Explicit, Size = 0x18)]
+public struct BeastmasterGauge
+{
+    [FieldOffset(0x08)] public byte TPGauge;
+    [FieldOffset(0x09)] public byte FamiliarTPGauge;
+    [FieldOffset(0x0A)] public byte FamiliarTPAtLastUse;
+    [FieldOffset(0x0B)] public byte ActiveBattlehornIndex;
+    [FieldOffset(0x0C)] public byte InstinctualComboState;
+    [FieldOffset(0x0D)] public BeastmasterAffinity CurrentAffinity;
+    [FieldOffset(0x0E)] public byte ChainCount;
+    [FieldOffset(0x0F)] public byte KinshipState;
+    [FieldOffset(0x10)] public byte InstinctState;
+
+    public readonly byte KinshipBattlehornIndex => (byte)(KinshipState & 0b1111);
+    public readonly byte Classification => (byte)((KinshipState >> 4) & 0b1111);
+
+    public readonly byte NaturalInstinct => (byte)(InstinctState & 0b11);
+    public readonly byte MasteredInstinct => (byte)((InstinctState >> 2) & 0b11);
 }

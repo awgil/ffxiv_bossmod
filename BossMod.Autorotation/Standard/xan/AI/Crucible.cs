@@ -1,5 +1,4 @@
 ﻿using BossMod.BST;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
 

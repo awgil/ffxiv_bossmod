@@ -1,4 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+﻿using BossMod.BST;
 using System.Reflection;
 
 namespace BossMod;

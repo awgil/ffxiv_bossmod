@@ -1,5 +1,4 @@
 ﻿using BossMod.BST;
-using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
@@ -11,12 +10,20 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Shield Charge")]
         public Track<EnabledByDefault> ShieldCharge;
 
+        [Track("Summon first available pet")]
+        public Track<EnabledByDefault> Summon;
+
+        [Track("Tempered Release")]
         public Track<EnabledByDefault> TemperedRelease;
 
-        [Track("Refresh One With Nature out of combat")]
+        [Track("Resummon pet out of combat to refresh One With Nature")]
         public Track<EnabledByDefault> Resummon;
+
+        [Track("Pre-Borrow")]
+        public Track<EnabledByDefault> Preborrow;
 
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
@@ -73,6 +80,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         TrickAffinity = ActionDefinitions.TrickAffinity[CurrentPet];
         (Kinship, KinshipLeft) = CurrentKinship;
 
+        var petIsLeaving = ReadyIn(AID.PartingBlow) > 5;
+
         (BestJumpTarget, NumJumpTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
 
@@ -85,7 +94,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
             if (ComboAffinity == Cycle(TrickAffinity, Direction.CCW))
             {
-                if (PetTP >= 100)
+                if (PetTP >= 100 && !petIsLeaving)
                     PushOGCD(AID.Trick, primaryTarget, 90);
 
                 if (gauge.MasteredInstinct > 1)
@@ -99,30 +108,48 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                 if (ComboAffinity == TrickAffinity)
                     UseAxe(Cycle(ComboAffinity, Direction.CCW), primaryTarget, 70);
 
-                if (PetTP >= 100)
+                if (PetTP >= 100 && !petIsLeaving)
                     PushOGCD(AID.Trick, primaryTarget, 60);
             }
         }
 
-        // player -> pet combo for gems for cheer
-        // TODO: i don't know if building pet gems is worth anything before 50
-        if (Unlocked(TraitID.WildHeartIV) && gauge.NaturalInstinct < 3)
+        // at level 40 we also get pet gems for use with cheer
+        if (Unlocked(TraitID.WildHeartIV))
         {
-            if (PetTP >= 100 && ComboAffinity != BeastmasterAffinity.None)
-                PushOGCD(AID.Trick, primaryTarget, 20);
+            if (gauge.NaturalInstinct < 3)
+            {
+                if (PetTP >= 100 && ComboAffinity != BeastmasterAffinity.None && !petIsLeaving)
+                    PushOGCD(AID.Trick, primaryTarget, 20);
 
-            if (PetTP >= 100 && TP >= 100 && HavePet)
-                UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? 10 : 1);
+                if (PetTP >= 100 && TP >= 100 && HavePet)
+                    UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? 10 : 1);
+            }
+
+            // TODO: this should be delayed until the last-ish weave window so we can get the 4x opener, and also needs some additional conditions to make sure it's not popped early during infinitive
+            //if (gauge.NaturalInstinct > 0 && ComboAffinity != BeastmasterAffinity.None)
+            //    PushOGCD(AID.RallyingCheer, Player);
         }
 
-        // pet -> player combo for gems for rally
-        if (Unlocked(TraitID.WildHeartIII) && gauge.MasteredInstinct < 3)
+        // at level 30 we get player gems for use with rally
+        if (Unlocked(TraitID.WildHeartIII))
         {
-            if (TP >= 100 && ComboAffinity != BeastmasterAffinity.None)
-                UseAxe(Cycle(ComboAffinity), primaryTarget, 20);
+            if (gauge.MasteredInstinct < 3)
+            {
+                if (TP >= 100 && ComboAffinity != BeastmasterAffinity.None)
+                    UseAxe(Cycle(ComboAffinity), primaryTarget, 20);
 
-            if (PetTP >= 100 && TP >= 100 && HavePet)
-                PushOGCD(AID.Trick, primaryTarget, gauge.MasteredInstinct < 2 ? 10 : 1);
+                if (PetTP >= 100 && TP >= 100 && HavePet && !petIsLeaving)
+                    PushOGCD(AID.Trick, primaryTarget, gauge.MasteredInstinct switch
+                    {
+                        0 => 30,
+                        1 => 10,
+                        _ => 1
+                    });
+            }
+
+            // TODO: additional conditions to not ruin infinitive
+            //if (gauge.MasteredInstinct > 0 && ComboAffinity != BeastmasterAffinity.None)
+            //    PushOGCD(AID.Rally, Player);
         }
 
         // TODO: pet aoe targeting
@@ -144,7 +171,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         if (PlayerTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, 3));
 
-        if (strategy.Resummon.IsEnabled() && !Player.InCombat && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && Kinship == Kinship.None)
+        if (strategy.Resummon.IsEnabled() && !Player.InCombat && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && gauge.KinshipBattlehornIndex != gauge.ActiveBattlehornIndex)
         {
             if (HavePet)
                 Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
@@ -162,7 +189,25 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             }
         }
 
-        if (!HavePet)
+        // preborrow. note that preborrow must be performed with a different pet than the one we plan to use, because resummoning that pet will remove the buff; this is what gauge.KinshipBattlehornIndex tracks
+        // presumably designed to prevent players from using all available TRs PLUS a borrowed skill within the 90s duration of borrow (in standard rotation you use each beast for 30 seconds or so due to Parting Blow cooldown)
+        // TODO this should not be hardcoded to horn 3
+        if (!Player.InCombat && strategy.Preborrow.IsEnabled())
+        {
+            if (gauge.Classification == 0)
+            {
+                if (gauge.ActiveBattlehornIndex == 3)
+                    PushOGCD(AID.Borrow, Player);
+                else
+                    PushOGCD(AID.ThirdBattlehorn, Player);
+            }
+            else if (gauge.KinshipBattlehornIndex == 3 && gauge.ActiveBattlehornIndex == 3)
+                PushOGCD(AID.FirstBattlehorn, Player);
+        }
+
+        // summon first available pet
+        // TOOD: this should give the preborrowed pet lowest priority, so we should do 1 -> 3 -> 2 if 2 is borrowed
+        if (!HavePet && strategy.Summon.IsEnabled())
         {
             AID[] horns = [AID.FirstBattlehorn, AID.SecondBattlehorn, AID.ThirdBattlehorn];
             foreach (var (slot, h) in World.Client.BeastmasterBeasts.Zip(horns))
