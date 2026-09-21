@@ -485,6 +485,9 @@ public abstract class BossModule : IDisposable
             }
             Arena.Actor(player, color);
         }
+
+        if (WindowConfig.ShowPet && WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
+            Arena.Actor(pet, ArenaColor.Object);
     }
 
     private (BossComponent.PlayerPriority, uint) CalculateHighestPriority(int pcSlot, Actor pc, int playerSlot, Actor player)

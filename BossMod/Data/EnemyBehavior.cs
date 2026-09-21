@@ -38,9 +38,11 @@ public static class EnemyBehavior
 
     public static bool TryGetTankDistance(uint oid, out float distance) => TankDistance.TryGetValue(oid, out distance);
 
+    // TODO check sheets
     public static readonly HashSet<uint> MovementDisabled = [
-        0x4DD4,
         0x4B8E,
+        0x4CDC,
+        0x4DD4,
     ];
 
     public static bool TryGetAggroDistance(uint territory, uint name, out float distance)
