@@ -1,4 +1,5 @@
-﻿namespace BossMod.Global.Crucible.LoosefroxInkyjots;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Global.Crucible.LoosefroxInkyjots;
 
 public enum OID : uint
 {
