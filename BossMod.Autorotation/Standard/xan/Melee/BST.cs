@@ -192,7 +192,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         // preborrow. note that preborrow must be performed with a different pet than the one we plan to use, because resummoning that pet will remove the buff; this is what gauge.KinshipBattlehornIndex tracks
         // presumably designed to prevent players from using all available TRs PLUS a borrowed skill within the 90s duration of borrow (in standard rotation you use each beast for 30 seconds or so due to Parting Blow cooldown)
         // TODO this should not be hardcoded to horn 3
-        if (!Player.InCombat && strategy.Preborrow.IsEnabled())
+        if (!Player.InCombat && strategy.Preborrow.IsEnabled() && World.Client.BeastmasterBeasts[2] > 0)
         {
             if (gauge.Classification == 0)
             {
