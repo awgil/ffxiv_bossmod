@@ -8,7 +8,4 @@ public sealed class DeveloperConfig : ConfigNode
 
     [PropertyDisplay("Obstacle map auto-generation")]
     public bool AutoBitmaps = true;
-
-    [PropertyDisplay("Enable module hot-reloading")]
-    public bool HotReload = false;
 }

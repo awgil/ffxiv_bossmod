@@ -55,7 +55,6 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     public byte TP;
     public byte PetTP;
     public BeastmasterAffinity ComboAffinity;
-    public float ComboLeft;
 
     private Enemy? BestJumpTarget;
     private int NumJumpTargets;
@@ -77,7 +76,6 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         TP = gauge.TPGauge;
         PetTP = gauge.FamiliarTPGauge;
         ComboAffinity = gauge.CurrentAffinity;
-        ComboLeft = GetComboTimer();
         if (gauge.ActiveBattlehornIndex > 0)
         {
             LastUsedHorn = gauge.ActiveBattlehornIndex;
@@ -145,7 +143,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             if (gauge.MasteredInstinct < 3)
             {
                 if (TP >= 100 && ComboAffinity != BeastmasterAffinity.None
-                    && (gauge.MasteredInstinct > 0 || !CanFitGCD(ComboLeft, 1)))
+                    && (gauge.MasteredInstinct > 0 || !CanFitGCD(ComboTimer, 1)))
                     UseAxe(Cycle(ComboAffinity), primaryTarget, 20);
 
                 if (PetTP >= 100 && TP >= 100 && HavePet && !petIsLeaving)
@@ -292,24 +290,27 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         return MathF.Min(h1, MathF.Min(h2, h3));
     }
 
-    float GetComboTimer()
+    float ComboTimer
     {
-        foreach (var s in Player.Statuses)
+        get
         {
-            var a = (SID)s.ID switch
+            foreach (var s in Player.Statuses)
             {
-                SID.VolantHeart => BeastmasterAffinity.Volant,
-                SID.RampantHeart => BeastmasterAffinity.Rampant,
-                SID.DurantHeart => BeastmasterAffinity.Durant,
-                SID.EldritchHeart => BeastmasterAffinity.Eldritch,
-                SID.Sunstrider => BeastmasterAffinity.Sunstrider,
-                SID.Moonstalker => BeastmasterAffinity.Moonstalker,
-                _ => BeastmasterAffinity.None
-            };
-            if (a != BeastmasterAffinity.None)
-                return (float)(s.ExpireAt - World.CurrentTime).TotalSeconds;
+                var a = (SID)s.ID switch
+                {
+                    SID.VolantHeart => BeastmasterAffinity.Volant,
+                    SID.RampantHeart => BeastmasterAffinity.Rampant,
+                    SID.DurantHeart => BeastmasterAffinity.Durant,
+                    SID.EldritchHeart => BeastmasterAffinity.Eldritch,
+                    SID.Sunstrider => BeastmasterAffinity.Sunstrider,
+                    SID.Moonstalker => BeastmasterAffinity.Moonstalker,
+                    _ => BeastmasterAffinity.None
+                };
+                if (a != BeastmasterAffinity.None)
+                    return (float)(s.ExpireAt - World.CurrentTime).TotalSeconds;
+            }
+            return 0;
         }
-        return 0;
     }
 
     (Kinship, float) CurrentKinship

@@ -39,7 +39,6 @@ public sealed class PackLoader : IDisposable
     // one context per filepath - this is because AssemblyLoadContext doesn't support unloading individual assemblies, and we don't want to force everything to hot reload when one file changes
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
     private readonly SensibleFileWatcher _watcher;
-    private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
     private readonly EventSubscriptions _modified;
     public static readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), "modules");
 
@@ -56,11 +55,9 @@ public sealed class PackLoader : IDisposable
 
         ReloadFrom(ModuleDir);
 
+        _watcher.EnableRaisingEvents = true;
+
         _modified = new(
-            _config.Modified.ExecuteAndSubscribe(() =>
-            {
-                _watcher.EnableRaisingEvents = _config.HotReload;
-            }),
             _watcher.Renamed.Subscribe(OnFileRenamed),
             _watcher.Changed.Subscribe(f => OnFileChanged(f.FullPath)),
             _watcher.Deleted.Subscribe(f => OnFileDeleted(f.FullPath))
