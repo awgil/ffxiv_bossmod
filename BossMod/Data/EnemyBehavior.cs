@@ -43,6 +43,7 @@ public static class EnemyBehavior
         0x4B8E,
         0x4CDC,
         0x4DD4,
+        0x4CF8
     ];
 
     public static bool TryGetAggroDistance(uint territory, uint name, out float distance)

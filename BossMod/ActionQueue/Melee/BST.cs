@@ -102,6 +102,14 @@ public enum SID : uint
     ScaleKinship = 4649,
     SoulKinship = 4650,
     AshKinship = 4651,
+
+    VolantHeart = 4595,
+    RampantHeart = 4596,
+    DurantHeart = 4597,
+    EldritchHeart = 4598,
+    Sunstrider = 4599,
+    Moonstalker = 4600,
+    WaveringHeart = 4643,
 }
 
 public enum Kinship : byte
