@@ -23,7 +23,7 @@ internal sealed class SensibleFileWatcher : IDisposable
     {
         Watcher = new()
         {
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.CreationTime
         };
         if (path != null)
             Watcher.Path = path;
