@@ -199,7 +199,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         if (Hints.FindEnemy(primaryTarget) is { } enemy && enemy.Actor.TargetID == Player.InstanceID)
         {
             if (enemy.CanMove && enemy.DesiredPosition is { } pos)
-                Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, GCD, 0.5f));
+                Hints.GoalZones.Add(Hints.PullTargetToLocation(enemy.Actor, pos, Player, GCD, 0.5f, enemy.Priority >= 0));
 
             if (enemy.DesiredRotation is { } rot)
             {

@@ -58,7 +58,13 @@ public enum TetherID : uint
 class FinalHourglass(BossModule module) : Components.Adds(module, (uint)OID._Gen_FinalHourglass, 1);
 
 // TODO: hits the pet :(
-class Stare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(50, 4), (uint)IconID._Gen_Icon_tank_laser_5sec_lockon_c0a1, AID._Weaponskill_Stare);
+class Stare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(50, 4), (uint)IconID._Gen_Icon_tank_laser_5sec_lockon_c0a1, AID._Weaponskill_Stare)
+{
+    public override void Update()
+    {
+        CurrentBaits.RemoveAll(p => p.Target.IsDead);
+    }
+}
 
 class DoubleVision(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_IrefulGaze, AID._Weaponskill_SullenGaze], new AOEShapeCone(30, 90.Degrees()))
 {

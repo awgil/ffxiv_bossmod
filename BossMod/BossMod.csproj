@@ -10,13 +10,23 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
+    <PropertyGroup>
+        <LocalDalamock>true</LocalDalamock>
+    </PropertyGroup>
+
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
-    <!-- <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" /> -->
-    <PackageReference Include="DalaMock.Core" Version="6.1.9" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' == 'true'">
+    <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
+  </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' != 'true'">
+        <PackageReference Include="DalaMock.Core" Version="6.1.9" />
+    </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Dalamud.Common" Private="false" />
@@ -25,6 +35,7 @@
     <PackageReference Include="DalaMock.Shared" Version="6.1.9" />
     <PackageReference Include="System.Data.Sqlite" Version="2.0.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
 
     <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -35,8 +46,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
+    <EmbeddedResource Include="Data\EnemyBehavior.csv" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
-    <EmbeddedResource Include="Data\AggroDistance.dat" />
   </ItemGroup>
 
   <ItemGroup>

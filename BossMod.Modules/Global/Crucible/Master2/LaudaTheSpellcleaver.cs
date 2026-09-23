@@ -1,4 +1,8 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+
+
+
+
 namespace BossMod.Global.Crucible.LaudaTheSpellcleaver;
 
 public enum OID : uint
@@ -11,6 +15,8 @@ public enum OID : uint
     _Gen_ThanatosPiece = 0x4D24, // R2.000, x0 (spawn during fight)
     _Gen_ = 0x4E5E, // R1.400, x0 (spawn during fight)
     Helper = 0x233C, // R0.500, x23, Helper type
+
+    CageOfMoltenMetal = 0x1EC0DD
 }
 
 public enum AID : uint
@@ -85,6 +91,25 @@ public enum TetherID : uint
 }
 
 // rush actiontimeline 11D2 -> cast event after 14.7s
+class AutoAttack(BossModule module) : Components.Cleave(module, AID._AutoAttack_, new AOEShapeCone(9, 60.Degrees()), (uint)OID.Boss, activeWhileCasting: false)
+{
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        if (WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
+            Arena.Actor(pet, ArenaColor.PlayerGeneric);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.PrimaryActor.TargetID == actor.InstanceID && Module.PrimaryActor.CastInfo == null && Module.PrimaryActor.IsTargetable && WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
+        {
+            var dir = Module.PrimaryActor.AngleTo(pet);
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 9, dir, 60.Degrees()), DateTime.MaxValue);
+        }
+    }
+}
 
 class BeastlyAura(BossModule module) : Components.Knockback(module, AID._Weaponskill_BeastlyAura1)
 {
@@ -118,12 +143,205 @@ class BeastlyAura(BossModule module) : Components.Knockback(module, AID._Weapons
             hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, default(Angle), 5, 5, 2.5f), Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
+class Thunderbolt(BossModule module) : Components.BaitAwayCast(module, AID._Weaponskill_Thunderbolt, new AOEShapeRect(50, 3));
+
+class Rush(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Rush1)
+{
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        var nextActivation = default(DateTime);
+        foreach (var c in Utils.TakeSpan(_predicted, p => p.Activation, TimeSpan.FromSeconds(3)))
+        {
+            var thisActivation = c.Activation;
+            var color = ArenaColor.AOE;
+            if (nextActivation == default)
+                nextActivation = thisActivation.AddSeconds(0.5f);
+
+            if (thisActivation < nextActivation)
+                color = ArenaColor.Danger;
+            yield return c with { Color = color };
+        }
+    }
+
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if ((OID)actor.OID == OID._Gen_EphemeralBlade && id == 0x11D2)
+            _predicted.Add(new(new AOEShapeRect(50, 2.5f), actor.Position, actor.Rotation, WorldState.FutureTime(14.7f)));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction && _predicted.FirstOrDefault(p => p.Origin.AlmostEqual(spell.LocXZ, 1)) is { } p)
+        {
+            p.Origin = spell.LocXZ;
+            p.Rotation = spell.Rotation;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            if (_predicted.Count > 0)
+                _predicted.RemoveAt(0);
+        }
+    }
+}
+
+class Gyrocleave(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Gyrocleave1, new AOEShapeRect(80, 10));
+
+class OverpoweringPointBait(BossModule module) : Components.GenericBaitAway(module)
+{
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_dark001f && WorldState.Actors.Find(tether.Target) is { } target)
+            CurrentBaits.Add(new(source, target, new AOEShapeRect(60, 3), WorldState.FutureTime(5.1f)));
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        if (CurrentBaits.Count > 0)
+            foreach (var e in Module.Enemies(OID._Gen_))
+                Arena.AddCircle(e.Position, e.HitboxRadius, ArenaColor.Object);
+        //Arena.ActorInsideBounds(e.Position, e.Rotation, ArenaColor.Object);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID._Weaponskill_OverpoweringPoint3 or AID._Weaponskill_OverpoweringPoint4)
+            CurrentBaits.Clear();
+    }
+}
+
+class OverpoweringPoint(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_OverpoweringPoint3, AID._Weaponskill_OverpoweringPoint4], new AOEShapeRect(60, 3));
+
+class UnseenForce(BossModule module) : Components.Knockback(module, AID._Weaponskill_Shockwave, true)
+{
+    public readonly List<(Angle Offset, DateTime Activation)> Forces = [];
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        foreach (var src in Forces.Where(s => s.Activation != default))
+            yield return new(actor.Position, 40, src.Activation, null, actor.Rotation + src.Offset, Kind.DirForward);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_UnseenForce2 && WorldState.Actors.Find(spell.MainTargetID) is { } target)
+            Forces.Add(((target.Rotation - spell.Rotation).Normalized(), default));
+
+        if (spell.Action == WatchedAction)
+            Forces.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var s in Forces.Where(s => s.Activation != default))
+        {
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 20), s.Activation);
+
+            var wantedDir = (Arena.Center - actor.Position).ToAngle() + s.Offset;
+            hints.ForbiddenDirections.Add(((wantedDir + 180.Degrees()).Normalized(), 178.Degrees(), s.Activation));
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if ((SID)status.ID == SID._Gen_UnseenForce)
+            foreach (ref var s in Forces.AsSpan())
+                s.Activation = status.ExpireAt;
+    }
+}
+
+class ThanatosPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_ThanatosPiece, 1);
+class InfernalPain(BossModule module) : Components.CastHint(module, AID._Weaponskill_InfernalPain, "Enrage!", true);
+
+class CageOfMoltenMetalPre(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_CageOfMoltenMetal)
+{
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID == OID.CageOfMoltenMetal && state == 0x00010002)
+            _predicted.Add(new(new AOEShapeCircle(12), actor.Position, default, WorldState.FutureTime(11.2f)));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction && _predicted.Count > 0)
+            _predicted.RemoveAt(0);
+    }
+}
+
+class MoltenMetal(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_MoltenMetal3, 6);
+class CageOfMoltenMetal(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_CageOfMoltenMetal, 12);
+class MagicalCombustion(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_MagicalCombustion, 8);
+
+class GluttonousGutting(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GluttonousGutting1, new AOEShapeRect(50, 20))
+{
+    readonly UnseenForce _uf = module.FindComponent<UnseenForce>()!;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+        {
+            if (_uf.Forces.Count > 0)
+                // knockback pending, hide on opposite side of boss
+                hints.AddForbiddenZone(ShapeDistance.Circle(c.CastInfo!.LocXZ, 30), _uf.Forces[0].Activation);
+            else
+                hints.AddForbiddenZone(Shape, c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
+        }
+    }
+}
+class GluttonousGoring(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GluttonousGoring1, 40)
+{
+    readonly UnseenForce _uf = module.FindComponent<UnseenForce>()!;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+        {
+            if (_uf.Forces.Count > 0)
+                // knockback pending, hide under boss so we get knocked to the other side
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(c.CastInfo!.LocXZ, 5), _uf.Forces[0].Activation);
+            else
+                hints.AddForbiddenZone(Shape, c.CastInfo!.LocXZ, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
+        }
+    }
+}
+
+// figure out radius
+class BeastlyFlare(BossModule module) : Components.ProximityAOEs(module, AID._Spell_BeastlyFlare, 20);
 
 class LaudaTheSpellcleaverStates : StateMachineBuilder
 {
     public LaudaTheSpellcleaverStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<AutoAttack>()
+            .ActivateOnEnter<Rush>()
+            .ActivateOnEnter<Thunderbolt>()
+            .ActivateOnEnter<BeastlyAura>()
+            .ActivateOnEnter<Gyrocleave>()
+            .ActivateOnEnter<OverpoweringPointBait>()
+            .ActivateOnEnter<OverpoweringPoint>()
+            .ActivateOnEnter<UnseenForce>()
+            .ActivateOnEnter<ThanatosPiece>()
+            .ActivateOnEnter<InfernalPain>()
+            .ActivateOnEnter<CageOfMoltenMetalPre>()
+            .ActivateOnEnter<CageOfMoltenMetal>()
+            .ActivateOnEnter<MoltenMetal>()
+            .ActivateOnEnter<BeastlyFlare>()
+            .ActivateOnEnter<MagicalCombustion>()
+            .ActivateOnEnter<GluttonousGutting>()
+            .ActivateOnEnter<GluttonousGoring>();
     }
 }
 

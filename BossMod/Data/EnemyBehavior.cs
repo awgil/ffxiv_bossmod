@@ -1,61 +1,39 @@
-﻿namespace BossMod.Data;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
+using CsvHelper.TypeConversion;
+
+namespace BossMod.Data;
 
 public static class EnemyBehavior
 {
-    public record struct AggroData(uint Territory, uint NameID, float Distance, string EnglishName);
+    public record struct Record(
+        [property: TypeConverter(typeof(OIDConverter))]
+        uint OID,
+        string Name,
+        float TankDistance,
+        bool CanMove
+    );
 
-    public static IReadOnlyList<AggroData> Data => _data;
-
-    private static readonly List<AggroData> _data = [];
+    private static readonly Dictionary<uint, Record> AllRecords = [];
 
     static EnemyBehavior()
     {
-        using var reader = Utils.LoadResource("BossMod.Data.AggroDistance.dat");
-        string? s;
-        while ((s = reader.ReadLine()) != null)
-        {
-            switch (s.Split('='))
-            {
-                case [var ts, var ns, var ds, var es]:
-                    _data.Add(new(uint.Parse(ts), uint.Parse(ns), float.Parse(ds), es));
-                    break;
-
-                default:
-                    Service.PluginLog.Warning($"Invalid element in aggro data file: {s}");
-                    break;
-            }
-        }
+        using var s = Utils.LoadResource("BossMod.Data.EnemyBehavior.csv");
+        using var csv = new CsvReader(s, System.Globalization.CultureInfo.InvariantCulture);
+        foreach (var rec in csv.GetRecords<Record>())
+            AllRecords.Add(rec.OID, rec);
     }
 
-    // distance is between hitboxes
-    public static readonly Dictionary<uint, float> TankDistance = new()
+    public static bool TryGet(uint oid, out Record r) => AllRecords.TryGetValue(oid, out r);
+}
+
+class OIDConverter : DefaultTypeConverter
+{
+    private readonly System.ComponentModel.UInt32Converter converter = new();
+
+    public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
-        // Twintania/Nael/Bahamut (UCOB)
-        [0x1FDF] = 0,
-        [0x1FE1] = 0,
-        [0x1FE8] = 0,
-    };
-
-    public static bool TryGetTankDistance(uint oid, out float distance) => TankDistance.TryGetValue(oid, out distance);
-
-    // TODO check sheets
-    public static readonly HashSet<uint> MovementDisabled = [
-        0x4B8E,
-        0x4CDC,
-        0x4DD4,
-        0x4CF8
-    ];
-
-    public static bool TryGetAggroDistance(uint territory, uint name, out float distance)
-    {
-        var ix = _data.FindIndex(d => d.Territory == territory && d.NameID == name);
-        if (ix >= 0)
-        {
-            distance = _data[ix].Distance;
-            return true;
-        }
-
-        distance = float.MaxValue;
-        return false;
+        return text == null ? null : converter.ConvertFromString(text);
     }
 }

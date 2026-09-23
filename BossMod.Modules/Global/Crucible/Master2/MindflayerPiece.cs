@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+
 namespace BossMod.Global.Crucible.MindflayerPiece;
 
 public enum OID : uint
@@ -97,13 +98,60 @@ class MyconidPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_M
         {
             var midpoint = puddles.Aggregate(default(WDir), (a, p) => a + p.Position.ToWDir()) / puddles.Count;
             target.DesiredPosition = midpoint.ToWPos();
-            target.Priority = 1;
+
+            // standing in puddle -> kill
+            if (puddles.Any(p => target.Actor.Position.InCircle(p.Position, 7.5f)))
+                target.Priority = 1;
+
+            // not in puddle, targeting us -> pull to puddle and don't kill it early
+            else if (target.Actor.TargetID == actor.InstanceID)
+            {
+                // TODO: this is a hack to make normalmove pull the mushroom to the right position
+                target.ShouldBeTargeted = true;
+                target.Priority = AIHints.Enemy.PriorityForbidden;
+            }
+
+            // not in puddle, not targeting us -> aggro it
+            else
+            {
+                target.ShouldBeTargeted = true;
+                target.ShouldBeTanked = true;
+            }
         }
     }
 }
 
 class Shroombed(BossModule module) : Components.Voidzone(module, 6, OID._Gen_Shroombed);
 
+class SporeSpillPre(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_SporeSpill)
+{
+    readonly List<Actor> _alive = [];
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _predicted.RemoveAll(p => p.Origin.AlmostEqual(spell.LocXZ, 0.5f));
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID._Gen_MyconidPiece)
+            _alive.Add(actor);
+    }
+
+    public override void Update()
+    {
+        for (var i = _alive.Count - 1; i >= 0; i--)
+            if (_alive[i].IsDead)
+            {
+                _predicted.Add(new(new AOEShapeCircle(6), _alive[i].Position, default, WorldState.FutureTime(3)));
+                _alive.RemoveAt(i);
+            }
+    }
+}
 class SporeSpill(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_SporeSpill, 6);
 
 class DarkCurrentSmall(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_DarkCurrent1, new AOEShapeRect(100, 2));
@@ -123,6 +171,7 @@ class MindflayerPieceStates : StateMachineBuilder
             .ActivateOnEnter<MyconidPiece>()
             .ActivateOnEnter<Shroombed>()
             .ActivateOnEnter<SporeSpill>()
+            .ActivateOnEnter<SporeSpillPre>()
             .ActivateOnEnter<DarkCurrentSmall>()
             .ActivateOnEnter<DarkCurrentLarge>()
             .ActivateOnEnter<VoidParalyzeIII>();

@@ -8,6 +8,9 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
     {
         [Track("Auto-Snarl", Action = AID.Snarl)]
         public Track<EnabledByDefault> Snarl;
+
+        [Track("Auto-Challenge", Action = AID.Challenge)]
+        public Track<EnabledByDefault> Challenge;
     }
 
     public static RotationModuleDefinition Definition()
@@ -21,7 +24,10 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
 
         var havePet = gauge.ActiveBattlehornIndex > 0;
 
-        if (strategy.Snarl.IsEnabled() && havePet && Hints.PotentialTargets.FirstOrDefault(p => p.PreferShirking) is { } enemy)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Snarl), enemy.Actor, ActionQueue.Priority.Medium, forced: true); // bypass Forbidden priority for parrying enemy
+        if (strategy.Snarl.IsEnabled() && havePet && Hints.PotentialTargets.FirstOrDefault(p => p.PreferShirking) is { } e1)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Snarl), e1.Actor, ActionQueue.Priority.Medium, forced: true);
+
+        if (strategy.Challenge.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeTanked) is { } e2)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Challenge), e2.Actor, ActionQueue.Priority.Medium, forced: true);
     }
 }

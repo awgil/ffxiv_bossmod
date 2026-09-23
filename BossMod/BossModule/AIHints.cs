@@ -461,7 +461,7 @@ public sealed class AIHints
         };
     }
 
-    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2)
+    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2, bool greed = true)
     {
         var enemy = FindEnemy(target);
         if (enemy == null)
@@ -477,7 +477,7 @@ public sealed class AIHints
             return GoalSingleTarget(target.Position, adjRange, 0.1f);
 
         var distance = distToGoal;
-        if (gcd < 0.5f)
+        if (greed && gcd < 0.5f)
         {
             var playerEffRange = player.Role is Role.Tank or Role.Melee ? 3 : 25;
             distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange);
