@@ -265,12 +265,15 @@ public class ReplayManagementWindow : UIWindow
         if (IsRecording())
             return; // already recording
 
+        var (z, p) = GetPrefix();
+        var parentDir = _config.ZoneSubfolders ? new(Path.Join(_logDir.FullName, z)) : _logDir;
+
         // if there are too many replays, delete oldest
         if (_config.MaxReplays > 0)
         {
             try
             {
-                var replays = _logDir.GetFiles();
+                var replays = parentDir.GetFiles();
                 replays.SortBy(f => f.LastWriteTime);
                 foreach (var f in replays.Take(replays.Length - _config.MaxReplays))
                     f.Delete();
@@ -283,8 +286,6 @@ public class ReplayManagementWindow : UIWindow
 
         try
         {
-            var (z, p) = GetPrefix();
-            var parentDir = _config.ZoneSubfolders ? new(Path.Join(_logDir.FullName, z)) : _logDir;
             _recorder = new(_ws, _config.WorldLogFormat, true, parentDir, prefix + p, _config.Anonymize);
         }
         catch (Exception ex)

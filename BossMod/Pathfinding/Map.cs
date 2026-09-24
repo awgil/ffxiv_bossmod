@@ -135,13 +135,13 @@ public class Map
 
 #pragma warning disable IDE0060 // TODO: mark all pixels in radius as portal source
     public void AddPortal(WPos from, float radius, WPos to)
-#pragma warning restore IDE0060
     {
         var a = GridToIndex(WorldToGrid(from));
         var b = GridToIndex(WorldToGrid(to));
         Portals.TryAdd(a, []);
         Portals[a].Add(b);
     }
+#pragma warning restore IDE0060
 
     public IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
     {

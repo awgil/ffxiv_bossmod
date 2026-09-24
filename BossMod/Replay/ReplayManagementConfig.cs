@@ -34,6 +34,6 @@ public class ReplayManagementConfig : ConfigNode
     [PropertyDisplay("Format for recorded logs")]
     public ReplayLogFormat WorldLogFormat = ReplayLogFormat.BinaryCompressed;
 
-    [PropertyDisplay("Organize replays into zone- or duty-specific folders")]
+    [PropertyDisplay("Organize replays into zone- or duty-specific folders", tooltip: "If this option is enabled, the 'Max replays to keep' limit will be applied individually to each folder, NOT your overall total number of replays.")]
     public bool ZoneSubfolders = false;
 }
