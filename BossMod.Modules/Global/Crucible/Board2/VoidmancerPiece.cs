@@ -39,7 +39,6 @@ public enum IconID : uint
 class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
     private int[] _zombieCounter = [];
-    int _minZombies;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -59,11 +58,10 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
             var zombies = Module.Enemies(OID._Gen_ZombiePiece);
 
             _zombieCounter = hints.GenerateFromMap((p, _) => zombies.Count(z => z.IsDead && z.Position.InCircle(p, 10.75f)));
-            _minZombies = _zombieCounter.Min();
         }
 
         foreach (var bait in ActiveBaitsOn(actor))
-            hints.AddForbiddenZone(Sdf.Indexed((_, i) => i < 0 || _zombieCounter[i] > _minZombies), bait.Activation);
+            hints.AddForbiddenZone(Sdf.Indexed((_, i) => i < 0 || _zombieCounter[i] > 1), bait.Activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -127,6 +125,9 @@ class Necropurge(BossModule module) : Components.GenericAOEs(module, AID._Weapon
     }
 }
 
+// TODO: hints to not walk into necropurge
+class Mindjack(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, 0, (uint)SID._Gen_AboutFace, (uint)SID._Gen_LeftFace, (uint)SID._Gen_RightFace);
+
 class VoidmancerPieceStates : StateMachineBuilder
 {
     public VoidmancerPieceStates(BossModule module) : base(module)
@@ -137,7 +138,8 @@ class VoidmancerPieceStates : StateMachineBuilder
             .ActivateOnEnter<ZombiePiece>()
             .ActivateOnEnter<DarkOrb>()
             .ActivateOnEnter<EvilMist>()
-            .ActivateOnEnter<Necropurge>();
+            .ActivateOnEnter<Necropurge>()
+            .ActivateOnEnter<Mindjack>();
     }
 }
 
