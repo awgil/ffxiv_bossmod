@@ -197,7 +197,7 @@ public sealed class RDM(RotationModuleManager manager, Actor player) : Castxan<A
         if (ComboLastMove is AID.Verflare or AID.Verholy)
             PushGCD(AID.Scorch, BestAOETarget, GCDPriority.Combo);
 
-        // verholy is unlocked at 70, verflare at 68; at 68-69 verflare is the only finisher regardless of mana balance
+        // verholy needs the L70 job quest, verflare is L68; until verholy is unlocked, verflare is the only finisher regardless of mana balance
         if (Stacks == 3)
             PushGCD(BlackMana > WhiteMana && Unlocked(AID.Verholy) ? AID.Verholy : AID.Verflare, BestAOETarget, GCDPriority.Combo);
 
