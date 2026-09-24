@@ -240,6 +240,17 @@ public sealed class ActionDefinitions
 
         RegisterItem(IDMiscItemGreens, 1.1f);
 
+        // hp restoration pots
+        RegisterItem(new(ActionType.Item, 4551), 1.1f); // potion
+        RegisterItem(new(ActionType.Item, 4552), 1.1f); // hi-potion
+        RegisterItem(new(ActionType.Item, 4553), 1.1f); // mega-potion
+        RegisterItem(new(ActionType.Item, 4554), 1.1f); // x-potion
+        RegisterItem(new(ActionType.Item, 4561), 1.1f); // dusken draught
+        RegisterItem(new(ActionType.Item, 13637), 1.1f); // max-potion
+        RegisterItem(new(ActionType.Item, 23167), 1.1f); // super-potion
+        RegisterItem(new(ActionType.Item, 38956), 1.1f); // hyper-potion
+        RegisterItem(new(ActionType.Item, 47701), 1.1f); // ultra-potion
+
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
             RegisterBozja(i);
