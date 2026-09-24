@@ -324,10 +324,10 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
     void UseAxe(BeastmasterAffinity b, Enemy? primaryTarget, int priority = 1)
     {
-        if (b is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker && TP < 250)
+        if (b is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker && (TP < 250 || !Unlocked(TraitID.InstinctualMastery)))
             b = Cycle(TrickAffinity, Direction.CCW); // TODO: specify in args
 
-        if (b is BeastmasterAffinity.Rampant or BeastmasterAffinity.Durant or BeastmasterAffinity.Eldritch or BeastmasterAffinity.Volant && TP == 250)
+        if (b is BeastmasterAffinity.Rampant or BeastmasterAffinity.Durant or BeastmasterAffinity.Eldritch or BeastmasterAffinity.Volant && TP == 250 && Unlocked(TraitID.InstinctualMastery))
             b = BeastmasterAffinity.Sunstrider;
 
         var (a, t) = GetAxe(b);
