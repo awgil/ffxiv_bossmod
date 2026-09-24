@@ -310,6 +310,18 @@ public sealed class AIHints
         }
     }
 
+    public T[] GenerateFromMap<T>(Func<WPos, int, T> init)
+    {
+        var map = new Pathfinding.Map();
+        InitPathfindMap(map);
+        var arr = new T[(map.Width + 1) * (map.Height + 1)];
+
+        foreach (var (cell, p) in map.EnumerateGrid())
+            arr[cell] = init(p, cell);
+
+        return arr;
+    }
+
     // query utilities
     public IEnumerable<Enemy> PotentialTargetsEnumerable => PotentialTargets;
     public IEnumerable<Enemy> PriorityTargets => PotentialTargets.TakeWhile(e => e.Priority == HighestPotentialTargetPriority);

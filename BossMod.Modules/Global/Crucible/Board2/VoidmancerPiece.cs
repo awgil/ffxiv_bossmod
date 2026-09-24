@@ -38,7 +38,8 @@ public enum IconID : uint
 
 class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private (WPos, int)[] grid = [];
+    private int[] _zombieCounter = [];
+    int _minZombies;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -53,20 +54,16 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (grid.Length == 0)
+        if (_zombieCounter.Length == 0)
         {
-            var map = new Pathfinding.Map();
-            hints.InitPathfindMap(map);
-            grid = new (WPos, int)[(map.Width + 1) * (map.Height + 1)];
-
             var zombies = Module.Enemies(OID._Gen_ZombiePiece);
 
-            foreach (var (cell, p) in map.EnumerateGrid())
-                grid[cell] = (p, zombies.Count(z => z.Position.InCircle(p, 10.75f)));
+            _zombieCounter = hints.GenerateFromMap((p, _) => zombies.Count(z => z.IsDead && z.Position.InCircle(p, 10.75f)));
+            _minZombies = _zombieCounter.Min();
         }
 
-        //foreach (var bait in ActiveBaitsOn(actor))
-        //    hints.AddForbiddenZone(Sdf.Discrete((_, i) => i < 0 || grid[i].Item2 > 1), bait.Activation);
+        foreach (var bait in ActiveBaitsOn(actor))
+            hints.AddForbiddenZone(Sdf.Indexed((_, i) => i < 0 || _zombieCounter[i] > _minZombies), bait.Activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -88,6 +85,12 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_DeathDrive1)
             CurrentBaits.Clear();
+    }
+
+    public override void OnIsDeadChanged(Actor actor)
+    {
+        if ((OID)actor.OID == OID._Gen_ZombiePiece)
+            _zombieCounter = []; // force recalculation
     }
 }
 

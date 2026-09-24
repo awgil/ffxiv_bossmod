@@ -110,6 +110,7 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.CastStarted.Subscribe(OnActorCastStarted),
             WorldState.Actors.CastFinished.Subscribe(OnActorCastFinished),
             WorldState.Actors.IsTargetableChanged.Subscribe(OnIsTargetableChanged),
+            WorldState.Actors.IsDeadChanged.Subscribe(OnIsDeadChanged),
             WorldState.Actors.Tethered.Subscribe(OnActorTethered),
             WorldState.Actors.Untethered.Subscribe(OnActorUntethered),
             WorldState.Actors.StatusGain.Subscribe(OnActorStatusGain),
@@ -549,6 +550,12 @@ public abstract class BossModule : IDisposable
             foreach (var comp in _components)
                 comp.OnUntargetable(actor);
         }
+    }
+
+    private void OnIsDeadChanged(Actor actor)
+    {
+        foreach (var comp in _components)
+            comp.OnIsDeadChanged(actor);
     }
 
     private void OnActorTethered(Actor actor)

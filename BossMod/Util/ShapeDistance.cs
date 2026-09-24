@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace BossMod;
 
@@ -9,27 +10,34 @@ public struct Sdf
     enum SdfType
     {
         Continuous,
-        Discrete
+        Discrete,
+        Indexed
     }
 
     [FieldOffset(0)] private Func<WPos, float> SdfCont;
     [FieldOffset(0)] private Func<WPos, bool> SdfDisc;
+    [FieldOffset(0)] private Func<WPos, int, bool> SdfIx;
     [FieldOffset(8)] private SdfType Type;
 
     public static Sdf Continuous(Func<WPos, float> d) => new() { Type = SdfType.Continuous, SdfCont = d };
-    public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = new(b) };
+    public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = b };
+    public static Sdf Indexed(Func<WPos, int, bool> i) => new() { Type = SdfType.Indexed, SdfIx = i };
 
     public readonly Sdf Inverted()
     {
-        if (Type == SdfType.Continuous)
+        switch (Type)
         {
-            var fc = SdfCont;
-            return Continuous(p => -fc(p));
-        }
-        else
-        {
-            var fd = SdfDisc;
-            return Discrete(p => !fd(p));
+            case SdfType.Continuous:
+                var fc = SdfCont;
+                return Continuous(p => -fc(p));
+            case SdfType.Discrete:
+                var fd = SdfDisc;
+                return Discrete(p => !fd(p));
+            case SdfType.Indexed:
+                var fi = SdfIx;
+                return Indexed((p, i) => !fi(p, i));
+            default:
+                throw new UnreachableException();
         }
     }
 
@@ -37,22 +45,57 @@ public struct Sdf
     {
         get
         {
-            if (Type == SdfType.Discrete)
-                return SdfDisc;
-
-            var sc = SdfCont;
-            return (p) => sc(p) < 0;
+            switch (Type)
+            {
+                case SdfType.Continuous:
+                    var fc = SdfCont;
+                    return (p) => fc(p) < 0;
+                case SdfType.Discrete:
+                    return SdfDisc;
+                case SdfType.Indexed:
+                    var fi = SdfIx;
+                    return (p) => fi(p, -1);
+                default:
+                    throw new UnreachableException();
+            }
         }
     }
     public readonly Func<WPos, float> Distance
     {
         get
         {
-            if (Type == SdfType.Continuous)
-                return SdfCont;
-
-            var sd = SdfDisc;
-            return (p) => sd(p) ? float.MinValue : float.MaxValue;
+            switch (Type)
+            {
+                case SdfType.Continuous:
+                    return SdfCont;
+                case SdfType.Discrete:
+                    var fd = SdfDisc;
+                    return (p) => fd(p) ? float.MinValue : float.MaxValue;
+                case SdfType.Indexed:
+                    var fi = SdfIx;
+                    return (p) => fi(p, -1) ? float.MinValue : float.MaxValue;
+                default:
+                    throw new UnreachableException();
+            }
+        }
+    }
+    public readonly Func<WPos, int, bool> CheckIndexed
+    {
+        get
+        {
+            switch (Type)
+            {
+                case SdfType.Continuous:
+                    var fc = SdfCont;
+                    return (p, _) => fc(p) < 0;
+                case SdfType.Discrete:
+                    var fd = SdfDisc;
+                    return (p, _) => fd(p);
+                case SdfType.Indexed:
+                    return SdfIx;
+                default:
+                    throw new UnreachableException();
+            }
         }
     }
 
