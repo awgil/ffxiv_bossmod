@@ -72,7 +72,7 @@ class ArcaneBlast(BossModule module) : Components.RaidwideCast(module, AID._Spel
     }
 }
 
-class VoidThunderIII(BossModule module) : Components.StandardAOEs(module, AID._Ability_VoidThunderIII, new AOEShapeCross(50, 5));
+class VoidThunderIII(BossModule module) : Components.StandardAOEs(module, AID._Spell_VoidThunderIII, new AOEShapeCross(50, 5));
 class VoidAeroIII(BossModule module) : Components.StandardAOEs(module, AID._Spell_VoidAeroIII, new AOEShapeDonut(5, 60));
 
 // todo: falloff range for void flare star

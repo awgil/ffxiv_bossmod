@@ -65,7 +65,7 @@ public sealed class ActionQueue
             var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns, ws.Client.DutyActions));
 
             // TODO: adjusted cast time!
-            var duration = def.CastTime > 0 ? def.CastTime + def.CastAnimLock : def.InstantAnimLock + instantAnimLockDelay;
+            var duration = def.TotalDuration + instantAnimLockDelay;
             if (startDelay + duration > deadline)
                 continue; // this action can't be done in time for higher-priority action, skip
 

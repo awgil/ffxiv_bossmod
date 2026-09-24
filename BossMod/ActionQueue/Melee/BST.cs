@@ -86,6 +86,8 @@ public enum TraitID : uint
 public enum SID : uint
 {
     None = 0,
+
+    // BST statuses
     OneWithNature = 4601, // applied by First Battlehorn, Second Battlehorn, Third Battlehorn to self
     LingeringVantage = 4614, // applied by Borrow, Borrow, Borrow, Borrow, Borrow, Borrow, Borrow, Borrow to self
     EvasionUp = 2402, // applied by Cloud Skim, Cloud Skim to self
@@ -93,7 +95,6 @@ public enum SID : uint
     Beastskin = 4621, // applied by Beastskin to self
     SeedsSown = 4622, // applied by Seedsower to target
     Scaleskin = 4623, // applied by Scaleskin to self
-
     BeastKinship = 4644,
     VileKinship = 4645,
     CloudKinship = 4646,
@@ -102,7 +103,6 @@ public enum SID : uint
     ScaleKinship = 4649,
     SoulKinship = 4650,
     AshKinship = 4651,
-
     VolantHeart = 4595,
     RampantHeart = 4596,
     DurantHeart = 4597,
@@ -110,6 +110,14 @@ public enum SID : uint
     Sunstrider = 4599,
     Moonstalker = 4600,
     WaveringHeart = 4643,
+
+    // Pet statuses indicating pending orders
+    SummonOrderTrick = 1915,
+    SummonOrderTemperedRelease = 1964,
+    SummonOrderPartingBlow = 1965,
+
+    // Crucible statuses
+    PoisonResistanceUp = 4961, // applied by poison resist pots
 }
 
 public enum Kinship : byte

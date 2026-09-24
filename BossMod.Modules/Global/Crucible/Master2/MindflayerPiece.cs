@@ -121,7 +121,20 @@ class MyconidPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_M
     }
 }
 
-class Shroombed(BossModule module) : Components.Voidzone(module, 6, OID._Gen_Shroombed);
+class Shroombed(BossModule module) : Components.Voidzone(module, 6, OID._Gen_Shroombed)
+{
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (actor.FindStatus(BST.SID.PoisonResistanceUp) == null)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor.FindStatus(BST.SID.PoisonResistanceUp) == null)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
 
 class SporeSpillPre(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_SporeSpill)
 {

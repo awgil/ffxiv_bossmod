@@ -283,7 +283,9 @@ public class ReplayManagementWindow : UIWindow
 
         try
         {
-            _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, prefix + GetPrefix(), _config.Anonymize);
+            var (z, p) = GetPrefix();
+            var parentDir = _config.ZoneSubfolders ? new(Path.Join(_logDir.FullName, z)) : _logDir;
+            _recorder = new(_ws, _config.WorldLogFormat, true, parentDir, prefix + p, _config.Anonymize);
         }
         catch (Exception ex)
         {
@@ -303,7 +305,7 @@ public class ReplayManagementWindow : UIWindow
         UpdateTitle();
     }
 
-    private unsafe string GetPrefix()
+    private unsafe (string Zone, string FullPrefix) GetPrefix()
     {
         string? prefix = null;
         if (_ws.CurrentCFCID != 0)
@@ -312,6 +314,8 @@ public class ReplayManagementWindow : UIWindow
             prefix ??= Service.LuminaRow<TerritoryType>(_ws.CurrentZone)?.PlaceName.ValueNullable?.NameNoArticle.ToString();
         prefix ??= "World";
         prefix = Utils.StringToIdentifier(prefix);
+
+        var zone = prefix;
 
         var player = _ws.Party.Player();
         if (player != null)
@@ -331,7 +335,7 @@ public class ReplayManagementWindow : UIWindow
         if (cf->IsSilenceEcho)
             prefix += "_NE";
 
-        return prefix;
+        return (zone, prefix);
     }
 
     private string OpenDirectory(DirectoryInfo dir)
