@@ -13,7 +13,7 @@ public enum AID : uint
 {
     _Spell_Water = 48626, // 4C95->player, no cast, single-target
     _Spell_ParalyzingSpikes = 50532, // 4C95->self, 3.0s cast, single-target
-    _Weaponskill_HeadSnatch = 48477, // Boss->self, no cast, range 7 ?-degree cone
+    _Weaponskill_HeadSnatch = 48477, // Boss->self, no cast, range 7 120?-degree cone
     _Spell_WaterII = 48483, // Helper->location, 3.0s cast, range 6 circle
     _Spell_WaterII1 = 48482, // 4C95->self, 3.0s cast, single-target
     _Weaponskill_BlanketThunder = 48479, // Boss->self, 5.0s cast, range 40 circle
@@ -37,7 +37,7 @@ public enum TetherID : uint
 }
 
 class VulnerabilityDown(BossModule module) : Components.InvincibleStatus(module, (uint)SID._Gen_VulnerabilityDown, "Attack the shell!");
-class YmirShell(BossModule module) : Components.Adds(module, (uint)OID._Gen_YmirShell, 1);
+class YmirShell(BossModule module) : Components.Adds(module, (uint)OID._Gen_YmirShell);
 class SahaginPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_SahaginPiece)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -47,10 +47,26 @@ class SahaginPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_S
             target.Priority = 0;
             target.TankDistance = 30;
 
-            // not real spikes sadly, they trigger on weaponskills as well as autos
+            // it is real spikes, but we don't want to make it annoying to manually use PB/TR on sahagin since he can be bursted down before he uses tsunami
+            // TODO: it should be possible to express this some other way
             if (target.Actor.FindStatus(SID._Gen_ParalyzingSpikes) != null)
-                target.Priority = AIHints.Enemy.PriorityForbidden;
+                target.Priority = AIHints.Enemy.PriorityInvincible;
         }
+    }
+}
+
+class HeadSnatch(BossModule module) : BossComponent(module)
+{
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (Module.PrimaryActor.FindStatus(SID._Gen_VulnerabilityDown) != null)
+            Arena.AddCone(Module.PrimaryActor.Position, 7, Module.PrimaryActor.Rotation, 60.Degrees(), ArenaColor.Danger);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.PrimaryActor.FindStatus(SID._Gen_VulnerabilityDown) != null)
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 7, Module.PrimaryActor.Rotation, 90.Degrees()), DateTime.MaxValue);
     }
 }
 
@@ -78,6 +94,7 @@ class YmirPieceStates : StateMachineBuilder
             .ActivateOnEnter<VulnerabilityDown>()
             .ActivateOnEnter<YmirShell>()
             .ActivateOnEnter<SahaginPiece>()
+            .ActivateOnEnter<HeadSnatch>()
             .ActivateOnEnter<WaterII>()
             .ActivateOnEnter<BlanketThunder>()
             .ActivateOnEnter<Tsunami>()

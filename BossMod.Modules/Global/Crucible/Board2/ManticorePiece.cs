@@ -36,11 +36,74 @@ public enum AID : uint
     _Weaponskill_HeadsAndTails3 = 48142, // Helper->self, 2.4s cast, range 40 180-degree cone
 }
 
+public enum SID : uint
+{
+    RightArm = 2056, // none->Boss, extra=0x414
+    LeftArm = 2193, // none->Boss, extra=0x413
+}
+
 class ArmAndHammer(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArmAndHammer1, AID._Weaponskill_ArmAndHammer3], new AOEShapeCone(30, 90.Degrees()));
 class DeadlyHold(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_DeadlyHold);
 class Hammerleap(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Hammerleap1, 30);
 class TailsAndHeads(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_TailsAndHeads1, AID._Weaponskill_TailsAndHeads3], new AOEShapeCone(40, 90.Degrees()));
 class HeadsAndTails(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_HeadsAndTails1, AID._Weaponskill_HeadsAndTails3], new AOEShapeCone(40, 90.Degrees()));
+
+class ChargeAndHammer(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_WildCharge1)
+{
+    int side;
+
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var (i, a) in _predicted.Index().Take(2))
+            yield return a with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_)
+        {
+            DetermineSide();
+            var dir = spell.LocXZ - caster.Position;
+            _predicted.Add(new(new AOEShapeRect(dir.Length(), 4), caster.Position, dir.ToAngle(), Module.CastFinishAt(spell, 7.1f)));
+            if (_predicted.Count == 4 && side != 0)
+            {
+                _predicted.Add(new(new AOEShapeCone(40, 90.Degrees()), spell.LocXZ, dir.ToAngle() + (90 * side).Degrees(), Module.CastFinishAt(spell, 9.4f)));
+                _predicted.Add(new(new AOEShapeCone(40, 90.Degrees()), spell.LocXZ, dir.ToAngle() - (90 * side).Degrees(), Module.CastFinishAt(spell, 11.4f)));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction || (AID)spell.Action.ID is AID._Weaponskill_ArmAndHammer5 or AID._Weaponskill_ArmAndHammer7)
+        {
+            NumCasts++;
+            if (_predicted.Count > 0)
+                _predicted.RemoveAt(0);
+        }
+    }
+
+    void DetermineSide()
+    {
+        if (side != 0)
+            return;
+
+        foreach (var s in Module.PrimaryActor.Statuses)
+        {
+            switch ((SID)s.ID)
+            {
+                case SID.LeftArm:
+                    side = 1;
+                    return;
+                case SID.RightArm:
+                    side = -1;
+                    return;
+            }
+        }
+    }
+}
 
 class ManticorePieceStates : StateMachineBuilder
 {
@@ -51,7 +114,8 @@ class ManticorePieceStates : StateMachineBuilder
             .ActivateOnEnter<DeadlyHold>()
             .ActivateOnEnter<Hammerleap>()
             .ActivateOnEnter<TailsAndHeads>()
-            .ActivateOnEnter<HeadsAndTails>();
+            .ActivateOnEnter<HeadsAndTails>()
+            .ActivateOnEnter<ChargeAndHammer>();
     }
 }
 

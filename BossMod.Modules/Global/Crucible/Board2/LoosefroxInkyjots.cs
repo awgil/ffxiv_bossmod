@@ -37,6 +37,8 @@ public enum AID : uint
     _Weaponskill_2 = 48520, // ChewchumPopoto->self, no cast, single-target
     _Weaponskill_3 = 50444, // ChewchumPopoto->self, no cast, single-target
     _Weaponskill_Explosion1 = 48236, // _Gen_GobbieBomb1->self, 2.0s cast, range 40 width 8 cross
+    _Weaponskill_GoblinHammer = 48232, // Boss->self, 3.0s cast, single-target
+    _Weaponskill_GoblinHammer1 = 48233, // Helper->self, 5.0s cast, range 8 circle
 }
 
 public enum SID : uint
@@ -72,6 +74,7 @@ class GobspinHeadlops2(BossModule module) : Components.StandardAOEs(module, AID.
 class ExplosionCircle(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion, 12);
 class ExplosionCross(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Explosion1, new AOEShapeCross(40, 4));
 class BombToss(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BombToss1, 6);
+class GoblinHammer(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GoblinHammer1, 8);
 class Earthquake(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Earthquake);
 
 class LoosefroxInkyjotsStates : StateMachineBuilder
@@ -86,6 +89,7 @@ class LoosefroxInkyjotsStates : StateMachineBuilder
             .ActivateOnEnter<ExplosionCircle>()
             .ActivateOnEnter<ExplosionCross>()
             .ActivateOnEnter<BombToss>()
+            .ActivateOnEnter<GoblinHammer>()
             .ActivateOnEnter<Earthquake>()
             .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed && ((LoosefroxInkyjots)module).Worm is { IsDeadOrDestroyed: true };
     }

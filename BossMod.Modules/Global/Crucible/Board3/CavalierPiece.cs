@@ -22,6 +22,8 @@ public enum AID : uint
     _Weaponskill_Menace = 48463, // 4C8F->self, 5.4+0.6s cast, single-target
     _Weaponskill_Menace1 = 48464, // Helper->self, 6.0s cast, range 20 circle
     _Weaponskill_CrushingBlade = 48471, // Boss->player, 5.0s cast, single-target
+    _Weaponskill_Valfodr = 48461, // _Gen_FeintedCavalierPiece->self, 5.6+0.4s cast, single-target
+    _Weaponskill_Valfodr1 = 48462, // Helper->self, 6.0s cast, range 60 width 8 rect
 }
 
 public enum IconID : uint
@@ -34,8 +36,7 @@ public enum TetherID : uint
     _Gen_Tether_chn_m0237_yami_x2 = 398, // 4C92->Boss
 }
 
-// TODO prio: adds enrage after a set time which gives DD, plus if they all die at once, you get 5 valfodrs which fills the whole arena
-class BoneBishop(BossModule module) : Components.Adds(module, (uint)OID._Gen_BoneBishop, 1);
+class BoneBishop(BossModule module) : Components.Adds(module, (uint)OID._Gen_BoneBishop);
 class Steelripper(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Steelripper1, new AOEShapeCone(60, 65.Degrees()));
 class Menace(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Menace1, 20);
 class CrushingBlade(BossModule module) : Components.Knockback(module, AID._Weaponskill_CrushingBlade)
@@ -84,6 +85,8 @@ class CrushingBlade(BossModule module) : Components.Knockback(module, AID._Weapo
     }
 }
 
+class Valfodr(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Valfodr1, new AOEShapeRect(60, 4));
+
 class CavalierPieceStates : StateMachineBuilder
 {
     public CavalierPieceStates(BossModule module) : base(module)
@@ -92,7 +95,8 @@ class CavalierPieceStates : StateMachineBuilder
             .ActivateOnEnter<BoneBishop>()
             .ActivateOnEnter<Steelripper>()
             .ActivateOnEnter<Menace>()
-            .ActivateOnEnter<CrushingBlade>();
+            .ActivateOnEnter<CrushingBlade>()
+            .ActivateOnEnter<Valfodr>();
     }
 }
 

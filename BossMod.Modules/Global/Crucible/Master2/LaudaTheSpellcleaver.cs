@@ -1,8 +1,4 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-
-
-
-
 namespace BossMod.Global.Crucible.LaudaTheSpellcleaver;
 
 public enum OID : uint
@@ -93,14 +89,6 @@ public enum TetherID : uint
 // rush actiontimeline 11D2 -> cast event after 14.7s
 class AutoAttack(BossModule module) : Components.Cleave(module, AID._AutoAttack_, new AOEShapeCone(9, 60.Degrees()), (uint)OID.Boss, activeWhileCasting: false)
 {
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        base.DrawArenaForeground(pcSlot, pc);
-
-        if (WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
-            Arena.Actor(pet, ArenaColor.PlayerGeneric);
-    }
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Module.PrimaryActor.TargetID == actor.InstanceID && Module.PrimaryActor.CastInfo == null && Module.PrimaryActor.IsTargetable && WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
