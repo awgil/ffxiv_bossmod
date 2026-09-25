@@ -248,6 +248,23 @@ public sealed class ActionDefinitions
         for (var i = 1u; i <= 3; i++)
             RegisterDeepDungeon(new(ActionType.Magicite, i));
 
+        // crucible items are weird because 1. the player can carry duplicates and 2. different items have different allowed targets
+        // additionally, XBMItem has no reference to the Action sheet, and since both sets of IDs are contiguous, i'm tempted to say that the correspondence is hardcoded
+        for (var i = CrucibleID.G1BeastPotion; i < CrucibleID.Count; i++)
+        {
+            var aid = new ActionID(ActionType.Crucible, (uint)i);
+
+            var data = _actionsSheet.GetRow(CrucibleItemID.GetSpellID(i));
+
+            var def = new ActionDefinition(aid)
+            {
+                AllowedTargets = SpellAllowedTargets(data),
+                Range = SpellRange(data),
+                InstantAnimLock = 1.1f
+            };
+            Register(aid, def);
+        }
+
         foreach (var act in typeof(EurekaActionID).GetEnumValues())
             if ((uint)act > 0)
                 RegisterSpell((EurekaActionID)act);

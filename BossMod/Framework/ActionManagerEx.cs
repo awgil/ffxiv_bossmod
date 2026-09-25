@@ -70,6 +70,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
     private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
+    private readonly HookAddress<InstanceContentCrucible.Delegates.UseItem> _useCrucibleItemHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
     private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
@@ -98,6 +99,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _usePomanderHook = new(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
         _useStoneHook = new(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
+        _useCrucibleItemHook = new(InstanceContentCrucible.Addresses.UseItem, UseCrucibleItemDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
         _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
@@ -114,6 +116,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     {
         _setAutoAttackStateHook.Dispose();
         _processPacketActionEffectHook.Dispose();
+        _useCrucibleItemHook.Dispose();
         _useStoneHook.Dispose();
         _usePomanderHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
@@ -376,6 +379,9 @@ public sealed unsafe class ActionManagerEx : IAmex
             case ActionType.Magicite:
                 UseStoneNative(action);
                 return true;
+            case ActionType.Crucible:
+                UseCrucibleItemNative(action, targetId);
+                return true;
 
             default:
                 // fall back to UAL hook for everything not covered explicitly
@@ -542,21 +548,9 @@ public sealed unsafe class ActionManagerEx : IAmex
         (ulong, Vector3?) getAreaTarget() => targetOverridden ? (targetId, null) :
             (Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
 
-        ulong findNearestTarget()
-        {
-            if (Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1)
-            {
-                _autoSelectTarget(targetSystem);
-                if (targetSystem->Target != null)
-                    return targetSystem->Target->GetGameObjectId();
-            }
-
-            return 0xE0000000;
-        }
-
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
         var canManualQueue = mode == ActionManager.UseActionMode.None || mode == ActionManager.UseActionMode.Macro && MacroCapture;
-        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
+        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, AutotargetNative))
             return false;
 
         var areaTargeted = false;
@@ -568,6 +562,19 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (areaTargeted && Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget)
             self->AreaTargetingExecuteAtObject = targetId;
         return res;
+    }
+
+    private ulong AutotargetNative()
+    {
+        var targetSystem = TargetSystem.Instance();
+        if (Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1)
+        {
+            _autoSelectTarget(targetSystem);
+            if (targetSystem->Target != null)
+                return targetSystem->Target->GetGameObjectId();
+        }
+
+        return 0xE0000000;
     }
 
     private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam, byte a7)
@@ -672,6 +679,65 @@ public sealed unsafe class ActionManagerEx : IAmex
             _useStoneHook.Original(dd, action.ID - 1);
             _inst->AnimationLock = 2.1f;
             HandleActionRequest(action, 0, 0xE0000000, default, prevRot, GetPlayerRotation());
+        }
+    }
+
+    private void UseCrucibleItemDetour(InstanceContentCrucible* self, uint slot, int unk)
+    {
+        var id = CrucibleItemID.GetFromXBMRow(self->Inventory[(int)slot].ItemId);
+        var spellId = CrucibleItemID.GetSpellID(id);
+        var action = new ActionID(ActionType.Crucible, (uint)id);
+
+        var targetSystem = TargetSystem.Instance();
+        var target = targetSystem->SoftTarget;
+        if (target == null)
+            target = targetSystem->Target;
+
+        if (Config.PreferMouseover)
+        {
+            var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
+            if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(spellId, mouseoverTarget))
+                target = mouseoverTarget;
+        }
+
+        var targetId = target == null ? 0xE0000000 : target->GetGameObjectId();
+
+        if (_manualQueue.Push(action, targetId, 0, false, () => (0, null), AutotargetNative))
+            return;
+
+        UseCrucibleItemNative(action, targetId);
+    }
+
+    private void UseCrucibleItemNative(ActionID item, ulong targetId)
+    {
+        if (_inst->AnimationLock > 0)
+            return;
+
+        var cid = (CrucibleID)item.ID;
+        var xbmRow = CrucibleItemID.GetXBMRow(cid);
+
+        var ic = (InstanceContentCrucible*)EventFramework.Instance()->GetInstanceContentDirector();
+        if (ic == null || ic->InstanceContentType != InstanceContentType.CrucibleOfTheUnbroken)
+            return;
+
+        Service.Log($"crucible: executing {item} @ {targetId}");
+
+        for (var i = 0; i < 10; i++)
+        {
+            if (ic->Inventory[i].ItemId == xbmRow)
+            {
+                var prevRot = GetPlayerRotation();
+                var targetSystem = TargetSystem.Instance();
+                var prevTarget = targetSystem->Target;
+                // native function just checks target field since crucible items can't be macro'd
+                targetSystem->Target = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetId);
+                // TODO: figure out what arg3 is
+                _useCrucibleItemHook.Original(ic, (uint)i, 0);
+                targetSystem->Target = prevTarget;
+                _inst->AnimationLock = 1.1f;
+                HandleActionRequest(item, 0, targetId, default, prevRot, GetPlayerRotation());
+                return;
+            }
         }
     }
 

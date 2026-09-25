@@ -87,6 +87,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             case (uint)WAR.SID.InnerStrength:
             case (uint)BLU.SID.Diamondback:
             case (uint)BST.SID.Vileskin:
+            case (uint)BST.SID.Covered:
                 if (Raid.TryFindSlot(actor, out var slot2))
                     PlayerImmunes[slot2].JobBuffExpire = status.ExpireAt;
                 break;
@@ -110,6 +111,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             case (uint)WAR.SID.InnerStrength:
             case (uint)BLU.SID.Diamondback:
             case (uint)BST.SID.Vileskin:
+            case (uint)BST.SID.Covered:
                 if (Raid.TryFindSlot(actor, out var slot2))
                     PlayerImmunes[slot2].JobBuffExpire = new();
                 break;

@@ -577,6 +577,15 @@
           "Veldrid.SDL2": "[4.9.0, )",
           "Veldrid.StartupUtilities": "[4.9.0, )"
         }
+      },
+      "ffxivclientstructs": {
+        "type": "Project",
+        "dependencies": {
+          "InteropGenerator.Runtime": "[1.0.0, )"
+        }
+      },
+      "interopgenerator.runtime": {
+        "type": "Project"
       }
     }
   }

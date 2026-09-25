@@ -115,6 +115,10 @@ public enum SID : uint
     SummonOrderTrick = 1915,
     SummonOrderTemperedRelease = 1964,
     SummonOrderPartingBlow = 1965,
+    SummonOrderIV = 1966, // might be snarl/cover?
+
+    Cover = 2412,
+    Covered = 2413,
 
     // Crucible statuses
     PoisonResistanceUp = 4961, // applied by poison resist pots
