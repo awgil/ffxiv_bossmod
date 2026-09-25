@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LocalCS>false</LocalCS>
+    <LocalCS>true</LocalCS>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(LocalCS)' == 'true'">

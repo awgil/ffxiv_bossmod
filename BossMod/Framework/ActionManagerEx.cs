@@ -720,8 +720,6 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (ic == null || ic->InstanceContentType != InstanceContentType.CrucibleOfTheUnbroken)
             return;
 
-        Service.Log($"crucible: executing {item} @ {targetId}");
-
         for (var i = 0; i < 10; i++)
         {
             if (ic->Inventory[i].ItemId == xbmRow)
@@ -729,7 +727,7 @@ public sealed unsafe class ActionManagerEx : IAmex
                 var prevRot = GetPlayerRotation();
                 var targetSystem = TargetSystem.Instance();
                 var prevTarget = targetSystem->Target;
-                // native function just checks target field since crucible items can't be macro'd
+                // native function uses this item on the player's current hard target
                 targetSystem->Target = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetId);
                 // TODO: figure out what arg3 is
                 _useCrucibleItemHook.Original(ic, (uint)i, 0);
