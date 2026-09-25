@@ -322,6 +322,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private void AutoAST(in Strategy strategy)
     {
         var gauge = World.Client.GetGauge<AstrologianGauge>();
+        AstrologianCard[] cards = [gauge.Card1, gauge.Card2, gauge.Card3];
 
         HealSingleNow(strategy, (target, ratio) =>
         {
@@ -337,7 +338,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (ratio < 0.5)
             {
                 foreach (var (card, action) in SupportCards)
-                    if (gauge.CurrentCards.Contains(card))
+                    if (cards.Contains(card))
                         UseOGCD(action, target);
 
                 if (NextChargeIn(BossMod.AST.AID.CelestialIntersection) > GCD && NextChargeIn(BossMod.AST.AID.EssentialDignity) > GCD)

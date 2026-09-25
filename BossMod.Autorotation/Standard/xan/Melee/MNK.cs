@@ -320,7 +320,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         var gauge = World.Client.GetGauge<MonkGauge>();
 
         Chakra = gauge.Chakra;
-        BeastChakra = gauge.BeastChakra;
+        BeastChakra = [gauge.BeastChakra1, gauge.BeastChakra2, gauge.BeastChakra3];
         BlitzLeft = gauge.BlitzTimeRemaining / 1000f;
         Nadi = gauge.Nadi;
 

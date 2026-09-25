@@ -1,4 +1,5 @@
-﻿namespace BossMod.Global.Crucible.ElderTablitaurPiece;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Global.Crucible.ElderTablitaurPiece;
 
 public enum OID : uint
 {
@@ -106,7 +107,7 @@ class EndlessSwing(BossModule module) : Components.Voidzone(module, 8, 0, a => a
 
 class EndlessSwipes(BossModule module) : Components.GenericRotatingAOE(module)
 {
-    Angle _rotation = default;
+    Angle _rotation;
     Actor? _caster;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
