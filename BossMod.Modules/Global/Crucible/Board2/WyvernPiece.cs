@@ -7,6 +7,7 @@ public enum OID : uint
     Boss = 0x4C58, // R2.880, x1
     _Gen_WindSprite = 0x4C5B, // R1.600, x0 (spawn during fight)
     _Gen_Whirlwind = 0x4C59, // R2.000, x0 (spawn during fight)
+    _BurnZone = 0x1EA66D,
 }
 
 public enum AID : uint
@@ -25,11 +26,29 @@ public enum AID : uint
     _Weaponskill_StormTrail1 = 48176, // Boss->self, 5.0+1.0s cast, single-target
 }
 
+class TheStormsGrip(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_TheStormsGrip);
+class Buffet(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Buffet, new AOEShapeRect(40f, 5f));
+class Typhoon(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Typhoon, 8);
+class LiquidHell(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_LiquidHell1, 6f);
+class Whrilwinds(BossModule module) : Components.Voidzone(module, 2, OID._Gen_Whirlwind, (a) => a.IsDead);
+class BurnZones(BossModule module) : Components.Voidzone(module, 6, OID._BurnZone);
+
+class BlazingTrail(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BlazingTrail1, new AOEShapeCone(60, 90.Degrees()))
+{
+}
+
 class WyvernPieceStates : StateMachineBuilder
 {
     public WyvernPieceStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<TheStormsGrip>()
+            .ActivateOnEnter<Buffet>()
+            .ActivateOnEnter<Typhoon>()
+            .ActivateOnEnter<LiquidHell>()
+            .ActivateOnEnter<Whrilwinds>()
+            .ActivateOnEnter<BlazingTrail>()
+            .ActivateOnEnter<BurnZones>();
     }
 }
 
