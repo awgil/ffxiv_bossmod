@@ -30,13 +30,9 @@ class TheStormsGrip(BossModule module) : Components.RaidwideCast(module, AID._We
 class Buffet(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Buffet, new AOEShapeRect(40f, 5f));
 class Typhoon(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Typhoon, 8);
 class LiquidHell(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_LiquidHell1, 6f);
-class Whrilwinds(BossModule module) : Components.Voidzone(module, 2, OID._Gen_Whirlwind, (a) => a.IsDead);
+class Whrilwinds(BossModule module) : Components.Voidzone(module, 2, OID._Gen_Whirlwind, (a) => a.IsDead, 5f);
 class BurnZones(BossModule module) : Components.Voidzone(module, 6, OID._BurnZone);
-
-class BlazingTrail(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BlazingTrail1, new AOEShapeCone(60, 90.Degrees()))
-{
-}
-
+class BlazingTrail(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_BlazingTrail1, new AOEShapeCone(60, 90.Degrees()));
 class WyvernPieceStates : StateMachineBuilder
 {
     public WyvernPieceStates(BossModule module) : base(module)
