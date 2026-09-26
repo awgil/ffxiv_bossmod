@@ -74,7 +74,10 @@ public class VoidzoneAtCastTarget(BossModule module, float radius, Enum aid, uin
         foreach (var p in _predictedByEvent)
             yield return new(Shape, p.pos, Activation: p.time);
         foreach (var p in _predictedByCast)
-            yield return new(Shape, WorldState.Actors.Find(p.caster.CastInfo!.TargetID)?.Position ?? p.caster.CastInfo.LocXZ, Activation: p.time);
+        {
+            var target = WorldState.Actors.Find(p.caster.CastInfo!.TargetID);
+            yield return new(Shape, target?.Position ?? p.caster.CastInfo.LocXZ, Activation: p.time, Risky: target == null);
+        }
         foreach (var (z, spawn) in _sources)
             yield return new(Shape, z.Position, Activation: spawn.AddSeconds(ActivationDelay));
     }

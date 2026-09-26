@@ -29,5 +29,8 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
 
         if (strategy.Challenge.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeTanked) is { } e2)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Challenge), e2.Actor, ActionQueue.Priority.Medium, forced: true);
+
+        if (Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeDispelled) is { } d && gauge.Classification == 5)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.QuellingWave), d.Actor, ActionQueue.Priority.VeryHigh);
     }
 }

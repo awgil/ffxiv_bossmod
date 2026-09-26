@@ -139,7 +139,7 @@ class OnThePropertiesOfDarkness(BossModule module) : Components.RaidwideCast(mod
 {
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Casters.FirstOrDefault(c => c.FindStatus(SID._Gen_MagicDamageUp) != null) != null)
+        if (Casters.FirstOrDefault(c => c.FindStatus(SID._Gen_MagicDamageUp) != null && c.PendingDispels.Count == 0) != null)
             hints.Add("Dispel!");
     }
 

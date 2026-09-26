@@ -121,7 +121,10 @@ public enum SID : uint
     Covered = 2413,
 
     // Crucible statuses
+    SpiritOfTheBreathtaker = 2322, // poison immunity
+    Blink = 4849, // phys immunity, applied by blink tome and some gear pieces
     PoisonResistanceUp = 4961, // applied by poison resist pots
+    Excellence = 5463, // applied by hero's crown
 }
 
 public enum Kinship : byte
