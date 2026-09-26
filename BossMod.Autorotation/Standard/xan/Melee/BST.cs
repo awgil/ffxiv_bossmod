@@ -222,11 +222,13 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         PushGCD(AID.SmashAxe, primaryTarget);
 
+        if (gauge.Classification == 5)
+            PushGCD(AID.QuellingWave, primaryTarget);
+
         ManagePet(strategy, primaryTarget);
         Prep(strategy, gauge);
 
-        if (PlayerTarget != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, 3));
+        GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.Classification == 5 ? 30 : null);
     }
 
     void ManagePet(in Strategy strategy, Enemy? primaryTarget)

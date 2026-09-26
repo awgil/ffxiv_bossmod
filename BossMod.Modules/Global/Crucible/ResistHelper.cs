@@ -9,12 +9,15 @@ public class ResistHelper(BossModule module) : BossComponent(module)
         Blind,
         Petrification,
         Sleep,
+        Doom,
+        Stun,
         Physical,
         Magic,
 
         Count
     }
 
+    /*
     public override void AddGlobalHints(GlobalHints hints)
     {
         for (var r = Resistance.Poison; r < Resistance.Count; r++)
@@ -26,6 +29,7 @@ public class ResistHelper(BossModule module) : BossComponent(module)
                 hints.Add($"{r} immunity for {(exp - WorldState.CurrentTime).TotalSeconds:f1}s");
         }
     }
+    */
 
     readonly List<(uint Type, Resistance Resistance, DateTime Expiration)> _buffs = [];
 

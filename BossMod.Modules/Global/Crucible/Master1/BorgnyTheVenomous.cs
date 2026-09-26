@@ -1,4 +1,5 @@
-﻿namespace BossMod.Global.Crucible.BorgnyTheVenomous;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Global.Crucible.BorgnyTheVenomous;
 
 public enum OID : uint
 {
@@ -116,6 +117,7 @@ class BorgnyTheVenomousStates : StateMachineBuilder
             .ActivateOnEnter<ToxicVomit>()
             .ActivateOnEnter<FumingVomit>()
             .ActivateOnEnter<PoisonCloud>()
+            .ActivateOnEnter<WrigglingPhlegm>()
             .ActivateOnEnter<ToxicMass>()
             .ActivateOnEnter<Cauterize>()
             .ActivateOnEnter<Touchdown>()
