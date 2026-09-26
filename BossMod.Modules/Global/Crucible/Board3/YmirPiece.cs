@@ -66,7 +66,7 @@ class HeadSnatch(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Module.PrimaryActor.FindStatus(SID._Gen_VulnerabilityDown) != null)
-            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 7, Module.PrimaryActor.Rotation, 90.Degrees()), DateTime.MaxValue);
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 7, Module.PrimaryActor.Rotation, 120.Degrees()), DateTime.MaxValue);
     }
 }
 

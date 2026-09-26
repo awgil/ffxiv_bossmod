@@ -36,11 +36,96 @@ public enum IconID : uint
     _Gen_Icon_m0117_earth_shake_01s = 40, // player/49E8->self
 }
 
+class Landslip(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Ability_Landslip1, 20, ignoreImmunes: true, shape: new AOEShapeRect(45, 5), kind: Kind.DirForward)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+        {
+            var rect = ShapeDistance.Rect(src.Origin, src.Direction, 45, 0, 5);
+            var dir = src.Direction.ToDirection().Abs();
+            var fromCenter = dir.X > dir.Z ? src.Origin with { X = Arena.Center.X } : src.Origin with { Z = Arena.Center.Z };
+            var toWall = ShapeDistance.HalfPlane(fromCenter, -src.Direction.ToDirection());
+            hints.AddForbiddenZone(ShapeDistance.Intersection([rect, toWall]), src.Activation);
+
+            foreach (var c in Module.FindComponent<Rockslide>()?.Casters ?? [])
+            {
+                var castRect = ShapeDistance.Rect(c.CastInfo!.LocXZ - src.Direction.ToDirection() * 20, c.CastInfo.Rotation, 45, 0, 5);
+                hints.AddForbiddenZone(ShapeDistance.Intersection([rect, castRect]), src.Activation);
+            }
+        }
+    }
+}
+class Rockslide(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Rockslide1, new AOEShapeRect(45, 5))
+{
+    bool _knockbackActive;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!_knockbackActive)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if ((AID)spell.Action.ID == AID._Ability_Landslip1)
+            _knockbackActive = true;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID._Ability_Landslip1)
+            _knockbackActive = false;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!_knockbackActive)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
+
+class GolemPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_GolemPiece);
+
+class SandTempest(BossModule module) : Components.RaidwideCast(module, AID._Spell_SandTempest, "Raidwide + blind");
+class Burst(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Burst)
+{
+    readonly List<(Actor Orb, DateTime Activation)> Orbs = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Orbs.Select(o => new AOEInstance(new AOEShapeCircle(12), o.Orb.Position, default, o.Activation));
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID._Gen_SandSphere)
+            Orbs.Add((actor, WorldState.FutureTime(5.8f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+            Orbs.RemoveAll(o => o.Orb == caster);
+    }
+}
+
+class EarthShaker(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 22.5f.Degrees()), (uint)IconID._Gen_Icon_m0117_earth_shake_01s, AID._Spell_EarthShaker1, 3.3f);
+class Earthrender(BossModule module) : Components.StandardAOEs(module, AID._Spell_Earthrender1, 6);
+
 class LakhamuPieceStates : StateMachineBuilder
 {
     public LakhamuPieceStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<Rockslide>()
+            .ActivateOnEnter<Landslip>()
+            .ActivateOnEnter<GolemPiece>()
+            .ActivateOnEnter<SandTempest>()
+            .ActivateOnEnter<Burst>()
+            .ActivateOnEnter<EarthShaker>()
+            .ActivateOnEnter<Earthrender>();
     }
 }
 

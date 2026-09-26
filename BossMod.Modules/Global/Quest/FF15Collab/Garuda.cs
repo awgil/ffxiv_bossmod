@@ -164,12 +164,14 @@ class MiniSupercellKB(BossModule module) : Components.KnockbackFromCastTarget(mo
 
 class GravitationalForce(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.GravitationalForce2, OID.GravityVoidzone, 0);
 class MistralGaol(BossModule module) : Components.CastHint(module, AID.MistralGaol, "Prepare for Quick Time Event (spam buttons when it starts)");
+class Monolith(BossModule module) : Components.AddsPointless(module, (uint)OID.Monolith);
 
 class GarudaStates : StateMachineBuilder
 {
     public GarudaStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<Monolith>()
             .ActivateOnEnter<MistralShriek>()
             .ActivateOnEnter<GustFront>()
             .ActivateOnEnter<MistralSong>()
@@ -190,7 +192,5 @@ public class Garuda(WorldState ws, Actor primary) : BossModule(ws, primary, new(
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.Noctis))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.Monolith))
-            Arena.Actor(s, ArenaColor.Object);
     }
 }

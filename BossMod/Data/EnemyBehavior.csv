@@ -3,6 +3,7 @@ OID,Name,TankDistance,CanMove
 0x1FE1,Nael Deus Darnus,0,true
 0x1FE8,Bahamut Prime,0,true
 0x4B8E,Wisp Piece,0,false
+0x4C90,Bone Bishop,5,true
 0x4CDB,Flauros Piece,0,true
 0x4CDC,Lightning Sprite,0,false
 0x4CDD,Mindflayer Piece,5,true
