@@ -20,7 +20,7 @@ public enum AID : uint
     _Spell_SandTempest = 48561, // Boss->self, 5.0s cast, range 60 circle
     _Weaponskill_Burst = 48562, // 4CA0->self, 3.0s cast, range 12 circle
     _Spell_EarthShaker = 48557, // Boss->self, 4.0+0.2s cast, single-target
-    _Spell_EarthShaker1 = 48558, // Helper->self, no cast, range 60 ?-degree cone
+    _Spell_EarthShaker1 = 48558, // Helper->self, no cast, range 60 90?-degree cone
     _Spell_Earthrender = 48559, // Boss->self, 4.0s cast, single-target
     _Spell_Earthrender1 = 48560, // Helper->location, 3.0s cast, range 6 circle
 }
@@ -111,7 +111,7 @@ class Burst(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill
     }
 }
 
-class EarthShaker(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 22.5f.Degrees()), (uint)IconID._Gen_Icon_m0117_earth_shake_01s, AID._Spell_EarthShaker1, 3.3f);
+class EarthShaker(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 45.Degrees()), (uint)IconID._Gen_Icon_m0117_earth_shake_01s, AID._Spell_EarthShaker1, 3.3f);
 class Earthrender(BossModule module) : Components.StandardAOEs(module, AID._Spell_Earthrender1, 6);
 
 class LakhamuPieceStates : StateMachineBuilder
