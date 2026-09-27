@@ -62,8 +62,6 @@ class ThermobaricChargeBait(BossModule module) : Components.CastCounter(module, 
     Actor? _target;
     DateTime _deadline;
 
-    static readonly float ToCorner = new WDir(20, 20).Length();
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
@@ -73,10 +71,16 @@ class ThermobaricChargeBait(BossModule module) : Components.CastCounter(module, 
         }
     }
 
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_target != null)
+            Arena.AddCircle(_target.Position, 40, ArenaColor.Vulnerable);
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (actor == _target)
-            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 40 - ToCorner + 1), _deadline);
+            hints.AddForbiddenZone(ShapeDistance.Intersection([.. CurveApprox.Rect(new(20, 0), new(0, 20)).Select(r => ShapeDistance.Circle(Arena.Center + r, 42))]), _deadline);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -93,16 +97,15 @@ class ThermobaricCharge(BossModule module) : Components.KnockbackFromCastTarget(
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var src in Sources(slot, actor))
-            if (!src.Origin.InCircle(Arena.Center, 20))
+        {
+            var orig = src.Origin;
+            var ctr = Arena.Center;
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
-                var orig = src.Origin;
-                var ctr = Arena.Center;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
-                {
-                    var dir = (p - orig).Normalized() * 40;
-                    return !(p + dir).AlmostEqual(ctr, 20);
-                }), src.Activation);
-            }
+                var dir = (p - orig).Normalized() * 40;
+                return !(p + dir).AlmostEqual(ctr, 20);
+            }), src.Activation);
+        }
     }
 }
 

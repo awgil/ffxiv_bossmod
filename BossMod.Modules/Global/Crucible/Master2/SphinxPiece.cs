@@ -199,7 +199,7 @@ class BeastShuffle(BossModule module) : BossComponent(module)
                     _targetID = (uint)OID._Gen_OpoOpoPiece;
                     break;
                 case 6:
-                    _targetID = (uint)OID._Gen_PukPiece;
+                    _targetID = (uint)OID._Gen_PugilPiece;
                     break;
             }
         }

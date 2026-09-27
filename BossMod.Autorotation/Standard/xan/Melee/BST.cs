@@ -14,6 +14,9 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         [Track("Shield Charge")]
         public Track<EnabledByDefault> ShieldCharge;
 
+        [Track("Combo")]
+        public Track<EnabledByDefault> Combo;
+
         [Track("Pet management")]
         public Track<SummonStrategy> Summon;
 
@@ -129,7 +132,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
 
         // level 50 3 chain infinitive combo
-        if (Unlocked(TraitID.InstinctualMastery) && HavePet)
+        if (Unlocked(TraitID.InstinctualMastery) && HavePet && strategy.Combo.IsEnabled())
         {
             // infinitive combo finisher
             if (TP == 250 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
@@ -157,7 +160,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // at level 40 we also get pet gems for use with cheer
-        if (Unlocked(TraitID.WildHeartIV))
+        if (Unlocked(TraitID.WildHeartIV) && strategy.Combo.IsEnabled())
         {
             if (gauge.NaturalInstinct < 3)
             {
@@ -175,7 +178,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // at level 30 we get player gems for use with rally
-        if (Unlocked(TraitID.WildHeartIII))
+        if (Unlocked(TraitID.WildHeartIII) && strategy.Combo.IsEnabled())
         {
             if (gauge.MasteredInstinct < 3)
             {
