@@ -334,7 +334,7 @@ public abstract class BossModule : IDisposable
         List<string> tooltip = [];
         var cursor = ImGui.GetMousePos();
 
-        foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly || !a.IsTargetable).Exclude(PrimaryActor))
+        foreach (var actor in WorldState.Actors.Exclude(PrimaryActor))
         {
             Arena.ActorInsideBounds(actor.Position, actor.Rotation, ArenaColor.Object);
             var s = Arena.WorldPositionToScreenPosition(actor.Position);

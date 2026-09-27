@@ -66,6 +66,21 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
+    enum OGCDPriority : uint
+    {
+        Default = 1,
+        OpenerRally = 2,
+        ComboStartAxe = 10,
+        ComboStartAxeEmpty = 20,
+        ComboFinish = 30,
+        ComboStartTrick = 40,
+        Infinite1 = 60,
+        Infinite2 = 70,
+        InfiniteRally = 80,
+        Infinite3 = 90,
+        Infinite4 = 100,
+    }
+
     public bool HavePet => CurrentPet > 0;
     public byte CurrentPet;
     public BeastmasterAffinity TrickAffinity;
@@ -116,26 +131,26 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         {
             // infinitive combo finisher
             if (TP == 250 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
-                UseAxe(Cycle(ComboAffinity), primaryTarget, 100);
+                UseAxe(Cycle(ComboAffinity), primaryTarget, OGCDPriority.Infinite4);
 
             if (ComboAffinity == Cycle(TrickAffinity, Direction.CCW))
             {
                 if (PetTP >= 100 && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, 90);
+                    PushOGCD(AID.Trick, primaryTarget, OGCDPriority.Infinite3, useOnDyingTarget: false);
 
                 if (gauge.MasteredInstinct > 1)
-                    PushOGCD(AID.Rally, Player, 80);
+                    PushOGCD(AID.Rally, Player, OGCDPriority.InfiniteRally);
                 if (gauge.NaturalInstinct > 0)
-                    PushOGCD(AID.RallyingCheer, Player, 80);
+                    PushOGCD(AID.RallyingCheer, Player, OGCDPriority.InfiniteRally);
             }
 
             if (gauge.MasteredInstinct > 1 && gauge.NaturalInstinct > 0 && TP >= 100 && CanWeave(AID.Rally, 1) && CanWeave(AID.RallyingCheer, 1))
             {
                 if (ComboAffinity == TrickAffinity)
-                    UseAxe(Cycle(ComboAffinity, Direction.CCW), primaryTarget, 70);
+                    UseAxe(Cycle(ComboAffinity, Direction.CCW), primaryTarget, OGCDPriority.Infinite2);
 
                 if (PetTP >= 100 && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, 60);
+                    PushOGCD(AID.Trick, primaryTarget, OGCDPriority.Infinite1, useOnDyingTarget: false);
             }
         }
 
@@ -145,16 +160,16 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             if (gauge.NaturalInstinct < 3)
             {
                 if (PetTP >= 100 && ComboAffinity != BeastmasterAffinity.None && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, 20);
+                    PushOGCD(AID.Trick, primaryTarget, OGCDPriority.ComboFinish, useOnDyingTarget: false);
 
                 if (PetTP >= 100 && TP >= 100 && HavePet)
-                    UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? 10 : 1);
+                    UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? OGCDPriority.ComboStartAxeEmpty : OGCDPriority.ComboStartAxe);
             }
 
             // cheer in opener
             // TODO is the condition right?
             if (gauge.NaturalInstinct == 0 && ComboAffinity != BeastmasterAffinity.None)
-                PushOGCD(AID.RallyingCheer, Player);
+                PushOGCD(AID.RallyingCheer, Player, OGCDPriority.OpenerRally);
         }
 
         // at level 30 we get player gems for use with rally
@@ -164,15 +179,15 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             {
                 if (TP >= 100 && ComboAffinity != BeastmasterAffinity.None
                     && (gauge.MasteredInstinct > 0 || !CanFitGCD(ComboTimer, 1)))
-                    UseAxe(Cycle(ComboAffinity), primaryTarget, 20);
+                    UseAxe(Cycle(ComboAffinity), primaryTarget, OGCDPriority.ComboFinish);
 
                 if (PetTP >= 100 && TP >= 100 && HavePet && !petIsLeaving)
                     PushOGCD(AID.Trick, primaryTarget, gauge.MasteredInstinct switch
                     {
-                        0 => 30,
-                        1 => 10,
-                        _ => 1
-                    });
+                        0 => OGCDPriority.ComboStartTrick,
+                        1 => OGCDPriority.ComboStartAxe,
+                        _ => OGCDPriority.Default
+                    }, useOnDyingTarget: false);
             }
 
             if (gauge.MasteredInstinct > 0 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
@@ -182,7 +197,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         // TODO: pet aoe targeting
         // 10 = wespe (final sting)
         if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPet != 10)
-            PushOGCD(AID.TemperedRelease, primaryTarget);
+            PushOGCD(AID.TemperedRelease, primaryTarget, OGCDPriority.Default, useOnDyingTarget: false);
 
         var pbOk = CurrentPet == 10 || !OneWithNature;
 
@@ -205,9 +220,9 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             if (use)
             {
                 if (CurrentPet == 10 && OneWithNature && NumExplosionTargets == 1)
-                    PushOGCD(AID.TemperedRelease, primaryTarget);
+                    PushOGCD(AID.TemperedRelease, primaryTarget, OGCDPriority.Default, useOnDyingTarget: false);
                 else
-                    PushOGCD(AID.PartingBlow, BestExplosionTarget);
+                    PushOGCD(AID.PartingBlow, BestExplosionTarget, OGCDPriority.Default, useOnDyingTarget: false);
             }
         }
 
@@ -324,7 +339,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         _ => (AID.None, null)
     };
 
-    void UseAxe(BeastmasterAffinity b, Enemy? primaryTarget, int priority = 1)
+    void UseAxe(BeastmasterAffinity b, Enemy? primaryTarget, OGCDPriority priority = OGCDPriority.Default)
     {
         if (b is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker && (TP < 250 || !Unlocked(TraitID.InstinctualMastery)))
             b = Cycle(TrickAffinity, Direction.CCW); // TODO: specify in args
@@ -333,7 +348,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             b = BeastmasterAffinity.Sunstrider;
 
         var (a, t) = GetAxe(b);
-        PushOGCD(a, t ?? primaryTarget, priority);
+        PushOGCD(a, t ?? primaryTarget, priority, useOnDyingTarget: false);
     }
 
     /*

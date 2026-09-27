@@ -24,7 +24,7 @@ public enum AID : uint
     _Weaponskill_ElectricShock1 = 49191, // Helper->self, 6.0s cast, range 16 circle
 }
 
-class LightningSprite(BossModule module) : Components.AddsPointless(module, (uint)OID.LightningSprite);
+class LightningSprite(BossModule module) : Components.Adds(module, (uint)OID.LightningSprite);
 
 class HeatLightning(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HeatLightning1, 6);
 class LineVoltageSmall(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_LineVoltage, new AOEShapeRect(100, 1));
