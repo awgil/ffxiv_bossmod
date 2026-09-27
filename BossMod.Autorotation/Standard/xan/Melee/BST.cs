@@ -1,4 +1,5 @@
 ﻿using BossMod.BST;
+using System.Diagnostics;
 using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
@@ -66,7 +67,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         _ => 0
     };
 
-    enum OGCDPriority : uint
+    enum OGCDPriority : int
     {
         Default = 1,
         OpenerRally = 2,
@@ -83,7 +84,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
     public bool HavePet => CurrentPet > 0;
     public byte CurrentPet;
-    public BeastmasterAffinity TrickAffinity;
+    public PetInfo PetInfo;
+    public BeastmasterAffinity TrickAffinity => PetInfo.TrickAffinity;
     public Kinship Kinship;
     public float KinshipLeft;
     public int LastUsedHorn;
@@ -117,7 +119,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             CurrentPet = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
         }
         OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
-        TrickAffinity = ActionDefinitions.TrickAffinity[CurrentPet];
+        PetInfo = Definitions.PetInfos[CurrentPet];
         (Kinship, KinshipLeft) = CurrentKinship;
 
         var petIsLeaving = ReadyIn(AID.PartingBlow) > 5;
@@ -136,7 +138,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             if (ComboAffinity == Cycle(TrickAffinity, Direction.CCW))
             {
                 if (PetTP >= 100 && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, OGCDPriority.Infinite3, useOnDyingTarget: false);
+                    UseTrick(strategy, primaryTarget, OGCDPriority.Infinite3);
 
                 if (gauge.MasteredInstinct > 1)
                     PushOGCD(AID.Rally, Player, OGCDPriority.InfiniteRally);
@@ -150,7 +152,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                     UseAxe(Cycle(ComboAffinity, Direction.CCW), primaryTarget, OGCDPriority.Infinite2);
 
                 if (PetTP >= 100 && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, OGCDPriority.Infinite1, useOnDyingTarget: false);
+                    UseTrick(strategy, primaryTarget, OGCDPriority.Infinite1);
             }
         }
 
@@ -160,7 +162,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             if (gauge.NaturalInstinct < 3)
             {
                 if (PetTP >= 100 && ComboAffinity != BeastmasterAffinity.None && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, OGCDPriority.ComboFinish, useOnDyingTarget: false);
+                    UseTrick(strategy, primaryTarget, OGCDPriority.ComboFinish);
 
                 if (PetTP >= 100 && TP >= 100 && HavePet)
                     UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? OGCDPriority.ComboStartAxeEmpty : OGCDPriority.ComboStartAxe);
@@ -182,12 +184,12 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                     UseAxe(Cycle(ComboAffinity), primaryTarget, OGCDPriority.ComboFinish);
 
                 if (PetTP >= 100 && TP >= 100 && HavePet && !petIsLeaving)
-                    PushOGCD(AID.Trick, primaryTarget, gauge.MasteredInstinct switch
+                    UseTrick(strategy, primaryTarget, gauge.MasteredInstinct switch
                     {
                         0 => OGCDPriority.ComboStartTrick,
                         1 => OGCDPriority.ComboStartAxe,
                         _ => OGCDPriority.Default
-                    }, useOnDyingTarget: false);
+                    });
             }
 
             if (gauge.MasteredInstinct > 0 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
@@ -197,7 +199,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         // TODO: pet aoe targeting
         // 10 = wespe (final sting)
         if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPet != 10)
-            PushOGCD(AID.TemperedRelease, primaryTarget, OGCDPriority.Default, useOnDyingTarget: false);
+            UsePetAction(strategy, AID.TemperedRelease, primaryTarget, OGCDPriority.Default, PetInfo.ReleaseShape, PetInfo.ReleaseRange);
 
         var pbOk = CurrentPet == 10 || !OneWithNature;
 
@@ -351,6 +353,45 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         PushOGCD(a, t ?? primaryTarget, priority, useOnDyingTarget: false);
     }
 
+    void UsePetAction(in Strategy strategy, AID action, Enemy? target, OGCDPriority priority, AOEShape? shape, float actionRange)
+    {
+        if (World.Actors.Find(World.Client.ActivePet.InstanceID) is not { } pet)
+            return;
+
+        var (bestTarget, numTargets) = shape switch
+        {
+            null => (target, target?.Priority >= 0 ? 1 : 0),
+            AOEShapeCircle c => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, primary.Position, c.Radius)),
+            AOEShapeRect r => SelectTarget(strategy, target, 30, (primary, other) =>
+            {
+                var actionSource = pet.Position;
+                var effRange = actionRange + primary.HitboxRadius;
+                var enemyToPet = pet.Position - primary.Position;
+                if (enemyToPet.LengthSq() > effRange * effRange)
+                    actionSource = primary.Position + enemyToPet.Normalized() * effRange;
+
+                return TargetInAOERect(other, actionSource, -enemyToPet.Normalized(), r.LengthFront, r.HalfWidth, r.LengthBack);
+            }),
+            AOEShapeCone c => SelectTarget(strategy, target, 30, (primary, other) =>
+            {
+                var actionSource = pet.Position;
+                var effRange = actionRange + primary.HitboxRadius;
+                var enemyToPet = pet.Position - primary.Position;
+                if (enemyToPet.LengthSq() > effRange * effRange)
+                    actionSource = primary.Position + enemyToPet.Normalized() * effRange;
+
+                return TargetInAOECone(other, actionSource, c.Radius, -enemyToPet.Normalized(), c.HalfAngle);
+            }),
+            _ => throw new UnreachableException()
+        };
+
+        if (numTargets > 0)
+            PushOGCD(action, bestTarget, priority, useOnDyingTarget: false);
+
+    }
+
+    void UseTrick(in Strategy strategy, Enemy? primaryTarget, OGCDPriority priority) => UsePetAction(strategy, AID.Trick, primaryTarget, priority, PetInfo.TrickShape, PetInfo.TrickRange);
+
     /*
     float GetNextHorn(in BeastmasterGauge gauge)
     {
@@ -366,11 +407,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     {
         var sum = 0;
 
-        if (gauge.ActiveBattlehornIndex != 1 && CanWeave(AID.FirstBattlehorn, 1))
+        if (gauge.ActiveBattlehornIndex != 1 && World.Client.BeastmasterBeasts[0] > 0 && CanWeave(AID.FirstBattlehorn, 1))
             sum++;
-        if (gauge.ActiveBattlehornIndex != 2 && CanWeave(AID.SecondBattlehorn, 1))
+        if (gauge.ActiveBattlehornIndex != 2 && World.Client.BeastmasterBeasts[1] > 0 && CanWeave(AID.SecondBattlehorn, 1))
             sum++;
-        if (gauge.ActiveBattlehornIndex != 3 && CanWeave(AID.ThirdBattlehorn, 1))
+        if (gauge.ActiveBattlehornIndex != 3 && World.Client.BeastmasterBeasts[2] > 0 && CanWeave(AID.ThirdBattlehorn, 1))
             sum++;
 
         return sum;
