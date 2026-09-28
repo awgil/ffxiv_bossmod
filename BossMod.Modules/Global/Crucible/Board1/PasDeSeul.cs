@@ -44,7 +44,7 @@ class VoidAeroBoss(BossModule module) : Components.StandardAOEs(module, AID.Void
 class VoidAeroOrb(BossModule module) : Components.StandardAOEs(module, AID.VoidAeroIIOrb, new AOEShapeCone(60, 10.Degrees()));
 class ColdCaress(BossModule module) : Components.SingleTargetCast(module, AID.ColdCaress, "Tankbuster + poison");
 class Adds(BossModule module) : Components.AddsMulti(module, [OID.SuccubusKnight, OID.SuccubusMage]);
-class Fanaticism(BossModule module) : Components.CastHint(module, AID.Fanaticism, "Boss is being buffed!", true);
+class Fanaticism(BossModule module) : Components.CastInterruptHint(module, AID.Fanaticism);
 class VoidFireII(BossModule module) : Components.StandardAOEs(module, AID.VoidFireII, 10);
 class SweetSteel(BossModule module) : Components.StandardAOEs(module, AID.SweetSteel, new AOEShapeCone(10, 60.Degrees()));
 class BloodSword(BossModule module) : Components.SingleTargetCast(module, AID.BloodSword, "Tankbuster + lifesteal");

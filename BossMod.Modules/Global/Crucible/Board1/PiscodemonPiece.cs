@@ -62,19 +62,11 @@ class VoidBlizzardIIIExaflare(BossModule module) : Components.Exaflare(module, n
     }
 }
 
-class ArcaneBlast(BossModule module) : Components.RaidwideCast(module, AID.ArcaneBlast)
-{
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (Casters.Any(c => c.FindStatus(SID.DamageUp) != null && c.PendingDispels.Count == 0))
-            hints.Add("Dispel!");
-    }
-}
-
+class ClearMind(BossModule module) : Components.DispelHint(module, (uint)SID.DamageUp, AID.ClearMind);
+class ArcaneBlast(BossModule module) : Components.RaidwideCast(module, AID.ArcaneBlast);
 class VoidThunderIII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderIII, new AOEShapeCross(50, 5));
 class VoidAeroIII(BossModule module) : Components.StandardAOEs(module, AID.VoidAeroIII, new AOEShapeDonut(5, 60));
-
-// todo: falloff range for void flare star
+class VoidFlareStar(BossModule module) : Components.ProximityAOEs(module, AID.VoidFlareStar, 30);
 
 class PiscodemonPieceStates : StateMachineBuilder
 {
@@ -83,9 +75,11 @@ class PiscodemonPieceStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<VoidBlizzardIIIPuddle>()
             .ActivateOnEnter<VoidBlizzardIIIExaflare>()
+            .ActivateOnEnter<ClearMind>()
             .ActivateOnEnter<ArcaneBlast>()
             .ActivateOnEnter<VoidThunderIII>()
-            .ActivateOnEnter<VoidAeroIII>();
+            .ActivateOnEnter<VoidAeroIII>()
+            .ActivateOnEnter<VoidFlareStar>();
     }
 }
 

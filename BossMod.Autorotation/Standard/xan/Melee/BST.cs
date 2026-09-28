@@ -200,10 +200,10 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // 10 = wespe (final sting)
-        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPetIndex != 10)
+        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPetIndex != 10 && !PetInfo.NonDamagingRelease)
             UsePetAction(strategy, AID.TemperedRelease, primaryTarget, OGCDPriority.Default, PetInfo.ReleaseShape, PetInfo.ReleaseRange);
 
-        var pbOk = CurrentPetIndex == 10 || !OneWithNature;
+        var pbOk = CurrentPetIndex == 10 || PetInfo.NonDamagingRelease || !OneWithNature;
 
         if (HavePet && pbOk && NumExplosionTargets > 0)
         {
@@ -364,6 +364,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         var (bestTarget, numTargets) = shape switch
         {
             null => (target, target?.Priority >= 0 ? 1 : 0),
+            AOEShapeCircle c when actionRange == 0 => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, pet.Position, c.Radius)),
             AOEShapeCircle c => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, primary.Position, c.Radius)),
             AOEShapeRect r => SelectTarget(strategy, target, 30, (primary, other) =>
             {
