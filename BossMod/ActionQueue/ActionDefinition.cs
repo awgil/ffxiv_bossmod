@@ -1,5 +1,4 @@
-﻿using BossMod.BST;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace BossMod;
 
@@ -239,6 +238,17 @@ public sealed class ActionDefinitions
         RegisterItem(IDPopcorn, 2.1f);
 
         RegisterItem(IDMiscItemGreens, 1.1f);
+
+        // hp restoration pots
+        RegisterItem(new(ActionType.Item, 4551), 1.1f); // potion
+        RegisterItem(new(ActionType.Item, 4552), 1.1f); // hi-potion
+        RegisterItem(new(ActionType.Item, 4553), 1.1f); // mega-potion
+        RegisterItem(new(ActionType.Item, 4554), 1.1f); // x-potion
+        RegisterItem(new(ActionType.Item, 4561), 1.1f); // dusken draught
+        RegisterItem(new(ActionType.Item, 13637), 1.1f); // max-potion
+        RegisterItem(new(ActionType.Item, 23167), 1.1f); // super-potion
+        RegisterItem(new(ActionType.Item, 38956), 1.1f); // hyper-potion
+        RegisterItem(new(ActionType.Item, 47701), 1.1f); // ultra-potion
 
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
@@ -504,60 +514,6 @@ public sealed class ActionDefinitions
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }
     public void RegisterChargeIncreaseTrait<AID, TraitID>(AID aid, TraitID traitId) where AID : Enum where TraitID : Enum => RegisterChargeIncreaseTrait(ActionID.MakeSpell(aid), (uint)(object)traitId);
-
-    public static readonly BeastmasterAffinity[] TrickAffinity = [
-        BeastmasterAffinity.None,
-        BeastmasterAffinity.Rampant,    // cu sith, cone
-        BeastmasterAffinity.Rampant,    // squirrel, line (in both directions)
-        BeastmasterAffinity.Rampant,    // lamb, line
-        BeastmasterAffinity.Durant,   // pugil, cone
-        BeastmasterAffinity.Rampant,    // opo, circle
-        BeastmasterAffinity.Eldritch, // dodo, cone
-        BeastmasterAffinity.Eldritch, // coblyn, ST
-        BeastmasterAffinity.Rampant,    // diremite, ST
-        BeastmasterAffinity.Durant,   // megacrab, circle
-        BeastmasterAffinity.Volant,  // wespe, ST (poison)
-        BeastmasterAffinity.Volant,  // vulture, cone
-        BeastmasterAffinity.Rampant,    // mandragora, ST
-        BeastmasterAffinity.Eldritch, // geshunpest, circle
-        BeastmasterAffinity.Rampant,    // puk, circle
-        BeastmasterAffinity.Durant,   // crab, cone
-        BeastmasterAffinity.Durant,   // mantis, ST
-        BeastmasterAffinity.Eldritch, // slime, ST (lifesteal)
-        BeastmasterAffinity.Durant,   // dullahan, cone
-        BeastmasterAffinity.Volant,  // bat, ST (lifesteal)
-        BeastmasterAffinity.Volant,  // flytrap, cone (poison)
-        BeastmasterAffinity.Durant,   // ziz, cone
-        BeastmasterAffinity.Rampant,    // cactuar, line
-        BeastmasterAffinity.Eldritch, // golem, cone
-        BeastmasterAffinity.Durant,   // apkallu, ST
-        BeastmasterAffinity.Eldritch, // turtle, circle
-        BeastmasterAffinity.Rampant,    // buffalo, cone
-        BeastmasterAffinity.Durant,   // uragnite, cone
-        BeastmasterAffinity.Eldritch, // worm, cone
-        BeastmasterAffinity.Rampant,    // spriggan, cone
-        BeastmasterAffinity.Rampant,    // goob, line
-        BeastmasterAffinity.Eldritch, // gigantoad, circle
-        BeastmasterAffinity.Volant,  // colibri, ST
-        BeastmasterAffinity.Eldritch, // coeurl, ST
-        BeastmasterAffinity.Durant,   // raptor, cone
-        BeastmasterAffinity.Rampant,    // drake, cone
-        BeastmasterAffinity.Eldritch, // treant, circle
-        BeastmasterAffinity.Rampant,    // antling, ST
-        BeastmasterAffinity.Rampant,    // chimera, cone
-        BeastmasterAffinity.Rampant,    // morbol, line
-        BeastmasterAffinity.Volant,  // ghost, cone
-        BeastmasterAffinity.Durant,   // salamander, cone
-        BeastmasterAffinity.Durant,   // cobra, ST (poison)
-        BeastmasterAffinity.Durant,   // hydra, ST
-        BeastmasterAffinity.Volant,  // damselfly, circle
-        BeastmasterAffinity.Eldritch, // rotting goob, ST
-        BeastmasterAffinity.Volant,  // zu, circle
-        BeastmasterAffinity.Durant,   // ice golem, cone
-        BeastmasterAffinity.Durant,   // karlabos, ST
-        BeastmasterAffinity.Eldritch, // rafflesia, circle
-        BeastmasterAffinity.Eldritch, // behemoth, cone
-    ];
 }
 
 public abstract class Defs

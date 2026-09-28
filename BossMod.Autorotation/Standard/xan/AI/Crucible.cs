@@ -6,11 +6,17 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
 {
     public struct Strategy
     {
-        [Track("Auto-Snarl", Action = AID.Snarl)]
+        [Track(Action = AID.Snarl)]
         public Track<EnabledByDefault> Snarl;
 
-        [Track("Auto-Challenge", Action = AID.Challenge)]
+        [Track(Action = AID.Challenge)]
         public Track<EnabledByDefault> Challenge;
+
+        [Track(Action = AID.QuellingWave)]
+        public Track<EnabledByDefault> Dispel;
+
+        [Track(Action = AID.SoulCrush)]
+        public Track<EnabledByDefault> Interrupt;
     }
 
     public static RotationModuleDefinition Definition()
@@ -29,5 +35,14 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
 
         if (strategy.Challenge.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeTanked) is { } e2)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Challenge), e2.Actor, ActionQueue.Priority.Medium, forced: true);
+
+        if (strategy.Dispel.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeDispelled) is { } d && gauge.Classification == 5)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.QuellingWave), d.Actor, ActionQueue.Priority.VeryHigh);
+
+        if (strategy.Interrupt.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeInterrupted) is { } i && gauge.Classification == 7)
+        {
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.SoulCrush), i.Actor, ActionQueue.Priority.Medium, forced: true);
+            Hints.GoalZones.Add(AIHints.GoalSingleTarget(i.Actor.Position, i.Actor.HitboxRadius + 3 + Player.HitboxRadius, 5));
+        }
     }
 }

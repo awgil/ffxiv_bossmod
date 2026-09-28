@@ -121,7 +121,10 @@ public enum SID : uint
     Covered = 2413,
 
     // Crucible statuses
+    SpiritOfTheBreathtaker = 2322, // poison immunity
+    Blink = 4849, // phys immunity, applied by blink tome and some gear pieces
     PoisonResistanceUp = 4961, // applied by poison resist pots
+    Excellence = 5463, // applied by hero's crown
 }
 
 public enum Kinship : byte
@@ -210,6 +213,439 @@ public sealed class Definitions : Defs
             d.Spell(AID.HawkishTalons)!.AllowExecute =
             d.Spell(AID.RisenFall)!.AllowExecute = ActionPredicate.AllowDashToTarget;
     }
+
+    public static readonly PetInfo[] PetInfos = [
+        // #0 
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.None,
+            TrickShape = null,
+            TrickRange = 0,
+            ReleaseShape = null,
+            ReleaseRange = 0,
+        },
+        // #1 Cu Sith
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCone(6, 60.Degrees()),
+            TrickRange = 5,
+            ReleaseShape = null,
+            ReleaseRange = 5,
+        },
+        // #2 squirrel
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeRect(4, 1.5f, 4),
+            TrickRange = 2,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #3 lamb
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeRect(5, 1f),
+            TrickRange = 4,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #4 pugil
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(6, 60.Degrees()),
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #5 opo-opo
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = null,
+            ReleaseRange = 25,
+        },
+        // #6 dodo
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCone(5, 60.Degrees()),
+            TrickRange = 4,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #7 coblyn
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = null,
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #8 diremite
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeRect(16, 2f),
+            ReleaseRange = 15,
+        },
+        // #9 megalocrab
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCone(9, 60.Degrees()),
+            ReleaseRange = 8,
+        },
+        // #10 wespe
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = null,
+            ReleaseRange = 5,
+        },
+        // #11 vulture
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = new AOEShapeCone(5, 60.Degrees()),
+            TrickRange = 4,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #12 mandragora
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #13 geshunpest
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #14 puk
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCircle(3),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #15 crab
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(6, 60.Degrees()),
+            TrickRange = 5,
+            ReleaseShape = null,
+            ReleaseRange = 0,
+        },
+        // #16 mantis
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #17 slime
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = null,
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(4),
+            ReleaseRange = 25,
+        },
+        // #18 dullahan
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #19 bat
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = null,
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #20 flying trap
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = new AOEShapeCone(12, 60.Degrees()),
+            TrickRange = 11,
+            ReleaseShape = new AOEShapeCircle(5),
+            ReleaseRange = 25,
+        },
+        // #21 ziz
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCone(8, 60.Degrees()),
+            ReleaseRange = 7,
+        },
+        // #22 sabotender
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeRect(12, 2f),
+            TrickRange = 11,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #23 golem
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCone(12, 60.Degrees()),
+            TrickRange = 11,
+            ReleaseShape = new AOEShapeRect(4, 1.5f, 4),
+            ReleaseRange = 7,
+        },
+        // #24 apkallu
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = null,
+            TrickRange = 25,
+            ReleaseShape = null,
+            ReleaseRange = 25,
+        },
+        // #25 adamantoise
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #26 buffalo
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCone(12, 60.Degrees()),
+            TrickRange = 11,
+            ReleaseShape = new AOEShapeCircle(15),
+            ReleaseRange = 0,
+        },
+        // #27 uragnite
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCone(6, 60.Degrees()),
+            ReleaseRange = 5,
+        },
+        // #28 worm
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCircle(12),
+            ReleaseRange = 0,
+        },
+        // #29 spriggan
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCone(12, 60.Degrees()),
+            TrickRange = 11,
+            ReleaseShape = null,
+            ReleaseRange = 5,
+        },
+        // #30 goobbue
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeRect(4, 1.5f, 4),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCone(6, 60.Degrees()),
+            ReleaseRange = 5,
+        },
+        // #31 gigantoad
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = null,
+            ReleaseRange = 20,
+        },
+        // #32 colibri
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = null,
+            ReleaseRange = 5,
+        },
+        // #33 coeurl
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = null,
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(7),
+            ReleaseRange = 0,
+        },
+        // #34 raptor
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCone(12, 60.Degrees()),
+            ReleaseRange = 11,
+        },
+        // #35 drake
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCone(6, 60.Degrees()),
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #36 treant
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCircle(6),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(10),
+            ReleaseRange = 0,
+        },
+        // #37 antling
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCircle(7),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #38 chimera
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeCone(9, 60.Degrees()),
+            TrickRange = 8,
+            ReleaseShape = new AOEShapeCircle(9),
+            ReleaseRange = 0,
+        },
+        // #39 morbol
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Rampant,
+            TrickShape = new AOEShapeRect(7, 3f),
+            TrickRange = 6,
+            ReleaseShape = new AOEShapeCone(12, 60.Degrees()),
+            ReleaseRange = 11,
+        },
+        // #40 ghost
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #41 salamander
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCircle(8),
+            ReleaseRange = 0,
+        },
+        // #42 cobra
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = null,
+            ReleaseRange = 15,
+        },
+        // #43 hydra
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCone(15, 60.Degrees()),
+            ReleaseRange = 14,
+        },
+        // #44 damselfly
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = new AOEShapeCircle(3),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCone(8, 60.Degrees()),
+            ReleaseRange = 7,
+        },
+        // #45 rotting goobbue
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = null,
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCone(20, 60.Degrees()),
+            ReleaseRange = 19,
+        },
+        // #46 zu
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Volant,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(12),
+            ReleaseRange = 0,
+        },
+        // #47 ice golem
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = new AOEShapeCone(8, 60.Degrees()),
+            TrickRange = 7,
+            ReleaseShape = new AOEShapeCircle(20),
+            ReleaseRange = 0,
+            NonDamagingRelease = true,
+        },
+        // #48 Karlabos
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Durant,
+            TrickShape = null,
+            TrickRange = 5,
+            ReleaseShape = new AOEShapeCircle(12),
+            ReleaseRange = 25,
+        },
+        // #49 rafflesia
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCircle(8),
+            TrickRange = 25,
+            ReleaseShape = new AOEShapeCircle(12),
+            ReleaseRange = 0,
+        },
+        // #50 behemoth
+        new PetInfo {
+            TrickAffinity = BeastmasterAffinity.Eldritch,
+            TrickShape = new AOEShapeCone(12, 60.Degrees()),
+            TrickRange = 11,
+            ReleaseShape = new AOEShapeCircle(18),
+            ReleaseRange = 25,
+        },
+    ];
+}
+
+public struct PetInfo
+{
+    public BeastmasterAffinity TrickAffinity;
+    public AOEShape? TrickShape;
+    public float TrickRange;
+    public AOEShape? ReleaseShape;
+    public float ReleaseRange;
+    public bool NonDamagingRelease;
 }
 
 public enum BeastmasterAffinity : byte

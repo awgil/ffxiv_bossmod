@@ -56,6 +56,55 @@ class GroundingJoltLarge(BossModule module) : Components.StandardAOEs(module, AI
 class SpinnerRook(BossModule module) : Components.Adds(module, (uint)OID._Gen_SpinnerRookPiece);
 class Voyage(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Voyage1, new AOEShapeRect(100, 2));
 class AtomicRay(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_AtomicRay);
+class DiffusionRay(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_DiffusionRay1, new AOEShapeCone(30, 60.Degrees()));
+class ThermobaricChargeBait(BossModule module) : Components.CastCounter(module, AID._Weaponskill_ThermobaricCharge1)
+{
+    Actor? _target;
+    DateTime _deadline;
+
+    static readonly float ToCorner = new WDir(20, 20).Length();
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            _target = null;
+            _deadline = default;
+        }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor == _target)
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 40 - ToCorner + 1), _deadline);
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID._Gen_Icon_lockon5_t0h)
+        {
+            _target = actor;
+            _deadline = WorldState.FutureTime(5.2f);
+        }
+    }
+}
+class ThermobaricCharge(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_ThermobaricCharge1, 40, true)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+            if (!src.Origin.InCircle(Arena.Center, 20))
+            {
+                var orig = src.Origin;
+                var ctr = Arena.Center;
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                {
+                    var dir = (p - orig).Normalized() * 40;
+                    return !(p + dir).AlmostEqual(ctr, 20);
+                }), src.Activation);
+            }
+    }
+}
 
 class DurgaPieceStates : StateMachineBuilder
 {
@@ -65,8 +114,11 @@ class DurgaPieceStates : StateMachineBuilder
             .ActivateOnEnter<GroundingJoltSmall>()
             .ActivateOnEnter<GroundingJoltLarge>()
             .ActivateOnEnter<SpinnerRook>()
+            .ActivateOnEnter<ThermobaricCharge>()
+            .ActivateOnEnter<ThermobaricChargeBait>()
             .ActivateOnEnter<Voyage>()
-            .ActivateOnEnter<AtomicRay>();
+            .ActivateOnEnter<AtomicRay>()
+            .ActivateOnEnter<DiffusionRay>();
     }
 }
 

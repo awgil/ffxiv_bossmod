@@ -4,10 +4,21 @@ OID,Name,TankDistance,CanMove
 0x1FE8,Bahamut Prime,0,true
 0x4B8E,Wisp Piece,0,false
 0x4C90,Bone Bishop,5,true
+0x4CB8,Strix Plume,0,false
+0x4CD9,Toxic Mass,0,false
 0x4CDB,Flauros Piece,0,true
 0x4CDC,Lightning Sprite,0,false
 0x4CDD,Mindflayer Piece,5,true
+0x4CE3,Deepeye Piece,0,false
+0x4CE4,Bomb Piece,0,false
+0x4CE5,Light Sprite,0,false
+0x4CF5,Morpho Piece,0,false
 0x4CF6,Durga Piece,0,false
 0x4CF8,Spinner-Rook Piece,0,false
+0x4CFA,Lamia Piece,20,true
+0x4D05,Congealed Lightning,0,false
+0x4D06,Congealed Lightning,5,true
+0x4D07,Congealed Kindling,0,false
+0x4D08,Congealed Kindling,5,true
 0x4D18,King Ahriman Piece,0,true
 0x4DD4,Great Wisp Piece,0,false

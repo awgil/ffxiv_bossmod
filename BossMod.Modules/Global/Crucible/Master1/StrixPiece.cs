@@ -10,7 +10,7 @@ public enum OID : uint
 
     // all radius 6
     SlimeZone = 0x1EC0E0,
-    ChickenZone = 0x1EC0E1,
+    ImpZone = 0x1EC0E1,
     WindZone = 0x1E9582,
 }
 
@@ -28,11 +28,16 @@ public enum AID : uint
     _Spell_OnThePropertiesOfFloods = 48658, // Boss->self, 8.0s cast, range 60 circle
     _Weaponskill_WindfeatherWhisper = 48666, // Boss->self, 3.0s cast, single-target
     _Spell_AeroIII = 48667, // 4CB8->self, 12.0s cast, range 50 circle
+    _Weaponskill_CheckOut = 48661, // Boss->self, 3.0s cast, single-target
+    _Weaponskill_ = 48641, // _Gen_TomePiece->self, no cast, single-target
+    _Weaponskill_Overdue = 48664, // _Gen_TomePiece->self, 6.5+0.5s cast, single-target
+    _Weaponskill_Overdue1 = 48665, // Helper->self, 7.0s cast, range 15 circle
 }
 
 public enum SID : uint
 {
     _Gen_Levitation = 12, // none->player, extra=0x0
+    _Gen_Imp = 1134, // none->player, extra=0x30
     _Gen_Transfiguration = 1608, // none->player, extra=0x1D3
     _Gen_DownForTheCount = 3908, // Helper->player, extra=0xEC7
     _Gen_MagicDamageUp = 5020, // Boss->Boss, extra=0x0
@@ -45,6 +50,7 @@ class Plummet(BossModule module) : Components.StandardAOEs(module, AID._Weaponsk
 class Properties(BossModule module) : BossComponent(module)
 {
     uint _goalID;
+    uint _goalStatus;
     DateTime _deadline;
 
     readonly List<Actor> Zones = [];
@@ -77,7 +83,7 @@ class Properties(BossModule module) : BossComponent(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID is OID.SlimeZone or OID.ChickenZone or OID.WindZone)
+        if ((OID)actor.OID is OID.SlimeZone or OID.ImpZone or OID.WindZone)
             Zones.Add(actor);
     }
 
@@ -97,10 +103,12 @@ class Properties(BossModule module) : BossComponent(module)
                 break;
             case AID._Spell_MagicalMalletTheory:
                 _goalID = (uint)OID.SlimeZone;
+                _goalStatus = (uint)SID._Gen_Transfiguration;
                 _deadline = Module.CastFinishAt(spell); // helper cast happens about 0.8s after boss cast, again we want to move in early so the debuff applies
                 break;
             case AID._Spell_OnThePropertiesOfFloods:
-                _goalID = (uint)OID.ChickenZone;
+                _goalID = (uint)OID.ImpZone;
+                _goalStatus = (uint)SID._Gen_Imp;
                 _deadline = Module.CastFinishAt(spell, -1);
                 break;
         }
@@ -111,6 +119,17 @@ class Properties(BossModule module) : BossComponent(module)
         if ((AID)spell.Action.ID is AID._Spell_MagicalMalletTheory1 or AID._Spell_OnThePropertiesOfQuakes or AID._Spell_OnThePropertiesOfFloods)
         {
             _goalID = 0;
+            _goalStatus = 0;
+            _deadline = default;
+        }
+    }
+
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if (_goalStatus > 0 && status.ID == _goalStatus)
+        {
+            _goalID = 0;
+            _goalStatus = 0;
             _deadline = default;
         }
     }
@@ -120,7 +139,7 @@ class OnThePropertiesOfDarkness(BossModule module) : Components.RaidwideCast(mod
 {
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Casters.FirstOrDefault(c => c.FindStatus(SID._Gen_MagicDamageUp) != null) != null)
+        if (Casters.FirstOrDefault(c => c.FindStatus(SID._Gen_MagicDamageUp) != null && c.PendingDispels.Count == 0) != null)
             hints.Add("Dispel!");
     }
 
@@ -134,6 +153,34 @@ class OnThePropertiesOfDarkness(BossModule module) : Components.RaidwideCast(mod
     }
 }
 
+class StrixPlume(BossModule module) : Components.AddsPointless(module, (uint)OID._Gen_StrixPlume);
+class AeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Spell_AeroIII, 25, true)
+{
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+
+        if (Sources(slot, actor).Any(s => s.Origin.InCircle(Arena.Center, 5)))
+            hints.Add("Move feather!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+            if (!src.Origin.InCircle(Arena.Center, 5))
+            {
+                var orig = src.Origin;
+                var ctr = Arena.Center;
+                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                {
+                    var dir = (p - orig).Normalized() * 25;
+                    return !(orig + dir).InCircle(ctr, 20);
+                }), src.Activation);
+            }
+    }
+}
+class Overdue(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Overdue1, 15);
+
 class StrixPieceStates : StateMachineBuilder
 {
     public StrixPieceStates(BossModule module) : base(module)
@@ -141,7 +188,10 @@ class StrixPieceStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<Plummet>()
             .ActivateOnEnter<Properties>()
-            .ActivateOnEnter<OnThePropertiesOfDarkness>();
+            .ActivateOnEnter<OnThePropertiesOfDarkness>()
+            .ActivateOnEnter<StrixPlume>()
+            .ActivateOnEnter<AeroIII>()
+            .ActivateOnEnter<Overdue>();
     }
 }
 
