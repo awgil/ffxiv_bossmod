@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Global.Crucible.PiscodemonPiece;
+﻿namespace BossMod.Global.Crucible.PiscodemonPiece;
 
 public enum OID : uint
 {
@@ -9,35 +8,35 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _Spell_Thunder = 50745, // Boss->player, no cast, single-target
-    _Ability_VoidBlizzardIII = 46887, // Boss->self, 2.5+0.5s cast, single-target
-    _Ability_VoidBlizzardIII1 = 46888, // Helper->location, 3.0s cast, single-target
-    _Ability_VoidBlizzardIII2 = 49886, // Helper->location, 4.5s cast, range 5 circle
-    _Ability_VoidBlizzardIII3 = 49887, // Boss->self, no cast, single-target
-    _Spell_VoidBlizzardIII = 46889, // Helper->self, 6.0s cast, range 5 circle
-    _Spell_VoidBlizzardIII1 = 46890, // Helper->self, no cast, range 5 circle
-    _Ability_ClearMind = 46898, // Boss->self, 4.0s cast, single-target
-    _Spell_ArcaneBlast = 46899, // Boss->self, 8.0s cast, range 100 circle
-    _Ability_VoidFlareStar = 46893, // Boss->self, 2.5+0.5s cast, single-target
-    _Spell_VoidFlareStar = 46894, // Helper->location, 3.0s cast, single-target
-    _Spell_VoidFlareStar1 = 46895, // Helper->self, 6.0s cast, range 100 circle
-    _Ability_VoidThunderIII = 46891, // Boss->self, 3.0s cast, single-target
-    _Spell_VoidThunderIII = 46892, // Helper->self, 5.0s cast, range 50 width 10 cross
-    _Ability_VoidAeroIII = 46896, // Boss->self, 5.2+0.8s cast, single-target
-    _Spell_VoidAeroIII = 46897, // Helper->self, 6.0s cast, range 5-60 donut
+    ThunderAuto = 50745, // Boss->player, no cast, single-target
+    VoidBlizzardIIIBossCast = 46887, // Boss->self, 2.5+0.5s cast, single-target
+    VoidBlizzardIIISpawn = 49886, // Helper->location, 4.5s cast, range 5 circle
+    VoidBlizzardIIIBoss = 49887, // Boss->self, no cast, single-target
+    VoidBlizzardIIIUnk = 46888, // Helper->location, 3.0s cast, single-target
+    VoidBlizzardIIIFirst = 46889, // Helper->self, 6.0s cast, range 5 circle
+    VoidBlizzardIIIRest = 46890, // Helper->self, no cast, range 5 circle
+    ClearMind = 46898, // Boss->self, 4.0s cast, single-target
+    ArcaneBlast = 46899, // Boss->self, 8.0s cast, range 100 circle
+    VoidFlareStarBoss = 46893, // Boss->self, 2.5+0.5s cast, single-target
+    VoidFlareStarSpawn = 46894, // Helper->location, 3.0s cast, single-target
+    VoidFlareStar = 46895, // Helper->self, 6.0s cast, range 100 circle
+    VoidThunderIIICast = 46891, // Boss->self, 3.0s cast, single-target
+    VoidThunderIII = 46892, // Helper->self, 5.0s cast, range 50 width 10 cross
+    VoidAeroIIICast = 46896, // Boss->self, 5.2+0.8s cast, single-target
+    VoidAeroIII = 46897, // Helper->self, 6.0s cast, range 5-60 donut
 }
 
 public enum SID : uint
 {
-    _Gen_DamageUp = 1225, // Boss->Boss, extra=0x0
+    DamageUp = 1225, // Boss->Boss, extra=0x0
 }
 
-class VoidBlizzardIIIPuddle(BossModule module) : Components.StandardAOEs(module, AID._Ability_VoidBlizzardIII2, 5);
+class VoidBlizzardIIIPuddle(BossModule module) : Components.StandardAOEs(module, AID.VoidBlizzardIIISpawn, 5);
 class VoidBlizzardIIIExaflare(BossModule module) : Components.Exaflare(module, new AOEShapeCircle(5))
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Spell_VoidBlizzardIII)
+        if ((AID)spell.Action.ID == AID.VoidBlizzardIIIFirst)
         {
             Lines.Add(new()
             {
@@ -54,7 +53,7 @@ class VoidBlizzardIIIExaflare(BossModule module) : Components.Exaflare(module, n
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_VoidBlizzardIII or AID._Spell_VoidBlizzardIII1)
+        if ((AID)spell.Action.ID is AID.VoidBlizzardIIIFirst or AID.VoidBlizzardIIIRest)
         {
             var lines = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position, 1));
             if (lines >= 0)
@@ -63,17 +62,17 @@ class VoidBlizzardIIIExaflare(BossModule module) : Components.Exaflare(module, n
     }
 }
 
-class ArcaneBlast(BossModule module) : Components.RaidwideCast(module, AID._Spell_ArcaneBlast)
+class ArcaneBlast(BossModule module) : Components.RaidwideCast(module, AID.ArcaneBlast)
 {
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (Casters.Any(c => c.FindStatus(SID._Gen_DamageUp) != null))
+        if (Casters.Any(c => c.FindStatus(SID.DamageUp) != null && c.PendingDispels.Count == 0))
             hints.Add("Dispel!");
     }
 }
 
-class VoidThunderIII(BossModule module) : Components.StandardAOEs(module, AID._Spell_VoidThunderIII, new AOEShapeCross(50, 5));
-class VoidAeroIII(BossModule module) : Components.StandardAOEs(module, AID._Spell_VoidAeroIII, new AOEShapeDonut(5, 60));
+class VoidThunderIII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderIII, new AOEShapeCross(50, 5));
+class VoidAeroIII(BossModule module) : Components.StandardAOEs(module, AID.VoidAeroIII, new AOEShapeDonut(5, 60));
 
 // todo: falloff range for void flare star
 

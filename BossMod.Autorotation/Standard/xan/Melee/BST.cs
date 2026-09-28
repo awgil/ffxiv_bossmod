@@ -85,8 +85,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         Infinite4 = 100,
     }
 
-    public bool HavePet => CurrentPet > 0;
-    public byte CurrentPet;
+    public bool HavePet => CurrentPetIndex > 0;
+    public byte CurrentPetIndex;
     public PetInfo PetInfo;
     public BeastmasterAffinity TrickAffinity => PetInfo.TrickAffinity;
     public Kinship Kinship;
@@ -112,17 +112,17 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         var gauge = World.Client.GetGauge<BeastmasterGauge>();
 
-        CurrentPet = 0;
+        CurrentPetIndex = 0;
         TP = gauge.TPGauge;
         PetTP = gauge.FamiliarTPGauge;
         ComboAffinity = gauge.CurrentAffinity;
         if (gauge.ActiveBattlehornIndex > 0)
         {
             LastUsedHorn = gauge.ActiveBattlehornIndex;
-            CurrentPet = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
+            CurrentPetIndex = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
         }
         OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
-        PetInfo = Definitions.PetInfos[CurrentPet];
+        PetInfo = Definitions.PetInfos[CurrentPetIndex];
         (Kinship, KinshipLeft) = CurrentKinship;
 
         var petIsLeaving = ReadyIn(AID.PartingBlow) > 5;
@@ -199,12 +199,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.Rally, Player);
         }
 
-        // TODO: pet aoe targeting
         // 10 = wespe (final sting)
-        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPet != 10)
+        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPetIndex != 10)
             UsePetAction(strategy, AID.TemperedRelease, primaryTarget, OGCDPriority.Default, PetInfo.ReleaseShape, PetInfo.ReleaseRange);
 
-        var pbOk = CurrentPet == 10 || !OneWithNature;
+        var pbOk = CurrentPetIndex == 10 || !OneWithNature;
 
         if (HavePet && pbOk && NumExplosionTargets > 0)
         {
@@ -224,7 +223,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
             if (use)
             {
-                if (CurrentPet == 10 && OneWithNature && NumExplosionTargets == 1)
+                if (CurrentPetIndex == 10 && OneWithNature && NumExplosionTargets == 1)
                     PushOGCD(AID.TemperedRelease, primaryTarget, OGCDPriority.Default, useOnDyingTarget: false);
                 else
                     PushOGCD(AID.PartingBlow, BestExplosionTarget, OGCDPriority.Default, useOnDyingTarget: false);
@@ -245,13 +244,13 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         if (gauge.Classification == 5)
             PushGCD(AID.QuellingWave, primaryTarget);
 
-        ManagePet(strategy, primaryTarget);
+        ManagePet(strategy);
         Prep(strategy, gauge);
 
         GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.Classification == 5 ? 30 : null);
     }
 
-    void ManagePet(in Strategy strategy, Enemy? primaryTarget)
+    void ManagePet(in Strategy strategy)
     {
         switch (strategy.Summon.Value)
         {
@@ -265,10 +264,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                 if (HavePet)
                 {
                     // pb
-                    PushOGCD(AID.PartingBlow, primaryTarget);
+                    if (NumExplosionTargets > 0)
+                        PushOGCD(AID.PartingBlow, BestExplosionTarget);
 
-                    // dismiss only if PB is on cooldown (pet actions have no animlock so it could get executed during the animlock of something else)
-                    if (ReadyIn(AID.PartingBlow) > 0)
+                    // dismiss only if PB is on cooldown/we can't use it (pet actions have no animlock so it could get executed during the animlock of something else)
+                    if (ReadyIn(AID.PartingBlow) > 0 || NumExplosionTargets == 0)
                         Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
                 }
                 break;

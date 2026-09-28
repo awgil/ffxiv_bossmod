@@ -1,52 +1,51 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Global.Crucible.OgrePiece;
+﻿namespace BossMod.Global.Crucible.OgrePiece;
 
 public enum OID : uint
 {
     Boss = 0x4B8D, // R2.080, x1
+    WispPiece = 0x4B8E, // R0.800, x0 (spawn during fight)
+    BallOfFire = 0x4B8F, // R1.000, x0 (spawn during fight)
+    GreatWispPiece = 0x4DD4, // R1.600, x0 (spawn during fight)
     Helper = 0x233C, // R0.500, x27, Helper type
-    _Gen_WispPiece = 0x4B8E, // R0.800, x0 (spawn during fight)
-    _Gen_GreatWispPiece = 0x4DD4, // R1.600, x0 (spawn during fight)
-    _Gen_BallOfFire = 0x4B8F, // R1.000, x0 (spawn during fight)
-    Magma = 0x1EC025
+
+    Magma = 0x1EC025, // R0.500, radius 5 voidzone
 }
 
 public enum AID : uint
 {
-    _AutoAttack_ = 49682, // Boss->player, no cast, single-target
-    _Ability_ = 46914, // Boss->location, no cast, single-target
-    _Weaponskill_ScorchingSmite = 46913, // Boss->self, 5.0+1.0s cast, single-target
-    _Weaponskill_ScorchingSmite1 = 46912, // Helper->self, 6.0s cast, range 40 120-degree cone
-    _Weaponskill_Allfire = 46915, // Boss->self, 4.0s cast, range 40 circle
-    _Weaponskill_Magma = 46916, // Helper->location, 3.0s cast, range 3 circle
-    _Weaponskill_Magma1 = 46917, // Helper->location, 3.0s cast, range 5 circle
-    _Weaponskill_ScorchingSmite2 = 46910, // Boss->self, 6.0s cast, single-target
-    _Weaponskill_ScorchingSmite3 = 46911, // Boss->self, no cast, single-target
-    _Weaponskill_ScorchingSmite4 = 49688, // Helper->self, 9.3s cast, range 40 120-degree cone
-    _Ability_BurningWard = 46918, // Boss->self, 3.0s cast, single-target
-    _Ability_FireCall = 46921, // Boss->self, 4.0s cast, single-target
-    _Weaponskill_ArmOfPurgatory = 46922, // 4B8F->self, 1.0s cast, range 10 circle
+    AutoAttack = 49682, // Boss->player, no cast, single-target
+    Jump = 46914, // Boss->location, no cast, single-target
+    ScorchingSmiteCast1 = 46910, // Boss->self, 6.0s cast, single-target
+    ScorchingSmiteTeleport = 46911, // Boss->self, no cast, single-target
+    ScorchingSmiteFast = 46912, // Helper->self, 6.0s cast, range 40 120-degree cone
+    ScorchingSmiteCast2 = 46913, // Boss->self, 5.0+1.0s cast, single-target
+    ScorchingSmiteSlow = 49688, // Helper->self, 9.3s cast, range 40 120-degree cone
+    Allfire = 46915, // Boss->self, 4.0s cast, range 40 circle
+    MagmaSmall = 46916, // Helper->location, 3.0s cast, range 3 circle
+    MagmaBig = 46917, // Helper->location, 3.0s cast, range 5 circle
+    BurningWard = 46918, // Boss->self, 3.0s cast, single-target
+    FireCall = 46921, // Boss->self, 4.0s cast, single-target
+    ArmOfPurgatory = 46922, // 4B8F->self, 1.0s cast, range 10 circle
 }
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_tergetfix1f = 17, // 4B8F->player
+    BallOfFire = 17, // 4B8F->player
 }
 
 public enum SID : uint
 {
-    _Gen_BurningWard = 4175, // Boss->Boss, extra=0x0
+    BurningWard = 4175, // Boss->Boss, extra=0x0
 }
 
-class Allfire(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Allfire);
-class ScorchingSmite(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ScorchingSmite1, AID._Weaponskill_ScorchingSmite4], new AOEShapeCone(40, 60.Degrees()));
-class MagmaSmall(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Magma, 3);
-class MagmaLarge(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID._Weaponskill_Magma1, OID.Magma, 0.6f);
-class BurningWard(BossModule module) : Components.InvincibleStatus(module, (uint)SID._Gen_BurningWard);
-class BurningWardMagma(BossModule module) : Components.Voidzone(module, 5, 0x1E9927);
-class WispPiece(BossModule module) : Components.AddsMulti(module, [OID._Gen_WispPiece, OID._Gen_GreatWispPiece]);
+class Allfire(BossModule module) : Components.RaidwideCast(module, AID.Allfire);
+class ScorchingSmite(BossModule module) : Components.GroupedAOEs(module, [AID.ScorchingSmiteFast, AID.ScorchingSmiteSlow], new AOEShapeCone(40, 60.Degrees()));
+class MagmaSmall(BossModule module) : Components.StandardAOEs(module, AID.MagmaSmall, 3);
+class MagmaLarge(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.MagmaBig, OID.Magma, 0.6f);
+class BurningWard(BossModule module) : Components.Voidzone(module, 5, 0x1E9927);
+class WispPiece(BossModule module) : Components.AddsMulti(module, [OID.WispPiece, OID.GreatWispPiece]);
 
-class BallOfFire(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_ArmOfPurgatory, 10)
+class BallOfFire(BossModule module) : Components.StandardAOEs(module, AID.ArmOfPurgatory, 10)
 {
     readonly List<Actor> _sources = [];
 
@@ -61,7 +60,7 @@ class BallOfFire(BossModule module) : Components.StandardAOEs(module, AID._Weapo
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_tergetfix1f)
+        if ((TetherID)tether.ID == TetherID.BallOfFire)
             _sources.Add(source);
     }
 
@@ -84,12 +83,11 @@ class OgrePieceStates : StateMachineBuilder
             .ActivateOnEnter<MagmaSmall>()
             .ActivateOnEnter<MagmaLarge>()
             .ActivateOnEnter<BurningWard>()
-            .ActivateOnEnter<BurningWardMagma>()
             .ActivateOnEnter<WispPiece>()
             .ActivateOnEnter<BallOfFire>();
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14538)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14538)]
 public class OgrePiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
 
