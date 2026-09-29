@@ -2,19 +2,18 @@ namespace BossMod.RealmReborn.Dungeon.D01Sastasha.D013DennTheOrcatoothed;
 
 public enum OID : uint
 {
-    // TODO: confirm Baleen Guard OID + radius from live run
-    Boss = 0x4B6, // R?, Denn the Orcatoothed (NameID 1206)
-    BaleenGuard = 0x4B7, // R?, NameID 1207
+    Boss = 0x1A1, // R2.00, Denn the Orcatoothed (NameID 1206)
+    BaleenGuard = 0x1A2, // R1.50, NameID 1207
 }
 
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
     TrueThrust = 75, // Boss->player, no cast, single-target
-    Hydroball = 556, // Boss->self, 3.5s cast, range 6 90-degree cone (silence)
+    Hydroball = 556, // Boss->self, 3.5s cast, range 6+R 90-degree cone (silence)
 }
 
-class Hydroball(BossModule module) : Components.StandardAOEs(module, AID.Hydroball, new AOEShapeCone(6, 45.Degrees())); // TODO: verify cone angle
+class Hydroball(BossModule module) : Components.StandardAOEs(module, AID.Hydroball, new AOEShapeCone(8, 45.Degrees())); // CastType 3: 6 + R2, omen fan090
 class BaleenGuards(BossModule module) : Components.Adds(module, (uint)OID.BaleenGuard, 1);
 
 class D013DennTheOrcatoothedStates : StateMachineBuilder
@@ -27,5 +26,5 @@ class D013DennTheOrcatoothedStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1206)] // TODO: clear after Baleen Guard OID + Hydroball angle
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1206)]
 public class D013DennTheOrcatoothed(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));

@@ -2,16 +2,16 @@ namespace BossMod.RealmReborn.Dungeon.D01Sastasha.D011Chopper;
 
 public enum OID : uint
 {
-    Boss = 0x4B4, // TODO: confirm hitbox radius from live/replay; Chopper (NameID 1204)
+    Boss = 0x19B, // R3.15, Chopper (NameID 1204)
 }
 
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    ChargedWhisker = 351, // Boss->self, 3.0s cast, range 3 circle (paralysis)
+    ChargedWhisker = 351, // Boss->self, 3.0s cast, range 3+R circle (paralysis)
 }
 
-class ChargedWhisker(BossModule module) : Components.StandardAOEs(module, AID.ChargedWhisker, 3); // TODO: verify radius vs hitbox
+class ChargedWhisker(BossModule module) : Components.StandardAOEs(module, AID.ChargedWhisker, 6.15f); // CastType 5: 3 + R3.15
 
 class D011ChopperStates : StateMachineBuilder
 {
@@ -22,5 +22,5 @@ class D011ChopperStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1204)] // TODO: clear after Charged Whisker radius verify
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1204)]
 public class D011Chopper(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
