@@ -31,5 +31,5 @@ class D022GalvanthTheDominatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 2, NameID = 73)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 2, NameID = 73)]
 public class D022GalvanthTheDominator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-52.765f, -12.789f), new ArenaBoundsCircle(18));
