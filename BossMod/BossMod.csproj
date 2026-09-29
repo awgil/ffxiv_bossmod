@@ -10,9 +10,9 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
-    <PropertyGroup>
-        <LocalDalamock>true</LocalDalamock>
-    </PropertyGroup>
+  <PropertyGroup>
+    <LocalDalamock>true</LocalDalamock>
+  </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <AssemblyAttribute Include="DalamudLibPath">
@@ -24,9 +24,9 @@
     <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
   </ItemGroup>
 
-    <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' != 'true'">
-        <PackageReference Include="DalaMock.Core" Version="6.1.9" />
-    </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' != 'true'">
+    <PackageReference Include="DalaMock.Core" Version="6.1.9" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Dalamud.Common" Private="false" />
