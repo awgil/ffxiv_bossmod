@@ -17,7 +17,7 @@ internal class PetData() : TestWindow("Pet data generator", new(100, 100), ImGui
     {
         StringBuilder sb = new();
 
-        foreach (var xbmPet in Service.LuminaSheet<Lumina.Excel.Sheets.XBMPet>())
+        foreach (var xbmPet in Service.LuminaSheet<Lumina.Excel.Sheets.XBMPet>()!)
         {
             if (Service.LuminaRow<Lumina.Excel.Sheets.Pet>((uint)xbmPet.Unknown4) is not { } pet)
             {

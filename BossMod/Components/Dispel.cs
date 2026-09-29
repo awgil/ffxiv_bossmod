@@ -7,7 +7,7 @@ public class DispelHint(BossModule module, uint statusID, Enum? action = default
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var t in Targets)
-            if (hints.FindEnemy(t) is { } target)
+            if (t.PendingDispels.Count == 0 && hints.FindEnemy(t) is { } target)
                 target.ShouldBeDispelled = true;
     }
 
@@ -16,9 +16,9 @@ public class DispelHint(BossModule module, uint statusID, Enum? action = default
         if (Targets.FirstOrDefault() is { } target)
         {
             if (includeTargetName)
-                hints.Add($"Dispel {target.Name}!", false);
+                hints.Add($"Dispel {target.Name}!");
             else
-                hints.Add("Dispel!", false);
+                hints.Add("Dispel!");
         }
     }
 

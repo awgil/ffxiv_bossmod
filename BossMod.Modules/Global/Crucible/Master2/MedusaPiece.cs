@@ -1,5 +1,4 @@
-﻿
-
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
 namespace BossMod.Global.Crucible.MedusaPiece;
 
 public enum OID : uint

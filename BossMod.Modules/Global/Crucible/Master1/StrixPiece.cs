@@ -135,23 +135,8 @@ class Properties(BossModule module) : BossComponent(module)
     }
 }
 
-class OnThePropertiesOfDarkness(BossModule module) : Components.RaidwideCast(module, AID._Spell_OnThePropertiesOfDarkness)
-{
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (Casters.FirstOrDefault(c => c.FindStatus(SID._Gen_MagicDamageUp) != null && c.PendingDispels.Count == 0) != null)
-            hints.Add("Dispel!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        foreach (var c in Casters)
-            if (c.FindStatus(SID._Gen_MagicDamageUp) != null && c.PendingDispels.Count == 0 && hints.FindEnemy(c) is { } e)
-                e.ShouldBeDispelled = true;
-    }
-}
+class UltimateFocus(BossModule module) : Components.DispelHint(module, (uint)SID._Gen_MagicDamageUp, AID._Ability_UltimateFocus);
+class OnThePropertiesOfDarkness(BossModule module) : Components.RaidwideCast(module, AID._Spell_OnThePropertiesOfDarkness);
 
 class StrixPlume(BossModule module) : Components.AddsPointless(module, (uint)OID._Gen_StrixPlume);
 class AeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Spell_AeroIII, 25, true)
@@ -188,6 +173,7 @@ class StrixPieceStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<Plummet>()
             .ActivateOnEnter<Properties>()
+            .ActivateOnEnter<UltimateFocus>()
             .ActivateOnEnter<OnThePropertiesOfDarkness>()
             .ActivateOnEnter<StrixPlume>()
             .ActivateOnEnter<AeroIII>()

@@ -25,6 +25,7 @@ public enum AID : uint
 class DeathSpiral(BossModule module) : Components.StandardAOEs(module, AID.DeathSpiral, new AOEShapeDonut(4, 40));
 class Tumulus(BossModule module) : Components.StandardAOEs(module, AID.Tumulus, 6);
 class BlackEruption(BossModule module) : Components.GroupedAOEs(module, [AID.BlackEruptionFirst, AID.BlackEruptionRest], new AOEShapeCircle(5));
+class Ossify(BossModule module) : Components.CastInterruptHint(module, AID.Ossify);
 
 class ForwardGuard(BossModule module) : Components.DirectionalParry(module, (uint)OID.BoneKnight)
 {
@@ -54,12 +55,13 @@ class BoneKnightStates : StateMachineBuilder
             .ActivateOnEnter<DeathSpiral>()
             .ActivateOnEnter<Tumulus>()
             .ActivateOnEnter<BlackEruption>()
+            .ActivateOnEnter<Ossify>()
             .ActivateOnEnter<ForwardGuard>()
             .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed && ((BoneKnight)module).BoneBishop is { IsDeadOrDestroyed: true };
     }
 }
 
-[ModuleInfo(Incomplete = true, PrimaryActorOID = (uint)OID.BoneKnight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14531)]
+[ModuleInfo(PrimaryActorOID = (uint)OID.BoneKnight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14531)]
 public class BoneKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20))
 {
     public Actor? BoneBishop { get; private set; }

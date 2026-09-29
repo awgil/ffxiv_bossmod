@@ -14,6 +14,9 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         [Track("Shield Charge")]
         public Track<EnabledByDefault> ShieldCharge;
 
+        [Track("Combo")]
+        public Track<EnabledByDefault> Combo;
+
         [Track("Pet management")]
         public Track<SummonStrategy> Summon;
 
@@ -82,8 +85,8 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         Infinite4 = 100,
     }
 
-    public bool HavePet => CurrentPet > 0;
-    public byte CurrentPet;
+    public bool HavePet => CurrentPetIndex > 0;
+    public byte CurrentPetIndex;
     public PetInfo PetInfo;
     public BeastmasterAffinity TrickAffinity => PetInfo.TrickAffinity;
     public Kinship Kinship;
@@ -109,17 +112,17 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         var gauge = World.Client.GetGauge<BeastmasterGauge>();
 
-        CurrentPet = 0;
+        CurrentPetIndex = 0;
         TP = gauge.TPGauge;
         PetTP = gauge.FamiliarTPGauge;
         ComboAffinity = gauge.CurrentAffinity;
         if (gauge.ActiveBattlehornIndex > 0)
         {
             LastUsedHorn = gauge.ActiveBattlehornIndex;
-            CurrentPet = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
+            CurrentPetIndex = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
         }
         OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
-        PetInfo = Definitions.PetInfos[CurrentPet];
+        PetInfo = Definitions.PetInfos[CurrentPetIndex];
         (Kinship, KinshipLeft) = CurrentKinship;
 
         var petIsLeaving = ReadyIn(AID.PartingBlow) > 5;
@@ -129,7 +132,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
 
         // level 50 3 chain infinitive combo
-        if (Unlocked(TraitID.InstinctualMastery) && HavePet)
+        if (Unlocked(TraitID.InstinctualMastery) && HavePet && strategy.Combo.IsEnabled())
         {
             // infinitive combo finisher
             if (TP == 250 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
@@ -157,7 +160,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // at level 40 we also get pet gems for use with cheer
-        if (Unlocked(TraitID.WildHeartIV))
+        if (Unlocked(TraitID.WildHeartIV) && strategy.Combo.IsEnabled())
         {
             if (gauge.NaturalInstinct < 3)
             {
@@ -175,7 +178,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         }
 
         // at level 30 we get player gems for use with rally
-        if (Unlocked(TraitID.WildHeartIII))
+        if (Unlocked(TraitID.WildHeartIII) && strategy.Combo.IsEnabled())
         {
             if (gauge.MasteredInstinct < 3)
             {
@@ -196,12 +199,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                 PushOGCD(AID.Rally, Player);
         }
 
-        // TODO: pet aoe targeting
         // 10 = wespe (final sting)
-        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPet != 10)
+        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPetIndex != 10 && !PetInfo.NonDamagingRelease)
             UsePetAction(strategy, AID.TemperedRelease, primaryTarget, OGCDPriority.Default, PetInfo.ReleaseShape, PetInfo.ReleaseRange);
 
-        var pbOk = CurrentPet == 10 || !OneWithNature;
+        var pbOk = CurrentPetIndex == 10 || PetInfo.NonDamagingRelease || !OneWithNature;
 
         if (HavePet && pbOk && NumExplosionTargets > 0)
         {
@@ -221,7 +223,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
             if (use)
             {
-                if (CurrentPet == 10 && OneWithNature && NumExplosionTargets == 1)
+                if (CurrentPetIndex == 10 && OneWithNature && NumExplosionTargets == 1)
                     PushOGCD(AID.TemperedRelease, primaryTarget, OGCDPriority.Default, useOnDyingTarget: false);
                 else
                     PushOGCD(AID.PartingBlow, BestExplosionTarget, OGCDPriority.Default, useOnDyingTarget: false);
@@ -242,13 +244,13 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         if (gauge.Classification == 5)
             PushGCD(AID.QuellingWave, primaryTarget);
 
-        ManagePet(strategy, primaryTarget);
+        ManagePet(strategy);
         Prep(strategy, gauge);
 
         GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.Classification == 5 ? 30 : null);
     }
 
-    void ManagePet(in Strategy strategy, Enemy? primaryTarget)
+    void ManagePet(in Strategy strategy)
     {
         switch (strategy.Summon.Value)
         {
@@ -262,10 +264,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
                 if (HavePet)
                 {
                     // pb
-                    PushOGCD(AID.PartingBlow, primaryTarget);
+                    if (NumExplosionTargets > 0)
+                        PushOGCD(AID.PartingBlow, BestExplosionTarget);
 
-                    // dismiss only if PB is on cooldown (pet actions have no animlock so it could get executed during the animlock of something else)
-                    if (ReadyIn(AID.PartingBlow) > 0)
+                    // dismiss only if PB is on cooldown/we can't use it (pet actions have no animlock so it could get executed during the animlock of something else)
+                    if (ReadyIn(AID.PartingBlow) > 0 || NumExplosionTargets == 0)
                         Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
                 }
                 break;
@@ -361,6 +364,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         var (bestTarget, numTargets) = shape switch
         {
             null => (target, target?.Priority >= 0 ? 1 : 0),
+            AOEShapeCircle c when actionRange == 0 => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, pet.Position, c.Radius)),
             AOEShapeCircle c => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, primary.Position, c.Radius)),
             AOEShapeRect r => SelectTarget(strategy, target, 30, (primary, other) =>
             {
