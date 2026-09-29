@@ -104,7 +104,7 @@ class CoruscantSaberOut(BossModule module) : Components.StandardAOEs(module, AID
 class ImbuedCoruscanceIn(BossModule module) : Components.StandardAOEs(module, AID.ImbuedCoruscanceIn, 10);
 class ImbuedCoruscanceOut(BossModule module) : Components.StandardAOEs(module, AID.ImbuedCoruscanceOut, new AOEShapeDonut(5, 60));
 class RadiantMeteorSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.RadiantMeteorSpread, 20);
-class SuitonSan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SuitonSan, 30, kind: Components.Knockback.Kind.DirForward);
+class SuitonSan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SuitonSan, 30, kind: Kind.DirForward);
 class KatonSan(BossModule module) : Components.StackWithCastTargets(module, AID.KatonSan, 6, 6);
 class BrimstoneEarth(BossModule module) : Components.StandardAOEs(module, AID.BrimstoneEarth, 6);
 class PerfectDecimation(BossModule module) : Components.StandardAOEs(module, AID.PerfectDecimation, new AOEShapeCone(60, 22.5f.Degrees()), 4);
@@ -163,7 +163,7 @@ class SwordOfLight(BossModule module) : Components.GenericAOEs(module, AID.Shini
             return;
         var (pos, rot) = index switch
         {
-            0x14 => (new WPos(100, 80), default(Angle)),
+            0x14 => (new WPos(100, 80), default),
             0x15 => (new WPos(120, 100), 270.Degrees()),
             0x16 => (new WPos(100, 120), 180.Degrees()),
             0x17 => (new WPos(80, 100), 90.Degrees()),
