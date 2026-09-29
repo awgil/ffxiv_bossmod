@@ -682,8 +682,14 @@ public sealed unsafe class ActionManagerEx : IAmex
         }
     }
 
-    private void UseCrucibleItemDetour(InstanceContentCrucible* self, uint slot, int unk)
+    private void UseCrucibleItemDetour(InstanceContentCrucible* self, uint slot, int beastId)
     {
+        if (beastId > 0) // blessed horn; can't be used in combat and we have no way to save the beast ID for the queued action; fallback to native
+        {
+            _useCrucibleItemHook.Original(self, slot, beastId);
+            return;
+        }
+
         var id = CrucibleItemID.GetFromXBMRow(self->Inventory[(int)slot].ItemId);
         var spellId = CrucibleItemID.GetSpellID(id);
         var action = new ActionID(ActionType.Crucible, (uint)id);
@@ -729,7 +735,6 @@ public sealed unsafe class ActionManagerEx : IAmex
                 var prevTarget = targetSystem->Target;
                 // native function uses this item on the player's current hard target
                 targetSystem->Target = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetId);
-                // TODO: figure out what arg3 is
                 _useCrucibleItemHook.Original(ic, (uint)i, 0);
                 targetSystem->Target = prevTarget;
                 _inst->AnimationLock = 1.1f;

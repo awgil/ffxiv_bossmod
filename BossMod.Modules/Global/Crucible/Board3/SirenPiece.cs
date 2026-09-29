@@ -76,7 +76,8 @@ class UnmooringMelody(BossModule module) : Components.GenericAOEs(module, AID._W
 }
 class FeralLunge(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_FeralLunge1, new AOEShapeRect(50, 8));
 
-class Adds(BossModule module) : Components.AddsMulti(module, [OID._Gen_ShamblingPiece, OID._Gen_CrawlingPiece]);
+class ShamblingPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_ShamblingPiece);
+class CrawlingPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_CrawlingPiece, 1);
 
 class DeadMansDirge1(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_DeadMansDirge1, 12);
 class DeadMansDirge2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_DeadMansDirge3, new AOEShapeDonut(2, 43));
@@ -111,7 +112,8 @@ class SirenPieceStates : StateMachineBuilder
             .ActivateOnEnter<SongOfTorment>()
             .ActivateOnEnter<UnmooringMelody>()
             .ActivateOnEnter<FeralLunge>()
-            .ActivateOnEnter<Adds>()
+            .ActivateOnEnter<ShamblingPiece>()
+            .ActivateOnEnter<CrawlingPiece>()
             .ActivateOnEnter<Wallop>()
             .ActivateOnEnter<DeadMansDirge1>()
             .ActivateOnEnter<DeadMansDirge2>()
