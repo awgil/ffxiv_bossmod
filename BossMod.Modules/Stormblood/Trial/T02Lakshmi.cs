@@ -57,6 +57,7 @@ class CircleZone(BossModule module) : Components.Voidzone(module, 10, OID.VoidZo
 
 class VrilOrbs(BossModule module) : BossComponent(module)
 {
+    // TODO: Vril pickup radius / Chanchala knockback interaction still approximate — verify with replay
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var z in Module.Enemies((uint)OID.Vril).Where(z => !z.IsDead))
@@ -71,7 +72,7 @@ class PathOfLight(BossModule module) : Components.GenericBaitAway(module, AID.Th
         if ((IconID)iconID != IconID.ProteanCleave)
             return;
         if (WorldState.Actors.Find(targetID) is { } target)
-            CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeCone(40, 37.5f.Degrees()), WorldState.FutureTime(4.7f)));
+            CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeCone(40, 37.5f.Degrees()), WorldState.FutureTime(4.7f))); // TODO: verify Path of Light half-angle
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -128,5 +129,5 @@ class T02LakshmiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)] // TODO: clear Incomplete after Vril/Blissful Arrow verify
 public class T02Lakshmi(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));

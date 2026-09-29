@@ -35,7 +35,7 @@ public enum SID : uint
 }
 
 class Launcher(BossModule module) : Components.RaidwideCast(module, AID.Launcher);
-class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, AID.DynamicSensoryJammer, "Stop moving!", true);
+class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, AID.DynamicSensoryJammer, "Stop moving!", true); // TODO: Extreme Caution / StayMove once status timing is confirmed
 class DiffractiveLaserVisual(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaserVisual, 5);
 class DiffractiveLaser1(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser1, 5);
 class DiffractiveLaser2(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser2, 5);
@@ -57,5 +57,5 @@ class D172ArmoredWeaponStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)] // TODO: clear after Extreme Caution StayMove
 public class D172ArmoredWeapon(WorldState ws, Actor primary) : BossModule(ws, primary, new(116, 0), new ArenaBoundsSquare(19.5f));

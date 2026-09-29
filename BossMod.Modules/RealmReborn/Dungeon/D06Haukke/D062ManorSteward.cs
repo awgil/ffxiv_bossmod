@@ -18,7 +18,7 @@ public enum AID : uint
 }
 
 class SoulDrain(BossModule module) : Components.StandardAOEs(module, AID.SoulDrain, 9);
-class IceSpikes(BossModule module) : Components.SingleTargetCast(module, AID.IceSpikes);
+class IceSpikes(BossModule module) : Components.SingleTargetCast(module, AID.IceSpikes); // TODO: confirm — may be self-buff, not tankbuster
 class Blizzard(BossModule module) : Components.SingleTargetCast(module, AID.Blizzard);
 class ManorJester(BossModule module) : Components.Adds(module, (uint)OID.ManorJester, 1);
 

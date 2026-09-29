@@ -19,6 +19,7 @@ public enum AID : uint
 }
 
 class Electrify(BossModule module) : Components.StandardAOEs(module, AID.Electrify, 6);
+// TODO: replace hint with map geometry / voidzone for wet ground once dry pads are known from replay
 class HydroelectricShock(BossModule module) : Components.CastHint(module, AID.HydroelectricShockVisual, "Get to dry ground!", true);
 class Levinfang(BossModule module) : Components.SingleTargetCast(module, AID.Levinfang);
 
@@ -33,5 +34,5 @@ class D042ThunderclapGuivreStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)] // TODO: clear after dry-ground geometry
 public class D042ThunderclapGuivre(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));

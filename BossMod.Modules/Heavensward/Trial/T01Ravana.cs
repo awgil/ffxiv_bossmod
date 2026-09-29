@@ -73,6 +73,7 @@ public enum SID : uint
 
 class PreludeToSlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.PreludeToSlaughterCast, 15);
 class PreludeToSlaughterCircle(BossModule module) : Components.GroupedAOEs(module, [AID.PreludeToSlaughterCircle, AID.PreludeCircleRepeat, AID.SlaughterCircleRepeat], new AOEShapeCircle(20));
+// TODO: PreludeToSlaughterRect (instant helper rects) still unwired
 class SlaughterRect(BossModule module) : Components.StandardAOEs(module, AID.SlaughterRect, new AOEShapeRect(44, 4));
 class SlaughterCross(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCross, new AOEShapeRect(40, 4));
 class SlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCast, new AOEShapeCone(40, 90.Degrees()));
@@ -217,7 +218,7 @@ class PillarsOfHeavenImpact(BossModule module) : Components.GenericAOEs(module, 
         var now = WorldState.CurrentTime;
         _active.RemoveAll(a => a.expire <= now);
         foreach (var a in _active)
-            yield return new(new AOEShapeCircle(8), a.pos, Activation: a.expire);
+            yield return new(new AOEShapeCircle(8), a.pos, Activation: a.expire); // TODO: verify impact radius
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -345,7 +346,7 @@ class T01RavanaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)] // TODO: clear Incomplete after Blades combo + Tapasya verify
 public class T01Ravana(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

@@ -28,7 +28,9 @@ public enum SID : uint
 
 class PeculiarLight(BossModule module) : Components.StandardAOEs(module, AID.PeculiarLight, 8);
 class StagnantSpray(BossModule module) : Components.StandardAOEs(module, AID.StagnantSpray, new AOEShapeCone(8, 60.Degrees()));
+// TODO: BogBubble is untelegraphed target circle — verify radius and whether Cleave is the right model
 class BogBubble(BossModule module) : Components.Cleave(module, AID.BogBubble, new AOEShapeCircle(6), originAtTarget: true);
+// TODO: Touchdown is Aiatar phase / untelegraphed — verify when it fires and radius; may need actor filter
 class Touchdown(BossModule module) : Components.Cleave(module, AID.Touchdown, new AOEShapeCircle(10), activeWhileCasting: false);
 class QueerBubble(BossModule module) : Components.Adds(module, (uint)OID.QueerBubble, 1);
 
@@ -45,5 +47,5 @@ class D073HellbenderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1286)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1286)] // TODO: clear after BogBubble/Touchdown/Aiatar verify
 public class D073Hellbender(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));

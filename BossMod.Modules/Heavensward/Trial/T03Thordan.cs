@@ -65,12 +65,13 @@ class HeavyImpact2(BossModule module) : Components.StandardAOEs(module, AID.Heav
 class HeavyImpact3(BossModule module) : Components.StandardAOEs(module, AID.HeavyImpact3, 18);
 class HeavyImpact4(BossModule module) : Components.StandardAOEs(module, AID.HeavyImpact4, 27);
 class SpiralThrust(BossModule module) : Components.StandardAOEs(module, AID.SpiralThrust, new AOEShapeRect(54.2f, 6));
-class SpiralPierce(BossModule module) : Components.BaitAwayChargeCast(module, AID.SpiralPierce, 6);
+class SpiralPierce(BossModule module) : Components.BaitAwayChargeCast(module, AID.SpiralPierce, 6); // TODO: verify charge half-width vs width-12 sheet data
 class Heavensflame1(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame1, 3);
 class Heavensflame2(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame2, 4);
 class Heavensflame3(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame3, 5);
 class Heavensflame4(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame4, 6);
 class AscalonMight(BossModule module) : Components.RaidwideCast(module, AID.AscalonMight);
+// TODO: still missing Attack/BroadSwing cleaves, UltimateEnd/LightOfAscalon, SkywardLeap stack, HolyChain, HiemalStorm, HolyMeteor/meteor circles, Conviction towers, and a real state machine
 class Knights(BossModule module) : Components.AddsMulti(module, [
     OID.SerZephirin, OID.SerAdelphel, OID.SerJanlenoux, OID.SerVellguine, OID.SerPaulecrain, OID.SerIgnasse,
     OID.SerGrinnaux, OID.SerHermenost, OID.SerGuerrique, OID.SerCharibert, OID.SerHaumeric, OID.SerNoudenet,
@@ -101,5 +102,5 @@ class T03ThordanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 90, NameID = 3632)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 90, NameID = 3632)] // TODO: clear Incomplete after knight timeline + missing mechanics above
 public class T03Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));

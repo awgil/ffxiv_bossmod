@@ -110,6 +110,7 @@ class SpecterAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.S
 
 class MoonStatus(BossModule module) : BossComponent(module)
 {
+    // TODO: draw moonlit/moonshadowed safe sides instead of a text hint once arena half mapping is confirmed
     public override void AddGlobalHints(GlobalHints hints)
     {
         var pc = Raid.Player();
@@ -144,5 +145,5 @@ class T04TsukuyomiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)] // TODO: clear Incomplete after moon-gauge safespots + specter timeline
 public class T04Tsukuyomi(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));

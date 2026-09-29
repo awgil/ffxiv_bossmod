@@ -54,6 +54,7 @@ class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.Lig
 class Thunderhead(BossModule module) : Components.StandardAOEs(module, AID.Thunderhead, 5);
 class CetaceanRage(BossModule module) : Components.RaidwideCast(module, AID.CetaceanRage);
 class PowerfulGust(BossModule module) : Components.SingleTargetCast(module, AID.PowerfulGust);
+// TODO: DryFin/WetFin add cleaves, VacuumWave knockback, shell (Chitin/Corona) phases, Dragonkiller arming, and arena changes still unwired
 class BismarckAdds(BossModule module) : Components.AddsMulti(module, [OID.LanMaiiVundu, OID.VukMaiiVundu, OID.SoSanuwa, OID.UlSanuwa, OID.VaporBubble, OID.FunnelCloud, OID.Dragonkiller], 1);
 
 class T02BismarckStates : StateMachineBuilder
@@ -70,5 +71,5 @@ class T02BismarckStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 88, NameID = 3649)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 88, NameID = 3649)] // TODO: clear Incomplete after shell / Dragonkiller / add cleaves
 public class T02Bismarck(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(24));

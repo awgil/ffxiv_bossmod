@@ -2,6 +2,7 @@
 
 public enum OID : uint
 {
+    // TODO: remaster AID kit inferred from Lumina — confirm OIDs/shapes in a live Duty Support run
     Boss = 0x4A8A, // R2.700, All-seeing Eye (Duty Support / remaster)
     Helper = 0x233C, // R0.500
     CrystalOld = 0x60B, // R1.000, Corrupted Crystal (trash/legacy)
@@ -31,5 +32,5 @@ class D111AllSeeingEyeStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)] // TODO: clear after remaster AID kit live verify
 public class D111AllSeeingEye(WorldState ws, Actor primary) : BossModule(ws, primary, new(48, 78), new ArenaBoundsSquare(25));

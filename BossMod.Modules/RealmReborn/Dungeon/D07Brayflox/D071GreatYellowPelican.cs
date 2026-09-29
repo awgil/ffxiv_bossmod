@@ -15,7 +15,7 @@ public enum AID : uint
     NumbingBreath = 506, // Boss->self, 3.0s cast, range 9.2 120-degree cone aoe
 
     AutoAttackTrash = 871, // Trash->player, no cast
-    PoisonBreath = 1393 // VioletBack->self, no cast, range 7.20 ?-degree cone cleave
+    PoisonBreath = 1393 // VioletBack->self, no cast, range 7.20 ?-degree cone cleave // TODO: verify angle + add Cleave if useful
 }
 
 class NumbingBreath(BossModule module) : Components.StandardAOEs(module, AID.NumbingBreath, new AOEShapeCone(9.2f, 60.Degrees()));

@@ -142,6 +142,7 @@ class AkhRhai(BossModule module) : Components.GenericAOEs(module)
 
 class WaterPuddles(BossModule module) : BossComponent(module)
 {
+    // TODO: puddle radius and Levinbolt/Hellfire timing still unverified; consider forbidden zones instead of hints
     private bool _levinCasting;
     private bool _fireCasting;
 
@@ -255,5 +256,5 @@ class T03ShinryuStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 239, NameID = 5640)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 239, NameID = 5640)] // TODO: clear Incomplete after puddle/arena/Fetters verify
 public class T03Shinryu(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsSquare(20, MapResolution: 0.3f));

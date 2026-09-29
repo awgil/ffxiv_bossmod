@@ -150,7 +150,6 @@ class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.M
     }
 }
 
-// Sword of Light triangles — ENVC places the sword, ShiningWave resolves. Ported from BMR.
 class SwordOfLight(BossModule module) : Components.GenericAOEs(module, AID.ShiningWave)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -314,8 +313,8 @@ class T04WarriorOfLightP2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu, wen", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462)] // TODO: clear Incomplete after imbued saber order + spectral adds pass
 public class T04WarriorOfLight(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
 
-[ModuleInfo(Contributors = "Kagekazu, wen", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)] // TODO: P2 Absolute Fire/Ice + Ult Crossover timing
 public class T04WarriorOfLightP2(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

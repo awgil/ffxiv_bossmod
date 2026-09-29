@@ -10,12 +10,13 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    Hit45577 = 45577, // Boss->self, no cast
-    Hit45578 = 45578, // Boss->self, no cast
+    Hit45577 = 45577, // Boss->self, no cast // TODO: identify from replay
+    Hit45578 = 45578, // Boss->self, no cast // TODO: identify from replay
     GrimAura = 45579, // Boss->self, 4.7s cast, range 12 circle
     HellsSend = 45580, // Boss->self, 2.7s cast, single-target visual
-    Hit45581 = 45581, // Boss->self, no cast
+    Hit45581 = 45581, // Boss->self, no cast // TODO: identify from replay
     Desolation = 45582, // Boss->self, 2.7s cast, range 6-60 donut
+    // TODO: remaster crystal may use a different AID than legacy 1167 — confirm CorruptedCrystal casts
     AetherialSurge = 1167, // CorruptedCrystalOld->self, 2.7s cast, range 6 circle
 }
 
@@ -36,5 +37,5 @@ class D113BatraalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1396)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1396)] // TODO: clear after remaster crystal AID + unnamed hits
 public class D113Batraal(WorldState ws, Actor primary) : BossModule(ws, primary, new(85, -175), new ArenaBoundsSquare(25));

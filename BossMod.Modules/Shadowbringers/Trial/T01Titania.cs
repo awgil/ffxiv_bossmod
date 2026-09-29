@@ -73,7 +73,7 @@ class PucksCaprice(BossModule module) : Components.RaidwideCast(module, AID.Puck
 class PucksBreath(BossModule module) : Components.StackWithCastTargets(module, AID.PucksBreath, 6);
 class PucksRebukeNear(BossModule module) : Components.StandardAOEs(module, AID.PucksRebukeNear, 5);
 class PucksRebuke(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PucksRebuke, 10);
-class DivinationRune(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 37.5f.Degrees()), (uint)IconID.Divination, AID.DivinationRune, 4f, damageType: AIHints.PredictedDamageType.Tankbuster);
+class DivinationRune(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 37.5f.Degrees()), (uint)IconID.Divination, AID.DivinationRune, 4f, damageType: AIHints.PredictedDamageType.Tankbuster); // TODO: verify cone half-angle
 class BrightSabbath(BossModule module) : Components.RaidwideCast(module, AID.BrightSabbath);
 class PhantomRuneIn(BossModule module) : Components.StandardAOEs(module, AID.PhantomRuneIn, 10);
 class PhantomRuneOut(BossModule module) : Components.StandardAOEs(module, AID.PhantomRuneOut, new AOEShapeDonut(5, 60));
@@ -93,6 +93,7 @@ class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
     {
         if (actor.OID != (uint)OID.RootGrowth)
             return;
+        // TODO: confirm EAnim state → cross size mapping and activation delays from a clean replay
         if (state == 0x00010002)
         {
             _aoes.Add(new(new AOEShapeCross(10, 3), actor.Position));
@@ -209,5 +210,5 @@ class T01TitaniaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)] // TODO: clear Incomplete after WoodsEmbrace EAnim + water tower pass
 public class T01Titania(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));

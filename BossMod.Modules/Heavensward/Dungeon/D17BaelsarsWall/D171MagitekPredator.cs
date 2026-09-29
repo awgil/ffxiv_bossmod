@@ -28,6 +28,7 @@ class MagitekClaw(BossModule module) : Components.SingleTargetCast(module, AID.M
 class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(42.94f, 3));
 class SkyArmorReinforcement(BossModule module) : Components.Adds(module, (uint)OID.SkyArmorReinforcement, 1);
 
+// TODO: verify Magitek Missile / Prey spread radius from replay
 class MagitekMissile(BossModule module) : Components.UniformStackSpread(module, 0, 5)
 {
     public override void OnStatusGain(Actor actor, in ActorStatus status)
@@ -61,5 +62,5 @@ class D171MagitekPredatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5560)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5560)] // TODO: clear after Magitek Missile radius verify
 public class D171MagitekPredator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-174, 73), new ArenaBoundsSquare(19.5f));

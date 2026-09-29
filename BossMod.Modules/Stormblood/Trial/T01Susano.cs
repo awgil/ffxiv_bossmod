@@ -81,6 +81,7 @@ class YataNoKagami(BossModule module) : Components.Knockback(module, AID.YataNoK
 
 class DarkLevinOrbs(BossModule module) : BossComponent(module)
 {
+    // TODO: proper soak towers / bait radius once Dark Levin size is confirmed from replay
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (Module.Enemies((uint)OID.DarkLevin).Any(z => !z.IsDead))
@@ -115,5 +116,5 @@ class T01SusanoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)] // TODO: clear Incomplete after live/replay pass (Seasplitter timing, Levin soak)
 public class T01Susano(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));
