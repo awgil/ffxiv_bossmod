@@ -12,13 +12,14 @@ public enum AID : uint
 
     Electrify = 40595, // Boss->location, 4.0s cast, range 6 circle
 
-    HydroelectricShockVisual = 40593, // Boss->self, 9.0+1,0s cast, single-target
-    HydroelectricShock = 41113, // Helper->self, 10.0s cast, ???
+    HydroelectricShockVisual = 40593, // Boss->self, 9.0+1.0s cast, single-target visual (water electrifies)
+    HydroelectricShock = 41113, // Helper->self, 10.0s cast, custom arena (get to dry ground)
 
     Levinfang = 40594 // Boss->player, 5.0s cast, single-target
 }
 
 class Electrify(BossModule module) : Components.StandardAOEs(module, AID.Electrify, 6);
+class HydroelectricShock(BossModule module) : Components.CastHint(module, AID.HydroelectricShockVisual, "Get to dry ground!", true);
 class Levinfang(BossModule module) : Components.SingleTargetCast(module, AID.Levinfang);
 
 class D042ThunderclapGuivreStates : StateMachineBuilder
@@ -27,6 +28,7 @@ class D042ThunderclapGuivreStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Electrify>()
+            .ActivateOnEnter<HydroelectricShock>()
             .ActivateOnEnter<Levinfang>();
     }
 }

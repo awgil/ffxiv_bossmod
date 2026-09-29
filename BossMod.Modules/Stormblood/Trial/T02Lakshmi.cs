@@ -34,11 +34,9 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    ProteanCleave = 14,
-    Stack = 62,
-    SpreadCross = 107,
-    SpreadCircle = 109,
-    Tankbuster = 218,
+    ProteanCleave = 14, // player
+    SpreadCross = 107, // player
+    SpreadCircle = 109, // player
 }
 
 public enum SID : uint

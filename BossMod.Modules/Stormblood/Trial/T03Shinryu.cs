@@ -2,32 +2,32 @@ namespace BossMod.Stormblood.Trial.T03Shinryu;
 
 public enum OID : uint
 {
-    Boss = 0x1983, // R22.000, x?
-    Platform = 0x1EA1A1, // R2.000, x?, EventObj type : Destructible square tiles. 9 platforms.
-    RightWing = 0x1B1A, // R15.000, x?, Part type
-    LeftWing = 0x1B19, // R15.000, x?, Part type
-    WaterSpout = 0x1E8536, // R2.000, x?, EventObj type : Water Spout
-    WaterPuddles = 0x1E950D, // R0.500, x?, EventObj type
-    Icicle = 0x1B16, // R2.500, x?
-    EyeOfTheStorm = 0x1B17, // R1.000, Hurricane with pulsing knockback
-    Cocoon1 = 0x1B13, // R3.000, x?
-    MassiveCocoon = 0x1C86, // R6.000, x?
-    Ginryu = 0x1B14, // R1.800, x?
-    Hakkinryu = 0x1C83, // R3.600, x?
-    Fetters = 0x1B15, // R1.000, x? （仮）temporary　鎖 : Fetters, then atb button mash.
-    Tail = 0x1B12, // R17.940, x?, Helper type
-    Helper = 0x18D6 // R0.500, x?, mixed types : Helper types~
+    Boss = 0x1983, // R22.000
+    Platform = 0x1EA1A1, // R2.000, EventObj, destructible arena tiles (9)
+    RightWing = 0x1B1A, // R15.000, Part
+    LeftWing = 0x1B19, // R15.000, Part
+    WaterSpout = 0x1E8536, // R2.000, EventObj
+    WaterPuddles = 0x1E950D, // R0.500, EventObj
+    Icicle = 0x1B16, // R2.500
+    EyeOfTheStorm = 0x1B17, // R1.000, pulsing knockback
+    Cocoon1 = 0x1B13, // R3.000
+    MassiveCocoon = 0x1C86, // R6.000
+    Ginryu = 0x1B14, // R1.800
+    Hakkinryu = 0x1C83, // R3.600
+    Fetters = 0x1B15, // R1.000, fetters + button mash
+    Tail = 0x1B12, // R17.940, Helper
+    Helper = 0x18D6, // R0.500
 }
 
 public enum AID : uint
 {
     AutoAttack = 8105, // RightWing/LeftWing->player, no cast, single-target
     TidalWave = 8075, // Helper->self, 10.0s cast, range 80+R width 60 rect
-    TidalWaveCast = 8106, // Shinryu->self, 10.0s cast, single-target
+    TidalWaveCast = 8106, // Boss->self, 10.0s cast, single-target, visual
     Levinbolt = 8092, // Helper->player, no cast, range 5 circle
-    LevinboltVisual = 8091, // RightWing->self, 6.0s cast, single-target
-    AkhMornVisual = 8100, // Shinryu->players, 4.0s cast, ??? : tank stack?
-    AkhMorn1 = 8101, // Shinryu->players, no cast, ??? :
+    LevinboltVisual = 8091, // RightWing->self, 6.0s cast, single-target, visual
+    AkhMornVisual = 8100, // Boss->players, 4.0s cast, single-target, shared tankbuster visual
+    AkhMorn1 = 8101, // Boss->players, no cast, single-target, shared tankbuster hit
     SummonIcicle = 8095, // LeftWing->self, 4.0s cast, single-target
     IcicleImpact = 8096, // Icicle->self, no cast, range 6 circle
     Spikesicle = 8097, // Icicle->self, 2.5s cast, range 62+R width 10 rect
@@ -43,7 +43,7 @@ public enum AID : uint
     TailSlap = 8083, // Tail->self, 3.0s cast, range 40 width 20 rect
     TailSlapAlt = 9130, // Tail->self, 3.0s cast, range 40 width 20 rect
     IceStorm = 8098, // LeftWing->self, 6.0s cast, single-target
-    BurningChains = 8144, // Helper->self, no cast
+    BurningChains = 8144, // Helper->self, no cast, single-target
     IceStormRaidwide = 8099, // Helper->self, no cast, range 60 circle
     Dragonfist = 9455, // Boss->self, no cast, single-target
     DragonfistVisual = 9456, // Helper->self, 4.0s cast, range 16 circle
@@ -67,11 +67,9 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    LevinMarker = 24, // player : Levin Bolt Spread marker
-    BurningChainsIcon = 97, // player :
-    HyperNovaStackIcon = 62, // player->self
-    BaitAwayIcon = 98, // player->self : green marker.  Might bait a tail slap? Unconfirmed.
-    EarthBreathIcon = 23 // player->self
+    Levinbolt = 24, // player
+    HypernovaStack = 62, // player
+    EarthBreath = 23, // player
 }
 
 public enum SID : uint
@@ -91,8 +89,8 @@ public enum TetherID : uint
 }
 
 class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 35, kind: Components.Knockback.Kind.DirForward);
-class Levinbolt(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.LevinMarker, AID.Levinbolt, 5, 6);
-class EarthBreathBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), (uint)IconID.EarthBreathIcon, AID.EarthBreathAOE);
+class Levinbolt(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Levinbolt, AID.Levinbolt, 5, 6);
+class EarthBreathBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), (uint)IconID.EarthBreath, AID.EarthBreathAOE);
 class EarthBreathAOE(BossModule module) : Components.StandardAOEs(module, AID.EarthBreathAOE, new AOEShapeCone(60, 30.Degrees()));
 class IcicleAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.Icicle]);
 class AkhMornStack(BossModule module) : Components.CastSharedTankbuster(module, AID.AkhMornVisual, 5);
@@ -108,7 +106,7 @@ class Dragonfist(BossModule module) : Components.StandardAOEs(module, AID.Dragon
 class EarthenFurySmash(BossModule module) : Components.StandardAOEs(module, AID.EarthenFurySmash, new AOEShapeRect(20, 10));
 class SuperCyclone(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SuperCyclone, 5);
 class AerialBlast(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AerialBlast, 15);
-class Hypernova(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HyperNovaStackIcon, AID.Hypernova, 7, 6);
+class Hypernova(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HypernovaStack, AID.Hypernova, 7, 6);
 class Spikesicle(BossModule module) : Components.StandardAOEs(module, AID.Spikesicle, new AOEShapeRect(64.5f, 5), maxCasts: 3);
 class SpikesicleKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Spikesicle, 10, maxCasts: 3, shape: new AOEShapeRect(64.5f, 5), kind: Components.Knockback.Kind.DirForward);
 class DeathSentence(BossModule module) : Components.SingleTargetCast(module, AID.DeathSentence);

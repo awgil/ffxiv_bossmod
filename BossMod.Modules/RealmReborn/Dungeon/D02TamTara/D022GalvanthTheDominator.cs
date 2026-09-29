@@ -19,13 +19,15 @@ public enum AID : uint
 }
 
 class MindBlast(BossModule module) : Components.StandardAOEs(module, AID.MindBlast, 9.95f);
+class GalvanthAdds(BossModule module) : Components.AddsMulti(module, [OID.InconspicuousImp, OID.SkeletonSoldier, OID.DeepcroftMiteling], 1);
 
 class D022GalvanthTheDominatorStates : StateMachineBuilder
 {
     public D022GalvanthTheDominatorStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<MindBlast>();
+            .ActivateOnEnter<MindBlast>()
+            .ActivateOnEnter<GalvanthAdds>();
     }
 }
 

@@ -35,10 +35,12 @@ public enum SID : uint
 }
 
 class Launcher(BossModule module) : Components.RaidwideCast(module, AID.Launcher);
+class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, AID.DynamicSensoryJammer, "Stop moving!", true);
 class DiffractiveLaserVisual(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaserVisual, 5);
 class DiffractiveLaser1(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser1, 5);
 class DiffractiveLaser2(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser2, 5);
 class AssaultCannon(BossModule module) : Components.StandardAOEs(module, AID.AssaultCannon, new AOEShapeRect(40.9f, 1));
+class MagitekAdds(BossModule module) : Components.AddsMulti(module, [OID.MagitekBit, OID.MagitekSlasher], 1);
 
 class D172ArmoredWeaponStates : StateMachineBuilder
 {
@@ -46,12 +48,14 @@ class D172ArmoredWeaponStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Launcher>()
+            .ActivateOnEnter<DynamicSensoryJammer>()
             .ActivateOnEnter<DiffractiveLaserVisual>()
             .ActivateOnEnter<DiffractiveLaser1>()
             .ActivateOnEnter<DiffractiveLaser2>()
-            .ActivateOnEnter<AssaultCannon>();
+            .ActivateOnEnter<AssaultCannon>()
+            .ActivateOnEnter<MagitekAdds>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5564)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)]
 public class D172ArmoredWeapon(WorldState ws, Actor primary) : BossModule(ws, primary, new(116, 0), new ArenaBoundsSquare(19.5f));

@@ -18,13 +18,19 @@ public enum AID : uint
 }
 
 class SoulDrain(BossModule module) : Components.StandardAOEs(module, AID.SoulDrain, 9);
+class IceSpikes(BossModule module) : Components.SingleTargetCast(module, AID.IceSpikes);
+class Blizzard(BossModule module) : Components.SingleTargetCast(module, AID.Blizzard);
+class ManorJester(BossModule module) : Components.Adds(module, (uint)OID.ManorJester, 1);
 
 class D062ManorStewardStates : StateMachineBuilder
 {
     public D062ManorStewardStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<SoulDrain>();
+            .ActivateOnEnter<SoulDrain>()
+            .ActivateOnEnter<IceSpikes>()
+            .ActivateOnEnter<Blizzard>()
+            .ActivateOnEnter<ManorJester>();
     }
 }
 

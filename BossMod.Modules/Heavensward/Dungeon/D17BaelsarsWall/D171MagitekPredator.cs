@@ -15,7 +15,7 @@ public enum AID : uint
     MagitekHookMarker = 7349, // SkyArmorReinforcement->player, no cast, single-target
     MagitekHook = 7350, // Helper->player, no cast, single-target
     MagitekRay = 7347, // Boss->self, 3.0s cast, range 40+R width 6 rect
-    MagitekMissile = 7348 // Boss->player, no cast, single-target
+    MagitekMissile = 7348 // Boss->player, no cast, range ~5 circle spread (Prey)
 }
 
 public enum SID : uint
@@ -26,6 +26,28 @@ public enum SID : uint
 
 class MagitekClaw(BossModule module) : Components.SingleTargetCast(module, AID.MagitekClaw);
 class MagitekRay(BossModule module) : Components.StandardAOEs(module, AID.MagitekRay, new AOEShapeRect(42.94f, 3));
+class SkyArmorReinforcement(BossModule module) : Components.Adds(module, (uint)OID.SkyArmorReinforcement, 1);
+
+class MagitekMissile(BossModule module) : Components.UniformStackSpread(module, 0, 5)
+{
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if (status.ID == (uint)SID.Prey)
+            AddSpread(actor, status.ExpireAt);
+    }
+
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
+    {
+        if (status.ID == (uint)SID.Prey)
+            Spreads.RemoveAll(s => s.Target == actor);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.MagitekMissile)
+            Spreads.Clear();
+    }
+}
 
 class D171MagitekPredatorStates : StateMachineBuilder
 {
@@ -33,9 +55,11 @@ class D171MagitekPredatorStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<MagitekClaw>()
-            .ActivateOnEnter<MagitekRay>();
+            .ActivateOnEnter<MagitekRay>()
+            .ActivateOnEnter<SkyArmorReinforcement>()
+            .ActivateOnEnter<MagitekMissile>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5564)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5560)]
 public class D171MagitekPredator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-174, 73), new ArenaBoundsSquare(19.5f));

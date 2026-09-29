@@ -2,8 +2,8 @@ namespace BossMod.Stormblood.Trial.T04Tsukuyomi;
 
 public enum OID : uint
 {
-    Boss = 0x2210, // R3.250, Tsukuyomi
-    Helper = 0x18D6, // R0.500, Helper/Specter casts
+    Boss = 0x2210, // R3.250
+    Helper = 0x18D6, // R0.500
     DancingFan = 0x2241, // R1.600
     MidnightHaze = 0x2242, // R1.000
     SpecterOfThePatriarch = 0x2244, // R0.600
@@ -25,9 +25,7 @@ public enum AID : uint
     HomelandAuto = 11543, // SpecterOfTheHomeland->player, no cast, single-target
     AsahiAuto = 11858, // SpecterOfAsahi->player, no cast, single-target
 
-    Unknown11200 = 11200, // Boss->self, no cast
-    Unknown11210 = 11210, // SpecterOfZenos->self, 2.7s cast
-    GosetsuSpecial = 11211, // SpecterOfGosetsu->self, no cast
+    GosetsuSpecial = 11211, // SpecterOfGosetsu->self, no cast, single-target
     Reprimand = 11234, // Boss->self, 4.0s cast, range 100 circle
     TormentUntoDeath = 11235, // Boss->player, 4.0s cast, range 15+R 90-degree cone tankbuster
     Nightfall = 11236, // Boss->self, 4.0s cast, single-target
@@ -48,24 +46,16 @@ public enum AID : uint
     BrightBlade = 11258, // Boss->self, 3.0s cast, range 40+R 210-degree cone
     Lunacy = 11259, // Boss->player, 5.0s cast, range 6 circle stack
     LunacyRepeat = 11260, // Boss->player, no cast, range 6 circle
-    Unknown11261 = 11261, // Boss->self, no cast
     LunarHalo = 11379, // Moonlight->self, 4.0s cast, range 2-15 donut
     UnmovingTroika = 11435, // SpecterOfZenos->self, no cast, range 9+R cone
     UnmovingTroikaSecond = 11436, // Helper->self, 1.7s cast, range 9+R cone
     UnmovingTroikaThird = 11437, // Helper->self, 2.1s cast, range 9+R cone
     NightbloomYotsuyu = 11438, // Yotsuyu->self, no cast, single-target
     NightbloomAdds = 11440, // Helper->self, 4.0s cast, range 60 circle
-    LeadOfTheUnderworldMarker = 11441, // Helper->player, no cast, Lead of the Underworld marker
-    Unknown11471 = 11471, // Boss->self, no cast
-    Unknown11478 = 11478, // SpecterOfGosetsu->self, no cast
+    LeadOfTheUnderworldMarker = 11441, // Helper->player, no cast, single-target
     DanceOfTheDead = 11551, // Helper->self, no cast, single-target
     DanceOfTheDeadRaidwide = 11897, // Boss->self, no cast, range 100 circle
     TormentUntoDeathRepeat = 11955, // Boss->player, 4.0s cast, range 15+R 90-degree cone tankbuster
-}
-
-public enum IconID : uint
-{
-    LunacyStack = 305,
 }
 
 public enum SID : uint
@@ -81,12 +71,6 @@ public enum SID : uint
     Doom = 210,
     Bleeding = 642,
     BloodMoon = 1537,
-}
-
-public enum TetherID : uint
-{
-    Tether12 = 12,
-    Tether17 = 17,
 }
 
 class Reprimand(BossModule module) : Components.RaidwideCast(module, AID.Reprimand);

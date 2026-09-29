@@ -35,6 +35,7 @@ class PlainPound(BossModule module) : Components.StandardAOEs(module, AID.PlainP
 class Tremblor(BossModule module) : Components.StandardAOEs(module, AID.Tremblor, new AOEShapeDonut(10, 20));
 class Earthquake(BossModule module) : Components.StandardAOEs(module, AID.Earthquake, new AOEShapeDonut(20, 30));
 class Firewater(BossModule module) : Components.StandardAOEs(module, AID.Firewater, 3);
+class BurningWardAdds(BossModule module) : Components.AddsMulti(module, [OID.Damantus, OID.Noxius], 1);
 
 class D043TangataStates : StateMachineBuilder
 {
@@ -45,9 +46,10 @@ class D043TangataStates : StateMachineBuilder
             .ActivateOnEnter<PlainPound>()
             .ActivateOnEnter<Tremblor>()
             .ActivateOnEnter<Earthquake>()
-            .ActivateOnEnter<Firewater>();
+            .ActivateOnEnter<Firewater>()
+            .ActivateOnEnter<BurningWardAdds>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1194)]
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1197)]
 public class D043Tangata(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));

@@ -36,8 +36,7 @@ public enum AID : uint
     TapasyaFollowUp = 3729, // Boss->self, no cast, single-target (follow-up hit)
     FallingLaughter = 3730, // MoonGana/SpiritGana->self, 9.7s cast, single-target
     BloodyFuller = 3731, // Boss->self, 4.7s cast, range 100 circle
-    ChandrahasSpawn = 3732, // Chandrahas->self, no cast
-    Unknown3733 = 3733, // Boss->self, no cast
+    ChandrahasSpawn = 3732, // Chandrahas->self, no cast, single-target
     LaughingMoon = 3734, // HelperA->self, no cast, star puddle at arena edge
     ChandrahasFinale = 3735, // HelperB->self, no cast, small circle at center (stack in)
     TheRoseOfConviction = 3736, // Boss->self, no cast, single-target
@@ -46,17 +45,12 @@ public enum AID : uint
     Surpanakha = 3739, // Boss->player, no cast, tankbuster (cleave)
     TheRoseOfHate = 3740, // Boss->self, 2.7s cast, range 40 width 8 rect
     SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target enrage
-    PillarsOfHeavenImpact = 3742, // Helper/Boss->self, no cast, range 8 circle (corner drops)
-    Unknown4761 = 4761, // Helper->self, no cast
-    BladesVisual = 4769, // Boss->self, 2.7s cast, single-target
-    Unknown4770 = 4770, // Boss->self, 3.7s cast, single-target
-    Unknown4766 = 4766, // HelperA->self, no cast
-    BladesOfCarnageAndLiberation = 4986, // Boss->self, no cast, single-target
+    PillarsOfHeavenImpact = 3742, // Helper/Boss->self, no cast, range 8 circle, corner drops
+    BladesVisual = 4769, // Boss->self, 2.7s cast, single-target, visual
+    BladesOfCarnageAndLiberation = 4986, // Boss->self, no cast, single-target, visual
     FireAdd = 5015, // MoonGana->player, 0.7s cast, single-target
     BlizzardAdd = 5016, // SpiritGana->player, 0.7s cast, single-target
     SlaughterCross = 5052, // Helper->self, 3.7s cast, range 40 width 8 rect
-    Unknown5055 = 5055, // Helper->self, no cast
-    Unknown5056 = 5056, // Helper->self, no cast
     PreludeCircleRepeat = 5059, // Helper->self, 2.7s cast, range 20 circle
     SlaughterCircleRepeat = 5066, // Helper->self, 2.7s cast, range 20 circle
 }
@@ -64,11 +58,6 @@ public enum AID : uint
 public enum IconID : uint
 {
     Stack = 41, // player, Rose of Conquest
-    Icon50 = 50,
-    Icon51 = 51,
-    Icon52 = 52,
-    Icon53 = 53,
-    Icon57 = 57,
 }
 
 public enum TetherID : uint

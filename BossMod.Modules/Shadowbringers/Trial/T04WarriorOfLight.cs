@@ -67,20 +67,16 @@ public enum AID : uint
     SummonWyrm = 20289, // Boss/BossP2->self, 3.0s cast, single-target
     SwordOfLight = 20290, // Boss/BossP2->self, 3.0s cast, single-target
     SolemnConfiteorVisual = 20291, // Boss/BossP2->self, 3.0s cast, single-target
-    Unknown20293 = 20293, // Boss/BossP2->location, no cast
-    RadiantDesperadoMarker = 20294, // Helper->player, no cast
+    RadiantDesperadoMarker = 20294, // Helper->player, no cast, single-target
     RadiantSacrament = 20296, // Helper->self, 6.0s cast, range 60 width 40 rect
     ImbuedCoruscanceIn = 20299, // Boss/BossP2->self, 7.0s cast, range 10 circle
     ImbuedCoruscanceOut = 20300, // BossP2->self, 7.0s cast, range 5-60 donut
-    Unknown20593 = 20593, // Boss->self, no cast
-    Unknown20611 = 20611, // Helper->player, no cast
     RadiantDesperadoCast = 20829, // BossP2->self, 6.0s cast, single-target
     FlareBreathVisual = 21073, // SpectralSummoner->self, 9.0s cast, single-target
     RadiantBraverCast = 21076, // BossP2->self, 6.0s cast, single-target
     TwincastHit = 21278, // SpectralWhiteMage/BlackMage->BossP2, no cast
     Ascendance = 21297, // Boss->self, 6.0s cast, range 60 circle
     AbsoluteTeleport = 21298, // Boss->self, 5.0s cast, single-target
-    Unknown21379 = 21379, // BossP2->self, no cast
     UltimateCrossover = 21627, // BossP2->self, 7.0s cast, single-target
     UltimateCrossoverAOE = 21628, // Helper->self, 6.0s cast, range 60 circle
 }
@@ -93,18 +89,14 @@ public enum SID : uint
 
 public enum IconID : uint
 {
-    ProximityBait = 87, // Deluge of Death
-    Stack = 161, // Absolute Holy
-    Tankbuster = 218,
-    Move = 225, // Absolute Blizzard / Deep Freeze
-    Stay = 227, // Absolute Fire / Pyretic
-    RadiantMeteor = 233,
-    RadiantBraver = 234,
+    ProximityBait = 87, // player, Deluge of Death
+    Stack = 161, // player, Absolute Holy
+    RadiantBraver = 234, // player
 }
 
 public enum TetherID : uint
 {
-    FlareBreath = 17, // SpectralEgi->player
+    FlareBreath = 17, // SpectralEgi->player, flare breath bait
 }
 
 class CoruscantSaberIn(BossModule module) : Components.StandardAOEs(module, AID.CoruscantSaberIn, 10);

@@ -17,7 +17,7 @@ public enum AID : uint
     MagitekFireII = 7957, // Boss->location, 3.0s cast, range 5 circle
     MagitekFireIII = 7958, // Boss->self, 3.0s cast, range 40+R circle
 
-    WildSpeeVisual = 8318, // Boss->location, 6.0s cast, range 40+R width 6 rect
+    WildSpeedVisual = 8318, // Boss->location, 6.0s cast, range 40+R width 6 rect
     HaywireVisual = 7959, // Boss->location, no cast, width 6 rect charge
     HaywireTelegraph = 7960, // Helper->location, 6.5s cast, range 40+R width 6 rect
     WildSpeed = 8184, // Helper->location, no cast, range 40+R width 6 rect
@@ -37,6 +37,9 @@ public enum SID : uint
 class MagitekFireII(BossModule module) : Components.StandardAOEs(module, AID.MagitekFireII, 5);
 class MagitekFireIII(BossModule module) : Components.RaidwideCast(module, AID.MagitekFireIII);
 class MagitekPulse(BossModule module) : Components.StandardAOEs(module, AID.MagitekPulse, 6);
+class Haywire(BossModule module) : Components.StandardAOEs(module, AID.HaywireTelegraph, new AOEShapeRect(43.2f, 3));
+class Wheel(BossModule module) : Components.SingleTargetInstant(module, AID.Wheel, 0); // no telegraph; counts hits for CD plans
+class LegionAdds(BossModule module) : Components.AddsMulti(module, [OID.MarkXLIIIMiniCannon, OID.TwelfthLegionTriarius, OID.TwelfthLegionOptio], 1);
 
 class D051MagnaRoaderStates : StateMachineBuilder
 {
@@ -45,7 +48,10 @@ class D051MagnaRoaderStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<MagitekFireII>()
             .ActivateOnEnter<MagitekFireIII>()
-            .ActivateOnEnter<MagitekPulse>();
+            .ActivateOnEnter<MagitekPulse>()
+            .ActivateOnEnter<Haywire>()
+            .ActivateOnEnter<Wheel>()
+            .ActivateOnEnter<LegionAdds>();
     }
 }
 

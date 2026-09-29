@@ -5,11 +5,20 @@ public enum OID : uint
     Boss = 0x4B4, // R?, Chopper (NameID 1204)
 }
 
+public enum AID : uint
+{
+    AutoAttack = 870, // Boss->player, no cast, single-target
+    ChargedWhisker = 351, // Boss->self, 3.0s cast, range 3 circle (paralysis)
+}
+
+class ChargedWhisker(BossModule module) : Components.StandardAOEs(module, AID.ChargedWhisker, 3); // TODO: verify radius vs hitbox
+
 class D011ChopperStates : StateMachineBuilder
 {
     public D011ChopperStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<ChargedWhisker>();
     }
 }
 

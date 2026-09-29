@@ -37,14 +37,14 @@ public enum AID : uint
     WoodsEmbraceAOE = 15696, // Helper->self, no cast, range 4 width 6 cross
     BeingMortalAOE = 15697, // Helper->self, 12.5s cast, range 60 circle
     Pease = 15698, // Helper->player, 5.0s cast, range 6 circle spread
-    HardSwipe = 15699, // Peaseblossom->player, 4.0s cast, single-target tankbuster
-    Pummel = 15700, // Puck->player, 4.0s cast, single-target tankbuster
+    HardSwipe = 15699, // Peaseblossom->player, 4.0s cast, single-target, tankbuster
+    Pummel = 15700, // Puck->player, 4.0s cast, single-target, tankbuster
     Leafstorm = 15701, // Helper->self, 3.0s cast, range 50 20-degree cone
     PucksCaprice = 15702, // PuckGiant->self, 4.0s cast, range 50 circle
     PucksBreath = 15703, // PuckGiant->player, 5.0s cast, range 6 circle stack
     PucksRebukeNear = 15704, // Helper->self, 5.0s cast, range 5 circle
     PucksRebuke = 15705, // Helper->self, 5.0s cast, range 60 circle knockback
-    DivinationRune = 15707, // Boss->player, 4.0s cast, range 60 cone tankbuster
+    DivinationRune = 15707, // Boss->player, 4.0s cast, range 60 cone, tankbuster
     BrightSabbath = 15708, // Boss->self, 4.0s cast, range 60 circle
     PhantomRuneIn = 15709, // Boss->self, 5.0s cast, range 10 circle
     PhantomRuneOut = 15710, // Boss->self, 5.0s cast, range 5-60 donut
@@ -53,15 +53,14 @@ public enum AID : uint
     GentleBreeze = 16259, // Puck->self, 2.5s cast, range 60 width 4 rect
     Uplift = 16927, // Helper->player, 5.0s cast, range 6 circle spread
     FlameHammer = 17267, // SpiritOfFlame->self, no cast, range 6 circle
-    Unknown17888 = 17888, // Helper->self, no cast
-    PeaseblossomSpecial = 18058, // PeaseblossomGiant->self, no cast
+    PeaseblossomSpecial = 18058, // PeaseblossomGiant->self, no cast, single-target
     PuckSpecial = 18059, // PuckGiant->self, no cast
 }
 
 public enum IconID : uint
 {
-    Stack = 62,
-    Divination = 230,
+    Stack = 62, // player
+    Divination = 230, // player
 }
 
 class FrostRuneAOE(BossModule module) : Components.StandardAOEs(module, AID.FrostRuneAOE, 10);

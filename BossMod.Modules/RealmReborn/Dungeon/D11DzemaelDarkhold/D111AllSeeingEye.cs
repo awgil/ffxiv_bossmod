@@ -10,26 +10,24 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    LongCast = 45567, // Boss->self, 7.2s cast
-    HelperAOE = 45568, // Helper->self, 7.7s cast
-    MidCast = 45569, // Boss->self, 4.7s cast
-    ShortCast = 45570, // Boss->self, 2.7s cast
+    VoidMatterVisual = 45567, // Boss->self, 7.2s cast, single-target visual
+    VoidMatter = 45568, // Helper->location, 7.7s cast, range 10 circle
+    EvilEye = 45569, // Boss->self, 4.7s cast, range 33 circle gaze
+    IntimidatingFlash = 45570, // Boss->self, 2.7s cast, range 10-55 donut
 }
 
-class LongCast(BossModule module) : Components.CastHint(module, AID.LongCast, "Boss cast");
-class HelperAOE(BossModule module) : Components.CastHint(module, AID.HelperAOE, "Helper AOE");
-class MidCast(BossModule module) : Components.CastHint(module, AID.MidCast, "Boss cast");
-class ShortCast(BossModule module) : Components.CastHint(module, AID.ShortCast, "Boss cast");
+class VoidMatter(BossModule module) : Components.StandardAOEs(module, AID.VoidMatter, 10);
+class EvilEye(BossModule module) : Components.CastGaze(module, AID.EvilEye);
+class IntimidatingFlash(BossModule module) : Components.StandardAOEs(module, AID.IntimidatingFlash, new AOEShapeDonut(10, 55));
 
 class D111AllSeeingEyeStates : StateMachineBuilder
 {
     public D111AllSeeingEyeStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<LongCast>()
-            .ActivateOnEnter<HelperAOE>()
-            .ActivateOnEnter<MidCast>()
-            .ActivateOnEnter<ShortCast>();
+            .ActivateOnEnter<VoidMatter>()
+            .ActivateOnEnter<EvilEye>()
+            .ActivateOnEnter<IntimidatingFlash>();
     }
 }
 

@@ -24,24 +24,19 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttackKnight = 870, // SerAdelphel/Janlenoux->player, no cast, single-target
-    KnightHit4120 = 4120, // knights->player, no cast, single-target
-    KnightHit4121 = 4121, // knights->player, no cast, single-target
-    KnightHit4185 = 4185, // knights->self, no cast
-    ThordanHit4186 = 4186, // Boss->self, no cast
-    ThordanHit4187 = 4187, // Boss->self, no cast
-    ThordanHit4190 = 4190, // Boss->self, no cast
+    Attack = 4190, // Boss->self, no cast, range 8 cone
     TheDragonsEye = 4200, // Boss->self, 4.0s cast, single-target
     TheDragonsGaze = 4201, // Boss->self, 5.0s cast, range 80+R circle gaze
-    ThordanHit4202 = 4202, // Boss->self, no cast
-    HelperHit4203 = 4203, // Helper->self, no cast
-    ThordanHit4204 = 4204, // Boss->self, no cast
+    UltimateEnd = 4202, // Boss->self, no cast, range 80 circle
+    TheLightOfAscalon = 4203, // Helper->self, no cast, range 80 circle
+    BroadSwing = 4204, // Boss->self, no cast, cleave
     SacredCross = 4205, // SerZephirin->self, 15.0s cast, range 80+R circle
     DimensionalCollapseVisual = 4212, // SerGrinnaux->self, 5.5s cast, single-target
     DimensionalCollapse = 4213, // Helper->self, 6.0s cast, range 3 circle
     ConvictionVisual = 4214, // SerHermenost->self, 5.2s cast, single-target
     Conviction = 4215, // Helper->self, 8.0s cast, range 2 circle
-    HermenostHit4216 = 4216, // Helper->self, no cast
-    GuerriqueHit4217 = 4217, // SerGuerrique->self, no cast
+    EternalConviction = 4216, // Helper->self, no cast, range 80 circle
+    HeavyImpactVisual = 4217, // SerGuerrique->self, no cast, single-target
     HeavyImpact1 = 4218, // Helper->self, 3.0s cast, range 6 circle
     HeavyImpact2 = 4219, // Helper->self, 3.0s cast, range 12 circle
     HeavyImpact3 = 4220, // Helper->self, 3.0s cast, range 18 circle
@@ -49,21 +44,16 @@ public enum AID : uint
     SpiralThrust = 4222, // SerVellguine->self, 3.0s cast, range 52+R width 12 rect
     SpiralPierce = 4223, // SerPaulecrain->self, 4.0s cast, width 12 charge
     AscalonMight = 4225, // Helper->self, 6.0s cast, range 80+R circle
-    IgnasseHit = 4226, // SerIgnasse->self, no cast
+    SkywardLeap = 4226, // SerIgnasse->self, no cast, range 80 circle stack
     HeavensflameVisual = 4227, // SerCharibert->self, 2.5s cast, single-target
     Heavensflame1 = 4228, // Helper->self, 3.0s cast, range 3 circle
     Heavensflame2 = 4229, // Helper->self, 3.0s cast, range 4 circle
     Heavensflame3 = 4230, // Helper->self, 3.0s cast, range 5 circle
     Heavensflame4 = 4231, // Helper->self, 3.0s cast, range 6 circle
-    CharibertHit4232 = 4232, // Helper->self, no cast
-    HiemalStorm = 4233, // SerHaumeric->self, 2.5s cast, single-target
-    HaumericHit = 4234, // Helper->self, no cast
+    HolyChain = 4232, // Helper->self, no cast, range 80
+    HiemalStormVisual = 4233, // SerHaumeric->self, 2.5s cast, single-target
+    HiemalStorm = 4234, // Helper->location, no cast, range 6 circle
     HolyMeteor = 4235, // SerNoudenet->self, 3.0s cast, single-target
-}
-
-public enum IconID : uint
-{
-    Icon29 = 29,
 }
 
 class TheDragonsGaze(BossModule module) : Components.CastGaze(module, AID.TheDragonsGaze);
@@ -75,6 +65,7 @@ class HeavyImpact2(BossModule module) : Components.StandardAOEs(module, AID.Heav
 class HeavyImpact3(BossModule module) : Components.StandardAOEs(module, AID.HeavyImpact3, 18);
 class HeavyImpact4(BossModule module) : Components.StandardAOEs(module, AID.HeavyImpact4, 27);
 class SpiralThrust(BossModule module) : Components.StandardAOEs(module, AID.SpiralThrust, new AOEShapeRect(54.2f, 6));
+class SpiralPierce(BossModule module) : Components.BaitAwayChargeCast(module, AID.SpiralPierce, 6);
 class Heavensflame1(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame1, 3);
 class Heavensflame2(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame2, 4);
 class Heavensflame3(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame3, 5);
@@ -100,6 +91,7 @@ class T03ThordanStates : StateMachineBuilder
             .ActivateOnEnter<HeavyImpact3>()
             .ActivateOnEnter<HeavyImpact4>()
             .ActivateOnEnter<SpiralThrust>()
+            .ActivateOnEnter<SpiralPierce>()
             .ActivateOnEnter<Heavensflame1>()
             .ActivateOnEnter<Heavensflame2>()
             .ActivateOnEnter<Heavensflame3>()

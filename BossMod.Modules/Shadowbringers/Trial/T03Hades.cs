@@ -21,17 +21,17 @@ public enum AID : uint
     AutoAttack = 872, // Boss->player, no cast, single-target
     AutoAttackP2 = 16764, // BossP2->player, no cast, single-target
     RavenousAssault = 16728, // Boss->player, 5.0s cast, range 5 circle
-    BadFaithVisual = 16713, // Boss->self, 5.0s cast, single-target
-    BadFaithVisualAlt = 16714, // Boss->self, 5.0s cast, single-target
+    BadFaithVisual = 16713, // Boss->self, 5.0s cast, single-target, visual
+    BadFaithVisualAlt = 16714, // Boss->self, 5.0s cast, single-target, visual
     BadFaith = 16715, // Helper->self, 5.0s cast, range 20 width 20 rect
     BadFaithAlt = 16716, // Helper->self, 5.0s cast, range 20 width 20 rect
     BrokenFaith = 16717, // Boss->self, 3.0s cast, single-target
     BrokenFaithAOE = 16718, // Helper->self, no cast, range 10 circle
     Double = 16719, // Boss->self, 3.0s cast, single-target
-    DarkEruptionVisual = 16720, // Boss->self, 3.0s cast, single-target
+    DarkEruptionVisual = 16720, // Boss->self, 3.0s cast, single-target, visual
     DarkEruptionAOE = 16722, // Helper->location, 3.0s cast, range 6 circle
     DarkEruption = 16723, // Helper->location, no cast, range 6 circle
-    ShadowSpreadVisual = 16724, // Boss->self, 3.0s cast, single-target
+    ShadowSpreadVisual = 16724, // Boss->self, 3.0s cast, single-target, visual
     ShadowSpread = 16726, // Helper->self, 3.0s cast, range 40 30-degree cone
     ShadowSpreadAlt = 16727, // Helper->self, 3.0s cast, range 40 30-degree cone
     AncientDarkness = 17811, // ShadowOfTheAncientsStack->player, 5.0s cast, range 5 circle
@@ -40,7 +40,7 @@ public enum AID : uint
     AncientDarkIV = 17815, // Boss->self, 5.0s cast, range 100 circle
     Titanomachy = 16768, // BossP2->self, 4.0s cast, range 100 circle
     ShadowStream = 16732, // BossP2->self, 5.0s cast, range 100 width 16 rect
-    DualStrikeVisual = 16737, // BossP2->self, 5.0s cast, single-target
+    DualStrikeVisual = 16737, // BossP2->self, 5.0s cast, single-target, visual
     DualStrike = 16738, // Helper->player, 5.0s cast, range 5 circle
     EchoOfTheLostL = 16739, // BossP2->self, 7.0s cast, range 100 90-degree cone
     EchoOfTheLostR = 16740, // BossP2->self, 7.0s cast, range 100 90-degree cone
@@ -48,23 +48,23 @@ public enum AID : uint
     Captivity = 16744, // BossP2->self, 5.0s cast, single-target
     CaptivityCast = 16745, // Helper->player, no cast, range 8 circle
     ChorusOfTheLost = 16748, // BossP2->self, 30.0s cast, range 100 circle
-    HellbornYawpVisual = 16750, // BossP2->self, 5.0s cast, single-target
+    HellbornYawpVisual = 16750, // BossP2->self, 5.0s cast, single-target, visual
     HellbornYawp = 16751, // Helper->self, 4.0s cast, range 100 60-degree cone
-    PolydegmonsPurgationVisual = 16752, // BossP2->self, 5.0s cast, single-target
+    PolydegmonsPurgationVisual = 16752, // BossP2->self, 5.0s cast, single-target, visual
     PolydegmonsPurgation = 16753, // Helper->self, 5.0s cast, range 100 width 16 rect
     PolydegmonsPurgationAlt = 16754, // Helper->self, 5.0s cast, range 100 width 16 rect
     NetherBlast = 16755, // NetherBlastPart->player, no cast, range 6 circle
     LifeInCaptivity = 16757, // BossP2->self, 4.0s cast, range 100 circle
-    BlackCauldronVisual = 16758, // BossP2->self, no cast, single-target
+    BlackCauldronVisual = 16758, // BossP2->self, no cast, single-target, visual
     BlackCauldron = 16730, // Helper->self, no cast, range 100 circle
-    TheDarkDevoursVisual = 16759, // BossP2->self, 3.0s cast, single-target
+    TheDarkDevoursVisual = 16759, // BossP2->self, 3.0s cast, single-target, visual
     TheDarkDevours = 16761, // Helper->self, no cast, range 100 circle
 }
 
 public enum IconID : uint
 {
-    Spread = 139,
-    CaptivityBait = 120,
+    Spread = 139, // player
+    CaptivityBait = 120, // player
 }
 
 public enum TetherID : uint

@@ -18,13 +18,17 @@ public enum AID : uint
 }
 
 class BurningCyclone(BossModule module) : Components.StandardAOEs(module, AID.BurningCyclone, new AOEShapeCone(9.6f, 60.Degrees()));
+class Levinshower(BossModule module) : Components.StandardAOEs(module, AID.Levinshower, new AOEShapeCone(8.2f, 45.Degrees())); // TODO: verify angle
+class TemplestBiast(BossModule module) : Components.Adds(module, (uint)OID.TemplestBiast, 1);
 
 class D072InfernoDrakeStates : StateMachineBuilder
 {
     public D072InfernoDrakeStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<BurningCyclone>();
+            .ActivateOnEnter<BurningCyclone>()
+            .ActivateOnEnter<Levinshower>()
+            .ActivateOnEnter<TemplestBiast>();
     }
 }
 

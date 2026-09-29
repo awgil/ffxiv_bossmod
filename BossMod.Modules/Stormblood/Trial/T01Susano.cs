@@ -37,8 +37,8 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Stack = 62,
-    Stormsplitter = 230,
+    Stack = 62, // player
+    Stormsplitter = 230, // player
 }
 
 class RasenKaikyo(BossModule module) : Components.StandardAOEs(module, AID.RasenKaikyo, 6);

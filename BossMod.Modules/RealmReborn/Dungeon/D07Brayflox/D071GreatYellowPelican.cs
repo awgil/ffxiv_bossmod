@@ -19,13 +19,15 @@ public enum AID : uint
 }
 
 class NumbingBreath(BossModule module) : Components.StandardAOEs(module, AID.NumbingBreath, new AOEShapeCone(9.2f, 60.Degrees()));
+class PelicanAdds(BossModule module) : Components.AddsMulti(module, [OID.VioletBack, OID.SableBack], 1);
 
 class D071GreatYellowPelicanStates : StateMachineBuilder
 {
     public D071GreatYellowPelicanStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<NumbingBreath>();
+            .ActivateOnEnter<NumbingBreath>()
+            .ActivateOnEnter<PelicanAdds>();
     }
 }
 

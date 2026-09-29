@@ -21,10 +21,7 @@ public enum AID : uint
     AutoAttack = 870, // ForgivenShame/Venery->player, no cast, single-target
     LightPillarMarker = 14588, // Helper->player, no cast, single-target
     AutoAttackBoss = 16016, // Boss->player, no cast, single-target
-    Unknown16017 = 16017, // Boss->self, no cast
-    Unknown16018 = 16018, // Boss->self, no cast
     ExaltedWing = 16019, // Helper->self, no cast, range 40 circle
-    Unknown16020 = 16020, // Boss->self, no cast
     HeavenlyHost = 16021, // Boss->self, 3.0s cast, single-target
     GuidingLight = 16022, // Boss->self, 3.0s cast, single-target
     Sinsphere = 16023, // Helper->self, no cast, range 5 circle
@@ -35,11 +32,9 @@ public enum AID : uint
     Daybreak = 16028, // Boss->self, 3.5s cast, single-target
     DaybreakAOE = 16029, // Helper->location, 3.5s cast, range 6 circle
     ScoldsBridle = 16030, // ForgivenShame->self, 6.0s cast, range 40 circle
-    HolySword = 16031, // ForgivenVenery->player, 5.0s cast, single-target tankbuster
+    HolySword = 16031, // ForgivenVenery->player, 5.0s cast, single-target, tankbuster
     AutoAttackP2 = 16032, // BossP2->player, no cast, single-target
-    Unknown16033 = 16033, // BossP2->self, no cast
-    Unknown16034 = 16034, // BossP2->self, no cast
-    RighteousBolt = 16035, // BossP2->player, 5.0s cast, single-target tankbuster
+    RighteousBolt = 16035, // BossP2->player, 5.0s cast, single-target, tankbuster
     NailExplosion = 16041, // NailOfCondemnation->self, no cast
     SoulAndBody1 = 16049, // Helper->self, 3.0s cast, range 5-20 donut
     SoulAndBody2 = 16050, // Helper->self, 3.0s cast, range 5-20 donut
@@ -61,30 +56,19 @@ public enum AID : uint
     ReprobationLong = 16075, // Helper->self, 1.5s cast, range 42 width 4 rect
     Shadowreaver = 16106, // BossP2->self, 5.0s cast, range 40 circle
     ExaltedPlumes = 16114, // Helper->self, no cast, range 40 circle
-    SoulAndBodyInstant1 = 16121, // Helper->self, no cast, range ?-20 donut
-    SoulAndBodyInstant2 = 16122, // Helper->self, no cast, range ?-20 donut
-    Unknown16197 = 16197, // Helper->self, no cast
+    SoulAndBodyInstant1 = 16121, // Helper->self, no cast, range 5-20 donut
+    SoulAndBodyInstant2 = 16122, // Helper->self, no cast, range 5-20 donut
     WingedReprobation = 16572, // BossP2->self, 3.0s cast, single-target
-    Unknown16708 = 16708, // Boss->self, no cast
-    Unknown17072 = 17072, // BossP2->self, no cast
-    Unknown17073 = 17073, // SwordOfCondemnation->self, no cast
     HolySwordInstant = 17175, // ForgivenVenery->player, no cast, single-target
     Manacle = 18064, // ForgivenShame2->location, 3.5s cast, range 6 circle
     HolySwordAdd = 18065, // ForgivenVenery2->ForgivenShame2, 9.0s cast, single-target
     GuiltyVerdict = 18066, // ForgivenVenery2->self, no cast, range 50 circle
-    Unknown18184 = 18184, // Helper->self, no cast
     LightPillarCast = 16190, // BossP2->self, 5.0s cast, single-target
 }
 
 public enum IconID : uint
 {
-    DropOfLight = 138,
-    Tankbuster = 218,
-}
-
-public enum TetherID : uint
-{
-    HolySword = 88, // ForgivenVenery2->ForgivenShame2
+    DropOfLight = 138, // player
 }
 
 class Enthrall(BossModule module) : Components.CastGaze(module, AID.Enthrall);

@@ -28,6 +28,9 @@ public enum SID : uint
 
 class PeculiarLight(BossModule module) : Components.StandardAOEs(module, AID.PeculiarLight, 8);
 class StagnantSpray(BossModule module) : Components.StandardAOEs(module, AID.StagnantSpray, new AOEShapeCone(8, 60.Degrees()));
+class BogBubble(BossModule module) : Components.Cleave(module, AID.BogBubble, new AOEShapeCircle(6), originAtTarget: true);
+class Touchdown(BossModule module) : Components.Cleave(module, AID.Touchdown, new AOEShapeCircle(10), activeWhileCasting: false);
+class QueerBubble(BossModule module) : Components.Adds(module, (uint)OID.QueerBubble, 1);
 
 class D073HellbenderStates : StateMachineBuilder
 {
@@ -35,7 +38,10 @@ class D073HellbenderStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<PeculiarLight>()
-            .ActivateOnEnter<StagnantSpray>();
+            .ActivateOnEnter<StagnantSpray>()
+            .ActivateOnEnter<BogBubble>()
+            .ActivateOnEnter<Touchdown>()
+            .ActivateOnEnter<QueerBubble>();
     }
 }
 

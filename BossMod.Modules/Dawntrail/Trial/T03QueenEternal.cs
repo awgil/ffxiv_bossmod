@@ -7,7 +7,6 @@ public enum OID : uint
     WaltzCaster = 0x41C1, // R0.5
     RuthlessRegaliaCaster = 0x41C2, // R0.5
     WaltzBait = 0x41C4, // R1.0
-    Unknown = 0x41C6, // R1.500
     AutoAttacker = 0x4477, // R1.0
 }
 
@@ -479,7 +478,7 @@ class T03QueenEternalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 984, NameID = 13029)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 984, NameID = 13029)]
 public sealed class T03QueenEternal(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
 {
     private static readonly ArenaBoundsSquare Builder = new(20);

@@ -12,16 +12,15 @@ public enum AID : uint
     AutoAttack = 870, // Boss->player, no cast, single-target
     Hit45577 = 45577, // Boss->self, no cast
     Hit45578 = 45578, // Boss->self, no cast
-    Cast45579 = 45579, // Boss->self, 4.7s cast
-    Cast45580 = 45580, // Boss->self, 2.7s cast
+    GrimAura = 45579, // Boss->self, 4.7s cast, range 12 circle
+    HellsSend = 45580, // Boss->self, 2.7s cast, single-target visual
     Hit45581 = 45581, // Boss->self, no cast
-    Cast45582 = 45582, // Boss->self, 2.7s cast
-    AetherialSurge = 1167, // CorruptedCrystalOld->self, 2.7s cast, range ~6 circle
+    Desolation = 45582, // Boss->self, 2.7s cast, range 6-60 donut
+    AetherialSurge = 1167, // CorruptedCrystalOld->self, 2.7s cast, range 6 circle
 }
 
-class Cast45579(BossModule module) : Components.CastHint(module, AID.Cast45579, "Boss cast");
-class Cast45580(BossModule module) : Components.CastHint(module, AID.Cast45580, "Boss cast");
-class Cast45582(BossModule module) : Components.CastHint(module, AID.Cast45582, "Boss cast");
+class GrimAura(BossModule module) : Components.StandardAOEs(module, AID.GrimAura, 12);
+class Desolation(BossModule module) : Components.StandardAOEs(module, AID.Desolation, new AOEShapeDonut(6, 60));
 class AetherialSurge(BossModule module) : Components.StandardAOEs(module, AID.AetherialSurge, 6);
 class Crystals(BossModule module) : Components.AddsMulti(module, [OID.CorruptedCrystal, OID.CorruptedCrystalOld], 2);
 
@@ -30,9 +29,8 @@ class D113BatraalStates : StateMachineBuilder
     public D113BatraalStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Cast45579>()
-            .ActivateOnEnter<Cast45580>()
-            .ActivateOnEnter<Cast45582>()
+            .ActivateOnEnter<GrimAura>()
+            .ActivateOnEnter<Desolation>()
             .ActivateOnEnter<AetherialSurge>()
             .ActivateOnEnter<Crystals>();
     }
