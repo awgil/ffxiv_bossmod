@@ -13,13 +13,13 @@ public enum AID : uint
     HellSlash = 341, // Boss->player, no cast, single target
     SoulDrain = 860, // Boss->self, 4.0s cast, range 9 circle aoe
 
-    IceSpikes = 859, // Boss->player, 3.0s cast, single target
-    Blizzard = 967 // Boss->player, 1.0s cast, single target
+    IceSpikes = 859, // ManorJester->self, 3.0s cast, self-buff (interruptible)
+    Blizzard = 967 // ManorJester->player, 1.0s cast, single target
 }
 
 class SoulDrain(BossModule module) : Components.StandardAOEs(module, AID.SoulDrain, 9);
-class IceSpikes(BossModule module) : Components.SingleTargetCast(module, AID.IceSpikes); // TODO: confirm — may be self-buff, not tankbuster
-class Blizzard(BossModule module) : Components.SingleTargetCast(module, AID.Blizzard);
+class IceSpikes(BossModule module) : Components.CastHint(module, AID.IceSpikes, "Interrupt Ice Spikes"); // Manor Jester self-buff
+class Blizzard(BossModule module) : Components.SingleTargetCast(module, AID.Blizzard); // Manor Jester
 class ManorJester(BossModule module) : Components.Adds(module, (uint)OID.ManorJester, 1);
 
 class D062ManorStewardStates : StateMachineBuilder
@@ -34,5 +34,5 @@ class D062ManorStewardStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 424)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 427)]
 public class D062ManorSteward(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
