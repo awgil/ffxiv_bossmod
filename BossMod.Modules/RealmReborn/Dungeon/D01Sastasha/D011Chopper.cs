@@ -11,7 +11,7 @@ public enum AID : uint
     ChargedWhisker = 351, // Boss->self, 3.0s cast, range 3+R circle (paralysis)
 }
 
-class ChargedWhisker(BossModule module) : Components.StandardAOEs(module, AID.ChargedWhisker, 6.15f); // CastType 5: 3 + R3.15
+class ChargedWhisker(BossModule module) : Components.StandardAOEs(module, AID.ChargedWhisker, 6.15f);
 
 class D011ChopperStates : StateMachineBuilder
 {

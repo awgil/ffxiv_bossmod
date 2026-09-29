@@ -30,7 +30,6 @@ class D012CaptainMadisonStates : StateMachineBuilder
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1382)]
 public class D012CaptainMadison(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
 
-// Second combat uses a different actor OID after Madison flees through Waverider Gate
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1382,
     PrimaryActorOID = (uint)OID.BossSecond, StatesType = typeof(D012CaptainMadisonStates), SortOrder = 2)]
 public class D012CaptainMadisonSecond(WorldState ws, Actor primary) : D012CaptainMadison(ws, primary);

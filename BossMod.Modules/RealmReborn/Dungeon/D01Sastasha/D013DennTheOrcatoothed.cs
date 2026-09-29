@@ -13,7 +13,7 @@ public enum AID : uint
     Hydroball = 556, // Boss->self, 3.5s cast, range 6+R 90-degree cone (silence)
 }
 
-class Hydroball(BossModule module) : Components.StandardAOEs(module, AID.Hydroball, new AOEShapeCone(8, 45.Degrees())); // CastType 3: 6 + R2, omen fan090
+class Hydroball(BossModule module) : Components.StandardAOEs(module, AID.Hydroball, new AOEShapeCone(8, 45.Degrees()));
 class BaleenGuards(BossModule module) : Components.Adds(module, (uint)OID.BaleenGuard, 1);
 
 class D013DennTheOrcatoothedStates : StateMachineBuilder
