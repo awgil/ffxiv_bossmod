@@ -70,5 +70,5 @@ class D172ArmoredWeaponStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)]
 public class D172ArmoredWeapon(ModuleInit init) : BossModule(init, new(116, 0), new ArenaBoundsSquare(19.5f));
