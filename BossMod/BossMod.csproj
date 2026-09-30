@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <Import Project="..\Common.targets" />
+  <PropertyGroup>
+    <LocalDalamock>true</LocalDalamock>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputType>Exe</OutputType>
-  </PropertyGroup>
-  <PropertyGroup>
-    <LocalDalamock>true</LocalDalamock>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
