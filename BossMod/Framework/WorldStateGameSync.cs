@@ -804,14 +804,23 @@ sealed class WorldStateGameSync : IWorldStateGameSync
             _ws.Execute(new ClientState.OpBlueMageSpellsChange(actionManager->BlueMageActions.ToArray()));
 
         if (!MemoryExtensions.SequenceEqual(_ws.Client.BeastmasterBeasts.AsSpan(), actionManager->BeastmasterPets))
-            _ws.Execute(new ClientState.OpBeastmasterBeastsChanged(actionManager->BeastmasterPets.ToArray()));
+            _ws.Execute(new ClientState.OpBeastmasterBeastsChange(actionManager->BeastmasterPets.ToArray()));
+
+        Span<ushort> cInventory = stackalloc ushort[_ws.Client.CrucibleInventory.Length];
+        cInventory.Clear();
+        var crucible = (InstanceContentCrucible*)EventFramework.Instance()->GetInstanceContentDirector();
+        if (crucible->InstanceContentType == InstanceContentType.CrucibleOfTheUnbroken)
+            for (var i = 0; i < crucible->Inventory.Length; i++)
+                cInventory[i] = crucible->Inventory[i].ItemId;
+        if (!MemoryExtensions.SequenceEqual(_ws.Client.CrucibleInventory.AsSpan(), cInventory))
+            _ws.Execute(new ClientState.OpCrucibleInventoryChange(cInventory.ToArray()));
 
         var levels = uiState->PlayerState.ClassJobLevels;
         if (!MemoryExtensions.SequenceEqual(_ws.Client.ClassJobLevels.AsSpan(), levels))
             _ws.Execute(new ClientState.OpClassJobLevelsChange(levels.ToArray()));
 
         var curFate = FateManager.Instance()->CurrentFate;
-        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius, curFate->Progress, curFate->HandInCount, Utils.ReadField<uint>(curFate, 0x14)) : default;
+        ClientState.Fate activeFate = curFate != null ? new(curFate->FateId, curFate->Location, curFate->Radius, curFate->Progress, curFate->HandInCount, curFate->ObjectiveNpc) : default;
         if (_ws.Client.ActiveFate != activeFate)
             _ws.Execute(new ClientState.OpActiveFateChange(activeFate));
 

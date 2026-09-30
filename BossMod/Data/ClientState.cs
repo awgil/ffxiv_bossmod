@@ -51,6 +51,7 @@ public sealed class ClientState
     public const int NumClassLevels = 35; // see ClassJob.ExpArrayIndex
     public const int NumBlueMageSpells = 24;
     public const int NumBeastmasterBeasts = 3;
+    public const int NumCrucibleSlots = 10;
 
     public float? CountdownRemaining;
     public Angle CameraAzimuth; // updated every frame by the frame-start event
@@ -66,6 +67,7 @@ public sealed class ClientState
     public readonly uint[] BlueMageSpells = new uint[NumBlueMageSpells];
     public readonly short[] ClassJobLevels = new short[NumClassLevels];
     public readonly byte[] BeastmasterBeasts = new byte[NumBeastmasterBeasts];
+    public readonly ushort[] CrucibleInventory = new ushort[NumCrucibleSlots];
     public Fate ActiveFate;
     public Pet ActivePet;
     public Companion ActiveCompanion;
@@ -156,7 +158,10 @@ public sealed class ClientState
             yield return new OpBlueMageSpellsChange(BlueMageSpells);
 
         if (BeastmasterBeasts.Any(a => a != 0))
-            yield return new OpBeastmasterBeastsChanged(BeastmasterBeasts);
+            yield return new OpBeastmasterBeastsChange(BeastmasterBeasts);
+
+        if (CrucibleInventory.Any(a => a != 0))
+            yield return new OpCrucibleInventoryChange(CrucibleInventory);
 
         if (ClassJobLevels.Any(a => a != 0))
             yield return new OpClassJobLevelsChange(ClassJobLevels);
@@ -387,8 +392,8 @@ public sealed class ClientState
         }
     }
 
-    public Event<OpBeastmasterBeastsChanged> BeastmasterBeastsChanged = new();
-    public sealed record class OpBeastmasterBeastsChanged(byte[] Values) : WorldState.Operation
+    public Event<OpBeastmasterBeastsChange> BeastmasterBeastsChanged = new();
+    public sealed record class OpBeastmasterBeastsChange(byte[] Values) : WorldState.Operation
     {
         public readonly byte[] Values = Values;
 
@@ -400,6 +405,25 @@ public sealed class ClientState
         public override void Write(ReplayRecorder.Output output)
         {
             output.EmitFourCC("CBST"u8);
+            output.Emit((byte)Values.Length);
+            foreach (var e in Values)
+                output.Emit(e);
+        }
+    }
+
+    public Event<OpCrucibleInventoryChange> CrucibleInventoryChanged = new();
+    public sealed record class OpCrucibleInventoryChange(ushort[] Values) : WorldState.Operation
+    {
+        public readonly ushort[] Values = Values;
+
+        protected override void Exec(WorldState ws)
+        {
+            Array.Copy(Values, ws.Client.CrucibleInventory, NumCrucibleSlots);
+            ws.Client.CrucibleInventoryChanged.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("CCRU"u8);
             output.Emit((byte)Values.Length);
             foreach (var e in Values)
                 output.Emit(e);
