@@ -73,7 +73,7 @@ class PucksCaprice(BossModule module) : Components.RaidwideCast(module, AID.Puck
 class PucksBreath(BossModule module) : Components.StackWithCastTargets(module, AID.PucksBreath, 6);
 class PucksRebukeNear(BossModule module) : Components.StandardAOEs(module, AID.PucksRebukeNear, 5);
 class PucksRebuke(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PucksRebuke, 10);
-class DivinationRune(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 37.5f.Degrees()), (uint)IconID.Divination, AID.DivinationRune, 4f, damageType: AIHints.PredictedDamageType.Tankbuster); // TODO: verify cone half-angle
+class DivinationRune(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 37.5f.Degrees()), (uint)IconID.Divination, AID.DivinationRune, 4f, damageType: AIHints.PredictedDamageType.Tankbuster); // TODO: verify cone half-angle (replays: nearest unhit player at 55°, so < 55°)
 class BrightSabbath(BossModule module) : Components.RaidwideCast(module, AID.BrightSabbath);
 class PhantomRuneIn(BossModule module) : Components.StandardAOEs(module, AID.PhantomRuneIn, 10);
 class PhantomRuneOut(BossModule module) : Components.StandardAOEs(module, AID.PhantomRuneOut, new AOEShapeDonut(5, 60));

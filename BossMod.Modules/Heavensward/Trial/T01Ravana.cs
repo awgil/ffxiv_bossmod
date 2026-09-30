@@ -74,7 +74,28 @@ public enum SID : uint
 
 class PreludeToSlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.PreludeToSlaughterCast, 15);
 class PreludeToSlaughterCircle(BossModule module) : Components.GroupedAOEs(module, [AID.PreludeToSlaughterCircle, AID.PreludeCircleRepeat, AID.SlaughterCircleRepeat], new AOEShapeCircle(20));
-// TODO: PreludeToSlaughterRect (instant helper rects) still unwired
+class PreludeToSlaughterRect(BossModule module) : Components.GenericAOEs(module, AID.PreludeToSlaughterRect)
+{
+    private static readonly AOEShapeRect _shape = new(40, 4);
+    private readonly List<AOEInstance> _aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID != AID.PreludeToSlaughterVisual)
+            return;
+        foreach (var h in Module.Enemies(OID.Helper).Where(h => (h.Position - Arena.Center).LengthSq() > 15 * 15))
+            _aoes.Add(new(_shape, h.Position, h.Rotation, Module.CastFinishAt(spell, 1.2f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoes.Clear();
+    }
+}
+
 class SlaughterRect(BossModule module) : Components.StandardAOEs(module, AID.SlaughterRect, new AOEShapeRect(44, 4));
 class SlaughterCross(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCross, new AOEShapeRect(40, 4));
 class SlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCast, new AOEShapeCone(40, 90.Degrees()));
@@ -304,6 +325,7 @@ class T01RavanaStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<PreludeToSlaughterCast>()
             .ActivateOnEnter<PreludeToSlaughterCircle>()
+            .ActivateOnEnter<PreludeToSlaughterRect>()
             .ActivateOnEnter<SlaughterRect>()
             .ActivateOnEnter<SlaughterCross>()
             .ActivateOnEnter<TheRoseOfHate>()

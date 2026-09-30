@@ -65,7 +65,7 @@ class HeavyImpact2(BossModule module) : Components.StandardAOEs(module, AID.Heav
 class HeavyImpact3(BossModule module) : Components.StandardAOEs(module, AID.HeavyImpact3, 18);
 class HeavyImpact4(BossModule module) : Components.StandardAOEs(module, AID.HeavyImpact4, 27);
 class SpiralThrust(BossModule module) : Components.StandardAOEs(module, AID.SpiralThrust, new AOEShapeRect(54.2f, 6));
-class SpiralPierce(BossModule module) : Components.BaitAwayChargeCast(module, AID.SpiralPierce, 6); // TODO: verify charge half-width vs width-12 sheet data
+class SpiralPierce(BossModule module) : Components.BaitAwayChargeCast(module, AID.SpiralPierce, 6);
 class Heavensflame1(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame1, 3);
 class Heavensflame2(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame2, 4);
 class Heavensflame3(BossModule module) : Components.StandardAOEs(module, AID.Heavensflame3, 5);
