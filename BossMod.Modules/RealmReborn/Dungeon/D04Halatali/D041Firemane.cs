@@ -20,8 +20,6 @@ public enum AID : uint
 }
 
 class FireII(BossModule module) : Components.StandardAOEs(module, AID.FireII, 5);
-// two waves of 4 cones from the arena center, second wave rotated 45 degrees and resolving 3s later;
-// showing both at once covers the whole arena, so only show whichever wave resolves next
 class Fireflow(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCone _shape = new(60, 22.5f.Degrees());

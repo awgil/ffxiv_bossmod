@@ -31,9 +31,26 @@ public enum SID : uint
 }
 
 class StraightPunch(BossModule module) : Components.SingleTargetCast(module, AID.StraightPunch);
-class PlainPound(BossModule module) : Components.StandardAOEs(module, AID.PlainPound, 10);
-class Tremblor(BossModule module) : Components.StandardAOEs(module, AID.Tremblor, new AOEShapeDonut(10, 20));
-class Earthquake(BossModule module) : Components.StandardAOEs(module, AID.Earthquake, new AOEShapeDonut(20, 30));
+class PlainPoundTremblorEarthquake(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(10), new AOEShapeDonut(10, 20), new AOEShapeDonut(20, 30)])
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.PlainPound)
+            AddSequence(caster.Position, Module.CastFinishAt(spell));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        var order = (AID)spell.Action.ID switch
+        {
+            AID.PlainPound => 0,
+            AID.Tremblor => 1,
+            AID.Earthquake => 2,
+            _ => -1
+        };
+        AdvanceSequence(order, caster.Position, WorldState.FutureTime(3));
+    }
+}
 class Firewater(BossModule module) : Components.StandardAOEs(module, AID.Firewater, 3);
 class BurningWardAdds(BossModule module) : Components.AddsMulti(module, [OID.Damantus, OID.Noxius], 1);
 
@@ -43,13 +60,11 @@ class D043TangataStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<StraightPunch>()
-            .ActivateOnEnter<PlainPound>()
-            .ActivateOnEnter<Tremblor>()
-            .ActivateOnEnter<Earthquake>()
+            .ActivateOnEnter<PlainPoundTremblorEarthquake>()
             .ActivateOnEnter<Firewater>()
             .ActivateOnEnter<BurningWardAdds>();
     }
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1197)]
-public class D043Tangata(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));
+public class D043Tangata(ModuleInit init) : BossModule(init, new(-258.2f, 17.9f), new ArenaBoundsCircle(30));

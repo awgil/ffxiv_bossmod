@@ -21,7 +21,8 @@ public enum AID : uint
 class Electrify(BossModule module) : Components.StandardAOEs(module, AID.Electrify, 6);
 class HydroelectricShock(BossModule module) : BossComponent(module)
 {
-    private static readonly (WPos center, float radius)[] DryPads = [(new(-182.8f, -106.6f), 4), (new(-174.6f, -162.9f), 2.5f)];
+    private static readonly (WPos center, float radius)[] DryPads = [(new(-183.5f, -110.5f), 1.5f), (new(-174.6f, -162.9f), 2.5f)];
+    private static readonly (WPos from, WPos to) NorthFence = (new(-182.4f, -114.4f), new(-172, -114.4f));
     private DateTime _activation;
 
     private static bool OnPad(WPos pos) => DryPads.Any(p => pos.InCircle(p.center, p.radius));
@@ -34,10 +35,11 @@ class HydroelectricShock(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        hints.TemporaryObstacles.Add(ShapeDistance.Rect(NorthFence.from, NorthFence.to, 0.8f));
         if (_activation == default)
             return;
         var pad = DryPads.MinBy(p => (p.center - actor.Position).LengthSq());
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pad.center, pad.radius), _activation);
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pad.center, pad.radius));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -73,5 +75,5 @@ class D042ThunderclapGuivreStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)]
 public class D042ThunderclapGuivre(ModuleInit init) : BossModule(init, new(-179, -133), new ArenaBoundsRect(26, 34));
