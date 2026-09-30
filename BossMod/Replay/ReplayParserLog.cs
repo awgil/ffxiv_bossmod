@@ -360,6 +360,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("CLBH"u8)] = ParseClientBozjaHolster,
             [new("CBLU"u8)] = ParseClientBlueMageSpells,
             [new("CBST"u8)] = ParseClientBeastmasterBeasts,
+            [new("CCRU"u8)] = ParseClientCrucibleInventory,
             [new("CLVL"u8)] = ParseClientClassJobLevels,
             [new("CLAF"u8)] = ParseClientActiveFate,
             [new("CPET"u8)] = ParseClientActivePet,
@@ -770,12 +771,21 @@ public sealed class ReplayParserLog : IDisposable
         return new(contents);
     }
 
-    private ClientState.OpBeastmasterBeastsChanged ParseClientBeastmasterBeasts()
+    private ClientState.OpBeastmasterBeastsChange ParseClientBeastmasterBeasts()
     {
         var contents = new byte[ClientState.NumBeastmasterBeasts];
         var count = _input.ReadByte(false);
         for (var i = 0; i < count; i++)
             contents[i] = _input.ReadByte(false);
+        return new(contents);
+    }
+
+    private ClientState.OpCrucibleInventoryChange ParseClientCrucibleInventory()
+    {
+        var contents = new ushort[ClientState.NumCrucibleSlots];
+        var count = _input.ReadByte(false);
+        for (var i = 0; i < count; i++)
+            contents[i] = _input.ReadUShort(false);
         return new(contents);
     }
 
