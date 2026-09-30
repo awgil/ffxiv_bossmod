@@ -5,7 +5,6 @@ public enum OID : uint
     // TODO: remaster AID kit inferred from Lumina — confirm OIDs/shapes in a live Duty Support run
     Boss = 0x4A8A, // R2.700, All-seeing Eye (Duty Support / remaster)
     Helper = 0x233C, // R0.500
-    CrystalOld = 0x60B, // R1.000, Corrupted Crystal (trash/legacy)
 }
 
 public enum AID : uint

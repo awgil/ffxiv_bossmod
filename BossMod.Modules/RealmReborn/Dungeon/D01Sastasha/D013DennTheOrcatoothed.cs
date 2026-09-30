@@ -9,8 +9,11 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttack = 870, // Boss->player, no cast, single-target
-    TrueThrust = 75, // Boss->player, no cast, single-target
+    TrueThrust = 722, // Boss->player, no cast, single-target
+    JumpingThrust = 834, // Boss->player, no cast, single-target
     Hydroball = 556, // Boss->self, 3.5s cast, range 6+R 90-degree cone (silence)
+    WaterCannon = 555, // BaleenGuard->player, no cast, single-target
+    Ambuscade = 835, // BaleenGuard->player, no cast, single-target
 }
 
 class Hydroball(BossModule module) : Components.StandardAOEs(module, AID.Hydroball, new AOEShapeCone(8, 45.Degrees()));

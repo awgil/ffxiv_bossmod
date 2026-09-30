@@ -45,8 +45,9 @@ public enum AID : uint
     Surpanakha = 3739, // Boss->player, no cast, tankbuster (cleave)
     TheRoseOfHate = 3740, // Boss->self, 2.7s cast, range 40 width 8 rect
     SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target enrage
-    PillarsOfHeavenImpact = 3742, // Helper/Boss->self, no cast, range 8 circle, corner drops
-    BladesVisual = 4769, // Boss->self, 2.7s cast, single-target, visual
+    SwiftSlaughterDash = 3742, // Boss/HelperA->location, no cast, enrage dashes (4x, 1s apart, ~19y from center)
+    SwiftSlaughterVisual = 4769, // Boss->self, 2.7s cast, range 20, post-enrage loop, hits only arena objects
+    SwiftSlaughterAOE = 4770, // Boss->self, 3.7s cast, range 15 circle, post-enrage loop
     BladesOfCarnageAndLiberation = 4986, // Boss->self, no cast, single-target, visual
     FireAdd = 5015, // MoonGana->player, 0.7s cast, single-target
     BlizzardAdd = 5016, // SpiritGana->player, 0.7s cast, single-target
@@ -81,7 +82,7 @@ class TheRoseOfHate(BossModule module) : Components.StandardAOEs(module, AID.The
 class BloodyFuller(BossModule module) : Components.RaidwideCast(module, AID.BloodyFuller);
 class PillarsOfHeaven(BossModule module) : Components.RaidwideCast(module, AID.PillarsOfHeaven);
 class SwiftSlaughter(BossModule module) : Components.CastHint(module, AID.SwiftSlaughter, "Enrage!", true);
-class BladesVisual(BossModule module) : Components.CastHint(module, AID.BladesVisual, "Blades of Carnage", true);
+class SwiftSlaughterAOE(BossModule module) : Components.StandardAOEs(module, AID.SwiftSlaughterAOE, 15);
 class BladesOfCarnageCombo(BossModule module) : Components.CastCounter(module, AID.BladesOfCarnageAndLiberation)
 {
     private DateTime _hintUntil;
@@ -209,25 +210,6 @@ class TapasyaFar(BossModule module) : RavanaBossOriginAOEs(module, AID.TapasyaFa
     protected override WPos Origin(Actor caster) => Module.PrimaryActor.Position;
 }
 
-class PillarsOfHeavenImpact(BossModule module) : Components.GenericAOEs(module, AID.PillarsOfHeavenImpact)
-{
-    private readonly List<(WPos pos, DateTime expire)> _active = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var now = WorldState.CurrentTime;
-        _active.RemoveAll(a => a.expire <= now);
-        foreach (var a in _active)
-            yield return new(new AOEShapeCircle(8), a.pos, Activation: a.expire); // TODO: verify impact radius
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-            _active.Add((new WPos(spell.TargetPos.XZ()), WorldState.FutureTime(1.5f)));
-    }
-}
-
 class TheRoseOfConquest(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.TheRoseOfConquest, 6, 5.1f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -334,8 +316,7 @@ class T01RavanaStates : StateMachineBuilder
             .ActivateOnEnter<Surpanakha>()
             .ActivateOnEnter<TapasyaNear>()
             .ActivateOnEnter<TapasyaFar>()
-            .ActivateOnEnter<PillarsOfHeavenImpact>()
-            .ActivateOnEnter<BladesVisual>()
+            .ActivateOnEnter<SwiftSlaughterAOE>()
             .ActivateOnEnter<BladesOfCarnageCombo>()
             .ActivateOnEnter<LaughingMoon>()
             .ActivateOnEnter<ChandrahasFinale>()
