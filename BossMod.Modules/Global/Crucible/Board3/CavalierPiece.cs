@@ -24,6 +24,7 @@ public enum AID : uint
     _Weaponskill_CrushingBlade = 48471, // Boss->player, 5.0s cast, single-target
     _Weaponskill_Valfodr = 48461, // _Gen_FeintedCavalierPiece->self, 5.6+0.4s cast, single-target
     _Weaponskill_Valfodr1 = 48462, // Helper->self, 6.0s cast, range 60 width 8 rect
+    _Weaponskill_SoulDouse = 50693, // _Gen_BoneBishop->self, 5.0s cast, range 60 circle
 }
 
 public enum IconID : uint
@@ -37,6 +38,14 @@ public enum TetherID : uint
 }
 
 class BoneBishop(BossModule module) : Components.Adds(module, (uint)OID._Gen_BoneBishop);
+class SoulDouse(BossModule module) : Components.CastHint(module, AID._Weaponskill_SoulDouse, "Kill bishop before enrage!")
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+            hints.SetPriority(c, 1);
+    }
+}
 class Steelripper(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Steelripper1, new AOEShapeCone(60, 65.Degrees()));
 class Menace(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Menace1, 20);
 class CrushingBlade(BossModule module) : Components.Knockback(module, AID._Weaponskill_CrushingBlade)
@@ -93,6 +102,7 @@ class CavalierPieceStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<BoneBishop>()
+            .ActivateOnEnter<SoulDouse>()
             .ActivateOnEnter<Steelripper>()
             .ActivateOnEnter<Menace>()
             .ActivateOnEnter<CrushingBlade>()

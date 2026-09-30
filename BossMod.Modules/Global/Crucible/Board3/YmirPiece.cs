@@ -44,8 +44,7 @@ class SahaginPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_S
     {
         foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == (uint)OID._Gen_SahaginPiece))
         {
-            target.Priority = 0;
-            target.TankDistance = 30;
+            target.Priority = 1; // ideally, kill sahagin first, since ymir is a punching bag
 
             // it is real spikes, but we don't want to make it annoying to manually use PB/TR on sahagin since he can be bursted down before he uses tsunami
             // TODO: it should be possible to express this some other way

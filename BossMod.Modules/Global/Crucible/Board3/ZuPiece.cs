@@ -36,7 +36,16 @@ public enum IconID : uint
 }
 
 class Babies(BossModule module) : Components.AddsMulti(module, [OID._Gen_CockerelPiece, OID._Gen_PulletPiece]);
-class CausticVomit(BossModule module) : Components.CastInterruptHint(module, AID._Weaponskill_CausticVomit);
+class CausticVomit(BossModule module) : Components.CastInterruptHint(module, AID._Weaponskill_CausticVomit)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        foreach (var c in Casters)
+            hints.SetPriority(c, 1);
+    }
+}
 
 class CrossbreezeBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCross(50, 4), (uint)IconID._Gen_Icon_clossingwind_lockon_y2, AID._Weaponskill_Crossbreeze1, 8.1f, true)
 {
