@@ -91,7 +91,7 @@ class UnmooringMelody(BossModule module) : Components.GenericAOEs(module, AID._W
 }
 class FeralLunge(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_FeralLunge1, new AOEShapeRect(50, 8));
 
-class ShamblingPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_ShamblingPiece);
+class ShamblingPiece(BossModule module) : ProximityAdds(module, OID._Gen_ShamblingPiece);
 class CrawlingPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_CrawlingPiece)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
