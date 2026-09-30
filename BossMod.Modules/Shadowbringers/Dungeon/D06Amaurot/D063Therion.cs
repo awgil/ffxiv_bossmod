@@ -187,8 +187,6 @@ class Border(BossModule module) : Components.GenericAOEs(module)
             if (missingPlatforms[i])
                 continue;
 
-            // side platforms are ~4x4 but have no railing; pathfinding happily walks along the exact edge (e.g. z = center-2) and falls off,
-            // so only expose a 1y margin-reduced version: x from 10 to 13, z +-1 (all replay standing positions fit inside)
             var inner = center - centerOffset - new WDir(MathF.Sign(center.X) * 0.5f, 0);
             mainplat.AddContour(CurveApprox.Rect(inner, new WDir(1.5f, 0), new(0, 1)));
         }
