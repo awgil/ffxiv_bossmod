@@ -15,7 +15,7 @@ public enum AID : uint
     StraightPunch = 40602, // Boss->player, 5.0s cast, single-target
 
     BurningWard = 40596, // Boss->self, 5.0s cast, single-target
-    ScorchedEarth1 = 40597, // Damantus->self, no cast, range 60 circle // TODO: wire voidzone / puddle if needed
+    ScorchedEarth1 = 40597, // Damantus->self, no cast, range 60 circle
     ScorchedEarth2 = 40598, // Noxius->self, no cast, range 60 circle
 
     PlainPound = 40599, // Boss->self, 5.0s cast, range 10 circle
