@@ -63,4 +63,4 @@ class D171MagitekPredatorStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5560)] // TODO: clear after Magitek Missile radius verify
-public class D171MagitekPredator(WorldState ws, Actor primary) : BossModule(ws, primary, new(-174, 73), new ArenaBoundsSquare(19.5f));
+public class D171MagitekPredator(ModuleInit init) : BossModule(init, new(-174, 73), new ArenaBoundsSquare(19.5f));

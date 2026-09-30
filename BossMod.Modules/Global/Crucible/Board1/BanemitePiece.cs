@@ -64,5 +64,5 @@ class BanemitePieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14536)]
-public class BanemitePiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class BanemitePiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

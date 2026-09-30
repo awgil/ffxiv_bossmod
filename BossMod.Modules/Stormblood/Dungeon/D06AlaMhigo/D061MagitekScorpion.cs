@@ -97,4 +97,4 @@ class D061MagitekScorpionStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 247, NameID = 6037)]
-public class D061MagitekScorpion(WorldState ws, Actor primary) : BossModule(ws, primary, new(-191, 72), new ArenaBoundsCircle(20));
+public class D061MagitekScorpion(ModuleInit init) : BossModule(init, new(-191, 72), new ArenaBoundsCircle(20));

@@ -139,4 +139,4 @@ class D062HarmachisStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "LegendofIceman, Xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 38, NameID = 3821)]
-public class D062Harmachis(WorldState ws, Actor primary) : BossModule(ws, primary, new(248, 272), new ArenaBoundsCircle(20));
+public class D062Harmachis(ModuleInit init) : BossModule(init, new(248, 272), new ArenaBoundsCircle(20));

@@ -111,4 +111,4 @@ class MachetaurStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14735)]
-public class Machetaur(WorldState ws, Actor primary) : BossModule(ws, primary, new(724, 220), new ArenaBoundsCircle(30));
+public class Machetaur(ModuleInit init) : BossModule(init, new(724, 220), new ArenaBoundsCircle(30));

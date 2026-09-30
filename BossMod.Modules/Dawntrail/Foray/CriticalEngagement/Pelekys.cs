@@ -144,5 +144,5 @@ class PelekysStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14747)]
-public class Pelekys(WorldState ws, Actor primary) : CEModule(ws, primary, new(-870, -560), new ArenaBoundsCircle(25));
+public class Pelekys(ModuleInit init) : CEModule(init, new(-870, -560), new ArenaBoundsCircle(25));
 

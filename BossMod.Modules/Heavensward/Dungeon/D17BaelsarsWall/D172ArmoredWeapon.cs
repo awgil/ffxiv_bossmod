@@ -58,4 +58,4 @@ class D172ArmoredWeaponStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)] // TODO: clear after Extreme Caution StayMove
-public class D172ArmoredWeapon(WorldState ws, Actor primary) : BossModule(ws, primary, new(116, 0), new ArenaBoundsSquare(19.5f));
+public class D172ArmoredWeapon(ModuleInit init) : BossModule(init, new(116, 0), new ArenaBoundsSquare(19.5f));

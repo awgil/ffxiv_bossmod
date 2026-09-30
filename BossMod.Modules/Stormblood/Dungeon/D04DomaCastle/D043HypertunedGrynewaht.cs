@@ -199,4 +199,4 @@ class D043HypertunedGrynewahtStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 241, NameID = 6205)]
-public class D043HypertunedGrynewaht(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240f, -198f), new ArenaBoundsSquare(20));
+public class D043HypertunedGrynewaht(ModuleInit init) : BossModule(init, new(-240f, -198f), new ArenaBoundsSquare(20));

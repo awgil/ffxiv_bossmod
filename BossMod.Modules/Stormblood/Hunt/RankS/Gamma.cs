@@ -81,4 +81,4 @@ class GammaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5985)]
-public class Gamma(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Gamma(ModuleInit init) : SimpleBossModule(init);

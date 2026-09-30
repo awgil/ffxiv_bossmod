@@ -557,4 +557,4 @@ class V032KetudukeStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12605, Contributors = "croizat")]
-public class V032Ketuduke(WorldState ws, Actor primary) : BossModule(ws, primary, new(-790, -395), new ArenaBoundsSquare(20));
+public class V032Ketuduke(ModuleInit init) : BossModule(init, new(-790, -395), new ArenaBoundsSquare(20));

@@ -104,4 +104,4 @@ class D131EyeOfTheScorpionStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1011, NameID = 14716)]
-public class D131EyeOfTheScorpion(WorldState ws, Actor primary) : BossModule(ws, primary, new(-615, 575), new ArenaBoundsSquare(20));
+public class D131EyeOfTheScorpion(ModuleInit init) : BossModule(init, new(-615, 575), new ArenaBoundsSquare(20));

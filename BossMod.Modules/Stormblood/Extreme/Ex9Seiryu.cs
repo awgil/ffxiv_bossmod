@@ -138,7 +138,7 @@ class Ex9SeiryuStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "skmagiik", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 638, NameID = 7922)]
-public class Ex9Seiryu(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(IslandRadius))
+public class Ex9Seiryu(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(IslandRadius))
 {
     public const float IslandRadius = 20; // phase-1 arena and phase-2 safe island
     public const float ArenaRadius = 38; // phase-2 full arena (island + surrounding water)

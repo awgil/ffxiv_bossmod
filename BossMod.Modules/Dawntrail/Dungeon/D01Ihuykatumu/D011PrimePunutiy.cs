@@ -183,4 +183,4 @@ class D011PrimePunutiyStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 826, NameID = 12723)]
-public class D011PrimePunutiy(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, -95), new ArenaBoundsSquare(19.5f));
+public class D011PrimePunutiy(ModuleInit init) : BossModule(init, new(35, -95), new ArenaBoundsSquare(19.5f));

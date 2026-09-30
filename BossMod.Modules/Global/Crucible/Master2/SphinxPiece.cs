@@ -230,5 +230,5 @@ class SphinxPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14665)]
-public class SphinxPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, 0), new ArenaBoundsSquare(20));
+public class SphinxPiece(ModuleInit init) : BossModule(init, new(120, 0), new ArenaBoundsSquare(20));
 

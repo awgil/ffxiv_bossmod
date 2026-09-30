@@ -107,5 +107,5 @@ class KingAhrimanPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14688)]
-public class KingAhrimanPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class KingAhrimanPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

@@ -80,7 +80,7 @@ class DrakePieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14651)]
-public class DrakePiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, 0), new ArenaBoundsRect(20, 15))
+public class DrakePiece(ModuleInit init) : BossModule(init, new(520, 0), new ArenaBoundsRect(20, 15))
 {
     public Actor? Abaddon;
 

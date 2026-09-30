@@ -56,4 +56,4 @@ class A22AddsStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 736, NameID = 9652)]
-public class A22Adds(WorldState ws, Actor primary) : BossModule(ws, primary, new(-230, -15), new ArenaBoundsSquare(25));
+public class A22Adds(ModuleInit init) : BossModule(init, new(-230, -15), new ArenaBoundsSquare(25));

@@ -29,4 +29,4 @@ class GajasuraStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5998)]
-public class Gajasura(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Gajasura(ModuleInit init) : SimpleBossModule(init);

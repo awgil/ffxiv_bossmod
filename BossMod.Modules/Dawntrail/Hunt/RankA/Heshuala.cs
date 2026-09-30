@@ -106,4 +106,4 @@ class HeshualaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13157)]
-public class Heshuala(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Heshuala(ModuleInit init) : SimpleBossModule(init);

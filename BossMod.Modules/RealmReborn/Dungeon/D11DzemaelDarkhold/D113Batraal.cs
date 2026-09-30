@@ -38,4 +38,4 @@ class D113BatraalStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1396)] // TODO: clear after remaster crystal AID + unnamed hits
-public class D113Batraal(WorldState ws, Actor primary) : BossModule(ws, primary, new(85, -175), new ArenaBoundsSquare(25));
+public class D113Batraal(ModuleInit init) : BossModule(init, new(85, -175), new ArenaBoundsSquare(25));

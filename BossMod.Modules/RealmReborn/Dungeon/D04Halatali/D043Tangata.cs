@@ -52,4 +52,4 @@ class D043TangataStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1197)]
-public class D043Tangata(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D043Tangata(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

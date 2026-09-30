@@ -37,4 +37,4 @@ class D121LocksmithStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 5, NameID = 1534)]
-public class D121Locksmith(WorldState ws, Actor primary) : BossModule(ws, primary, new(35, 0), new ArenaBoundsRect(15, 25));
+public class D121Locksmith(ModuleInit init) : BossModule(init, new(35, 0), new ArenaBoundsRect(15, 25));

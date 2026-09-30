@@ -130,4 +130,4 @@ class LifereaperStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13741)]
-public class Lifereaper(WorldState ws, Actor primary) : BossModule(ws, primary, new(416.2f, -10), new ArenaBoundsCircle(40));
+public class Lifereaper(ModuleInit init) : BossModule(init, new(416.2f, -10), new ArenaBoundsCircle(40));

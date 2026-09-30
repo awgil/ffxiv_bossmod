@@ -141,5 +141,5 @@ class CatoblepasPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1090, NameID = 14577)]
-public class CatoblepasPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class CatoblepasPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

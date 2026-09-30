@@ -187,4 +187,4 @@ class SansheyaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13399)]
-public class Sansheya(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Sansheya(ModuleInit init) : SimpleBossModule(init);

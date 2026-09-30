@@ -33,4 +33,4 @@ class D111AllSeeingEyeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)] // TODO: clear after remaster AID kit live verify
-public class D111AllSeeingEye(WorldState ws, Actor primary) : BossModule(ws, primary, new(48, 78), new ArenaBoundsSquare(25));
+public class D111AllSeeingEye(ModuleInit init) : BossModule(init, new(48, 78), new ArenaBoundsSquare(25));

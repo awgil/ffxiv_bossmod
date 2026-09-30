@@ -107,5 +107,5 @@ class PasDeSeulStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14541, BitmapType = BossModuleInfo.BitmapType.Enabled)]
-public class PasDeSeul(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, -420), new ArenaBoundsRect(20, 24));
+public class PasDeSeul(ModuleInit init) : BossModule(init, new(520, -420), new ArenaBoundsRect(20, 24));
 

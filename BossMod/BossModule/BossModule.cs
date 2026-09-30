@@ -4,6 +4,8 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
+public record struct ModuleInit(WorldState World, Actor Primary, BossModuleRegistry.Info? Info);
+
 // base for boss modules - provides all the common features, so that look is standardized
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
 public abstract class BossModule : IDisposable
@@ -95,12 +97,12 @@ public abstract class BossModule : IDisposable
 
     public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);
 
-    protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
+    protected BossModule(ModuleInit init, WPos center, ArenaBounds bounds)
     {
-        WorldState = ws;
-        PrimaryActor = primary;
+        WorldState = init.World;
+        PrimaryActor = init.Primary;
+        Info = init.Info;
         Arena = new(WindowConfig, center, bounds);
-        Info = BossModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new

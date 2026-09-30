@@ -96,4 +96,4 @@ class PhronesisStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69164, NameID = 8931)]
-public class Phronesis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-256, -284), new ArenaBoundsCircle(20));
+public class Phronesis(ModuleInit init) : BossModule(init, new(-256, -284), new ArenaBoundsCircle(20));

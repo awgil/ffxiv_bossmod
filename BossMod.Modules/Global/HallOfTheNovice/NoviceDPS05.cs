@@ -28,4 +28,4 @@ class NoviceDPS05States : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 161, NameID = 4784)]
-public class NoviceDPS05(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));
+public class NoviceDPS05(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

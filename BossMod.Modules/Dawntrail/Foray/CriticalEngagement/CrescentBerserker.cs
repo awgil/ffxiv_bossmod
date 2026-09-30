@@ -139,4 +139,4 @@ class CrescentBerserkerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13759)]
-public class CrescentBerserker(WorldState ws, Actor primary) : CEModule(ws, primary, new(620, 800), new ArenaBoundsCircle(24.5f));
+public class CrescentBerserker(ModuleInit init) : CEModule(init, new(620, 800), new ArenaBoundsCircle(24.5f));

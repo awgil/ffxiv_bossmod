@@ -126,7 +126,7 @@ class V07NStonePuppetStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14353)]
-public class V07NStonePuppet(WorldState ws, Actor primary) : BossModule(ws, primary, new(149.66f, -631.79f), CustomBounds)
+public class V07NStonePuppet(ModuleInit init) : BossModule(init, new(149.66f, -631.79f), CustomBounds)
 {
     private static readonly List<WDir> vertices =
         [

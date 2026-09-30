@@ -77,4 +77,4 @@ class CrystalDragonStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13696)]
-public class CrystalDragon(WorldState ws, Actor primary) : CEModule(ws, primary, new(-414, 75), new ArenaBoundsCircle(24.5f));
+public class CrystalDragon(ModuleInit init) : CEModule(init, new(-414, 75), new ArenaBoundsCircle(24.5f));

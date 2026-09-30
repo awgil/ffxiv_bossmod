@@ -114,5 +114,5 @@ class GigantisPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14670)]
-public class GigantisPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class GigantisPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

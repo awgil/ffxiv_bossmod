@@ -791,4 +791,4 @@ class V04NLoneSwordmasterStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14323)]
-public class V04NLoneSwordmaster(WorldState ws, Actor primary) : BossModule(ws, primary, new(169.97f, -815.03f), new ArenaBoundsSquare(19.5f));
+public class V04NLoneSwordmaster(ModuleInit init) : BossModule(init, new(169.97f, -815.03f), new ArenaBoundsSquare(19.5f));

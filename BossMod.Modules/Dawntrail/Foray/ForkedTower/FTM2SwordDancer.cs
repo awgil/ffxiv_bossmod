@@ -233,7 +233,7 @@ class FTM2SwordDancerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14820)]
-public class FTM2SwordDancer(WorldState ws, Actor primary) : BossModule(ws, primary, new(600, 704), new ArenaBoundsCircle(24))
+public class FTM2SwordDancer(ModuleInit init) : BossModule(init, new(600, 704), new ArenaBoundsCircle(24))
 {
     public override bool DrawAllPlayers => true;
 }

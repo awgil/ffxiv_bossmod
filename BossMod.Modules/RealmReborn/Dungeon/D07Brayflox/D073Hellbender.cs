@@ -48,4 +48,4 @@ class D073HellbenderStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1286)] // TODO: clear after BogBubble/Touchdown/Aiatar verify
-public class D073Hellbender(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D073Hellbender(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

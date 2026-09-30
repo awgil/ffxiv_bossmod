@@ -126,5 +126,5 @@ class DurgaPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14657)]
-public class DurgaPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, 0), new ArenaBoundsSquare(20));
+public class DurgaPiece(ModuleInit init) : BossModule(init, new(120, 0), new ArenaBoundsSquare(20));
 

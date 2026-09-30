@@ -384,5 +384,5 @@ class D103ValiaPiraStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1027, NameID = 13749)]
-public class D103ValiaPira(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -331), new ArenaBoundsSquare(17.5f));
+public class D103ValiaPira(ModuleInit init) : BossModule(init, new(0, -331), new ArenaBoundsSquare(17.5f));
 

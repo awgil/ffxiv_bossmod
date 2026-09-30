@@ -271,4 +271,4 @@ public class VenatStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69968, NameID = 10586)]
-public class Venat(WorldState ws, Actor primary) : BossModule(ws, primary, new(-630, 72), new ArenaBoundsCircle(24.5f));
+public class Venat(ModuleInit init) : BossModule(init, new(-630, 72), new ArenaBoundsCircle(24.5f));

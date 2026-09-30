@@ -159,7 +159,7 @@ class FTM3NecrophobiaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14503)]
-public class FTM3Necrophobia(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 800), new ArenaBoundsCircle(24))
+public class FTM3Necrophobia(ModuleInit init) : BossModule(init, new(100, 800), new ArenaBoundsCircle(24))
 {
     public override bool DrawAllPlayers => true;
 }

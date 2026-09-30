@@ -125,5 +125,5 @@ class D022GriauleStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 649, NameID = 8143)]
-public class D022Griaule(WorldState ws, Actor primary) : BossModule(ws, primary, new(7.17f, -339.12f), new ArenaBoundsCircle(24.5f));
+public class D022Griaule(ModuleInit init) : BossModule(init, new(7.17f, -339.12f), new ArenaBoundsCircle(24.5f));
 

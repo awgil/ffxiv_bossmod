@@ -130,4 +130,4 @@ class T02LakshmiStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)] // TODO: clear Incomplete after Vril/Blissful Arrow verify
-public class T02Lakshmi(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));
+public class T02Lakshmi(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

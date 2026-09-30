@@ -354,7 +354,7 @@ class RM09VampFataleStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1068, NameID = 14300)]
-public class RM09VampFatale(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(20, 20))
+public class RM09VampFatale(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

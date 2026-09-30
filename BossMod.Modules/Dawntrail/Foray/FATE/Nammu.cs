@@ -255,4 +255,4 @@ class NammuStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13701)]
-public class Nammu(WorldState ws, Actor primary) : BossModule(ws, primary, new(162.3f, 681.3f), new ArenaBoundsCircle(40));
+public class Nammu(ModuleInit init) : BossModule(init, new(162.3f, 681.3f), new ArenaBoundsCircle(40));

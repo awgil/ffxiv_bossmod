@@ -87,5 +87,5 @@ class A35XunZiStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9921)]
-public class A35XunZi(WorldState ws, Actor primary) : BossModule(ws, primary, new(800, 800), new ArenaBoundsSquare(24.5f));
+public class A35XunZi(ModuleInit init) : BossModule(init, new(800, 800), new ArenaBoundsSquare(24.5f));
 

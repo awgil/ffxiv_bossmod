@@ -70,4 +70,4 @@ class RuinHoundStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14762)]
-public class RuinHound(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 865), new ArenaBoundsCircle(30));
+public class RuinHound(ModuleInit init) : BossModule(init, new(-90, 865), new ArenaBoundsCircle(30));

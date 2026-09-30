@@ -216,7 +216,7 @@ class T03HadesStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352)] // TODO: clear Incomplete after P1/P2 + Doom towers verify
-public class T03Hades(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20))
+public class T03Hades(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     public Actor? BossP2() => Enemies(OID.BossP2).FirstOrDefault(a => !a.IsDestroyed);
 

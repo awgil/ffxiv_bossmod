@@ -142,5 +142,5 @@ class PatriotStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 10)] // bnpcname=9417
-public class Patriot(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 414), new ArenaBoundsSquare(24.5f));
+public class Patriot(ModuleInit init) : BossModule(init, new(-240, 414), new ArenaBoundsSquare(24.5f));
 

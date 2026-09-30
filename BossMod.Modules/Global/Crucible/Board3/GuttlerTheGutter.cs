@@ -167,7 +167,7 @@ class GuttlerTheGutterStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1090, NameID = 14592)]
-public class GuttlerTheGutter(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, -420), CustomBounds)
+public class GuttlerTheGutter(ModuleInit init) : BossModule(init, new(520, -420), CustomBounds)
 {
     public static readonly ArenaBoundsCustom CustomBounds = MakeBounds();
 

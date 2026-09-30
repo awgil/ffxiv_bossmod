@@ -28,8 +28,8 @@ class D012CaptainMadisonStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1382)]
-public class D012CaptainMadison(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D012CaptainMadison(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1382,
     PrimaryActorOID = (uint)OID.BossSecond, StatesType = typeof(D012CaptainMadisonStates), SortOrder = 2)]
-public class D012CaptainMadisonSecond(WorldState ws, Actor primary) : D012CaptainMadison(ws, primary);
+public class D012CaptainMadisonSecond(ModuleInit init) : D012CaptainMadison(init);

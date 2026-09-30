@@ -147,4 +147,4 @@ class UrnaVariabilisStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13158)]
-public class UrnaVariabilis(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class UrnaVariabilis(ModuleInit init) : SimpleBossModule(init);

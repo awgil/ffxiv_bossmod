@@ -123,5 +123,5 @@ class SirenPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1090, NameID = 14583)]
-public class SirenPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class SirenPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

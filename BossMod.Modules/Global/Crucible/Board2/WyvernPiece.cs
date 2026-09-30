@@ -57,5 +57,5 @@ class WyvernPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14549)]
-public class WyvernPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, 0), new ArenaBoundsRect(20, 15));
+public class WyvernPiece(ModuleInit init) : BossModule(init, new(520, 0), new ArenaBoundsRect(20, 15));
 

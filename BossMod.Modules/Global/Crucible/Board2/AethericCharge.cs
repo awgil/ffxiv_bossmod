@@ -15,7 +15,7 @@ class AethericChargeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14560)]
-public class AethericCharge(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20))
+public class AethericCharge(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 }

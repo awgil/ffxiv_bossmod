@@ -524,5 +524,5 @@ class A33AlexanderResurrectedStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1117, NameID = 14529)]
-public class A33AlexanderResurrected(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 360), new ArenaBoundsSquare(25));
+public class A33AlexanderResurrected(ModuleInit init) : BossModule(init, new(0, 360), new ArenaBoundsSquare(25));
 

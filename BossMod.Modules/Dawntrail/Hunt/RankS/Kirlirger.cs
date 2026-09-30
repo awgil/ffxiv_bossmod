@@ -76,4 +76,4 @@ class KirlirgerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13360)]
-public class Kirlirger(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Kirlirger(ModuleInit init) : SimpleBossModule(init);

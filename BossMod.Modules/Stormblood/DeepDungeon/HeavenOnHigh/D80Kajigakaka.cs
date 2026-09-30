@@ -57,5 +57,5 @@ class D80KajigakakaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Akechi", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 547, NameID = 7490)]
-public class D80Kajigakaka(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300f, -300f), new ArenaBoundsCircle(25f));
+public class D80Kajigakaka(ModuleInit init) : BossModule(init, new(-300f, -300f), new ArenaBoundsCircle(25f));
 

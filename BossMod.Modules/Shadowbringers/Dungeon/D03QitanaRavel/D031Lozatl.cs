@@ -67,4 +67,4 @@ class D031LozatlStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
-public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 315), new ArenaBoundsCircle(20));
+public class D031Lozatl(ModuleInit init) : BossModule(init, new(0, 315), new ArenaBoundsCircle(20));

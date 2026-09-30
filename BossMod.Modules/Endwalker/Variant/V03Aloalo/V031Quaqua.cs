@@ -720,4 +720,4 @@ class V031QuaquaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12527, Contributors = "croizat")]
-public class V031Quaqua(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z), new ArenaBoundsCircle(20f));
+public class V031Quaqua(ModuleInit init) : BossModule(init, new(init.Primary.Position.X, init.Primary.Position.Z), new ArenaBoundsCircle(20f));

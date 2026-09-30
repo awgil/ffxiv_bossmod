@@ -62,7 +62,7 @@ class BoneKnightStates : StateMachineBuilder
 }
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.BoneKnight, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14531)]
-public class BoneKnight(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20))
+public class BoneKnight(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20))
 {
     public Actor? BoneBishop { get; private set; }
 

@@ -431,4 +431,4 @@ class E02VoidwalkerStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = false, Contributors = "AndMyAxe", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 684, NameID = 8382)]
-public class E02Voidwalker(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(15f, 20f));
+public class E02Voidwalker(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(15f, 20f));

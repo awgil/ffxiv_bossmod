@@ -53,7 +53,7 @@ class CorpseFlowerPieceStates : StateMachineBuilder
 // sapling puddle spawns with radius 5, starts growing during EObjAnim 00100020 to maximum radius of 10, then despawns with EObjState 0004
 // spit sends the player 10 units
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1091, NameID = 14603)]
-public class CorpseFlowerPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20))
+public class CorpseFlowerPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

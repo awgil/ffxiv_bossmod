@@ -103,4 +103,4 @@ class AdvancedAevisStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13704)]
-public class AdvancedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-48, -320), new ArenaBoundsCircle(40));
+public class AdvancedAevis(ModuleInit init) : BossModule(init, new(-48, -320), new ArenaBoundsCircle(40));

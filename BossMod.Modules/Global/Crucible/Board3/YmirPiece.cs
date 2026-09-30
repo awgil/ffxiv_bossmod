@@ -104,7 +104,7 @@ class YmirPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1090, NameID = 14569)]
-public class YmirPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, 0), new ArenaBoundsSquare(20))
+public class YmirPiece(ModuleInit init) : BossModule(init, new(120, 0), new ArenaBoundsSquare(20))
 {
     public Actor? Sahagin { get; private set; }
 

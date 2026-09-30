@@ -26,4 +26,4 @@ class ForgivenGossipStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.SS, NameID = 8916)]
-public class ForgivenGossip(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class ForgivenGossip(ModuleInit init) : SimpleBossModule(init);

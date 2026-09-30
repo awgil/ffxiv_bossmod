@@ -223,5 +223,5 @@ class TaurusPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14546)]
-public class TaurusPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, 0), new ArenaBoundsRect(20, 15));
+public class TaurusPiece(ModuleInit init) : BossModule(init, new(520, 0), new ArenaBoundsRect(20, 15));
 

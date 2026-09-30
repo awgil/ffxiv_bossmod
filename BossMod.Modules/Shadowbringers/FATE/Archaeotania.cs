@@ -113,4 +113,4 @@ class ArchaeotaniaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1432, NameID = 8234)]
-public class Archaeotania(WorldState ws, Actor primary) : BossModule(ws, primary, new(279, 249), new ArenaBoundsSquare(29));
+public class Archaeotania(ModuleInit init) : BossModule(init, new(279, 249), new ArenaBoundsSquare(29));

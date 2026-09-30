@@ -719,7 +719,7 @@ class T05NecronStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1061, NameID = 14093)]
-public class T05Necron(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(18, 15))
+public class T05Necron(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(18, 15))
 {
     public static readonly WPos[] JailArenas = [
         new(100, -100),

@@ -479,7 +479,7 @@ class T03QueenEternalStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 984, NameID = 13029)] // Incomplete cleared; TODO: re-check Absolute Authority / Castellation edge cases if reports come in
-public sealed class T03QueenEternal(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
+public sealed class T03QueenEternal(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20))
 {
     private static readonly ArenaBoundsSquare Builder = new(20);
     public static readonly WPos XArenaCenter = new(100, 92.5f);

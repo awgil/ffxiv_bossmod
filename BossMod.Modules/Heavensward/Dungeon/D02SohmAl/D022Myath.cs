@@ -58,4 +58,4 @@ class D022MyathStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3793)]
-public class D022Myath(WorldState ws, Actor primary) : BossModule(ws, primary, new(158, -94), new ArenaBoundsCircle(30f));
+public class D022Myath(ModuleInit init) : BossModule(init, new(158, -94), new ArenaBoundsCircle(30f));

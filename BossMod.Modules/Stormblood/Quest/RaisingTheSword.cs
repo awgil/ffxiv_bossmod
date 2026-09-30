@@ -72,4 +72,4 @@ class AldisSwordOfNaldStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 270, NameID = 6311)]
-public class AldisSwordOfNald(WorldState ws, Actor primary) : BossModule(ws, primary, new(-89.3f, 0), new ArenaBoundsCircle(20.5f));
+public class AldisSwordOfNald(ModuleInit init) : BossModule(init, new(-89.3f, 0), new ArenaBoundsCircle(20.5f));

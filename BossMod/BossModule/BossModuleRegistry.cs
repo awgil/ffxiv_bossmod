@@ -17,7 +17,7 @@ public static class BossModuleRegistry
         public Type? TetherIDType;
         public Type? IconIDType;
         public uint PrimaryActorOID;
-        public Func<WorldState, Actor, BossModule> ModuleFactory;
+        public Func<ModuleInit, BossModule> ModuleFactory;
 
         public string Contributors = "";
         public BossModuleInfo.Expansion Expansion;
@@ -174,7 +174,7 @@ public static class BossModuleRegistry
         {
             ModuleType = moduleType;
             StatesType = statesType;
-            ModuleFactory = New<BossModule>.ConstructorDerived<WorldState, Actor>(moduleType);
+            ModuleFactory = New<BossModule>.ConstructorDerived<ModuleInit>(moduleType);
         }
     }
 
@@ -239,7 +239,7 @@ public static class BossModuleRegistry
     public static Info? FindByName(string typeName) => _modulesByType.GetValueOrDefault(typeName);
     public static Info? FindByType(Type t) => t.FullName == null ? null : FindByName(t.FullName);
 
-    public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(ws, primary);
+    public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(new(ws, primary, info));
 
     public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, bool allowIncomplete, bool allowStrikingDummy)
     {

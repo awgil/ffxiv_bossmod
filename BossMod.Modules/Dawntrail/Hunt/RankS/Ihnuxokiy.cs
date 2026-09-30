@@ -89,4 +89,4 @@ class IhnuxokiyStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13444)]
-public class Ihnuxokiy(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Ihnuxokiy(ModuleInit init) : SimpleBossModule(init);

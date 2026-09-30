@@ -58,4 +58,4 @@ class PatientKuribuStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14764)]
-public class PatientKuribu(WorldState ws, Actor primary) : BossModule(ws, primary, new(-440, -790), new ArenaBoundsCircle(30));
+public class PatientKuribu(ModuleInit init) : BossModule(init, new(-440, -790), new ArenaBoundsCircle(30));

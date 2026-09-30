@@ -32,4 +32,4 @@ class D112TaulurdStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1415)] // TODO: clear after unnamed hit AIDs identified
-public class D112Taulurd(WorldState ws, Actor primary) : BossModule(ws, primary, new(-93, -33), new ArenaBoundsSquare(20));
+public class D112Taulurd(ModuleInit init) : BossModule(init, new(-93, -33), new ArenaBoundsSquare(20));

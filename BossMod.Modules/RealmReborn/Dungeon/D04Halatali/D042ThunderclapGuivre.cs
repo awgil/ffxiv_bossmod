@@ -35,4 +35,4 @@ class D042ThunderclapGuivreStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)] // TODO: clear after dry-ground geometry
-public class D042ThunderclapGuivre(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D042ThunderclapGuivre(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

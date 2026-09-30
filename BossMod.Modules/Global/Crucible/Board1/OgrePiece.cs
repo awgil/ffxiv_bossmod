@@ -89,5 +89,5 @@ class OgrePieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1088, NameID = 14538)]
-public class OgrePiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class OgrePiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

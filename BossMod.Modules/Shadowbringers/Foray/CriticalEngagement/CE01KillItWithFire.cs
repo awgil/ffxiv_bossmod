@@ -124,4 +124,4 @@ class PeerifoolStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 1)] // bnpcname=9391
-public class Peerifool(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 700), new ArenaBoundsCircle(25));
+public class Peerifool(ModuleInit init) : BossModule(init, new(-90, 700), new ArenaBoundsCircle(25));

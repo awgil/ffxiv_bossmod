@@ -365,7 +365,7 @@ class FTM4IndexStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14717, BitmapType = BossModuleInfo.BitmapType.Disabled)]
-public class FTM4Index(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -628), MakeIndexBounds(false))
+public class FTM4Index(ModuleInit init) : BossModule(init, new(0, -628), MakeIndexBounds(false))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

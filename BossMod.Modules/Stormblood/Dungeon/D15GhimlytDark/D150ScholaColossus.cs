@@ -29,4 +29,4 @@ class D150ScholaColossusStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 611, NameID = 7886, SortOrder = -1)]
-public class D150ScholaColossus(WorldState ws, Actor primary) : BossModule(ws, primary, new(295, -109.79f), new ArenaBoundsCircle(17));
+public class D150ScholaColossus(ModuleInit init) : BossModule(init, new(295, -109.79f), new ArenaBoundsCircle(17));

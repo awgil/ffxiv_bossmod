@@ -211,4 +211,4 @@ class T01TitaniaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)] // TODO: clear Incomplete after WoodsEmbrace EAnim + water tower pass
-public class T01Titania(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
+public class T01Titania(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

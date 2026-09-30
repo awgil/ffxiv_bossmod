@@ -46,7 +46,7 @@ class C010NKalukStates(BossModule module) : C010KalukStates(module, false);
 class C010SKalukStates(BossModule module) : C010KalukStates(module, true);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.NBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 878, NameID = 11510, SortOrder = 2)]
-public class C010NKaluk(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class C010NKaluk(ModuleInit init) : SimpleBossModule(init);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.SBoss, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 879, NameID = 11510, SortOrder = 2)]
-public class C010SKaluk(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class C010SKaluk(ModuleInit init) : SimpleBossModule(init);

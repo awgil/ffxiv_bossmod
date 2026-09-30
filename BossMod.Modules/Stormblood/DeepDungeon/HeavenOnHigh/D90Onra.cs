@@ -61,5 +61,5 @@ class D90OnraStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Akechi", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 548, NameID = 7582)]
-public class D90Onra(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(25f));
+public class D90Onra(ModuleInit init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(25f));
 

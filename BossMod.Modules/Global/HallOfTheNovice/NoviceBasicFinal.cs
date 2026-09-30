@@ -28,4 +28,4 @@ class NoviceBasicFinalStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 166, NameID = 4787)]
-public class NoviceBasicFinal(WorldState ws, Actor primary) : BossModule(ws, primary, new(457.383f, 271.721f), new ArenaBoundsCircle(20));
+public class NoviceBasicFinal(ModuleInit init) : BossModule(init, new(457.383f, 271.721f), new ArenaBoundsCircle(20));

@@ -98,7 +98,7 @@ class D20CloningNodeStates : StateMachineBuilder
 [ModuleInfo(Contributors = "LegendofIceman, Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 898, NameID = 12261)]
 public class D20CloningNode : BossModule
 {
-    public D20CloningNode(WorldState ws, Actor primary) : base(ws, primary, new(-300, -300), new ArenaBoundsCircle(19.5f))
+    public D20CloningNode(ModuleInit init) : base(init, new(-300, -300), new ArenaBoundsCircle(19.5f))
     {
         ActivateComponent<EncounterHints>();
     }

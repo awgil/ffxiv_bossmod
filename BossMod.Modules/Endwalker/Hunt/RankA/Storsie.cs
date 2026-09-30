@@ -69,4 +69,4 @@ class StorsieStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 10623)]
-public class Storsie(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Storsie(ModuleInit init) : SimpleBossModule(init);

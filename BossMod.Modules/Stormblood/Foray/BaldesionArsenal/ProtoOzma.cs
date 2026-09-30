@@ -400,7 +400,7 @@ class ProtoOzmaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 639, NameID = 7981)]
-public class ProtoOzma(WorldState ws, Actor primary) : BAModule(ws, primary, ArenaCenter, OzmaBounds)
+public class ProtoOzma(ModuleInit init) : BAModule(init, ArenaCenter, OzmaBounds)
 {
     public static readonly WPos ArenaCenter = new(-17, 29);
     public static readonly ArenaBoundsCustom OzmaBounds = MakeBounds();

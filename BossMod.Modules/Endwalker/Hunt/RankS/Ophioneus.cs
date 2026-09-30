@@ -74,4 +74,4 @@ class OphioneusStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10621)]
-public class Ophioneus(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Ophioneus(ModuleInit init) : SimpleBossModule(init);

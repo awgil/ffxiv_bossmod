@@ -129,4 +129,4 @@ class D121TrenoCatoblepasStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1064, NameID = 14270)]
-public class D121TrenoCatoblepas(WorldState ws, Actor primary) : BossModule(ws, primary, new(84, 370), new ArenaBoundsSquare(19.5f));
+public class D121TrenoCatoblepas(ModuleInit init) : BossModule(init, new(84, 370), new ArenaBoundsSquare(19.5f));

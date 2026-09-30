@@ -132,4 +132,4 @@ class D052DeceiverStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 825, NameID = 12693)]
-public class D052Deceiver(WorldState ws, Actor primary) : BossModule(ws, primary, new(-172, -142), new ArenaBoundsRect(16, 20));
+public class D052Deceiver(ModuleInit init) : BossModule(init, new(-172, -142), new ArenaBoundsRect(16, 20));

@@ -32,4 +32,4 @@ class D071GreatYellowPelicanStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1280)]
-public class D071GreatYellowPelican(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D071GreatYellowPelican(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

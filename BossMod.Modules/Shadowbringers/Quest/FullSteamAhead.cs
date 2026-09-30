@@ -117,7 +117,7 @@ class RanjitStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 69155, NameID = 8374)]
-public class Ranjit(WorldState ws, Actor primary) : BossModule(ws, primary, new(-203, 395), new ArenaBoundsCircle(19.5f))
+public class Ranjit(ModuleInit init) : BossModule(init, new(-203, 395), new ArenaBoundsCircle(19.5f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 

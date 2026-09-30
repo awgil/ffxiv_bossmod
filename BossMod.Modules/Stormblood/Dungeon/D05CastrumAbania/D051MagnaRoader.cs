@@ -54,4 +54,4 @@ class D051MagnaRoaderStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 6263)] // TODO: clear after Haywire telegraph verify
-public class D051MagnaRoader(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D051MagnaRoader(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

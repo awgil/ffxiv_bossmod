@@ -192,4 +192,4 @@ class RegnantChimeraStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14767)]
-public class RegnantChimera(WorldState ws, Actor primary) : BossModule(ws, primary, new(95, 470), new ArenaBoundsCircle(30));
+public class RegnantChimera(ModuleInit init) : BossModule(init, new(95, 470), new ArenaBoundsCircle(30));

@@ -136,4 +136,4 @@ class LahabreaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70058, NameID = 2143)]
-public class Lahabrea(WorldState ws, Actor primary) : BossModule(ws, primary, new(-704, 480), new ArenaBoundsCircle(20));
+public class Lahabrea(ModuleInit init) : BossModule(init, new(-704, 480), new ArenaBoundsCircle(20));

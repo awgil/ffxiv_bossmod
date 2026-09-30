@@ -472,4 +472,4 @@ class V05NDaryaTheSeaMaidStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14291)]
-public class V05NDaryaTheSeaMaid(WorldState ws, Actor primary) : BossModule(ws, primary, new(375f, 530f), new ArenaBoundsSquare(20f));
+public class V05NDaryaTheSeaMaid(ModuleInit init) : BossModule(init, new(375f, 530f), new ArenaBoundsSquare(20f));

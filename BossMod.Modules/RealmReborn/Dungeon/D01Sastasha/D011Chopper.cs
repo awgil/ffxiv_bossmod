@@ -23,4 +23,4 @@ class D011ChopperStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 4, NameID = 1204)]
-public class D011Chopper(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D011Chopper(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

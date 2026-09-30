@@ -117,4 +117,4 @@ class T01SusanoStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)] // TODO: clear Incomplete after live/replay pass (Seasplitter timing, Levin soak)
-public class T01Susano(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));
+public class T01Susano(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

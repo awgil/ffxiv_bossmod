@@ -359,4 +359,4 @@ class E03LeviathanStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = false, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 682, NameID = 8486)]
-public class E03Leviathan(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(20, 20));
+public class E03Leviathan(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 20));

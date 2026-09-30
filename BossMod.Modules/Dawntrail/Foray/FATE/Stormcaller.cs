@@ -70,4 +70,4 @@ class StormcallerStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14776)]
-public class Stormcaller(WorldState ws, Actor primary) : BossModule(ws, primary, new(-850, 486), new ArenaBoundsCircle(40));
+public class Stormcaller(ModuleInit init) : BossModule(init, new(-850, 486), new ArenaBoundsCircle(40));

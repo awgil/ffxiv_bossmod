@@ -157,7 +157,7 @@ class SaduHeavensflameStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68683, NameID = 6152)]
-public class SaduHeavensflame(WorldState ws, Actor primary) : BossModule(ws, primary, new(-223, 519), new ArenaBoundsCircle(20))
+public class SaduHeavensflame(ModuleInit init) : BossModule(init, new(-223, 519), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

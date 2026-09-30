@@ -162,4 +162,4 @@ class E01EdenPrimeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = false, Contributors = "AndMyAxe", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 653, NameID = 8345)]
-public class E01EdenPrime(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(19.5f)); //death wall at ~20
+public class E01EdenPrime(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(19.5f)); //death wall at ~20

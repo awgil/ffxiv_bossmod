@@ -417,4 +417,4 @@ class RM11TheTyrantStates : StateMachineBuilder
     }
 }
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1072, NameID = 14305)]
-public class RM11TheTyrant(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsRect(20, 20));
+public class RM11TheTyrant(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 20));

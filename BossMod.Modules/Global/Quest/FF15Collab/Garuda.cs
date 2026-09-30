@@ -185,7 +185,7 @@ class GarudaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68696, NameID = 7893)] // also: CFC 646
-public class Garuda(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(22))
+public class Garuda(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(22))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

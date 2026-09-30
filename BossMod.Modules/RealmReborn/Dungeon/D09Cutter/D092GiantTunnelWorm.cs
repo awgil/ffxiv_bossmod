@@ -43,4 +43,4 @@ class D092GiantTunnelWormStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 12, NameID = 1589)]
-public class D092GiantTunnelWorm(WorldState ws, Actor primary) : BossModule(ws, primary, new(-140, 150), new ArenaBoundsCircle(20));
+public class D092GiantTunnelWorm(ModuleInit init) : BossModule(init, new(-140, 150), new ArenaBoundsCircle(20));

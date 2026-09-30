@@ -347,7 +347,7 @@ class T01RavanaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)] // TODO: clear Incomplete after Blades combo + Tapasya verify
-public class T01Ravana(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
+public class T01Ravana(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

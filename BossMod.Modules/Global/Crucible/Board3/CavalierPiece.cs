@@ -101,5 +101,5 @@ class CavalierPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1090, NameID = 14564)]
-public class CavalierPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, 0), new ArenaBoundsSquare(20));
+public class CavalierPiece(ModuleInit init) : BossModule(init, new(120, 0), new ArenaBoundsSquare(20));
 

@@ -51,4 +51,4 @@ class DemiMedusaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14736)]
-public class DemiMedusa(WorldState ws, Actor primary) : BossModule(ws, primary, new(-661, -54), new ArenaBoundsCircle(40));
+public class DemiMedusa(ModuleInit init) : BossModule(init, new(-661, -54), new ArenaBoundsCircle(40));

@@ -314,7 +314,7 @@ class T04WarriorOfLightP2States : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462)] // TODO: clear Incomplete after imbued saber order + spectral adds pass
-public class T04WarriorOfLight(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
+public class T04WarriorOfLight(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)] // TODO: P2 Absolute Fire/Ice + Ult Crossover timing
-public class T04WarriorOfLightP2(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsSquare(20));
+public class T04WarriorOfLightP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

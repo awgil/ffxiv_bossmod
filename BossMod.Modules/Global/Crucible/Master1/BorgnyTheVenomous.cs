@@ -126,4 +126,4 @@ class BorgnyTheVenomousStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1091, NameID = 14628, BitmapType = BossModuleInfo.BitmapType.Enabled)]
-public class BorgnyTheVenomous(WorldState ws, Actor primary) : BossModule(ws, primary, new(920, -420), new ArenaBoundsCircle(20));
+public class BorgnyTheVenomous(ModuleInit init) : BossModule(init, new(920, -420), new ArenaBoundsCircle(20));

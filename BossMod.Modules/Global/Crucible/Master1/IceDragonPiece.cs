@@ -15,5 +15,5 @@ class IceDragonPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1091, NameID = 14606)]
-public class IceDragonPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, 0), new ArenaBoundsSquare(20));
+public class IceDragonPiece(ModuleInit init) : BossModule(init, new(120, 0), new ArenaBoundsSquare(20));
 

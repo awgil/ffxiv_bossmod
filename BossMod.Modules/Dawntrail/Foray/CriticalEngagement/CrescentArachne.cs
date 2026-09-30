@@ -142,5 +142,5 @@ class CrescentArachneStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14840)]
-public class CrescentArachne(WorldState ws, Actor primary) : CEModule(ws, primary, new(170, -136), new ArenaBoundsCircle(20));
+public class CrescentArachne(ModuleInit init) : CEModule(init, new(170, -136), new ArenaBoundsCircle(20));
 

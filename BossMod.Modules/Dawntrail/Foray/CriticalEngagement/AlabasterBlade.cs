@@ -196,5 +196,5 @@ class AlabasterBladeStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14509)]
-public class AlabasterBlade(WorldState ws, Actor primary) : CEModule(ws, primary, new(-519, -641), new ArenaBoundsCircle(24.5f));
+public class AlabasterBlade(ModuleInit init) : CEModule(init, new(-519, -641), new ArenaBoundsCircle(24.5f));
 

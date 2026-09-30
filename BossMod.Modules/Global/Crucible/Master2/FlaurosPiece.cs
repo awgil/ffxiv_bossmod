@@ -49,5 +49,5 @@ class FlaurosPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14631)]
-public class FlaurosPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, -420), new ArenaBoundsCircle(20));
+public class FlaurosPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
 

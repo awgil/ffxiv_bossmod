@@ -334,7 +334,7 @@ class LaudaTheSpellcleaverStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1092, NameID = 14693)]
-public class LaudaTheSpellcleaver(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, -420), CustomBounds)
+public class LaudaTheSpellcleaver(ModuleInit init) : BossModule(init, new(520, -420), CustomBounds)
 {
     public static readonly ArenaBoundsCustom CustomBounds = MakeBounds();
 

@@ -150,5 +150,5 @@ class PhantomHydraStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14523)]
-public class PhantomHydra(WorldState ws, Actor primary) : CEModule(ws, primary, new(-82, 485), new ArenaBoundsCircle(19.5f));
+public class PhantomHydra(ModuleInit init) : CEModule(init, new(-82, 485), new ArenaBoundsCircle(19.5f));
 

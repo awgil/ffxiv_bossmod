@@ -191,7 +191,7 @@ class ElderTablitaurPieceStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14555)]
-public class ElderTablitaurPiece(WorldState ws, Actor primary) : BossModule(ws, primary, new(120, 0), new ArenaBoundsSquare(20))
+public class ElderTablitaurPiece(ModuleInit init) : BossModule(init, new(120, 0), new ArenaBoundsSquare(20))
 {
     public Actor? YoungerTablitaur;
 

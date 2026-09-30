@@ -146,4 +146,4 @@ class T04TsukuyomiStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)] // TODO: clear Incomplete after moon-gauge safespots + specter timeline
-public class T04Tsukuyomi(WorldState ws, Actor primary) : BossModule(ws, primary, new(100, 100), new ArenaBoundsCircle(20));
+public class T04Tsukuyomi(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

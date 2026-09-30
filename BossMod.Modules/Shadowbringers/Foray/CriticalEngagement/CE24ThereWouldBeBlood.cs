@@ -61,4 +61,4 @@ class HanbiStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 24)] // bnpcname=10064
-public class Hanbi(WorldState ws, Actor primary) : BossModule(ws, primary, new(-390, 230), new ArenaBoundsCircle(25));
+public class Hanbi(ModuleInit init) : BossModule(init, new(-390, 230), new ArenaBoundsCircle(25));

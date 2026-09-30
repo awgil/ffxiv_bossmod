@@ -362,7 +362,7 @@ class FTM1TwoHeadedAevisStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14489)]
-public class FTM1TwoHeadedAevis(WorldState ws, Actor primary) : BossModule(ws, primary, new(-900, 700), new ArenaBoundsSquare(20))
+public class FTM1TwoHeadedAevis(ModuleInit init) : BossModule(init, new(-900, 700), new ArenaBoundsSquare(20))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 

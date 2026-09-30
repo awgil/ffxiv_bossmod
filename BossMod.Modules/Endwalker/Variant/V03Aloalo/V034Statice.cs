@@ -638,4 +638,4 @@ class V034StaticeStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 961, NameID = 12506, Contributors = "croizat")]
-public class V034Statice(WorldState ws, Actor primary) : BossModule(ws, primary, new(650, -833), new ArenaBoundsCircle(20));
+public class V034Statice(ModuleInit init) : BossModule(init, new(650, -833), new ArenaBoundsCircle(20));

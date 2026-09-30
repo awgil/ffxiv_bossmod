@@ -50,7 +50,7 @@ class D062BellwetherStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8202)]
-public class D062Bellwether(WorldState ws, Actor primary) : BossModule(ws, primary, new(60, -361), new ArenaBoundsCircle(19.5f))
+public class D062Bellwether(ModuleInit init) : BossModule(init, new(60, -361), new ArenaBoundsCircle(19.5f))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {

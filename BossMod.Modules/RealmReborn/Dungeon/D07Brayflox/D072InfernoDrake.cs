@@ -33,4 +33,4 @@ class D072InfernoDrakeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1284)]
-public class D072InfernoDrake(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D072InfernoDrake(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

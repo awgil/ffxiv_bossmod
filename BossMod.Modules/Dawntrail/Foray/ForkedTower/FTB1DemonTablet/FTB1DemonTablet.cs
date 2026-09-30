@@ -91,7 +91,7 @@ static class AssignmentUtil
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13760, PlanLevel = 100)]
-public class FTB1DemonTablet(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsRect(15, 33))
+public class FTB1DemonTablet(ModuleInit init) : BossModule(init, ArenaCenter, new ArenaBoundsRect(15, 33))
 {
     public static readonly WPos ArenaCenter = new(700, 379);
 

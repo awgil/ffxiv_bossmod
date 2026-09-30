@@ -172,4 +172,4 @@ class D112SpectralNecromancerStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 737, NameID = 9508)]
-public class D112SpectralNecromancer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-450, -531), new ArenaBoundsCircle(19.5f));
+public class D112SpectralNecromancer(ModuleInit init) : BossModule(init, new(-450, -531), new ArenaBoundsCircle(19.5f));

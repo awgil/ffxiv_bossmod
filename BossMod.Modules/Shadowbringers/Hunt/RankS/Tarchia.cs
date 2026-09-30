@@ -71,7 +71,7 @@ class TarchiaStates : StateMachineBuilder
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8900)]
 public class Tarchia : SimpleBossModule
 {
-    public Tarchia(WorldState ws, Actor primary) : base(ws, primary)
+    public Tarchia(ModuleInit init) : base(init)
     {
         ActivateComponent<MightySpin2>();
     }

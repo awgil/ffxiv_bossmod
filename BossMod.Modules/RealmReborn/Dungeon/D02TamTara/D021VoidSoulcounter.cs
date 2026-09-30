@@ -25,4 +25,4 @@ class D021VoidSoulcounterStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 2, NameID = 455)]
-public class D021VoidSoulcounter(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D021VoidSoulcounter(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

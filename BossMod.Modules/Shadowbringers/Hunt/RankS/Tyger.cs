@@ -75,4 +75,4 @@ class TygerStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8905)]
-public class Tyger(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Tyger(ModuleInit init) : SimpleBossModule(init);

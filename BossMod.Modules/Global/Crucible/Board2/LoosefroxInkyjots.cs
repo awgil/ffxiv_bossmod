@@ -96,7 +96,7 @@ class LoosefroxInkyjotsStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14561)]
-public class LoosefroxInkyjots(WorldState ws, Actor primary) : BossModule(ws, primary, new(520, -420), CustomBounds)
+public class LoosefroxInkyjots(ModuleInit init) : BossModule(init, new(520, -420), CustomBounds)
 {
     public static readonly ArenaBoundsCustom CustomBounds = new(27, Utils.LoadResource<RelSimplifiedComplexPolygon>("BossMod.Global.Crucible.Board2.FinalBoss.json"));
 

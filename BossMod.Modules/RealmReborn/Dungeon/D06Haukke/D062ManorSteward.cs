@@ -35,4 +35,4 @@ class D062ManorStewardStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 6, NameID = 427)]
-public class D062ManorSteward(WorldState ws, Actor primary) : BossModule(ws, primary, primary.Position, new ArenaBoundsCircle(20));
+public class D062ManorSteward(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

@@ -103,4 +103,4 @@ class T03ThordanStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 90, NameID = 3632)] // TODO: clear Incomplete after knight timeline + missing mechanics above
-public class T03Thordan(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20));
+public class T03Thordan(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

@@ -83,4 +83,4 @@ class D70KenkoStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 546, NameID = 7489)]
-public class D70Kenko(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300, -300), new ArenaBoundsCircle(24));
+public class D70Kenko(ModuleInit init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(24));

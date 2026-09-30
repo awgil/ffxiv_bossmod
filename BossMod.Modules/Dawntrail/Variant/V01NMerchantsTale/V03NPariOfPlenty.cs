@@ -399,4 +399,4 @@ class V03NPariOfPlentyStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14274)]
-public class V03NPariOfPlenty(WorldState ws, Actor primary) : BossModule(ws, primary, new(-760f, -805f), new ArenaBoundsSquare(20f));
+public class V03NPariOfPlenty(ModuleInit init) : BossModule(init, new(-760f, -805f), new ArenaBoundsSquare(20f));

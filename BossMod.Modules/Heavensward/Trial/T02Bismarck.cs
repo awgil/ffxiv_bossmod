@@ -72,4 +72,4 @@ class T02BismarckStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 88, NameID = 3649)] // TODO: clear Incomplete after shell / Dragonkiller / add cleaves
-public class T02Bismarck(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(24));
+public class T02Bismarck(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(24));
