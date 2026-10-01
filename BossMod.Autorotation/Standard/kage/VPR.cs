@@ -8,6 +8,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 {
     public struct Strategy
     {
+        public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
         [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
@@ -28,20 +29,17 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
         public Track<TrueNorthStrategy> TrueNorth;
 
+        [Track("Slither", MinLevel = 40, Action = AID.Slither)]
+        public Track<SlitherStrategy> Slither;
+
+        [Track("Engage")]
+        public Track<EngageStrategy> Engage;
+
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
-    }
 
-    public enum PotionStrategy
-    {
-        [Option("Do not use automatically")]
-        Manual,
-        [Option("Use before the pull and with Serpent's Ire")]
-        AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
-        AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
-        Immediate
+        [Track("Opener", MinLevel = 100, UiPriority = -10, Context = StrategyContext.Plan)]
+        public Track<OpenerStrategy> Opener;
     }
 
     public enum ReawakenStrategy
@@ -82,6 +80,50 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         Delay
     }
 
+    public enum SlitherStrategy
+    {
+        [Option("Do not use")]
+        None,
+        [Option("Use when outside melee range", Targets = ActionTargets.Hostile)]
+        GapClose
+    }
+
+    public enum EngageStrategy
+    {
+        [Option("Slither to the target, or use the opening GCD right before the pull if already in melee range")]
+        Slither,
+        [Option("Sprint into melee range")]
+        Sprint,
+        [Option("Walk into melee range and use the opening GCD right before the pull")]
+        Facepull
+    }
+
+    public enum PotionStrategy
+    {
+        [Option("Do not use automatically")]
+        Manual,
+        [Option("Use before the pull and with Serpent's Ire")]
+        AlignWithBurst,
+        [Option("Use before the pull and with raid buffs")]
+        AlignWithRaidBuffs,
+        [Option("Use as soon as possible")]
+        Immediate
+    }
+
+    public enum OpenerStrategy
+    {
+        [Option("Standard; FRU or DMU opener in those ultimates")]
+        Automatic,
+        [Option("Reaving Fangs, Swiftskin's Sting, Vicewinder, Hunter's Coil first")]
+        Standard,
+        [Option("Vicewinder first, Swiftskin's Coil first (FRU)")]
+        FRU,
+        [Option("Vicewinder first, Hunter's Coil first (DMU)")]
+        DMU,
+        [Option("No opener-specific rules")]
+        None
+    }
+
     public static RotationModuleDefinition Definition()
     {
         return new RotationModuleDefinition("Kage VPR", "Viper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
@@ -101,7 +143,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private float FlanksbaneVenom;
     private float HindstungVenom;
     private float HindsbaneVenom;
-    private float GrimhuntersVenom;
     private float GrimskinsVenom;
     private float HuntersVenom;
     private float SwiftskinsVenom;
@@ -118,12 +159,14 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private float DowntimeIn;
     private bool InBossFight;
 
-    private int NumAOETargets;
     private Actor? BestSplashTarget;
+    private bool AllowAoE;
     private bool AOEMode;
     private bool InMelee;
     private float AnimLockDelay;
 
+    private Targeting TargetMode;
+    private OpenerStrategy OpenerMode;
     private AID NextGCD;
     private float NextGCDPrio;
 
@@ -133,7 +176,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
     private bool HasBothBuffs => Swiftscaled > GCD && Instinct > GCD;
     private bool TwinWeavesPending => HuntersVenom > 0 || SwiftskinsVenom > 0 || FellhuntersVenom > 0 || FellskinsVenom > 0 || PoisedForTwinfang > 0 || PoisedForTwinblood > 0;
-    private float IreIn => Unlocked(AID.SerpentsIre) ? ReadyIn(AID.SerpentsIre) : float.MaxValue;
+    private float IreIn => ReadyIn(AID.SerpentsIre);
+    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
+    private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -144,6 +189,24 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
             target = null;
+
+        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
+        if (TargetMode == Targeting.Auto && target == null)
+        {
+            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
+            primaryTarget = target?.Actor;
+        }
+
+        OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
+        {
+            OpenerStrategy.Automatic => World.CurrentZone switch
+            {
+                1238 => OpenerStrategy.FRU,
+                1363 => OpenerStrategy.DMU,
+                _ => OpenerStrategy.Standard
+            },
+            var o => o
+        };
 
         var gauge = World.Client.GetGauge<ViperGauge>();
         Dread = gauge.DreadCombo;
@@ -169,7 +232,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         FlanksbaneVenom = SelfStatusLeft(SID.FlanksbaneVenom);
         HindstungVenom = SelfStatusLeft(SID.HindstungVenom);
         HindsbaneVenom = SelfStatusLeft(SID.HindsbaneVenom);
-        GrimhuntersVenom = SelfStatusLeft(SID.GrimhuntersVenom);
         GrimskinsVenom = SelfStatusLeft(SID.GrimskinsVenom);
         HuntersVenom = SelfStatusLeft(SID.HuntersVenom);
         SwiftskinsVenom = SelfStatusLeft(SID.SwiftskinsVenom);
@@ -185,23 +247,23 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
         InBossFight = Bossmods.ActiveModule != null || primaryTarget?.IsStrikingDummy == true;
 
-        NumAOETargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+        AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         AOEMode = Unlocked(AID.SteelMaw) && strategy.AOE.Value switch
         {
             AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => NumAOETargets >= 3,
+            AOEStrategy.AOE => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) >= 3,
             _ => false
         };
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
-        BestSplashTarget = target == null ? null : BestSplash(target, strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE, 20);
+        BestSplashTarget = target == null ? null : BestSplash(target, 20);
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            if (target != null && (InMelee ? countdown < 1.16f : countdown < 0.7f))
-                PushGCD(InMelee ? AID.SteelFangs : AID.Slither, target.Actor, 10);
+            if (target != null)
+                Engage(strategy, target, countdown);
             return;
         }
 
@@ -214,6 +276,34 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
         if (Player.InCombat)
             OGCD(strategy, target);
+    }
+
+    private void Engage(in Strategy strategy, Enemy target, float countdown)
+    {
+        var first = VicewinderOpener ? AID.Vicewinder : OpenerMode == OpenerStrategy.Standard ? AID.ReavingFangs : AID.SteelFangs;
+        switch (strategy.Engage.Value)
+        {
+            case EngageStrategy.Slither:
+                if (InMelee ? countdown < 1.16f : countdown < 0.7f)
+                    PushGCD(InMelee ? first : AID.Slither, target.Actor, 10);
+                break;
+            case EngageStrategy.Sprint:
+                if (countdown < 10)
+                    PushOGCD(ClassShared.AID.Sprint, Player, 10);
+                if (countdown < (Player.DistanceToHitbox(target.Actor) - 3) / 7.8f + 0.5f)
+                {
+                    if (!InMelee)
+                        Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
+                    PushGCD(first, target.Actor, 10);
+                }
+                break;
+            case EngageStrategy.Facepull:
+                if (!InMelee)
+                    Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
+                else if (countdown < 1.16f)
+                    PushGCD(first, target.Actor, 10);
+                break;
+        }
     }
 
     #region GCD
@@ -246,7 +336,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         }
 
         if (Anguine > 0)
-            PushGCD(NextGeneration(), BestSplash(target, strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE, 3), 35);
+            PushGCD(NextGeneration(), BestSplash(target, 3), 35);
 
         if (ShouldReawaken(strategy, dying))
             PushGCD(AID.Reawaken, target.Actor, 30);
@@ -284,6 +374,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     // an expiring buff always goes first, and without a venom we start on the side we're already standing
     private AID FirstCoil(Actor target)
     {
+        if (CombatTime < 10 && OpenerMode is OpenerStrategy.Standard or OpenerStrategy.DMU)
+            return AID.HuntersCoil;
+        if (CombatTime < 10 && OpenerMode == OpenerStrategy.FRU)
+            return AID.SwiftskinsCoil;
+
         var refresh = GCDLength * 6;
         if (Swiftscaled < refresh && Swiftscaled <= Instinct)
             return AID.SwiftskinsCoil;
@@ -382,6 +477,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
         if (HoldForIre || !AOEMode && !InMelee)
             return false;
+        // standard opener: Swiftskin's Sting before the first Vicewinder
+        if (OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove != AID.SwiftskinsSting)
+            return false;
         // the combo is 3 GCDs plus two twin weaves; don't start it into downtime
         if (DowntimeIn < GCD + GCDLength * 3)
             return false;
@@ -469,6 +567,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
         if (ShouldIre(strategy, target))
             PushOGCD(AID.SerpentsIre, Player, 40);
+
+        if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
+            PushOGCD(AID.Slither, ResolveTarget(strategy.Slither) ?? target.Actor, 30);
     }
 
     private bool ShouldIre(in Strategy strategy, Enemy target)
@@ -519,7 +620,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen => 1,
             _ => Anguine > 0 ? 50 : 3
         };
-        Hints.GoalZones.Add(strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE && Unlocked(AID.SteelMaw) && aoeBreakpoint < 50
+        Hints.GoalZones.Add(AllowAoE && Unlocked(AID.SteelMaw) && aoeBreakpoint < 50
             ? GoalCombined(single, Hints.GoalAOECircle(5), aoeBreakpoint)
             : single);
     }
@@ -561,16 +662,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     };
 
     // 5y splash target that hits the most priority targets without touching a forbidden one
-    private Actor BestSplash(Enemy primary, bool allowAoE, float range)
+    private Actor BestSplash(Enemy primary, float range)
     {
         int Count(Actor c) => Hints.ForbiddenTargets.Any(e => TargetInAOECircle(e.Actor, c.Position, 5)) ? 0 : Hints.PriorityTargets.Count(e => TargetInAOECircle(e.Actor, c.Position, 5));
         var best = primary.Actor;
-        if (!allowAoE)
+        if (!AllowAoE || TargetMode == Targeting.Manual)
             return best;
         var bestCount = Count(best);
         foreach (var e in Hints.PriorityTargets)
         {
-            if (e.Actor == best || Player.DistanceToHitbox(e.Actor) > range)
+            if (e.Actor == best || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !TargetInAOECircle(primary.Actor, e.Actor.Position, 5))
                 continue;
             var c = Count(e.Actor);
             if (c > bestCount)
