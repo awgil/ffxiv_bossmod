@@ -42,11 +42,13 @@ public enum AID : uint
     CetaceanRage = 4918, // Boss->self, 6.0s cast, range 50 circle
     BismarckHit4925 = 4925, // Boss->self, no cast, single-target
     BaleenBomb = 4932, // Helper->self, 3.5s cast, range 5 circle
+    VacuumWaveVisual = 4765, // Helper->self, no cast, range 4, fires with each Vacuum Wave
     VacuumWave = 4933, // Helper->self, no cast, range 100 circle
+    AtmosphericDisruption = 4934, // Helper->self, no cast
     Thunderhead = 4935, // Helper->self, 3.0s cast, range 5 circle
     LightningBolt = 4936, // Helper->self, 4.0s cast, range 4 circle
     HelperHit5062 = 5062, // Helper->self, no cast, single-target
-    HelperHit5064 = 5064, // Helper->self, no cast, single-target
+    AtmosphericDisruptionVisual = 5064, // Helper->self, no cast, single-target
 }
 
 class BaleenBomb(BossModule module) : Components.StandardAOEs(module, AID.BaleenBomb, 5);

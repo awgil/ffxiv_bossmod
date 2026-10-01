@@ -85,6 +85,7 @@ class TitaniaAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.M
 
 class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
 {
+    private static readonly AOEShapeCross _shape = new(40, 3);
     private readonly List<AOEInstance> _aoes = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
@@ -93,90 +94,94 @@ class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
     {
         if (actor.OID != (uint)OID.RootGrowth)
             return;
-        // TODO: confirm EAnim state → cross size mapping and activation delays from a clean replay
         if (state == 0x00010002)
         {
-            _aoes.Add(new(new AOEShapeCross(10, 3), actor.Position));
-            _aoes.Add(new(new AOEShapeCross(10, 3), actor.Position, 45f.Degrees()));
+            var activation = WorldState.FutureTime(4.1f);
+            _aoes.Add(new(_shape, actor.Position, default, activation));
+            _aoes.Add(new(_shape, actor.Position, 45f.Degrees(), activation));
         }
-        if (state == 0x00100020)
+        else if (state == 0x00040008)
         {
-            _aoes.Add(new(new AOEShapeCross(40, 3), actor.Position));
-            _aoes.Add(new(new AOEShapeCross(40, 3), actor.Position, 45f.Degrees()));
+            _aoes.RemoveAll(a => a.Origin.AlmostEqual(actor.Position, 1));
         }
     }
 
-    public override void Update()
+    public override void OnActorDestroyed(Actor actor)
     {
-        if (_aoes.Count > 0 && Module.Enemies((uint)OID.RootGrowth).All(x => x.IsDead))
-            _aoes.Clear();
+        if (actor.OID == (uint)OID.RootGrowth)
+            _aoes.RemoveAll(a => a.Origin.AlmostEqual(actor.Position, 1));
     }
 }
 
 class WaterPuddles(BossModule module) : BossComponent(module)
 {
-    private bool _fireCasting;
+    private const float Radius = 3;
+    private readonly List<WPos> _puddles = [];
+    private bool _flameActive;
+    private Actor? _stackTarget;
+
+    private WPos? TargetPuddle => _stackTarget == null || _puddles.Count == 0 ? null : _puddles.MinBy(p => (p - _stackTarget.Position).LengthSq());
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.WaterPuddles)
+            _puddles.Add(actor.Position);
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.WaterPuddles && state == 0x00040008)
+            _puddles.RemoveAll(p => p.AlmostEqual(actor.Position, 1));
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.WaterPuddles)
+            _puddles.RemoveAll(p => p.AlmostEqual(actor.Position, 1));
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action.ID == (uint)AID.FlameRune)
-            _fireCasting = true;
+            _flameActive = true;
     }
 
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (spell.Action.ID == (uint)AID.FlameRune)
-            _fireCasting = false;
+        if (iconID == (uint)IconID.Stack && _flameActive)
+            _stackTarget = actor;
     }
 
-    public static List<Actor> GetPuddles(BossModule module)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        var orbs = module.Enemies((uint)OID.WaterPuddles);
-        var burstOrbs = module.Enemies((uint)OID.WaterPuddlesBurst);
-        var count = burstOrbs.Count > 0 ? burstOrbs.Count : orbs.Count;
-        if (count == 0)
-            return [];
-
-        var filtered = new List<Actor>(count);
-        for (var i = 0; i < count; ++i)
+        if (spell.Action.ID == (uint)AID.FlameHammer)
         {
-            var z = burstOrbs.Count > 0 ? burstOrbs[i] : orbs[i];
-            if (!z.IsDead)
-                filtered.Add(z);
+            _flameActive = false;
+            _stackTarget = null;
         }
-        return filtered;
     }
 
-    public override void AddGlobalHints(GlobalHints hints)
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (GetPuddles(Module).Count != 0 && _fireCasting)
-            hints.Add("Stand in puddles to get fire resist.");
+        if (TargetPuddle is WPos p)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p, Radius));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (TargetPuddle is WPos p && !actor.Position.InCircle(p, Radius))
+            hints.Add("Stack in the puddle!");
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        if (!_fireCasting)
+        if (!_flameActive)
             return;
-        foreach (var orb in GetPuddles(Module))
-            Arena.ZoneCircle(orb.Position, 5, ArenaColor.SafeFromAOE);
-    }
-}
-
-class WaterTowers(BossModule module) : Components.GenericTowers(module)
-{
-    public override void OnActorCreated(Actor actor)
-    {
-        if (actor.OID == (uint)OID.WaterPuddles)
-            Towers.Add(new(actor.Position, 5, 1, 2));
-        else if (actor.OID == (uint)OID.WaterPuddlesBurst)
-            Towers.Clear();
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        base.OnCastFinished(caster, spell);
-        if (spell.Action.ID == (uint)AID.MistRune)
-            Towers.Clear();
+        if (TargetPuddle is WPos target)
+            Arena.ZoneCircle(target, Radius, ArenaColor.SafeFromAOE);
+        else
+            foreach (var p in _puddles)
+                Arena.ZoneCircle(p, Radius, ArenaColor.SafeFromAOE);
     }
 }
 
@@ -205,10 +210,9 @@ class T01TitaniaStates : StateMachineBuilder
             .ActivateOnEnter<FlameRune>()
             .ActivateOnEnter<WoodsEmbrace>()
             .ActivateOnEnter<WaterPuddles>()
-            .ActivateOnEnter<WaterTowers>()
             .ActivateOnEnter<TitaniaAdds>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)] // TODO: clear Incomplete after WoodsEmbrace EAnim + water tower pass
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)]
 public class T01Titania(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

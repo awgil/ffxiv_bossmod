@@ -52,7 +52,7 @@ public enum AID : uint
     DropOfLightVisual = 16068, // BossP2->self, no cast, single-target
     DropOfLight = 16069, // Helper->self, no cast, range 10 circle
     LightPillar = 16070, // BossP2->self, no cast, range 40 width 6 rect
-    BeatificVision = 16071, // BossP2->self, 5.0s cast, range 45 width 40 rect
+    BeatificVision = 16071, // BossP2->self, 5.0s cast, range 45 width 40 rect, covers whole arena
     ReprobationLong = 16075, // Helper->self, 1.5s cast, range 42 width 4 rect
     Shadowreaver = 16106, // BossP2->self, 5.0s cast, range 40 circle
     ExaltedPlumes = 16114, // Helper->self, no cast, range 40 circle
@@ -77,14 +77,79 @@ class DaybreakAOE(BossModule module) : Components.StandardAOEs(module, AID.Daybr
 class ScoldsBridle(BossModule module) : Components.RaidwideCast(module, AID.ScoldsBridle);
 class HolySword(BossModule module) : Components.SingleTargetCast(module, AID.HolySword);
 class RighteousBolt(BossModule module) : Components.BaitAwayCast(module, AID.RighteousBolt, new AOEShapeCircle(3), centerAtTarget: true, endsOnCastEvent: true);
-class SoulAndBody(BossModule module) : Components.GroupedAOEs(module, [AID.SoulAndBody1, AID.SoulAndBody2], new AOEShapeDonut(5, 20));
+class SoulAndBody(BossModule module) : Components.GenericAOEs(module)
+{
+    private static readonly AOEShapeCone _shape = new(20, 30.Degrees());
+    private Angle _base;
+    private DateTime _start;
+    private DateTime _lastEvent;
+    private int _tick = -1;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_tick < 0)
+            yield break;
+        for (var k = _tick; k < _tick + 3; ++k)
+        {
+            var rot = _base + (15 * k - 15).Degrees();
+            var activation = k == 0 ? _start : _start.AddSeconds(1.3f + (k - 1));
+            yield return new(_shape, Arena.Center, rot, activation);
+            yield return new(_shape, Arena.Center, rot + 180.Degrees(), activation);
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.SoulAndBody1 && _tick < 0)
+        {
+            _base = Angle.FromDirection(spell.LocXZ - Arena.Center) - 90.Degrees();
+            _start = Module.CastFinishAt(spell);
+            _lastEvent = _start;
+            _tick = 0;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.SoulAndBody2 or AID.SoulAndBodyInstant2 && _tick >= 0)
+        {
+            _lastEvent = WorldState.CurrentTime;
+            _tick = Math.Max(_tick, (int)MathF.Round((spell.Rotation - _base).Normalized().Deg / 15) + 1);
+        }
+    }
+
+    public override void Update()
+    {
+        if (_tick >= 0 && WorldState.CurrentTime > _lastEvent.AddSeconds(2))
+            _tick = -1;
+    }
+}
 class HolyTrinity(BossModule module) : Components.StandardAOEs(module, AID.HolyTrinity, new AOEShapeRect(40, 2));
 class ReprobationLine(BossModule module) : Components.StandardAOEs(module, AID.ReprobationLine, new AOEShapeRect(21, 2));
 class ReprobationLong(BossModule module) : Components.StandardAOEs(module, AID.ReprobationLong, new AOEShapeRect(42, 2));
+class ReprobationLongPredicted(BossModule module) : Components.GenericAOEs(module)
+{
+    private static readonly AOEShapeRect _shape = new(21, 2);
+    private readonly List<AOEInstance> _aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ReprobationLine)
+            _aoes.Add(new(_shape, spell.LocXZ, spell.Rotation, WorldState.FutureTime(9.5f)));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.ReprobationLong)
+            _aoes.Clear();
+    }
+}
 class GodRayCone(BossModule module) : Components.StandardAOEs(module, AID.GodRayCone, new AOEShapeCone(5, 50.Degrees()));
 class GodRayDonut1(BossModule module) : Components.StandardAOEs(module, AID.GodRayDonut1, new AOEShapeDonutSector(5, 10, 50.Degrees()));
 class GodRayDonut2(BossModule module) : Components.StandardAOEs(module, AID.GodRayDonut2, new AOEShapeDonutSector(10, 20, 50.Degrees()));
-class BeatificVision(BossModule module) : Components.StandardAOEs(module, AID.BeatificVision, new AOEShapeRect(45, 15));
+class BeatificVision(BossModule module) : Components.RaidwideCast(module, AID.BeatificVision);
 class Shadowreaver(BossModule module) : Components.RaidwideCast(module, AID.Shadowreaver);
 class Manacle(BossModule module) : Components.StandardAOEs(module, AID.Manacle, 6);
 class HolySwordAdd(BossModule module) : Components.SingleTargetCast(module, AID.HolySwordAdd, "Interrupt add");
@@ -157,6 +222,7 @@ class T02InnocenceStates : StateMachineBuilder
             .ActivateOnEnter<HolyTrinity>()
             .ActivateOnEnter<ReprobationLine>()
             .ActivateOnEnter<ReprobationLong>()
+            .ActivateOnEnter<ReprobationLongPredicted>()
             .ActivateOnEnter<GodRayCone>()
             .ActivateOnEnter<GodRayDonut1>()
             .ActivateOnEnter<GodRayDonut2>()

@@ -24,6 +24,11 @@ public enum OID : uint
 public enum AID : uint
 {
     AutoAttackKnight = 870, // SerAdelphel/Janlenoux->player, no cast, single-target
+    KnightVisual1 = 4120, // Knights->self, no cast, single-target
+    KnightVisual2 = 4121, // Knights->self, no cast, single-target
+    KnightVisual3 = 4185, // Knights->self, no cast, single-target
+    BossVisual1 = 4186, // Boss->self, no cast, single-target
+    BossVisual2 = 4187, // Boss->self, no cast, single-target
     Attack = 4190, // Boss->self, no cast, range 8 cone
     TheDragonsEye = 4200, // Boss->self, 4.0s cast, single-target
     TheDragonsGaze = 4201, // Boss->self, 5.0s cast, range 80+R circle gaze

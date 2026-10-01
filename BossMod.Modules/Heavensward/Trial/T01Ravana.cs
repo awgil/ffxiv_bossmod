@@ -26,11 +26,11 @@ public enum AID : uint
     PreludeToSlaughterCast = 3719, // Boss->self, 14.7s cast, range 15 circle
     PreludeToSlaughterVisual = 3720, // Boss->self, 2.7s cast, single-target
     PreludeToSlaughterRect = 3721, // Helper->self, no cast, range 40 width 8 rect
-    PreludeToSlaughterCircle = 3722, // Boss->self, 2.7s cast, range 20 circle
+    PreludeToSlaughterCircle = 3722, // Boss->self, 2.7s cast, range 6-20 donut
     SlaughterCast = 3723, // Boss->self, 15.7s cast, range 40 cone
     SlaughterVisual = 3724, // Boss->self, 2.7s cast, single-target
     SlaughterRect = 3725, // Helper->self, 3.7s cast, range 44 width 8 rect
-    SlaughterCircle = 3726, // HelperA->self, no cast, range 12 circle
+    SlaughterCircle = 3726, // HelperA->self, no cast, range 12 circle on icon-marked players
     TapasyaNear = 3727, // Boss->self, no cast, range 9 cone (stay inside)
     TapasyaFar = 3728, // Helper->self, no cast, range 12 cone (stay outside)
     TapasyaFollowUp = 3729, // Boss->self, no cast, single-target (follow-up hit)
@@ -40,9 +40,9 @@ public enum AID : uint
     LaughingMoon = 3734, // HelperA->self, no cast, star puddle at arena edge
     ChandrahasFinale = 3735, // HelperB->self, no cast, small circle at center (stack in)
     TheRoseOfConviction = 3736, // Boss->self, no cast, single-target
-    TheRoseOfConquest = 3737, // RavanasWill->players, no cast, range 6 circle
+    TheRoseOfConquest = 3737, // RavanasWill->self, no cast, range 6 circle at the tethered player, vulnerability on hit
     PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle
-    Surpanakha = 3739, // Boss->player, no cast, tankbuster (cleave)
+    Surpanakha = 3739, // Boss->self, no cast, range 40 ~130-degree cone on the tank, vulnerability on hit
     TheRoseOfHate = 3740, // Boss->self, 2.7s cast, range 40 width 8 rect
     SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target enrage
     SwiftSlaughterDash = 3742, // Boss/HelperA->location, no cast, enrage dashes (4x, 1s apart, ~19y from center)
@@ -52,13 +52,14 @@ public enum AID : uint
     FireAdd = 5015, // MoonGana->player, 0.7s cast, single-target
     BlizzardAdd = 5016, // SpiritGana->player, 0.7s cast, single-target
     SlaughterCross = 5052, // Helper->self, 3.7s cast, range 40 width 8 rect
-    PreludeCircleRepeat = 5059, // Helper->self, 2.7s cast, range 20 circle
-    SlaughterCircleRepeat = 5066, // Helper->self, 2.7s cast, range 20 circle
+    PreludeCircleRepeat = 5059, // Helper->self, 2.7s cast, range 6-20 donut
+    SlaughterCircleRepeat = 5066, // Helper->self, 2.7s cast, range 6-20 donut
 }
 
 public enum IconID : uint
 {
     Stack = 41, // player, Rose of Conquest
+    Slaughter = 57, // player, 12y Slaughter spread ~7.3s later
 }
 
 public enum TetherID : uint
@@ -73,7 +74,7 @@ public enum SID : uint
 }
 
 class PreludeToSlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.PreludeToSlaughterCast, 15);
-class PreludeToSlaughterCircle(BossModule module) : Components.GroupedAOEs(module, [AID.PreludeToSlaughterCircle, AID.PreludeCircleRepeat, AID.SlaughterCircleRepeat], new AOEShapeCircle(20));
+class PreludeToSlaughterCircle(BossModule module) : Components.GroupedAOEs(module, [AID.PreludeToSlaughterCircle, AID.PreludeCircleRepeat, AID.SlaughterCircleRepeat], new AOEShapeDonut(6, 20));
 class PreludeToSlaughterRect(BossModule module) : Components.GenericAOEs(module, AID.PreludeToSlaughterRect)
 {
     private static readonly AOEShapeRect _shape = new(40, 4);
@@ -196,30 +197,9 @@ abstract class RavanaBossOriginAOEs(BossModule module, Enum aid, AOEShape shape,
     }
 }
 
-class SlaughterCircle(BossModule module) : RavanaBossOriginAOEs(module, AID.SlaughterCircle, new AOEShapeCircle(12), 1.5f)
-{
-    protected override WPos Origin(Actor caster) => Module.PrimaryActor.Position;
-}
+class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Slaughter, AID.SlaughterCircle, 12, 7.3f);
 
-class Surpanakha(BossModule module) : Components.GenericSharedTankbuster(module, AID.Surpanakha, new AOEShapeCone(40, 45.Degrees()))
-{
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action != WatchedAction)
-            return;
-        ++NumCasts;
-        Source = caster;
-        Target = WorldState.Actors.Find(caster.TargetID)
-            ?? spell.Targets.Select(t => WorldState.Actors.Find(t.ID)).FirstOrDefault(a => a != null && a.Type is ActorType.Player or ActorType.DutySupport);
-        Activation = WorldState.FutureTime(0.6f);
-    }
-
-    public override void Update()
-    {
-        if (Activation != default && WorldState.CurrentTime >= Activation)
-            Source = Target = null;
-    }
-}
+class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, new AOEShapeCone(40, 65.Degrees()));
 
 class TapasyaNear(BossModule module) : RavanaBossOriginAOEs(module, AID.TapasyaNear, new AOEShapeDonut(9, 40), 1.5f)
 {
@@ -231,26 +211,7 @@ class TapasyaFar(BossModule module) : RavanaBossOriginAOEs(module, AID.TapasyaFa
     protected override WPos Origin(Actor caster) => Module.PrimaryActor.Position;
 }
 
-class TheRoseOfConquest(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.TheRoseOfConquest, 6, 5.1f)
-{
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action != StackAction)
-            return;
-
-        if (Stacks.RemoveAll(s => s.Target.InstanceID == spell.MainTargetID
-            || spell.Targets.Any(t => t.ID == s.Target.InstanceID)) == 0)
-            Stacks.Clear();
-
-        ++NumFinishedStacks;
-    }
-
-    public override void Update()
-    {
-        var now = WorldState.CurrentTime;
-        Stacks.RemoveAll(s => s.Activation != default && now >= s.Activation.AddSeconds(1.5f));
-    }
-}
+class TheRoseOfConquest(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(6), (uint)TetherID.Will, AID.TheRoseOfConquest, centerAtTarget: true);
 
 class RavanaAdds(BossModule module) : Components.AddsMulti(module, [OID.MoonGana, OID.SpiritGana, OID.Chandrahas, OID.IronGate, OID.RavanasWill], 1)
 {
