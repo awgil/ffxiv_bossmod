@@ -35,6 +35,7 @@ class BeakOfTheGriffin(BossModule module) : Components.RaidwideCast(module, AID.
 class FlashPowder(BossModule module) : Components.CastGaze(module, AID.FlashPowder);
 class SanguineBlade(BossModule module) : Components.StandardAOEs(module, AID.SanguineBlade, new AOEShapeCone(41.5f, 90.Degrees()));
 class ClawOfTheGriffin(BossModule module) : Components.SingleTargetCast(module, AID.ClawOfTheGriffin);
+class Lionshead(BossModule module) : Components.RaidwideCast(module, AID.Lionshead);
 class GullDive(BossModule module) : Components.StandardAOEs(module, AID.GullDive, new AOEShapeCircle(80));
 class BigBoot(BossModule module) : Components.Knockback(module, AID.BigBoot, stopAtWall: true)
 {
@@ -146,6 +147,7 @@ class D173TheGriffinStates : StateMachineBuilder
             .ActivateOnEnter<FlashPowder>()
             .ActivateOnEnter<SanguineBlade>()
             .ActivateOnEnter<ClawOfTheGriffin>()
+            .ActivateOnEnter<Lionshead>()
             .ActivateOnEnter<GullDive>()
             .ActivateOnEnter<BigBoot>()
             .ActivateOnEnter<Corrosion>()
