@@ -70,7 +70,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
     private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
-    private readonly HookAddress<InstanceContentCrucible.Delegates.UseItem> _useCrucibleItemHook;
+    private readonly HookAddress<InstanceContentCrucibleOfTheUnbroken.Delegates.UseItem> _useCrucibleItemHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
     private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
@@ -99,7 +99,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _usePomanderHook = new(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
         _useStoneHook = new(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
-        _useCrucibleItemHook = new(InstanceContentCrucible.Addresses.UseItem, UseCrucibleItemDetour);
+        _useCrucibleItemHook = new(InstanceContentCrucibleOfTheUnbroken.Addresses.UseItem, UseCrucibleItemDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
         _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
@@ -682,7 +682,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         }
     }
 
-    private void UseCrucibleItemDetour(InstanceContentCrucible* self, uint slot, int beastId)
+    private void UseCrucibleItemDetour(InstanceContentCrucibleOfTheUnbroken* self, uint slot, int beastId)
     {
         if (beastId > 0) // blessed horn; can't be used in combat and we have no way to save the beast ID for the queued action; fallback to native
         {
@@ -722,7 +722,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         var cid = (CrucibleID)item.ID;
         var xbmRow = CrucibleItemID.GetXBMRow(cid);
 
-        var ic = (InstanceContentCrucible*)EventFramework.Instance()->GetInstanceContentDirector();
+        var ic = (InstanceContentCrucibleOfTheUnbroken*)EventFramework.Instance()->GetInstanceContentDirector();
         if (ic == null || ic->InstanceContentType != InstanceContentType.CrucibleOfTheUnbroken)
             return;
 
