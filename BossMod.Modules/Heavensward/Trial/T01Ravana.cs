@@ -197,9 +197,53 @@ abstract class RavanaBossOriginAOEs(BossModule module, Enum aid, AOEShape shape,
     }
 }
 
-class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Slaughter, AID.SlaughterCircle, 12, 7.3f);
+class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Slaughter, AID.SlaughterCircle, 12, 7.3f)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == SpreadAction)
+            Spreads.Clear();
+    }
+}
 
-class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, new AOEShapeCone(40, 65.Degrees()));
+class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, new AOEShapeCone(40, 65.Degrees()))
+{
+    private bool _active;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.PillarsOfHeaven:
+                _active = true;
+                break;
+            case AID.DragonflyAvatar:
+            case AID.ScorpionAvatar:
+            case AID.BeetleAvatar:
+                _active = false;
+                break;
+        }
+        base.OnEventCast(caster, spell);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_active)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_active)
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_active)
+            base.DrawArenaForeground(pcSlot, pc);
+    }
+}
 
 class TapasyaNear(BossModule module) : RavanaBossOriginAOEs(module, AID.TapasyaNear, new AOEShapeDonut(9, 40), 1.5f)
 {
