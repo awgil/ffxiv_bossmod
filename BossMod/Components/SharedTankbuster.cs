@@ -12,6 +12,9 @@ public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shap
 
     public bool Active => Source != null;
 
+    // TODO: this should be somewhere else
+    public virtual bool IsShared => true;
+
     // circle shapes typically have origin at target
     public GenericSharedTankbuster(BossModule module, Enum? aid, float radius) : this(module, aid, new AOEShapeCircle(radius), true) { }
 
@@ -21,7 +24,7 @@ public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shap
         810, // Living Dead
         811, // Walking Dead
         1836, // Superbolide
-        2564, // Lost EXcellence
+        2564, // Lost Excellence
     ];
 
     public static bool IsInvulnerableAt(Actor actor, DateTime time)
@@ -47,7 +50,7 @@ public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shap
         }
         else if (actor.Role == Role.Tank)
         {
-            if (!targetInvuln)
+            if (!targetInvuln && IsShared)
                 hints.Add("Stack with tank!", !InAOE(actor));
         }
         else
@@ -59,7 +62,7 @@ public class GenericSharedTankbuster(BossModule module, Enum? aid, AOEShape shap
         if (Source != null && Target != null && Target != actor)
         {
             var shape = OriginAtTarget ? Shape.Distance(Target.Position, Target.Rotation) : Shape.Distance(Source.Position, Angle.FromDirection(Target.Position - Source.Position));
-            if (actor.Role == Role.Tank)
+            if (actor.Role == Role.Tank && IsShared)
                 hints.AddForbiddenZone(p => -shape(p), Activation);
             else
                 hints.AddForbiddenZone(shape, Activation);

@@ -79,4 +79,4 @@ class ObserverStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13853)]
-public class Observer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-71, 557), new ArenaBoundsCircle(40));
+public class Observer(ModuleInit init) : BossModule(init, new(-71, 557), new ArenaBoundsCircle(40));

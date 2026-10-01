@@ -2,67 +2,35 @@
 
 public enum OID : uint
 {
-    Boss = 0x605, // x1
-    MoucheVolante = 0x606, // spawn during fight
-    Amanuensis = 0x607, // spawn during fight
-    Crystal = 0x1E8594, // x6, EventObj type
+    // TODO: remaster AID kit inferred from Lumina — confirm OIDs/shapes in a live Duty Support run
+    Boss = 0x4A8A, // R2.700, All-seeing Eye (Duty Support / remaster)
+    Helper = 0x233C, // R0.500
+    CrystalOld = 0x60B, // R1.000, Corrupted Crystal (trash/legacy)
 }
 
 public enum AID : uint
 {
-    AutoAttack = 870, // Boss/Amanuensis->player, no cast, single-target
-    CursedGaze = 512, // Boss->self, 2.5s cast, range 6+2.7 90-degree cone
-    DreadGaze = 513, // Boss->self, 3.0s cast, range 6+2.7 90-degree cone
-    EyesOnMe = 951, // Boss->self, no cast, raidwide
-
-    AutoAttackAdd = 878, // MoucheVolante->player, no cast, single-target
-    Thunderstrike = 1097, // MoucheVolante->self, 2.0s cast, range 10+1.2 width 3 rect
-    Condemnation = 1100, // Amanuensis->self, 2.5s cast, range 6+1.3 90-degree cone
+    AutoAttack = 870, // Boss->player, no cast, single-target
+    VoidMatterVisual = 45567, // Boss->self, 7.2s cast, single-target visual
+    VoidMatter = 45568, // Helper->location, 7.7s cast, range 10 circle
+    EvilEye = 45569, // Boss->self, 4.7s cast, range 33 circle gaze
+    IntimidatingFlash = 45570, // Boss->self, 2.7s cast, range 10-55 donut
 }
 
-public enum SID : uint
-{
-    Invincibility = 325, // none->Boss, extra=0x0
-}
-
-class CursedGaze(BossModule module) : Components.StandardAOEs(module, AID.CursedGaze, new AOEShapeCone(8.7f, 45.Degrees()));
-class DreadGaze(BossModule module) : Components.StandardAOEs(module, AID.DreadGaze, new AOEShapeCone(8.7f, 45.Degrees()));
-class Thunderstrike(BossModule module) : Components.StandardAOEs(module, AID.Thunderstrike, new AOEShapeRect(11.2f, 1.5f));
-class Condemnation(BossModule module) : Components.StandardAOEs(module, AID.Condemnation, new AOEShapeCone(7.3f, 45.Degrees()));
-
-// try to always stay in active crystal closest to boss
-class Positioning(BossModule module) : BossComponent(module)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Module.PrimaryActor.CastInfo == null) // do not restrict zone while boss is casting, to allow avoiding aoe, even if it means temporarily leaving crystal veil
-        {
-            var closestCrystal = Module.Enemies(OID.Crystal).Closest(Module.PrimaryActor.Position);
-            if (closestCrystal != null)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closestCrystal.Position, 8)); // TODO: verify range
-        }
-    }
-}
+class VoidMatter(BossModule module) : Components.StandardAOEs(module, AID.VoidMatter, 10);
+class EvilEye(BossModule module) : Components.CastGaze(module, AID.EvilEye);
+class IntimidatingFlash(BossModule module) : Components.StandardAOEs(module, AID.IntimidatingFlash, new AOEShapeDonut(10, 55));
 
 class D111AllSeeingEyeStates : StateMachineBuilder
 {
     public D111AllSeeingEyeStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<CursedGaze>()
-            .ActivateOnEnter<DreadGaze>()
-            .ActivateOnEnter<Thunderstrike>()
-            .ActivateOnEnter<Condemnation>()
-            .ActivateOnEnter<Positioning>();
+            .ActivateOnEnter<VoidMatter>()
+            .ActivateOnEnter<EvilEye>()
+            .ActivateOnEnter<IntimidatingFlash>();
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)]
-public class D111AllSeeingEye(WorldState ws, Actor primary) : BossModule(ws, primary, new(40, 70), new ArenaBoundsSquare(30))
-{
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (PrimaryActor.FindStatus(SID.Invincibility) != null)
-            hints.PotentialTargets.RemoveAll(e => e.Actor == PrimaryActor);
-    }
-}
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 13, NameID = 1397)] // TODO: clear after remaster AID kit live verify
+public class D111AllSeeingEye(ModuleInit init) : BossModule(init, new(48, 78), new ArenaBoundsSquare(25));

@@ -68,4 +68,4 @@ class RoprossStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13740)]
-public class Ropross(WorldState ws, Actor primary) : BossModule(ws, primary, new(-231, 252), new ArenaBoundsCircle(40));
+public class Ropross(ModuleInit init) : BossModule(init, new(-231, 252), new ArenaBoundsCircle(40));

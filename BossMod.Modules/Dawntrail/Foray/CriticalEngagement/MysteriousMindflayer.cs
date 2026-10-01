@@ -195,4 +195,4 @@ class MysteriousMindflayerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13646)]
-public class MysteriousMindflayer(WorldState ws, Actor primary) : CEModule(ws, primary, new(300, 730), new ArenaBoundsCircle(30));
+public class MysteriousMindflayer(ModuleInit init) : CEModule(init, new(300, 730), new ArenaBoundsCircle(30));

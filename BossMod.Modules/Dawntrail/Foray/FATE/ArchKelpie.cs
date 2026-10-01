@@ -103,4 +103,4 @@ class ArchKelpieStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14728)]
-public class ArchKelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(330, -250), new ArenaBoundsCircle(30));
+public class ArchKelpie(ModuleInit init) : BossModule(init, new(330, -250), new ArenaBoundsCircle(30));

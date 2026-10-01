@@ -78,14 +78,16 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     {
         switch (status.ID)
         {
-            case 3054: //Guard in PVP
-            case (uint)WHM.SID.Surecast:
+            case (uint)ClassShared.SID.GuardPvP:
+            case (uint)ClassShared.SID.Surecast:
             case (uint)WAR.SID.ArmsLength:
                 if (Raid.TryFindSlot(actor, out var slot1))
                     PlayerImmunes[slot1].RoleBuffExpire = status.ExpireAt;
                 break;
-            case 1722: //Bluemage Diamondback
             case (uint)WAR.SID.InnerStrength:
+            case (uint)BLU.SID.Diamondback:
+            case (uint)BST.SID.Vileskin:
+            case (uint)BST.SID.Covered:
                 if (Raid.TryFindSlot(actor, out var slot2))
                     PlayerImmunes[slot2].JobBuffExpire = status.ExpireAt;
                 break;
@@ -100,14 +102,16 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     {
         switch (status.ID)
         {
-            case 3054: //Guard in PVP
-            case (uint)WHM.SID.Surecast:
+            case (uint)ClassShared.SID.GuardPvP:
+            case (uint)ClassShared.SID.Surecast:
             case (uint)WAR.SID.ArmsLength:
                 if (Raid.TryFindSlot(actor, out var slot1))
                     PlayerImmunes[slot1].RoleBuffExpire = new();
                 break;
-            case 1722: //Bluemage Diamondback
             case (uint)WAR.SID.InnerStrength:
+            case (uint)BLU.SID.Diamondback:
+            case (uint)BST.SID.Vileskin:
+            case (uint)BST.SID.Covered:
                 if (Raid.TryFindSlot(actor, out var slot2))
                     PlayerImmunes[slot2].JobBuffExpire = new();
                 break;

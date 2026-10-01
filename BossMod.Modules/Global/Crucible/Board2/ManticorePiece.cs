@@ -1,0 +1,124 @@
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Global.Crucible.ManticorePiece;
+
+public enum OID : uint
+{
+    Boss = 0x4C53,
+    Helper = 0x233C,
+}
+
+public enum AID : uint
+{
+    _AutoAttack_ = 49680, // Boss->player, no cast, single-target
+    _Weaponskill_ArmAndHammer = 48124, // Boss->self, 5.0+0.6s cast, single-target
+    _Weaponskill_ArmAndHammer1 = 48125, // Helper->self, 5.6s cast, range 30 180-degree cone
+    _Weaponskill_ArmAndHammer2 = 48122, // Boss->self, 5.0+0.6s cast, single-target
+    _Weaponskill_ArmAndHammer3 = 48123, // Helper->self, 5.6s cast, range 30 180-degree cone
+    _Weaponskill_DeadlyHold = 48138, // Boss->player, 5.0s cast, single-target
+    _Ability_ = 48126, // Boss->location, no cast, single-target
+    _Weaponskill_Hammerleap = 48135, // Boss->location, 7.0+1.1s cast, single-target
+    _Weaponskill_Hammerleap1 = 48137, // Helper->self, 8.1s cast, range 30 circle
+    _Weaponskill_TailsAndHeads1 = 50411, // Helper->self, 3.9s cast, range 40 180-degree cone
+    _Weaponskill_TailsAndHeads = 50410, // Boss->self, 3.5+0.4s cast, single-target
+    _Weaponskill_TailsAndHeads2 = 50412, // Boss->self, 2.0+0.4s cast, single-target
+    _Weaponskill_TailsAndHeads3 = 50413, // Helper->self, 2.4s cast, range 40 180-degree cone
+    _Weaponskill_ = 48128, // Helper->location, 1.5s cast, width 8 rect charge
+    _Weaponskill_ChargeAndHammer = 48127, // Boss->self, 10.0s cast, single-target
+    _Weaponskill_WildCharge = 48129, // Boss->location, no cast, single-target
+    _Weaponskill_WildCharge1 = 48130, // Helper->location, 1.1s cast, width 8 rect charge
+    _Weaponskill_ArmAndHammer4 = 48131, // Boss->self, no cast, single-target
+    _Weaponskill_ArmAndHammer5 = 48132, // Helper->self, 0.6s cast, range 30 180-degree cone
+    _Weaponskill_ArmAndHammer6 = 48133, // Boss->self, no cast, single-target
+    _Weaponskill_ArmAndHammer7 = 48134, // Helper->self, 0.6s cast, range 30 180-degree cone
+    _Weaponskill_HeadsAndTails = 48139, // Boss->self, 3.5+0.4s cast, single-target
+    _Weaponskill_HeadsAndTails1 = 48140, // Helper->self, 3.9s cast, range 40 180-degree cone
+    _Weaponskill_HeadsAndTails2 = 48141, // Boss->self, 2.0+0.4s cast, single-target
+    _Weaponskill_HeadsAndTails3 = 48142, // Helper->self, 2.4s cast, range 40 180-degree cone
+}
+
+public enum SID : uint
+{
+    RightArm = 2056, // none->Boss, extra=0x414
+    LeftArm = 2193, // none->Boss, extra=0x413
+}
+
+class ArmAndHammer(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ArmAndHammer1, AID._Weaponskill_ArmAndHammer3], new AOEShapeCone(30, 90.Degrees()));
+class DeadlyHold(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_DeadlyHold);
+class Hammerleap(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Hammerleap1, 30);
+class TailsAndHeads(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_TailsAndHeads1, AID._Weaponskill_TailsAndHeads3], new AOEShapeCone(40, 90.Degrees()));
+class HeadsAndTails(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_HeadsAndTails1, AID._Weaponskill_HeadsAndTails3], new AOEShapeCone(40, 90.Degrees()));
+
+class ChargeAndHammer(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_WildCharge1)
+{
+    int side;
+
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var (i, a) in _predicted.Index().Take(2))
+            yield return a with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_)
+        {
+            DetermineSide();
+            var dir = spell.LocXZ - caster.Position;
+            _predicted.Add(new(new AOEShapeRect(dir.Length(), 4), caster.Position, dir.ToAngle(), Module.CastFinishAt(spell, 7.1f)));
+            if (_predicted.Count == 4 && side != 0)
+            {
+                _predicted.Add(new(new AOEShapeCone(40, 90.Degrees()), spell.LocXZ, dir.ToAngle() + (90 * side).Degrees(), Module.CastFinishAt(spell, 9.4f)));
+                _predicted.Add(new(new AOEShapeCone(40, 90.Degrees()), spell.LocXZ, dir.ToAngle() - (90 * side).Degrees(), Module.CastFinishAt(spell, 11.4f)));
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction || (AID)spell.Action.ID is AID._Weaponskill_ArmAndHammer5 or AID._Weaponskill_ArmAndHammer7)
+        {
+            NumCasts++;
+            if (_predicted.Count > 0)
+                _predicted.RemoveAt(0);
+        }
+    }
+
+    void DetermineSide()
+    {
+        if (side != 0)
+            return;
+
+        foreach (var s in Module.PrimaryActor.Statuses)
+        {
+            switch ((SID)s.ID)
+            {
+                case SID.LeftArm:
+                    side = 1;
+                    return;
+                case SID.RightArm:
+                    side = -1;
+                    return;
+            }
+        }
+    }
+}
+
+class ManticorePieceStates : StateMachineBuilder
+{
+    public ManticorePieceStates(BossModule module) : base(module)
+    {
+        TrivialPhase()
+            .ActivateOnEnter<ArmAndHammer>()
+            .ActivateOnEnter<DeadlyHold>()
+            .ActivateOnEnter<Hammerleap>()
+            .ActivateOnEnter<TailsAndHeads>()
+            .ActivateOnEnter<HeadsAndTails>()
+            .ActivateOnEnter<ChargeAndHammer>();
+    }
+}
+
+[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14545)]
+public class ManticorePiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
+

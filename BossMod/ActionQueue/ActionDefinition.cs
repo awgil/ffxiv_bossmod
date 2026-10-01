@@ -239,6 +239,17 @@ public sealed class ActionDefinitions
 
         RegisterItem(IDMiscItemGreens, 1.1f);
 
+        // hp restoration pots
+        RegisterItem(new(ActionType.Item, 4551), 1.1f); // potion
+        RegisterItem(new(ActionType.Item, 4552), 1.1f); // hi-potion
+        RegisterItem(new(ActionType.Item, 4553), 1.1f); // mega-potion
+        RegisterItem(new(ActionType.Item, 4554), 1.1f); // x-potion
+        RegisterItem(new(ActionType.Item, 4561), 1.1f); // dusken draught
+        RegisterItem(new(ActionType.Item, 13637), 1.1f); // max-potion
+        RegisterItem(new(ActionType.Item, 23167), 1.1f); // super-potion
+        RegisterItem(new(ActionType.Item, 38956), 1.1f); // hyper-potion
+        RegisterItem(new(ActionType.Item, 47701), 1.1f); // ultra-potion
+
         // special content actions - bozja, deep dungeons, etc
         for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
             RegisterBozja(i);
@@ -246,6 +257,23 @@ public sealed class ActionDefinitions
             RegisterDeepDungeon(new(ActionType.Pomander, (uint)i));
         for (var i = 1u; i <= 3; i++)
             RegisterDeepDungeon(new(ActionType.Magicite, i));
+
+        // crucible items are weird because 1. the player can carry duplicates and 2. different items have different allowed targets
+        // additionally, XBMItem has no reference to the Action sheet, and since both sets of IDs are contiguous, i'm tempted to say that the correspondence is hardcoded
+        for (var i = CrucibleID.G1BeastPotion; i < CrucibleID.Count; i++)
+        {
+            var aid = new ActionID(ActionType.Crucible, (uint)i);
+
+            var data = _actionsSheet.GetRow(CrucibleItemID.GetSpellID(i));
+
+            var def = new ActionDefinition(aid)
+            {
+                AllowedTargets = SpellAllowedTargets(data),
+                Range = SpellRange(data),
+                InstantAnimLock = 1.1f
+            };
+            Register(aid, def);
+        }
 
         foreach (var act in typeof(EurekaActionID).GetEnumValues())
             if ((uint)act > 0)

@@ -58,7 +58,7 @@ class NoviceTank04States : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "erdelf", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 154, NameID = 541)]
-public class NoviceTank04(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(20))
+public class NoviceTank04(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override bool CheckPull() => PrimaryActor.IsTargetable;
 }

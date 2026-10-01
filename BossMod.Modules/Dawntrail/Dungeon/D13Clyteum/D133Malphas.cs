@@ -95,4 +95,4 @@ class D133MalphasStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1011, NameID = 14758)]
-public class D133Malphas(WorldState ws, Actor primary) : BossModule(ws, primary, new(760, -803), new ArenaBoundsCircle(20));
+public class D133Malphas(ModuleInit init) : BossModule(init, new(760, -803), new ArenaBoundsCircle(20));

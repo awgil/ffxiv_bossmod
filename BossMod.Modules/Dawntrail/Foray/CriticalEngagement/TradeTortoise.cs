@@ -292,7 +292,7 @@ class TradeTortoiseStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13695)]
-public class TradeTortoise(WorldState ws, Actor primary) : CEModule(ws, primary, new(72, -545), new ArenaBoundsCircle(25));
+public class TradeTortoise(ModuleInit init) : CEModule(init, new(72, -545), new ArenaBoundsCircle(25));
 
 [ConfigDisplay(Parent = typeof(DawntrailConfig))]
 public class TradeTortoiseConfig : ConfigNode

@@ -139,4 +139,4 @@ class D103ScarmiglioneStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11372)]
-public class D103Scarmiglione(WorldState ws, Actor primary) : BossModule(ws, primary, new(-35, -298), new ArenaBoundsCircle(20));
+public class D103Scarmiglione(ModuleInit init) : BossModule(init, new(-35, -298), new ArenaBoundsCircle(20));

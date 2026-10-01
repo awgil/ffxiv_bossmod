@@ -11,6 +11,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
     private readonly UITree _tree = new();
     private Lists _listsRaw;
     private readonly Dictionary<Replay.Encounter, Lists> _listsFiltered = [];
+    private DateTime _relativeTS;
 
     public void Draw()
     {
@@ -59,7 +60,8 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
         var tidType = moduleInfo?.TetherIDType;
         var iidType = moduleInfo?.IconIDType;
         var reference = filter?.Time.Start ?? r.Ops[0].Timestamp;
-        var tp = TimePrinter(reference);
+        var ts1 = ImGui.GetIO().KeyShift && _relativeTS != default ? _relativeTS : reference;
+        var tp = TimePrinter(ts1);
         var actions = filter != null ? r.EncounterActions(filter) : r.Actions;
         var statuses = filter != null ? r.EncounterStatuses(filter) : r.Statuses;
         var tethers = filter != null ? r.EncounterTethers(filter) : r.Tethers;
@@ -219,7 +221,7 @@ class EventList(Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, Replay
 
     private void DrawActions(IEnumerable<Replay.Action> list, Func<DateTime, string> tp, Type? aidType)
     {
-        foreach (var a in _tree.Nodes(list, a => new(ActionString(a, tp, aidType), a.Targets.Count == 0)))
+        foreach (var a in _tree.Nodes(list, a => new(ActionString(a, tp, aidType), a.Targets.Count == 0), select: (a) => _relativeTS = a.Timestamp))
         {
             foreach (var t in _tree.Nodes(a.Targets, t => new(ReplayUtils.ActionTargetString(t, a.Timestamp))))
             {

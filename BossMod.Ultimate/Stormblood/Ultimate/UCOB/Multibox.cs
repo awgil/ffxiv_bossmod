@@ -20,15 +20,9 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
 
         if (!Player.InCombat && World.Client.CountdownRemaining > 0)
         {
-            if (!(Player.FindStatus(48, DateTime.MaxValue)?.ExpireAt > World.FutureTime(600)))
+            if (!(Player.FindStatus(48, DateTime.MaxValue)?.ExpireAt > World.FutureTime(1020)))
             {
-                var food = Player.Role switch
-                {
-                    Role.Healer => ActionDefinitions.IDFruitcake,
-                    Role.Tank => ActionDefinitions.IDClamCake,
-                    _ => ActionDefinitions.IDPopcorn
-                };
-                Hints.ActionsToExecute.Push(food, Player, ActionQueue.Priority.High);
+                Hints.ActionsToExecute.Push(ActionDefinitions.IDPopcorn, Player, ActionQueue.Priority.High);
             }
 
             if (primaryTarget != null)
@@ -42,6 +36,7 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
         }
     }
 
+    /*
     void SetStance(bool enabled)
     {
         var (stance, stanceBuff) = Player.Class switch
@@ -60,4 +55,5 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
         if (enabled != haveStance)
             Hints.ActionsToExecute.Push(stance, Player, ActionQueue.Priority.Medium);
     }
+    */
 }

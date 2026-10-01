@@ -95,7 +95,7 @@ public static partial class Utils
 
     public static bool IsMultiplayerDuty(WorldState world) => Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(world.CurrentCFCID) is { } cfc && cfc.AllowUndersized;
 
-    public static bool IsUnsynced(WorldState world, Actor player) => Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(world.CurrentCFCID) is { } cfc && player.Level > cfc.ClassJobLevelSync;
+    public static bool IsUnsynced(WorldState world, Actor player) => world.CurrentCFCID > 0 && Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(world.CurrentCFCID) is { } cfc && player.Level > cfc.ClassJobLevelSync;
 
     private static readonly string[] _omenDonutTags = [
         "sircle_",

@@ -312,4 +312,4 @@ class MetamorphStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14801)]
-public class Metamorph(WorldState ws, Actor primary) : CEModule(ws, primary, new(500, -310), new ArenaBoundsCircle(25));
+public class Metamorph(ModuleInit init) : CEModule(init, new(500, -310), new ArenaBoundsCircle(25));

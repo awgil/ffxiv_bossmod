@@ -492,4 +492,4 @@ class V01PariOfPlentyStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1084, NameID = 14274)]
-public class V01PariOfPlenty(WorldState ws, Actor primary) : BossModule(ws, primary, new(-760, -805), new ArenaBoundsSquare(20));
+public class V01PariOfPlenty(ModuleInit init) : BossModule(init, new(-760, -805), new ArenaBoundsSquare(20));

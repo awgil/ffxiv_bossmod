@@ -4,6 +4,7 @@ using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 using static DalaMock.Core.Fonts.MockDefaultFontConfig;
@@ -16,7 +17,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud) : Plugin(dalamud)
+    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, IDataManager dataManager) : Plugin(dalamud, null!, dataManager)
     {
         public override IReplacementContainer ReplacementContainer { get; } = mrc;
     }
@@ -40,6 +41,15 @@ static class Program
         AppDomain.CurrentDomain.AssemblyResolve += delegate (object? sender, ResolveEventArgs args)
         {
             var libName = args.Name.Split(',').FirstOrDefault();
+
+#if LOCAL_CS
+            if (libName == "FFXIVClientStructs")
+            {
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                return Assembly.LoadFrom(Path.Join(root, "FFXIVClientStructs.dll"));
+            }
+#endif
+
             return libName != null && SupportedLibs.Contains(libName) ? Assembly.LoadFrom(Path.Join(dalapath, $"{libName}.dll")) : null;
         };
 

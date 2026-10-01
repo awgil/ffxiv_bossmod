@@ -70,6 +70,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
     private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
+    private readonly HookAddress<InstanceContentCrucible.Delegates.UseItem> _useCrucibleItemHook;
     private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
     private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
@@ -98,6 +99,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
         _usePomanderHook = new(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
         _useStoneHook = new(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
+        _useCrucibleItemHook = new(InstanceContentCrucible.Addresses.UseItem, UseCrucibleItemDetour);
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
         _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
@@ -114,6 +116,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     {
         _setAutoAttackStateHook.Dispose();
         _processPacketActionEffectHook.Dispose();
+        _useCrucibleItemHook.Dispose();
         _useStoneHook.Dispose();
         _usePomanderHook.Dispose();
         _useBozjaFromHolsterDirectorHook.Dispose();
@@ -142,7 +145,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
 
-        if (AutoQueue.Priority < ActionQueue.Priority.ManualEmergency)
+        if (AutoQueue.Priority < ActionQueue.Priority.ManualEmergency && !AutoQueue.Force)
         {
             if (Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold + ApplicationDelay.Get(AutoQueue.Action)))
                 AutoQueue = default; // do not execute non-emergency actions when pyretic is imminent
@@ -376,6 +379,9 @@ public sealed unsafe class ActionManagerEx : IAmex
             case ActionType.Magicite:
                 UseStoneNative(action);
                 return true;
+            case ActionType.Crucible:
+                UseCrucibleItemNative(action, targetId);
+                return true;
 
             default:
                 // fall back to UAL hook for everything not covered explicitly
@@ -415,6 +421,17 @@ public sealed unsafe class ActionManagerEx : IAmex
         return _smartRotationTweak.GetSafeRotation(current, idealOrientation, isCasting ? 75.Degrees() : 45.Degrees());
     }
 
+    private static bool IsGCD(ActionID action)
+    {
+        if (action.Type != ActionType.Spell)
+            return false;
+
+        if (Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID) is not { } row)
+            return false;
+
+        return row.CooldownGroup == 58 || row.AdditionalCooldownGroup == 58;
+    }
+
     private void UpdateDetour(ActionManager* self)
     {
         var fwk = Framework.Instance();
@@ -429,10 +446,13 @@ public sealed unsafe class ActionManagerEx : IAmex
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
         // if we're not casting, but will start soon, moving might interrupt future cast
-        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && !CanMoveWhileCasting(imminentActionAdj) && GCD() < 0.1f;
+        MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && !CanMoveWhileCasting(imminentActionAdj) && (!IsGCD(imminentActionAdj) || GCD() < 0.1f);
 
-        var blockMovement = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
-        blockMovement |= Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode is AIHints.SpecialMode.Pyretic or AIHints.SpecialMode.PyreticMove && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
+        var blockMovementCast = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
+
+        var blockMovementStillness = Config.PyreticThreshold > 0 && _hints.ImminentSpecialMode.mode is AIHints.SpecialMode.Pyretic or AIHints.SpecialMode.PyreticMove && _hints.ImminentSpecialMode.activation < _ws.FutureTime(Config.PyreticThreshold);
+
+        var blockMovement = blockMovementCast || blockMovementStillness;
 
         // note: if we cancel movement and start casting immediately, it will be canceled some time later - instead prefer to delay for one frame
         var actionImminent = EffectiveAnimationLock <= 0 && AutoQueue.Action && !IsRecastTimerActive(AutoQueue.Action) && !(blockMovement && _movement.IsMoving());
@@ -469,17 +489,21 @@ public sealed unsafe class ActionManagerEx : IAmex
             else
             {
                 Service.Log($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
-                blockMovement = false;
+                blockMovementCast = blockMovementStillness = false;
             }
         }
 
         autoRotateConfig->Value.UInt = autoRotateOriginal;
         _cooldownTweak.StopAdjustment(); // clear any potential adjustments
-        _movement.MovementBlocked = blockMovement;
 
-        // TODO: what's the reason to do it in AM update, rather than plugin's executehints?..
+        // doing it here so we can unblock movement early; cast canceling is serverside but movement is not
         if (_ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(_ws.CurrentTime, _hints.ForceCancelCast))
+        {
             UIState.Instance()->Hotbar.CancelCast();
+            blockMovementCast = false;
+        }
+
+        _movement.MovementBlocked = blockMovementCast || blockMovementStillness;
 
         if (!GameMain.IsInPvPArea() && !Service.Condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
         {
@@ -524,21 +548,9 @@ public sealed unsafe class ActionManagerEx : IAmex
         (ulong, Vector3?) getAreaTarget() => targetOverridden ? (targetId, null) :
             (Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget ? targetId : 0xE0000000, Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor ? GetWorldPosUnderCursor() : null);
 
-        ulong findNearestTarget()
-        {
-            if (Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1)
-            {
-                _autoSelectTarget(targetSystem);
-                if (targetSystem->Target != null)
-                    return targetSystem->Target->GetGameObjectId();
-            }
-
-            return 0xE0000000;
-        }
-
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
         var canManualQueue = mode == ActionManager.UseActionMode.None || mode == ActionManager.UseActionMode.Macro && MacroCapture;
-        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, findNearestTarget))
+        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, AutotargetNative))
             return false;
 
         var areaTargeted = false;
@@ -550,6 +562,19 @@ public sealed unsafe class ActionManagerEx : IAmex
         if (areaTargeted && Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget)
             self->AreaTargetingExecuteAtObject = targetId;
         return res;
+    }
+
+    private ulong AutotargetNative()
+    {
+        var targetSystem = TargetSystem.Instance();
+        if (Framework.Instance()->SystemConfig.GetConfigOption((uint)ConfigOption.AutoNearestTarget)->Value.UInt == 1)
+        {
+            _autoSelectTarget(targetSystem);
+            if (targetSystem->Target != null)
+                return targetSystem->Target->GetGameObjectId();
+        }
+
+        return 0xE0000000;
     }
 
     private bool UseActionLocationDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, Vector3* location, uint extraParam, byte a7)
@@ -654,6 +679,68 @@ public sealed unsafe class ActionManagerEx : IAmex
             _useStoneHook.Original(dd, action.ID - 1);
             _inst->AnimationLock = 2.1f;
             HandleActionRequest(action, 0, 0xE0000000, default, prevRot, GetPlayerRotation());
+        }
+    }
+
+    private void UseCrucibleItemDetour(InstanceContentCrucible* self, uint slot, int beastId)
+    {
+        if (beastId > 0) // blessed horn; can't be used in combat and we have no way to save the beast ID for the queued action; fallback to native
+        {
+            _useCrucibleItemHook.Original(self, slot, beastId);
+            return;
+        }
+
+        var id = CrucibleItemID.GetFromXBMRow(self->Inventory[(int)slot].ItemId);
+        var spellId = CrucibleItemID.GetSpellID(id);
+        var action = new ActionID(ActionType.Crucible, (uint)id);
+
+        var targetSystem = TargetSystem.Instance();
+        var target = targetSystem->SoftTarget;
+        if (target == null)
+            target = targetSystem->Target;
+
+        if (Config.PreferMouseover)
+        {
+            var mouseoverTarget = PronounModule.Instance()->UiMouseOverTarget;
+            if (mouseoverTarget != null && ActionManager.CanUseActionOnTarget(spellId, mouseoverTarget))
+                target = mouseoverTarget;
+        }
+
+        var targetId = target == null ? 0xE0000000 : target->GetGameObjectId();
+
+        if (_manualQueue.Push(action, targetId, 0, false, () => (0, null), AutotargetNative))
+            return;
+
+        UseCrucibleItemNative(action, targetId);
+    }
+
+    private void UseCrucibleItemNative(ActionID item, ulong targetId)
+    {
+        if (_inst->AnimationLock > 0)
+            return;
+
+        var cid = (CrucibleID)item.ID;
+        var xbmRow = CrucibleItemID.GetXBMRow(cid);
+
+        var ic = (InstanceContentCrucible*)EventFramework.Instance()->GetInstanceContentDirector();
+        if (ic == null || ic->InstanceContentType != InstanceContentType.CrucibleOfTheUnbroken)
+            return;
+
+        for (var i = 0; i < 10; i++)
+        {
+            if (ic->Inventory[i].ItemId == xbmRow)
+            {
+                var prevRot = GetPlayerRotation();
+                var targetSystem = TargetSystem.Instance();
+                var prevTarget = targetSystem->Target;
+                // native function uses this item on the player's current hard target
+                targetSystem->Target = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(targetId);
+                _useCrucibleItemHook.Original(ic, (uint)i, 0);
+                targetSystem->Target = prevTarget;
+                _inst->AnimationLock = 1.1f;
+                HandleActionRequest(item, 0, targetId, default, prevRot, GetPlayerRotation());
+                return;
+            }
         }
     }
 

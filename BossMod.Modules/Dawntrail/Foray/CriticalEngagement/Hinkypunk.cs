@@ -244,4 +244,4 @@ class HinkypunkStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13659)]
-public class Hinkypunk(WorldState ws, Actor primary) : CEModule(ws, primary, new(-570, -160), new ArenaBoundsCircle(20));
+public class Hinkypunk(ModuleInit init) : CEModule(init, new(-570, -160), new ArenaBoundsCircle(20));

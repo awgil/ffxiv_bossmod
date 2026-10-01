@@ -48,4 +48,4 @@ class CrescereginaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14785)]
-public class Cresceregina(WorldState ws, Actor primary) : BossModule(ws, primary, new(140, -708.500f), new ArenaBoundsCircle(40));
+public class Cresceregina(ModuleInit init) : BossModule(init, new(140, -708.500f), new ArenaBoundsCircle(40));

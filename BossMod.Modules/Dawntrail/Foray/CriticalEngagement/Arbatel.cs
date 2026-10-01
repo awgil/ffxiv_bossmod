@@ -303,4 +303,4 @@ class ArbatelStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14520)]
-public class Arbatel(WorldState ws, Actor primary) : CEModule(ws, primary, new(659, 659), new ArenaBoundsCircle(24.5f));
+public class Arbatel(ModuleInit init) : CEModule(init, new(659, 659), new ArenaBoundsCircle(24.5f));

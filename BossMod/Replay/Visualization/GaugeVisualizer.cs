@@ -217,9 +217,9 @@ internal class GaugeVisualizer
         // beast chakra
         ImGui.Image(wrap.Handle, Scale(114, 48), new Vector2(0, 0.4602f), new Vector2(0.2767f, 0.6726f));
 
-        void drawChakra(int num)
+        void drawChakra(int num, BeastChakraType bt)
         {
-            switch (gauge.BeastChakra[num])
+            switch (bt)
             {
                 case BeastChakraType.OpoOpo:
                     ImGui.SetCursorPos(origin + Scale(8 + 30 * num, 8));
@@ -236,9 +236,9 @@ internal class GaugeVisualizer
             }
         }
 
-        drawChakra(0);
-        drawChakra(1);
-        drawChakra(2);
+        drawChakra(0, gauge.BeastChakra1);
+        drawChakra(1, gauge.BeastChakra2);
+        drawChakra(2, gauge.BeastChakra3);
 
         // nadis
         ImGui.SetCursorPos(origin + Scale(100, 11));

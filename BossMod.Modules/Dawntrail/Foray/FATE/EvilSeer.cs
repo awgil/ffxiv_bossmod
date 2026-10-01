@@ -52,5 +52,5 @@ class EvilSeerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14726)]
-public class EvilSeer(WorldState ws, Actor primary) : BossModule(ws, primary, new(510, -30), new ArenaBoundsCircle(30));
+public class EvilSeer(ModuleInit init) : BossModule(init, new(510, -30), new ArenaBoundsCircle(30));
 

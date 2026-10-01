@@ -138,6 +138,8 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         ForceOpo,
         [Option("Use 3 GCDs before next RoF window, regardless of current form", MinLevel = 50)]
         ForceMinus3,
+        [Option("Use ASAP unless under the effect of Form Shift")]
+        ForceNoShift,
         [Option("Use ASAP", MinLevel = 50)]
         Force,
         [Option("Do not use", MinLevel = 50)]
@@ -318,7 +320,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         var gauge = World.Client.GetGauge<MonkGauge>();
 
         Chakra = gauge.Chakra;
-        BeastChakra = gauge.BeastChakra;
+        BeastChakra = [gauge.BeastChakra1, gauge.BeastChakra2, gauge.BeastChakra3];
         BlitzLeft = gauge.BlitzTimeRemaining / 1000f;
         Nadi = gauge.Nadi;
 
@@ -443,7 +445,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         UpdatePositionals(primaryTarget, ref pos);
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, AOEBreakpoint, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, BeastCount > 0 ? 2 : AOEBreakpoint, maximumActionRange: 20);
 
         OGCD(strategy, primaryTarget);
     }
@@ -726,7 +728,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         // forced usage
-        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null)
+        if (pbstrat == PBStrategy.Force || pbstrat is PBStrategy.DowntimeSolar or PBStrategy.DowntimeLunar && primaryTarget == null || pbstrat == PBStrategy.ForceNoShift && FormShiftLeft == 0)
         {
             use();
             return;

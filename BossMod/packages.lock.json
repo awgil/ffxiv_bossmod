@@ -2,40 +2,20 @@
   "version": 1,
   "dependencies": {
     "net10.0-windows7.0": {
-      "DalaMock.Core": {
+      "CsvHelper": {
         "type": "Direct",
-        "requested": "[6.1.8, )",
-        "resolved": "6.1.8",
-        "contentHash": "VWxRNMY6hQlaPS2Onru6wZiARDhqIe1tnNTV4Kc0r0ogokiAgl+gAYBjtrJ6in5kHD54t5n2YJ1Qqht637PpYg==",
-        "dependencies": {
-          "Autofac": "9.0.0",
-          "DalaMock.Shared": "6.1.2",
-          "Microsoft.DotNet.PlatformAbstractions": "3.1.6",
-          "Microsoft.Extensions.Configuration": "10.0.1",
-          "Microsoft.Extensions.DependencyModel": "10.0.1",
-          "Microsoft.Extensions.Hosting": "10.0.1",
-          "Microsoft.Extensions.Hosting.Abstractions": "10.0.1",
-          "Microsoft.Extensions.Localization": "10.0.7",
-          "Microsoft.Extensions.ObjectPool": "10.0.1",
-          "NativeFileDialogSharp": "0.5.0",
-          "Newtonsoft.Json": "13.0.4",
-          "Serilog": "4.3.0",
-          "Serilog.Extensions.Logging": "10.0.0",
-          "SixLabors.Fonts": "2.1.3",
-          "StbiSharp": "1.2.1",
-          "Veldrid": "4.9.0",
-          "Veldrid.SDL2": "4.9.0",
-          "Veldrid.StartupUtilities": "4.9.0"
-        }
+        "requested": "[33.1.0, )",
+        "resolved": "33.1.0",
+        "contentHash": "kqfTOZGrn7NarNeXgjh86JcpTHUoeQDMB8t9NVa/ZtlSYiV1rxfRnQ49WaJsob4AiGrbK0XDzpyKkBwai4F8eg=="
       },
       "DalaMock.Host": {
         "type": "Direct",
-        "requested": "[6.1.6, )",
-        "resolved": "6.1.6",
-        "contentHash": "2UommI5hwk3X5LxpaO4BpXPMb131iGRBK3wGYilBF8AKmK6Hv/VTuZ/qTqfr2Q4GwoufXQsyFKwZ1fy4fBBgLg==",
+        "requested": "[6.1.9, )",
+        "resolved": "6.1.9",
+        "contentHash": "JiWAKj8NokubRJe2g/jAoTRnEh674NJda8JMRTG68/aKozdBRUGhG3HS+vrUHxMED5+xuVl9y3ZIkhdoAF0blA==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "DalaMock.Shared": "6.1.2",
+          "DalaMock.Shared": "6.1.9",
           "Microsoft.Extensions.Hosting": "10.0.4",
           "Microsoft.Extensions.Hosting.Abstractions": "10.0.4",
           "Microsoft.Extensions.ObjectPool": "10.0.4"
@@ -43,9 +23,9 @@
       },
       "DalaMock.Shared": {
         "type": "Direct",
-        "requested": "[6.1.2, )",
-        "resolved": "6.1.2",
-        "contentHash": "kzxZ0yPUrojRZJACyWCNzR/HSiVsY28w8UA3ll+II5xFT4XPJYmTe1XdVTVirqjyogrn4edjGbFbZD4nhO7u9g==",
+        "requested": "[6.1.9, )",
+        "resolved": "6.1.9",
+        "contentHash": "f0Lg55BD4rmJULjXpDO40JYK+wKeVxItg2+RAPVDBmMnZ1pJzyiI7AX6oV93BEEjk2UteAJ66JSLdC+G7cNZsw==",
         "dependencies": {
           "Autofac": "9.0.0"
         }
@@ -64,22 +44,22 @@
       },
       "Microsoft.Extensions.Caching.Memory": {
         "type": "Direct",
-        "requested": "[10.0.11, )",
-        "resolved": "10.0.11",
-        "contentHash": "el1g0mBEbDBGY2bT9mcSfrTWO8QlPdq2nOCnvQugioOFwHV+bVBMeiakoI0dNOdj8d6Hi9K6HY2xzRUWJiDR3w==",
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "fhC3DHcBcFF4bXvHIxFtXJYNut7q7ZItqNFcgWfrIgmpVImlcEKNHhE7ztpNSPJYMHYYStS5QGND2I5mC26yeA==",
         "dependencies": {
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.11",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.11",
-          "Microsoft.Extensions.Options": "10.0.11",
-          "Microsoft.Extensions.Primitives": "10.0.11"
+          "Microsoft.Extensions.Caching.Abstractions": "10.0.12",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.12",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.12",
+          "Microsoft.Extensions.Options": "10.0.12",
+          "Microsoft.Extensions.Primitives": "10.0.12"
         }
       },
       "System.Data.SQLite": {
         "type": "Direct",
-        "requested": "[2.0.2, )",
-        "resolved": "2.0.2",
-        "contentHash": "yAwxkraZf1PazyLg1sqMAlh4KEtaa2L8zieLicd9oWBybrb3SoPph+WVIyUTFWwtTVhNX/jNsDew6tbB8bw2xQ=="
+        "requested": "[2.0.4, )",
+        "resolved": "2.0.4",
+        "contentHash": "iiawN8l6QBzLZTK2BQRyq/1XmvDONghjvXoDhkkQgPTG8bRIsmIxJV1+Lc75fviNgMnjAE3wxReVJAF7P1hkoQ=="
       },
       "Autofac": {
         "type": "Transitive",
@@ -102,10 +82,10 @@
       },
       "Microsoft.Extensions.Caching.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.11",
-        "contentHash": "vUl798SmruTqqlt/xH2gDk3tJlhk6k3HdOXAHirlRfbNKDym4g/kRpUL9S4sl6F6FsOTOMW+ZsDapqlZMOOiEw==",
+        "resolved": "10.0.12",
+        "contentHash": "sI3A6MUAyZwccLnwq0cXuRmC3WBtXieimBWafXSfhRJ4jnM2uGVXrqImDDVyW27u4vVaTOGlJxNJd8d1FGvCNQ==",
         "dependencies": {
-          "Microsoft.Extensions.Primitives": "10.0.11"
+          "Microsoft.Extensions.Primitives": "10.0.12"
         }
       },
       "Microsoft.Extensions.Configuration": {
@@ -196,8 +176,8 @@
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.11",
-        "contentHash": "/a1aJz4m7ylhEDf25ugQChLQoN5XwoGjWw/BoR/ZWWKsO1v4DdJElS1uyngahz4B/eOzjFk1KNTkarRLE5wsIg=="
+        "resolved": "10.0.12",
+        "contentHash": "9/qymSh7hVDMGTGwrLz8MRp5zRyXy9adGDOs4HwRdnLil3oZGYuWeZjbmHgCQ9BL1qBroVfgUK3U/nb61617Cw=="
       },
       "Microsoft.Extensions.DependencyModel": {
         "type": "Transitive",
@@ -315,10 +295,10 @@
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Transitive",
-        "resolved": "10.0.11",
-        "contentHash": "Ljd0Uxoq5XpScD2Bg0nM/r3mwx7Ao5Uq24eo2ARxbGvqJ7Zht6rt2cJtwVRH4Cv+1ZVMdXz6TB43KbpmsxRrvQ==",
+        "resolved": "10.0.12",
+        "contentHash": "+24lC4plfbEDNfLAdTV/SWKS7dW+16X4HdydO3R++134kSNTzcbYA4KpR1Hdh6uWisB8Za3AzwyOn+K+NxWIug==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.12"
         }
       },
       "Microsoft.Extensions.Logging.Configuration": {
@@ -389,11 +369,11 @@
       },
       "Microsoft.Extensions.Options": {
         "type": "Transitive",
-        "resolved": "10.0.11",
-        "contentHash": "eY1GAKcTfD2maP27J84X9IovT3yjHJ2dVDzPmDg6/XqYvt3jMzJhtfQCLjG9pVsZGAd+8DQ2QrjaDcs2+VQLGw==",
+        "resolved": "10.0.12",
+        "contentHash": "TDYD33TSRpXKZWlmTXNlj5kCihxatmv2Ec1u6C+bMYLphCS7PoSLE9Pjd/nunDoE7yETk+LLKjVJX78HYtWjpA==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11",
-          "Microsoft.Extensions.Primitives": "10.0.11"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.12",
+          "Microsoft.Extensions.Primitives": "10.0.12"
         }
       },
       "Microsoft.Extensions.Options.ConfigurationExtensions": {
@@ -410,8 +390,8 @@
       },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
-        "resolved": "10.0.11",
-        "contentHash": "SXcz+kF+4Oo9b1+55zntpJFYfwb1jw66ioxptyNOOTDc8g2FHnBFWjZpsWfCvZIhzr0x+4e2trVTs4OKwQfBtw=="
+        "resolved": "10.0.12",
+        "contentHash": "dYfCLR52UA+3DL7C4I/pvSaRPkNqxrUAQmbFL2u0zvYKKzqgrFCJl08Df+F1aYc8leu9JvpC9bsURUdpExcBXQ=="
       },
       "NativeFileDialogSharp": {
         "type": "Transitive",
@@ -574,6 +554,38 @@
         "type": "Transitive",
         "resolved": "1.4.25",
         "contentHash": "V2yJMl/QKceXEjYEnf2EWcNkUJI5/zE04cNUnawHbdR0wjMHv1dVTLf0IUJk0D0w29FrCWdQQK/n4L4vx0HeQA=="
+      },
+      "dalamock.core": {
+        "type": "Project",
+        "dependencies": {
+          "Autofac": "[9.0.0, )",
+          "DalaMock.Shared": "[6.1.9, )",
+          "Microsoft.DotNet.PlatformAbstractions": "[3.1.6, )",
+          "Microsoft.Extensions.Configuration": "[10.0.1, )",
+          "Microsoft.Extensions.DependencyModel": "[10.0.1, )",
+          "Microsoft.Extensions.Hosting": "[10.0.1, )",
+          "Microsoft.Extensions.Hosting.Abstractions": "[10.0.1, )",
+          "Microsoft.Extensions.Localization": "[10.0.7, )",
+          "Microsoft.Extensions.ObjectPool": "[10.0.1, )",
+          "NativeFileDialogSharp": "[0.5.0, )",
+          "Newtonsoft.Json": "[13.0.4, )",
+          "Serilog": "[4.3.0, )",
+          "Serilog.Extensions.Logging": "[10.0.0, )",
+          "SixLabors.Fonts": "[2.1.3, )",
+          "StbiSharp": "[1.2.1, )",
+          "Veldrid": "[4.9.0, )",
+          "Veldrid.SDL2": "[4.9.0, )",
+          "Veldrid.StartupUtilities": "[4.9.0, )"
+        }
+      },
+      "ffxivclientstructs": {
+        "type": "Project",
+        "dependencies": {
+          "InteropGenerator.Runtime": "[1.0.0, )"
+        }
+      },
+      "interopgenerator.runtime": {
+        "type": "Project"
       }
     }
   }

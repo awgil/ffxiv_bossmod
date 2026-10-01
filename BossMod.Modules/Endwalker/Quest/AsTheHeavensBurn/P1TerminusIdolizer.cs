@@ -109,7 +109,7 @@ class TerminusIdolizerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 804, NameID = 10932)]
-public class TerminusIdolizer(WorldState ws, Actor primary) : BossModule(ws, primary, new(-300.75f, 151.5f), new ArenaBoundsCircle(19.5f))
+public class TerminusIdolizer(ModuleInit init) : BossModule(init, new(-300.75f, 151.5f), new ArenaBoundsCircle(19.5f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat;
 }

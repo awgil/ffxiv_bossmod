@@ -101,12 +101,17 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
 }
 
 // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
-class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStackSpread(module, 0, 5, alwaysShowSpreads: true)
+class P2BahamutsFavorChainLightning : Components.UniformStackSpread
 {
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
 
     public bool FirstSet;
+
+    public P2BahamutsFavorChainLightning(BossModule module) : base(module, 0, 5, alwaysShowSpreads: true)
+    {
+        ExtraAISpreadThreshold = 0;
+    }
 
     public bool ActiveOrSkipped() => Active || _pendingTargets.Any() && WorldState.CurrentTime >= _expectedStatuses && Raid.WithSlot(true).IncludedInMask(_pendingTargets).All(ip => ip.Item2.IsDead);
 
@@ -142,13 +147,17 @@ class P2BahamutsFavorChainLightning(BossModule module) : Components.UniformStack
         if (IsSpreadTarget(actor))
         {
             hints.GoalZonesEnabled = false;
+            // don't you dare use a gap closer
+            hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
 
             if (FirstSet)
             {
                 var ordered = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
+                if (ordered.Length == 0)
+                    return;
                 var myOrder = Spreads.OrderBy(s => ordered[Raid.FindSlot(s.Target.InstanceID)]).Index().First(s => s.Item.Target == actor).Index;
                 var myDir = myOrder == 0 ? -45.Degrees() : 45.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(((UCOB)Module).Nael()!.Position + myDir.ToDirection() * 5, 1), Spreads[0].Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(((UCOB)Module).Nael()!.Position + myDir.ToDirection() * 5, 1));
                 return;
             }
 
@@ -227,11 +236,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), isCovered ? default : d.Expiration.AddSeconds(-0.5f));
             }
             else
-            {
                 hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 1));
-                // encourage non-dooms to bait next puddle away
-                hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 5), WorldState.FutureTime(2));
-            }
         }
     }
 

@@ -56,4 +56,4 @@ class D093ChimeraStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 12, NameID = 1590)]
-public class D093Chimera(WorldState ws, Actor primary) : BossModule(ws, primary, new(-170, -200), new ArenaBoundsCircle(30));
+public class D093Chimera(ModuleInit init) : BossModule(init, new(-170, -200), new ArenaBoundsCircle(30));

@@ -39,6 +39,7 @@ public sealed class AIHints
         public float TankDistance = 2; // enemy will start moving if distance between hitboxes is bigger than this
         public bool ShouldBeTanked; // tank AI will try to tank this enemy
         public bool PreferProvoking; // tank AI will provoke enemy if not targeted
+        public bool PreferShirking; // TODO: better name
         public bool ForbidDOTs; // if true, dots on target are forbidden
         public bool ShouldBeInterrupted; // if set and enemy is casting interruptible spell, some ranged/tank will try to interrupt
         public bool ShouldBeStunned; // if set, AI will stun if possible
@@ -309,6 +310,18 @@ public sealed class AIHints
         }
     }
 
+    public T[] GenerateFromMap<T>(Func<WPos, int, T> init)
+    {
+        var map = new Pathfinding.Map();
+        PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
+        var arr = new T[(map.Width + 1) * (map.Height + 1)];
+
+        foreach (var (cell, _, _, p) in map.EnumerateGrid())
+            arr[cell] = init(p, cell);
+
+        return arr;
+    }
+
     // query utilities
     public IEnumerable<Enemy> PotentialTargetsEnumerable => PotentialTargets;
     public IEnumerable<Enemy> PriorityTargets => PotentialTargets.TakeWhile(e => e.Priority == HighestPotentialTargetPriority);
@@ -460,7 +473,7 @@ public sealed class AIHints
         };
     }
 
-    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2)
+    public Func<WPos, float> PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2, bool greed = true)
     {
         var enemy = FindEnemy(target);
         if (enemy == null)
@@ -473,16 +486,16 @@ public sealed class AIHints
 
         // try to stay within pull range
         if (dirToGoal.LengthSq() <= leewaySq)
-            return GoalSingleTarget(target.Position, adjRange, 0.5f);
+            return GoalSingleTarget(target.Position, adjRange, 0.1f);
 
         var distance = distToGoal;
-        if (gcd < 0.5f)
+        if (greed && gcd < 0.5f)
         {
             var playerEffRange = player.Role is Role.Tank or Role.Melee ? 3 : 25;
             distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange);
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
-        return p => sh(p) > 0 ? 10 : 0;
+        return p => sh(p) >= 0 ? 10 : 0;
     }
 }

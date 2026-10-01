@@ -4,6 +4,8 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
+public record struct ModuleInit(WorldState World, Actor Primary, BossModuleRegistry.Info? Info);
+
 // base for boss modules - provides all the common features, so that look is standardized
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
 public abstract class BossModule : IDisposable
@@ -95,12 +97,12 @@ public abstract class BossModule : IDisposable
 
     public void ClearComponents(Predicate<BossComponent> condition) => _components.RemoveAll(condition);
 
-    protected BossModule(WorldState ws, Actor primary, WPos center, ArenaBounds bounds)
+    protected BossModule(ModuleInit init, WPos center, ArenaBounds bounds)
     {
-        WorldState = ws;
-        PrimaryActor = primary;
+        WorldState = init.World;
+        PrimaryActor = init.Primary;
+        Info = init.Info;
         Arena = new(WindowConfig, center, bounds);
-        Info = BossModuleRegistry.FindByOID(primary.OID);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new
@@ -110,6 +112,7 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.CastStarted.Subscribe(OnActorCastStarted),
             WorldState.Actors.CastFinished.Subscribe(OnActorCastFinished),
             WorldState.Actors.IsTargetableChanged.Subscribe(OnIsTargetableChanged),
+            WorldState.Actors.IsDeadChanged.Subscribe(OnIsDeadChanged),
             WorldState.Actors.Tethered.Subscribe(OnActorTethered),
             WorldState.Actors.Untethered.Subscribe(OnActorUntethered),
             WorldState.Actors.StatusGain.Subscribe(OnActorStatusGain),
@@ -333,7 +336,7 @@ public abstract class BossModule : IDisposable
         List<string> tooltip = [];
         var cursor = ImGui.GetMousePos();
 
-        foreach (var actor in WorldState.Actors.Where(a => !a.IsAlly || !a.IsTargetable).Exclude(PrimaryActor))
+        foreach (var actor in WorldState.Actors.Exclude(PrimaryActor))
         {
             Arena.ActorInsideBounds(actor.Position, actor.Rotation, ArenaColor.Object);
             var s = Arena.WorldPositionToScreenPosition(actor.Position);
@@ -360,7 +363,7 @@ public abstract class BossModule : IDisposable
             {
                 var toTarget = target.Position - enemy.Actor.Position;
                 var distToTarget = toTarget.Length() - enemy.Actor.HitboxRadius - target.HitboxRadius;
-                if (distToTarget > enemy.TankDistance)
+                if (distToTarget > enemy.TankDistance + 0.25f)
                 {
                     var movement = toTarget.Normalized() * (distToTarget - enemy.TankDistance);
                     Arena.AddLine(enemy.Actor.Position, enemy.Actor.Position + movement, 0xFFFFFF00);
@@ -485,6 +488,9 @@ public abstract class BossModule : IDisposable
             }
             Arena.Actor(player, color);
         }
+
+        if (WindowConfig.ShowPet && WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
+            Arena.Actor(pet, ArenaColor.Object);
     }
 
     private (BossComponent.PlayerPriority, uint) CalculateHighestPriority(int pcSlot, Actor pc, int playerSlot, Actor player)
@@ -546,6 +552,12 @@ public abstract class BossModule : IDisposable
             foreach (var comp in _components)
                 comp.OnUntargetable(actor);
         }
+    }
+
+    private void OnIsDeadChanged(Actor actor)
+    {
+        foreach (var comp in _components)
+            comp.OnIsDeadChanged(actor);
     }
 
     private void OnActorTethered(Actor actor)

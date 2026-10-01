@@ -74,4 +74,4 @@ class D092TheOldOneStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 279, NameID = 6908)]
-public class D092TheOldOne(WorldState ws, Actor primary) : BossModule(ws, primary, new(115, 4), new ArenaBoundsCircle(19.5f));
+public class D092TheOldOne(ModuleInit init) : BossModule(init, new(115, 4), new ArenaBoundsCircle(19.5f));

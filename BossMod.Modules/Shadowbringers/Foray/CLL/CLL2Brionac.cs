@@ -275,7 +275,7 @@ class BrionacStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9436)]
-public class Brionac(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -222), new ArenaBoundsRect(29.5f, 14.5f))
+public class Brionac(ModuleInit init) : BossModule(init, new(80, -222), new ArenaBoundsRect(29.5f, 14.5f))
 {
     protected override bool CheckPull() => PrimaryActor.InCombat && WorldState.Party.Player() is { } player && Bounds.Contains(player.Position - Arena.Center);
 }

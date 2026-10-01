@@ -56,4 +56,4 @@ class T01IfritNStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 56, NameID = 1185)]
-public class T01IfritN(WorldState ws, Actor primary) : BossModule(ws, primary, new(-0, 0), new ArenaBoundsCircle(20));
+public class T01IfritN(ModuleInit init) : BossModule(init, new(-0, 0), new ArenaBoundsCircle(20));

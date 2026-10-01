@@ -265,12 +265,15 @@ public class ReplayManagementWindow : UIWindow
         if (IsRecording())
             return; // already recording
 
+        var (z, p) = GetPrefix();
+        var parentDir = _config.ZoneSubfolders ? new(Path.Join(_logDir.FullName, z)) : _logDir;
+
         // if there are too many replays, delete oldest
         if (_config.MaxReplays > 0)
         {
             try
             {
-                var replays = _logDir.GetFiles();
+                var replays = parentDir.GetFiles();
                 replays.SortBy(f => f.LastWriteTime);
                 foreach (var f in replays.Take(replays.Length - _config.MaxReplays))
                     f.Delete();
@@ -283,7 +286,7 @@ public class ReplayManagementWindow : UIWindow
 
         try
         {
-            _recorder = new(_ws, _config.WorldLogFormat, true, _logDir, prefix + GetPrefix(), _config.Anonymize);
+            _recorder = new(_ws, _config.WorldLogFormat, true, parentDir, prefix + p, _config.Anonymize);
         }
         catch (Exception ex)
         {
@@ -303,7 +306,7 @@ public class ReplayManagementWindow : UIWindow
         UpdateTitle();
     }
 
-    private unsafe string GetPrefix()
+    private unsafe (string Zone, string FullPrefix) GetPrefix()
     {
         string? prefix = null;
         if (_ws.CurrentCFCID != 0)
@@ -312,6 +315,8 @@ public class ReplayManagementWindow : UIWindow
             prefix ??= Service.LuminaRow<TerritoryType>(_ws.CurrentZone)?.PlaceName.ValueNullable?.NameNoArticle.ToString();
         prefix ??= "World";
         prefix = Utils.StringToIdentifier(prefix);
+
+        var zone = prefix;
 
         var player = _ws.Party.Player();
         if (player != null)
@@ -331,7 +336,7 @@ public class ReplayManagementWindow : UIWindow
         if (cf->IsSilenceEcho)
             prefix += "_NE";
 
-        return prefix;
+        return (zone, prefix);
     }
 
     private string OpenDirectory(DirectoryInfo dir)

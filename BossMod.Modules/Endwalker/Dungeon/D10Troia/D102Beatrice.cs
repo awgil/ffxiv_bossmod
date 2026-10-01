@@ -51,4 +51,4 @@ class D102BeatriceStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 869, NameID = 11384)]
-public class D102Beatrice(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, -148), new ArenaBoundsCircle(20));
+public class D102Beatrice(ModuleInit init) : BossModule(init, new(0, -148), new ArenaBoundsCircle(20));

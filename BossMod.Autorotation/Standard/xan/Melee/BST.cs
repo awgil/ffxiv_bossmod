@@ -1,4 +1,6 @@
 ﻿using BossMod.BST;
+using System.Diagnostics;
+using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.xan;
 
@@ -9,8 +11,51 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Shield Charge")]
+        public Track<EnabledByDefault> ShieldCharge;
+
+        [Track("Combo")]
+        public Track<EnabledByDefault> Combo;
+
+        [Track("Pet management")]
+        public Track<SummonStrategy> Summon;
+
+        [Track("Tempered Release")]
+        public Track<EnabledByDefault> TemperedRelease;
+
+        [Track("Parting Blow")]
+        public Track<PBStrategy> PartingBlow;
+
+        [Track("Resummon pet out of combat to refresh One With Nature")]
+        public Track<EnabledByDefault> Resummon;
+
+        [Track("Pre-Borrow")]
+        public Track<EnabledByDefault> Preborrow;
+
         readonly Targeting IStrategyCommon.Targeting => Targeting.Value;
         readonly AOEStrategy IStrategyCommon.AOE => AOE.Value;
+    }
+
+    public enum SummonStrategy
+    {
+        [Option("Summon first available pet")]
+        Enabled,
+        [Option("Do nothing")]
+        Disabled,
+        [Option("Dismiss pet if one is summoned")]
+        Dismiss
+    }
+
+    public enum PBStrategy
+    {
+        [Option("Use Parting Blow if one other pet is available")]
+        Enabled,
+        [Option("Use Parting Blow if both other pets are available")]
+        Conservative,
+        [Option("Use Parting Blow ASAP")]
+        Aggressive,
+        [Option("Don't use")]
+        Disabled
     }
 
     public static RotationModuleDefinition Definition()
@@ -18,9 +63,175 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         return new RotationModuleDefinition("xan BST", "Beastmaster", "Standard rotation (xan)|Melee", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.BST), 100).WithStrategies<Strategy>();
     }
 
-    public override void Exec(in Strategy strategy, AIHints.Enemy? primaryTarget)
+    protected override float GetCastTime(AID aid) => aid switch
+    {
+        // cast time is fixed
+        AID.FirstBattlehorn or AID.SecondBattlehorn or AID.ThirdBattlehorn => 1,
+        _ => 0
+    };
+
+    enum OGCDPriority : int
+    {
+        Default = 1,
+        OpenerRally = 2,
+        ComboStartAxe = 10,
+        ComboStartAxeEmpty = 20,
+        ComboFinish = 30,
+        ComboStartTrick = 40,
+        Infinite1 = 60,
+        Infinite2 = 70,
+        InfiniteRally = 80,
+        Infinite3 = 90,
+        Infinite4 = 100,
+    }
+
+    public bool HavePet => CurrentPetIndex > 0;
+    public byte CurrentPetIndex;
+    public PetInfo PetInfo;
+    public BeastmasterAffinity TrickAffinity => PetInfo.TrickAffinity;
+    public Kinship Kinship;
+    public float KinshipLeft;
+    public int LastUsedHorn;
+    public bool OneWithNature;
+
+    public byte TP;
+    public byte PetTP;
+    public BeastmasterAffinity ComboAffinity;
+
+    private Enemy? BestJumpTarget;
+    private int NumJumpTargets;
+    private Enemy? BestExplosionTarget;
+    private int NumExplosionTargets;
+    private Enemy? BestLineTarget;
+    private int NumLineTargets;
+
+    // TODO: pet AOE target selection (probably only for targeted circles)
+    public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);
+
+        var gauge = World.Client.GetGauge<BeastmasterGauge>();
+
+        CurrentPetIndex = 0;
+        TP = gauge.TPGauge;
+        PetTP = gauge.FamiliarTPGauge;
+        ComboAffinity = gauge.CurrentAffinity;
+        if (gauge.ActiveBattlehornIndex > 0)
+        {
+            LastUsedHorn = gauge.ActiveBattlehornIndex;
+            CurrentPetIndex = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
+        }
+        OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
+        PetInfo = Definitions.PetInfos[CurrentPetIndex];
+        (Kinship, KinshipLeft) = CurrentKinship;
+
+        var petIsLeaving = ReadyIn(AID.PartingBlow) > 5;
+
+        (BestJumpTarget, NumJumpTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 6));
+        (BestExplosionTarget, NumExplosionTargets) = SelectTarget(strategy, primaryTarget, 25, (primary, other) => TargetInAOECircle(other, primary.Position, 8));
+        (BestLineTarget, NumLineTargets) = SelectTarget(strategy, primaryTarget, 10, (primary, other) => TargetInAOERect(other, Player.Position, Player.DirectionTo(primary), 10, 3));
+
+        // level 50 3 chain infinitive combo
+        if (Unlocked(TraitID.InstinctualMastery) && HavePet && strategy.Combo.IsEnabled())
+        {
+            // infinitive combo finisher
+            if (TP == 250 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
+                UseAxe(Cycle(ComboAffinity), primaryTarget, OGCDPriority.Infinite4);
+
+            if (ComboAffinity == Cycle(TrickAffinity, Direction.CCW))
+            {
+                if (PetTP >= 100 && !petIsLeaving)
+                    UseTrick(strategy, primaryTarget, OGCDPriority.Infinite3);
+
+                if (gauge.MasteredInstinct > 1)
+                    PushOGCD(AID.Rally, Player, OGCDPriority.InfiniteRally);
+                if (gauge.NaturalInstinct > 0)
+                    PushOGCD(AID.RallyingCheer, Player, OGCDPriority.InfiniteRally);
+            }
+
+            if (gauge.MasteredInstinct > 1 && gauge.NaturalInstinct > 0 && TP >= 100 && CanWeave(AID.Rally, 1) && CanWeave(AID.RallyingCheer, 1))
+            {
+                if (ComboAffinity == TrickAffinity)
+                    UseAxe(Cycle(ComboAffinity, Direction.CCW), primaryTarget, OGCDPriority.Infinite2);
+
+                if (PetTP >= 100 && !petIsLeaving)
+                    UseTrick(strategy, primaryTarget, OGCDPriority.Infinite1);
+            }
+        }
+
+        // at level 40 we also get pet gems for use with cheer
+        if (Unlocked(TraitID.WildHeartIV) && strategy.Combo.IsEnabled())
+        {
+            if (gauge.NaturalInstinct < 3)
+            {
+                if (PetTP >= 100 && ComboAffinity != BeastmasterAffinity.None && !petIsLeaving)
+                    UseTrick(strategy, primaryTarget, OGCDPriority.ComboFinish);
+
+                if (PetTP >= 100 && TP >= 100 && HavePet)
+                    UseAxe(Cycle(TrickAffinity, Direction.CCW), primaryTarget, gauge.NaturalInstinct == 0 ? OGCDPriority.ComboStartAxeEmpty : OGCDPriority.ComboStartAxe);
+            }
+
+            // cheer in opener
+            // TODO is the condition right?
+            if (gauge.NaturalInstinct == 0 && ComboAffinity != BeastmasterAffinity.None)
+                PushOGCD(AID.RallyingCheer, Player, OGCDPriority.OpenerRally);
+        }
+
+        // at level 30 we get player gems for use with rally
+        if (Unlocked(TraitID.WildHeartIII) && strategy.Combo.IsEnabled())
+        {
+            if (gauge.MasteredInstinct < 3)
+            {
+                if (TP >= 100 && ComboAffinity != BeastmasterAffinity.None
+                    && (gauge.MasteredInstinct > 0 || !CanFitGCD(ComboTimer, 1)))
+                    UseAxe(Cycle(ComboAffinity), primaryTarget, OGCDPriority.ComboFinish);
+
+                if (PetTP >= 100 && TP >= 100 && HavePet && !petIsLeaving)
+                    UseTrick(strategy, primaryTarget, gauge.MasteredInstinct switch
+                    {
+                        0 => OGCDPriority.ComboStartTrick,
+                        1 => OGCDPriority.ComboStartAxe,
+                        _ => OGCDPriority.Default
+                    });
+            }
+
+            if (gauge.MasteredInstinct > 0 && ComboAffinity is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker)
+                PushOGCD(AID.Rally, Player);
+        }
+
+        // 10 = wespe (final sting)
+        if (strategy.TemperedRelease.IsEnabled() && HavePet && OneWithNature && CurrentPetIndex != 10 && !PetInfo.NonDamagingRelease)
+            UsePetAction(strategy, AID.TemperedRelease, primaryTarget, OGCDPriority.Default, PetInfo.ReleaseShape, PetInfo.ReleaseRange);
+
+        var pbOk = CurrentPetIndex == 10 || PetInfo.NonDamagingRelease || !OneWithNature;
+
+        if (HavePet && pbOk && NumExplosionTargets > 0)
+        {
+            var use = false;
+            switch (strategy.PartingBlow.Value)
+            {
+                case PBStrategy.Enabled:
+                    use = GetAvailableHorns(gauge) > 0;
+                    break;
+                case PBStrategy.Conservative:
+                    use = GetAvailableHorns(gauge) > 1;
+                    break;
+                case PBStrategy.Aggressive:
+                    use = true;
+                    break;
+            }
+
+            if (use)
+            {
+                if (CurrentPetIndex == 10 && OneWithNature && NumExplosionTargets == 1)
+                    PushOGCD(AID.TemperedRelease, primaryTarget, OGCDPriority.Default, useOnDyingTarget: false);
+                else
+                    PushOGCD(AID.PartingBlow, BestExplosionTarget, OGCDPriority.Default, useOnDyingTarget: false);
+            }
+        }
+
+        if (strategy.ShieldCharge.IsEnabled() && MaxChargesIn(AID.ShieldCharge) < 60)
+            PushOGCD(AID.ShieldCharge, BestJumpTarget);
 
         if (ComboLastMove == AID.AxebladeBite)
             PushGCD(AID.Shieldsplitter, primaryTarget);
@@ -30,7 +241,234 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         PushGCD(AID.SmashAxe, primaryTarget);
 
-        if (PlayerTarget != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, 3));
+        if (gauge.Classification == 5)
+            PushGCD(AID.QuellingWave, primaryTarget);
+
+        ManagePet(strategy);
+        Prep(strategy, gauge);
+
+        GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.Classification == 5 ? 30 : null);
+    }
+
+    void ManagePet(in Strategy strategy)
+    {
+        switch (strategy.Summon.Value)
+        {
+            case SummonStrategy.Enabled:
+                if (!HavePet)
+                    foreach (var (slot, h) in World.Client.BeastmasterBeasts.Zip([AID.FirstBattlehorn, AID.SecondBattlehorn, AID.ThirdBattlehorn]))
+                        if (slot > 0 && ReadyIn(h) == 0)
+                            PushOGCD(h, Player);
+                break;
+            case SummonStrategy.Dismiss:
+                if (HavePet)
+                {
+                    // pb
+                    if (NumExplosionTargets > 0)
+                        PushOGCD(AID.PartingBlow, BestExplosionTarget);
+
+                    // dismiss only if PB is on cooldown/we can't use it (pet actions have no animlock so it could get executed during the animlock of something else)
+                    if (ReadyIn(AID.PartingBlow) > 0 || NumExplosionTargets == 0)
+                        Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.Low);
+                }
+                break;
+        }
+    }
+
+    void Prep(in Strategy strategy, in BeastmasterGauge gauge)
+    {
+        if (Player.InCombat)
+            return;
+
+        // resummon
+        if (strategy.Resummon.IsEnabled() && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && gauge.KinshipBattlehornIndex != gauge.ActiveBattlehornIndex)
+        {
+            if (HavePet)
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.High);
+            else if (LastUsedHorn > 0 && LastUsedHorn != gauge.KinshipBattlehornIndex)
+            {
+                var horn = LastUsedHorn switch
+                {
+                    1 => AID.FirstBattlehorn,
+                    2 => AID.SecondBattlehorn,
+                    3 => AID.ThirdBattlehorn,
+                    _ => AID.None
+                };
+
+                PushGCD(horn, Player, 10);
+            }
+        }
+
+        // preborrow. note that preborrow must be performed with a different pet than the one we plan to use, because resummoning that pet will remove the buff; this is what gauge.KinshipBattlehornIndex tracks
+        // presumably designed to prevent players from using all available TRs PLUS a borrowed skill within the 90s duration of borrow (in standard rotation you use each beast for 30 seconds or so due to Parting Blow cooldown)
+        // TODO this should not be hardcoded to horn 3
+        if (strategy.Preborrow.IsEnabled() && World.Client.BeastmasterBeasts[2] > 0)
+        {
+            if (gauge.Classification == 0)
+            {
+                if (gauge.ActiveBattlehornIndex > 1)
+                    PushGCD(AID.Borrow, Player, 10);
+                else
+                    PushGCD(AID.ThirdBattlehorn, Player, 10);
+            }
+            else if (gauge.KinshipBattlehornIndex > 1 && gauge.ActiveBattlehornIndex == gauge.KinshipBattlehornIndex)
+                Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.High);
+        }
+    }
+
+    enum Direction
+    {
+        CW,
+        CCW
+    }
+
+    static BeastmasterAffinity Cycle(BeastmasterAffinity b, Direction dir = Direction.CW) => b switch
+    {
+        BeastmasterAffinity.Volant => dir == Direction.CW ? BeastmasterAffinity.Rampant : BeastmasterAffinity.Eldritch,
+        BeastmasterAffinity.Rampant => dir == Direction.CW ? BeastmasterAffinity.Durant : BeastmasterAffinity.Volant,
+        BeastmasterAffinity.Durant => dir == Direction.CW ? BeastmasterAffinity.Eldritch : BeastmasterAffinity.Rampant,
+        BeastmasterAffinity.Eldritch => dir == Direction.CW ? BeastmasterAffinity.Volant : BeastmasterAffinity.Durant,
+        BeastmasterAffinity.Sunstrider => BeastmasterAffinity.Moonstalker,
+        BeastmasterAffinity.Moonstalker => BeastmasterAffinity.Sunstrider,
+        _ => BeastmasterAffinity.None
+    };
+
+    (AID, Enemy?) GetAxe(BeastmasterAffinity b) => b switch
+    {
+        BeastmasterAffinity.Rampant => (AID.AvalancheAxe, null),
+        BeastmasterAffinity.Durant => (AID.MistralAxe, null),
+        BeastmasterAffinity.Eldritch => (AID.SpinningAxe, null),
+        BeastmasterAffinity.Volant => (AID.GaleAxe, null),
+        BeastmasterAffinity.Sunstrider => (AID.BrutalRage, BestJumpTarget),
+        BeastmasterAffinity.Moonstalker => NumLineTargets > NumJumpTargets ? (AID.Calamity, BestLineTarget) : (AID.HawkishTalons, BestJumpTarget),
+        _ => (AID.None, null)
+    };
+
+    void UseAxe(BeastmasterAffinity b, Enemy? primaryTarget, OGCDPriority priority = OGCDPriority.Default)
+    {
+        if (b is BeastmasterAffinity.Sunstrider or BeastmasterAffinity.Moonstalker && (TP < 250 || !Unlocked(TraitID.InstinctualMastery)))
+            b = Cycle(TrickAffinity, Direction.CCW); // TODO: specify in args
+
+        if (b is BeastmasterAffinity.Rampant or BeastmasterAffinity.Durant or BeastmasterAffinity.Eldritch or BeastmasterAffinity.Volant && TP == 250 && Unlocked(TraitID.InstinctualMastery))
+            b = BeastmasterAffinity.Sunstrider;
+
+        var (a, t) = GetAxe(b);
+        PushOGCD(a, t ?? primaryTarget, priority, useOnDyingTarget: false);
+    }
+
+    void UsePetAction(in Strategy strategy, AID action, Enemy? target, OGCDPriority priority, AOEShape? shape, float actionRange)
+    {
+        if (World.Actors.Find(World.Client.ActivePet.InstanceID) is not { } pet)
+            return;
+
+        var (bestTarget, numTargets) = shape switch
+        {
+            null => (target, target?.Priority >= 0 ? 1 : 0),
+            AOEShapeCircle c when actionRange == 0 => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, pet.Position, c.Radius)),
+            AOEShapeCircle c => SelectTarget(strategy, target, 30, (primary, other) => TargetInAOECircle(other, primary.Position, c.Radius)),
+            AOEShapeRect r => SelectTarget(strategy, target, 30, (primary, other) =>
+            {
+                var actionSource = pet.Position;
+                var effRange = actionRange + primary.HitboxRadius;
+                var enemyToPet = pet.Position - primary.Position;
+                if (enemyToPet.LengthSq() > effRange * effRange)
+                    actionSource = primary.Position + enemyToPet.Normalized() * effRange;
+
+                return TargetInAOERect(other, actionSource, -enemyToPet.Normalized(), r.LengthFront, r.HalfWidth, r.LengthBack);
+            }),
+            AOEShapeCone c => SelectTarget(strategy, target, 30, (primary, other) =>
+            {
+                var actionSource = pet.Position;
+                var effRange = actionRange + primary.HitboxRadius;
+                var enemyToPet = pet.Position - primary.Position;
+                if (enemyToPet.LengthSq() > effRange * effRange)
+                    actionSource = primary.Position + enemyToPet.Normalized() * effRange;
+
+                return TargetInAOECone(other, actionSource, c.Radius, -enemyToPet.Normalized(), c.HalfAngle);
+            }),
+            _ => throw new UnreachableException()
+        };
+
+        if (numTargets > 0)
+            PushOGCD(action, bestTarget, priority, useOnDyingTarget: false);
+
+    }
+
+    void UseTrick(in Strategy strategy, Enemy? primaryTarget, OGCDPriority priority) => UsePetAction(strategy, AID.Trick, primaryTarget, priority, PetInfo.TrickShape, PetInfo.TrickRange);
+
+    /*
+    float GetNextHorn(in BeastmasterGauge gauge)
+    {
+        var h1 = gauge.ActiveBattlehornIndex == 1 ? 90 : ReadyIn(AID.FirstBattlehorn);
+        var h2 = gauge.ActiveBattlehornIndex == 2 ? 90 : ReadyIn(AID.SecondBattlehorn);
+        var h3 = gauge.ActiveBattlehornIndex == 3 ? 90 : ReadyIn(AID.ThirdBattlehorn);
+
+        return MathF.Min(h1, MathF.Min(h2, h3));
+    }
+    */
+
+    int GetAvailableHorns(in BeastmasterGauge gauge)
+    {
+        var sum = 0;
+
+        if (gauge.ActiveBattlehornIndex != 1 && World.Client.BeastmasterBeasts[0] > 0 && CanWeave(AID.FirstBattlehorn, 1))
+            sum++;
+        if (gauge.ActiveBattlehornIndex != 2 && World.Client.BeastmasterBeasts[1] > 0 && CanWeave(AID.SecondBattlehorn, 1))
+            sum++;
+        if (gauge.ActiveBattlehornIndex != 3 && World.Client.BeastmasterBeasts[2] > 0 && CanWeave(AID.ThirdBattlehorn, 1))
+            sum++;
+
+        return sum;
+    }
+
+    float ComboTimer
+    {
+        get
+        {
+            foreach (var s in Player.Statuses)
+            {
+                var a = (SID)s.ID switch
+                {
+                    SID.VolantHeart => BeastmasterAffinity.Volant,
+                    SID.RampantHeart => BeastmasterAffinity.Rampant,
+                    SID.DurantHeart => BeastmasterAffinity.Durant,
+                    SID.EldritchHeart => BeastmasterAffinity.Eldritch,
+                    SID.Sunstrider => BeastmasterAffinity.Sunstrider,
+                    SID.Moonstalker => BeastmasterAffinity.Moonstalker,
+                    _ => BeastmasterAffinity.None
+                };
+                if (a != BeastmasterAffinity.None)
+                    return (float)(s.ExpireAt - World.CurrentTime).TotalSeconds;
+            }
+            return 0;
+        }
+    }
+
+    (Kinship, float) CurrentKinship
+    {
+        get
+        {
+            foreach (var s in Player.Statuses)
+            {
+                var k = (SID)s.ID switch
+                {
+                    SID.BeastKinship => Kinship.Beast,
+                    SID.VileKinship => Kinship.Vile,
+                    SID.CloudKinship => Kinship.Cloud,
+                    SID.SeedKinship => Kinship.Seed,
+                    SID.WaveKinship => Kinship.Wave,
+                    SID.ScaleKinship => Kinship.Scale,
+                    SID.SoulKinship => Kinship.Soul,
+                    SID.AshKinship => Kinship.Ash,
+                    _ => Kinship.None
+                };
+                if (k != default)
+                {
+                    var duration = s.ExpireAt > World.CurrentTime ? (float)(s.ExpireAt - World.CurrentTime).TotalSeconds : float.MaxValue;
+                    return (k, duration);
+                }
+            }
+            return (Kinship.None, 0);
+        }
     }
 }

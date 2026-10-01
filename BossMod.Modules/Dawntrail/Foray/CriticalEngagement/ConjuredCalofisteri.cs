@@ -154,5 +154,5 @@ class ConjuredCalofisteriStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14517)]
-public class ConjuredCalofisteri(WorldState ws, Actor primary) : CEModule(ws, primary, new(-215, -65), new ArenaBoundsCircle(22));
+public class ConjuredCalofisteri(ModuleInit init) : CEModule(init, new(-215, -65), new ArenaBoundsCircle(22));
 

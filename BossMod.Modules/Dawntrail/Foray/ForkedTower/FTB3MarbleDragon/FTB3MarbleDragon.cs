@@ -48,7 +48,7 @@ class LifelessLegacy(BossModule module) : Components.RaidwideCastDelay(module, A
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13838, PlanLevel = 100)]
-public class FTB3MarbleDragon(WorldState ws, Actor primary) : BossModule(ws, primary, new(-337, 157), new ArenaBoundsCircle(30))
+public class FTB3MarbleDragon(ModuleInit init) : BossModule(init, new(-337, 157), new ArenaBoundsCircle(30))
 {
     public override bool DrawAllPlayers => true;
 }

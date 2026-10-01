@@ -177,4 +177,4 @@ class AlgolStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14790)]
-public class Algol(WorldState ws, Actor primary) : CEModule(ws, primary, new(765, 0), new ArenaBoundsCircle(24));
+public class Algol(ModuleInit init) : CEModule(init, new(765, 0), new ArenaBoundsCircle(24));

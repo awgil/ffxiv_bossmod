@@ -184,4 +184,4 @@ class V01NGenieOfTheLampStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1066, NameID = 14396)]
-public class V01NGenieOfTheLamp(WorldState ws, Actor primary) : BossModule(ws, primary, new(primary.Position.X, primary.Position.Z + 6), new ArenaBoundsSquare(17.5f));
+public class V01NGenieOfTheLamp(ModuleInit init) : BossModule(init, new(init.Primary.Position.X, init.Primary.Position.Z + 6), new ArenaBoundsSquare(17.5f));

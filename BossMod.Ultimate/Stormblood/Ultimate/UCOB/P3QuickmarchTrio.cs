@@ -11,6 +11,8 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
     private bool _divesDone;
     private bool _earthshakersDone;
 
+    public bool PuddleDodgeHint;
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         if (Active)
@@ -55,6 +57,9 @@ class P3QuickmarchTrio(BossModule module) : BossComponent(module)
 
         if (Module.FindComponent<P3Twister>() is { Predicted: true } or { Active: true } && _spreadSpots[slot] != default)
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_spreadSpots[slot], 1));
+
+        if (PuddleDodgeHint)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 10));
 
         if (_earthshakersDone && actor.InstanceID != ((UCOB)Module).BahamutPrime()?.TargetID)
             hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, (Arena.Center - RelativeNorth).Normalized()), DateTime.MaxValue);
@@ -132,7 +137,7 @@ class P3MegaflareSpreadStack : Components.UniformStackSpread
             if (isTarget)
             {
                 var safeDir = (qmt.RelativeNorth - Arena.Center).ToAngle() + 135.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 2));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + safeDir.ToDirection() * 5, 1));
             }
 
             // everyone else should avoid the stack, it will kill healers and do ~50% to tanks
@@ -255,7 +260,8 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
             {
                 foreach (var (aslot, ally) in Raid.WithSlot().Exclude(actor))
                 {
-                    hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
+                    // trying to dodge allies causes too much variance, plant and let them gtfo
+                    //hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
 
                     // if we walk behind another player, it will pass the tether to them
                     // the cone width doesn't really matter here; as long as the pixels are blocked, pathfinder won't try to go through them
@@ -263,12 +269,7 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
                         hints.AddForbiddenZone(ShapeDistance.DonutSector(tetherSource.Position, (ally.Position - tetherSource.Position).Length(), 60, tetherSource.AngleTo(ally), 2.Degrees()));
                 }
             }
-            else if (Targets[slot])
-            {
-                foreach (var ally in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(ally.Position, Radius), Activation);
-            }
-            else
+            else if (!Targets[slot])
             {
                 List<Func<WPos, float>> goal = [];
 
@@ -285,15 +286,24 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
         }
         else
         {
-            // non tanks need to avoid stealing tethers
-            foreach (var side in Tethers.Where(t => t.Player.Role == Role.Tank))
-                hints.AddForbiddenZone(ShapeDistance.Rect(side.Enemy.Position, side.Player.Position, 1), TetherDeadline);
-
-            if (EnableRaidHints)
+            foreach (var side in Tethers)
             {
-                foreach (var (_, target) in Raid.WithSlot().IncludedInMask(Targets))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(target.Position, 5), Activation);
+                // don't steal from tank
+                if (side.Player.Role == Role.Tank)
+                    hints.AddForbiddenZone(ShapeDistance.Rect(side.Enemy.Position, side.Player.Position, 1), TetherDeadline);
+
+                // don't move too close to source, or tank will be unable to grab tether
+                if (side.Player == actor)
+                    hints.AddForbiddenZone(ShapeDistance.Circle(side.Enemy.Position, 2));
             }
+        }
+
+        // non-tanks avoid tanks, OT avoid MT
+        // (if both tanks avoid each other they kill everyone)
+        if (EnableRaidHints && assignment != PartyRolesConfig.Assignment.MT)
+        {
+            foreach (var (_, target) in Raid.WithSlot().IncludedInMask(Targets).Exclude(actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(target.Position, 5), Activation);
         }
 
         if (Targets.Any())

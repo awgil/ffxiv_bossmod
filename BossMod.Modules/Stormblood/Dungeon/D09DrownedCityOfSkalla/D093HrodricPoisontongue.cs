@@ -62,5 +62,5 @@ class D093HrodricPoisontongueStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 279, NameID = 6910)]
-public class D093HrodricPoisontongue(WorldState ws, Actor primary) : BossModule(ws, primary, new(479, 4), new ArenaBoundsCircle(19.5f));
+public class D093HrodricPoisontongue(ModuleInit init) : BossModule(init, new(479, 4), new ArenaBoundsCircle(19.5f));
 

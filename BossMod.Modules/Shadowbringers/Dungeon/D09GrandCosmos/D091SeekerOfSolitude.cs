@@ -108,4 +108,4 @@ class SeekerOfSolitudeStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 692, NameID = 9041)]
-public class SeekerOfSolitude(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 187), new ArenaBoundsRect(20.5f, 14.5f));
+public class SeekerOfSolitude(ModuleInit init) : BossModule(init, new(0, 187), new ArenaBoundsRect(20.5f, 14.5f));

@@ -37,7 +37,7 @@ public enum SID : uint
     JealousAnaphylaxis = 2302, // Helper->player, extra=0x0
 }
 
-class Pheromones(BossModule module) : Components.Voidzone(module, 4, OID.Pheromones);
+class Pheromones(BossModule module) : Components.Voidzone(module, 4, OID.Pheromones, moveHintLength: 16);
 
 class DeadLeaves(BossModule module) : Components.GenericAOEs(module, default, "Go to different color!")
 {
@@ -124,4 +124,4 @@ class PeerifoolStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 1)] // bnpcname=9391
-public class Peerifool(WorldState ws, Actor primary) : BossModule(ws, primary, new(-90, 700), new ArenaBoundsCircle(25));
+public class Peerifool(ModuleInit init) : BossModule(init, new(-90, 700), new ArenaBoundsCircle(25));

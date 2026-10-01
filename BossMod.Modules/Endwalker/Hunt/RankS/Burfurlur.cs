@@ -84,4 +84,4 @@ class BurfurlurStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 10617)]
-public class Burfurlur(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Burfurlur(ModuleInit init) : SimpleBossModule(init);

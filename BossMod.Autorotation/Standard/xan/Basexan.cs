@@ -88,7 +88,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         if (def.Category == ActionCategory.Ability && Player.FindStatus(1092) != null)
             return false;
 
-        return CanWeave(ReadyIn(aid), def.InstantAnimLock, extraGCDs, extraFixedDelay);
+        return CanWeave(ReadyIn(aid), def.TotalDuration, extraGCDs, extraFixedDelay);
     }
 
     protected AID NextGCD;

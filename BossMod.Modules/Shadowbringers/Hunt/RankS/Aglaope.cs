@@ -84,4 +84,4 @@ class AglaopeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 8653)]
-public class Aglaope(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Aglaope(ModuleInit init) : SimpleBossModule(init);

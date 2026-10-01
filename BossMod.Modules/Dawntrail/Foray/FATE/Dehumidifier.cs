@@ -50,4 +50,4 @@ class DehumidifierStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13819)]
-public class Dehumidifier(WorldState ws, Actor primary) : BossModule(ws, primary, new(-372, 644), new ArenaBoundsCircle(40));
+public class Dehumidifier(ModuleInit init) : BossModule(init, new(-372, 644), new ArenaBoundsCircle(40));

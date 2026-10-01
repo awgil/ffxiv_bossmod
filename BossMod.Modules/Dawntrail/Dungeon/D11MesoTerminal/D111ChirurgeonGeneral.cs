@@ -57,5 +57,5 @@ class D111ChirurgeonGeneralStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1028, NameID = 13970)]
-public class D111ChirurgeonGeneral(WorldState ws, Actor primary) : BossModule(ws, primary, new(270, 12), new ArenaBoundsSquare(20));
+public class D111ChirurgeonGeneral(ModuleInit init) : BossModule(init, new(270, 12), new ArenaBoundsSquare(20));
 

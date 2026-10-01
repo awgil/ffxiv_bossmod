@@ -359,7 +359,11 @@ class ReplayDetailsWindow : UIWindow
         ImGui.TableNextColumn();
         var target = _player.WorldState.Actors.Find(actor.TargetID);
         if (target != null)
-            ImGui.TextUnformatted($"{target} (d={(target.Position - actor.Position).Length():f3})");
+        {
+            var dist = target.DistanceToHitbox(actor);
+            var distfull = dist + target.HitboxRadius + actor.HitboxRadius;
+            ImGui.TextUnformatted($"{target} (d={distfull:f3} hb={dist:f3})");
+        }
 
         ImGui.TableNextColumn();
         if (actor.CastInfo != null)

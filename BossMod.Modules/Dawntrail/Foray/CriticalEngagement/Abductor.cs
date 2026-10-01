@@ -162,4 +162,4 @@ class AbductorStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14505)]
-public class Abductor(WorldState ws, Actor primary) : CEModule(ws, primary, new(-150, -860), new ArenaBoundsCircle(24));
+public class Abductor(ModuleInit init) : CEModule(init, new(-150, -860), new ArenaBoundsCircle(24));

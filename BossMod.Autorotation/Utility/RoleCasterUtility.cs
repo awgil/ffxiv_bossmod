@@ -10,7 +10,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
     {
         DefineSimpleConfig(def, SharedTrack.Sprint, "Sprint", "", 10, ClassShared.AID.Sprint, 10);
 
-        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Self, 8)
+        DefineLimitBreak(def, SharedTrack.LB, ActionTargets.Area, 8)
             .AddAssociatedActions(ClassShared.AID.Skyshard, ClassShared.AID.Starstorm)
             .AddAssociatedAction(lb3);
 
@@ -46,8 +46,8 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
         var lbLevel = LBLevelToExecute(lb.As<LBOption>());
         if (lbLevel > 0)
         {
-            var lbAction = lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.BreathOfTheEarth : ClassShared.AID.HealingWind);
-            Hints.ActionsToExecute.Push(lbAction, ResolveTarget(lb.Value), ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime);
+            var lbAction = lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Starstorm : ClassShared.AID.Skyshard);
+            Hints.ActionsToExecute.Push(lbAction, null, ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime, targetPos: ResolveTargetLocation(lb.Value).ToVec3(Player.PosRot.Y));
         }
 
         var addle = strategy.Option(SharedTrack.Addle);

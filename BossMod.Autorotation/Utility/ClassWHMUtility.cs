@@ -77,6 +77,8 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         ExecuteSimple(strategy.Option(Track.Aquaveil), WHM.AID.Aquaveil, defaultHealTarget);
         ExecuteSimple(strategy.Option(Track.AetherialShift), WHM.AID.AetherialShift, Player);
 
+        var swift = Player.FindStatus(ClassShared.SID.Swiftcast)?.ExpireAt > World.FutureTime(GCD);
+
         var cure = strategy.Option(Track.Cure);
         var cureAction = cure.As<CureOption>() switch
         {
@@ -86,7 +88,7 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
             _ => default
         };
         if (cureAction != default)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cureAction), ResolveTarget(cure.Value) ?? defaultHealTarget, cure.Priority(), cure.Value.ExpireIn, castTime: ActionDefinitions.Instance.Spell(cureAction)!.CastTime);
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(cureAction), ResolveTarget(cure.Value) ?? defaultHealTarget, cure.Priority(), cure.Value.ExpireIn, castTime: swift ? 0 : ActionDefinitions.Instance.Spell(cureAction)!.CastTime);
 
         var regen = strategy.Option(Track.Regen);
         if (regen.As<SimpleOption>() == SimpleOption.Use)
@@ -107,7 +109,7 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
         {
             var medicaHotUp = StatusDetails(Player, WHM.SID.MedicaII, Player.InstanceID).Left > 0.1f || StatusDetails(Player, WHM.SID.MedicaIII, Player.InstanceID).Left > 0.1f;
             if (!medicaHotUp)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(medicaAction), Player, medica.Priority(), medica.Value.ExpireIn, castTime: 2);
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(medicaAction), Player, medica.Priority(), medica.Value.ExpireIn, castTime: swift ? 0 : 2);
         }
 
         var asylum = strategy.Option(Track.Asylum);

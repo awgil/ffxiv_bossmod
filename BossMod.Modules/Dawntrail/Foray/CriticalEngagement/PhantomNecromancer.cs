@@ -100,4 +100,4 @@ class PhantomNecromancerStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14512)]
-public class PhantomNecromancer(WorldState ws, Actor primary) : CEModule(ws, primary, new(224, -860), new ArenaBoundsSquare(20));
+public class PhantomNecromancer(ModuleInit init) : CEModule(init, new(224, -860), new ArenaBoundsSquare(20));

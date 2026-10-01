@@ -43,13 +43,13 @@ public class CastTwister(BossModule module, float radius, uint oid, Enum aid, fl
 {
     public readonly float SpawnDelay = spawnDelay; // from cast event to twister spawn
     public readonly float PredictionTime = predictBeforeSpawn;
-    private DateTime _predictAt = DateTime.MaxValue;
-    private DateTime _spawnAt;
+    protected DateTime _predictAt = DateTime.MaxValue;
+    protected DateTime _spawnAt;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var p in PredictedPositions)
-            hints.AddForbiddenZone(ShapeDistance.Circle(p, Radius * 3), PredictedActivation);
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, Radius * 3));
         foreach (var p in ActiveTwisters)
             hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, Radius));
     }

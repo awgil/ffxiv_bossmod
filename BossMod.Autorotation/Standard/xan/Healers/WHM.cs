@@ -94,7 +94,11 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         var approach = strategy.Assize.Value != AssizeStrategy.None && CanWeave(AID.Assize, 1);
 
-        GoalZoneCombined(strategy, approach ? 19.5f : 25, Hints.GoalAOECircle(8), AID.Holy, 3);
+        // TODO: breakpoints
+        // at 70, holy 1 is 140 per target and stone IV is 260
+        var minHolyTargets = Player.Level == 70 ? 2 : 3;
+
+        GoalZoneCombined(strategy, approach ? 19.5f : 25, Hints.GoalAOECircle(8), AID.Holy, minHolyTargets);
 
         if (!CanFitGCD(TargetDotLeft, 1))
             PushGCD(AID.Aero, BestDotTarget, GCDPriority.Filler, useOnDyingTarget: false);
@@ -116,7 +120,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
         if (SacredSight > 0)
             PushGCD(AID.GlareIV, BestRangedAOETarget);
 
-        if (NumHolyTargets > 2)
+        if (NumHolyTargets >= minHolyTargets)
             PushGCD(AID.Holy, Player);
 
         // TODO make a track for this

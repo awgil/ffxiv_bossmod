@@ -38,7 +38,7 @@ public enum IconID : uint
 class AbyssicBuster(BossModule module) : Components.Cleave(module, AID.AbyssicBuster, new AOEShapeCone(25, 45.Degrees()))
 {
     private readonly List<Actor> _boss = [];
-    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
+    private new IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
     {
         foreach (var b in _boss)
         {
@@ -146,4 +146,4 @@ class D023TiomanStates : StateMachineBuilder
     }
 }
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 37, NameID = 3798)]
-public class D023Tioman(WorldState ws, Actor primary) : BossModule(ws, primary, new(-103, -395), new ArenaBoundsCircle(27f));
+public class D023Tioman(ModuleInit init) : BossModule(init, new(-103, -395), new ArenaBoundsCircle(27f));

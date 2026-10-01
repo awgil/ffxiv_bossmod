@@ -40,4 +40,4 @@ class StarcrierStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 12692)]
-public class Starcrier(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Starcrier(ModuleInit init) : SimpleBossModule(init);

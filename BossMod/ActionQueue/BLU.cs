@@ -164,6 +164,7 @@ public enum SID : uint
     Bleeding = 1714, // applied by Nightbloom to target
     Boost = 1716, // applied by Bristle to self
     MightyGuard = 1719, // applied by Mighty Guard to self
+    Diamondback = 1722, // applied by Diamondback to self
     Windburn = 1723, // applied by Feather Rain to target
     DeepFreeze = 1731, // applied by the Ram's Voice to target
     HPBoost = 2120, // applied by Devour to self

@@ -59,7 +59,7 @@ class C030NMonkStates(BossModule module) : C030MonkStates(module, false);
 class C030SMonkStates(BossModule module) : C030MonkStates(module, true);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.NMonk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12631, SortOrder = 4)]
-public class C030NMonk(WorldState ws, Actor primary) : C030Trash1(ws, primary);
+public class C030NMonk(ModuleInit init) : C030Trash1(init);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.SMonk, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12631, SortOrder = 4)]
-public class C030SMonk(WorldState ws, Actor primary) : C030Trash1(ws, primary);
+public class C030SMonk(ModuleInit init) : C030Trash1(init);

@@ -3,7 +3,7 @@
 class UnsealedAura(BossModule module) : Components.RaidwideCastDelay(module, AID.UnsealedAuraCast, AID.UnsealedAura, 0.8f);
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1018, NameID = 13947, PlanLevel = 100)]
-public class FTB4Magitaur(WorldState ws, Actor primary) : BossModule(ws, primary, ArenaCenter, new ArenaBoundsCircle(31.5f))
+public class FTB4Magitaur(ModuleInit init) : BossModule(init, ArenaCenter, new ArenaBoundsCircle(31.5f))
 {
     public override bool DrawAllPlayers => true;
 

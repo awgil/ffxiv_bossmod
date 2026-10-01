@@ -139,4 +139,4 @@ class D091KelpieStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 279, NameID = 6907)]
-public class D091Kelpie(WorldState ws, Actor primary) : BossModule(ws, primary, new(-220, 4), new ArenaBoundsSquare(15));
+public class D091Kelpie(ModuleInit init) : BossModule(init, new(-220, 4), new ArenaBoundsSquare(15));

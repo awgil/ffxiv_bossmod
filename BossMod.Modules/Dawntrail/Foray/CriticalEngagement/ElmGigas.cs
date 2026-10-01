@@ -107,4 +107,4 @@ class ElmGigasStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14508)]
-public class ElmGigas(WorldState ws, Actor primary) : CEModule(ws, primary, new(-390, 700), new ArenaBoundsCircle(29.5f));
+public class ElmGigas(ModuleInit init) : CEModule(init, new(-390, 700), new ArenaBoundsCircle(29.5f));

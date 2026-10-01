@@ -2,7 +2,7 @@
 
 class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 4)
 {
-    int _neurolinkCount = 0;
+    int _neurolinkCount;
     readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
 
     public WPos Destination { get; private set; }
@@ -78,16 +78,16 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
         if (Stacks.Count == 0)
             return;
 
-        var baiter = Module.FindComponent<P1LiquidHell>()?.Baiter;
+        var baiters = Module.FindComponent<P1LiquidHell>()?.Baiters;
 
-        if (EnableHints || baiter != null && baiter != actor)
+        if (EnableHints || baiters.HasValue && !baiters.Value[slot])
         {
             var stack = Stacks[0];
 
             if (stack.Target == actor) // stack target shouldn't move around too much, just plant on boss
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Destination, new(0, 1), 0.5f, actor.Position, 0.1f), stack.Activation);
             else if (!stack.ForbiddenPlayers[slot])
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Destination, stack.Radius), stack.Activation);
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Destination, stack.Radius - 1), stack.Activation);
             else
                 hints.AddForbiddenZone(ShapeDistance.Circle(Destination, stack.Radius), stack.Activation);
         }

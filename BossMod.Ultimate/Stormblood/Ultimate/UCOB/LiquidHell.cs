@@ -2,19 +2,30 @@
 
 class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.LiquidHell, OID.VoidzoneLiquidHell, 1.3f, activationDelay: 1.8f)
 {
+    protected DateTime NextCast;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // we only add hints for spawned fireballs since the activation is so delayed
-        // this helps party not kill themselves during blackfire trio, and gives ranged lots of extra room in p1
+        // baiter gets burns about 5% of the time regardless of how early we dodge, just go next
         foreach (var (z, spawn) in _sources)
-            hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
-
+        {
+            if (actor.Position.InCircle(z.Position, 6))
+                hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
+            else
+                // forbid AI from dodging into fire to avoid twisters
+                hints.TemporaryObstacles.Add(ShapeDistance.Circle(z.Position, 6));
+        }
     }
 }
 
 class P1LiquidHell : LiquidHell
 {
-    public P1LiquidHell(BossModule module) : base(module) { KeepOnPhaseChange = true; }
+    public P1LiquidHell(BossModule module) : base(module)
+    {
+        _assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+
+        KeepOnPhaseChange = true;
+    }
 
     public enum BaitMode
     {
@@ -24,9 +35,10 @@ class P1LiquidHell : LiquidHell
     }
 
     BaitMode Mode;
-    DateTime NextCast;
 
-    public Actor? Baiter { get; private set; }
+    public BitMask Baiters;
+
+    readonly int[] _assignments;
 
     public void Reset(float delay, BaitMode mode)
     {
@@ -43,15 +55,15 @@ class P1LiquidHell : LiquidHell
         {
             NextCast = WorldState.FutureTime(1.2f);
 
-            if (Mode == BaitMode.Random && (Baiter == null || Baiter.IsDead))
-                Baiter = Raid.WithoutSlot().Closest(spell.TargetXZ);
+            if (Mode == BaitMode.Random && !Baiters.Any())
+                Baiters |= Raid.WithSlot().InRadius(spell.TargetXZ, 1).Mask();
         }
 
         if (NumCasts >= 5)
         {
             NextCast = default;
             Mode = BaitMode.None;
-            Baiter = null;
+            Baiters.Reset();
         }
     }
 
@@ -61,14 +73,12 @@ class P1LiquidHell : LiquidHell
 
         if (Mode == BaitMode.Proximity)
         {
-            var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
-
-            if (assignments.Length == 0)
+            if (_assignments.Length == 0)
                 return;
 
             bool isBaiter;
 
-            var slotR1 = assignments[(int)PartyRolesConfig.Assignment.R1];
+            var slotR1 = _assignments[(int)PartyRolesConfig.Assignment.R1];
             if (Module.FindComponent<Hatch>()?.IsTarget(slotR1) == true)
                 isBaiter = assignment == PartyRolesConfig.Assignment.H1;
             else
@@ -81,8 +91,9 @@ class P1LiquidHell : LiquidHell
                 // encourage baiter to stay on the opposite half of the arena, because it tends to walk itself into a corner otherwise
                 hints.AddForbiddenZone(ShapeDistance.InvertedCone(Module.PrimaryActor.Position, 50, Module.PrimaryActor.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);
 
+                var center = Arena.Center;
                 // encourage baiter to stay on arena edge if possible
-                hints.GoalZones.Add(p => p.InDonut(Arena.Center, 18, 22) ? 0.1f : 0);
+                hints.GoalZones.Add(p => p.InDonut(center, 18, 22) ? 0.1f : 0);
 
                 // don't drop on neurolinks
                 foreach (var nl in Module.Enemies(OID.Neurolink))
@@ -95,14 +106,9 @@ class P1LiquidHell : LiquidHell
         if (Mode == BaitMode.Random)
         {
             if (NumCasts == 0 && Module.PrimaryActor.TargetID != actor.InstanceID && Module.FindComponent<Hatch>()?.IsTarget(slot) == false && assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.MT))
-            {
                 hints.AddForbiddenZone(ShapeDistance.Circle(Module.PrimaryActor.Position, 6), NextCast);
 
-                foreach (var p in Raid.WithoutSlot().Exclude(actor))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 0.5f), DateTime.MaxValue);
-            }
-
-            if (actor == Baiter && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
+            if (Baiters[slot] && Module.FindComponent<P1Fireball>()?.Destination is { } dest && dest != default)
             {
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(dest, 11), NextCast.AddSeconds(1.2f * (4 - NumCasts)));
                 hints.AddForbiddenZone(ShapeDistance.Circle(dest, 7), NextCast);
@@ -110,13 +116,53 @@ class P1LiquidHell : LiquidHell
         }
     }
 
-    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => player == Baiter ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
+    public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Baiters[playerSlot] ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 
     public override void Update()
     {
         base.Update();
 
         if (Mode == BaitMode.Proximity)
-            Baiter = Raid.WithoutSlot().Farthest(Module.PrimaryActor.Position);
+            Baiters = BitMask.Build(Raid.WithSlot().Farthest(Module.PrimaryActor.Position).Item1);
+    }
+}
+
+class P3LiquidHell : LiquidHell
+{
+    public P3LiquidHell(BossModule module) : base(module)
+    {
+        NextCast = module.WorldState.FutureTime(8.2f);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (assignment == PartyRolesConfig.Assignment.R1 && Module.Enemies(OID.Twintania).FirstOrDefault() is { } twin)
+        {
+            if (NumCasts == 0)
+                hints.GoalZones.Add(AIHints.GoalProximity(new(4, 20), 10, 1));
+
+            hints.AddForbiddenZone(ShapeDistance.InvertedCone(twin.Position, 50, twin.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);
+
+            if (NextCast != default)
+            {
+                hints.AddForbiddenZone(ShapeDistance.Circle(twin.Position, 18), NextCast);
+
+                foreach (var nl in Module.Enemies(OID.Neurolink))
+                    hints.AddForbiddenZone(ShapeDistance.Circle(nl.Position, 7), NextCast);
+            }
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if (spell.Action == WatchedAction)
+            NextCast = WorldState.FutureTime(1.2f);
+
+        if (NumCasts >= 5)
+            NextCast = default;
     }
 }

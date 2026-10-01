@@ -323,4 +323,4 @@ class AtlasCarbuncleStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14791)]
-public class AtlasCarbuncle(WorldState ws, Actor primary) : CEModule(ws, primary, new(238, 352), new ArenaBoundsSquare(20));
+public class AtlasCarbuncle(ModuleInit init) : CEModule(init, new(238, 352), new ArenaBoundsSquare(20));

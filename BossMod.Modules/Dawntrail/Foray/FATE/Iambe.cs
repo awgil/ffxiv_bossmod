@@ -114,4 +114,4 @@ class IambeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14765)]
-public class Iambe(WorldState ws, Actor primary) : BossModule(ws, primary, new(-175, -500), new ArenaBoundsCircle(40));
+public class Iambe(ModuleInit init) : BossModule(init, new(-175, -500), new ArenaBoundsCircle(40));

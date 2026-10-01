@@ -127,7 +127,7 @@ class TheIcingOnTheCakeStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1045, NameID = 14234)]
-public class TheIcingOnTheCake(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(45))
+public class TheIcingOnTheCake(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(45))
 {
     protected override bool CheckPull() => !PrimaryActor.IsDead;
 }

@@ -248,7 +248,7 @@ class VishapStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70127, NameID = 3330)]
-public class Vishap(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 245), ScrollingBounds.Bounds)
+public class Vishap(ModuleInit init) : BossModule(init, new(0, 245), ScrollingBounds.Bounds)
 {
     // if the primary actor is present, that means we're in the solo duty (and also that ScrollingBounds needs to be active to pull the boss)
     protected override bool CheckPull() => true;

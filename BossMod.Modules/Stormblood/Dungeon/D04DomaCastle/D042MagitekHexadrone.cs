@@ -98,4 +98,4 @@ class D042MagitekHexadroneStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 241, NameID = 6203)]
-public class D042MagitekHexadrone(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 130.5f), new ArenaBoundsSquare(20));
+public class D042MagitekHexadrone(ModuleInit init) : BossModule(init, new(-240, 130.5f), new ArenaBoundsSquare(20));

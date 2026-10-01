@@ -31,4 +31,4 @@ class OrghanaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5986)]
-public class Orghana(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Orghana(ModuleInit init) : SimpleBossModule(init);

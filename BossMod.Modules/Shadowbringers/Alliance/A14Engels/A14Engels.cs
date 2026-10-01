@@ -217,4 +217,4 @@ class A14EngelsStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 700, NameID = 9147)]
-public class A14Engels(WorldState ws, Actor primary) : BossModule(ws, primary, new(900, 670), new ArenaBoundsSquare(30));
+public class A14Engels(ModuleInit init) : BossModule(init, new(900, 670), new ArenaBoundsSquare(30));

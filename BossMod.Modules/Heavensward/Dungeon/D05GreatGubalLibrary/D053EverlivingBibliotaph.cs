@@ -40,7 +40,7 @@ class VoidBlizzardIII(BossModule module) : Components.StandardAOEs(module, AID.V
 class AbyssalSwing(BossModule module) : Components.Cleave(module, AID.AbyssalSwing, new AOEShapeCone(6f + 1.5f, 45.Degrees()))
 {
     private readonly List<Actor> _biblioklepts = [];
-    private IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
+    private new IEnumerable<(Actor origin, Actor target, Angle angle)> OriginsAndTargets()
     {
         foreach (var b in _biblioklepts)
         {
@@ -196,4 +196,4 @@ class D053EverlivingBibliotaphStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 31, NameID = 3930)]
-public class D053EverlivingBibliotaph(WorldState ws, Actor primary) : BossModule(ws, primary, new(377.4f, -59.7f), new ArenaBoundsCircle(25));
+public class D053EverlivingBibliotaph(ModuleInit init) : BossModule(init, new(377.4f, -59.7f), new ArenaBoundsCircle(25));

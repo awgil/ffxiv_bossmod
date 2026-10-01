@@ -36,10 +36,6 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        // bait spots are inside the arena border. pathfinder doesn't try to walk out of blocked pixels unless there is a goal to move toward
-        // normally player will have nael targeted, but for cursed pattern 3rd bait she is temporarily despawned
-        hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 8, 0.1f));
-
         var bo = BaitOrder[slot].Order;
 
         if (bo >= NextBaitOrder)
@@ -50,7 +46,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(CurrentBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
             }
             else
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-2));
         }
         else if (bo == 0)
         {
@@ -166,4 +162,4 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P2Hypernova(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Hypernova, OID.VoidzoneHypernova, 1.4f, activationDelay: 2.1f);
+class P2Hypernova(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Hypernova, OID.VoidzoneHypernova, 1.4f, activationDelay: 2);

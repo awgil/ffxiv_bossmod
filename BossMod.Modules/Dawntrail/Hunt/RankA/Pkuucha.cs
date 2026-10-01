@@ -83,4 +83,4 @@ class PkuuchaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 13443)]
-public class Pkuucha(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Pkuucha(ModuleInit init) : SimpleBossModule(init);

@@ -110,6 +110,9 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Allow drawing non-party players on radar", tooltip: "This option only affects certain categories of content, like adventuring forays.", depends: nameof(ShowIrrelevantPlayers))]
     public bool ShowAllPlayers = true;
 
+    [PropertyDisplay("Draw pet on radar")]
+    public bool ShowPet = false;
+
     [PropertyDisplay("Show role-based colors on otherwise uncolored players in the radar")]
     public bool ColorPlayersBasedOnRole = false;
 

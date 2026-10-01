@@ -180,5 +180,5 @@ class ClaretDragonStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14787)]
-public class ClaretDragon(WorldState ws, Actor primary) : CEModule(ws, primary, new(-688, 150), new ArenaBoundsSquare(20));
+public class ClaretDragon(ModuleInit init) : CEModule(init, new(-688, 150), new ArenaBoundsSquare(20));
 

@@ -41,4 +41,4 @@ class SensualSandyStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Equilius", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14738)]
-public class SensualSandy(WorldState ws, Actor primary) : BossModule(ws, primary, new(-402, -253), new ArenaBoundsCircle(30));
+public class SensualSandy(ModuleInit init) : BossModule(init, new(-402, -253), new ArenaBoundsCircle(30));

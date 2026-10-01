@@ -43,4 +43,4 @@ class BoneCrawlerStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 5988)]
-public class BoneCrawler(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class BoneCrawler(ModuleInit init) : SimpleBossModule(init);

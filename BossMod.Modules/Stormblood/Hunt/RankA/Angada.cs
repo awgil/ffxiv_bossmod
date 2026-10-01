@@ -56,4 +56,4 @@ class AngadaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.A, NameID = 5999)]
-public class Angada(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Angada(ModuleInit init) : SimpleBossModule(init);

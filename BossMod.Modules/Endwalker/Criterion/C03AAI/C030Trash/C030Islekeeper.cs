@@ -53,7 +53,7 @@ class C030NIslekeeperStates(BossModule module) : C030IslekeeperStates(module, fa
 class C030SIslekeeperStates(BossModule module) : C030IslekeeperStates(module, true);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.NIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 979, NameID = 12561, SortOrder = 7)]
-public class C030NIslekeeper(WorldState ws, Actor primary) : C030Trash2(ws, primary);
+public class C030NIslekeeper(ModuleInit init) : C030Trash2(init);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.SIslekeeper, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 980, NameID = 12561, SortOrder = 7)]
-public class C030SIslekeeper(WorldState ws, Actor primary) : C030Trash2(ws, primary);
+public class C030SIslekeeper(ModuleInit init) : C030Trash2(init);

@@ -189,4 +189,4 @@ class ForecasterStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Hunt, GroupID = (uint)BossModuleInfo.HuntRank.S, NameID = 13437)]
-public class Forecaster(WorldState ws, Actor primary) : SimpleBossModule(ws, primary);
+public class Forecaster(ModuleInit init) : SimpleBossModule(init);

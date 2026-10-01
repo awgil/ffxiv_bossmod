@@ -190,7 +190,7 @@ class AdrammelechStates : StateMachineBuilder
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 735, NameID = 9442)]
-public class Adrammelech(WorldState ws, Actor primary) : BossModule(ws, primary, new(80, -606), new ArenaBoundsCircle(29.5f))
+public class Adrammelech(ModuleInit init) : BossModule(init, new(80, -606), new ArenaBoundsCircle(29.5f))
 {
     public override bool DrawAllPlayers => true;
 }

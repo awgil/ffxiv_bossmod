@@ -214,10 +214,12 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         for (var i = 0; i < Plan.Modules.Count; ++i)
             AddStrategyColumns(i);
 
+        List<Plan.Entry> targeting = [.. Plan.Targeting];
+
         // clear and readd target overrides
         while (_colTarget.Elements.Count > 0)
             _colTarget.RemoveElement(0);
-        foreach (var o in Plan.Targeting)
+        foreach (var o in targeting)
         {
             var state = _tree.Nodes.GetValueOrDefault(o.StateID);
             if (state != null)

@@ -68,8 +68,8 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         var dirToUnsafeCleave = actor.DirectionTo(Arena.Center).ToAngle() - _playerAngles[slot];
         al.ForbidArc(dirToUnsafeCleave - 90.Degrees(), dirToUnsafeCleave + 90.Degrees());
 
-        foreach (var (min, max) in al.Allowed(2.Degrees()))
-            hints.ForbiddenDirections.Add(((max + min) / 2, (max - min) / 2, _resolve));
+        foreach (var (min, max) in al.Forbidden.Segments)
+            hints.ForbiddenDirections.Add((((max + min) / 2).Radians(), ((max - min) / 2).Radians() + 1.Degrees(), _resolve));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

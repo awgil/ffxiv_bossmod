@@ -49,4 +49,4 @@ class CetoStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.EurekaNM, GroupID = 639, NameID = 1421, Contributors = "xan", SortOrder = 9)]
-public class Ceto(WorldState ws, Actor primary) : BossModule(ws, primary, new(747.8959f, -878.8765f), new ArenaBoundsCircle(80, MapResolution: 1));
+public class Ceto(ModuleInit init) : BossModule(init, new(747.8959f, -878.8765f), new ArenaBoundsCircle(80, MapResolution: 1));

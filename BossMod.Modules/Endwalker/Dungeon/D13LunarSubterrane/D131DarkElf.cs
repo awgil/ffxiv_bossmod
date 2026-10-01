@@ -130,4 +130,4 @@ class D131DarkElfStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12500)]
-public class D131DarkElf(WorldState ws, Actor primary) : BossModule(ws, primary, new(-401, -231), new ArenaBoundsSquare(15.5f));
+public class D131DarkElf(ModuleInit init) : BossModule(init, new(-401, -231), new ArenaBoundsSquare(15.5f));

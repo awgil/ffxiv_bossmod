@@ -148,7 +148,7 @@ public struct NavigationDecision
 
                 if (discrete)
                 {
-                    gScratch[iCell] = sdf.Check(point) ? g : float.MaxValue;
+                    gScratch[iCell] = sdf.CheckIndexed(point, iCell) ? g : float.MaxValue;
                     continue;
                 }
 

@@ -105,4 +105,4 @@ class D091LindblumZaghnalStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1008, NameID = 13623)]
-public class D091LindblumZaghnal(WorldState ws, Actor primary) : BossModule(ws, primary, new(73, 277), new ArenaBoundsCircle(20));
+public class D091LindblumZaghnal(ModuleInit init) : BossModule(init, new(73, 277), new ArenaBoundsCircle(20));

@@ -123,4 +123,4 @@ class CausticGrebuloffStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 792, NameID = 10313)]
-public class CausticGrebuloff(WorldState ws, Actor primary) : BossModule(ws, primary, new(266.5f, -178f), new ArenaBoundsCircle(20));
+public class CausticGrebuloff(ModuleInit init) : BossModule(init, new(266.5f, -178f), new ArenaBoundsCircle(20));

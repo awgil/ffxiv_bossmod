@@ -128,4 +128,4 @@ class D032HunterOfBardamStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus), Ported by Herculezz (MeteorImpact rewritten with help from xan)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 240, NameID = 6180)]
-public class D032HunterOfBardam(WorldState ws, Actor primary) : BossModule(ws, primary, new(-28.5f, -14), new ArenaBoundsCircle(19.5f));
+public class D032HunterOfBardam(ModuleInit init) : BossModule(init, new(-28.5f, -14), new ArenaBoundsCircle(19.5f));

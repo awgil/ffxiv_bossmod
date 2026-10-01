@@ -240,4 +240,4 @@ class FormidableStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Fate, GroupID = 1464, NameID = 8822)]
-public class Formidable(WorldState ws, Actor primary) : SimpleBossModule(ws, primary) { }
+public class Formidable(ModuleInit init) : SimpleBossModule(init) { }

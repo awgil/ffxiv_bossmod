@@ -164,12 +164,14 @@ class MiniSupercellKB(BossModule module) : Components.KnockbackFromCastTarget(mo
 
 class GravitationalForce(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.GravitationalForce2, OID.GravityVoidzone, 0);
 class MistralGaol(BossModule module) : Components.CastHint(module, AID.MistralGaol, "Prepare for Quick Time Event (spam buttons when it starts)");
+class Monolith(BossModule module) : Components.AddsPointless(module, (uint)OID.Monolith);
 
 class GarudaStates : StateMachineBuilder
 {
     public GarudaStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<Monolith>()
             .ActivateOnEnter<MistralShriek>()
             .ActivateOnEnter<GustFront>()
             .ActivateOnEnter<MistralSong>()
@@ -183,14 +185,12 @@ class GarudaStates : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68696, NameID = 7893)] // also: CFC 646
-public class Garuda(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 0), new ArenaBoundsCircle(22))
+public class Garuda(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(22))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
         foreach (var s in Enemies(OID.Noctis))
             Arena.Actor(s, ArenaColor.Vulnerable);
-        foreach (var s in Enemies(OID.Monolith))
-            Arena.Actor(s, ArenaColor.Object);
     }
 }

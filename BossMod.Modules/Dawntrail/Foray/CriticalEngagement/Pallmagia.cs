@@ -220,5 +220,5 @@ class PallmagiaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14714)]
-public class Pallmagia(WorldState ws, Actor primary) : CEModule(ws, primary, new(807, -562), new ArenaBoundsCircle(20));
+public class Pallmagia(ModuleInit init) : CEModule(init, new(807, -562), new ArenaBoundsCircle(20));
 
