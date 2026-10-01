@@ -44,8 +44,8 @@ public enum AID : uint
     PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle, knockback to the wall ~1s after the cast
     Surpanakha = 3739, // Boss->self, no cast, range 40 ~130-degree cone on the tank, vulnerability on hit
     TheRoseOfHate = 3740, // Boss->self, 2.7s cast, range 40 width 8 rect
-    SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target enrage
-    SwiftSlaughterDash = 3742, // Boss/HelperA->location, no cast, enrage dashes (4x, 1s apart, ~19y from center)
+    SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target, numbered markers on 4 players during the cast
+    SwiftSlaughterDash = 3742, // Boss/HelperA->location, no cast, range ~20 width 6 rect from center through marked player, in marker order ~1s apart
     SwiftSlaughterVisual = 4769, // Boss->self, 2.7s cast, range 20, post-enrage loop, hits only arena objects
     SwiftSlaughterAOE = 4770, // Boss->self, 3.7s cast, range 15 circle, post-enrage loop
     BladesOfCarnageAndLiberation = 4986, // Boss->self, no cast, single-target, visual
@@ -60,6 +60,10 @@ public enum IconID : uint
 {
     Stack = 41, // player, Rose of Conquest
     Slaughter = 57, // player, 12y Slaughter spread ~7.3s later
+    SwiftSlaughter1 = 50, // player
+    SwiftSlaughter2 = 51, // player
+    SwiftSlaughter3 = 52, // player
+    SwiftSlaughter4 = 53, // player
 }
 
 public enum TetherID : uint
@@ -138,6 +142,60 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
     }
 }
 class SwiftSlaughter(BossModule module) : Components.CastHint(module, AID.SwiftSlaughter, "Enrage!", true);
+class SwiftSlaughterCharges(BossModule module) : Components.GenericAOEs(module, AID.SwiftSlaughterDash)
+{
+    private const float Length = 20;
+    private const float HalfWidth = 3;
+    private readonly List<(Actor target, DateTime activation)> _charges = [];
+
+    private AOEInstance Charge((Actor target, DateTime activation) c)
+        => new(new AOEShapeRect(Length, HalfWidth), Arena.Center, Angle.FromDirection(c.target.Position - Arena.Center), c.activation);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _charges.Where(c => c.target != actor).Select(Charge);
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+        var order = _charges.FindIndex(c => c.target == actor);
+        if (order >= 0)
+            hints.Add($"Charge #{order + 1 + NumCasts}: go to the edge, away from the raid!", Raid.WithoutSlot().Exclude(actor).Any(p => Charge(_charges[order]).Check(p.Position)));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        var own = _charges.FindIndex(c => c.target == actor);
+        if (own < 0)
+            return;
+        foreach (var p in Raid.WithoutSlot().Exclude(actor))
+        {
+            var off = p.Position - Arena.Center;
+            var dist = MathF.Max(off.Length(), HalfWidth + 0.5f);
+            hints.AddForbiddenZone(ShapeDistance.Cone(Arena.Center, Length, Angle.FromDirection(off), MathF.Asin((HalfWidth + 0.5f) / dist).Radians()), _charges[own].activation);
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var c in _charges.Where(c => c.target == pc))
+            Arena.AddRect(Arena.Center, (c.target.Position - Arena.Center).Normalized(), Length, 0, HalfWidth, ArenaColor.Danger);
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID is >= (uint)IconID.SwiftSlaughter1 and <= (uint)IconID.SwiftSlaughter4)
+            _charges.Add((actor, WorldState.FutureTime(13.2f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction && _charges.Count > 0)
+        {
+            _charges.RemoveAt(0);
+            ++NumCasts;
+        }
+    }
+}
 class SwiftSlaughterAOE(BossModule module) : Components.StandardAOEs(module, AID.SwiftSlaughterAOE, 15);
 class BladesOfCarnageCombo(BossModule module) : Components.CastCounter(module, AID.BladesOfCarnageAndLiberation)
 {
@@ -237,7 +295,7 @@ class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, 
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (_active)
-            hints.Add("Tankbuster x4");
+            hints.Add("Tankbuster (multi-hit)");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -390,6 +448,7 @@ class T01RavanaStates : StateMachineBuilder
             .ActivateOnEnter<PillarsOfHeaven>()
             .ActivateOnEnter<PillarsOfHeavenKnockback>()
             .ActivateOnEnter<SwiftSlaughter>()
+            .ActivateOnEnter<SwiftSlaughterCharges>()
             .ActivateOnEnter<SlaughterCast>()
             .ActivateOnEnter<SlaughterCircle>()
             .ActivateOnEnter<RavanaSeeing>()
@@ -405,7 +464,7 @@ class T01RavanaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)] // TODO: clear Incomplete after a synced run confirms Pillars gate wedge, orb avoidance, Slaughter cone; Atma-Linga shape unknown
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)]
 public class T01Ravana(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
