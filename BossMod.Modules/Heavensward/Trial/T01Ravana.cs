@@ -19,7 +19,7 @@ public enum AID : uint
     DragonflyAvatar = 3712, // Boss->self, no cast, single-target
     ScorpionAvatar = 3713, // Boss->self, no cast, single-target
     BeetleAvatar = 3714, // Boss->self, no cast, single-target
-    BlindingBlade = 3715, // Boss->player, no cast, range 7 tankbuster
+    BlindingBlade = 3715, // Boss->self, no cast, range 7 ~90-degree cone on the tank
     TheSeeingTail = 3716, // Boss->self, 1.2s cast, applies directional parry (front+back)
     TheSeeingWing = 3717, // Boss->self, 1.2s cast, applies directional parry (left+right)
     Revengeance = 3718, // Helper->self, no cast, single-target
@@ -27,13 +27,13 @@ public enum AID : uint
     PreludeToSlaughterVisual = 3720, // Boss->self, 2.7s cast, single-target
     PreludeToSlaughterRect = 3721, // Helper->self, no cast, range 40 width 8 rect
     PreludeToSlaughterCircle = 3722, // Boss->self, 2.7s cast, range 6-20 donut
-    SlaughterCast = 3723, // Boss->self, 15.7s cast, range 40 cone
+    SlaughterCast = 3723, // Boss->self, 15.7s cast, range 40 270-degree cone
     SlaughterVisual = 3724, // Boss->self, 2.7s cast, single-target
     SlaughterRect = 3725, // Helper->self, 3.7s cast, range 44 width 8 rect
     SlaughterCircle = 3726, // HelperA->self, no cast, range 12 circle on icon-marked players
-    TapasyaNear = 3727, // Boss->self, no cast, range 9 cone (stay inside)
-    TapasyaFar = 3728, // Helper->self, no cast, range 12 cone (stay outside)
-    TapasyaFollowUp = 3729, // Boss->self, no cast, single-target (follow-up hit)
+    Tapasya = 3727, // Boss->self, no cast, range 9 ~120-degree cone on the tank
+    TapasyaFollowUp = 3728, // Helper->self, no cast, range 12 ~120-degree cone, 2.6s and 3.1s after Tapasya in the same direction
+    AtmaLinga = 3729, // Boss->self, no cast, single-target
     FallingLaughter = 3730, // MoonGana/SpiritGana->self, 9.7s cast, single-target
     BloodyFuller = 3731, // Boss->self, 4.7s cast, range 100 circle
     ChandrahasSpawn = 3732, // Chandrahas->self, no cast, single-target
@@ -41,7 +41,7 @@ public enum AID : uint
     ChandrahasFinale = 3735, // HelperB->self, no cast, small circle at center (stack in)
     TheRoseOfConviction = 3736, // Boss->self, no cast, single-target
     TheRoseOfConquest = 3737, // RavanasWill->self, no cast, range 6 circle at the tethered player, vulnerability on hit
-    PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle
+    PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle, knockback to the wall ~1s after the cast
     Surpanakha = 3739, // Boss->self, no cast, range 40 ~130-degree cone on the tank, vulnerability on hit
     TheRoseOfHate = 3740, // Boss->self, 2.7s cast, range 40 width 8 rect
     SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target enrage
@@ -99,10 +99,44 @@ class PreludeToSlaughterRect(BossModule module) : Components.GenericAOEs(module,
 
 class SlaughterRect(BossModule module) : Components.StandardAOEs(module, AID.SlaughterRect, new AOEShapeRect(44, 4));
 class SlaughterCross(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCross, new AOEShapeRect(40, 4));
-class SlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCast, new AOEShapeCone(40, 90.Degrees()));
+class SlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCast, new AOEShapeCone(40, 135.Degrees()));
 class TheRoseOfHate(BossModule module) : Components.StandardAOEs(module, AID.TheRoseOfHate, new AOEShapeRect(40, 4));
 class BloodyFuller(BossModule module) : Components.RaidwideCast(module, AID.BloodyFuller);
 class PillarsOfHeaven(BossModule module) : Components.RaidwideCast(module, AID.PillarsOfHeaven);
+
+class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PillarsOfHeaven, 20, stopAtWall: true)
+{
+    private static readonly Angle GateHalfWidth = 20.Degrees();
+
+    private readonly List<WPos> OpenGates = [];
+
+    private bool TowardsOpenGate(WPos pos) => OpenGates.Any(g => Angle.FromDirection(pos - Module.PrimaryActor.Position).AlmostEqual(Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth.Rad));
+
+    public override void Update()
+    {
+        foreach (var g in Module.Enemies(OID.IronGate))
+            if (g.IsDead && !OpenGates.Contains(g.Position))
+                OpenGates.Add(g.Position);
+    }
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => TowardsOpenGate(pos);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Module.PrimaryActor.CastInfo is not { } cast || cast.Action.ID != (uint)AID.PillarsOfHeaven)
+            return;
+        foreach (var g in OpenGates)
+            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 40, Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth), Module.CastFinishAt(cast, 1));
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (Module.PrimaryActor.CastInfo is not { } cast || cast.Action.ID != (uint)AID.PillarsOfHeaven)
+            return;
+        foreach (var g in OpenGates)
+            Arena.ZoneCone(Module.PrimaryActor.Position, 0, 40, Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth, ArenaColor.AOE);
+    }
+}
 class SwiftSlaughter(BossModule module) : Components.CastHint(module, AID.SwiftSlaughter, "Enrage!", true);
 class SwiftSlaughterAOE(BossModule module) : Components.StandardAOEs(module, AID.SwiftSlaughterAOE, 15);
 class BladesOfCarnageCombo(BossModule module) : Components.CastCounter(module, AID.BladesOfCarnageAndLiberation)
@@ -138,24 +172,6 @@ class LaughingMoon(BossModule module) : Components.GenericAOEs(module, AID.Laugh
     {
         if (spell.Action == WatchedAction)
             _active.Add((new WPos(spell.TargetPos.XZ()), WorldState.FutureTime(1.5f)));
-    }
-}
-
-class ChandrahasFinale(BossModule module) : Components.GenericAOEs(module, AID.ChandrahasFinale, invertedText: "Stack in center!")
-{
-    private DateTime _expire;
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        if (_expire <= WorldState.CurrentTime)
-            yield break;
-        yield return new(new AOEShapeCircle(10), Module.PrimaryActor.Position, Activation: _expire, Inverted: true);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-            _expire = WorldState.FutureTime(2f);
     }
 }
 
@@ -209,6 +225,7 @@ class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (ui
 class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, new AOEShapeCone(40, 65.Degrees()))
 {
     private bool _active;
+    private DateTime _nextHit;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -216,11 +233,129 @@ class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, 
         {
             case AID.PillarsOfHeaven:
                 _active = true;
+                _nextHit = WorldState.FutureTime(10.2f);
+                break;
+            case AID.Surpanakha:
+                _nextHit = WorldState.FutureTime(2.2f);
                 break;
             case AID.DragonflyAvatar:
             case AID.ScorpionAvatar:
             case AID.BeetleAvatar:
                 _active = false;
+                break;
+        }
+        base.OnEventCast(caster, spell);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_active)
+            base.AddHints(slot, actor, hints);
+    }
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_active)
+            hints.Add("Tankbuster x4");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!_active)
+            return;
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (WorldState.Actors.Find(Module.PrimaryActor.TargetID) is { } tank && Raid.TryFindSlot(tank, out var tankSlot))
+            hints.AddPredictedDamage(new BitMask().WithBit(tankSlot), _nextHit, AIHints.PredictedDamageType.Tankbuster);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        if (_active)
+            base.DrawArenaForeground(pcSlot, pc);
+    }
+}
+
+class Tapasya(BossModule module) : Components.GenericAOEs(module, AID.TapasyaFollowUp)
+{
+    private static readonly AOEShapeCone _shape = new(12, 60.Degrees());
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Tapasya)
+        {
+            _aoe = new(_shape, caster.Position, spell.Rotation, WorldState.FutureTime(2.6f));
+        }
+        else if (spell.Action == WatchedAction && ++NumCasts % 2 == 0)
+        {
+            _aoe = null;
+        }
+    }
+}
+
+class TheRoseOfConquest(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(6), (uint)TetherID.Will, AID.TheRoseOfConquest, centerAtTarget: true)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if (spell.Action == WatchedAction)
+            CurrentBaits.RemoveAll(b => b.Source == caster);
+    }
+
+    public override void Update()
+    {
+        CurrentBaits.RemoveAll(b => b.Source.IsDead);
+        base.Update();
+    }
+}
+class TheRoseOfConquestOrbs(BossModule module) : Components.GenericAOEs(module, AID.TheRoseOfConquest)
+{
+    private static readonly AOEShapeCircle _shape = new(6);
+    private readonly Dictionary<Actor, ulong> _orbs = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _orbs.Keys.Where(o => !o.IsDead).Select(o => new AOEInstance(_shape, o.Position));
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var (o, targetID) in _orbs.Where(kv => !kv.Key.IsDead))
+        {
+            var dir = WorldState.Actors.Find(targetID) is { } t && t.Position != o.Position ? (t.Position - o.Position).Normalized() : new();
+            hints.AddForbiddenZone(ShapeDistance.Capsule(o.Position, dir, 6, 7));
+        }
+    }
+
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.Will)
+            _orbs[source] = tether.Target;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+            _orbs.Remove(caster);
+    }
+}
+
+class BlindingBlade(BossModule module) : Components.Cleave(module, AID.BlindingBlade, new AOEShapeCone(10.5f, 45.Degrees()))
+{
+    private bool _active = true;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.BlindingBlade:
+            case AID.BloodyFuller:
+            case AID.ScorpionAvatar:
+            case AID.BeetleAvatar:
+                _active = false;
+                break;
+            case AID.DragonflyAvatar:
+            case AID.Tapasya:
+                _active = true;
                 break;
         }
         base.OnEventCast(caster, spell);
@@ -245,18 +380,6 @@ class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, 
     }
 }
 
-class TapasyaNear(BossModule module) : RavanaBossOriginAOEs(module, AID.TapasyaNear, new AOEShapeDonut(9, 40), 1.5f)
-{
-    protected override WPos Origin(Actor caster) => Module.PrimaryActor.Position;
-}
-
-class TapasyaFar(BossModule module) : RavanaBossOriginAOEs(module, AID.TapasyaFar, new AOEShapeCircle(12), 1.5f)
-{
-    protected override WPos Origin(Actor caster) => Module.PrimaryActor.Position;
-}
-
-class TheRoseOfConquest(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCircle(6), (uint)TetherID.Will, AID.TheRoseOfConquest, centerAtTarget: true);
-
 class RavanaAdds(BossModule module) : Components.AddsMulti(module, [OID.MoonGana, OID.SpiritGana, OID.Chandrahas, OID.IronGate, OID.RavanasWill], 1)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -268,58 +391,6 @@ class RavanaAdds(BossModule module) : Components.AddsMulti(module, [OID.MoonGana
             if (g.IsTargetable && !g.IsDead && g.CastInfo != null)
                 hints.SetPriority(g, 2);
         }
-    }
-}
-
-class IronGateWalls(BossModule module) : BossComponent(module)
-{
-    private readonly List<WPos> _holes = [];
-    private static readonly ArenaBoundsCircle DefaultBounds = new(20);
-    private const float HoleRadius = 6f;
-
-    public override void Update()
-    {
-        var changed = false;
-        foreach (var g in Module.Enemies(OID.IronGate))
-        {
-            if (!g.IsDead && g.IsTargetable)
-                continue;
-            if (_holes.Any(h => h.AlmostEqual(g.Position, 1)))
-                continue;
-            _holes.Add(g.Position);
-            changed = true;
-        }
-        if (changed)
-            Rebuild();
-    }
-
-    public override void OnActorDestroyed(Actor actor)
-    {
-        if ((OID)actor.OID != OID.IronGate)
-            return;
-        if (!_holes.Any(h => h.AlmostEqual(actor.Position, 1)))
-        {
-            _holes.Add(actor.Position);
-            Rebuild();
-        }
-    }
-
-    private void Rebuild()
-    {
-        if (_holes.Count == 0)
-        {
-            Arena.Bounds = DefaultBounds;
-            return;
-        }
-
-        var clipper = DefaultBounds.Clipper;
-        var poly = clipper.Simplify(new PolygonClipper.Operand(CurveApprox.Circle(20, 0.05f)));
-        foreach (var h in _holes)
-        {
-            var rel = h - Arena.Center;
-            poly = clipper.Difference(new(poly), new(CurveApprox.Circle(HoleRadius, 0.05f).Select(p => p + rel)));
-        }
-        Arena.Bounds = new ArenaBoundsCustom(20, poly);
     }
 }
 
@@ -336,20 +407,20 @@ class T01RavanaStates : StateMachineBuilder
             .ActivateOnEnter<TheRoseOfHate>()
             .ActivateOnEnter<BloodyFuller>()
             .ActivateOnEnter<PillarsOfHeaven>()
+            .ActivateOnEnter<PillarsOfHeavenKnockback>()
             .ActivateOnEnter<SwiftSlaughter>()
             .ActivateOnEnter<SlaughterCast>()
             .ActivateOnEnter<SlaughterCircle>()
             .ActivateOnEnter<RavanaSeeing>()
             .ActivateOnEnter<Surpanakha>()
-            .ActivateOnEnter<TapasyaNear>()
-            .ActivateOnEnter<TapasyaFar>()
+            .ActivateOnEnter<Tapasya>()
             .ActivateOnEnter<SwiftSlaughterAOE>()
             .ActivateOnEnter<BladesOfCarnageCombo>()
             .ActivateOnEnter<LaughingMoon>()
-            .ActivateOnEnter<ChandrahasFinale>()
             .ActivateOnEnter<FallingLaughter>()
             .ActivateOnEnter<TheRoseOfConquest>()
-            .ActivateOnEnter<IronGateWalls>()
+            .ActivateOnEnter<TheRoseOfConquestOrbs>()
+            .ActivateOnEnter<BlindingBlade>()
             .ActivateOnEnter<RavanaAdds>();
     }
 }
