@@ -26,8 +26,9 @@
     <DefineConstants>LOCAL_CS</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' == 'true'">
-    <NuGetLockFilePath>$(MSBuildProjectDirectory)\obj\dev-packages.lock.json</NuGetLockFilePath>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <NuGetLockFilePath Condition="'$(LocalDalamock)' == 'true'">$(MSBuildProjectDirectory)\obj\packages.local.lock.json</NuGetLockFilePath>
+    <NuGetLockFilePath Condition="'$(LocalDalamock)' != 'true'">$(MSBuildProjectDirectory)\obj\packages.dev.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LocalCS)' == 'true'">
