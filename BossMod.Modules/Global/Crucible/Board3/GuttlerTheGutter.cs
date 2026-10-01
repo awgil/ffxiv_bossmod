@@ -160,7 +160,9 @@ class MagicalCombustion(BossModule module) : Components.StandardAOEs(module, AID
 class GluttonousGutting(BossModule module) : Components.StandardAOEs(module, AID.GluttonousGutting, new AOEShapeRect(50, 20));
 class GluttonousGoring(BossModule module) : Components.StandardAOEs(module, AID.GluttonousGoring, 40);
 class Gyrocleave(BossModule module) : Components.StandardAOEs(module, AID.Gyrocleave, new AOEShapeRect(80, 10));
+
 class Thunderbolt(BossModule module) : Components.BaitAwayCast(module, AID.Thunderbolt, new AOEShapeRect(50, 3));
+
 class OverpoweringBait(BossModule module) : Components.GenericBaitAway(module, AID.OverpoweringPoint)
 {
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
@@ -199,6 +201,8 @@ class OverpoweringBait(BossModule module) : Components.GenericBaitAway(module, A
     }
 }
 class OverpoweringPoint(BossModule module) : Components.StandardAOEs(module, AID.OverpoweringPoint, new AOEShapeRect(60, 3));
+class ThanatosPiece(BossModule module) : Components.Adds(module, (uint)OID.ThanatosPiece, 1);
+
 class DeadlyDemesne(BossModule module) : Components.GenericAOEs(module)
 {
     readonly List<(Actor cage, DateTime square, DateTime cross)> _cages = [];
@@ -260,6 +264,7 @@ class GuttlerTheGutterStates : StateMachineBuilder
             .ActivateOnEnter<Thunderbolt>()
             .ActivateOnEnter<OverpoweringBait>()
             .ActivateOnEnter<OverpoweringPoint>()
+            .ActivateOnEnter<ThanatosPiece>()
             .ActivateOnEnter<DeadlyDemesne>()
             .ActivateOnEnter<MoltenMetal>()
             .ActivateOnEnter<BeastlyFlare>();
