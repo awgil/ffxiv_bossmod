@@ -96,13 +96,6 @@ class ThunderII(BossModule module) : Components.CastTowers(module, AID.ThunderII
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
         }
     }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var t in Towers.Where(t => !t.ForbiddenSoakers[slot] && (!t.CorrectAmountInside(Module) || t.IsInside(actor))))
-        {
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, Radius - 0.5f));
-        }
-    }
 };
 class BlizzardII(BossModule module) : Components.CastStackSpread(module, default, AID.BlizzardII, 0, 5);
 class Triflame(BossModule module) : Components.StandardAOEs(module, AID.Triflame, new AOEShapeCone(60, 30.Degrees()));
@@ -127,5 +120,5 @@ class D052SubjectNumberXXIVStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 12392)]
+[ModuleInfo(Contributors = "VeraNala, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 12392)]
 public class D052SubjectNumberXXIV(ModuleInit init) : BossModule(init, new(10.4f, 186.5f), new ArenaBoundsCircle(19));
