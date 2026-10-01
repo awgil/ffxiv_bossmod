@@ -18,6 +18,7 @@
 
   <PropertyGroup>
     <LocalCS>true</LocalCS>
+    <LocalDalamock>true</LocalDalamock>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(LocalCS)' == 'true'">
@@ -26,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LocalCS)' == 'true'">
-    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\cs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\cs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
   </ItemGroup>
 </Project>
