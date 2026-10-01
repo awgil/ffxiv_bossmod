@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXIVClientStructs.Generato
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteropGenerator", "FFXIVClientStructs\InteropGenerator\InteropGenerator.csproj", "{96FE8AD0-9ACE-3BDC-416C-180B356C3A7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DalaMock.Core", "DalaMock\DalaMock\DalaMock.Core.csproj", "{A375F7F4-95A0-5147-9414-D16830571229}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -77,6 +79,10 @@ Global
 		{96FE8AD0-9ACE-3BDC-416C-180B356C3A7C}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{96FE8AD0-9ACE-3BDC-416C-180B356C3A7C}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{96FE8AD0-9ACE-3BDC-416C-180B356C3A7C}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{A375F7F4-95A0-5147-9414-D16830571229}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{A375F7F4-95A0-5147-9414-D16830571229}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{A375F7F4-95A0-5147-9414-D16830571229}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{A375F7F4-95A0-5147-9414-D16830571229}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
