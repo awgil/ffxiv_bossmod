@@ -111,7 +111,7 @@ public class LoosefroxInkyjots(ModuleInit init) : BossModule(init, new(520, -420
     {
         base.DrawEnemies(pcSlot, pc);
 
-        Arena.Actor(Worm, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.ChewchumPopoto), ArenaColor.Enemy);
     }
 }
 
