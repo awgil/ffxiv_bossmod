@@ -18,7 +18,6 @@ public enum AID : uint
     Jump = 48590, // Boss->location, no cast, single-target
     BeastlyAuraCast = 48606, // Boss->self, 6.0s cast, single-target
     BeastlyAura = 48607, // Helper->self, 7.0s cast, range 80 width 80 rect
-    CombustingBladesInstantBoss1 = 48598, // Boss->self, no cast, single-target
     CombustingBladesInstant1 = 48591, // 4CAB->Boss, no cast, single-target
     CombustingBladesInstant2 = 48592, // 4CAB->Boss, no cast, single-target
     CombustingBladesInstant3 = 48593, // 4CAB->Boss, no cast, single-target
@@ -26,9 +25,10 @@ public enum AID : uint
     CombustingBlades2 = 48595, // Helper->self, 0.7s cast, range 2 circle
     CombustingBlades3 = 48596, // Helper->self, 0.9s cast, range 2 circle
     MagicalCombustion = 48597, // 4CAB->self, 5.0s cast, range 8 circle
+    CombustingBladesGutting = 48598, // Boss->self, no cast, single-target
     GluttonousGuttingCast = 48599, // Boss->self, 6.0+0.6s cast, single-target
     GluttonousGutting = 48600, // Helper->self, 11.6s cast, range 50 width 40 rect
-    CombustingBladesInstantBoss2 = 48601, // Boss->self, no cast, single-target
+    CombustingBladesGoring = 48601, // Boss->self, no cast, single-target
     GluttonousGoringCast = 48602, // Boss->self, 6.0+0.6s cast, single-target
     GluttonousGoring = 48603, // Helper->self, 11.6s cast, range 40 circle
     GyrocleaveCast = 48604, // Boss->self, 6.0s cast, single-target
@@ -278,10 +278,8 @@ public class GuttlerTheGutter(ModuleInit init) : BossModule(init, new(520, -420)
 
     private static ArenaBoundsCustom MakeBounds()
     {
-        var c = new PolygonClipper();
-
         static PolygonClipper.Operand P(float x, float z) => new(CurveApprox.Rect(new WDir(x, z), new WDir(2.5f, 0), new WDir(0, 2.5f)));
 
-        return new(25, c.UnionAll(new(CurveApprox.Rect(new(10, 0), new(0, 20))), P(0, 22.5f), P(0, -22.5f), P(12.5f, 2.5f), P(-12.5f, -2.5f), P(12.5f, -7.5f), P(-12.5f, 7.5f)));
+        return new(25, new PolygonClipper().UnionAll(new(CurveApprox.Rect(new(10, 0), new(0, 20))), P(0, 22.5f), P(0, -22.5f), P(12.5f, 2.5f), P(-12.5f, -2.5f), P(12.5f, -7.5f), P(-12.5f, 7.5f)));
     }
 }
