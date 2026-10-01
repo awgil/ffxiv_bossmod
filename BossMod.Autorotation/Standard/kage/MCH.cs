@@ -8,6 +8,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 {
     public struct Strategy
     {
+        public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
         [Track("Hypercharge", MinLevel = 30, Action = AID.Hypercharge)]
@@ -36,6 +37,19 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
+
+        [Track("Opener", MinLevel = 90, UiPriority = -10, Context = StrategyContext.Plan)]
+        public Track<OpenerStrategy> Opener;
+    }
+
+    public enum OpenerStrategy
+    {
+        [Option("Standard: Drill, Chain Saw, Excavator, Drill, then Wildfire, Full Metal Field and Hypercharge")]
+        Standard,
+        [Option("Early Wildfire: Drill, Chain Saw, then Wildfire into Excavator and Hypercharge", MinLevel = 100)]
+        EarlyWildfire,
+        [Option("No opener-specific rules")]
+        None
     }
 
     public enum PotionStrategy
@@ -138,11 +152,17 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     private bool IsMoving;
     private float AnimLockDelay;
 
+    private Targeting TargetMode;
+    private OpenerStrategy OpenerMode;
     private AID NextGCD;
     private float NextGCDPrio;
 
     private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
+    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
+    private bool InOpener => OpenerMode != OpenerStrategy.None && CombatTime < 30;
+    private bool StandardOpener => OpenerMode == OpenerStrategy.Standard && CombatTime < 30;
+    private bool EarlyWFOpener => OpenerMode == OpenerStrategy.EarlyWildfire && CombatTime < 30;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -154,6 +174,15 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
             target = null;
+
+        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
+        if (TargetMode == Targeting.Auto && target == null)
+        {
+            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
+            primaryTarget = target?.Actor;
+        }
+
+        OpenerMode = !Unlocked(AID.ChainSaw) || !Unlocked(AID.Excavator) && strategy.Opener.Value == OpenerStrategy.EarlyWildfire ? OpenerStrategy.None : strategy.Opener.Value;
 
         var gauge = World.Client.GetGauge<MachinistGauge>();
         Heat = gauge.Heat;
@@ -251,7 +280,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             }
             else if (GCDReady(AID.Drill))
             {
-                PushGCD(AID.Drill, target.Actor, (drillCapped ? 17 : 12) + bonus);
+                PushGCD(AID.Drill, target.Actor, (drillCapped || InOpener && MaxChargesIn(AID.Drill) <= GCD ? 17 : 12) + bonus);
             }
         }
 
@@ -281,7 +310,13 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     // FMF goes right before the Wildfire window, or anywhere if the buff is about to expire
     private bool UseFullMetalField()
-        => ReadyIn(AID.Wildfire) <= GCD + GCDLength || WildfireLeft > 0 || FMFLeft < GCDLength * 3;
+    {
+        if (StandardOpener)
+            return WildfireLeft > 0;
+        if (EarlyWFOpener)
+            return !Overheated && HyperchargedLeft == 0 && WildfireLeft == 0;
+        return ReadyIn(AID.Wildfire) <= GCD + GCDLength || WildfireLeft > 0 || FMFLeft < GCDLength * 3;
+    }
 
     #endregion
 
@@ -325,6 +360,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
                 return true;
         }
 
+        // opener: Hypercharge straight into the Wildfire window
+        if (StandardOpener && WildfireLeft > 0 && FMFLeft == 0 || EarlyWFOpener && WildfireLeft > 0 && ExcavatorLeft == 0)
+            return true;
+
         // Full Metal Field and Reassembled tools go first
         if (dying || FMFLeft > 0 || ReassembleLeft > 0)
             return false;
@@ -360,10 +399,15 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         return strategy.Wildfire.Value switch
         {
             WildfireStrategy.Force => true,
-            WildfireStrategy.Automatic => !dying && Overheated && WildfireLeft == 0,
+            WildfireStrategy.Automatic => !dying && WildfireLeft == 0 && (Overheated || OpenerWildfire),
             _ => false
         };
     }
+
+    // opener Wildfire goes in before Overheat: after the second Drill (standard) or after Chain Saw (early)
+    private bool OpenerWildfire
+        => StandardOpener && FMFLeft > 0 && ExcavatorLeft == 0 && !GCDReady(AID.Drill) && !GCDReady(AID.ChainSaw)
+        || EarlyWFOpener && ExcavatorLeft > 0;
 
     private bool ShouldStabilize(in Strategy strategy, bool dying)
     {
@@ -381,6 +425,11 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     {
         if (strategy.Reassemble.Value == ReassembleStrategy.Delay || ReassembleLeft > 0 || Overheated || !CanWeave(AID.Reassemble))
             return false;
+
+        if (StandardOpener && Unlocked(AID.Excavator))
+            return NextGCD == AID.Drill && MaxChargesIn(AID.Drill) > GCD;
+        if (EarlyWFOpener)
+            return NextGCD == AID.ChainSaw;
 
         return NextGCD switch
         {
@@ -426,7 +475,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (strategy.Charges.Value != ChargeStrategy.Automatic)
             return;
 
-        var spend = Overheated || WildfireLeft > 0 || dying || RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !Unlocked(AID.Hypercharge);
+        var spend = Overheated || WildfireLeft > 0 || dying || InOpener || RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !Unlocked(AID.Hypercharge);
         if (!spend)
             return;
 
@@ -461,12 +510,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
         var best = primary.Actor;
         var bestCount = Count(best);
-        if (!allowAoE)
+        if (!allowAoE || TargetMode == Targeting.Manual)
             return (best, bestCount);
 
         foreach (var e in Hints.PriorityTargets)
         {
-            if (e.Actor == primary.Actor || Player.DistanceToHitbox(e.Actor) > range)
+            if (e.Actor == primary.Actor || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !hits(e.Actor, primary.Actor))
                 continue;
             var c = Count(e.Actor);
             if (c > bestCount)
