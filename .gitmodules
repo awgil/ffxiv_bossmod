@@ -1,0 +1,6 @@
+[submodule "FFXIVClientStructs"]
+	path = FFXIVClientStructs
+	url = https://github.com/aers/FFXIVClientStructs
+[submodule "DalaMock"]
+	path = DalaMock
+	url = https://github.com/xanunderscore/DalaMock.git
