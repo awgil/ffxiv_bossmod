@@ -70,7 +70,7 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
         base.DrawArenaForeground(pcSlot, pc);
 
         if (CurrentBaits.Count > 0)
-            foreach (var m in Module.Enemies(OID._Gen_ZombiePiece))
+            foreach (var m in Module.Enemies(OID._Gen_ZombiePiece).Where(z => z.IsDead))
                 Arena.AddCircle(m.Position, 0.75f, ArenaColor.Object);
     }
 
