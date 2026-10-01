@@ -809,7 +809,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         Span<ushort> cInventory = stackalloc ushort[_ws.Client.CrucibleInventory.Length];
         cInventory.Clear();
         var crucible = (InstanceContentCrucible*)EventFramework.Instance()->GetInstanceContentDirector();
-        if (crucible->InstanceContentType == InstanceContentType.CrucibleOfTheUnbroken)
+        if (crucible != null && crucible->InstanceContentType == InstanceContentType.CrucibleOfTheUnbroken)
             for (var i = 0; i < crucible->Inventory.Length; i++)
                 cInventory[i] = crucible->Inventory[i].ItemId;
         if (!MemoryExtensions.SequenceEqual(_ws.Client.CrucibleInventory.AsSpan(), cInventory))

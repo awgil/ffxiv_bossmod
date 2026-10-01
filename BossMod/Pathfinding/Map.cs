@@ -161,7 +161,7 @@ public class Map
         }
     }
 
-    public IEnumerable<(int iCell, WPos point)> EnumerateGrid()
+    public IEnumerable<(int iCell, int x, int y, WPos point)> EnumerateGrid()
     {
         var dy = LocalZDivRes * Resolution * Resolution;
         var dx = dy.OrthoL();
@@ -169,7 +169,7 @@ public class Map
 
         for (var y = 0; y <= Height; y++)
             for (var x = 0; x <= Width; x++)
-                yield return (y * (Width + 1) + x, cy + x * dx + y * dy);
+                yield return (y * (Width + 1) + x, x, y, cy + x * dx + y * dy);
     }
 
     // enumerate pixels along line starting from (x1, y1) to (x2, y2); first is not returned, last is returned

@@ -89,8 +89,7 @@ class Rockslide(BossModule module) : Components.StandardAOEs(module, AID._Weapon
     }
 }
 
-class GolemPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_GolemPiece);
-
+class GolemPiece(BossModule module) : ProximityAdds(module, OID._Gen_GolemPiece);
 class SandTempest(BossModule module) : Components.RaidwideCast(module, AID._Spell_SandTempest, "Raidwide + blind");
 class Burst(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Burst)
 {

@@ -68,12 +68,54 @@ public enum IconID : uint
 
 class AutoAttack(BossModule module) : Components.Cleave(module, AID._AutoAttack_, new AOEShapeCone(9, 60.Degrees()), (uint)OID.Boss, activeWhileCasting: false)
 {
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        foreach (var (src, target, dir) in OriginsAndTargets())
+        {
+            if (target == actor)
+            {
+                if (WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { IsDead: false, IsTargetable: true } pet && AIHints.TargetInAOECone(pet, src.Position, 9, dir.ToDirection(), 60.Degrees()))
+                    hints.Add("Bait away from pet!");
+            }
+            else if (actor.Position.InCircleCone(src.Position, 9, dir, 60.Degrees()))
+                hints.Add("GTFO from cleave!");
+        }
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+
+        if (WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { IsDead: false, IsTargetable: true } pet)
+            Arena.AddCircle(pet.Position, pet.HitboxRadius, ArenaColor.Object);
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Module.PrimaryActor.TargetID == actor.InstanceID && Module.PrimaryActor.CastInfo == null && Module.PrimaryActor.IsTargetable && WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { } pet)
+        foreach (var (src, target, dir) in OriginsAndTargets())
         {
-            var dir = Module.PrimaryActor.AngleTo(pet);
-            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 9, dir, 60.Degrees()), DateTime.MaxValue);
+            if (target == actor)
+            {
+                if (WorldState.Actors.Find(WorldState.Client.ActivePet.InstanceID) is { IsDead: false, IsTargetable: true } pet)
+                {
+                    var petDir = pet.Position - Module.PrimaryActor.Position;
+                    var len = petDir.Length();
+
+                    if (len <= pet.HitboxRadius)
+                        // pet is too close, can't do anything
+                        // TODO: move them away from boss
+                        return;
+                    else if (len > pet.HitboxRadius + 9)
+                        // pet is too far to get hit
+                        return;
+
+                    var width = MathF.Atan2(pet.HitboxRadius, (pet.Position - Module.PrimaryActor.Position).Length()).Radians();
+
+                    hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 9, petDir.ToAngle(), width + 60.Degrees()), DateTime.MaxValue);
+                }
+            }
+            else
+                hints.AddForbiddenZone(ShapeDistance.Cone(src.Position, 9, dir, 60.Degrees()), DateTime.MaxValue);
         }
     }
 }

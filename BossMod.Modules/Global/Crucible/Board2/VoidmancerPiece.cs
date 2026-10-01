@@ -70,7 +70,7 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
         base.DrawArenaForeground(pcSlot, pc);
 
         if (CurrentBaits.Count > 0)
-            foreach (var m in Module.Enemies(OID._Gen_ZombiePiece))
+            foreach (var m in Module.Enemies(OID._Gen_ZombiePiece).Where(z => z.IsDead))
                 Arena.AddCircle(m.Position, 0.75f, ArenaColor.Object);
     }
 
@@ -94,21 +94,7 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
 }
 
 class DeathDrive(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_DeathDrive1, 10);
-class ZombiePiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_ZombiePiece)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var piece in hints.PotentialTargets.Where(t => t.Actor.OID == (uint)OID._Gen_ZombiePiece))
-        {
-            piece.Priority = 0;
-
-            // TODO: this logic should be generalized
-            // we'd rather kill the adds quickly, but they're going to run up to us, so autotarget doesn't need to go chasing them
-            if (piece.Priority == 0 && actor.DistanceToHitbox(piece.Actor) <= 3)
-                piece.ShouldBeTargeted = true;
-        }
-    }
-}
+class ZombiePiece(BossModule module) : ProximityAdds(module, OID._Gen_ZombiePiece);
 class DarkOrb(BossModule module) : Components.StandardAOEs(module, AID._Spell_DarkOrb1, 18);
 class EvilMist(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_EvilMist);
 

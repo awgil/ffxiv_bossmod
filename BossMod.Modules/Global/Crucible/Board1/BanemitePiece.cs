@@ -47,7 +47,7 @@ class BedrockUplift(BossModule module) : Components.ConcentricAOEs(module, [new 
 
 class DeadlyThrust(BossModule module) : Components.SingleTargetCast(module, AID.DeadlyThrust, "Tankbuster + poison");
 class VenomWeb(BossModule module) : Components.StandardAOEs(module, AID.VenomWeb, 9, 8);
-class MitelingPiece(BossModule module) : Components.AddsPointless(module, (uint)OID.MitelingPiece);
+class MitelingPiece(BossModule module) : ProximityAdds(module, OID.MitelingPiece);
 class Silkscreen(BossModule module) : Components.StandardAOEs(module, AID.Silkscreen, new AOEShapeRect(40, 2));
 
 class BanemitePieceStates : StateMachineBuilder

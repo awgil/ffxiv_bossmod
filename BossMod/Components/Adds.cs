@@ -3,15 +3,18 @@
 // generic component used for drawing adds
 public class Adds(BossModule module, uint oid, int priority = 0, bool forbidDots = false) : BossComponent(module)
 {
+    public readonly int Priority = priority;
+    public readonly uint ObjectID = oid;
+
     public readonly IReadOnlyList<Actor> Actors = module.Enemies(oid);
     public IEnumerable<Actor> ActiveActors => Actors.Where(a => a.IsTargetable && !a.IsDead);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (priority >= 0)
-            foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == oid))
+        if (Priority >= 0)
+            foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == ObjectID))
             {
-                target.Priority = priority;
+                target.Priority = Priority;
                 if (forbidDots)
                     target.ForbidDOTs = true;
             }
@@ -36,6 +39,7 @@ public class AddsPointless(BossModule module, uint oid) : Adds(module, oid)
 // generic component used for drawing multiple adds with multiple oids, when it's not useful to distinguish between them
 public class AddsMulti(BossModule module, uint[] oids, int priority = 0) : BossComponent(module)
 {
+    public readonly int Priority = priority;
     public readonly uint[] OIDs = oids;
     public readonly List<Actor> Actors = [];
     public IEnumerable<Actor> ActiveActors => Actors.Where(a => a.IsTargetable && !a.IsDead);
@@ -44,8 +48,8 @@ public class AddsMulti(BossModule module, uint[] oids, int priority = 0) : BossC
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (priority >= 0)
-            hints.PrioritizeTargetsByOID(OIDs, priority);
+        if (Priority >= 0)
+            hints.PrioritizeTargetsByOID(OIDs, Priority);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

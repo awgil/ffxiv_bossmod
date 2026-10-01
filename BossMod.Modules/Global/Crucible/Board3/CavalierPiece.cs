@@ -37,7 +37,7 @@ public enum TetherID : uint
     _Gen_Tether_chn_m0237_yami_x2 = 398, // 4C92->Boss
 }
 
-class BoneBishop(BossModule module) : Components.Adds(module, (uint)OID._Gen_BoneBishop);
+class BoneBishop(BossModule module) : ProximityAdds(module, OID._Gen_BoneBishop);
 class SoulDouse(BossModule module) : Components.CastHint(module, AID._Weaponskill_SoulDouse, "Kill bishop before enrage!")
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

@@ -35,7 +35,7 @@ public enum IconID : uint
     _Gen_Icon_tank_lockonae_6m_8s_01x = 465, // player->self
 }
 
-class Babies(BossModule module) : Components.AddsMulti(module, [OID._Gen_CockerelPiece, OID._Gen_PulletPiece]);
+class Babies(BossModule module) : ProximityAdds(module, [OID._Gen_CockerelPiece, OID._Gen_PulletPiece]);
 class CausticVomit(BossModule module) : Components.CastInterruptHint(module, AID._Weaponskill_CausticVomit)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
