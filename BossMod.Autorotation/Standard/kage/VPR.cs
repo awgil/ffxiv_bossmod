@@ -195,21 +195,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         BestSplashTarget = target == null ? null : BestSplash(target, strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE, 20);
 
-        if (target != null)
-        {
-            var single = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3);
-            // coils need the target for positionals; dens need enemies around us; otherwise stack up 3+ for the AoE combo
-            var aoeBreakpoint = Dread switch
-            {
-                DreadCombo.Dreadwinder or DreadCombo.HuntersCoil or DreadCombo.SwiftskinsCoil => 50,
-                DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen => 1,
-                _ => Anguine > 0 ? 50 : 3
-            };
-            Hints.GoalZones.Add(strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE && Unlocked(AID.SteelMaw) && aoeBreakpoint < 50
-                ? GoalCombined(single, Hints.GoalAOECircle(5), aoeBreakpoint)
-                : single);
-        }
-
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
 
@@ -225,6 +210,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
         GCDs(strategy, target);
         UpdatePositionals(strategy, target);
+        AddGoalZone(strategy, target);
 
         if (Player.InCombat)
             OGCD(strategy, target);
@@ -517,6 +503,25 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
         if (strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && imminent && !correct && InMelee)
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
+    }
+
+    // melee goal; includes the positional when the next hit needs one (or Vicewinder is queued), so the AI walks there
+    private void AddGoalZone(in Strategy strategy, Enemy target)
+    {
+        var (_, pos, imminent, _) = Hints.RecommendedPositional;
+        var wantPositional = imminent || NextGCD == AID.Vicewinder && pos is Positional.Flank or Positional.Rear;
+        var single = Hints.GoalSingleTarget(target.Actor, wantPositional ? pos : Positional.Any, Player, World.Actors, 3);
+
+        // coils need the target for positionals; dens need enemies around us; otherwise stack up 3+ for the AoE combo
+        var aoeBreakpoint = Dread switch
+        {
+            DreadCombo.Dreadwinder or DreadCombo.HuntersCoil or DreadCombo.SwiftskinsCoil => 50,
+            DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen => 1,
+            _ => Anguine > 0 ? 50 : 3
+        };
+        Hints.GoalZones.Add(strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE && Unlocked(AID.SteelMaw) && aoeBreakpoint < 50
+            ? GoalCombined(single, Hints.GoalAOECircle(5), aoeBreakpoint)
+            : single);
     }
 
     private (Positional, bool) NextPositional(Actor target)
