@@ -18,12 +18,16 @@
 
   <PropertyGroup>
     <LocalCS>true</LocalCS>
-    <LocalDalamock>true</LocalDalamock>
+    <LocalDalamock>false</LocalDalamock>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(LocalCS)' == 'true'">
     <Use_Dalamud_FFXIVClientStructs>false</Use_Dalamud_FFXIVClientStructs>
     <DefineConstants>LOCAL_CS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' == 'true'">
+    <NuGetLockFilePath>$(MSBuildProjectDirectory)\obj\dev-packages.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(LocalCS)' == 'true'">
