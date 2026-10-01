@@ -47,6 +47,16 @@ class TheBurningSky2(BossModule module) : Components.SpreadFromCastTargets(modul
 class Meteors(BossModule module) : Components.GenericBaitAway(module)
 {
     public List<Actor> targets = [];
+    private DateTime _drop;
+    private static readonly WPos[] DropSpots = [new(-64, 71), new(-96, 71), new(-80, 98)];
+
+    private WPos DropSpot(Actor actor)
+    {
+        foreach (var s in DropSpots)
+            if (!targets.Any(t => t != actor && t.Position.InCircle(s, 4)))
+                return s;
+        return DropSpots[0];
+    }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -54,6 +64,7 @@ class Meteors(BossModule module) : Components.GenericBaitAway(module)
         {
             CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(10)));
             targets.Add(actor);
+            _drop = WorldState.FutureTime(8.4f);
         }
     }
 
@@ -77,7 +88,14 @@ class Meteors(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (targets.Contains(actor))
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new(-80, 97), new(-80, 67), 15));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(DropSpot(actor), 2), _drop);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        if (targets.Contains(pc))
+            Arena.AddCircle(DropSpot(pc), 2, ArenaColor.Safe);
     }
 }
 
@@ -104,5 +122,5 @@ class D061FirstBeastStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8201)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus), Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8201)]
 public class D061FirstBeast(ModuleInit init) : BossModule(init, new(-80, 82), new ArenaBoundsSquare(19.5f));

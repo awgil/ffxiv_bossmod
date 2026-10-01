@@ -129,27 +129,41 @@ class DeathlyRayTherion(BossModule module) : Components.GenericAOEs(module)
 class DeathlyRayFaces(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeRect _rect = new(60, 3);
-    private readonly List<Actor> Casters = [];
+    private readonly List<Actor> _faces = [];
+    private int _firstSide;
+    private DateTime _secondActivation;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var c in Casters)
-            yield return new(_rect, c.Position, c.Rotation);
+        if (_firstSide == 0)
+            return [];
+        var first = _faces.Where(f => MathF.Sign(f.Position.X) == _firstSide).ToList();
+        return first.Count > 0
+            ? first.Select(f => new AOEInstance(_rect, f.Position, f.Rotation))
+            : _faces.Select(f => new AOEInstance(_rect, f.Position, f.Rotation, _secondActivation));
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.TheFaceOfTheBeast)
+        {
+            _faces.Add(actor);
+            _firstSide = 0;
+        }
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.TheFaceOfTheBeast)
+            _faces.Remove(actor);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.DeathlyRayFacesFirst)
+        if ((AID)spell.Action.ID == AID.DeathlyRayFacesFirst && _firstSide == 0)
         {
-            Casters.Add(caster);
-        }
-        if ((AID)spell.Action.ID is AID.DeathlyRayFacesRest)
-        {
-            if (++NumCasts >= Casters.Count * 4)
-            {
-                Casters.Clear();
-                NumCasts = 0;
-            }
+            _firstSide = MathF.Sign(caster.Position.X);
+            _secondActivation = WorldState.FutureTime(8.7f);
         }
     }
 }
@@ -284,5 +298,5 @@ class D063TherionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8210)]
+[ModuleInfo(Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8210)]
 public class D063Therion(ModuleInit init) : BossModule(init, Border.OriginalCenter, Border.BuildBounds(new()).Bounds);
