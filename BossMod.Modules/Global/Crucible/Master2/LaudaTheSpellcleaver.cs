@@ -196,7 +196,6 @@ class OverpoweringPointBait(BossModule module) : Components.GenericBaitAway(modu
         if (CurrentBaits.Count > 0)
             foreach (var e in Module.Enemies(OID._Gen_))
                 Arena.AddCircle(e.Position, e.HitboxRadius, ArenaColor.Object);
-        //Arena.ActorInsideBounds(e.Position, e.Rotation, ArenaColor.Object);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
