@@ -42,28 +42,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         public Track<OpenerStrategy> Opener;
     }
 
-    public enum OpenerStrategy
-    {
-        [Option("Standard: Drill, Chain Saw, Excavator, Drill, then Wildfire, Full Metal Field and Hypercharge")]
-        Standard,
-        [Option("Early Wildfire: Drill, Chain Saw, then Wildfire into Excavator and Hypercharge", MinLevel = 100)]
-        EarlyWildfire,
-        [Option("No opener-specific rules")]
-        None
-    }
-
-    public enum PotionStrategy
-    {
-        [Option("Do not use automatically")]
-        Manual,
-        [Option("Use before the pull and with Barrel Stabilizer")]
-        AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
-        AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
-        Immediate
-    }
-
     public enum HyperchargeStrategy
     {
         [Option("Use when no tool comes off cooldown during Overheat; save Heat for Wildfire")]
@@ -124,6 +102,28 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         Delay
     }
 
+    public enum PotionStrategy
+    {
+        [Option("Do not use automatically")]
+        Manual,
+        [Option("Use before the pull and with Barrel Stabilizer")]
+        AlignWithBurst,
+        [Option("Use before the pull and with raid buffs")]
+        AlignWithRaidBuffs,
+        [Option("Use as soon as possible")]
+        Immediate
+    }
+
+    public enum OpenerStrategy
+    {
+        [Option("Standard: Drill, Chain Saw, Excavator, Drill, then Wildfire, Full Metal Field and Hypercharge")]
+        Standard,
+        [Option("Early Wildfire: Drill, Chain Saw, then Wildfire into Excavator and Hypercharge", MinLevel = 100)]
+        EarlyWildfire,
+        [Option("No opener-specific rules")]
+        None
+    }
+
     public static RotationModuleDefinition Definition()
     {
         return new RotationModuleDefinition("Kage MCH", "Machinist", "Standard rotation (Kage)|Ranged", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.MCH), 100).WithStrategies<Strategy>();
@@ -182,7 +182,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             primaryTarget = target?.Actor;
         }
 
-        OpenerMode = !Unlocked(AID.ChainSaw) || !Unlocked(AID.Excavator) && strategy.Opener.Value == OpenerStrategy.EarlyWildfire ? OpenerStrategy.None : strategy.Opener.Value;
+        OpenerMode = strategy.Opener.Value switch
+        {
+            _ when !Unlocked(AID.ChainSaw) => OpenerStrategy.None,
+            OpenerStrategy.EarlyWildfire when !Unlocked(AID.Excavator) => OpenerStrategy.None,
+            var o => o
+        };
 
         var gauge = World.Client.GetGauge<MachinistGauge>();
         Heat = gauge.Heat;
@@ -280,7 +285,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             }
             else if (GCDReady(AID.Drill))
             {
-                PushGCD(AID.Drill, target.Actor, (drillCapped || InOpener && MaxChargesIn(AID.Drill) <= GCD ? 17 : 12) + bonus);
+                PushGCD(AID.Drill, target.Actor, (drillCapped ? 17 : 12) + bonus);
             }
         }
 
@@ -308,7 +313,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         PushGCD(BestActionUnlocked(AID.HeatedSplitShot, AID.SplitShot), target.Actor, 1);
     }
 
-    // FMF goes right before the Wildfire window, or anywhere if the buff is about to expire
+    // FMF goes right before the Wildfire window, or anywhere if the buff is about to expire; openers place it explicitly
     private bool UseFullMetalField()
     {
         if (StandardOpener)
@@ -369,7 +374,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             return false;
 
         // Overheat lasts 5 GCDs; don't let a tool or Excavator come up during it
-        var toolIn = MathF.Min(ToolReadyIn(AID.Drill), MathF.Min(ToolReadyIn(AID.AirAnchor), ToolReadyIn(AID.ChainSaw)));
+        var toolIn = MathF.Min(ReadyIn(AID.Drill), MathF.Min(ReadyIn(AID.AirAnchor), ReadyIn(AID.ChainSaw)));
         if (ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f)
             return false;
 
@@ -528,7 +533,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
     private float MaxChargesIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
-    private float ToolReadyIn(AID aid) => Unlocked(aid) ? ReadyIn(aid) : float.MaxValue;
     private bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
 
     private bool CanWeave(AID aid)
