@@ -26,6 +26,10 @@
     <DefineConstants>LOCAL_CS</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' == 'true'">
+    <NuGetLockFilePath>$(MSBuildProjectDirectory)\obj\dev-packages.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(LocalCS)' == 'true'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />

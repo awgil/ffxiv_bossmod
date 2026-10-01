@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' == 'true'">
-    <ProjectReference Include="..\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' != 'true'">
