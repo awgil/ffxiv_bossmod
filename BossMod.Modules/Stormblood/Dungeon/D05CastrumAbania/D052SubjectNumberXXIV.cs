@@ -96,7 +96,7 @@ class ThunderII(BossModule module) : Components.CastTowers(module, AID.ThunderII
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
         }
     }
-};
+}
 class BlizzardII(BossModule module) : Components.CastStackSpread(module, default, AID.BlizzardII, 0, 5);
 class Triflame(BossModule module) : Components.StandardAOEs(module, AID.Triflame, new AOEShapeCone(60, 30.Degrees()));
 class IceGrid(BossModule module) : Components.StandardAOEs(module, AID.IceGrid, new AOEShapeRect(40, 2f));

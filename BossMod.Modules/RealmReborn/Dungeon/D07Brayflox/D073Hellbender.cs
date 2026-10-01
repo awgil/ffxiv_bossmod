@@ -66,7 +66,7 @@ class D073HellbenderStates : StateMachineBuilder
             .ActivateOnEnter<DragonBreath>()
             .ActivateOnEnter<QueerBubble>()
             .ActivateOnEnter<AiatarAdd>()
-            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed && module.Enemies(OID.Aiatar).All(a => a.IsDestroyed || !a.IsTargetable);
+            .Raw.Update = () => module.PrimaryActor.IsDeadOrDestroyed && module.Enemies(OID.Aiatar).All(a => a.IsDestroyed || !a.IsTargetable);
     }
 }
 

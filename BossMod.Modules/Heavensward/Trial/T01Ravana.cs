@@ -1,4 +1,4 @@
-namespace BossMod.Heavensward.Trial.T01Ravana;
+﻿namespace BossMod.Heavensward.Trial.T01Ravana;
 
 public enum OID : uint
 {
@@ -37,8 +37,8 @@ public enum AID : uint
     FallingLaughter = 3730, // MoonGana/SpiritGana->self, 9.7s cast, single-target
     BloodyFuller = 3731, // Boss->self, 4.7s cast, range 100 circle
     ChandrahasSpawn = 3732, // Chandrahas->self, no cast, single-target
-    LaughingMoon = 3734, // HelperA->self, no cast, star puddle at arena edge
-    ChandrahasFinale = 3735, // HelperB->self, no cast, small circle at center (stack in)
+    LaughingMoon = 3734, // HelperA->self, no cast, raidwide if Moon Gana survives
+    ChandrahasFinale = 3735, // HelperB->self, no cast, raidwide while everyone is Fettered
     TheRoseOfConviction = 3736, // Boss->self, no cast, single-target
     TheRoseOfConquest = 3737, // RavanasWill->self, no cast, range 6 circle at the tethered player, vulnerability on hit
     PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle, knockback to the wall ~1s after the cast
@@ -156,25 +156,6 @@ class BladesOfCarnageCombo(BossModule module) : Components.CastCounter(module, A
     }
 }
 
-class LaughingMoon(BossModule module) : Components.GenericAOEs(module, AID.LaughingMoon)
-{
-    private readonly List<(WPos pos, DateTime expire)> _active = [];
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var now = WorldState.CurrentTime;
-        _active.RemoveAll(a => a.expire <= now);
-        foreach (var a in _active)
-            yield return new(new AOEShapeCircle(8), a.pos, Activation: a.expire);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-            _active.Add((new WPos(spell.TargetPos.XZ()), WorldState.FutureTime(1.5f)));
-    }
-}
-
 class FallingLaughter(BossModule module) : Components.CastInterruptHint(module, AID.FallingLaughter, hintExtra: "add", showNameInHint: true);
 class RavanaSeeing(BossModule module) : Components.DirectionalParry(module, (uint)OID.Boss)
 {
@@ -182,8 +163,8 @@ class RavanaSeeing(BossModule module) : Components.DirectionalParry(module, (uin
     {
         var sides = (AID)spell.Action.ID switch
         {
-            AID.TheSeeingTail => Side.Front | Side.Back, // matches parry extra 0x3
-            AID.TheSeeingWing => Side.Left | Side.Right, // matches parry extra 0xC
+            AID.TheSeeingTail => Side.Front | Side.Back,
+            AID.TheSeeingWing => Side.Left | Side.Right,
             _ => Side.None
         };
         if (sides != Side.None)
@@ -416,7 +397,6 @@ class T01RavanaStates : StateMachineBuilder
             .ActivateOnEnter<Tapasya>()
             .ActivateOnEnter<SwiftSlaughterAOE>()
             .ActivateOnEnter<BladesOfCarnageCombo>()
-            .ActivateOnEnter<LaughingMoon>()
             .ActivateOnEnter<FallingLaughter>()
             .ActivateOnEnter<TheRoseOfConquest>()
             .ActivateOnEnter<TheRoseOfConquestOrbs>()
@@ -425,7 +405,7 @@ class T01RavanaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)] // TODO: clear Incomplete after Blades combo + Tapasya verify
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)] // TODO: clear Incomplete after a synced run confirms Pillars gate wedge, orb avoidance, Slaughter cone; Atma-Linga shape unknown
 public class T01Ravana(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
