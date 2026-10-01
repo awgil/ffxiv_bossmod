@@ -28,4 +28,4 @@ jobs:
         run: dotnet restore
 
       - name: Build Project
-        run: dotnet build --configuration Release BossMod/BossMod.csproj
+        run: dotnet publish BossMod/BossMod.csproj

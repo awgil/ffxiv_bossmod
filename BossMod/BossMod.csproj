@@ -14,14 +14,10 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' == 'true'">
-    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\DalaMock\DalaMock\DalaMock.Core.csproj" />
-  </ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\DalaMock\DalaMock\DalaMock.Core.csproj" Condition="'$(LocalDalamock)' == 'true'" />
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug' And '$(LocalDalamock)' != 'true'">
-    <PackageReference Include="DalaMock.Core" Version="6.1.9" />
+    <PackageReference Include="DalaMock.Core" Version="6.1.9" Condition="'$(LocalDalamock)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>
