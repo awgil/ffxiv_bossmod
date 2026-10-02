@@ -95,7 +95,7 @@ class SealedGate(BossModule module) : BossComponent(module)
         var trapped = TrappedStones().ToList();
         foreach (var stone in Module.Enemies(OID.AmaNoIwatoStone))
             if (hints.FindEnemy(stone) is { } e)
-                e.Priority = trapped.Contains(stone) ? 2 : AIHints.Enemy.PriorityPointless;
+                e.Priority = trapped.Contains(stone) ? 2 : AIHints.Enemy.PriorityInvincible;
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -176,5 +176,5 @@ class T01SusanoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)] // TODO: confirm run, then clear Incomplete
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)]
 public class T01Susano(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));
