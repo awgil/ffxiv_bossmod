@@ -17,9 +17,9 @@ public enum AID : uint
     _AutoAttack_ = 49681, // Boss->player, no cast, single-target
     _Weaponskill_BuddingThorns = 48687, // Boss->self, 3.0s cast, single-target
     _Weaponskill_FloralTrap = 48683, // Boss->self, 5.0s cast, range 80 circle
-    _Weaponskill_FloralTrap1 = 48684, // Boss->self, no cast, range 45 ?-degree cone
+    _Weaponskill_FloralTrap1 = 48684, // Boss->self, no cast, range 45 ?-degree cone, dist 50 attract
     _Weaponskill_Devour = 48685, // Boss->self, no cast, range 8 ?-degree cone
-    _Weaponskill_Spit = 48686, // Boss->self, 4.0s cast, range 0 ???
+    _Weaponskill_Spit = 48686, // Boss->self, 4.0s cast, range 0 ???, 10 unit player kb in the boss's facing direction
     _Weaponskill_RottenStench = 48690, // Boss->self, 5.0+1.0s cast, single-target
     _Weaponskill_RottenStench1 = 48691, // Boss->self, no cast, range 45 width 12 rect
     _AutoAttack_1 = 48688, // 4CBF->player, no cast, single-target
@@ -49,7 +49,27 @@ class BuddingThorns(BossModule module) : Components.GenericAOEs(module)
 {
     readonly List<(Actor, float)> Zones = [];
 
+    public ArcList ForbiddenArcs { get; private set; } = new(default, 20);
+    public DateTime Deadline { get; private set; }
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Zones.Select(b => new AOEInstance(new AOEShapeCircle(b.Item2), b.Item1.Position, b.Item1.Rotation));
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_FloralTrap)
+        {
+            Deadline = Module.CastFinishAt(spell);
+            ForbiddenArcs = new(spell.LocXZ, 20);
+            foreach (var (z, _) in Zones)
+            {
+                var dir = z.Position - ForbiddenArcs.Center;
+
+                var v = dir.Length();
+                if (v > 10)
+                    ForbiddenArcs.ForbidArcByLength(dir.ToAngle(), Angle.Asin(10 / v));
+            }
+        }
+    }
 
     public override void OnActorCreated(Actor actor)
     {
@@ -67,52 +87,65 @@ class BuddingThorns(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnActorEState(Actor actor, ushort state)
     {
-        if (state == 4)
-            Zones.RemoveAll(z => z.Item1 == actor);
+        if (state == 4 && Zones.RemoveAll(z => z.Item1 == actor) > 0)
+        {
+            Deadline = default;
+            ForbiddenArcs.Forbidden.Clear();
+        }
     }
 }
 
 class FloralTrap(BossModule module) : Components.CastCounter(module, AID._Weaponskill_FloralTrap)
 {
-    readonly List<Actor> Casters = [];
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action == WatchedAction)
-            Casters.Add(caster);
-    }
-
-    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
-    {
-        if (spell.Action == WatchedAction)
-            Casters.Remove(caster);
-    }
+    readonly BuddingThorns Thorns = module.FindComponent<BuddingThorns>()!;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var c in Casters)
+        foreach (var (from, to) in Thorns.ForbiddenArcs.Forbidden.Segments)
+            hints.AddForbiddenZone(ShapeDistance.Cone(Thorns.ForbiddenArcs.Center, 50, ((to + from) * 0.5f).Radians(), ((to - from) * 0.5f).Radians()), Thorns.Deadline, 0xDEADBEEF);
+    }
+}
+
+class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint)OID._Gen_QueenHawkPiece)
+{
+    readonly BuddingThorns Thorns = module.FindComponent<BuddingThorns>()!;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Thorns.Deadline == default)
+            return;
+
+        List<Angle> safe = [.. Thorns.ForbiddenArcs.Allowed(default).Select(mm => (mm.min + mm.max) * 0.5f)];
+
+        foreach (var add in ActiveActors)
         {
-            var src = c.CastInfo!.LocXZ;
-            foreach (var zone in Module.Enemies(OID.BuddingThorns))
+            // using 90 degrees here because i have no idea how wide Devour is (it's probably 120 like every other untelegraphed cone)
+            if (safe.Any(s => add.Position.InCone(Thorns.ForbiddenArcs.Center, s, 45.Degrees())))
+                continue;
+
+            foreach (var center in safe)
             {
-                var oo = zone.Position - src;
-                var v = oo.Length();
-
-                // what do...
-                if (v < 10)
-                    continue;
-
-                hints.AddForbiddenZone(ShapeDistance.Cone(src, 60, oo.ToAngle(), Angle.Asin(10 / v)), Module.CastFinishAt(c.CastInfo));
+                hints.ForbiddenZones.RemoveAll(z => z.Source == 0xDEADBEEF);
+                hints.GoalZones.Add(hints.PullTargetToLocation(add, Thorns.ForbiddenArcs.Center + center.ToDirection() * 3, actor, 0, 1, false));
             }
         }
     }
 }
 
-// TODO: Devour instakills the wasp, but we need to ensure we pull it into the right location first...
-// at d0 the boss will probably die before she casts, and even if she doesn't it's not that much damage
-class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint)OID._Gen_QueenHawkPiece);
-
 class RottenStench(BossModule module) : Components.IconLineStack(module, 6, 45, (uint)IconID._Gen_Icon_share_laser_5sec_0t, AID._Weaponskill_RottenStench1, 5.4f);
+
+class AcidRain(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), AID._Weaponskill_AcidRain1, AID._Weaponskill_AcidRain2, 5, 1.1f, 8)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Chasers.Count == 0 && hints.FindEnemy(Module.PrimaryActor) is { } p)
+            p.DesiredPosition = Arena.Center;
+    }
+}
 
 class CorpseFlowerPieceStates : StateMachineBuilder
 {
@@ -122,17 +155,10 @@ class CorpseFlowerPieceStates : StateMachineBuilder
             .ActivateOnEnter<BuddingThorns>()
             .ActivateOnEnter<FloralTrap>()
             .ActivateOnEnter<RottenStench>()
-            .ActivateOnEnter<QueenHawkPiece>();
+            .ActivateOnEnter<QueenHawkPiece>()
+            .ActivateOnEnter<AcidRain>();
     }
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1091, NameID = 14603)]
-public class CorpseFlowerPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20))
-{
-    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (hints.FindEnemy(PrimaryActor) is { } p)
-            p.DesiredPosition = Arena.Center;
-    }
-}
-
+public class CorpseFlowerPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));

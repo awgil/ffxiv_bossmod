@@ -8,6 +8,7 @@ OID,Name,TankDistance,CanMove
 0x4C95,Sahagin Piece,30,true
 0x4CA7,Flowertender Piece,0,false
 0x4CB8,Strix Plume,0,false
+0x4CBF,Queen Hawk Piece,7,true
 0x4CD9,Toxic Mass,0,false
 0x4CDB,Flauros Piece,0,true
 0x4CDC,Lightning Sprite,0,false

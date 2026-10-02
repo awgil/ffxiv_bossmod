@@ -489,10 +489,10 @@ public sealed class AIHints
             return GoalSingleTarget(target.Position, adjRange, 0.1f);
 
         var distance = distToGoal;
-        if (greed && gcd < 0.5f)
+        if (greed && gcd < 0.5f && player.TargetID == target.InstanceID)
         {
             var playerEffRange = player.Role is Role.Tank or Role.Melee ? 3 : 25;
-            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange);
+            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange) - 0.1f;
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
