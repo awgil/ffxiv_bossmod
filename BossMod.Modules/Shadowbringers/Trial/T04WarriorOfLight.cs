@@ -77,6 +77,7 @@ public enum AID : uint
     TwincastHit = 21278, // SpectralWhiteMage/BlackMage->BossP2, no cast
     Ascendance = 21297, // Boss->self, 6.0s cast, range 60 circle
     AbsoluteTeleport = 21298, // Boss->self, 5.0s cast, single-target
+    AbsoluteTeleportHit = 20611, // Helper->player, no cast, single-target, one hit on every player ~4.8s after Absolute Teleport
     UltimateCrossover = 21627, // BossP2->self, 7.0s cast, single-target
     UltimateCrossoverAOE = 21628, // Helper->self, 6.0s cast, range 60 circle
 }

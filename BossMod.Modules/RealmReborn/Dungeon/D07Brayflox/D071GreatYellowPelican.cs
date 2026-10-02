@@ -15,7 +15,7 @@ public enum AID : uint
     NumbingBreath = 506, // Boss->self, 3.0s cast, range 9.2 120-degree cone aoe
 
     AutoAttackTrash = 871, // Trash->player, no cast
-    PoisonBreath = 1393 // VioletBack->self, no cast, range 7.20 ?-degree cone cleave // TODO: verify angle + add Cleave if useful
+    PoisonBreath = 1393 // VioletBack->self, no cast, range 7.20 ?-degree cone cleave
 }
 
 class NumbingBreath(BossModule module) : Components.StandardAOEs(module, AID.NumbingBreath, new AOEShapeCone(9.2f, 60.Degrees()));
@@ -31,5 +31,5 @@ class D071GreatYellowPelicanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1280)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1280)]
 public class D071GreatYellowPelican(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

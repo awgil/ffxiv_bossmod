@@ -192,7 +192,9 @@ public sealed class PlanDatabase : IDisposable
             // delete existing plan
             DeletePlan(existing);
             var plans = Plans[existing.Encounter][existing.Class];
-            var index = plans.Plans.IndexOf(existing);
+            var index = plans.Plans.FindIndex(p => p.Guid == existing.Guid);
+            if (index < 0)
+                return;
             plans.Plans.RemoveAt(index);
             if (plans.SelectedIndex == index)
                 plans.SelectedIndex = -1;
@@ -205,8 +207,11 @@ public sealed class PlanDatabase : IDisposable
             // just modify the plan
             SavePlan(modified);
             var plans = Plans[existing.Encounter][existing.Class].Plans;
-            var index = plans.IndexOf(existing);
-            plans[index] = modified;
+            var index = plans.FindIndex(p => p.Guid == existing.Guid);
+            if (index >= 0)
+                plans[index] = modified;
+            else
+                plans.Add(modified);
         }
         else
         {

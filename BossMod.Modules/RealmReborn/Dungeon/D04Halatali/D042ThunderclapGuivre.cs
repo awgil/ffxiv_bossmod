@@ -19,8 +19,49 @@ public enum AID : uint
 }
 
 class Electrify(BossModule module) : Components.StandardAOEs(module, AID.Electrify, 6);
-// TODO: replace hint with map geometry / voidzone for wet ground once dry pads are known from replay
-class HydroelectricShock(BossModule module) : Components.CastHint(module, AID.HydroelectricShockVisual, "Get to dry ground!", true);
+class HydroelectricShock(BossModule module) : BossComponent(module)
+{
+    private static readonly (WPos center, float radius)[] DryPads = [(new(-183.5f, -110.5f), 1.5f), (new(-174.6f, -162.9f), 2.5f)];
+    private static readonly (WPos from, WPos to) NorthFence = (new(-182.4f, -114.4f), new(-172, -114.4f));
+    private DateTime _activation;
+
+    private static bool OnPad(WPos pos) => DryPads.Any(p => pos.InCircle(p.center, p.radius));
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_activation != default)
+            hints.Add("Get to dry ground!", !OnPad(actor.Position));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.TemporaryObstacles.Add(ShapeDistance.Rect(NorthFence.from, NorthFence.to, 0.8f));
+        if (_activation == default)
+            return;
+        var pad = DryPads.MinBy(p => (p.center - actor.Position).LengthSq());
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pad.center, pad.radius));
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (_activation != default)
+            foreach (var p in DryPads)
+                Arena.ZoneCircle(p.center, p.radius, ArenaColor.SafeFromAOE);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.HydroelectricShock)
+            _activation = Module.CastFinishAt(spell);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.HydroelectricShock)
+            _activation = default;
+    }
+}
+
 class Levinfang(BossModule module) : Components.SingleTargetCast(module, AID.Levinfang);
 
 class D042ThunderclapGuivreStates : StateMachineBuilder
@@ -34,5 +75,5 @@ class D042ThunderclapGuivreStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)] // TODO: clear after dry-ground geometry
-public class D042ThunderclapGuivre(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 7, NameID = 1196)]
+public class D042ThunderclapGuivre(ModuleInit init) : BossModule(init, new(-179, -133), new ArenaBoundsRect(26, 34));
