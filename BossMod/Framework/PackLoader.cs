@@ -40,7 +40,7 @@ public sealed class PackLoader : IDisposable
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
     private readonly SensibleFileWatcher _watcher;
     private readonly EventSubscriptions _modified;
-    public static readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), "modules");
+    public static readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), Service.IsDev ? "modules-dev" : "modules");
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
 
