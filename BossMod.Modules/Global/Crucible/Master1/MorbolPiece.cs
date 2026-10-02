@@ -17,12 +17,12 @@ public enum AID : uint
     _AutoAttack_ = 50937, // Boss->player, no cast, single-target
     _AutoAttack_Attack = 50750, // 4CBA->player, no cast, single-target
     _Weaponskill_ExtremelyBadBreath = 48671, // Boss->self, 4.5+0.5s cast, single-target
+    _Weaponskill_ExtremelyBadBreath4 = 48672, // Boss->self, 4.5+0.5s cast, single-target
     _Weaponskill_ExtremelyBadBreath1 = 48673, // Helper->self, 5.0s cast, range 50 90-degree cone
     _Weaponskill_ExtremelyBadBreath2 = 48674, // Boss->self, no cast, single-target
     _Weaponskill_ExtremelyBadBreath3 = 48675, // Helper->self, 0.5s cast, range 50 90-degree cone
     _Weaponskill_StickySpit = 48680, // 4CBC->player, 2.0s cast, single-target
     _AutoAttack_Attack1 = 50544, // 4CBC->player, no cast, single-target
-    _Weaponskill_ExtremelyBadBreath4 = 48672, // Boss->self, 4.5+0.5s cast, single-target
     _AutoAttack_1 = 50396, // 4CBB->player, no cast, single-target
     _Weaponskill_AcidMist = 48679, // 4CBB->self, 4.0s cast, range 6 circle
     _Weaponskill_Tremblor = 50757, // Boss->self, 4.5+0.5s cast, single-target
@@ -53,6 +53,14 @@ public enum TetherID : uint
 
 class PoisonPuddle(BossModule module) : Components.Voidzone(module, 6, OID.PoisonPuddle);
 
+class ExtremelyBadBreathFirst(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_ExtremelyBadBreath1, new AOEShapeCone(50, 45.Degrees()))
+{
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID is IconID._Gen_Icon_m037_turning_left01x2 or IconID._Gen_Icon_m037_turning_right01x2)
+            Casters.Clear(); // let the rotating aoe component take over
+    }
+}
 class ExtremelyBadBreath(BossModule module) : Components.GenericRotatingAOE(module)
 {
     Angle _rotation;
@@ -61,10 +69,7 @@ class ExtremelyBadBreath(BossModule module) : Components.GenericRotatingAOE(modu
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_ExtremelyBadBreath1)
-        {
             _caster = caster;
-            Init();
-        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -133,6 +138,7 @@ class MorbolPieceStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<PoisonPuddle>()
+            .ActivateOnEnter<ExtremelyBadBreathFirst>()
             .ActivateOnEnter<ExtremelyBadBreath>()
             .ActivateOnEnter<Adds>()
             .ActivateOnEnter<AcidMist>()
