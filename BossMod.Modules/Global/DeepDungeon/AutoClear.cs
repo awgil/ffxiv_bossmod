@@ -521,7 +521,7 @@ public abstract partial class AutoClear : ZoneModule
     {
         IterAndExpire(HintDisabled, g => g.CastInfo == null, g =>
         {
-            hints.ForbiddenZones.RemoveAll(z => z.Source == g.InstanceID);
+            hints.ForbiddenZones.RemoveAll(z => z.tag == g.InstanceID);
         });
 
         IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>

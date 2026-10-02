@@ -102,7 +102,7 @@ class FloralTrap(BossModule module) : Components.CastCounter(module, AID._Weapon
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var (from, to) in Thorns.ForbiddenArcs.Forbidden.Segments)
-            hints.AddForbiddenZone(ShapeDistance.Cone(Thorns.ForbiddenArcs.Center, 50, ((to + from) * 0.5f).Radians(), ((to - from) * 0.5f).Radians()), Thorns.Deadline, 0xDEADBEEF);
+            hints.AddForbiddenZone(ShapeDistance.Cone(Thorns.ForbiddenArcs.Center, 50, ((to + from) * 0.5f).Radians(), ((to - from) * 0.5f).Radians()), Thorns.Deadline, 0x12345678);
     }
 }
 
@@ -127,7 +127,7 @@ class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint
 
             foreach (var center in safe)
             {
-                hints.ForbiddenZones.RemoveAll(z => z.Source == 0xDEADBEEF);
+                hints.ForbiddenZones.RemoveAll(z => z.tag == 0x12345678);
                 hints.GoalZones.Add(hints.PullTargetToLocation(add, Thorns.ForbiddenArcs.Center + center.ToDirection() * 3, actor, 0, 1, false));
             }
         }

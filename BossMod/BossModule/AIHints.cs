@@ -137,7 +137,8 @@ public sealed class AIHints
 
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
-    public List<(Sdf shape, DateTime activation, ulong Source)> ForbiddenZones = [];
+    // zone might be tagged with an arbitrary non-unique id for convenience. for generic solver zones, tag = caster's instanceid
+    public List<(Sdf shape, DateTime activation, ulong tag)> ForbiddenZones = [];
 
     // positioning: list of goal functions
     // AI will try to move to reach non-forbidden point with highest goal value (sum of values returned by all functions)
