@@ -82,7 +82,11 @@ class A33QueenScyllaStates : StateMachineBuilder
             .Raw.Update = () =>
             {
                 var xande = Module.Enemies(OID.XandesClone);
-                return Module.PrimaryActor.IsDeadOrDestroyed && xande.Count > 0 && xande.All(x => x.IsDeadOrDestroyed);
+                var jorm = Module.Enemies(OID.Jormungand);
+                var thor = Module.Enemies(OID.Thor);
+                var addsSpawned = jorm.Count + thor.Count > 0;
+                var addsCleared = !addsSpawned || jorm.All(j => j.IsDeadOrDestroyed) && thor.All(t => t.IsDeadOrDestroyed);
+                return Module.PrimaryActor.IsDeadOrDestroyed && xande.Count > 0 && xande.All(x => x.IsDeadOrDestroyed) && addsCleared;
             };
     }
 }
