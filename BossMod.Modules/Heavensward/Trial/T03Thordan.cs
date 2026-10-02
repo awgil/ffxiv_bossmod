@@ -47,7 +47,7 @@ public enum AID : uint
     TheLightOfAscalon = 4203, // Helper->self, no cast, range 80 circle, 3y knockback x7 ~1.4s apart
     BroadSwing = 4204, // Boss->location, no cast, width 10 rect
     SacredCross = 4205, // SerZephirin->self, 15.0s cast, range 80+R circle
-    ShiningBlade = 4210, // SerAdelphel/SerJanlenoux->location, no cast, width 6 charge
+    ShiningBlade = 4210, // SerAdelphel/SerJanlenoux->location, no cast, width 6 charge, 3 chained dashes with no telegraph
     BrightFlare = 4211, // Brightsphere->self, no cast, range 5+R circle
     DimensionalCollapseVisual = 4212, // SerGrinnaux->self, 5.5s cast, single-target
     DimensionalCollapse = 4213, // Helper->location, 6.0s cast, range 3 circle, grows to ~10 before it resolves
@@ -231,5 +231,5 @@ class T03ThordanStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 90, NameID = 3632)] // TODO: confirm Heavy Impact gap width (270-degree rings assumed) and Shining Blade charges, then clear Incomplete
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 90, NameID = 3632)]
 public class T03Thordan(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(24));
