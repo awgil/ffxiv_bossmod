@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+
 namespace BossMod.Global.Crucible.CorpseFlowerPiece;
 
 public enum OID : uint
@@ -7,6 +8,8 @@ public enum OID : uint
     Boss = 0x4CBD, // R3.200, x1
     _Gen_SaplingPiece = 0x4CBE, // R0.750, x0 (spawn during fight)
     _Gen_QueenHawkPiece = 0x4CBF, // R0.720, x0 (spawn during fight)
+
+    BuddingThorns = 0x1EC0E2
 }
 
 public enum AID : uint
@@ -42,16 +45,87 @@ public enum IconID : uint
     _Gen_Icon_tracking_lockon01i = 197, // player->self
 }
 
+class BuddingThorns(BossModule module) : Components.GenericAOEs(module)
+{
+    readonly List<(Actor, float)> Zones = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Zones.Select(b => new AOEInstance(new AOEShapeCircle(b.Item2), b.Item1.Position, b.Item1.Rotation));
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.BuddingThorns)
+            Zones.Add((actor, 5));
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (state == 0x00100020)
+            foreach (ref var z in Zones.AsSpan())
+                if (z.Item1 == actor)
+                    z.Item2 = 10;
+    }
+
+    public override void OnActorEState(Actor actor, ushort state)
+    {
+        if (state == 4)
+            Zones.RemoveAll(z => z.Item1 == actor);
+    }
+}
+
+class FloralTrap(BossModule module) : Components.CastCounter(module, AID._Weaponskill_FloralTrap)
+{
+    readonly List<Actor> Casters = [];
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            Casters.Add(caster);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            Casters.Remove(caster);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+        {
+            var src = c.CastInfo!.LocXZ;
+            foreach (var zone in Module.Enemies(OID.BuddingThorns))
+            {
+                var oo = zone.Position - src;
+                var v = oo.Length();
+
+                // what do...
+                if (v < 10)
+                    continue;
+
+                hints.AddForbiddenZone(ShapeDistance.Cone(src, 60, oo.ToAngle(), Angle.Asin(10 / v)), Module.CastFinishAt(c.CastInfo));
+            }
+        }
+    }
+}
+
+// TODO: Devour instakills the wasp, but we need to ensure we pull it into the right location first...
+// at d0 the boss will probably die before she casts, and even if she doesn't it's not that much damage
+class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint)OID._Gen_QueenHawkPiece);
+
+class RottenStench(BossModule module) : Components.IconLineStack(module, 6, 45, (uint)IconID._Gen_Icon_share_laser_5sec_0t, AID._Weaponskill_RottenStench1, 5.4f);
+
 class CorpseFlowerPieceStates : StateMachineBuilder
 {
     public CorpseFlowerPieceStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<BuddingThorns>()
+            .ActivateOnEnter<FloralTrap>()
+            .ActivateOnEnter<RottenStench>()
+            .ActivateOnEnter<QueenHawkPiece>();
     }
 }
 
-// sapling puddle spawns with radius 5, starts growing during EObjAnim 00100020 to maximum radius of 10, then despawns with EObjState 0004
-// spit sends the player 10 units
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1091, NameID = 14603)]
 public class CorpseFlowerPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20))
 {

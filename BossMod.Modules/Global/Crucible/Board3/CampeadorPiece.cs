@@ -13,11 +13,11 @@ public enum OID : uint
 public enum AID : uint
 {
     EmergencyOrder = 48578, // Boss->self, 5.0s cast, single-target
-    AutoAttack = 49682, // _Gen_SabotenderPiece/_Gen_FlowertenderPiece/_Gen_SoldadoPiece/_Gen_GuardiaPiece/Boss->player, no cast, single-target
-    HealingWater = 48579, // _Gen_FlowertenderPiece->_Gen_SabotenderPiece, 3.0s cast, range 6 circle, doesn't deal damage
-    NeedlesCast = 48580, // _Gen_SoldadoPiece->self, 8.0s cast, single-target
+    AutoAttack = 49682, // SabotenderPiece/FlowertenderPiece/SoldadoPiece/GuardiaPiece/Boss->player, no cast, single-target
+    HealingWater = 48579, // FlowertenderPiece->SabotenderPiece, 3.0s cast, range 6 circle, doesn't deal damage
+    NeedlesCast = 48580, // SoldadoPiece->self, 8.0s cast, single-target
     Needles = 48581, // Helper->self, 8.0s cast, range 15 circle
-    Cactguard = 48582, // _Gen_GuardiaPiece->Boss, no cast, single-target
+    Cactguard = 48582, // GuardiaPiece->Boss, no cast, single-target
     SeedingNeedlesRaidwide = 48589, // Boss->self, 5.0s cast, range 100 circle
     SeedingNeedlesDonutCast = 48587, // Boss->self, 5.3+0.7s cast, single-target
     SeedingNeedlesDonut = 48588, // Helper->self, 6.0s cast, range 5-40 donut
@@ -33,8 +33,8 @@ public enum IconID : uint
 
 public enum SID : uint
 {
-    Cover = 2412, // _Gen_GuardiaPiece->_Gen_GuardiaPiece, extra=0x14
-    Covered = 2413, // _Gen_GuardiaPiece->Boss, extra=0x0
+    Cover = 2412, // GuardiaPiece->GuardiaPiece, extra=0x14
+    Covered = 2413, // GuardiaPiece->Boss, extra=0x0
 }
 
 class Flowertender(BossModule module) : Components.Adds(module, (uint)OID.FlowertenderPiece, 2);
