@@ -7,6 +7,8 @@ public enum OID : uint
     Boss = 0x4CCD, // R10.000, x1
     _Gen_SlugPiece = 0x4CCE, // R0.800, x0 (spawn during fight)
     _Gen_SaplingPiece = 0x4CCF, // R0.600-0.840, x0 (spawn during fight)
+
+    BossZone = 0x1EABFA,
 }
 
 public enum AID : uint
@@ -35,11 +37,36 @@ public enum TetherID : uint
     _Gen_Tether_chn_arrow01f = 57, // 4CCF->Boss
 }
 
-class Earth(BossModule module) : Components.Voidzone(module, 10, 0x1EABFA);
+class Earth(BossModule module) : Components.Voidzone(module, 10, OID.BossZone);
 class RustlingBreeze1(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_RustlingBreeze1, new AOEShapeCone(60, 45.Degrees()));
 class RustlingBreeze2(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_RustlingBreeze3, AID._Weaponskill_RustlingBreeze4], new AOEShapeCone(60, 75.Degrees()));
-class Adds(BossModule module) : Components.AddsMulti(module, [OID._Gen_SlugPiece, OID._Gen_SaplingPiece]);
+class Adds(BossModule module) : ProximityAdds(module, [OID._Gen_SlugPiece, OID._Gen_SaplingPiece]);
 class AqueousDischarge(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_AqueousDischarge, 5);
+
+class ArborealStorm(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCircle(12), new AOEShapeDonut(12, 18), new AOEShapeDonut(18, 24), new AOEShapeDonut(24, 30), new AOEShapeDonut(30, 36)])
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_ArborealStorm5)
+            AddSequence(spell.LocXZ, Module.CastFinishAt(spell));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        var seq = (AID)spell.Action.ID switch
+        {
+            AID._Weaponskill_ArborealStorm5 => 0,
+            AID._Weaponskill_ArborealStorm4 => 1,
+            AID._Weaponskill_ArborealStorm3 => 2,
+            AID._Weaponskill_ArborealStorm1 => 3,
+            AID._Weaponskill_ArborealStorm2 => 4,
+            _ => -1
+        };
+
+        if (seq >= 0)
+            AdvanceSequence(seq, caster.Position, WorldState.FutureTime(2));
+    }
+}
 
 class TreantPieceStates : StateMachineBuilder
 {
@@ -50,7 +77,8 @@ class TreantPieceStates : StateMachineBuilder
             .ActivateOnEnter<RustlingBreeze1>()
             .ActivateOnEnter<RustlingBreeze2>()
             .ActivateOnEnter<Adds>()
-            .ActivateOnEnter<AqueousDischarge>();
+            .ActivateOnEnter<AqueousDischarge>()
+            .ActivateOnEnter<ArborealStorm>();
     }
 }
 

@@ -115,7 +115,7 @@ class MyconidPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_M
             else
             {
                 target.ShouldBeTargeted = true;
-                target.ShouldBeTanked = true;
+                target.PreferProvoking = true;
             }
         }
     }

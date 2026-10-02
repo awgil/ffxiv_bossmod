@@ -97,12 +97,18 @@ class BuddingThorns(BossModule module) : Components.GenericAOEs(module)
 
 class FloralTrap(BossModule module) : Components.CastCounter(module, AID._Weaponskill_FloralTrap)
 {
+    public static readonly Angle InhaleHalfAngle = 15.Degrees(); // blind guess
+
     readonly BuddingThorns Thorns = module.FindComponent<BuddingThorns>()!;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var (from, to) in Thorns.ForbiddenArcs.Forbidden.Segments)
             hints.AddForbiddenZone(ShapeDistance.Cone(Thorns.ForbiddenArcs.Center, 50, ((to + from) * 0.5f).Radians(), ((to - from) * 0.5f).Radians()), Thorns.Deadline, 0x12345678);
+
+        if (Thorns.Deadline != default)
+            foreach (var w in Module.Enemies(OID._Gen_QueenHawkPiece))
+                hints.AddForbiddenZone(ShapeDistance.InvertedCone(Thorns.ForbiddenArcs.Center, 50, Module.PrimaryActor.AngleTo(w), InhaleHalfAngle), Thorns.Deadline, 0x12345678);
     }
 }
 
@@ -112,7 +118,15 @@ class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
+        foreach (var queen in ActiveActors)
+        {
+            if (hints.FindEnemy(queen) is { } q)
+            {
+                q.Priority = AIHints.Enemy.PriorityPointless;
+                if (queen.TargetID != actor.InstanceID)
+                    q.PreferProvoking = true;
+            }
+        }
 
         if (Thorns.Deadline == default)
             return;
@@ -121,8 +135,7 @@ class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint
 
         foreach (var add in ActiveActors)
         {
-            // using 90 degrees here because i have no idea how wide Devour is (it's probably 120 like every other untelegraphed cone)
-            if (safe.Any(s => add.Position.InCone(Thorns.ForbiddenArcs.Center, s, 45.Degrees())))
+            if (safe.Any(s => add.Position.InCone(Thorns.ForbiddenArcs.Center, s, FloralTrap.InhaleHalfAngle)))
                 continue;
 
             foreach (var center in safe)
@@ -134,8 +147,37 @@ class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint
     }
 }
 
-class RottenStench(BossModule module) : Components.IconLineStack(module, 6, 45, (uint)IconID._Gen_Icon_share_laser_5sec_0t, AID._Weaponskill_RottenStench1, 5.4f);
+class RottenStench(BossModule module) : Components.IconLineStack(module, 6, 45, (uint)IconID._Gen_Icon_share_laser_5sec_0t, AID._Weaponskill_RottenStench1, 5.4f)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
 
+        hints.FindEnemy(Source)?.CanMove = false;
+    }
+}
+
+class AcidRainPre(BossModule module) : BossComponent(module)
+{
+    DateTime _deadline;
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID._Gen_Icon_tracking_lockon01i)
+            _deadline = WorldState.FutureTime(5.1f);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_AcidRain1)
+            _deadline = default;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_deadline != default)
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 18), _deadline);
+    }
+}
 class AcidRain(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(6), AID._Weaponskill_AcidRain1, AID._Weaponskill_AcidRain2, 5, 1.1f, 8)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -156,6 +198,7 @@ class CorpseFlowerPieceStates : StateMachineBuilder
             .ActivateOnEnter<FloralTrap>()
             .ActivateOnEnter<RottenStench>()
             .ActivateOnEnter<QueenHawkPiece>()
+            .ActivateOnEnter<AcidRainPre>()
             .ActivateOnEnter<AcidRain>();
     }
 }

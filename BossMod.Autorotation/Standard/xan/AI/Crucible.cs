@@ -33,7 +33,7 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
         if (strategy.Snarl.IsEnabled() && havePet && Hints.PotentialTargets.FirstOrDefault(p => p.PreferShirking) is { } e1)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Snarl), e1.Actor, ActionQueue.Priority.Medium, forced: true);
 
-        if (strategy.Challenge.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeTanked) is { } e2)
+        if (strategy.Challenge.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.PreferProvoking) is { } e2)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Challenge), e2.Actor, ActionQueue.Priority.Medium, forced: true);
 
         if (strategy.Dispel.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeDispelled) is { } d && gauge.Classification == 5)
