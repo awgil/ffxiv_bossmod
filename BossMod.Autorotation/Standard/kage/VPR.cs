@@ -54,7 +54,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos keeping one stack for movement, never overcap, use when out of melee range; dump before downtime or a kill", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos keeping one stack for movement (spent right before Serpent's Ire), never overcap, use when out of melee range; dump before downtime or a kill", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Like Automatic, but always keep one stack", Targets = ActionTargets.Hostile)]
         HoldOne,
@@ -506,9 +506,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             return false;
         if (dying)
             return true;
-        if (Coil <= 1 && target.HPRatio >= 0.05f && DowntimeIn > GCDLength * 3)
+        // one coil is kept for disengages, but spent right before Serpent's Ire
+        var ireSoon = Unlocked(AID.SerpentsIre) && IreIn <= GCDLength * 2;
+        if (Coil <= 1 && !ireSoon && target.HPRatio >= 0.05f && DowntimeIn > GCDLength * 3)
             return false;
-        if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 || TwinWeavesPending || HoldForIre)
+        if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 || TwinWeavesPending || HoldForIre && !ireSoon)
             return false;
         if (!HasBothBuffs || Swiftscaled < GCDLength * 3 || Instinct < GCDLength * 3)
             return false;

@@ -202,7 +202,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             return;
 
         var danceSoon = GCDReady(AID.StandardStep) || GCDReady(AID.TechnicalStep) || FinishingMoveLeft > 0 || FlourishingFinishLeft > 0;
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, danceSoon ? 14.5f : 25));
+        var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, danceSoon ? 14.5f : 25);
+        Hints.GoalZones.Add(allowAoE && Unlocked(AID.Windmill) ? AIHints.GoalCombined(goal, Hints.GoalAOECircle(5), 2) : goal);
 
         GCDs(strategy, target);
         if (Player.InCombat)

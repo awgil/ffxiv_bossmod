@@ -164,7 +164,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             return;
 
         CurrentTarget = target.Actor;
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3));
+        var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3);
+        Hints.GoalZones.Add(allowAoE && Unlocked(AID.TotalEclipse) ? AIHints.GoalCombined(goal, Hints.GoalAOECircle(5), 3) : goal);
 
         GCDs(strategy, target);
         if (Player.InCombat)
@@ -379,19 +380,27 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     }
 
     private void PushGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0);
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0, CastTime(aid));
+
+    // Holy Spirit / Holy Circle are 1.5s casts unless Divine Might or Requiescat makes them instant; the queue needs this to not start one before a dodge
+    private float CastTime(AID aid)
+    {
+        if (aid is not (AID.HolySpirit or AID.HolyCircle) || DivineMightLeft > GCD || RequiescatLeft > GCD)
+            return 0;
+        return ActionDefinitions.Instance.Spell(aid)?.CastTime ?? 0;
+    }
 
     private void PushOGCD(AID aid, Actor? target, int priority, float delay = 0)
         => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
 
-    private void PushAction(ActionID action, Actor? target, float priority, float delay)
+    private void PushAction(ActionID action, Actor? target, float priority, float delay, float castTime = 0)
     {
         if (action.ID == 0 || !ActionUnlocked(action))
             return;
         var def = ActionDefinitions.Instance[action];
         if (def == null || def.Range != 0 && target == null)
             return;
-        Hints.ActionsToExecute.Push(action, target, priority, delay: delay);
+        Hints.ActionsToExecute.Push(action, target, priority, delay: delay, castTime: castTime);
     }
 
     #endregion

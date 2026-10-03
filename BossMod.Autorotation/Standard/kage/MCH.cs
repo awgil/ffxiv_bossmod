@@ -224,7 +224,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         };
 
         if (target != null)
-            Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, AOEMode ? 12 : 25));
+        {
+            var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
+            Hints.GoalZones.Add(allowAoE && Unlocked(AID.SpreadShot) ? AIHints.GoalCombined(goal, Hints.GoalAOECone(BestConeTarget ?? target.Actor, 12, 60.Degrees()), Unlocked(AID.Scattergun) ? 3 : 2) : goal);
+        }
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);

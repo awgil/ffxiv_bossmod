@@ -88,6 +88,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
     private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
     private bool CanCast => !IsMoving && Hints.MaxCastTime >= 1.5f * GCDLength / 2.5f;
     private bool HasRaidBuffJobs => RaidBuffsIn < 9000 || RaidBuffsLeft > 0;
+    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -134,14 +135,15 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             return;
         }
 
-        // lilies are free during downtime: fill the Blood Lily for when the boss comes back
-        if (Player.InCombat && target == null && strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery))
+        // lilies are free during downtime and between packs: fill the Blood Lily for the next pull
+        if (target == null && strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery))
             PushGCD(LilySpell, Player, 10);
 
         if (target == null)
             return;
 
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25));
+        var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
+        Hints.GoalZones.Add(strategy.AOE.Value == AOEStrategy.ST || !Unlocked(AID.Holy) ? goal : GoalCombined(goal, Hints.GoalAOECircle(8), Player.Level < 82 ? 2 : 3));
 
         GCDs(strategy, target);
         if (Player.InCombat)
@@ -164,9 +166,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             && (strategy.GlareIV.Value == OffensiveStrategy.Force || !CanCast || RaidBuffsLeft > GCD || !HasRaidBuffJobs || SacredSightLeft < GCD + GCDLength * SacredSight + 1 || DowntimeIn < GCDLength * (SacredSight + 1)))
             PushGCD(AID.GlareIV, splash.Actor, 40);
 
-        // never let the healing lilies overcap; they're DPS-neutral once Misery cashes them in
+        // lilies are DPS-neutral on one target (never overcap them) and a gain when Misery cleaves 2+ enemies
         if (Player.InCombat && strategy.Lilies.Value != OffensiveStrategy.Delay && Unlocked(AID.AfflatusMisery) && BloodLily < 3 && Lily > 0
-            && (strategy.Lilies.Value == OffensiveStrategy.Force || LilyCapIn < GCD + 8))
+            && (strategy.Lilies.Value == OffensiveStrategy.Force || LilyCapIn < GCD + 8 || Hints.NumPriorityTargetsInAOECircle(splash.Actor.Position, 5) >= 2))
             PushGCD(LilySpell, Player, 35);
 
         if (AOEMode)
@@ -183,6 +185,8 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
                 PushGCD(AID.AfflatusMisery, splash.Actor, 8);
             if (SacredSight > 0)
                 PushGCD(AID.GlareIV, splash.Actor, 7);
+            if (Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) == 0).MaxBy(e => e.Actor.HPMP.CurHP) is { } spread)
+                PushGCD(AID.Aero, spread.Actor, 6);
             PushGCD(AID.Aero, target.Actor, 5);
         }
     }
@@ -217,7 +221,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
     // Dia needs ~15s of ticks to beat Glare: bosses, boss-tier targets, anything above 50%
     private bool DotWorthIt(Enemy e)
     {
-        if (e.ForbidDOTs || e.Priority < 0 && e.Priority != Enemy.PriorityPointless || DowntimeIn < 15)
+        if (e.ForbidDOTs || e.Priority < 0 && !IsBossTarget(e.Actor) || DowntimeIn < 15)
             return false;
         return IsBossTarget(e.Actor) || e.Actor.HPRatio > 0.5f;
     }
@@ -252,7 +256,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
         if (strategy.Assize.Value != OffensiveStrategy.Delay && CanWeave(AID.Assize)
-            && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0))
+            && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0 && (CombatTime > 15 || !HasRaidBuffJobs || RaidBuffsLeft > 0 || CombatTime > GCDLength * 3)))
             PushOGCD(AID.Assize, Player, 40);
 
         if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (Player.HPMP.CurMP <= 8000 || Player.HPMP.CurMP <= 9000 && MPCheckSoon))

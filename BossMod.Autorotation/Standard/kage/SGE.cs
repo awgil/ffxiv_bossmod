@@ -172,7 +172,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         if (target == null)
             return;
 
-        Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25));
+        var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
+        Hints.GoalZones.Add(strategy.AOE.Value == AOEStrategy.ST || !Unlocked(AID.Dyskrasia) ? goal : GoalCombined(goal, Hints.GoalAOECircle(5), 3));
 
         GCDs(strategy, target, numAround);
         if (Player.InCombat)
@@ -242,7 +243,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
     // E.Dosis needs ~15s of ticks to beat Dosis: bosses, boss-tier targets, trash above 50%
     private bool DotWorthIt(Enemy e)
     {
-        if (e.ForbidDOTs || e.Priority < 0 && e.Priority != Enemy.PriorityPointless || DowntimeIn < 15)
+        if (e.ForbidDOTs || e.Priority < 0 && !IsBossTarget(e.Actor) || DowntimeIn < 15)
             return false;
         if (IsBossTarget(e.Actor))
             return true;
