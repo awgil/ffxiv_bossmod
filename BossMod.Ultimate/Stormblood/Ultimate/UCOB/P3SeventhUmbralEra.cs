@@ -55,3 +55,12 @@ class P3BahamutPositioning(BossModule module) : BossComponent(module)
         }
     }
 }
+
+class P3HugBahamut(BossModule module) : BossComponent(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (((UCOB)Module).BahamutPrime() is { } b)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(b.Position, 5, 0.5f));
+    }
+}

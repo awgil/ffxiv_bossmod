@@ -85,8 +85,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         var map = new Map();
         hints.InitPathfindMap(map);
         var gScratch = Utils.MakeArray((map.Width + 1) * (map.Height + 1), float.MinValue);
-        var dScratch = new bool[(map.Width + 1) * (map.Height + 1)];
-        NavigationDecision.RasterizeForbiddenZone(map, shape, 0, ref gScratch, ref dScratch, 0);
+        var dScratch = new BitArray(gScratch.Length);
+        NavigationDecision.RasterizeForbiddenZone(map, shape, 0, gScratch.AsSpan(), dScratch, 0);
         return new MapVisualizer(map, player.Position, gScratch);
     }
 

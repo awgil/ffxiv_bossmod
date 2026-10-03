@@ -9,6 +9,17 @@ class P5Teraflare(BossModule module) : Components.CastCounter(module, AID.Terafl
         if ((SID)status.ID == SID.DownForTheCount)
             DownForTheCountAssigned = true;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.ScriptedDeath = true;
+    }
 }
 
-class P5FlamesOfRebirth(BossModule module) : Components.CastCounter(module, AID.FlamesOfRebirth);
+class P5FlamesOfRebirth(BossModule module) : Components.CastCounter(module, AID.FlamesOfRebirth)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.ScriptedDeath = true;
+    }
+}

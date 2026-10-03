@@ -22,14 +22,15 @@ class UCOBStates : StateMachineBuilder
         SimplePhase(3, Phase2, "P2: Nael")
             .ActivateOnEnter<P2HugNael>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || _module.Nael() is var nael && nael != null && !nael.IsTargetable && nael.HPMP.CurHP <= 1 && Module.FindComponent<P2BlockTransition>() == null;
+            .Raw.Update = () => _module.Nael() is { IsTargetable: false, HPMP.CurHP: <= 1 } && Module.FindComponent<P2BlockTransition>() == null;
         SimplePhase(4, Phase34, "P3-4: Bahamut + Adds")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .ActivateOnEnter<P3BahamutPositioning>()
             .DeactivateOnExit<Hatch>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.IsDead && _module.Nael() is var nael && nael != null && nael.IsDead;
+            .Raw.Update = () => Module.PrimaryActor.IsDead && _module.Nael() is { IsDead: true };
         SimplePhase(5, Phase5, "P5: Golden Bahamut")
             .ActivateOnEnter<P5Exaflare>() // exaflares overlap with next mechanics
+            .ActivateOnEnter<P5Preposition>()
             .Raw.Update = () => _module.BahamutPrime() is var baha && (baha == null || baha.IsDestroyed || baha.IsDead);
     }
 
@@ -180,8 +181,7 @@ class UCOBStates : StateMachineBuilder
             .ExecOnEnter<P1Fireball>(c => c.EnableHints = false, withFireball);
         ActorCastEnd(id + 1, _module.Twintania, 2, true);
         ComponentCondition<P1Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters")
-            .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball)
-            .ExecOnEnter<Hatch>(h => h.WaitForTwister.Reset());
+            .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball);
     }
 
     private void P1TwisterFireball(uint id, float delay)
@@ -653,10 +653,12 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCastStart(id + 0x101, _module.BahamutPrime, AID.Gigaflare, 0.1f, true);
         ComponentCondition<Quote>(id + 0x102, 1.2f, comp => comp.PendingMechanics.Count == 0, "Spread")
+            .ActivateOnEnter<P3HugBahamut>()
             .DeactivateOnExit<QuoteMeteorStream>()
             .DeactivateOnExit<Quote>();
         ActorCastEnd(id + 0x103, _module.BahamutPrime, 4.8f, true, "Raidwide")
-            .SetHint(StateMachine.StateHint.Raidwide);
+            .SetHint(StateMachine.StateHint.Raidwide)
+            .DeactivateOnExit<P3HugBahamut>();
 
         P3FlareBreath(id + 0x1000, 5.4f);
         P3Flatten(id + 0x2000, 5.2f);
@@ -843,8 +845,7 @@ class UCOBStates : StateMachineBuilder
     private void P4Twister(uint id, float delay)
     {
         ActorCast(id, _module.Twintania, AID.Twister, delay, 2, true); // icon appears ~0.1s before cast start
-        ComponentCondition<Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters")
-            .ExecOnExit<Hatch>(h => h.WaitForTwister.Reset());
+        ComponentCondition<Twister>(id + 2, 0.3f, comp => comp.Active, "Twisters");
     }
 
     private void P4GenerateTwister(uint id, float delay)

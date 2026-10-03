@@ -112,6 +112,8 @@ public sealed class AIHints
     public WPos PathfindMapCenter;
     public ArenaBounds PathfindMapBounds = DefaultBounds;
     public Bitmap.Region PathfindMapObstacles;
+    private readonly List<float> _scratchG = [];
+    private readonly BitArray _scratchD = new(0);
 
     // list of potential targets
     public readonly Enemy?[] Enemies = new Enemy?[100];
@@ -189,6 +191,9 @@ public sealed class AIHints
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
+    // scripted party wipes in some encounters; in these cases we shouldn't run the disable-on-death logic
+    public bool ScriptedDeath;
+
     // misc stuff to execute
     public bool WantJump;
     public bool WantDismount;
@@ -223,6 +228,7 @@ public sealed class AIHints
         ForceCancelCast = false;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
+        ScriptedDeath = false;
         WantJump = false;
         WantDismount = false;
         WantFateSync = FateSync.None;
@@ -295,10 +301,20 @@ public sealed class AIHints
     public void InitPathfindMap(Pathfinding.Map map)
     {
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
+        var dim = (map.Height + 1) * (map.Width + 1);
+        if (_scratchG.Count != dim)
+        {
+            _scratchG.Clear();
+            _scratchG.AddRange(Enumerable.Repeat(0f, dim));
+        }
+        _scratchD.Length = dim;
+
         foreach (var o in TemporaryObstacles)
-            map.BlockPixelsInside(o, -1000);
+            Pathfinding.NavigationDecision.RasterizeForbiddenZone(map, o, -1000, _scratchG.AsSpan(), _scratchD, 0);
+
         foreach (var (from, radius, to) in Portals)
             map.AddPortal(from, radius, to);
+
         if (PathfindMapObstacles.Bitmap != null)
         {
             var offX = -PathfindMapObstacles.Rect.Left;

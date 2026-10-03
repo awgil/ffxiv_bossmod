@@ -151,6 +151,9 @@ class Hatch : Components.CastCounter
                 }
             }
 
+            if (_neurolinks.Count == 1 && _orbs.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.Circle(_neurolinks[0].Position, 12));
+
             hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
         }
 
@@ -379,5 +382,11 @@ class Hatch : Components.CastCounter
     {
         if ((OID)actor.OID == OID.Oviform)
             _orbs.RemoveAll(o => o.orb == actor);
+    }
+
+    public override void Update()
+    {
+        if (WaitForTwister.Any() && Module.FindComponent<Twister>() is { PredictedPositions.Count: > 0 })
+            WaitForTwister.Reset();
     }
 }
