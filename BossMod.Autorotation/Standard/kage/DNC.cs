@@ -270,7 +270,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     private void GCDs(in Strategy strategy, Enemy target)
     {
-        var hpThreshold = AOEMode ? 0.25f : 0.01f;
+        var hpThreshold = AOEMode ? 0.4f : 0.01f;
         var targetAlive = target.Actor.HPRatio > hpThreshold;
         var splash = BestSplashTarget ?? target.Actor;
         var expiring = GCD + GCDLength * 1.5f;
