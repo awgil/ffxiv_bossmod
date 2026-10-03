@@ -47,7 +47,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
     public enum DotStrategy
     {
-        [Option("Keep up on the boss and up to one extra target; trash above 50% HP; Eukrasian Dyskrasia on 3+ targets")]
+        [Option("Keep up on up to two targets; Eukrasian Dyskrasia on 3+")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
@@ -67,25 +67,25 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
     public enum PneumaStrategy
     {
-        [Option("Use on 2+ targets when no raidwide is coming soon (otherwise left for healing)")]
+        [Option("Use on 2+ targets unless a raidwide is coming")]
         Automatic,
-        [Option("Never use for damage")]
+        [Option("Do not use for damage")]
         Delay
     }
 
     public enum KardiaStrategy
     {
-        [Option("Keep on the tank the enemies are attacking")]
+        [Option("Keep on the main tank")]
         Automatic,
-        [Option("Don't touch Kardia")]
+        [Option("Do not change Kardia")]
         Manual,
-        [Option("Keep on the selected ally", Targets = ActionTargets.Party | ActionTargets.Self)]
+        [Option("Keep on the selected party member", Targets = ActionTargets.Party | ActionTargets.Self)]
         Specific
     }
 
     public enum DruocholeStrategy
     {
-        [Option("Spend on the lowest HP ally right before Addersgall overcaps, unless Kerachole is about to use it")]
+        [Option("Use on the lowest HP ally to avoid overcapping")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -93,11 +93,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
     public enum PotionStrategy
     {
-        [Option("Manual")]
+        [Option("Do not use automatically")]
         Manual,
-        [Option("Use during raid buffs")]
+        [Option("Use before the pull and with raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use ASAP")]
+        [Option("Use as soon as possible")]
         Immediate
     }
 
@@ -129,6 +129,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         AnimLockDelay = estimatedAnimLockDelay;
         IsMoving = isMoving;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -230,7 +231,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         }
     }
 
-    private float DotRefresh => GCD + 1 + GCDLength * 0.5f;
+    // a hard-cast Dosis now + Eukrasia + E.Dosis must still land before it drops
+    private float DotRefresh => GCD + GCDLength + 1;
 
     private float DotLeft(Actor target)
     {
@@ -240,14 +242,12 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         return 0;
     }
 
-    // E.Dosis needs ~15s of ticks to beat Dosis: bosses, boss-tier targets, trash above 50%
+    // E.Dosis needs ~15s of ticks to beat Dosis
     private bool DotWorthIt(Enemy e)
     {
         if (e.ForbidDOTs || e.Priority < 0 && !IsBossTarget(e.Actor) || DowntimeIn < 15)
             return false;
-        if (IsBossTarget(e.Actor))
-            return true;
-        return Bossmods.ActiveModule == null && e.Actor.HPRatio > 0.5f;
+        return TimeToKill.WillLive(e.Actor, 15);
     }
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
@@ -335,7 +335,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Kardia), desired, Player.InCombat ? ActionQueue.Priority.Low + 60 : ActionQueue.Priority.High);
     }
 
-    // solo: self; one tank: that tank; two tanks: the one holding more enemies, sticky to the current one
+    // solo: self; one tank: that tank; two tanks: the one the boss is hitting (else the one holding more adds), sticky to the current one
     private Actor? KardiaTarget()
     {
         var party = World.Party.WithoutSlot(excludeAlliance: true).ToList();
@@ -348,7 +348,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
             return tanks[0];
 
         var current = tanks.FirstOrDefault(t => t.FindStatus(SID.Kardion, Player.InstanceID) != null);
-        int Aggro(Actor t) => Hints.PriorityTargets.Count(e => e.Actor.TargetID == t.InstanceID);
+        int Aggro(Actor t) => Hints.PriorityTargets.Sum(e => e.Actor.TargetID != t.InstanceID ? 0 : e.Actor == Bossmods.ActiveModule?.PrimaryActor ? 10 : 1);
         var best = tanks.MaxBy(Aggro)!;
         if (current != null && Aggro(best) <= Aggro(current))
             return current;

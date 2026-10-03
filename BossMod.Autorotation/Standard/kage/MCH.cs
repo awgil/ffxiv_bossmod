@@ -44,9 +44,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public enum HyperchargeStrategy
     {
-        [Option("Use when no tool comes off cooldown during Overheat; save Heat for Wildfire")]
+        [Option("Use between tools; save Heat for Wildfire")]
         Automatic,
-        [Option("Use as soon as Heat allows", Effect = 10, MinLevel = 30)]
+        [Option("Use as soon as possible", Effect = 10, MinLevel = 30)]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -54,7 +54,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public enum WildfireStrategy
     {
-        [Option("Use right after entering Overheat, only on the boss or a target that will outlast it", Targets = ActionTargets.Hostile)]
+        [Option("Use after entering Overheat; saved for the boss", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use in the next weave slot", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
         Force,
@@ -74,21 +74,21 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public enum QueenStrategy
     {
-        [Option("Big Queen in the 2-minute burst, a small one around the odd minute, never overcap")]
+        [Option("Big Queen in burst, small one at the odd minute")]
         Automatic,
         [Option("Summon at 50+ Battery")]
         Fifty,
         [Option("Summon at 100 Battery")]
         Hundred,
-        [Option("Do not summon")]
+        [Option("Do not use")]
         Delay
     }
 
     public enum ChargeStrategy
     {
-        [Option("Spend during Overheat and raid buffs; otherwise only to avoid overcapping", Targets = ActionTargets.Hostile)]
+        [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Only use to avoid overcapping", Targets = ActionTargets.Hostile)]
+        [Option("Only to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
         [Option("Do not use")]
         Delay
@@ -116,9 +116,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public enum OpenerStrategy
     {
-        [Option("Standard: Drill, Chain Saw, Excavator, Drill, then Wildfire, Full Metal Field and Hypercharge")]
+        [Option("Standard opener")]
         Standard,
-        [Option("Early Wildfire: Drill, Chain Saw, then Wildfire into Excavator and Hypercharge", MinLevel = 100)]
+        [Option("Early Wildfire opener", MinLevel = 100)]
         EarlyWildfire,
         [Option("No opener-specific rules")]
         None
@@ -176,6 +176,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         NextGCD = AID.None;
         NextGCDPrio = 0;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -244,7 +245,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (target == null)
             return;
 
-        LowTarget = !IsBossTarget(target.Actor) && target.Actor.HPRatio <= 0.25f;
+        LowTarget = !IsBossTarget(target.Actor) && !TimeToKill.WillLive(target.Actor, 8);
 
         if (Overheated && Unlocked(AID.HeatBlast))
             OverheatGCD(target);
@@ -355,7 +356,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     {
         var dying = target.Priority == Enemy.PriorityPointless;
 
-        if (HasMinion && (dying || target.Actor.HPRatio <= 0.01f) && strategy.Queen.Value != QueenStrategy.Delay)
+        if (HasMinion && (dying || !TimeToKill.WillLive(target.Actor, 2)) && strategy.Queen.Value != QueenStrategy.Delay)
             PushOGCD(BestActionUnlocked(AID.QueenOverdrive, AID.RookOverdrive), Player, 80);
 
         if (ShouldHypercharge(strategy, dying, target.Actor))
@@ -447,16 +448,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     private bool IsBossTarget(Actor target)
         => target.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor is { } boss && (target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP);
 
-    // Wildfire needs its target alive for the whole Overheat; adds and dying trash waste it
-    private bool WildfireTargetWorthIt(Actor target)
-    {
-        if (target.IsStrikingDummy)
-            return true;
-        if (Bossmods.ActiveModule?.PrimaryActor is { IsDeadOrDestroyed: false, IsTargetable: true } boss)
-            return target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP;
-        var tankiest = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
-        return (tankiest == null || target.HPMP.CurHP >= tankiest.HPMP.CurHP) && target.HPRatio >= 0.25f;
-    }
+    // Wildfire needs its target alive for the whole Overheat (5 Blazing Shots + 1 GCD); in a boss fight it's kept for the boss
+    private bool WildfireTargetWorthIt(Actor target) => TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, 12);
 
     // opener Wildfire goes in before Overheat: after the second Drill (standard) or after Chain Saw (early)
     private bool OpenerWildfire
@@ -502,8 +495,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     {
         if (!Unlocked(AID.RookAutoturret) || HasMinion || Battery < 50 || dying || !CanWeave(AID.RookAutoturret))
             return false;
-        // outside boss fights, dying trash would leave the Queen without a target
-        if (strategy.Queen.Value == QueenStrategy.Automatic && Bossmods.ActiveModule == null && !target.IsStrikingDummy && target.HPRatio <= 0.25f)
+        // a target that dies before the Queen's damage lands leaves her without one
+        if (strategy.Queen.Value == QueenStrategy.Automatic && !TimeToKill.WillLive(target, 10))
             return false;
 
         return strategy.Queen.Value switch

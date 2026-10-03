@@ -26,7 +26,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         [Track("Afflatus Misery", MinLevel = 74, Action = AID.AfflatusMisery)]
         public Track<MiseryStrategy> Misery;
 
-        [Track("Lilies (overcap / downtime)", MinLevel = 52, Actions = [AID.AfflatusRapture, AID.AfflatusSolace])]
+        [Track("Lilies (overcap / downtime / cleave)", MinLevel = 52, Actions = [AID.AfflatusRapture, AID.AfflatusSolace])]
         public Track<OffensiveStrategy> Lilies;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
@@ -38,7 +38,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     public enum DotStrategy
     {
-        [Option("Keep up on the boss and up to one extra target above 50% HP; not into downtime")]
+        [Option("Keep up on up to two targets")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
@@ -48,9 +48,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     public enum MiseryStrategy
     {
-        [Option("Into raid buffs when the lilies can wait; right away on 2+ targets, while moving, before downtime or when lilies would overcap")]
+        [Option("Use in raid buffs; right away on 2+ targets or to avoid overcapping")]
         Automatic,
-        [Option("Use as soon as it's ready", Targets = ActionTargets.Hostile)]
+        [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -58,11 +58,11 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     public enum PotionStrategy
     {
-        [Option("Manual")]
+        [Option("Do not use automatically")]
         Manual,
-        [Option("Use during raid buffs")]
+        [Option("Use before the pull and with raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use ASAP")]
+        [Option("Use as soon as possible")]
         Immediate
     }
 
@@ -96,6 +96,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         AnimLockDelay = estimatedAnimLockDelay;
         IsMoving = isMoving;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -202,7 +203,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             return true;
         if (Hints.NumPriorityTargetsInAOECircle(splash.Actor.Position, 5) >= 2)
             return true;
-        if (DowntimeIn < GCDLength * 2 || target.Priority == Enemy.PriorityPointless || target.Actor.HPRatio < 0.05f && !target.Actor.IsStrikingDummy)
+        if (DowntimeIn < GCDLength * 2 || target.Priority == Enemy.PriorityPointless || !TimeToKill.WillLive(target.Actor, 5))
             return true;
         return LilyCapIn < RaidBuffsIn;
     }
@@ -216,14 +217,15 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         return MathF.Max(Left(SID.Dia), MathF.Max(Left(SID.AeroII), Left(SID.Aero)));
     }
 
-    private float DotRefresh => GCD + GCDLength * 0.5f;
+    // refresh on the last GCD before it would drop
+    private float DotRefresh => GCD + GCDLength;
 
-    // Dia needs ~15s of ticks to beat Glare: bosses, boss-tier targets, anything above 50%
+    // Dia needs ~15s of ticks to beat Glare
     private bool DotWorthIt(Enemy e)
     {
         if (e.ForbidDOTs || e.Priority < 0 && !IsBossTarget(e.Actor) || DowntimeIn < 15)
             return false;
-        return IsBossTarget(e.Actor) || e.Actor.HPRatio > 0.5f;
+        return TimeToKill.WillLive(e.Actor, 15);
     }
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
@@ -252,7 +254,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
     {
         // with the raid buffs, unless that means holding it more than ~30s
         if (strategy.PresenceOfMind.Value != OffensiveStrategy.Delay && CanWeave(AID.PresenceOfMind)
-            && (strategy.PresenceOfMind.Value == OffensiveStrategy.Force || DowntimeIn > 15 && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + GCDLength || RaidBuffsIn > 30)))
+            && (strategy.PresenceOfMind.Value == OffensiveStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + GCDLength || RaidBuffsIn > 30)))
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
         if (strategy.Assize.Value != OffensiveStrategy.Delay && CanWeave(AID.Assize)

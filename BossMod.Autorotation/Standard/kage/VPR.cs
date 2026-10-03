@@ -44,9 +44,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum ReawakenStrategy
     {
-        [Option("Use with Serpent's Ire, during raid buffs, at full Offering, and at the odd-minute window")]
+        [Option("Use with Serpent's Ire and raid buffs; saved for the boss")]
         Automatic,
-        [Option("Use as soon as Offering allows", MinLevel = 90)]
+        [Option("Use as soon as possible", MinLevel = 90)]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -54,11 +54,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos keeping one stack for movement (spent right before Serpent's Ire), never overcap, use when out of melee range; dump before downtime or a kill", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Like Automatic, but always keep one stack", Targets = ActionTargets.Hostile)]
         HoldOne,
-        [Option("Only use when out of melee range or about to overcap", Targets = ActionTargets.Hostile)]
+        [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
         [Option("Do not use")]
         Delay
@@ -90,11 +90,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum EngageStrategy
     {
-        [Option("Slither to the target, or use the opening GCD right before the pull if already in melee range")]
+        [Option("Slither in, or open at the pull if already in melee")]
         Slither,
         [Option("Sprint into melee range")]
         Sprint,
-        [Option("Walk into melee range and use the opening GCD right before the pull")]
+        [Option("Walk in and open at the pull")]
         Facepull
     }
 
@@ -112,9 +112,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum OpenerStrategy
     {
-        [Option("Standard; FRU or DMU opener in those ultimates")]
+        [Option("Automatic (FRU / DMU openers in those fights)")]
         Automatic,
-        [Option("Reaving Fangs, Swiftskin's Sting, Vicewinder, Hunter's Coil first")]
+        [Option("Standard opener")]
         Standard,
         [Option("Vicewinder first, Swiftskin's Coil first (FRU)")]
         FRU,
@@ -181,8 +181,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private static bool IsExpiring(float left, float within) => left > 0 && left < within;
 
     private bool IsBossTarget(Actor target) => target.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor == target;
-    // HP floor for Reawaken / Serpent's Ire: bosses 0%, adds in boss fights 10%, trash 25%
-    private float HPThreshold(Actor target) => IsBossTarget(target) ? 0 : InBossFight ? 0.1f : 0.25f;
 
     private bool HasBothBuffs => Swiftscaled > GCD && Instinct > GCD;
     private bool TwinWeavesPending => HuntersVenom > 0 || SwiftskinsVenom > 0 || FellhuntersVenom > 0 || FellskinsVenom > 0 || PoisedForTwinfang > 0 || PoisedForTwinblood > 0;
@@ -196,6 +194,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         NextGCD = AID.None;
         NextGCDPrio = 0;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -508,7 +507,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             return true;
         // one coil is kept for disengages, but spent right before Serpent's Ire
         var ireSoon = Unlocked(AID.SerpentsIre) && IreIn <= GCDLength * 2;
-        if (Coil <= 1 && !ireSoon && target.HPRatio >= 0.05f && DowntimeIn > GCDLength * 3)
+        if (Coil <= 1 && !ireSoon && TimeToKill.WillLive(target, 6) && DowntimeIn > GCDLength * 3)
             return false;
         if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 || TwinWeavesPending || HoldForIre && !ireSoon)
             return false;
@@ -533,7 +532,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (!InMelee && !AOEMode)
             return false;
 
-        if (target.HPRatio <= (AOEMode ? MathF.Max(HPThreshold(target), 0.25f) : HPThreshold(target)))
+        // the generations need the target alive for the whole window; in a boss fight Reawaken is kept for the boss
+        if (!TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, GCDLength * 6))
             return false;
 
         // generations need both buffs to last the whole window
@@ -542,7 +542,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             return false;
 
         // no raid-buff jobs in the party: nothing to align with
-        if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0 || IsBossTarget(target) && target.HPRatio < 0.05f)
+        if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0 || !TimeToKill.WillLive(target, 20))
             return true;
 
         // standard double Reawaken: one dual wield GCD after Serpent's Ire so both land in the party buffs
@@ -600,7 +600,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         return strategy.Ire.Value switch
         {
             OffensiveStrategy.Force => true,
-            OffensiveStrategy.Automatic => Coil < CoilMax && target.Priority != Enemy.PriorityPointless && (InBossFight || target.Actor.HPRatio > 0.25f),
+            OffensiveStrategy.Automatic => Coil < CoilMax && target.Priority != Enemy.PriorityPointless && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
             _ => false
         };
     }

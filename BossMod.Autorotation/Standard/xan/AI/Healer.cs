@@ -723,8 +723,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.SGE.AID.Druochole, target, 8);
             if (ratio <= 0.4f)
                 UseOGCD(BossMod.SGE.AID.Zoe, Player, 7);
-            if (ratio <= 0.55f && target.FindStatus(BossMod.SGE.SID.EukrasianDiagnosis, Player.InstanceID) != null)
-                UseOGCD(BossMod.SGE.AID.Pepsis, Player, 6);
 
             // GCD heals only when the oGCDs can't cover it
             var ogcdCovers = gall > 0 || tank && (ReadySoon(BossMod.SGE.AID.Taurochole) || ReadySoon(BossMod.SGE.AID.Haima));
@@ -757,8 +755,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             UseOGCD(BossMod.SGE.AID.Panhaima, Player, 15);
         if (gall > 0 && PartyLow(strategy, 15, 0.7f))
             UseOGCD(BossMod.SGE.AID.Ixochole, Player, 14);
-        if (PartyLow(strategy, 15, 0.6f) && Player.FindStatus(BossMod.SGE.SID.EukrasianPrognosis, Player.InstanceID) != null)
-            UseOGCD(BossMod.SGE.AID.Pepsis, Player, 13);
 
         // big party heal: Zoe into Pneuma
         if (PartyLow(strategy, 20, 0.45f) && ReadySoon(BossMod.SGE.AID.Pneuma) && primaryTarget is { IsAlly: false } enemy && Player.DistanceToHitbox(enemy) <= 25)

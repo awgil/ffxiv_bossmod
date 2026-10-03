@@ -41,7 +41,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     public enum FeatherStrategy
     {
-        [Option("Spend in Technical Finish, before a Silken proc would overcap, and on a dying target")]
+        [Option("Spend in Technical Finish; never overcap")]
         Automatic,
         [Option("Only to avoid overcapping")]
         Overcap,
@@ -51,11 +51,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     public enum PartnerStrategy
     {
-        [Option("Pick the best partner (melee DPS > ranged DPS > tank > healer, by job, avoiding Damage Down / Weakness)")]
+        [Option("Automatically choose the best partner")]
         Automatic,
         [Option("Do not change the partner")]
         Manual,
-        [Option("Use on a specific party member", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
+        [Option("Use on the selected party member", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
         SelectTarget
     }
 
@@ -71,7 +71,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use in the opener and with Technical Step")]
+        [Option("Use before the pull and with Technical Step")]
         AlignWithBurst,
         [Option("Use as soon as possible")]
         Immediate
@@ -79,13 +79,13 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     public enum OpenerStrategy
     {
-        [Option("15s Standard: Standard Step at -15, Standard Finish at the pull")]
+        [Option("15s Standard Step")]
         Standard15,
-        [Option("7s Standard: Standard Step at -7, Standard Finish at the pull")]
+        [Option("7s Standard Step")]
         Standard7,
-        [Option("30s Technical: Standard at -30 (finish at -15), Technical Step at -7, Technical Finish at the pull", MinLevel = 70)]
+        [Option("30s Technical (Standard at -30, Technical at -7)", MinLevel = 70)]
         Technical30,
-        [Option("7s Technical: Technical Step at -7, Technical Finish at the pull", MinLevel = 70)]
+        [Option("7s Technical Step", MinLevel = 70)]
         Technical7,
         [Option("No pre-pull dancing")]
         None
@@ -134,6 +134,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     {
         AnimLockDelay = estimatedAnimLockDelay;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -271,8 +272,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     private void GCDs(in Strategy strategy, Enemy target)
     {
-        var hpThreshold = AOEMode ? 0.4f : 0.01f;
-        var targetAlive = target.Actor.HPRatio > hpThreshold;
+        // Standard pays off over ~10s in AoE, almost immediately on a single target
+        var targetAlive = TimeToKill.WillLive(target.Actor, AOEMode ? 10 : 3);
         var splash = BestSplashTarget ?? target.Actor;
         var expiring = GCD + GCDLength * 1.5f;
 
@@ -288,7 +289,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         if (FlourishingFinishLeft > GCD && FlourishingFinishLeft < expiring && Esprit < 100 && Unlocked(AID.Tillana) && EnemyIn15)
             PushGCD(AID.Tillana, Player, 56);
 
-        if (ShouldTechnical(strategy, targetAlive) && FlourishingFinishLeft == 0)
+        // Technical Finish is a party buff: in a boss fight it waits for the boss
+        if (ShouldTechnical(strategy, TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15)) && FlourishingFinishLeft == 0)
             PushGCD(AID.TechnicalStep, Player, 50);
 
         if (TechFinishLeft > GCD)
@@ -512,7 +514,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         var overcap = Feathers > 3 && SilkenLeft > 0;
         if (strategy.Feathers.Value == FeatherStrategy.Overcap)
             return overcap;
-        if (target.Actor.HPRatio <= 0.1f || !Unlocked(AID.TechnicalStep))
+        if (!TimeToKill.WillLive(target.Actor, 5) || !Unlocked(AID.TechnicalStep))
             return true;
         return TechFinishLeft > 0 || overcap;
     }

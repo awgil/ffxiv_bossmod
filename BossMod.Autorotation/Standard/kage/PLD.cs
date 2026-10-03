@@ -38,9 +38,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
     public enum InterveneStrategy
     {
-        [Option("Both charges inside Fight or Flight while in melee; outside only to avoid overcapping")]
+        [Option("Use in Fight or Flight; never overcap")]
         Automatic,
-        [Option("Also use to close the gap when out of melee range", Targets = ActionTargets.Hostile)]
+        [Option("Also use as a gap closer", Targets = ActionTargets.Hostile)]
         GapClose,
         [Option("Do not use")]
         Delay
@@ -66,9 +66,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
     public enum OpenerStrategy
     {
-        [Option("Standard: Holy Spirit at -1.75s, Fast Blade, Riot Blade, Royal Authority, then Fight or Flight")]
+        [Option("Standard opener (pre-pull Holy Spirit)")]
         Standard,
-        [Option("Early buff: Fast Blade, then Fight or Flight")]
+        [Option("Early Fight or Flight opener")]
         EarlyBuff,
         [Option("No opener-specific rules")]
         None
@@ -116,6 +116,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         if (Player.FindStatus(PassageOfArmsBuff, Player.InstanceID) != null)
             return;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -295,8 +296,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             return true;
         if (DowntimeIn < 10)
             return false;
-        // not on a non-boss target that is about to die (10% ST / 25% AoE)
-        if (!IsBossTarget && CurrentTarget?.HPRatio < (AOEMode ? 0.25f : 0.1f))
+        // not on a target that dies before the window pays off; in a boss fight it's kept for the boss
+        if (CurrentTarget != null && !TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, CurrentTarget, 10))
             return false;
         if (Unlocked(AID.Requiescat) && MP < HolySpiritMP * 3.6f)
             return false;
@@ -366,7 +367,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     }
 
     private Actor? CurrentTarget;
-    private bool IsBossTarget => CurrentTarget != null && (CurrentTarget.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor == CurrentTarget);
 
     private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;

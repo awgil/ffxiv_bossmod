@@ -41,7 +41,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     public enum LeyLinesStrategy
     {
-        [Option("Use at 2 charges when movement allows 2.5s of standing still; not on trash about to die")]
+        [Option("Use at 2 charges while standing still; saved for the boss")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -51,9 +51,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     public enum PolyglotStrategy
     {
-        [Option("Spend in Astral Fire above 1 stack (one kept for movement); always before overcapping, before downtime and on a dying target")]
+        [Option("Spend in Astral Fire, keep one for movement; never overcap")]
         Automatic,
-        [Option("Spend as soon as available")]
+        [Option("Use as soon as possible")]
         ASAP,
         [Option("Only to avoid overcapping")]
         Overcap,
@@ -63,7 +63,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     public enum MovementStrategy
     {
-        [Option("Triplecast, then Swiftcast, while moving with only casts available")]
+        [Option("Use Triplecast, then Swiftcast, for movement")]
         Automatic,
         [Option("Do not use for movement")]
         Delay
@@ -81,7 +81,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use in the opener and with Ley Lines")]
+        [Option("Use before the pull and with Ley Lines")]
         AlignWithBurst,
         [Option("Use as soon as possible")]
         Immediate
@@ -147,6 +147,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
         AnimLockDelay = estimatedAnimLockDelay;
         IsMoving = isMoving;
 
+        TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
@@ -204,7 +205,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     private void GCDs(in Strategy strategy, Enemy target)
     {
-        var dying = target.Actor.HPRatio < 0.03f && !target.Actor.IsStrikingDummy;
+        var dying = !TimeToKill.WillLive(target.Actor, 5);
         var polyAction = AOEMode && Unlocked(AID.Foul) || !Unlocked(AID.Xenoglossy) ? AID.Foul : AID.Xenoglossy;
 
         // Polyglot: never overcap, dump before downtime / on a dying target; otherwise kept for movement
@@ -224,7 +225,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
         }
 
         // Thunder from Thunderhead when the DoT is about to fall off
-        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < 3 && !target.ForbidDOTs && target.Actor.HPRatio > ThunderHPThreshold(target.Actor)))
+        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < 3 && !target.ForbidDOTs && TimeToKill.WillLive(target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
 
         if (AOEMode)
@@ -385,9 +386,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
         if (strategy.Amplifier.Value != OffensiveStrategy.Delay && CanWeave(AID.Amplifier) && (strategy.Amplifier.Value == OffensiveStrategy.Force || Polyglot < MaxPolyglot))
             PushOGCD(AID.Amplifier, Player, 60);
 
-        // keep one charge spare (press when both are up); not on trash about to die
+        // keep one charge spare (press when both are up)
         if (strategy.LeyLines.Value != LeyLinesStrategy.Delay && CanWeave(AID.LeyLines) && !InLeyLines && SelfStatusLeft(SID.LeyLines) == 0
-            && (strategy.LeyLines.Value == LeyLinesStrategy.ASAP || !IsMoving && Hints.MaxCastTime >= 2.5f && LeyLinesCharges >= 2 && target.Actor.HPRatio > BossHPThreshold(target.Actor, 0, 0.25f) && DowntimeIn > 15))
+            && (strategy.LeyLines.Value == LeyLinesStrategy.ASAP || !IsMoving && Hints.MaxCastTime >= 2.5f && LeyLinesCharges >= 2 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && DowntimeIn > 15))
             PushOGCD(AID.LeyLines, Player, 55);
 
         // movement: Triplecast (not in Ley Lines), then Swiftcast, when only casts are available
@@ -406,10 +407,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
     // off cooldown by the next GCD; the queue fits the oGCD in (a weave check here would always fail right when the GCD comes up)
     private bool CanUseTranspose => Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) <= GCD;
 
-    // HP floor: bosses 0%, adds in boss fights 10%, trash 25%
-    private float BossHPThreshold(Actor target, float adds, float trash)
-        => Bossmods.ActiveModule is { } m ? (target == m.PrimaryActor || target.IsStrikingDummy ? 0 : adds) : target.IsStrikingDummy ? 0 : trash;
-    private float ThunderHPThreshold(Actor target) => BossHPThreshold(target, 0.1f, 0.25f);
 
     #endregion
 
