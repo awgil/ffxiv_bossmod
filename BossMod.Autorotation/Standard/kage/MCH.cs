@@ -54,7 +54,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public enum WildfireStrategy
     {
-        [Option("Use right after entering Overheat", Targets = ActionTargets.Hostile)]
+        [Option("Use right after entering Overheat, only on the boss or a target that will outlast it", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use in the next weave slot", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
         Force,
@@ -74,7 +74,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public enum QueenStrategy
     {
-        [Option("Summon at 90+ Battery before a Battery-generating GCD, 100 Battery, or 50+ during raid buffs")]
+        [Option("Big Queen in the 2-minute burst, a small one around the odd minute, never overcap")]
         Automatic,
         [Option("Summon at 50+ Battery")]
         Fifty,
@@ -126,7 +126,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage MCH", "Machinist", "Standard rotation (Kage)|Ranged", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.MCH), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage MCH", "Machinist", "Standard rotation (Kage)|Ranged", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.MCH), 100).WithStrategies<Strategy>();
     }
 
     private int Heat;
@@ -161,6 +161,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     private bool InOpener => OpenerMode != OpenerStrategy.None && CombatTime < 30;
+    private bool HasRaidBuffJobs => RaidBuffsIn < 9000 || RaidBuffsLeft > 0;
+    private bool InBurst => RaidBuffsLeft > GCD || WildfireLeft > 0;
+    // the 2-minute burst follows Wildfire's cooldown
+    private float BurstIn => InBurst ? 0 : Unlocked(AID.Wildfire) ? ReadyIn(AID.Wildfire) : float.MaxValue;
     private bool StandardOpener => OpenerMode == OpenerStrategy.Standard && CombatTime < 30;
     private bool EarlyWFOpener => OpenerMode == OpenerStrategy.EarlyWildfire && CombatTime < 30;
 
@@ -172,7 +176,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         NextGCDPrio = 0;
 
         var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
+        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
 
         TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
@@ -249,7 +253,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
     private void OverheatGCD(Enemy target)
     {
-        if (AOEMode && Unlocked(AID.AutoCrossbow) && (!Unlocked(AID.BlazingShot) || NumConeTargets >= 5))
+        if (AOEMode && Unlocked(AID.AutoCrossbow) && (!Unlocked(AID.BlazingShot) || NumConeTargets >= 6))
             PushGCD(AID.AutoCrossbow, BestConeTarget ?? target.Actor, 20, faceTarget: true);
         else
             PushGCD(BestActionUnlocked(AID.BlazingShot, AID.HeatBlast), target.Actor, 20);
@@ -271,28 +275,30 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             if (GCDReady(AID.ChainSaw))
                 PushGCD(AID.ChainSaw, BestSawTarget ?? target.Actor, 14 + bonus, faceTarget: true);
 
-            if (GCDReady(AID.AirAnchor) && (!AOEMode || !Unlocked(AID.Bioblaster)))
+            var useBioblaster = AOEMode && Unlocked(AID.Bioblaster) && BioblasterAllowed(target);
+            if (GCDReady(AID.AirAnchor) && !useBioblaster)
                 PushGCD(AID.AirAnchor, target.Actor, 13 + bonus);
 
             if (!Unlocked(AID.AirAnchor) && GCDReady(AID.HotShot))
                 PushGCD(AID.HotShot, target.Actor, 13 + bonus);
 
             var drillCapped = MaxChargesIn(AID.Drill) <= GCD;
-            if (AOEMode && Unlocked(AID.Bioblaster))
+            if (useBioblaster)
             {
                 if (GCDReady(AID.Bioblaster) && target.Actor.FindStatus(SID.Bioblaster, Player.InstanceID) == null)
                     PushGCD(AID.Bioblaster, BestConeTarget ?? target.Actor, 12 + bonus, faceTarget: true);
             }
-            else if (GCDReady(AID.Drill))
+            else if (GCDReady(AID.Drill) && (drillCapped || !HoldDrillForBurst))
             {
                 PushGCD(AID.Drill, target.Actor, (drillCapped ? 17 : 12) + bonus);
             }
         }
 
+        if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && strategy.AOE.Value != AOEStrategy.ST && NumConeTargets >= 2 && !IsMoving && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
+            PushGCD(AID.Flamethrower, BestConeTarget ?? target.Actor, 5, faceTarget: true);
+
         if (AOEMode)
         {
-            if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && !IsMoving && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
-                PushGCD(AID.Flamethrower, Player, 5);
             PushGCD(BestActionUnlocked(AID.Scattergun, AID.SpreadShot), BestConeTarget ?? target.Actor, 1, faceTarget: true);
             return;
         }
@@ -312,6 +318,17 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         }
         PushGCD(BestActionUnlocked(AID.HeatedSplitShot, AID.SplitShot), target.Actor, 1);
     }
+
+    // Bioblaster's DoT lands on everything in the cone
+    private bool BioblasterAllowed(Enemy target)
+    {
+        var dir = Player.DirectionTo(BestConeTarget ?? target.Actor);
+        return !Hints.PriorityTargets.Any(e => e.ForbidDOTs && TargetInAOECone(e.Actor, Player.Position, 12, dir, 60.Degrees()));
+    }
+
+    // second Drill charge waits for the burst unless it would cap first
+    private bool HoldDrillForBurst
+        => HasRaidBuffJobs && !InOpener && BurstIn > 0 && BurstIn < 20 && MaxChargesIn(AID.Drill) > BurstIn + GCDLength * 2;
 
     // FMF goes right before the Wildfire window, or anywhere if the buff is about to expire; openers place it explicitly
     private bool UseFullMetalField()
@@ -337,7 +354,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (ShouldHypercharge(strategy, dying))
             PushOGCD(AID.Hypercharge, Player, 70);
 
-        if (ShouldWildfire(strategy, dying))
+        if (ShouldWildfire(strategy, dying, target.Actor))
             PushOGCD(AID.Wildfire, ResolveTarget(strategy.Wildfire) ?? target.Actor, 75, strategy.Wildfire.Value == WildfireStrategy.Force ? 0 : GCD - 0.8f);
 
         if (ShouldStabilize(strategy, dying))
@@ -373,6 +390,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (dying || FMFLeft > 0 || ReassembleLeft > 0)
             return false;
 
+        // each Blazing Shot cuts both recasts by 15s; entering Overheat with 2+ charges forces an overcap
+        if (strategy.Charges.Value != ChargeStrategy.Delay && ChargesToSpendBeforeOverheat)
+            return false;
+
         // Overheat lasts 5 GCDs; don't let a tool or Excavator come up during it
         var toolIn = MathF.Min(ReadyIn(AID.Drill), MathF.Min(ReadyIn(AID.AirAnchor), ReadyIn(AID.ChainSaw)));
         if (ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f)
@@ -397,16 +418,30 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         return !Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) > GCDLength * 15 || Heat >= 95;
     }
 
-    private bool ShouldWildfire(in Strategy strategy, bool dying)
+    private bool ChargesToSpendBeforeOverheat
+        => Unlocked(AID.GaussRound) && MaxChargesIn(AID.GaussRound) <= 30 || Unlocked(AID.Ricochet) && MaxChargesIn(AID.Ricochet) <= 30;
+
+    private bool ShouldWildfire(in Strategy strategy, bool dying, Actor target)
     {
         if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire))
             return false;
         return strategy.Wildfire.Value switch
         {
             WildfireStrategy.Force => true,
-            WildfireStrategy.Automatic => !dying && WildfireLeft == 0 && (Overheated || OpenerWildfire),
+            WildfireStrategy.Automatic => !dying && WildfireLeft == 0 && (Overheated || OpenerWildfire) && WildfireTargetWorthIt(target),
             _ => false
         };
+    }
+
+    // Wildfire needs its target alive for the whole Overheat; adds and dying trash waste it
+    private bool WildfireTargetWorthIt(Actor target)
+    {
+        if (target.IsStrikingDummy)
+            return true;
+        if (Bossmods.ActiveModule?.PrimaryActor is { IsDeadOrDestroyed: false, IsTargetable: true } boss)
+            return target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP;
+        var tankiest = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
+        return (tankiest == null || target.HPMP.CurHP >= tankiest.HPMP.CurHP) && target.HPRatio >= 0.25f;
     }
 
     // opener Wildfire goes in before Overheat: after the second Drill (standard) or after Chain Saw (early)
@@ -436,6 +471,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (EarlyWFOpener)
             return NextGCD == AID.ChainSaw;
 
+        if (HasRaidBuffJobs && !InBurst && MaxChargesIn(AID.Reassemble) > GCD + GCDLength && MaxChargesIn(AID.Reassemble) + 55 > BurstIn)
+            return false;
+
         return NextGCD switch
         {
             AID.Drill or AID.AirAnchor or AID.ChainSaw or AID.Excavator => true,
@@ -455,9 +493,27 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         {
             QueenStrategy.Fifty => true,
             QueenStrategy.Hundred => Battery == 100,
-            QueenStrategy.Automatic => Battery == 100 || Battery >= 90 && BatteryFrom(NextGCD) > 0 || RaidBuffsLeft > GCD && Battery >= 50,
+            QueenStrategy.Automatic => AutoQueen(),
             _ => false
         };
+    }
+
+    private bool AutoQueen()
+    {
+        var overcap = Battery == 100 || Battery >= 90 && BatteryFrom(NextGCD) > 0;
+        if (!HasRaidBuffJobs || !Unlocked(AID.Wildfire))
+            return overcap || RaidBuffsLeft > GCD;
+
+        // big Queen goes into the 2-minute burst
+        if (InBurst || BurstIn <= GCD + GCDLength)
+            return true;
+        // close to the burst: sit at full Battery rather than spend it early
+        if (BurstIn < 15)
+            return false;
+        // small Queen around the odd minute so the Battery refills by the burst
+        if (BurstIn is > 50 and < 70)
+            return true;
+        return overcap;
     }
 
     private static int BatteryFrom(AID action) => action switch
@@ -479,6 +535,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
 
         if (strategy.Charges.Value != ChargeStrategy.Automatic)
             return;
+
+        // about to Overheat: get both below 2 charges first
+        if (!Overheated && (Heat >= 50 || HyperchargedLeft > 0))
+            foreach (var aid in (ReadOnlySpan<AID>)[AID.GaussRound, AID.Ricochet])
+                if (Unlocked(aid) && MaxChargesIn(aid) <= 30 && CanWeave(aid))
+                    PushOGCD(aid, target, 46);
 
         var spend = Overheated || WildfireLeft > 0 || dying || InOpener || RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !Unlocked(AID.Hypercharge);
         if (!spend)

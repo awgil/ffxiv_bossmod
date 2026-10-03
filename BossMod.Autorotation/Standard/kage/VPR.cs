@@ -126,7 +126,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage VPR", "Viper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage VPR", "Viper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
     }
 
     private DreadCombo Dread;
@@ -187,7 +187,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         NextGCDPrio = 0;
 
         var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
+        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
 
         TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
@@ -527,6 +527,10 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         // no raid-buff jobs in the party: nothing to align with
         if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0)
             return true;
+
+        // standard double Reawaken: one dual wield GCD after Serpent's Ire so both land in the party buffs
+        if (ReawakenReady > 30 - GCDLength && DowntimeIn > windowLength * 2 + GCDLength)
+            return false;
 
         if (DowntimeIn < windowLength)
             return false;
