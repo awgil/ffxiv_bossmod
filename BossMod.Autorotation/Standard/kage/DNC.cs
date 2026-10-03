@@ -332,7 +332,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             PushGCD(Symmetry, FlowTarget(target), 29);
     }
 
-    // outside burst (guide's loss-based list): dances on cooldown > Saber (>=85) > save combo'd Fountain > Saber > Last Dance > Fountainfall > Reverse Cascade > Fountain > Cascade
+    // outside burst: dances on cooldown > Saber (>=85) > save combo'd Fountain > Saber > Last Dance > Fountainfall > Reverse Cascade > Fountain > Cascade
     private void NormalGCDs(in Strategy strategy, Enemy target, bool targetAlive)
     {
         var splash = BestSplashTarget ?? target.Actor;
@@ -547,7 +547,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     private const uint Weakness = 43;
     private const uint BrinkOfDeath = 44;
 
-    // Wrath's restriction ladder: melee DPS > DPS > anyone, first without Damage Down / Weakness, then relaxing
+    // partner ladder: melee DPS > DPS > anyone, first without Damage Down / Weakness, then relaxing
     private Actor? BestPartner()
     {
         var candidates = World.Party.WithoutSlot(excludeAlliance: true).Exclude(Player)

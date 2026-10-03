@@ -150,6 +150,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     private Actor? BestSplashTarget;
     private bool AOEMode;
     private bool IsMoving;
+    private bool LowTarget;
     private float AnimLockDelay;
 
     private Targeting TargetMode;
@@ -240,6 +241,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (target == null)
             return;
 
+        LowTarget = !IsBossTarget(target.Actor) && target.Actor.HPRatio <= 0.25f;
+
         if (Overheated && Unlocked(AID.HeatBlast))
             OverheatGCD(target);
         else
@@ -272,29 +275,30 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             if (ExcavatorLeft > GCD)
                 PushGCD(AID.Excavator, BestSplashTarget ?? target.Actor, 15 + bonus);
 
-            if (GCDReady(AID.ChainSaw))
+            var saveTools = LowTarget && tools != OffensiveStrategy.Force;
+            if (GCDReady(AID.ChainSaw) && !saveTools)
                 PushGCD(AID.ChainSaw, BestSawTarget ?? target.Actor, 14 + bonus, faceTarget: true);
 
             var useBioblaster = AOEMode && Unlocked(AID.Bioblaster) && BioblasterAllowed(target);
-            if (GCDReady(AID.AirAnchor) && !useBioblaster)
+            if (GCDReady(AID.AirAnchor) && !useBioblaster && !saveTools)
                 PushGCD(AID.AirAnchor, target.Actor, 13 + bonus);
 
-            if (!Unlocked(AID.AirAnchor) && GCDReady(AID.HotShot))
+            if (!Unlocked(AID.AirAnchor) && GCDReady(AID.HotShot) && !saveTools)
                 PushGCD(AID.HotShot, target.Actor, 13 + bonus);
 
             var drillCapped = MaxChargesIn(AID.Drill) <= GCD;
             if (useBioblaster)
             {
-                if (GCDReady(AID.Bioblaster) && target.Actor.FindStatus(SID.Bioblaster, Player.InstanceID) == null)
+                if (GCDReady(AID.Bioblaster) && !saveTools && target.Actor.FindStatus(SID.Bioblaster, Player.InstanceID) == null)
                     PushGCD(AID.Bioblaster, BestConeTarget ?? target.Actor, 12 + bonus, faceTarget: true);
             }
-            else if (GCDReady(AID.Drill) && (drillCapped || !HoldDrillForBurst))
+            else if (GCDReady(AID.Drill) && !saveTools && (drillCapped || !HoldDrillForBurst))
             {
                 PushGCD(AID.Drill, target.Actor, (drillCapped ? 17 : 12) + bonus);
             }
         }
 
-        if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && strategy.AOE.Value != AOEStrategy.ST && NumConeTargets >= 2 && !IsMoving && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
+        if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && strategy.AOE.Value != AOEStrategy.ST && NumConeTargets >= 2 && !IsMoving && Hints.MaxCastTime >= 2 && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
             PushGCD(AID.Flamethrower, BestConeTarget ?? target.Actor, 5, faceTarget: true);
 
         if (AOEMode)
@@ -348,28 +352,28 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     {
         var dying = target.Priority == Enemy.PriorityPointless;
 
-        if (HasMinion && dying && strategy.Queen.Value != QueenStrategy.Delay)
+        if (HasMinion && (dying || target.Actor.HPRatio <= 0.01f) && strategy.Queen.Value != QueenStrategy.Delay)
             PushOGCD(BestActionUnlocked(AID.QueenOverdrive, AID.RookOverdrive), Player, 80);
 
-        if (ShouldHypercharge(strategy, dying))
+        if (ShouldHypercharge(strategy, dying, target.Actor))
             PushOGCD(AID.Hypercharge, Player, 70);
 
         if (ShouldWildfire(strategy, dying, target.Actor))
             PushOGCD(AID.Wildfire, ResolveTarget(strategy.Wildfire) ?? target.Actor, 75, strategy.Wildfire.Value == WildfireStrategy.Force ? 0 : GCD - 0.8f);
 
-        if (ShouldStabilize(strategy, dying))
+        if (ShouldStabilize(strategy, dying, target.Actor))
             PushOGCD(AID.BarrelStabilizer, Player, 60);
 
         if (ShouldReassemble(strategy))
             PushOGCD(AID.Reassemble, Player, 55);
 
-        if (ShouldQueen(strategy, dying))
+        if (ShouldQueen(strategy, dying, target.Actor))
             PushOGCD(AID.RookAutoturret, Player, 50);
 
         UseCharges(strategy, ResolveTarget(strategy.Charges) ?? BestSplashTarget ?? target.Actor, dying);
     }
 
-    private bool ShouldHypercharge(in Strategy strategy, bool dying)
+    private bool ShouldHypercharge(in Strategy strategy, bool dying, Actor target)
     {
         if (!Unlocked(AID.Hypercharge) || Overheated || HyperchargedLeft == 0 && Heat < 50 || !CanWeave(AID.Hypercharge))
             return false;
@@ -387,7 +391,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             return true;
 
         // Full Metal Field and Reassembled tools go first
-        if (dying || FMFLeft > 0 || ReassembleLeft > 0)
+        if (dying || LowTarget || FMFLeft > 0 || ReassembleLeft > 0)
             return false;
 
         // each Blazing Shot cuts both recasts by 15s; entering Overheat with 2+ charges forces an overcap
@@ -406,8 +410,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         if (World.Client.ComboState.Remaining is > 0 and < 7.6f)
             return false;
 
+        // no heat to save for a Wildfire that won't go on this target
+        if (!Unlocked(AID.Wildfire) || strategy.Wildfire.Value == WildfireStrategy.Delay || !WildfireTargetWorthIt(target))
+            return true;
+
         // Wildfire window: enter Overheat right before Wildfire
-        if (Unlocked(AID.Wildfire) && ReadyIn(AID.Wildfire) <= GCD && strategy.Wildfire.Value != WildfireStrategy.Delay)
+        if (ReadyIn(AID.Wildfire) <= GCD)
             return true;
 
         // free Hypercharge from Barrel Stabilizer is always fine outside the Wildfire window
@@ -415,7 +423,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
             return ReadyIn(AID.Wildfire) > 10 || HyperchargedLeft < GCDLength * 2;
 
         // otherwise keep enough heat for the next Wildfire, unless we'd overcap
-        return !Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) > GCDLength * 15 || Heat >= 95;
+        return ReadyIn(AID.Wildfire) > GCDLength * 15 || Heat >= 95;
     }
 
     private bool ChargesToSpendBeforeOverheat
@@ -433,6 +441,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         };
     }
 
+    private bool IsBossTarget(Actor target)
+        => target.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor is { } boss && (target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP);
+
     // Wildfire needs its target alive for the whole Overheat; adds and dying trash waste it
     private bool WildfireTargetWorthIt(Actor target)
     {
@@ -449,21 +460,21 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         => StandardOpener && FMFLeft > 0 && ExcavatorLeft == 0 && !GCDReady(AID.Drill) && !GCDReady(AID.ChainSaw)
         || EarlyWFOpener && ExcavatorLeft > 0;
 
-    private bool ShouldStabilize(in Strategy strategy, bool dying)
+    private bool ShouldStabilize(in Strategy strategy, bool dying, Actor target)
     {
         if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || FMFLeft > 0 || HyperchargedLeft > 0)
             return false;
         return strategy.Stabilizer.Value switch
         {
             OffensiveStrategy.Force => true,
-            OffensiveStrategy.Automatic => !dying && (!Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) <= 20),
+            OffensiveStrategy.Automatic => !dying && WildfireTargetWorthIt(target) && (!Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) <= 20),
             _ => false
         };
     }
 
     private bool ShouldReassemble(in Strategy strategy)
     {
-        if (strategy.Reassemble.Value == ReassembleStrategy.Delay || ReassembleLeft > 0 || Overheated || !CanWeave(AID.Reassemble))
+        if (strategy.Reassemble.Value == ReassembleStrategy.Delay || LowTarget || ReassembleLeft > 0 || Overheated || !CanWeave(AID.Reassemble))
             return false;
 
         if (StandardOpener && Unlocked(AID.Excavator))
@@ -484,9 +495,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
         };
     }
 
-    private bool ShouldQueen(in Strategy strategy, bool dying)
+    private bool ShouldQueen(in Strategy strategy, bool dying, Actor target)
     {
         if (!Unlocked(AID.RookAutoturret) || HasMinion || Battery < 50 || dying || !CanWeave(AID.RookAutoturret))
+            return false;
+        // outside boss fights, dying trash would leave the Queen without a target
+        if (strategy.Queen.Value == QueenStrategy.Automatic && Bossmods.ActiveModule == null && !target.IsStrikingDummy && target.HPRatio <= 0.25f)
             return false;
 
         return strategy.Queen.Value switch

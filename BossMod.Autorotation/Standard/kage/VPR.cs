@@ -54,9 +54,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos, never overcap, use when out of melee range", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos keeping one stack for movement, never overcap, use when out of melee range; dump before downtime or a kill", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Like Automatic, but keep one stack", Targets = ActionTargets.Hostile)]
+        [Option("Like Automatic, but always keep one stack", Targets = ActionTargets.Hostile)]
         HoldOne,
         [Option("Only use when out of melee range or about to overcap", Targets = ActionTargets.Hostile)]
         Overcap,
@@ -174,6 +174,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private float ComboLeft => World.Client.ComboState.Remaining;
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
+    // finisher venoms / Honed buffs that would drop if a twinblade combo or Uncoiled Fury went first
+    private bool BuffsExpiring(float within)
+        => IsExpiring(FlankstungVenom, within) || IsExpiring(FlanksbaneVenom, within) || IsExpiring(HindstungVenom, within) || IsExpiring(HindsbaneVenom, within)
+        || IsExpiring(HonedSteel, within) || IsExpiring(HonedReavers, within);
+    private static bool IsExpiring(float left, float within) => left > 0 && left < within;
+
+    private bool IsBossTarget(Actor target) => target.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor == target;
+    // HP floor for Reawaken / Serpent's Ire: bosses 0%, adds in boss fights 10%, trash 25%
+    private float HPThreshold(Actor target) => IsBossTarget(target) ? 0 : InBossFight ? 0.1f : 0.25f;
+
     private bool HasBothBuffs => Swiftscaled > GCD && Instinct > GCD;
     private bool TwinWeavesPending => HuntersVenom > 0 || SwiftskinsVenom > 0 || FellhuntersVenom > 0 || FellskinsVenom > 0 || PoisedForTwinfang > 0 || PoisedForTwinblood > 0;
     private float IreIn => ReadyIn(AID.SerpentsIre);
@@ -338,7 +348,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (Anguine > 0)
             PushGCD(NextGeneration(), BestSplash(target, 3), 35);
 
-        if (ShouldReawaken(strategy, dying))
+        if (ShouldReawaken(strategy, dying, target.Actor))
             PushGCD(AID.Reawaken, target.Actor, 30);
 
         if (strategy.Uncoiled.Value != UncoiledStrategy.Delay && Coil >= CoilMax && Dread == 0 && Reawakened == 0 && !TwinWeavesPending && (IreIn <= GCDLength * 3 || GCDReady(AID.Vicewinder)))
@@ -347,7 +357,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (ShouldTwinblade(strategy))
             PushGCD(AOEMode ? AID.Vicepit : AID.Vicewinder, AOEMode ? Player : target.Actor, 20);
 
-        if (ShouldUncoil(strategy, dying))
+        if (ShouldUncoil(strategy, dying, target.Actor))
             PushGCD(AID.UncoiledFury, BestSplashTarget ?? target.Actor, 15);
 
         if (!InMelee)
@@ -483,12 +493,12 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         // the combo is 3 GCDs plus two twin weaves; don't start it into downtime
         if (DowntimeIn < GCD + GCDLength * 3)
             return false;
-        if (ComboLeft > 0 && ComboLeft < GCDLength * 6)
+        if (ComboLeft > 0 && ComboLeft < GCDLength * 6 || BuffsExpiring(GCDLength * 4))
             return false;
         return !HasBothBuffs || Swiftscaled < GCDLength * 4 || Instinct < GCDLength * 4 || IreIn >= GCDLength * 3 || !InBossFight;
     }
 
-    private bool ShouldUncoil(in Strategy strategy, bool dying)
+    private bool ShouldUncoil(in Strategy strategy, bool dying, Actor target)
     {
         if (Coil == 0 || strategy.Uncoiled.Value is UncoiledStrategy.Delay or UncoiledStrategy.Overcap)
             return false;
@@ -496,14 +506,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             return false;
         if (dying)
             return true;
+        if (Coil <= 1 && target.HPRatio >= 0.05f && DowntimeIn > GCDLength * 3)
+            return false;
         if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 || TwinWeavesPending || HoldForIre)
             return false;
         if (!HasBothBuffs || Swiftscaled < GCDLength * 3 || Instinct < GCDLength * 3)
             return false;
-        return ComboLeft == 0 || ComboLeft > GCDLength * 2;
+        return (ComboLeft == 0 || ComboLeft > GCDLength * 2) && !BuffsExpiring(GCDLength * 2);
     }
 
-    private bool ShouldReawaken(in Strategy strategy, bool dying)
+    private bool ShouldReawaken(in Strategy strategy, bool dying, Actor target)
     {
         if (!Unlocked(AID.Reawaken) || Reawakened > 0 || ReawakenReady == 0 && Offering < 50 || Dread != 0 || TwinWeavesPending)
             return false;
@@ -519,13 +531,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (!InMelee && !AOEMode)
             return false;
 
+        if (target.HPRatio <= (AOEMode ? MathF.Max(HPThreshold(target), 0.25f) : HPThreshold(target)))
+            return false;
+
         // generations need both buffs to last the whole window
         var windowLength = (Unlocked(TraitID.EnhancedSerpentsLineage) ? 5 : 4) * GCDLength + GCDLength;
         if (Swiftscaled < windowLength || Instinct < windowLength || ComboLeft > 0 && ComboLeft < GCDLength * 6)
             return false;
 
         // no raid-buff jobs in the party: nothing to align with
-        if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0)
+        if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0 || IsBossTarget(target) && target.HPRatio < 0.05f)
             return true;
 
         // standard double Reawaken: one dual wield GCD after Serpent's Ire so both land in the party buffs
@@ -583,7 +598,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         return strategy.Ire.Value switch
         {
             OffensiveStrategy.Force => true,
-            OffensiveStrategy.Automatic => Coil < CoilMax && target.Priority != Enemy.PriorityPointless,
+            OffensiveStrategy.Automatic => Coil < CoilMax && target.Priority != Enemy.PriorityPointless && (InBossFight || target.Actor.HPRatio > 0.25f),
             _ => false
         };
     }

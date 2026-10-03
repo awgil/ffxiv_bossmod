@@ -41,7 +41,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     public enum LeyLinesStrategy
     {
-        [Option("Use after standing still for 2.5s")]
+        [Option("Use at 2 charges when movement allows 2.5s of standing still; not on trash about to die")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -119,7 +119,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
     private bool AOEMode;
     private int NumAOETargets;
     private bool IsMoving;
-    private DateTime StillSince;
     private float AnimLockDelay;
     private Targeting TargetMode;
 
@@ -129,13 +128,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
     private int MaxPolyglot => Player.Level >= 98 ? 3 : Player.Level >= 80 ? 2 : 1;
     private bool InFire => Astral > 0;
     private bool InIce => Umbral > 0;
-    private float StillFor => IsMoving ? 0 : (float)(World.CurrentTime - StillSince).TotalSeconds;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         AnimLockDelay = estimatedAnimLockDelay;
-        if (isMoving || !IsMoving && StillSince == default)
-            StillSince = World.CurrentTime;
         IsMoving = isMoving;
 
         var target = Hints.FindEnemy(primaryTarget);
@@ -368,7 +364,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
         // keep one charge spare (press when both are up); not on trash about to die
         if (strategy.LeyLines.Value != LeyLinesStrategy.Delay && CanWeave(AID.LeyLines) && !InLeyLines && SelfStatusLeft(SID.LeyLines) == 0
-            && (strategy.LeyLines.Value == LeyLinesStrategy.ASAP || StillFor > 2.5f && LeyLinesCharges >= 2 && target.Actor.HPRatio > BossHPThreshold(target.Actor, 0, 0.25f) && DowntimeIn > 15))
+            && (strategy.LeyLines.Value == LeyLinesStrategy.ASAP || !IsMoving && Hints.MaxCastTime >= 2.5f && LeyLinesCharges >= 2 && target.Actor.HPRatio > BossHPThreshold(target.Actor, 0, 0.25f) && DowntimeIn > 15))
             PushOGCD(AID.LeyLines, Player, 55);
 
         // movement: Triplecast (not in Ley Lines), then Swiftcast, when only casts are available
@@ -386,7 +382,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     private bool CanUseTranspose => CanWeave(AID.Transpose);
 
-    // Wrath defaults: boss 0%, adds in a boss fight 10%, trash 25%
+    // HP floor: bosses 0%, adds in boss fights 10%, trash 25%
     private float BossHPThreshold(Actor target, float adds, float trash)
         => Bossmods.ActiveModule is { } m ? (target == m.PrimaryActor || target.IsStrikingDummy ? 0 : adds) : target.IsStrikingDummy ? 0 : trash;
     private float ThunderHPThreshold(Actor target) => BossHPThreshold(target, 0.1f, 0.25f);

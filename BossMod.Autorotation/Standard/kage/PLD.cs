@@ -98,7 +98,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     private bool AOEMode;
     private bool InMelee;
     private bool IsMoving;
-    private DateTime StillSince;
     private float AnimLockDelay;
     private Targeting TargetMode;
 
@@ -111,8 +110,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         AnimLockDelay = estimatedAnimLockDelay;
-        if (isMoving || StillSince == default)
-            StillSince = World.CurrentTime;
         IsMoving = isMoving;
 
         // don't break the Passage of Arms channel
@@ -297,7 +294,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             return true;
         if (DowntimeIn < 10)
             return false;
-        // not on a non-boss target that is about to die (Wrath: 10% ST / 25% AoE)
+        // not on a non-boss target that is about to die (10% ST / 25% AoE)
         if (!IsBossTarget && CurrentTarget?.HPRatio < (AOEMode ? 0.25f : 0.1f))
             return false;
         if (Unlocked(AID.Requiescat) && MP < HolySpiritMP * 3.6f)
@@ -327,7 +324,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             PushOGCD(AID.Intervene, ResolveTarget(strategy.Intervene) ?? target.Actor, 55);
             return;
         }
-        if (dist > 3 || IsMoving || (World.CurrentTime - StillSince).TotalSeconds < 2.5f)
+        if (dist > 3 || IsMoving)
             return;
         var capping = ActionDefinitions.Instance.Spell(AID.Intervene)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) < GCD + 2;
         if (FoFLeft > 0 || !Unlocked(AID.FightOrFlight) || capping && FoFIn > 25)
