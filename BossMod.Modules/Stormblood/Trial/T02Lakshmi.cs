@@ -77,7 +77,7 @@ class VrilOrbs(BossModule module) : BossComponent(module)
         if (Charges > 0)
         {
             if (actor.FindStatus(SID.Vril) == null)
-                hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.VrilDuty), actor, ActionQueue.Priority.High);
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.VrilDuty), actor, ActionQueue.Priority.VeryHigh);
             return;
         }
 
@@ -128,6 +128,36 @@ class BlissfulBaits(BossModule module) : Components.GenericBaitAway(module)
             CurrentBaits.Add(new(target, target, new AOEShapeCircle(7), WorldState.FutureTime(12.2f)));
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Zone(actor) is var (dir, halfAngle, minRadius, activation) && activation != default)
+            hints.AddForbiddenZone(ShapeDistance.Union([ShapeDistance.Circle(Arena.Center, minRadius), ShapeDistance.InvertedCone(Arena.Center, 30, dir, halfAngle)]), activation);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaBackground(pcSlot, pc);
+        if (Zone(pc) is var (dir, halfAngle, minRadius, activation) && activation != default)
+            Arena.ZoneCone(Arena.Center, minRadius, 20, dir, halfAngle, ArenaColor.SafeFromAOE);
+    }
+
+    private (Angle dir, Angle halfAngle, float minRadius, DateTime activation) Zone(Actor actor)
+    {
+        if (ActiveBaitsOn(actor).FirstOrDefault() is not { Target: not null } mine)
+            return default;
+        var f = Module.PrimaryActor.Rotation.ToDirection();
+        var fwd = MathF.Abs(f.X) >= MathF.Abs(f.Z) ? new WDir(MathF.Sign(f.X), 0) : new WDir(0, MathF.Sign(f.Z));
+        var side = fwd.OrthoL();
+        var circle = mine.Shape is AOEShapeCircle;
+        var goLeft = ActiveBaits.FirstOrDefault(b => b.Target != actor && b.Shape.GetType() == mine.Shape.GetType()) is { Target: not null } other
+            ? (actor.Position - other.Target.Position).Dot(side) >= 0
+            : (actor.Position - Arena.Center).Dot(side) >= 0;
+        var sideDir = goLeft ? side : -side;
+        var dir = circle ? sideDir * 0.97f + fwd * 0.26f : sideDir + (goLeft ? fwd : -fwd);
+        return (Angle.FromDirection(dir), (circle ? 30 : 25).Degrees(), circle ? 14 : 10, mine.Activation);
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.BlissfulSpearCross1 or AID.BlissfulSpearCross2 or AID.BlissfulSpearCircle1 or AID.BlissfulSpearCircle2)
@@ -159,5 +189,5 @@ class T02LakshmiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)] // TODO: confirm run (Vril duty action + orb refill AI, spear timing), then clear Incomplete
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)]
 public class T02Lakshmi(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));
