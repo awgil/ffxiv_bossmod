@@ -11,9 +11,13 @@ class Twister(BossModule module) : Components.CastTwister(module, 1.25f, (uint)O
         foreach (var z in PredictedPositions)
             hints.AddForbiddenZone(ShapeDistance.Circle(z, Radius));
 
-        // movement before twister resolution will kill us due to interpolation
+        // movement before twister resolution will kill us due to serverside interpolation
         if (_spawnAt > WorldState.CurrentTime && PredictedPositions.Count == 0)
             hints.ForcedMovement = new(0);
+
+        // pathfinder...please stop cutting across imminent danger zones to get to your goal........just get away...........
+        if (PredictedPositions.Any(p => actor.Position.InCircle(p, Radius)))
+            hints.GoalZonesEnabled = false;
     }
 }
 
