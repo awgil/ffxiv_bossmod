@@ -67,6 +67,9 @@ class A33QueenScyllaStates : StateMachineBuilder
 {
     public A33QueenScyllaStates(BossModule module) : base(module)
     {
+        var gatesSeen = false;
+        var xandeSeen = false;
+        var addsSeen = false;
         TrivialPhase()
             .ActivateOnEnter<AncientFlare>()
             .ActivateOnEnter<AncientFlareInterrupt>()
@@ -84,9 +87,20 @@ class A33QueenScyllaStates : StateMachineBuilder
                 var xande = Module.Enemies(OID.XandesClone);
                 var jorm = Module.Enemies(OID.Jormungand);
                 var thor = Module.Enemies(OID.Thor);
-                var addsSpawned = jorm.Count + thor.Count > 0;
-                var addsCleared = !addsSpawned || jorm.All(j => j.IsDeadOrDestroyed) && thor.All(t => t.IsDeadOrDestroyed);
-                return Module.PrimaryActor.IsDeadOrDestroyed && xande.Count > 0 && xande.All(x => x.IsDeadOrDestroyed) && addsCleared;
+                var gates = Module.Enemies(OID.ForbiddenGate).Concat(Module.Enemies(OID.ForbiddenGateLarge));
+                if (gates.Any())
+                    gatesSeen = true;
+                if (xande.Count > 0)
+                    xandeSeen = true;
+                if (jorm.Count + thor.Count > 0)
+                    addsSeen = true;
+
+                var xandeCleared = xandeSeen && xande.All(x => x.IsDeadOrDestroyed);
+                var gatesCleared = gatesSeen && gates.All(g => g.IsDeadOrDestroyed);
+                var addsCleared = addsSeen && jorm.All(j => j.IsDeadOrDestroyed) && thor.All(t => t.IsDeadOrDestroyed);
+                var secondaryCleared = gatesCleared || addsCleared;
+                var addsDone = !addsSeen || addsCleared;
+                return Module.PrimaryActor.IsDeadOrDestroyed && xandeCleared && (gatesSeen || addsSeen) && secondaryCleared && addsDone;
             };
     }
 }
