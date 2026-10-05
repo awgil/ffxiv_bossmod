@@ -31,7 +31,7 @@ public sealed class Service
     [PluginService] public static IPlayerState PlayerState { get; private set; }
     [PluginService] public static ITargetManager TargetManager { get; private set; }
     [PluginService] public static IKeyState KeyState { get; private set; }
-    [PluginService] public static INotificationManager Notifications { get; private set; }
+    [PluginService] private static INotificationManager Notifications { get; set; }
     [PluginService] public static IPluginLog PluginLog { get; private set; }
 #pragma warning restore CS8618
 
@@ -45,7 +45,7 @@ public sealed class Service
     public static void ChatMessage(string msg) => ChatGui.Print(msg, "VBM");
     public static void ChatError(string msg) => ChatGui.PrintError(msg, "VBM");
 
-    public static void ShowNotification(string msg, NotificationType type = NotificationType.Success) => Notifications?.AddNotification(new() { Content = msg, Type = type });
+    public static void ShowNotification(string msg, string? title = null, NotificationType type = NotificationType.Success) => Notifications?.AddNotification(new() { Content = msg, Type = type, Title = title });
 
     public static Lumina.GameData LuminaGameData = null!;
     public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData.GetExcelSheet<T>();

@@ -114,11 +114,7 @@ public sealed class PackLoader : IDisposable
         Modified.Fire();
 
         if (_watcher.EnableRaisingEvents)
-            Service.Notifications?.AddNotification(new()
-            {
-                Content = $"Loaded {Path.GetFileName(fullPath)}",
-                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Success,
-            });
+            Service.ShowNotification($"Loaded {Path.GetFileName(fullPath)}");
     }
 
     private void OnFileDeleted(string fullPath)
