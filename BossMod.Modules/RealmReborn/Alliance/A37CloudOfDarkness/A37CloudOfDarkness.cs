@@ -108,7 +108,7 @@ class HyperchargedClouds(BossModule module) : BossComponent(module)
             return;
         if (state == 0x00040008)
             _active.Add(actor.InstanceID);
-        else if (state == 0x00400001)
+        else if (state == 0x00010040)
             _active.Remove(actor.InstanceID);
     }
 

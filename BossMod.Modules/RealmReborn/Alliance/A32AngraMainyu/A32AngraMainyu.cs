@@ -7,7 +7,10 @@ public enum OID : uint
     FinalHourglass = 0xE02, // R1.500
     GrimReaper = 0xE01, // R2.000
     AngraMainyusDaewa = 0xE4E, // R1.800
-    // lit pad is the most recent ESTA 0x4
+    RoulettePointerNE = 0x1E9727, // → 45°
+    RoulettePointerSE = 0x1E9726, // → 135°
+    RoulettePointerSW = 0x1E970C, // → -135°
+    RoulettePointerNW = 0x1E9728, // → -45°
     DoomPlatformNE = 0x1E9712, // R2.000
     DoomPlatformNW = 0x1E9711, // R2.000
     DoomPlatformSE = 0x1E9713, // R2.000
@@ -180,24 +183,99 @@ class PlayerCountCircle(BossModule module, uint iconID, AID resolve, int require
 class Roulette(BossModule module) : Components.GenericAOEs(module, AID.Death)
 {
     private static readonly AOEShapeCone _quarter = new(40, 45.Degrees());
+
     private bool _active;
+    private Angle? _lit;
+    private DateTime _litAt;
+    private Angle? _aoe;
+    private DateTime _until;
+
+    private bool Showing => _aoe != null && (_until == default || WorldState.CurrentTime < _until);
+    private bool GlassesAlive => Module.Enemies(OID.FinalHourglass).Any(h => !h.IsDeadOrDestroyed);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (!_active)
-            yield break;
-        foreach (var reaper in Module.Enemies(OID.GrimReaper).Where(r => !r.IsDead))
-            yield return new(_quarter, reaper.Position, reaper.Rotation);
+        if (Showing)
+            yield return new(_quarter, Module.Center, _aoe!.Value);
     }
 
-    public override void Update() => _active = Module.Enemies(OID.GrimReaper).Any(r => !r.IsDead);
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID != OID.FinalHourglass || _active)
+            return;
+        _active = true;
+        _lit = _aoe = null;
+        _litAt = _until = default;
+    }
+
+    public override void OnActorEState(Actor actor, ushort state)
+    {
+        if (state != 0x8 || !PointerDir((OID)actor.OID, out var dir))
+            return;
+        _lit = dir;
+        _litAt = WorldState.CurrentTime;
+        if (_active && !GlassesAlive)
+            _aoe = dir;
+    }
+
+    public override void OnIsDeadChanged(Actor actor)
+    {
+        if ((OID)actor.OID == OID.FinalHourglass && actor.IsDead)
+            LockIfStopped();
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.FinalHourglass)
+            LockIfStopped();
+    }
+
+    public override void Update()
+    {
+        // cycle is ~1s; a 1.3s stall means the finger has stopped (also covers non-cleared glasses)
+        // cycle is about 1s, so a 1.3s stall should mean the finger stopped spinning
+        if (_aoe == null && _lit != null && _active && WorldState.CurrentTime >= _litAt.AddSeconds(1.3f))
+            _aoe = _lit;
+    }
+
+    private void LockIfStopped()
+    {
+        if (_aoe == null && _lit != null && _active && !GlassesAlive)
+            _aoe = _lit;
+    }
+
+    private static bool PointerDir(OID oid, out Angle dir)
+    {
+        dir = oid switch
+        {
+            OID.RoulettePointerNE => 45.Degrees(),
+            OID.RoulettePointerSE => 135.Degrees(),
+            OID.RoulettePointerSW => -135.Degrees(),
+            OID.RoulettePointerNW => -45.Degrees(),
+            _ => default
+        };
+        return oid is OID.RoulettePointerNE or OID.RoulettePointerSE or OID.RoulettePointerSW or OID.RoulettePointerNW;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Death)
+        {
+            _aoe = spell.Rotation;
+            _until = WorldState.FutureTime(3);
+            _active = false;
+        }
+    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (!_active)
+        if (!_active && !Showing)
             return;
-        var remaining = Module.Enemies(OID.FinalHourglass).Count(h => !h.IsDead);
-        hints.Add(remaining > 0 ? $"Roulette: kill hourglasses ({remaining} left)! Avoid cone when last dies." : "Roulette: GTFO from cone!");
+        var left = Module.Enemies(OID.FinalHourglass).Count(h => !h.IsDeadOrDestroyed);
+        if (left > 0)
+            hints.Add($"Roulette: kill hourglasses ({left} left)!");
+        else if (Showing)
+            hints.Add("Roulette: GTFO from cone!");
     }
 }
 
