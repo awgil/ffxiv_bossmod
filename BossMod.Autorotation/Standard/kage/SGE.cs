@@ -75,7 +75,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
     public enum KardiaStrategy
     {
-        [Option("Keep on the main tank")]
+        [Option("Keep on the tank taking hits")]
         Automatic,
         [Option("Do not change Kardia")]
         Manual,
@@ -290,7 +290,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
     // heal check or raise coming: start Lucid before the MP is needed
     private bool MPCheckSoon => RaidwideSoon(15) || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
 
-    private bool RaidwideSoon(float within) => Hints.PredictedDamage.Any(d => d.Type is PredictedDamageType.Raidwide or PredictedDamageType.Shared && d.Activation <= World.FutureTime(within));
+    private bool RaidwideSoon(float within) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(within));
 
     #endregion
 

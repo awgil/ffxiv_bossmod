@@ -61,7 +61,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     public enum WaltzStrategy
     {
-        [Option("Use below 40% HP")]
+        [Option("Use when you drop below 40% HP")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -529,15 +529,18 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             return;
 
         var desired = strategy.Partner.Value == PartnerStrategy.SelectTarget ? ResolveTarget(strategy.Partner) : BestPartner();
+        // locked partner dead or weakened: use the best other one until they're back
+        if (strategy.Partner.Value == PartnerStrategy.SelectTarget && desired != null && (desired.IsDead || desired.FindStatus(Weakness) != null || desired.FindStatus(BrinkOfDeath) != null))
+            desired = BestPartner();
         if (desired == null || World.Party.Members.BoundSafeAt(World.Party.FindSlot(desired.InstanceID)).InCutscene)
             return;
 
         var current = World.Party.WithoutSlot(excludeAlliance: true).FirstOrDefault(p => p.FindStatus(SID.DancePartner, Player.InstanceID) != null);
         if (current == desired)
             return;
-        // mid-fight swaps strip Standard Finish / Devilment for 5-7s: only leave a partner that died or got Weakness / Damage Down
-        if (Player.InCombat && current != null && strategy.Partner.Value == PartnerStrategy.Automatic
-            && (DevilmentLeft > 0 || !current.IsDead && current.FindStatus(Weakness) == null && current.FindStatus(BrinkOfDeath) == null && !current.Statuses.Any(st => _damageDown.Contains(st.ID))))
+        // swapping strips Standard Finish / Devilment for a few seconds
+        if (Player.InCombat && current != null && (DevilmentLeft > 0 || strategy.Partner.Value == PartnerStrategy.Automatic
+            && !current.IsDead && current.FindStatus(Weakness) == null && current.FindStatus(BrinkOfDeath) == null && !current.Statuses.Any(st => _damageDown.Contains(st.ID))))
             return;
 
         if (SelfStatusLeft(SID.ClosedPosition) > 0)

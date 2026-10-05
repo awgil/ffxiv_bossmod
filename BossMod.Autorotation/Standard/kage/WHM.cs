@@ -240,7 +240,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
     }
 
     private bool MPCheckSoon
-        => Hints.PredictedDamage.Any(d => d.Type is PredictedDamageType.Raidwide or PredictedDamageType.Shared && d.Activation <= World.FutureTime(15))
+        => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(15))
         || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
 
     private bool IsBossTarget(Actor target)

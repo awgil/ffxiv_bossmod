@@ -71,7 +71,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
     public enum ManawardStrategy
     {
-        [Option("Before predicted raidwides")]
+        [Option("Use before raidwides")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -140,7 +140,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
     private bool InFire => Astral > 0;
     private bool InIce => Umbral > 0;
     // instants as movement fallbacks only when a cast can't go out; otherwise they'd beat Transpose / Manafont to the GCD
-    private bool CantCast => IsMoving || Hints.MaxCastTime < 1.5f * GCDLength / 2.5f;
+    // moving, or no time to finish Fire IV / Blizzard IV before the next move
+    private bool CantCast => IsMoving || Hints.MaxCastTime < CastTime(InIce ? (Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1) : (Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1));
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -186,7 +187,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 4 && Unlocked(AID.Fire3))
+            if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 4 && Astral == 0 && Unlocked(AID.Fire3))
                 PushGCD(AID.Fire3, target.Actor, 10);
             return;
         }
@@ -227,6 +228,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
         // Thunder from Thunderhead when the DoT is about to fall off
         if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < 3 && !target.ForbidDOTs && TimeToKill.WillLive(target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
+
+        if (CantCast && ThunderheadLeft > GCD && !target.ForbidDOTs)
+            PushGCD(ThunderAction, target.Actor, 4);
 
         if (AOEMode)
             AoE(target);
@@ -392,7 +396,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
             PushOGCD(AID.LeyLines, Player, 55);
 
         // movement: Triplecast (not in Ley Lines), then Swiftcast, when only casts are available
-        if (strategy.Movement.Value == MovementStrategy.Automatic && IsMoving && !Instant && Hints.MaxCastTime < 1.5f && Polyglot == 0 && ThunderheadLeft == 0 && !(InFire && FirestarterLeft > 0))
+        if (strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant && Polyglot == 0 && ThunderheadLeft == 0 && !(InFire && FirestarterLeft > 0))
         {
             if (!InLeyLines && CanWeave(AID.Triplecast))
                 PushOGCD(AID.Triplecast, Player, 50);
@@ -400,7 +404,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : Typed
                 PushOGCD(ClassShared.AID.Swiftcast, Player, 49);
         }
 
-        if (strategy.Manaward.Value == ManawardStrategy.Automatic && CanWeave(AID.Manaward) && Hints.PredictedDamage.Any(d => d.Type is PredictedDamageType.Raidwide or PredictedDamageType.Shared && d.Activation > World.CurrentTime && d.Activation <= World.FutureTime(4)))
+        if (strategy.Manaward.Value == ManawardStrategy.Automatic && CanWeave(AID.Manaward) && StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t > World.CurrentTime && t <= World.FutureTime(4)))
             PushOGCD(AID.Manaward, Player, 45);
     }
 

@@ -56,7 +56,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     {
         [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Like Automatic, but always keep one stack", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, but always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
         [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,

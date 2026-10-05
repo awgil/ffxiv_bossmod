@@ -56,7 +56,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : Typed
     {
         [Option("Use after entering Overheat; saved for the boss", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use in the next weave slot", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
+        [Option("Use as soon as possible", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
         Force,
         [Option("Do not use")]
         Delay

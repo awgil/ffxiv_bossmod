@@ -191,21 +191,18 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
                 PushGCD(AID.GoringBlade, goringTarget, 60);
         }
 
-        // Confiteor -> Blade of Faith -> Truth -> Valor (no target check: retargeting breaks the chain)
-        if (RequiescatLeft > GCD && MP >= HolySpiritMP)
+        // the Blade chain is tracked by the gauge, not the combo state
+        var next = (World.Client.GetGauge<PaladinGauge>().ConfiteorComboStep & 0xFF) switch
         {
-            var next = ComboLastMove switch
-            {
-                AID.Confiteor when Unlocked(AID.BladeOfFaith) => AID.BladeOfFaith,
-                AID.BladeOfFaith => AID.BladeOfTruth,
-                AID.BladeOfTruth => AID.BladeOfValor,
-                _ => ConfiteorLeft > GCD ? AID.Confiteor : AID.None
-            };
-            if (next != AID.None)
-                PushGCD(next, BestSplashTarget ?? target.Actor, 58);
-            else if (!Unlocked(AID.Confiteor))
-                PushGCD(holyAction, holyTarget, 58);
-        }
+            1 => AID.BladeOfFaith,
+            2 => AID.BladeOfTruth,
+            3 => AID.BladeOfValor,
+            _ => ConfiteorLeft > GCD ? AID.Confiteor : AID.None
+        };
+        if (next != AID.None && Unlocked(next) && MP >= HolySpiritMP)
+            PushGCD(next, BestSplashTarget ?? target.Actor, 58);
+        else if (RequiescatLeft > GCD && !Unlocked(AID.Confiteor) && canHoly)
+            PushGCD(holyAction, holyTarget, 58);
 
         // Divine Might: in Fight or Flight, before Royal Authority would refresh it, out of melee, or about to expire
         if (canHoly && DivineMightLeft > GCD && (FoFLeft > GCD || !InMelee || ComboLastMove == (AOEMode ? AID.TotalEclipse : AID.RiotBlade) || DivineMightLeft < 6))
