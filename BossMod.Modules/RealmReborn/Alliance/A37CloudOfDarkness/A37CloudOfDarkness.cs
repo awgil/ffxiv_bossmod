@@ -32,8 +32,24 @@ public enum AID : uint
 
 class ZeroFormParticleBeam(BossModule module) : Components.StandardAOEs(module, AID.ZeroFormParticleBeam, new AOEShapeRect(74, 12));
 
-class FeintParticleBeam(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.FeintParticleBeam, AID.FeintParticleBeamChase, 3, 0.6f, 17)
+class FeintParticleBeam : Components.StandardChasingAOEs
 {
+    private static readonly AOEShapeCircle _first = new(8);
+    private static readonly AOEShapeCircle _chase = new(3);
+
+    public FeintParticleBeam(BossModule module) : base(module, _chase, AID.FeintParticleBeam, AID.FeintParticleBeamChase, 3, 0.6f, 17) { }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var c in Chasers)
+        {
+            var pos = c.PredictedPosition();
+            var off = pos - c.PrevPos;
+            var shape = c.NumRemaining >= MaxCasts ? _first : c.Shape;
+            yield return new(shape, pos, off.LengthSq() > 0 ? Angle.FromDirection(off) : default, c.NextActivation);
+        }
+    }
+
     public override void Update()
     {
         for (var i = Chasers.Count - 1; i >= 0; --i)

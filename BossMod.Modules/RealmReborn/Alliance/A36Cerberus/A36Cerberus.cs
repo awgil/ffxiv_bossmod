@@ -147,7 +147,20 @@ class GastricJuiceAdd(BossModule module) : Components.Adds(module, (uint)OID.Gas
 }
 
 class Electrons(BossModule module) : Components.Adds(module, (uint)OID.Electron);
-class StomachAdds(BossModule module) : Components.AddsMulti(module, [OID.StomachWall, OID.Unknown], 2);
+
+class StomachAdds(BossModule module) : Components.AddsMulti(module, [OID.StomachWall, OID.Unknown], 2)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Belly.InBelly(actor)) // the belly adds spawn with gastric juice
+        {
+            foreach (var a in ActiveActors)
+                hints.SetPriority(a, AIHints.Enemy.PriorityForbidden);
+            return;
+        }
+        base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
 
 class Mini : Components.StandardAOEs
 {
