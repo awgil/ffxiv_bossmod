@@ -32,7 +32,7 @@ public struct NavigationDecision
     public const float CushionDepriority = 0.5f; // should be lower than any priority specifically added by rotation modules
 
     // reduce time between now and activation by this value in seconds; increase for more conservativeness
-    public static readonly float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
+    public const float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
 
     public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = 0)
     {
