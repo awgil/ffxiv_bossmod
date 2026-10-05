@@ -232,7 +232,6 @@ class Roulette(BossModule module) : Components.GenericAOEs(module, AID.Death)
 
     public override void Update()
     {
-        // cycle is ~1s; a 1.3s stall means the finger has stopped (also covers non-cleared glasses)
         // cycle is about 1s, so a 1.3s stall should mean the finger stopped spinning
         if (_aoe == null && _lit != null && _active && WorldState.CurrentTime >= _litAt.AddSeconds(1.3f))
             _aoe = _lit;
@@ -346,5 +345,5 @@ class A32AngraMainyuStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3231)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3231)]
 public class A32AngraMainyu(ModuleInit init) : BossModule(init, new(-147, 297), new ArenaBoundsCircle(30));

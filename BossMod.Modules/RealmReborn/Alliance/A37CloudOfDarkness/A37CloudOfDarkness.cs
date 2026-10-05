@@ -175,5 +175,5 @@ class A37CloudOfDarknessStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3240)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3240)]
 public class A37CloudOfDarkness(ModuleInit init) : BossModule(init, new(-300, -400), new ArenaBoundsCircle(30));

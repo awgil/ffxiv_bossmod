@@ -177,7 +177,7 @@ class A35AtomosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3380)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3380)]
 public class A35Atomos(ModuleInit init) : BossModule(init, ArenaCenter, CombinedBounds)
 {
     public const float PlatformRadius = 18f;

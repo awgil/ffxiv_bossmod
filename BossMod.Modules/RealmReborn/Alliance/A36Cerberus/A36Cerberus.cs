@@ -248,7 +248,7 @@ class A36CerberusStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3234)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3234)]
 public class A36Cerberus(ModuleInit init) : BossModule(init, OutsideCenter, OutsideBounds)
 {
     public static readonly WPos OutsideCenter = new(0, -198);

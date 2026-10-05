@@ -105,5 +105,5 @@ class A33QueenScyllaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3247)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3247)]
 public class A33QueenScylla(ModuleInit init) : BossModule(init, new(130, 265), new ArenaBoundsCircle(30));

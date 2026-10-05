@@ -94,5 +94,5 @@ class A34FiveHeadedDragonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3227)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 111, NameID = 3227)]
 public class A34FiveHeadedDragon(ModuleInit init) : BossModule(init, new(200, 179), new ArenaBoundsCircle(30));
