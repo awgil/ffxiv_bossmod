@@ -32,12 +32,10 @@ public enum AID : uint
 
 class ZeroFormParticleBeam(BossModule module) : Components.StandardAOEs(module, AID.ZeroFormParticleBeam, new AOEShapeRect(74, 12));
 
-class FeintParticleBeam : Components.StandardChasingAOEs
+class FeintParticleBeam(BossModule module) : Components.StandardChasingAOEs(module, _chase, AID.FeintParticleBeam, AID.FeintParticleBeamChase, 3, 0.6f, 17)
 {
     private static readonly AOEShapeCircle _first = new(8);
     private static readonly AOEShapeCircle _chase = new(3);
-
-    public FeintParticleBeam(BossModule module) : base(module, _chase, AID.FeintParticleBeam, AID.FeintParticleBeamChase, 3, 0.6f, 17) { }
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
