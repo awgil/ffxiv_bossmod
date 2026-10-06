@@ -33,7 +33,7 @@ public enum AID : uint
     Thunderstorm = 19360, // Boss->self, 5.0s cast, single-target
     ShockStrike = 19361, // Helper->location, 2.5s cast, range 3 circle
     VoltStrike = 19698, // Helper->location, 2.5s cast, range 5 circle
-    _Weaponskill_ = 19403, // Boss->location, no cast, single-target
+    //_Weaponskill_ = 19403, // Boss->location, no cast, single-target
 }
 
 public enum IconID : uint
