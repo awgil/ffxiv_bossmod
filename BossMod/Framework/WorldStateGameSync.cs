@@ -552,6 +552,17 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         var lb = LimitBreakController.Instance();
         if (_ws.Party.LimitBreakCur != lb->CurrentUnits || _ws.Party.LimitBreakMax != lb->BarUnits)
             _ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
+
+        // update player's alliance letter (A-F)
+        var alliance = AllianceLetter.None;
+        if (group->IsAlliance)
+        {
+            var idx = group->GetAllianceGroupIndexBySlot(0);
+            if (idx <= (byte)AllianceLetter.F)
+                alliance = (AllianceLetter)idx;
+        }
+        if (_ws.Party.Alliance != alliance)
+            _ws.Execute(new PartyState.OpAllianceChange(alliance));
     }
 
     // returns player contentID
