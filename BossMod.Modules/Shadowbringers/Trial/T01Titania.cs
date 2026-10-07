@@ -163,8 +163,9 @@ class WaterPuddles(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (TargetPuddle is WPos p)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p, Radius));
+        if (TargetPuddle is WPos p && Module.FindComponent<FlameRune>() is { } flame)
+            foreach (var stack in flame.Stacks.Where(s => s.Target == _stackTarget))
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p, Radius), stack.Activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

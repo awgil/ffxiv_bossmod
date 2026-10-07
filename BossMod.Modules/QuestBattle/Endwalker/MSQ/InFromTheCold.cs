@@ -58,6 +58,18 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         _ai.Execute(player, hints);
     }
 
+    private void InteractWithFirst(Actor player, AIHints hints, params uint[] oids)
+    {
+        if (player.InCombat)
+            return;
+        foreach (var oid in oids)
+        {
+            hints.InteractWithOID(World, oid);
+            if (hints.InteractWithTarget != null)
+                return;
+        }
+    }
+
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)
             .Named("Combat")
@@ -68,13 +80,15 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Medkit")
-            .Hints((player, hints) => hints.PrioritizeTargetsByOID(0x3507))
-            .WithInteract(0x3507)
+            .Hints((player, hints) => {
+                hints.PrioritizeTargetsByOID([0x3506, 0x3507]);
+                InteractWithFirst(player, hints, 0x3507, 0x3506);
+            })
             .With(obj => obj.OnDutyActionsChange += (op) => obj.CompleteIf(op.Slots[0].Action.ID == 27315)),
 
         new QuestObjective(ws)
             .Named("F")
-            .WithInteract(0x3507)
+            .Hints((player, hints) => InteractWithFirst(player, hints, 0x3507, 0x3506))
             .With(obj => obj.OnEventObjectAnimation += (act, p1, p2) => obj.CompleteIf(act.OID == 0x1EA1A1 && p1 == 4 && p2 == 8)),
 
         new QuestObjective(ws)
@@ -101,11 +115,14 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Fuel")
-            .MoveHint(new WPos(133, -231), 0.1f)
-            .MoveHint(new WPos(160, -224), 0.2f)
-            .MoveHint(new WPos(188, -227), 0.3f)
-            .WithInteract(0x1EB69E)
             .Hints((player, hints) => {
+                InteractWithFirst(player, hints, 0x1EB69E, 0x1EB452);
+                if (World.Actors.Any(a => a.OID == 0x1EB69E && a.IsTargetable))
+                {
+                    hints.GoalZones.Add(p => p.InCircle(new WPos(133, -231), 2) ? 0.1f : 0);
+                    hints.GoalZones.Add(p => p.InCircle(new WPos(160, -224), 2) ? 0.2f : 0);
+                    hints.GoalZones.Add(p => p.InCircle(new WPos(188, -227), 2) ? 0.3f : 0);
+                }
                 if (player.Position.AlmostEqual(new WPos(109, -257.263f), 2))
                     hints.WantJump = true;
             })

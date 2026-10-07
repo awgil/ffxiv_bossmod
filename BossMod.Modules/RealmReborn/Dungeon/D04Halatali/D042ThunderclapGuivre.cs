@@ -39,7 +39,7 @@ class HydroelectricShock(BossModule module) : BossComponent(module)
         if (_activation == default)
             return;
         var pad = DryPads.MinBy(p => (p.center - actor.Position).LengthSq());
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pad.center, pad.radius));
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pad.center, pad.radius), _activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

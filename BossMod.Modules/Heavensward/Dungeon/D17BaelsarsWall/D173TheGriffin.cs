@@ -93,7 +93,8 @@ class RestraintCollar(BossModule module) : BossComponent(module)
     {
         if (actor == _fetterTarget)
         {
-            hints.AddForbiddenZone(new AOEShapeDonut(6, 60), Module.PrimaryActor.Position);
+            var activation = Module.PrimaryActor.CastInfo is { } cast && (AID)cast.Action.ID == AID.RestraintCollar ? Module.CastFinishAt(cast) : default;
+            hints.AddForbiddenZone(new AOEShapeDonut(6, 60), Module.PrimaryActor.Position, activation: activation);
         }
     }
 };

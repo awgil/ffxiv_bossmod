@@ -260,9 +260,7 @@ class VorpalTrail(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Dictionary<ulong, AOEInstance> _fangAOE = [];
     private readonly Dictionary<ulong, AOEInstance> _predictedNext = [];
-    private readonly Dictionary<ulong, DateTime> _lastUnsafe = [];
     private DateTime _mechanicActiveUntil;
-    private const float SettleSeconds = 4f;
     private const float NextSprintExpirationSec = 5f;
     private const float CenterAttractRadius = 0.1f;
     private const float CenterAttractWeight = 10f;
@@ -284,7 +282,6 @@ class VorpalTrail(BossModule module) : Components.GenericAOEs(module)
         var mechanicActive = _fangAOE.Count > 0 || _mechanicActiveUntil > now;
         if (!mechanicActive)
         {
-            _lastUnsafe.Remove(actor.InstanceID);
             return;
         }
         foreach (var aoe in ActiveAOEs(slot, actor))
@@ -304,11 +301,6 @@ class VorpalTrail(BossModule module) : Components.GenericAOEs(module)
         }
         hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.Center, CenterAttractRadius, CenterAttractWeight));
 
-        var inDanger = _fangAOE.Values.Any(a => a.Check(actor.Position)) || _predictedNext.Values.Any(a => a.Check(actor.Position));
-        if (inDanger || !_lastUnsafe.ContainsKey(actor.InstanceID))
-            _lastUnsafe[actor.InstanceID] = now;
-        if ((now - _lastUnsafe[actor.InstanceID]).TotalSeconds < SettleSeconds)
-            hints.MaxCastTime = 0;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
