@@ -49,11 +49,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     {
         [Option("Use automatically")]
         Automatic,
-        [Option("Leave to the plan")]
+        [Option("Do not use automatically")]
         LeaveToPlan
     }
 
     private readonly TrackPartyHealth Health = new(manager.WorldState);
+    private DateTime _lastMedicaRegenCast;
 
     // includes raidwides / tankbusters only marked in the module's timeline (FRU)
     private new IEnumerable<DateTime> Raidwides => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints);
@@ -143,7 +144,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             var st = Health.PartyMemberStates[slot];
             if (st.NoHealStatusRemaining > 1.5f && st.DoomRemaining == 0)
                 continue;
-            var ratio = st.DoomRemaining > 0 ? 0.01f : st.PredictedHPRatio;
+            var ratio = st.DoomRemaining > 0 ? 0.01f : HealRatio(slot);
             if (ratio < bestRatio)
             {
                 bestRatio = ratio;
@@ -197,7 +198,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     }
 
     private bool QuietPeriod => Bossmods.ActiveModule != null && NextDamageIn(-1) >= 15;
-    private float PredictedRatio(Actor a) => World.Party.FindSlot(a.InstanceID) is var slot && slot >= 0 ? Health.PartyMemberStates[slot].PredictedHPRatio : a.HPRatio;
+    private float PredictedRatio(Actor a) => World.Party.FindSlot(a.InstanceID) is var slot && slot >= 0 ? HealRatio(slot) : a.HPRatio;
+    // predicted HP without the flat 30% per upcoming hit: a heal before the hit can't go above max HP
+    private float HealRatio(int slot) => Health.PartyMemberStates[slot].PredictedHPRatio + 0.3f * Hints.PredictedDamage.Count(d => d.Players[slot]);
     private int MissingWithoutRegen(float radius, float below = 0.85f) => LightParty.Count(p => p.Position.InCircle(Player.Position, radius) && PredictedRatio(p) < below && !HasHealOverTime(p));
 
     private bool PartyLow(in Strategy strategy, float radius, float ratio) => ShouldHealInAreaNow(strategy, Player.Position, radius, ratio + AreaShift());
@@ -244,7 +247,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (strategy.StayNearParty.IsEnabled() && Player.InCombat)
         {
             List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
-            Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 15)));
+            var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
+            // Require a margin when improving coverage, so allies moving near the boundary don't make us shuffle.
+            Hints.GoalZones.Add(p => Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
         }
 
         AutoRaise(strategy);
@@ -362,6 +367,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         var bestC2 = BestActionUnlocked(BossMod.WHM.AID.CureII, BossMod.WHM.AID.Cure);
         var bestM2 = BestActionUnlocked(BossMod.WHM.AID.MedicaIII, BossMod.WHM.AID.MedicaII);
+        var medicaRegenLeft = StatusDetails(Player, (uint)(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII), Player.InstanceID).Left;
+        if (Manager.LastCast.Data is { } lastCast && (lastCast.Action == ActionID.MakeSpell(BossMod.WHM.AID.MedicaII) || lastCast.Action == ActionID.MakeSpell(BossMod.WHM.AID.MedicaIII)))
+            _lastMedicaRegenCast = Manager.LastCast.Time;
+        // The action succeeds before the regen status arrives; don't start another cast in that gap.
+        var canApplyMedicaRegen = medicaRegenLeft < 3 && (World.CurrentTime - _lastMedicaRegenCast).TotalSeconds >= 3;
         var auto = strategy.Mitigation.Value == MitigationMode.Automatic;
 
         if (strategy.Heal == HealMode.Enabled && auto)
@@ -374,7 +384,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 19);
                 UseOGCD(BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
             }
-            if (raidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
+            if (raidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f && Hints.MaxCastTime > 0)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 17, targetPos: GetBestPartyCoverage(10));
 
             foreach (var (tank, at) in Tankbusters)
@@ -392,11 +402,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         {
             var tank = target.Role == Role.Tank;
             var raw = PredictedRatio(target);
-            if (QuietPeriod && raw > 0.3f && raw < 0.85f && !HasHealOverTime(target))
+            if (QuietPeriod && raw > 0.55f && raw < 0.85f && !HasHealOverTime(target))
             {
-                if (auto && MissingWithoutRegen(10) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 12, targetPos: GetBestPartyCoverage(10));
-                else if (MissingWithoutRegen(20, 0.8f) >= 3)
+                if (auto && Hints.MaxCastTime > 0 && MissingWithoutRegen(10) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 12, targetPos: GetBestPartyCoverage(10, injuredOnly: true));
+                else if (MissingWithoutRegen(20, 0.8f) >= 3 && canApplyMedicaRegen)
                     UseGCD(bestM2, Player, 2);
                 else if (raw < 0.7f)
                     UseGCD(BossMod.WHM.AID.Regen, target, 2);
@@ -454,7 +464,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.WHM.AID.PlenaryIndulgence, Player, 15);
             if (auto && Player.FindStatus(BossMod.WHM.SID.DivineGrace) != null)
                 UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 14);
-            if (StatusDetails(Player, (uint)(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII), Player.InstanceID).Left < 3)
+            if (canApplyMedicaRegen)
                 UseGCD(bestM2, Player);
         }
         if (auto && PartyLow(strategy, 30, 0.55f))
@@ -618,9 +628,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     }
 
     // O(n³) :3
-    private Vector3 GetBestPartyCoverage(float radius)
+    private Vector3 GetBestPartyCoverage(float radius, bool injuredOnly = false)
     {
-        var allies = LightParty.Select(p => p.Position).ToList();
+        var allies = LightParty.Where(p => !injuredOnly || PredictedRatio(p) < 0.85f && !HasHealOverTime(p)).Select(p => p.Position).ToList();
         if (allies.Count < 2)
             return Player.PosRot.XYZ();
 

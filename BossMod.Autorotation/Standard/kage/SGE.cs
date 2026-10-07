@@ -69,7 +69,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
     {
         [Option("Use on 2+ targets unless a raidwide is coming")]
         Automatic,
-        [Option("Do not use for damage")]
+        [Option("Do not use")]
         Delay
     }
 
@@ -117,17 +117,15 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
     private float RaidBuffsIn;
     private float DowntimeIn;
     private bool AOEMode;
-    private bool IsMoving;
     private float AnimLockDelay;
     private Targeting TargetMode;
 
     private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
-    private bool CanCast => !IsMoving && Hints.MaxCastTime >= 1.5f * GCDLength / 2.5f;
+    private bool CanCast => Hints.MaxCastTime >= MathF.Max(0, 1.5f * GCDLength / 2.5f - 0.5f);
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         AnimLockDelay = estimatedAnimLockDelay;
-        IsMoving = isMoving;
 
         TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
@@ -147,7 +145,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         NextGall = MathF.Max(0, 20f - gauge.AddersgallTimer / 1000f);
         Eukrasia = gauge.EukrasiaActive;
 
-        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
+        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0);
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
 
         var numAround = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
@@ -165,7 +163,14 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            if (target != null && countdown < 1.5f * GCDLength / 2.5f + 0.2f)
+            if (target != null && Sting > 0 && Unlocked(AID.Toxikon) && strategy.Toxikon.Value != ToxikonStrategy.Delay)
+            {
+                if (!Eukrasia && countdown < 5)
+                    PushGCD(AID.Eukrasia, Player, 10);
+                else if (countdown < 1.5f)
+                    PushGCD(AID.Toxikon, target.Actor, 10);
+            }
+            else if (target != null && countdown < 1.5f * GCDLength / 2.5f + 0.2f)
                 PushGCD(AID.Dosis, target.Actor, 10);
             return;
         }
@@ -185,7 +190,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
     private void GCDs(in Strategy strategy, Enemy target, int numAround)
     {
-        // Eukrasia is up: the next GCD has to cash it in
         if (Eukrasia)
         {
             if (AOEMode && Unlocked(AID.EukrasianDyskrasia))
@@ -221,7 +225,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
 
         PushGCD(AID.Dosis, target.Actor, 10);
 
-        // movement: instants; the queue skips Dosis when it can't be cast
         if (!CanCast)
         {
             if (Sting > 0 && strategy.Toxikon.Value != ToxikonStrategy.Delay)
@@ -231,7 +234,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         }
     }
 
-    // a hard-cast Dosis now + Eukrasia + E.Dosis must still land before it drops
     private float DotRefresh => GCD + GCDLength + 1;
 
     private float DotLeft(Actor target)
@@ -242,10 +244,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         return 0;
     }
 
-    // E.Dosis needs ~15s of ticks to beat Dosis
     private bool DotWorthIt(Enemy e)
     {
-        if (e.ForbidDOTs || e.Priority < 0 && !IsBossTarget(e.Actor) || DowntimeIn < 15)
+        if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
             return false;
         return TimeToKill.WillLive(e.Actor, 15);
     }
@@ -262,10 +263,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
     }
 
-    private bool IsBossTarget(Actor target)
-        => target.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor is { } boss && (target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP);
-
-    // 3 charges per 2 minutes: two in raid buffs, the third anywhere as long as two are back for the next burst
     private bool ShouldPhlegma(in Strategy strategy, Enemy target)
     {
         if (!Unlocked(AID.Phlegma) || ReadyIn(AID.Phlegma) > GCD)
@@ -277,17 +274,17 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
             case OffensiveStrategy.Delay:
                 return false;
         }
+        var buffsSoon = Player.InCombat && TimeToKill.InBossFight(Bossmods.ActiveModule, target.Actor) && RaidBuffsLeft <= GCD && RaidBuffsIn < 10;
         if (MaxChargesIn(AID.Phlegma) <= GCD + GCDLength)
-            return true;
-        if (!Player.InCombat || target.Priority == Enemy.PriorityPointless && !IsBossTarget(target.Actor))
+            return !buffsSoon;
+        if (!Player.InCombat || target.Priority == Enemy.PriorityPointless && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
             return MaxChargesIn(AID.Phlegma) <= GCD + GCDLength;
-        if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)
+        if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !TimeToKill.InBossFight(Bossmods.ActiveModule, target.Actor) || Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)
             return true;
         var cooldown = ActionDefinitions.Instance.Spell(AID.Phlegma)!.Cooldown;
         return MaxChargesIn(AID.Phlegma) + cooldown <= RaidBuffsIn;
     }
 
-    // heal check or raise coming: start Lucid before the MP is needed
     private bool MPCheckSoon => RaidwideSoon(15) || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
 
     private bool RaidwideSoon(float within) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(within));
@@ -299,18 +296,18 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
     private void OGCDs(in Strategy strategy, Enemy target)
     {
         if (strategy.Psyche.Value != OffensiveStrategy.Delay && CanWeave(AID.Psyche)
-            && (strategy.Psyche.Value == OffensiveStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || IsBossTarget(target.Actor))))
+            && (strategy.Psyche.Value == OffensiveStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
+                && (RaidBuffsLeft > 0 || RaidBuffsIn > 10 || !TimeToKill.InBossFight(Bossmods.ActiveModule, target.Actor))))
             PushOGCD(AID.Psyche, target.Actor, 50);
 
         if (strategy.Rhizomata.Value == OffensiveStrategy.Force || strategy.Rhizomata.Value == OffensiveStrategy.Automatic && Gall <= 1)
             if (CanWeave(AID.Rhizomata))
                 PushOGCD(AID.Rhizomata, Player, 40);
 
-        // Kerachole/Ixochole from the healer AI spend it better when a raidwide is coming
         if (strategy.Druochole.Value == DruocholeStrategy.Automatic && Gall >= 3 && NextGall < GCDLength + 1 && CanWeave(AID.Druochole)
             && !(RaidwideSoon(15) && Unlocked(AID.Kerachole) && ReadyIn(AID.Kerachole) < 5))
         {
-            var healTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(p => !p.IsDead && Player.DistanceToHitbox(p) <= 30).MinBy(p => p.HPRatio) ?? Player;
+            var healTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(p => !p.IsDead && Player.DistanceToHitbox(p) <= 30).MinBy(p => p.PendingHPRatio) ?? Player;
             PushOGCD(AID.Druochole, healTarget, 35);
         }
 
@@ -335,7 +332,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Kardia), desired, Player.InCombat ? ActionQueue.Priority.Low + 60 : ActionQueue.Priority.High);
     }
 
-    // solo: self; one tank: that tank; two tanks: the one the boss is hitting (else the one holding more adds), sticky to the current one
     private Actor? KardiaTarget()
     {
         var party = World.Party.WithoutSlot(excludeAlliance: true).ToList();
@@ -397,7 +393,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : Typed
         var def = ActionDefinitions.Instance[action];
         if (def == null || def.Range != 0 && target == null)
             return;
-        Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, ActionQueue.Priority.High + priority, castTime: CastTime(aid));
+        Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, ActionQueue.Priority.High + priority, castTime: MathF.Max(0, CastTime(aid) - 0.5f));
     }
 
     private void PushOGCD(AID aid, Actor? target, int priority) => PushOGCD(ActionID.MakeSpell(aid), target, priority);

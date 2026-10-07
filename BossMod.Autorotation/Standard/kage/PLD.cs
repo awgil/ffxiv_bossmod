@@ -58,7 +58,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use in the opener and with Fight or Flight")]
+        [Option("Use with Fight or Flight")]
         AlignWithBurst,
         [Option("Use as soon as possible")]
         Immediate
@@ -97,7 +97,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     private Actor? BestSplashTarget;
     private bool AOEMode;
     private bool InMelee;
-    private bool IsMoving;
     private float AnimLockDelay;
     private Targeting TargetMode;
 
@@ -110,9 +109,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         AnimLockDelay = estimatedAnimLockDelay;
-        IsMoving = isMoving;
 
-        // don't break the Passage of Arms channel
         if (Player.FindStatus(PassageOfArmsBuff, Player.InstanceID) != null)
             return;
 
@@ -155,9 +152,14 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            // pre-pull Holy Spirit lands right at the pull when starting out of melee
-            if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 1.75f && Unlocked(AID.HolySpirit))
-                PushGCD(AID.HolySpirit, target.Actor, 10);
+            // the AI walks into melee after the cast; moving now would stop it from starting
+            if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 2.2f && Unlocked(AID.HolySpirit) && MP >= HolySpiritMP && Player.DistanceToHitbox(target.Actor) <= 25)
+            {
+                var pos = Player.Position;
+                Hints.GoalZones.Add(p => p.InCircle(pos, 0.5f) ? 100 : 0);
+                if (countdown < 1.75f)
+                    PushGCD(AID.HolySpirit, target.Actor, 10);
+            }
             return;
         }
 
@@ -181,8 +183,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         var holyTarget = holyAction == AID.HolyCircle ? Player : target.Actor;
         var canHoly = Unlocked(holyAction) && MP >= HolySpiritMP;
 
-        // Goring Blade goes after the Confiteor chain; in AoE on the healthiest enemy in melee, up to 4 targets
-        if (strategy.Goring.Value != OffensiveStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 || strategy.Goring.Value == OffensiveStrategy.Force))
+        var requiescatSoon = Unlocked(AID.Requiescat) && ReadyIn(Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat) <= GCD && FoFLeft > 0;
+        if (strategy.Goring.Value != OffensiveStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || strategy.Goring.Value == OffensiveStrategy.Force))
         {
             var goringTarget = AOEMode
                 ? Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor
@@ -191,7 +193,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
                 PushGCD(AID.GoringBlade, goringTarget, 60);
         }
 
-        // the Blade chain is tracked by the gauge, not the combo state
         var next = (World.Client.GetGauge<PaladinGauge>().ConfiteorComboStep & 0xFF) switch
         {
             1 => AID.BladeOfFaith,
@@ -204,19 +205,16 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         else if (RequiescatLeft > GCD && !Unlocked(AID.Confiteor) && canHoly)
             PushGCD(holyAction, holyTarget, 58);
 
-        // Divine Might: in Fight or Flight, before Royal Authority would refresh it, out of melee, or about to expire
         if (canHoly && DivineMightLeft > GCD && (FoFLeft > GCD || !InMelee || ComboLastMove == (AOEMode ? AID.TotalEclipse : AID.RiotBlade) || DivineMightLeft < 6))
-            PushGCD(holyAction, holyTarget, 46);
+            PushGCD(holyAction, holyTarget, DivineMightLeft < 6 ? 46 : 44);
 
         if (!InMelee && !AOEMode)
         {
-            if (canHoly && !IsMoving)
+            if (canHoly && Hints.MaxCastTime >= MathF.Max(0, CastTime(AID.HolySpirit) - 0.5f))
                 PushGCD(AID.HolySpirit, target.Actor, 20);
             PushGCD(AID.ShieldLob, target.Actor, 19);
         }
 
-        // Atonement chain, banked so the strongest three land in Fight or Flight:
-        // Royal Authority > Atonement > Fast Blade > Riot Blade > Supplication > Holy Spirit > Sepulchre > Royal Authority
         if (!AOEMode)
         {
             var spend = FoFLeft > GCD || ComboLastMove == AID.RiotBlade;
@@ -250,8 +248,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
+        var requiescatNext = Unlocked(AID.Requiescat) && ReadyIn(Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat) <= GCD;
         if (ShouldFightOrFlight(strategy))
-            PushOGCD(AID.FightOrFlight, Player, 70, GCD - 0.8f);
+            PushOGCD(AID.FightOrFlight, Player, 70, requiescatNext ? 0 : GCD - 0.8f);
 
         if (BladeOfHonorLeft > 0)
             PushOGCD(AID.BladeOfHonor, BestSplashTarget ?? target.Actor, 65);
@@ -263,8 +262,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
         if (strategy.Spenders.Value != OffensiveStrategy.Delay)
         {
-            // on cooldown (every other use lines up with Fight or Flight); only the opener waits for the first one
-            var hold = strategy.Spenders.Value != OffensiveStrategy.Force && Unlocked(AID.FightOrFlight) && FoFLeft == 0 && CombatTime < 15 && FoFIn < 15;
+            var hold = strategy.Spenders.Value != OffensiveStrategy.Force && Unlocked(AID.FightOrFlight) && FoFLeft == 0 && FoFIn < 2.5f;
             if (!hold && CanWeave(AID.CircleOfScorn) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) > 0)
                 PushOGCD(AID.CircleOfScorn, Player, 60);
             var spirits = Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
@@ -284,7 +282,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
     private static uint SelfStatusOf(AID sheltron) => sheltron == AID.HolySheltron ? 2674u : 1856u;
 
-    // on cooldown, late-weaved; opener: after Royal Authority (standard) or after the first GCD (early buff)
     private bool ShouldFightOrFlight(in Strategy strategy)
     {
         if (!CanWeave(AID.FightOrFlight) || strategy.FightOrFlight.Value == OffensiveStrategy.Delay)
@@ -293,7 +290,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             return true;
         if (DowntimeIn < 10)
             return false;
-        // not on a target that dies before the window pays off; in a boss fight it's kept for the boss
         if (CurrentTarget != null && !TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, CurrentTarget, 10))
             return false;
         if (Unlocked(AID.Requiescat) && MP < HolySpiritMP * 3.6f)
@@ -312,7 +308,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         return true;
     }
 
-    // Intervene: both charges inside Fight or Flight in melee; outside only before a charge would cap
     private void Intervene(in Strategy strategy, Enemy target)
     {
         if (strategy.Intervene.Value == InterveneStrategy.Delay || !CanWeave(AID.Intervene))
@@ -323,7 +318,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             PushOGCD(AID.Intervene, ResolveTarget(strategy.Intervene) ?? target.Actor, 55);
             return;
         }
-        if (dist > 3 || IsMoving)
+        if (dist > 3 || Hints.MaxCastTime <= 0)
             return;
         var capping = ActionDefinitions.Instance.Spell(AID.Intervene)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) < GCD + 2;
         if (FoFLeft > 0 || !Unlocked(AID.FightOrFlight) || capping && FoFIn > 25)
@@ -377,7 +372,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     }
 
     private void PushGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0, CastTime(aid));
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0, MathF.Max(0, CastTime(aid) - 0.5f));
 
     // Holy Spirit / Holy Circle are 1.5s casts unless Divine Might or Requiescat makes them instant; the queue needs this to not start one before a dodge
     private float CastTime(AID aid)

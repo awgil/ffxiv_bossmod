@@ -55,13 +55,13 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         Automatic,
         [Option("Do not change the partner")]
         Manual,
-        [Option("Use on the selected party member", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
+        [Option("Keep on the selected party member", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
         SelectTarget
     }
 
     public enum WaltzStrategy
     {
-        [Option("Use when you drop below 40% HP")]
+        [Option("Use when you or 3+ nearby allies are low")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -127,7 +127,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private float ComboLeft => World.Client.ComboState.Remaining;
-    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     private bool Dancing => StandardStepLeft > 0 || TechStepLeft > 0;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -200,7 +199,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         }
 
         if (target == null)
+        {
+            if (strategy.Technical.Value == OffensiveStrategy.Force && Unlocked(AID.TechnicalStep) && ReadyIn(AID.TechnicalStep) <= GCD + 0.5f && FlourishingFinishLeft == 0)
+                PushGCD(AID.TechnicalStep, Player, 50);
             return;
+        }
 
         var danceSoon = GCDReady(AID.StandardStep) || GCDReady(AID.TechnicalStep) || FinishingMoveLeft > 0 || FlourishingFinishLeft > 0;
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, danceSoon ? 14.5f : 25);
@@ -231,7 +234,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
                 PushGCD(NextStep, Player, 50);
                 return;
             }
-            // hold the finish for the pull (Technical 30s finishes Standard at -15)
             if (StandardStepLeft > 0 && (mode == OpenerStrategy.Technical30 ? countdown < 15.2f : countdown < 0.3f || StandardStepLeft < 0.6f))
                 PushGCD(AID.DoubleStandardFinish, Player, 50);
             if (TechStepLeft > 0 && (countdown < 0.3f || TechStepLeft < 0.6f))
@@ -259,7 +261,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             PushGCD(NextStep, Player, 50);
             return;
         }
-        // finish only with an enemy in the 15y pbaoe, unless the dance is about to expire
         if (StandardStepLeft > 0 && (EnemyIn15 || StandardStepLeft < GCDLength * 1.5f))
             PushGCD(AID.DoubleStandardFinish, Player, 50);
         if (TechStepLeft > 0 && (EnemyIn15 || TechStepLeft < GCDLength * 1.5f))
@@ -272,12 +273,10 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     private void GCDs(in Strategy strategy, Enemy target)
     {
-        // Standard pays off over ~10s in AoE, almost immediately on a single target
         var targetAlive = TimeToKill.WillLive(target.Actor, AOEMode ? 10 : 3);
         var splash = BestSplashTarget ?? target.Actor;
         var expiring = GCD + GCDLength * 1.5f;
 
-        // procs that would otherwise fall off: Last Dance > Fountainfall > Reverse Cascade
         if (LastDanceLeft > GCD && LastDanceLeft < expiring)
             PushGCD(AID.LastDance, splash, 60);
         if (FlowLeft > GCD && FlowLeft < expiring)
@@ -289,7 +288,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         if (FlourishingFinishLeft > GCD && FlourishingFinishLeft < expiring && Esprit < 100 && Unlocked(AID.Tillana) && EnemyIn15)
             PushGCD(AID.Tillana, Player, 56);
 
-        // Technical Finish is a party buff: in a boss fight it waits for the boss
         if (ShouldTechnical(strategy, TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15)) && FlourishingFinishLeft == 0)
             PushGCD(AID.TechnicalStep, Player, 50);
 
@@ -304,7 +302,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             ComboST(target);
     }
 
-    // Technical window: Tillana (for Dance of the Dawn's Esprit) > Dance of the Dawn > carried-in Last Dance > Finishing Move > Saber (>80) > Starfall > Saber > Last Dance > procs
     private void BurstGCDs(in Strategy strategy, Enemy target, bool targetAlive)
     {
         var splash = BestSplashTarget ?? target.Actor;
@@ -312,7 +309,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             PushGCD(AID.Tillana, Player, 48);
         if (DawnLeft > GCD && Esprit >= 50)
             PushGCD(AID.DanceOfTheDawn, splash, 47);
-        // the Last Dance carried in from the pre-burst Standard has to go before Finishing Move overwrites it
         if (LastDanceLeft > GCD && FinishingMoveLeft > GCD)
             PushGCD(AID.LastDance, splash, 46);
         if (StandardAllowed(strategy, targetAlive) && FinishingMoveLeft > GCD && LastDanceLeft == 0 && GCDReady(AID.FinishingMove) && EnemyIn15)
@@ -335,7 +331,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             PushGCD(Symmetry, FlowTarget(target), 29);
     }
 
-    // outside burst: dances on cooldown > Saber (>=85) > save combo'd Fountain > Saber > Last Dance > Fountainfall > Reverse Cascade > Fountain > Cascade
     private void NormalGCDs(in Strategy strategy, Enemy target, bool targetAlive)
     {
         var splash = BestSplashTarget ?? target.Actor;
@@ -349,7 +344,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         if (Esprit >= 85 && Unlocked(AID.SaberDance))
             PushGCD(AID.SaberDance, splash, 43);
 
-        // combo'd Fountain about to drop: Fountainfall first if a Silken Flow would be overwritten by it
         var combo2 = AOEMode ? AID.Bladeshower : AID.Fountain;
         var combo2Ready = Unlocked(combo2) && ComboLastMove == (AOEMode ? AID.Windmill : AID.Cascade) && ComboLeft > GCD;
         if (combo2Ready && ComboLeft < GCD + GCDLength * 1.5f)
@@ -394,10 +388,9 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         PushGCD(AID.Windmill, Player, 1);
     }
 
-    // Technical: on cooldown after Standard, not into downtime
     private bool ShouldTechnical(in Strategy strategy, bool targetAlive)
     {
-        if (!Unlocked(AID.TechnicalStep) || ReadyIn(AID.TechnicalStep) > GCD + 0.3f)
+        if (!Unlocked(AID.TechnicalStep) || ReadyIn(AID.TechnicalStep) > GCD + 0.5f)
             return false;
         return strategy.Technical.Value switch
         {
@@ -407,11 +400,10 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         };
     }
 
-    // Last Dance: in Technical (unless Esprit is about to cap), when it can't be held until Technical, or about to expire
     private bool ShouldLastDance()
     {
         var techIn = ReadyIn(AID.TechnicalStep);
-        var canHoldForTech = Unlocked(AID.TechnicalStep) && techIn > 0 && techIn < 20 && LastDanceLeft > techIn + 4;
+        var canHoldForTech = TimeToKill.InBossFight(Bossmods.ActiveModule, World.Actors.Find(Player.TargetID)) && Unlocked(AID.TechnicalStep) && techIn > 0 && techIn < 20 && LastDanceLeft > techIn + 4;
         return TechFinishLeft > GCD && Esprit < 95 || !canHoldForTech || LastDanceLeft < 4;
     }
 
@@ -431,7 +423,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             return false;
         if (strategy.Standard.Value == OffensiveStrategy.Force)
             return true;
-        // during Technical Finish, Finishing Move replaces Standard
         if (Unlocked(AID.FinishingMove) && TechFinishLeft > GCD)
             return false;
         if (DowntimeIn < GCD + 4)
@@ -446,7 +437,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        // Devilment straight after Technical Finish; everything else waits for it
         if (ShouldDevilment(strategy))
         {
             PushOGCD(AID.Devilment, Player, 70);
@@ -456,8 +446,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         if (ShouldFlourish(strategy))
             PushOGCD(AID.Flourish, Player, 60);
 
-        // burst: Fan Dance III / IV right after Flourish
-        if ((ThreefoldLeft > 0 || FourfoldLeft > 0) && CombatTime > 20 && TechFinishLeft > 0 && ReadyIn(AID.Flourish) > 58)
+        if ((ThreefoldLeft > 0 || FourfoldLeft > 0) && TechFinishLeft > 0 && ReadyIn(AID.Flourish) > 58)
         {
             if (ThreefoldLeft > 0)
                 PushOGCD(AID.FanDanceIII, BestSplashTarget ?? target.Actor, 58);
@@ -473,7 +462,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         if (ShouldSpendFeather(strategy, target))
             PushOGCD(AOEMode && Unlocked(AID.FanDanceII) ? AID.FanDanceII : AID.FanDance, AOEMode ? Player : target.Actor, 50);
 
-        if (strategy.Waltz.Value == WaltzStrategy.Automatic && Player.HPRatio < 0.4f && CanWeave(AID.CuringWaltz))
+        if (strategy.Waltz.Value == WaltzStrategy.Automatic && (Player.PendingHPRatio < 0.4f || World.Party.WithoutSlot(excludeAlliance: true).Count(p => !p.IsDead && p.Position.InCircle(Player.Position, 5) && p.PendingHPRatio < 0.5f) >= 3) && CanWeave(AID.CuringWaltz))
             PushOGCD(AID.CuringWaltz, Player, 45);
     }
 
@@ -489,7 +478,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         };
     }
 
-    // Flourish: inside Devilment's window, never on top of unspent Flourish procs or Finishing Move
     private bool ShouldFlourish(in Strategy strategy)
     {
         if (!Unlocked(AID.Flourish) || !CanWeave(AID.Flourish))
@@ -503,14 +491,13 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             return false;
         if (ThreefoldLeft > 0 || FourfoldLeft > 0 || SelfStatusLeft(SID.FlourishingSymmetry) > 0 || SelfStatusLeft(SID.FlourishingFlow) > 0 || FinishingMoveLeft > 0)
             return false;
-        return CombatTime > 20 || TechFinishLeft > 0;
+        return TechFinishLeft > 0 || !Unlocked(AID.TechnicalStep) || ReadyIn(AID.TechnicalStep) > 15;
     }
 
     private bool ShouldSpendFeather(in Strategy strategy, Enemy target)
     {
         if (Feathers == 0 || !Unlocked(AID.FanDance) || strategy.Feathers.Value == FeatherStrategy.Delay)
             return false;
-        // a Silken proc would add a feather to a full gauge
         var overcap = Feathers > 3 && SilkenLeft > 0;
         if (strategy.Feathers.Value == FeatherStrategy.Overcap)
             return overcap;
@@ -529,7 +516,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             return;
 
         var desired = strategy.Partner.Value == PartnerStrategy.SelectTarget ? ResolveTarget(strategy.Partner) : BestPartner();
-        // locked partner dead or weakened: use the best other one until they're back
         if (strategy.Partner.Value == PartnerStrategy.SelectTarget && desired != null && (desired.IsDead || desired.FindStatus(Weakness) != null || desired.FindStatus(BrinkOfDeath) != null))
             desired = BestPartner();
         if (desired == null || World.Party.Members.BoundSafeAt(World.Party.FindSlot(desired.InstanceID)).InCutscene)
@@ -538,7 +524,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         var current = World.Party.WithoutSlot(excludeAlliance: true).FirstOrDefault(p => p.FindStatus(SID.DancePartner, Player.InstanceID) != null);
         if (current == desired)
             return;
-        // swapping strips Standard Finish / Devilment for a few seconds
         if (Player.InCombat && current != null && (DevilmentLeft > 0 || strategy.Partner.Value == PartnerStrategy.Automatic
             && !current.IsDead && current.FindStatus(Weakness) == null && current.FindStatus(BrinkOfDeath) == null && !current.Statuses.Any(st => _damageDown.Contains(st.ID))))
             return;
@@ -553,7 +538,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     private const uint Weakness = 43;
     private const uint BrinkOfDeath = 44;
 
-    // partner ladder: melee DPS > DPS > anyone, first without Damage Down / Weakness, then relaxing
     private Actor? BestPartner()
     {
         var candidates = World.Party.WithoutSlot(excludeAlliance: true).Exclude(Player)

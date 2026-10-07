@@ -48,7 +48,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     public enum MiseryStrategy
     {
-        [Option("Use in raid buffs; right away on 2+ targets or to avoid overcapping")]
+        [Option("Use with raid buffs; right away on 2+ targets or to avoid overcapping")]
         Automatic,
         [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         ASAP,
@@ -81,20 +81,17 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
     private float RaidBuffsIn;
     private float DowntimeIn;
     private bool AOEMode;
-    private bool IsMoving;
     private float AnimLockDelay;
     private Targeting TargetMode;
 
     private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
-    private bool CanCast => !IsMoving && Hints.MaxCastTime >= 1.5f * GCDLength / 2.5f;
-    private bool HasRaidBuffJobs => RaidBuffsIn < 9000 || RaidBuffsLeft > 0;
-    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
+    private bool CanCast => Hints.MaxCastTime >= Math.Max(0, CastTime(AID.Stone) - 0.5f);
+    private bool HasRaidBuffJobs => TimeToKill.InBossFight(Bossmods.ActiveModule, World.Actors.Find(Player.TargetID)) && (RaidBuffsIn < 9000 || RaidBuffsLeft > 0);
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         AnimLockDelay = estimatedAnimLockDelay;
-        IsMoving = isMoving;
 
         TimeToKill.Update(World, Hints);
         var target = Hints.FindEnemy(primaryTarget);
@@ -116,7 +113,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         SacredSight = sight?.Extra ?? 0;
         SacredSightLeft = sight is { } s ? StatusDuration(s.ExpireAt) : 0;
 
-        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
+        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0);
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
 
         AOEMode = Unlocked(AID.Holy) && strategy.AOE.Value switch
@@ -136,7 +133,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             return;
         }
 
-        // lilies are free during downtime and between packs: fill the Blood Lily for the next pull
         if (target == null && strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery))
             PushGCD(LilySpell, Player, 10);
 
@@ -167,7 +163,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             && (strategy.GlareIV.Value == OffensiveStrategy.Force || !CanCast || RaidBuffsLeft > GCD || !HasRaidBuffJobs || SacredSightLeft < GCD + GCDLength * SacredSight + 1 || DowntimeIn < GCDLength * (SacredSight + 1)))
             PushGCD(AID.GlareIV, splash.Actor, 40);
 
-        // lilies are DPS-neutral on one target (never overcap them) and a gain when Misery cleaves 2+ enemies
         if (Player.InCombat && strategy.Lilies.Value != OffensiveStrategy.Delay && Unlocked(AID.AfflatusMisery) && BloodLily < 3 && Lily > 0
             && (strategy.Lilies.Value == OffensiveStrategy.Force || LilyCapIn < GCD + 8 || Hints.NumPriorityTargetsInAOECircle(splash.Actor.Position, 5) >= 2))
             PushGCD(LilySpell, Player, 35);
@@ -177,10 +172,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
         PushGCD(AID.Stone, target.Actor, 10);
 
-        // movement: lilies > Misery > Glare IV > early Dia as the last resort
         if (!CanCast)
         {
-            if (Lily > 0 && (BloodLily < 3 || !Unlocked(AID.AfflatusMisery)) && strategy.Lilies.Value != OffensiveStrategy.Delay)
+            if (Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery) && strategy.Lilies.Value != OffensiveStrategy.Delay)
                 PushGCD(LilySpell, Player, 9);
             if (BloodLily >= 3 && strategy.Misery.Value != MiseryStrategy.Delay)
                 PushGCD(AID.AfflatusMisery, splash.Actor, 8);
@@ -194,7 +188,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     private AID LilySpell => Unlocked(AID.AfflatusRapture) ? AID.AfflatusRapture : AID.AfflatusSolace;
 
-    // Misery is DPS-neutral on one target, so it waits for raid buffs unless the lilies would overcap first
     private bool ShouldMisery(in Strategy strategy, Enemy target, Enemy splash)
     {
         if (BloodLily < 3 || strategy.Misery.Value == MiseryStrategy.Delay)
@@ -217,20 +210,18 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         return MathF.Max(Left(SID.Dia), MathF.Max(Left(SID.AeroII), Left(SID.Aero)));
     }
 
-    // refresh on the last GCD before it would drop
     private float DotRefresh => GCD + GCDLength;
 
-    // Dia needs ~15s of ticks to beat Glare
     private bool DotWorthIt(Enemy e)
     {
-        if (e.ForbidDOTs || e.Priority < 0 && !IsBossTarget(e.Actor) || DowntimeIn < 15)
+        if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
             return false;
         return TimeToKill.WillLive(e.Actor, 15);
     }
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
     {
-        if (DotWorthIt(target) && DotLeft(target.Actor) < DotRefresh)
+        if (DotWorthIt(target) && (DotLeft(target.Actor) < DotRefresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < 8))
             return target.Actor;
         if (strategy.Dot.Value != DotStrategy.Automatic || AOEMode)
             return null;
@@ -243,22 +234,18 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(15))
         || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
 
-    private bool IsBossTarget(Actor target)
-        => target.IsStrikingDummy || Bossmods.ActiveModule?.PrimaryActor is { } boss && (target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP);
-
     #endregion
 
     #region oGCD
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        // with the raid buffs, unless that means holding it more than ~30s
         if (strategy.PresenceOfMind.Value != OffensiveStrategy.Delay && CanWeave(AID.PresenceOfMind)
-            && (strategy.PresenceOfMind.Value == OffensiveStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + GCDLength || RaidBuffsIn > 30)))
+            && (strategy.PresenceOfMind.Value == OffensiveStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + 1 || RaidBuffsIn > 30)))
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
         if (strategy.Assize.Value != OffensiveStrategy.Delay && CanWeave(AID.Assize)
-            && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0 && (CombatTime > 15 || !HasRaidBuffJobs || RaidBuffsLeft > 0 || CombatTime > GCDLength * 3)))
+            && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0 && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn > 8)))
             PushOGCD(AID.Assize, Player, 40);
 
         if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (Player.HPMP.CurMP <= 8000 || Player.HPMP.CurMP <= 9000 && MPCheckSoon))
@@ -303,7 +290,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         var def = ActionDefinitions.Instance[action];
         if (def == null || def.Range != 0 && target == null)
             return;
-        Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, ActionQueue.Priority.High + priority, castTime: CastTime(aid));
+        Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, ActionQueue.Priority.High + priority, castTime: Math.Max(0, CastTime(aid) - 0.5f));
     }
 
     private void PushOGCD(AID aid, Actor? target, int priority) => PushOGCD(ActionID.MakeSpell(aid), target, priority);
