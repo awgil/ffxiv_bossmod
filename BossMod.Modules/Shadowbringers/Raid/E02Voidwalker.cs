@@ -45,23 +45,7 @@ public enum IconID : uint
     ShadowEye = 179, // player->self, gaze
 }
 
-class EmptyHateKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EmptyHateKnockback, 25, kind: Kind.DirForward)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (s.Origin.X > 100)
-            {
-                hints.AddForbiddenZone(new AOEShapeRect(20, 15, 20), Arena.Center - new WDir(2, 0), default, s.Activation);
-            }
-            else
-            {
-                hints.AddForbiddenZone(new AOEShapeRect(20, 15, 20), Arena.Center + new WDir(2, 0), default, s.Activation);
-            }
-        }
-    }
-}
+class EmptyHateKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EmptyHateKnockback, 25, kind: Kind.DirForward);
 
 class DarkFireIIINormal(BossModule module) : Components.IconStackSpread(module, 0, (uint)IconID.DarkFireIII, null, AID.DarkFireIIINormal, 0, 8, 0);
 

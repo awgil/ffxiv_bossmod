@@ -63,6 +63,7 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+// TODO: WTF?????
 class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes: true)
 {
     private enum MagneticPole { None, Plus, Minus }

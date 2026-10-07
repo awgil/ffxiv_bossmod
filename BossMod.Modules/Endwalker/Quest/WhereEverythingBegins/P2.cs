@@ -27,14 +27,7 @@ class RottenRampage(BossModule module) : Components.StandardAOEs(module, AID.Rot
 class BlightedSwathe(BossModule module) : Components.StandardAOEs(module, AID.BlightedSwathe, new AOEShapeCone(40, 90.Degrees()));
 class BlightedSweep(BossModule module) : Components.StandardAOEs(module, AID.BlightedSweep, new AOEShapeCone(40, 90.Degrees()));
 class BlightedBuffet(BossModule module) : Components.StandardAOEs(module, AID.BlightedBuffet, new AOEShapeCircle(9));
-class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VacuumWave, 5)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var c in Casters)
-            hints.AddForbiddenZone(new AOEShapeDonut(13, 60), c.Position, activation: Module.CastFinishAt(c.CastInfo));
-    }
-}
+class VacuumWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.VacuumWave, 5);
 class VoidQuakeIII(BossModule module) : Components.StandardAOEs(module, AID.VoidQuakeIII, new AOEShapeCross(40, 5));
 class DeathWall(BossModule module) : Components.GenericAOEs(module, AID.CursedNoise)
 {

@@ -81,24 +81,6 @@ class Kickdown(BossModule module) : Components.Knockback(module, AID.Kickdown)
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, 18, Module.CastFinishAt(c.CastInfo)));
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Casters.Count == 0)
-            return;
-
-        var source = Casters[0];
-        var arenaBounds = ShapeDistance.InvertedCircle(Arena.Center, 20);
-
-        float kbdist(WPos playerPos)
-        {
-            var dir = (playerPos - source.Position).Normalized();
-            var expected = playerPos + 18 * dir;
-            return arenaBounds(expected);
-        }
-
-        hints.AddForbiddenZone(kbdist, Module.CastFinishAt(source.CastInfo));
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)

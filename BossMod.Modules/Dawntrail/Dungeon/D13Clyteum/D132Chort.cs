@@ -38,15 +38,7 @@ public enum IconID : uint
 class RipplesOfGloom(BossModule module) : Components.RaidwideCast(module, AID.RipplesOfGloom);
 class MortifyingFlesh(BossModule module) : Components.GroupedAOEs(module, [AID.MortifyingFlesh1, AID.MortifyingFlesh2], new AOEShapeRect(40, 8));
 class BasicVomit(BossModule module) : Components.StandardAOEs(module, AID.BasicVomit, new AOEShapeCone(50f, 60.Degrees()));
-class BodyweightExorcismKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodyweightExorcismKB, 8)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(src.Origin, 7), src.Activation);
-    }
-}
+class BodyweightExorcismKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodyweightExorcismKB, 8);
 class BodyweightExorcismTower(BossModule module) : Components.CastTowers(module, AID.BodyweightExorcismTower, 4, minSoakers: 4, maxSoakers: 4);
 class EvilEmission(BossModule module) : Components.SpreadFromCastTargets(module, AID.EvilEmission, 5);
 class ProfanePressure(BossModule module) : Components.StackWithCastTargets(module, AID.ProfanePressure, 5);

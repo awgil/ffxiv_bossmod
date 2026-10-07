@@ -376,27 +376,6 @@ class BigWave(BossModule module) : Components.Knockback(module, AID.BigWaveKnock
                 yield return new Source(s.Position, 32, _activation, Direction: s.Rotation, Kind: Kind.DirForward);
         }
     }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_sources.Count >= 1)
-        {
-            var arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
-
-            float kbSafe(WPos playerPos)
-            {
-                var dist = float.MaxValue;
-                foreach (var source in _sources)
-                {
-                    var expected = playerPos + 32 * source.Rotation.ToDirection();
-                    dist = MathF.Min(dist, arenaBounds(expected));
-                }
-
-                return dist;
-            }
-
-            hints.AddForbiddenZone(kbSafe, _activation);
-        }
-    }
 
     public override void OnActorCreated(Actor actor)
     {

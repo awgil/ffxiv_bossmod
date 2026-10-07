@@ -28,16 +28,7 @@ class Backhand(BossModule module) : Components.GroupedAOEs(module, [AID.Backhand
 class DevilsQuarter(BossModule module) : Components.StandardAOEs(module, AID.DevilsQuarter, new AOEShapeCone(35, 45.Degrees()));
 class ArcaneBeacon(BossModule module) : Components.GroupedAOEs(module, [AID.ArcaneBeaconSlow, AID.ArcaneBeaconFast], new AOEShapeRect(50, 5));
 class HotIron(BossModule module) : Components.StandardAOEs(module, AID.HotIron, 6);
-class Skinflayer(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Skinflayer, 30, kind: Kind.DirForward)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(ShapeDistance.Rect(src.Origin + src.Direction.ToDirection() * 10, src.Direction, 50, 0, 25), src.Activation);
-    }
-}
-
+class Skinflayer(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Skinflayer, 30, kind: Kind.DirForward);
 class D90MalacodaStates : StateMachineBuilder
 {
     public D90MalacodaStates(BossModule module) : base(module)

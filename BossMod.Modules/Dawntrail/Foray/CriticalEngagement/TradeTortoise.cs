@@ -258,19 +258,6 @@ class CostOfLiving(BossModule module) : Components.KnockbackFromCastTarget(modul
 {
     // 3 helpers cast the spell since effectresult maxes out at 24 targets
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Take(1);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
-                {
-                    var dir = (p - src.Origin).Normalized() * 30;
-                    return !(p + dir).InCircle(Arena.Center, 25);
-                }), src.Activation);
-        }
-    }
 }
 
 class Waterspout(BossModule module) : Components.StandardAOEs(module, AID.Waterspout, new AOEShapeCircle(12), maxCasts: 7);

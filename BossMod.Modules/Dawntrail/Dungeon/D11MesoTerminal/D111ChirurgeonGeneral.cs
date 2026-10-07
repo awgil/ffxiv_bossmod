@@ -20,23 +20,7 @@ public enum AID : uint
 }
 
 class MedicineField(BossModule module) : Components.RaidwideCast(module, AID.MedicineField);
-class PungentAerosol(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PungentAerosol, 24)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        // TODO: add hints to avoid big circle AOEs, not sure if 5.5s is enough time to get from risky corner to safety
-        foreach (var c in Sources(slot, actor))
-            if (!IsImmune(slot, c.Activation))
-            {
-                var center = Arena.Center;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
-                {
-                    var dir = (p - c.Origin).Normalized() * 24;
-                    return !(p + dir).AlmostEqual(center, 20);
-                }), c.Activation);
-            }
-    }
-}
+class PungentAerosol(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PungentAerosol, 24);
 class SterileSphereSmall(BossModule module) : Components.StandardAOEs(module, AID.SterileSphereSmall, 8);
 class SterileSphereLarge(BossModule module) : Components.StandardAOEs(module, AID.SterileSphereLarge, 15);
 class BiochemicalFront(BossModule module) : Components.StandardAOEs(module, AID.BiochemicalFront, new AOEShapeRect(40, 32.5f));

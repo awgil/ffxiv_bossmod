@@ -114,20 +114,7 @@ class AirBump(BossModule module) : Components.StackWithCastTargets(module, AID.A
 class Thorns(BossModule module) : Components.StandardAOEs(module, AID.Thorns, 4);
 
 class Downburst(BossModule module) : Components.GroupedAOEs(module, [AID.Downburst, AID.DownburstRaktapaksa], new AOEShapeCircle(8));
-class DownburstKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DownburstKnockback, 7)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            var origin = s.Origin;
-            var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.Discrete(p => !Module.InBounds(AwayFromSource(p, origin, dist))), s.Activation);
-        }
-    }
-}
+class DownburstKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DownburstKnockback, 7);
 
 class StormOfFury(BossModule module) : Components.GroupedAOEs(module, [AID.StormOfFury, AID.StormOfFuryRaktapaksa], new AOEShapeCircle(11));
 class StormOfFuryTether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(40, 15.Degrees()), (uint)TetherID.StormOfFury); // TODO: verify angle

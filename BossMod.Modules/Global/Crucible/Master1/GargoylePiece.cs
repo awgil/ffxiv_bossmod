@@ -232,22 +232,7 @@ class MaladyOrb(BossModule module) : BossComponent(module)
 }
 
 class FivefoldFallout(BossModule module) : Components.RaidwideCastDelay(module, AID._Weaponskill_FivefoldFallout1, AID._Weaponskill_FivefoldFallout5, 8.8f, "Raidwide 5x");
-class FivefoldFalloutKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_FivefoldFallout5, 20)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            var ctr = Arena.Center;
-            var orig = src.Origin;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
-            {
-                var dir = (p - orig).Normalized() * 20;
-                return !(p + dir).AlmostEqual(ctr, 20);
-            }), src.Activation);
-        }
-    }
-}
+class FivefoldFalloutKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_FivefoldFallout5, 20);
 class Desolation(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Desolation1, new AOEShapeRect(60, 3.5f));
 class SeaOfPitch(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_SeaOfPitch1, 6);
 

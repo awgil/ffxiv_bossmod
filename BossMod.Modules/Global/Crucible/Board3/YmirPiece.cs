@@ -72,17 +72,7 @@ class HeadSnatch(BossModule module) : BossComponent(module)
 class WaterII(BossModule module) : Components.StandardAOEs(module, AID._Spell_WaterII, 6);
 
 class BlanketThunder(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_BlanketThunder);
-class Tsunami(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Tsunami1, 35, kind: Kind.DirForward)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Casters is [{ CastInfo: { } ci }, ..])
-        {
-            var rot = (ci.Rotation + 180.Degrees()).ToDirection();
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center + rot * 15, Arena.Center + rot * 20, 20), Module.CastFinishAt(ci));
-        }
-    }
-}
+class Tsunami(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Tsunami1, 35, kind: Kind.DirForward);
 class Dreadwash(BossModule module) : Components.CastInterruptHint(module, AID._Spell_Dreadwash);
 
 class YmirPieceStates : StateMachineBuilder
