@@ -384,7 +384,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 19);
                 UseOGCD(BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
             }
-            if (raidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f && Hints.MaxCastTime > 0)
+            if (raidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
                 Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 17, targetPos: GetBestPartyCoverage(10));
 
             foreach (var (tank, at) in Tankbusters)
@@ -404,7 +404,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             var raw = PredictedRatio(target);
             if (QuietPeriod && raw > 0.55f && raw < 0.85f && !HasHealOverTime(target))
             {
-                if (auto && Hints.MaxCastTime > 0 && MissingWithoutRegen(10) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
+                if (auto && MissingWithoutRegen(10) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 12, targetPos: GetBestPartyCoverage(10, injuredOnly: true));
                 else if (MissingWithoutRegen(20, 0.8f) >= 3 && canApplyMedicaRegen)
                     UseGCD(bestM2, Player, 2);

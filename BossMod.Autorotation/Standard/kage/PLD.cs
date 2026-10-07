@@ -166,7 +166,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         if (target == null)
             return;
 
-        CurrentTarget = target.Actor;
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3);
         Hints.GoalZones.Add(allowAoE && Unlocked(AID.TotalEclipse) ? AIHints.GoalCombined(goal, Hints.GoalAOECircle(5), 3) : goal);
 
@@ -249,7 +248,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     private void OGCDs(in Strategy strategy, Enemy target)
     {
         var requiescatNext = Unlocked(AID.Requiescat) && ReadyIn(Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat) <= GCD;
-        if (ShouldFightOrFlight(strategy))
+        if (ShouldFightOrFlight(strategy, target.Actor))
             PushOGCD(AID.FightOrFlight, Player, 70, requiescatNext ? 0 : GCD - 0.8f);
 
         if (BladeOfHonorLeft > 0)
@@ -282,7 +281,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
     private static uint SelfStatusOf(AID sheltron) => sheltron == AID.HolySheltron ? 2674u : 1856u;
 
-    private bool ShouldFightOrFlight(in Strategy strategy)
+    private bool ShouldFightOrFlight(in Strategy strategy, Actor target)
     {
         if (!CanWeave(AID.FightOrFlight) || strategy.FightOrFlight.Value == OffensiveStrategy.Delay)
             return false;
@@ -290,7 +289,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             return true;
         if (DowntimeIn < 10)
             return false;
-        if (CurrentTarget != null && !TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, CurrentTarget, 10))
+        if (!TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, 10))
             return false;
         if (Unlocked(AID.Requiescat) && MP < HolySpiritMP * 3.6f)
             return false;
@@ -357,8 +356,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         }
         return best;
     }
-
-    private Actor? CurrentTarget;
 
     private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
     private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;

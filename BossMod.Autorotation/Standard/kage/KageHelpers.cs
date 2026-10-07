@@ -68,7 +68,7 @@ public static class StateTimeline
         if (sm == null || s == null)
             yield break;
         var t = MathF.Max(0, s.Duration - sm.TimeSinceTransition);
-        while (s != null && t <= horizon)
+        for (var i = 0; i < 256 && s != null && t <= horizon; i++)
         {
             if ((s.EndHint & (StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster)) != 0)
                 yield return (ws.FutureTime(t), s.EndHint);
