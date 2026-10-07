@@ -1,7 +1,5 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class PreTwister(BossModule module) : BossComponent(module);
-
 class Twister(BossModule module) : Components.CastTwister(module, 1.25f, (uint)OID.VoidzoneTwister, AID.Twister, 0.3f, predictBeforeSpawn: 0.65f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
