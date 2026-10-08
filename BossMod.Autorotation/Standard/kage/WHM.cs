@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageWHM(RotationModuleManager manager, Actor player) : TypedRotationModule<KageWHM.Strategy>(manager, player)
+public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageRotation<KageWHM.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -34,6 +34,19 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
+
+        [Track("Opener", UiPriority = -10)]
+        public Track<OpenerStrategy> Opener;
+    }
+
+    public enum OpenerStrategy
+    {
+        [Option("Early Dia refresh opener (Glare III at -2.3s)")]
+        Standard,
+        [Option("Double Misery opener (Rapture x3 in the first buffs for a second Misery)", MinLevel = 76)]
+        DoubleMisery,
+        [Option("No pre-pull cast")]
+        None
     }
 
     public enum DotStrategy
@@ -73,37 +86,19 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     private int Lily;
     private int BloodLily;
-    private float NextLily;
+    private float NextLily { get; set; }
     private float SacredSightLeft;
     private int SacredSight;
 
-    private float RaidBuffsLeft;
-    private float RaidBuffsIn;
-    private float DowntimeIn;
     private bool AOEMode;
-    private float AnimLockDelay;
-    private Targeting TargetMode;
 
-    private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
+    protected override bool UsesSpellSpeed => true;
     private bool CanCast => Hints.MaxCastTime >= Math.Max(0, CastTime(AID.Stone) - 0.5f);
-    private bool HasRaidBuffJobs => TimeToKill.InBossFight(Bossmods.ActiveModule, World.Actors.Find(Player.TargetID)) && (RaidBuffsIn < 9000 || RaidBuffsLeft > 0);
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        AnimLockDelay = estimatedAnimLockDelay;
-
-        TimeToKill.Update(World, Hints);
-        var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
-            target = null;
-
-        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
-        if (TargetMode == Targeting.Auto && target == null)
-        {
-            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
-            primaryTarget = target?.Actor;
-        }
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25);
 
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
         Lily = gauge.Lily;
@@ -112,9 +107,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         var sight = Player.FindStatus(SID.SacredSight, Player.InstanceID);
         SacredSight = sight?.Extra ?? 0;
         SacredSightLeft = sight is { } s ? StatusDuration(s.ExpireAt) : 0;
-
-        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0);
-        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
 
         AOEMode = Unlocked(AID.Holy) && strategy.AOE.Value switch
         {
@@ -128,7 +120,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            if (target != null && countdown < CastTime(AID.Stone) + 0.8f)
+            if (target != null && strategy.Opener.Value != OpenerStrategy.None && countdown < CastTime(AID.Stone) + 0.8f)
                 PushGCD(AID.Stone, target.Actor, 10);
             return;
         }
@@ -166,6 +158,10 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         if (Player.InCombat && strategy.Lilies.Value != OffensiveStrategy.Delay && Unlocked(AID.AfflatusMisery) && BloodLily < 3 && Lily > 0
             && (strategy.Lilies.Value == OffensiveStrategy.Force || LilyCapIn < GCD + 8 || Hints.NumPriorityTargetsInAOECircle(splash.Actor.Position, 5) >= 2))
             PushGCD(LilySpell, Player, 35);
+
+        if (strategy.Opener.Value == OpenerStrategy.DoubleMisery && Player.InCombat && CombatTime < 30 && Unlocked(AID.AfflatusRapture) && strategy.Lilies.Value != OffensiveStrategy.Delay
+            && BloodLily < 3 && Lily >= 3 - BloodLily && RaidBuffsLeft > GCD + GCDLength * (3 - BloodLily))
+            PushGCD(AID.AfflatusRapture, Player, 38);
 
         if (AOEMode)
             PushGCD(AID.Holy, Player, 20);
@@ -230,10 +226,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
         return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
     }
 
-    private bool MPCheckSoon
-        => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(15))
-        || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
-
     #endregion
 
     #region oGCD
@@ -245,12 +237,12 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
         if (strategy.Assize.Value != OffensiveStrategy.Delay && CanWeave(AID.Assize)
-            && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0 && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn > 8)))
+            && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0))
             PushOGCD(AID.Assize, Player, 40);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (Player.HPMP.CurMP <= 8000 || Player.HPMP.CurMP <= 9000 && MPCheckSoon))
-            if (CanWeave(ActionID.MakeSpell(ClassShared.AID.LucidDreaming)))
-                PushOGCD(ActionID.MakeSpell(ClassShared.AID.LucidDreaming), Player, 20);
+        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && Player.HPMP.CurMP <= 9000)
+            if (CanWeave(ClassShared.AID.LucidDreaming))
+                PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
 
     #endregion
@@ -259,47 +251,21 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : Typed
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithRaidBuffs => World.Client.CountdownRemaining is > 0 and < 2 || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
         PotionStrategy.Immediate => true,
         _ => false
     };
 
     private float CastTime(AID aid)
     {
-        if (Player.FindStatus((uint)ClassShared.SID.Swiftcast, Player.InstanceID) != null)
+        if (SelfStatusLeft(ClassShared.SID.Swiftcast) > 0)
             return 0;
         var def = ActionDefinitions.Instance.Spell(aid);
         return def == null || def.CastTime == 0 ? 0 : def.CastTime * GCDLength / 2.5f;
     }
 
-    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
-
-    private bool CanWeave(AID aid) => CanWeave(ActionID.MakeSpell(aid));
-    private bool CanWeave(ActionID action)
-    {
-        if (!ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def)
-            return false;
-        return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
-    }
-
     private void PushGCD(AID aid, Actor? target, int priority)
-    {
-        if (!Unlocked(aid))
-            return;
-        var action = ActionID.MakeSpell(aid);
-        var def = ActionDefinitions.Instance[action];
-        if (def == null || def.Range != 0 && target == null)
-            return;
-        Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, ActionQueue.Priority.High + priority, castTime: Math.Max(0, CastTime(aid) - 0.5f));
-    }
-
-    private void PushOGCD(AID aid, Actor? target, int priority) => PushOGCD(ActionID.MakeSpell(aid), target, priority);
-    private void PushOGCD(ActionID action, Actor? target, int priority)
-    {
-        if (!ActionUnlocked(action))
-            return;
-        Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.Low + priority);
-    }
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, castTime: MathF.Max(0, CastTime(aid) - 0.5f));
 
     #endregion
 }

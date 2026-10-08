@@ -1,6 +1,5 @@
 ﻿namespace BossMod.Autorotation.kage;
 
-// shared time-to-kill estimate for the Kage rotations: HP lost per second over the last ~15s of samples
 public static class TimeToKill
 {
     private const float SampleInterval = 0.5f;
@@ -58,7 +57,7 @@ public static class TimeToKill
     }
 }
 
-// raidwides / tankbusters from the module's timeline, for modules that don't predict damage (FRU)
+// raidwides / tankbusters from the module's timeline, for modules that don't predict damage
 public static class StateTimeline
 {
     public static IEnumerable<(DateTime at, StateMachine.StateHint hint)> Upcoming(BossModule? module, WorldState ws, float horizon = 30)
@@ -92,18 +91,18 @@ public static class StateTimeline
     public static IEnumerable<(Actor target, DateTime at)> Tankbusters(BossModule? module, WorldState ws, AIHints hints, float horizon = 30)
     {
         var predicted = hints.PredictedDamage.Where(d => d.Type == AIHints.PredictedDamageType.Tankbuster)
-            .SelectMany(d => ws.Party.WithSlot().IncludedInMask(d.Players).Select(p => (p.Item2, d.Activation))).ToList();
+            .SelectMany(d => ws.Party.WithSlot().IncludedInMask(d.Players).Select(p => (target: p.Item2, at: d.Activation))).ToList();
         foreach (var p in predicted)
             yield return p;
         if (module?.PrimaryActor is not { } boss || ws.Actors.Find(boss.TargetID) is not { } tank || ws.Party.FindSlot(tank.InstanceID) < 0)
             yield break;
         foreach (var (at, hint) in Upcoming(module, ws, horizon))
-            if (hint.HasFlag(StateMachine.StateHint.Tankbuster) && !predicted.Any(p => Math.Abs((p.Item2 - at).TotalSeconds) < 3))
+            if (hint.HasFlag(StateMachine.StateHint.Tankbuster) && !predicted.Any(p => Math.Abs((p.at - at).TotalSeconds) < 3))
                 yield return (tank, at);
     }
 }
 
-// BossMod's estimate reads "buffs now" until someone uses one (forever if nobody has a raid buff);
+// BossMod's estimate reads "buffs now" until someone uses one (forever if nobody has a raid buff)
 public static class RaidBuffs
 {
     public const float OpenerBuffs = 7.8f;
@@ -144,7 +143,6 @@ public static class RaidBuffs
     };
 }
 
-// spend-or-hold decisions for resources that feed a burst window (MCH Queen, ...)
 public static class BurstPlanner
 {
     public const float BuffWeight = 1.15f;
@@ -158,4 +156,92 @@ public static class BurstPlanner
 
     public static float Overlap(float start, float length, float buffStart, float buffLength)
         => MathF.Max(0, MathF.Min(start + length, buffStart + buffLength) - MathF.Max(start, buffStart));
+}
+
+public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Actor player) : TypedRotationModule<TStrategy>(manager, player) where TStrategy : struct
+{
+    protected float AnimLockDelay;
+    protected Targeting TargetMode;
+    protected float DowntimeIn;
+    protected float RaidBuffsLeft;
+    protected float RaidBuffsIn;
+    protected bool InBossFight;
+
+    protected virtual bool UsesSpellSpeed => false;
+    protected float GCDLength => ActionSpeed.GCDRounded(UsesSpellSpeed ? World.Client.PlayerStats.SpellSpeed : World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
+    protected float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
+    protected bool NoRaidBuffs => RaidBuffsIn > 9000 && RaidBuffsLeft == 0;
+    protected bool HasRaidBuffJobs => InBossFight && !NoRaidBuffs;
+    protected bool PotionPrepull => World.Client.CountdownRemaining is > 0 and < 2;
+    protected bool PotionWithRaidBuffs => PotionPrepull || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5);
+
+    protected AIHints.Enemy? SelectTarget(Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange)
+    {
+        AnimLockDelay = estimatedAnimLockDelay;
+        TimeToKill.Update(World, Hints);
+
+        var target = Hints.FindEnemy(primaryTarget);
+        if (target?.Priority is AIHints.Enemy.PriorityInvincible or AIHints.Enemy.PriorityForbidden || target?.Priority == AIHints.Enemy.PriorityPointless && Hints.PriorityTargets.Any())
+            target = null;
+
+        TargetMode = targeting == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : targeting;
+        if (TargetMode == Targeting.Auto && target == null)
+        {
+            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= autoRange).MinBy(e => Player.DistanceToHitbox(e.Actor));
+            primaryTarget = target?.Actor;
+        }
+
+        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
+        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, CombatTime);
+        InBossFight = TimeToKill.InBossFight(Bossmods.ActiveModule, target?.Actor ?? primaryTarget);
+        return target;
+    }
+
+    protected bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
+    protected float ReadyIn<AID>(AID aid) where AID : Enum => ReadyIn(ActionID.MakeSpell(aid));
+    protected float ReadyIn(ActionID action) => ActionUnlocked(action) && ActionDefinitions.Instance[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
+    protected bool GCDReady<AID>(AID aid) where AID : Enum => ReadyIn(aid) < GCD + 0.05f;
+
+    protected bool CanWeave<AID>(AID aid) where AID : Enum => CanWeave(ActionID.MakeSpell(aid));
+    protected bool CanWeave(ActionID action)
+    {
+        if (!ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def)
+            return false;
+        return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
+    }
+
+    protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)
+    {
+        if (action.ID == 0 || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
+            return false;
+        var targetPos = def.AllowedTargets.HasFlag(ActionTargets.Area) ? (def.Range == 0 ? Player.PosRot.XYZ() : target?.PosRot.XYZ() ?? default) : default;
+        Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facing);
+        return true;
+    }
+
+    protected bool PushOGCD<AID>(AID aid, Actor? target, int priority, float delay = 0) where AID : Enum
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
+
+    protected (Actor? Best, int Count) BestAOETarget(AIHints.Enemy? primary, float range, bool allowAoE, Func<Actor, Actor, bool> hits)
+    {
+        if (primary == null)
+            return (null, 0);
+
+        int Count(Actor center) => Hints.ForbiddenTargets.Any(e => hits(center, e.Actor)) ? 0 : Hints.PriorityTargets.Count(e => hits(center, e.Actor));
+
+        var best = primary.Actor;
+        var bestCount = Count(best);
+        if (!allowAoE || TargetMode == Targeting.Manual)
+            return (best, bestCount);
+
+        foreach (var e in Hints.PriorityTargets)
+        {
+            if (e.Actor == primary.Actor || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !hits(e.Actor, primary.Actor))
+                continue;
+            var c = Count(e.Actor);
+            if (c > bestCount)
+                (best, bestCount) = (e.Actor, c);
+        }
+        return (best, bestCount);
+    }
 }

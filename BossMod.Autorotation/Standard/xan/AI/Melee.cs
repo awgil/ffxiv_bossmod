@@ -60,7 +60,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
 
         // feint before raidwides, unless another melee already did
         if (strategy.Feint.Value == DisabledByDefault.Enabled && Player.InCombat && primaryTarget is { IsAlly: false } ft
-            && Raidwides.Any(t => t > World.CurrentTime && t <= World.FutureTime(5))
+            && RaidwideWithin(5)
             && Unlocked(ClassShared.AID.Feint) && NextChargeIn(ClassShared.AID.Feint) == 0
             && ft.FindStatus(ClassShared.SID.Feint) == null && Player.DistanceToHitbox(ft) <= 10)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), ft, ActionQueue.Priority.Medium);

@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KagePLD(RotationModuleManager manager, Actor player) : TypedRotationModule<KagePLD.Strategy>(manager, player)
+public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageRotation<KagePLD.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -32,7 +32,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
 
-        [Track("Opener", MinLevel = 2, UiPriority = -10, Context = StrategyContext.Plan)]
+        [Track("Opener", MinLevel = 2, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
@@ -81,6 +81,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
 
     private const int HolySpiritMP = 1000;
     private const uint PassageOfArmsBuff = 1175;
+    private const uint SheltronSID = 1856;
+    private const uint HolySheltronSID = 2674;
 
     private int Oath;
     private float FoFLeft;
@@ -93,37 +95,22 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
     private float SepulchreLeft;
     private float BladeOfHonorLeft;
 
-    private float DowntimeIn;
     private Actor? BestSplashTarget;
     private bool AOEMode;
     private bool InMelee;
-    private float AnimLockDelay;
-    private Targeting TargetMode;
 
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private float ComboLeft => World.Client.ComboState.Remaining;
-    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     private int MP => (int)Player.HPMP.CurMP;
+    private int AoEMinTargets => Player.Level >= 94 ? 3 : 2;
     private float FoFIn => ReadyIn(AID.FightOrFlight);
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        AnimLockDelay = estimatedAnimLockDelay;
-
         if (Player.FindStatus(PassageOfArmsBuff, Player.InstanceID) != null)
             return;
 
-        TimeToKill.Update(World, Hints);
-        var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
-            target = null;
-
-        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
-        if (TargetMode == Targeting.Auto && target == null)
-        {
-            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
-            primaryTarget = target?.Actor;
-        }
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3);
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
@@ -136,16 +123,15 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         SepulchreLeft = SelfStatusLeft(SID.SepulchreReady);
         BladeOfHonorLeft = SelfStatusLeft(SID.BladeOfHonorReady);
 
-        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         AOEMode = Unlocked(AID.TotalEclipse) && strategy.AOE.Value switch
         {
             AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) >= 3,
+            AOEStrategy.AOE => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) >= AoEMinTargets,
             _ => false
         };
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
-        BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5));
+        BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
@@ -167,7 +153,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             return;
 
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3);
-        Hints.GoalZones.Add(allowAoE && Unlocked(AID.TotalEclipse) ? AIHints.GoalCombined(goal, Hints.GoalAOECircle(5), 3) : goal);
+        Hints.GoalZones.Add(allowAoE && Unlocked(AID.TotalEclipse) ? AIHints.GoalCombined(goal, Hints.GoalAOECircle(5), AoEMinTargets) : goal);
 
         GCDs(strategy, target);
         if (Player.InCombat)
@@ -188,7 +174,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             var goringTarget = AOEMode
                 ? Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor
                 : InMelee ? target.Actor : null;
-            if (goringTarget != null && (!AOEMode || Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) <= 4))
+            if (goringTarget != null && (!AOEMode || Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) <= (Player.Level >= 72 ? 3 : 4)))
                 PushGCD(AID.GoringBlade, goringTarget, 60);
         }
 
@@ -205,7 +191,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
             PushGCD(holyAction, holyTarget, 58);
 
         if (canHoly && DivineMightLeft > GCD && (FoFLeft > GCD || !InMelee || ComboLastMove == (AOEMode ? AID.TotalEclipse : AID.RiotBlade) || DivineMightLeft < 6))
-            PushGCD(holyAction, holyTarget, DivineMightLeft < 6 ? 46 : 44);
+            PushGCD(holyAction, holyTarget, DivineMightLeft < 6 || FoFLeft <= GCD ? 46 : 44);
 
         if (!InMelee && !AOEMode)
         {
@@ -274,12 +260,10 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         if (strategy.Sheltron.Value == SheltronStrategy.Automatic && Oath >= 95 && Hints.PotentialTargets.Any(e => e.Actor.TargetID == Player.InstanceID && e.Actor.InCombat))
         {
             var sheltron = Unlocked(AID.HolySheltron) ? AID.HolySheltron : AID.Sheltron;
-            if (CanWeave(sheltron) && Player.FindStatus(SelfStatusOf(sheltron)) == null)
+            if (CanWeave(sheltron) && Player.FindStatus(sheltron == AID.HolySheltron ? HolySheltronSID : SheltronSID) == null)
                 PushOGCD(sheltron, Player, 40);
         }
     }
-
-    private static uint SelfStatusOf(AID sheltron) => sheltron == AID.HolySheltron ? 2674u : 1856u;
 
     private bool ShouldFightOrFlight(in Strategy strategy, Actor target)
     {
@@ -319,7 +303,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         }
         if (dist > 3 || Hints.MaxCastTime <= 0)
             return;
-        var capping = ActionDefinitions.Instance.Spell(AID.Intervene)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) < GCD + 2;
+        var capping = MaxChargesIn(AID.Intervene) < GCD + 2;
         if (FoFLeft > 0 || !Unlocked(AID.FightOrFlight) || capping && FoFIn > 25)
             PushOGCD(AID.Intervene, target.Actor, 55);
     }
@@ -335,41 +319,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         _ => false
     };
 
-    private Actor? BestAOETarget(Enemy? primary, float range, bool allowAoE, Func<Actor, Actor, bool> hits)
-    {
-        if (primary == null)
-            return null;
-
-        int Count(Actor center) => Hints.ForbiddenTargets.Any(e => hits(center, e.Actor)) ? 0 : Hints.PriorityTargets.Count(e => hits(center, e.Actor));
-
-        var best = primary.Actor;
-        if (!allowAoE || TargetMode == Targeting.Manual)
-            return best;
-        var bestCount = Count(best);
-        foreach (var e in Hints.PriorityTargets)
-        {
-            if (e.Actor == primary.Actor || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !hits(e.Actor, primary.Actor))
-                continue;
-            var c = Count(e.Actor);
-            if (c > bestCount)
-                (best, bestCount) = (e.Actor, c);
-        }
-        return best;
-    }
-
-    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
-    private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-
-    private bool CanWeave(AID aid)
-    {
-        if (!Unlocked(aid))
-            return false;
-        var def = ActionDefinitions.Instance.Spell(aid)!;
-        return MathF.Max(ReadyIn(aid), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
-    }
-
     private void PushGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0, MathF.Max(0, CastTime(aid) - 0.5f));
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, castTime: MathF.Max(0, CastTime(aid) - 0.5f));
 
     // Holy Spirit / Holy Circle are 1.5s casts unless Divine Might or Requiescat makes them instant; the queue needs this to not start one before a dodge
     private float CastTime(AID aid)
@@ -377,19 +328,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : Typed
         if (aid is not (AID.HolySpirit or AID.HolyCircle) || DivineMightLeft > GCD || RequiescatLeft > GCD)
             return 0;
         return ActionDefinitions.Instance.Spell(aid)?.CastTime ?? 0;
-    }
-
-    private void PushOGCD(AID aid, Actor? target, int priority, float delay = 0)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
-
-    private void PushAction(ActionID action, Actor? target, float priority, float delay, float castTime = 0)
-    {
-        if (action.ID == 0 || !ActionUnlocked(action))
-            return;
-        var def = ActionDefinitions.Instance[action];
-        if (def == null || def.Range != 0 && target == null)
-            return;
-        Hints.ActionsToExecute.Push(action, target, priority, delay: delay, castTime: castTime);
     }
 
     #endregion

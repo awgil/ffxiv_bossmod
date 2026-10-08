@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageVPR(RotationModuleManager manager, Actor player) : TypedRotationModule<KageVPR.Strategy>(manager, player)
+public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageRotation<KageVPR.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -38,7 +38,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
 
-        [Track("Opener", MinLevel = 100, UiPriority = -10, Context = StrategyContext.Plan)]
+        [Track("Opener", MinLevel = 100, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
@@ -154,23 +154,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private float Reawakened;
     private float TrueNorthLeft;
 
-    private float RaidBuffsLeft;
-    private float RaidBuffsIn;
-    private float DowntimeIn;
-    private bool InBossFight;
-
     private Actor? BestSplashTarget;
     private bool AllowAoE;
     private bool AOEMode;
     private bool InMelee;
-    private float AnimLockDelay;
 
-    private Targeting TargetMode;
     private OpenerStrategy OpenerMode;
     private AID NextGCD;
     private float NextGCDPrio;
 
-    private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private float ComboLeft => World.Client.ComboState.Remaining;
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
@@ -179,30 +171,17 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         || IsExpiring(HonedSteel, within) || IsExpiring(HonedReavers, within);
     private static bool IsExpiring(float left, float within) => left > 0 && left < within;
 
-
     private bool HasBothBuffs => Swiftscaled > GCD && Instinct > GCD;
     private bool TwinWeavesPending => Unlocked(AID.TwinfangBite) && (HuntersVenom > 0 || SwiftskinsVenom > 0 || FellhuntersVenom > 0 || FellskinsVenom > 0 || PoisedForTwinfang > 0 || PoisedForTwinblood > 0);
     private float IreIn => ReadyIn(AID.SerpentsIre);
-    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        AnimLockDelay = estimatedAnimLockDelay;
         NextGCD = AID.None;
         NextGCDPrio = 0;
 
-        TimeToKill.Update(World, Hints);
-        var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
-            target = null;
-
-        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
-        if (TargetMode == Targeting.Auto && target == null)
-        {
-            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
-            primaryTarget = target?.Actor;
-        }
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3);
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
         {
@@ -249,10 +228,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         ReawakenReady = SelfStatusLeft(SID.ReawakenReady);
         Reawakened = SelfStatusLeft(SID.Reawakened);
         TrueNorthLeft = SelfStatusLeft(SID.TrueNorth);
-
-        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0);
-        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
-        InBossFight = TimeToKill.InBossFight(Bossmods.ActiveModule, primaryTarget);
 
         AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         AOEMode = Unlocked(AID.SteelMaw) && strategy.AOE.Value switch
@@ -531,7 +506,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (Swiftscaled < windowLength || Instinct < windowLength || ComboLeft > 0 && ComboLeft < GCDLength * 6)
             return false;
 
-        if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0 || !TimeToKill.WillLive(target, 20))
+        if (dying || !InBossFight || NoRaidBuffs || !TimeToKill.WillLive(target, 20))
             return true;
 
         if (ReawakenReady > 30 - GCDLength && DowntimeIn > windowLength * 2 + GCDLength)
@@ -661,72 +636,28 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => World.Client.CountdownRemaining is > 0 and < 2 || Player.InCombat && (Unlocked(AID.SerpentsIre) ? ReadyIn(AID.SerpentsIre) < 6 : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
-        PotionStrategy.AlignWithRaidBuffs => World.Client.CountdownRemaining is > 0 and < 2 || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.SerpentsIre) ? ReadyIn(AID.SerpentsIre) < 6 : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
         PotionStrategy.Immediate => true,
         _ => false
     };
 
     private Actor BestSplash(Enemy primary, float range)
-    {
-        int Count(Actor c) => Hints.ForbiddenTargets.Any(e => TargetInAOECircle(e.Actor, c.Position, 5)) ? 0 : Hints.PriorityTargets.Count(e => TargetInAOECircle(e.Actor, c.Position, 5));
-        var best = primary.Actor;
-        if (!AllowAoE || TargetMode == Targeting.Manual)
-            return best;
-        var bestCount = Count(best);
-        foreach (var e in Hints.PriorityTargets)
-        {
-            if (e.Actor == best || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !TargetInAOECircle(primary.Actor, e.Actor.Position, 5))
-                continue;
-            var c = Count(e.Actor);
-            if (c > bestCount)
-                (best, bestCount) = (e.Actor, c);
-        }
-        return best;
-    }
+        => BestAOETarget(primary, range, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best ?? primary.Actor;
 
-    private bool Unlocked(AID aid) => ActionUnlocked(aid);
     private bool Unlocked(TraitID tid) => TraitUnlocked((uint)tid);
-
-    private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-    private bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
-
-    private bool CanWeave(AID aid)
-    {
-        if (!Unlocked(aid))
-            return false;
-        var def = ActionDefinitions.Instance.Spell(aid)!;
-        return MathF.Max(ReadyIn(aid), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
-    }
 
     private void PushGCD(AID aid, Actor? target, int priority)
     {
-        if (PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0) && priority > NextGCDPrio)
+        if (PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority) && priority > NextGCDPrio)
         {
             NextGCD = aid;
             NextGCDPrio = priority;
         }
     }
 
-    private void PushOGCD(AID aid, Actor? target, int priority, float delay = 0)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
-
     private void PushExpiringOGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Medium + priority, 0);
-
-    private void PushOGCD(ClassShared.AID aid, Actor? target, int priority, float delay = 0)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
-
-    private bool PushAction(ActionID action, Actor? target, float priority, float delay)
-    {
-        if (action.ID == 0 || !ActionUnlocked(action))
-            return false;
-        var def = ActionDefinitions.Instance[action];
-        if (def == null || def.Range != 0 && target == null)
-            return false;
-        Hints.ActionsToExecute.Push(action, target, priority, delay: delay);
-        return true;
-    }
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Medium + priority);
 
     #endregion
 }

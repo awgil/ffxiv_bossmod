@@ -31,7 +31,7 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
     {
         // addle before raidwides, unless another caster already did
         if (strategy.Addle.Value == DisabledByDefault.Enabled && Player.InCombat && primaryTarget is { IsAlly: false } at
-            && Raidwides.Any(t => t > World.CurrentTime && t <= World.FutureTime(5))
+            && RaidwideWithin(5)
             && Unlocked(ClassShared.AID.Addle) && NextChargeIn(ClassShared.AID.Addle) == 0
             && at.FindStatus(ClassShared.SID.Addle) == null && Player.DistanceToHitbox(at) <= 25)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Addle), at, ActionQueue.Priority.Medium);

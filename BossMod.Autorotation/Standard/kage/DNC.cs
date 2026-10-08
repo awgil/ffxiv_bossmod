@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageDNC(RotationModuleManager manager, Actor player) : TypedRotationModule<KageDNC.Strategy>(manager, player)
+public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageRotation<KageDNC.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -35,7 +35,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
 
-        [Track("Opener", MinLevel = 15, UiPriority = -10, Context = StrategyContext.Plan)]
+        [Track("Opener", MinLevel = 15, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
@@ -115,35 +115,19 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     private float FinishingMoveLeft;
     private float DawnLeft;
 
-    private float DowntimeIn;
     private Actor? BestSplashTarget;
     private Actor? BestConeTarget;
     private Actor? BestLineTarget;
     private bool AOEMode;
     private bool EnemyIn15;
-    private float AnimLockDelay;
-    private Targeting TargetMode;
 
-    private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private float ComboLeft => World.Client.ComboState.Remaining;
     private bool Dancing => StandardStepLeft > 0 || TechStepLeft > 0;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        AnimLockDelay = estimatedAnimLockDelay;
-
-        TimeToKill.Update(World, Hints);
-        var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden || target?.Priority == Enemy.PriorityPointless && Hints.PriorityTargets.Any())
-            target = null;
-
-        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
-        if (TargetMode == Targeting.Auto && target == null)
-        {
-            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
-            primaryTarget = target?.Actor;
-        }
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25);
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;
@@ -165,7 +149,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         FinishingMoveLeft = SelfStatusLeft(SID.FinishingMoveReady);
         DawnLeft = SelfStatusLeft(SID.DanceOfTheDawnReady);
 
-        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
         EnemyIn15 = Hints.PriorityTargets.Any(e => Player.DistanceToHitbox(e.Actor) <= 15);
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
@@ -175,9 +158,9 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
             AOEStrategy.AOE => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) >= 2,
             _ => false
         };
-        BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5));
-        BestConeTarget = BestAOETarget(target, 15, allowAoE, (c, e) => TargetInAOECone(e, Player.Position, 15, Player.DirectionTo(c), 60.Degrees()));
-        BestLineTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 25, 2));
+        BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
+        BestConeTarget = BestAOETarget(target, 15, allowAoE, (c, e) => TargetInAOECone(e, Player.Position, 15, Player.DirectionTo(c), 60.Degrees())).Best;
+        BestLineTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 25, 2)).Best;
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
@@ -403,7 +386,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
     private bool ShouldLastDance()
     {
         var techIn = ReadyIn(AID.TechnicalStep);
-        var canHoldForTech = TimeToKill.InBossFight(Bossmods.ActiveModule, World.Actors.Find(Player.TargetID)) && Unlocked(AID.TechnicalStep) && techIn > 0 && techIn < 20 && LastDanceLeft > techIn + 4;
+        var canHoldForTech = InBossFight && Unlocked(AID.TechnicalStep) && techIn > 0 && techIn < 20 && LastDanceLeft > techIn + 4;
         return TechFinishLeft > GCD && Esprit < 95 || !canHoldForTech || LastDanceLeft < 4;
     }
 
@@ -549,16 +532,12 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
         bool NotDD(Actor a) => !a.Statuses.Any(s => _damageDown.Contains(s.ID));
         bool NotSick(Actor a) => a.FindStatus(Weakness) == null && a.FindStatus(BrinkOfDeath) == null;
         bool NotBrink(Actor a) => a.FindStatus(BrinkOfDeath) == null;
-        bool Melee(Actor a) => a.Role == Role.Melee;
         bool Dps(Actor a) => a.Role is Role.Melee or Role.Ranged;
 
         Func<Actor, bool>[] steps =
         [
-            a => Melee(a) && NotDD(a) && NotSick(a),
             a => Dps(a) && NotDD(a) && NotSick(a),
-            a => Melee(a) && NotSick(a),
             a => Dps(a) && NotSick(a),
-            a => Melee(a) && NotBrink(a),
             a => Dps(a) && NotBrink(a),
             a => NotDD(a) && NotSick(a),
             NotSick,
@@ -637,63 +616,13 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : Typed
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => World.Client.CountdownRemaining is > 0 and < 2 || Player.InCombat && Unlocked(AID.TechnicalStep) && (TechStepLeft > 0 || ReadyIn(AID.TechnicalStep) < 3),
+        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && Unlocked(AID.TechnicalStep) && (TechStepLeft > 0 || ReadyIn(AID.TechnicalStep) < 3),
         PotionStrategy.Immediate => true,
         _ => false
     };
 
-    private Actor? BestAOETarget(Enemy? primary, float range, bool allowAoE, Func<Actor, Actor, bool> hits)
-    {
-        if (primary == null)
-            return null;
-
-        int Count(Actor center) => Hints.ForbiddenTargets.Any(e => hits(center, e.Actor)) ? 0 : Hints.PriorityTargets.Count(e => hits(center, e.Actor));
-
-        var best = primary.Actor;
-        if (!allowAoE || TargetMode == Targeting.Manual)
-            return best;
-        var bestCount = Count(best);
-        foreach (var e in Hints.PriorityTargets)
-        {
-            if (e.Actor == primary.Actor || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !hits(e.Actor, primary.Actor))
-                continue;
-            var c = Count(e.Actor);
-            if (c > bestCount)
-                (best, bestCount) = (e.Actor, c);
-        }
-        return best;
-    }
-
-    private bool Unlocked(AID aid) => ActionUnlocked(ActionID.MakeSpell(aid));
-    private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-    private bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
-
-    private bool CanWeave(AID aid)
-    {
-        if (!Unlocked(aid))
-            return false;
-        var def = ActionDefinitions.Instance.Spell(aid)!;
-        return MathF.Max(ReadyIn(aid), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
-    }
-
     private void PushGCD(AID aid, Actor? target, int priority)
         => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority);
-
-    private void PushOGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority);
-
-    private void PushOGCD(ClassShared.AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority);
-
-    private void PushAction(ActionID action, Actor? target, float priority)
-    {
-        if (action.ID == 0 || !ActionUnlocked(action))
-            return;
-        var def = ActionDefinitions.Instance[action];
-        if (def == null || def.Range != 0 && target == null)
-            return;
-        Hints.ActionsToExecute.Push(action, target, priority);
-    }
 
     #endregion
 }
