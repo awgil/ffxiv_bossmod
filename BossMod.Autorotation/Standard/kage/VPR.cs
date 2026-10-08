@@ -573,7 +573,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         var (pos, imminent) = NextPositional(target.Actor);
 
         var actor = target.Actor;
-        if (actor.Omnidirectional || actor.TargetID == Player.InstanceID && actor.CastInfo == null && !actor.IsStrikingDummy || target.Priority < 0)
+        if (!HasPositionals(actor) || actor.TargetID == Player.InstanceID && actor.CastInfo == null && !actor.IsStrikingDummy || target.Priority < 0)
             (pos, imminent) = (Positional.Any, false);
 
         var tn = TrueNorthLeft > GCD;

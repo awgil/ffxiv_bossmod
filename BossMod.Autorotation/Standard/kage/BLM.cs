@@ -154,9 +154,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         AstralSoul = gauge.AstralSoulStacks;
         Paradox = gauge.ParadoxActive;
         EnochianLeft = gauge.EnochianTimer / 1000f;
-        FirestarterLeft = SelfStatusLeft(SID.Firestarter);
-        // below level 100 Thunderhead has no timer, which reads as 0s left
-        ThunderheadLeft = Player.FindStatus(SID.Thunderhead) is { } th ? MathF.Max(StatusDuration(th.ExpireAt), th.ExpireAt <= World.CurrentTime ? float.MaxValue : 0) : 0;
+        FirestarterLeft = ProcLeft(SID.Firestarter);
+        ThunderheadLeft = ProcLeft(SID.Thunderhead);
         Instant = SelfStatusLeft(SID.Triplecast) > 0 || SelfStatusLeft(SwiftcastSID) > 0;
         InLeyLines = SelfStatusLeft(CircleOfPowerSID) > 0;
 
@@ -249,7 +248,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
         if (Unlocked(AID.Fire4))
         {
-            if (MP - f4Cost >= (FlareOpenerFinish ? 2400 : Unlocked(AID.Despair) && !OpenerManafont ? 800 : 0))
+            var paradoxReserve = Paradox && Unlocked(AID.Paradox) && Astral == 3 && !FlareOpenerFinish && !(OpenerMode == OpenerStrategy.Standard && CombatTime < 60) ? 1600 : 0;
+            if (MP - f4Cost >= (FlareOpenerFinish ? 2400 : Unlocked(AID.Despair) && !OpenerManafont ? 800 : 0) + paradoxReserve)
                 PushGCD(AID.Fire4, target.Actor, 40);
         }
         else if (MP >= FireCost + (FlareFinisher ? 800 : 0))
@@ -435,7 +435,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         return full && RaidBuffsIn > 40;
     }
 
-    // off cooldown by the next GCD; the queue fits the oGCD in (a weave check here would always fail right when the GCD comes up)
+    // queued rather than weave-checked: a weave check fails exactly when the GCD comes up
     private bool CanUseTranspose => Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) <= GCD;
 
     #endregion
@@ -445,6 +445,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     private AID ThunderAction => AOEMode
         ? (Unlocked(AID.HighThunder2) ? AID.HighThunder2 : Unlocked(AID.Thunder4) ? AID.Thunder4 : AID.Thunder2)
         : (Unlocked(AID.HighThunder) ? AID.HighThunder : Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1);
+
+    // Firestarter and Thunderhead can have no timer, which would otherwise read as 0s left
+    private float ProcLeft(SID sid) => Player.FindStatus(sid) is { } st ? MathF.Max(StatusDuration(st.ExpireAt), st.ExpireAt <= World.CurrentTime ? float.MaxValue : 0) : 0;
 
     private float ThunderLeft(Actor target)
     {

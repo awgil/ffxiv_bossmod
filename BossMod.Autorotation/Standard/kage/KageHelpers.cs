@@ -197,6 +197,15 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return target;
     }
 
+    // wall bosses often lack the omnidirectional flag
+    protected bool HasPositionals(Actor target)
+    {
+        if (target.Omnidirectional)
+            return false;
+        var rear = target.Position - target.Rotation.ToDirection() * (target.HitboxRadius + 1.5f);
+        return Hints.PathfindMapBounds.Contains(rear - Hints.PathfindMapCenter);
+    }
+
     protected bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     protected float ReadyIn<AID>(AID aid) where AID : Enum => ReadyIn(ActionID.MakeSpell(aid));
     protected float ReadyIn(ActionID action) => ActionUnlocked(action) && ActionDefinitions.Instance[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;

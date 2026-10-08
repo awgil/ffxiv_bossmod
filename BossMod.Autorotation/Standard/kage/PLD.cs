@@ -322,7 +322,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
     private void PushGCD(AID aid, Actor? target, int priority)
         => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, castTime: MathF.Max(0, CastTime(aid) - 0.5f));
 
-    // Holy Spirit / Holy Circle are 1.5s casts unless Divine Might or Requiescat makes them instant; the queue needs this to not start one before a dodge
+    // 1.5s cast unless Divine Might or Requiescat; the queue needs it to not cast into a dodge
     private float CastTime(AID aid)
     {
         if (aid is not (AID.HolySpirit or AID.HolyCircle) || DivineMightLeft > GCD || RequiescatLeft > GCD)

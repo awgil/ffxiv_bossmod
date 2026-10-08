@@ -444,7 +444,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (EarlyWFOpener)
             return NextGCD == AID.ChainSaw;
 
-        // Excavator comes with every Chain Saw (60s) and a charge takes 55s: one per Excavator, anything else only to avoid capping
+        // one Reassemble per Excavator (60s), the rest only to avoid capping
         if (HasRaidBuffJobs && Unlocked(AID.Excavator))
         {
             if (NextGCD == AID.Excavator)
@@ -492,7 +492,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         };
     }
 
-    // Queen lives ~24s (measured) and snapshots raid buffs on every action: summoned shortly before the buffs, she covers all of them
+    // Queen lives ~24s and snapshots raid buffs per action
     private const float QueenLife = 24;
     private const float QueenLeadIn = 5;
 
