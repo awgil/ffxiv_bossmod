@@ -51,12 +51,14 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         foreach (var h in hints.PotentialTargets.Where(p => p.Actor.Position.InCircle(player.Position, 40)))
             if (!h.Actor.InCombat && !h.Actor.Position.AlmostEqual(new(111, -317), 10))
             {
-                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, 8.5f + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
+                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, 12 + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
                 hints.AddForbiddenZone(ShapeDistance.Circle(h.Actor.Position, h.Actor.HitboxRadius));
             }
 
         _ai.Execute(player, hints);
     }
+
+    private bool HasFuel => World.Party.Player()?.FindStatus(404) != null;
 
     private void InteractWithFirst(Actor player, AIHints hints, params uint[] oids)
     {
@@ -94,8 +96,8 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .Named("Reaper 1")
             .MoveHint(new WPos(134, -290), 0.1f)
-            .MoveHint(new WPos(133, -262), 0.2f)
-            .MoveHint(new WPos(133, -234), 0.3f)
+            .MoveHint(new WPos(129, -264), 0.2f)
+            .MoveHint(new WPos(126, -236), 0.3f)
             .WithInteract(0x1EB456)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76DF)),
 
@@ -113,25 +115,30 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
             .WithInteract(0xFE20B)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76E2)),
 
+        // TODO: verify the near wreckage variant (0x1EB69D-F), only the far one was seen in replays
         new QuestObjective(ws)
-            .Named("Fuel")
+            .Named("Fuel (near wreckage)")
+            .WithConnections(V3(124.5f, 10.8f, -232.9f), V3(175.5f, 10.8f, -227.7f), V3(188.4f, 10.8f, -256.8f))
             .Hints((player, hints) => {
-                InteractWithFirst(player, hints, 0x1EB69E, 0x1EB452);
-                if (World.Actors.Any(a => a.OID == 0x1EB69E && a.IsTargetable))
-                {
-                    hints.GoalZones.Add(p => p.InCircle(new WPos(133, -231), 2) ? 0.1f : 0);
-                    hints.GoalZones.Add(p => p.InCircle(new WPos(160, -224), 2) ? 0.2f : 0);
-                    hints.GoalZones.Add(p => p.InCircle(new WPos(188, -227), 2) ? 0.3f : 0);
-                }
+                InteractWithFirst(player, hints, 0x1EB69D, 0x1EB69E, 0x1EB69F);
                 if (player.Position.AlmostEqual(new WPos(109, -257.263f), 2))
                     hints.WantJump = true;
             })
-            .With(obj => obj.OnStatusGain += (act, st) => obj.CompleteIf(act.OID == 0 && st.ID == 404)),
+            .With(obj => {
+                var arrived = false;
+                obj.OnNavigationComplete += () => arrived = true;
+                obj.Update += () => obj.CompleteIf(HasFuel || arrived && !World.Actors.Any(a => a.OID is 0x1EB69D or 0x1EB69E or 0x1EB69F && a.IsTargetable));
+            }),
+
+        new QuestObjective(ws)
+            .Named("Fuel (far wreckage)")
+            .WithConnections(V3(225.1f, 10.8f, -286.9f), V3(268.8f, 10.8f, -325.2f), V3(295.5f, 10.8f, -366.3f))
+            .Hints((player, hints) => InteractWithFirst(player, hints, 0x1EB451, 0x1EB452, 0x1EB453))
+            .With(obj => obj.Update += () => obj.CompleteIf(HasFuel)),
 
         new QuestObjective(ws)
             .Named("Refuel")
-            .MoveHint(new WPos(165, -235), 0.1f)
-            .MoveHint(new WPos(137, -233), 0.2f)
+            .WithConnections(V3(239.3f, 10.5f, -275.1f), V3(192.5f, 11.2f, -260.4f), V3(130.3f, 10.7f, -230.5f))
             .Hints((player, hints) => {
                 hints.InteractWithOID(World, 0x1EB56F);
                 if (hints.InteractWithTarget == null)
