@@ -95,8 +95,11 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
                     // someone else pulled
                     e.Priority = 0;
                 else
+                {
                     // we pull
                     e.ShouldBeTargeted = true;
+                    e.Priority = 0;
+                }
             }
     }
 

@@ -102,8 +102,11 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
                     // someone else pulled
                     e.Priority = 0;
                 else
+                {
                     // we pull
                     e.ShouldBeTargeted = true;
+                    e.Priority = 0;
+                }
             }
         }
     }

@@ -57,16 +57,7 @@ public sealed class AIHints
             ShouldBeTanked = shouldBeTanked;
         }
 
-        public bool ShouldBeTargeted
-        {
-            set
-            {
-                field = value;
-                if (value)
-                    Priority = Math.Max(0, Priority);
-            }
-            get;
-        }
+        public bool ShouldBeTargeted;
 
         // easier to read
         public bool AllowDOTs { get => !ForbidDOTs; set => ForbidDOTs = !value; }
@@ -332,6 +323,18 @@ public sealed class AIHints
         var map = new Pathfinding.Map();
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
         var arr = new T[(map.Width + 1) * (map.Height + 1)];
+
+        foreach (var (cell, _, _, p) in map.EnumerateGrid())
+            arr[cell] = init(p, cell);
+
+        return arr;
+    }
+
+    public BitArray BitsFromMap(Func<WPos, int, bool> init)
+    {
+        var map = new Pathfinding.Map();
+        PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
+        var arr = new BitArray((map.Width + 1) * (map.Height + 1));
 
         foreach (var (cell, _, _, p) in map.EnumerateGrid())
             arr[cell] = init(p, cell);
