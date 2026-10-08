@@ -32,18 +32,20 @@ public struct NavigationDecision
     public const float CushionDepriority = 0.5f; // should be lower than any priority specifically added by rotation modules
 
     // reduce time between now and activation by this value in seconds; increase for more conservativeness
-    public const float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
+    //public const float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
 
-    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = 0)
+    public static float CushionFromRTT(float rtt) => rtt + ActorCastInfo.NPCFinishDelay;
+
+    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
     {
         var startTime = DateTime.Now;
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, forbiddenZoneCushion);
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
         if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
-            RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
-        else if (forbiddenZoneCushion > 0)
+            RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
+        else if (spaceCushion > 0)
             AddCushion(ctx.Map);
 
         var rasterFinish = DateTime.Now;
@@ -57,7 +59,7 @@ public struct NavigationDecision
         return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
     }
 
-    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed, float forbiddenZoneCushion)
+    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed, float rtt, float spaceCushion)
     {
         var hintsCopy = new AIHints()
         {
@@ -70,10 +72,10 @@ public struct NavigationDecision
             GoalZones = [.. hints.GoalZones],
             GoalZonesEnabled = hints.GoalZonesEnabled
         };
-        return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, forbiddenZoneCushion));
+        return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, rtt, spaceCushion));
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float cushion = 0)
+    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new List<(Sdf distance, float g)>(zones.Count);
@@ -84,7 +86,7 @@ public struct NavigationDecision
             var activation = zone.activation.Clamp(globalStart, globalEnd);
             if (activation > clusterEnd)
             {
-                clusterG = ActivationToG(activation, current);
+                clusterG = ActivationToG(activation, current, rtt);
                 clusterEnd = activation.AddSeconds(0.5f);
             }
             zonesFixed.Add((zone.distance, clusterG));
@@ -248,7 +250,7 @@ public struct NavigationDecision
             AddCushion(map);
     }
 
-    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float cushion = 0)
+    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Sdf distance, float g)[zones.Count];
@@ -259,7 +261,7 @@ public struct NavigationDecision
             var activation = zones[i].activation.Clamp(globalStart, globalEnd);
             if (activation > clusterEnd)
             {
-                clusterG = ActivationToG(activation, current);
+                clusterG = ActivationToG(activation, current, rtt);
                 clusterEnd = activation.AddSeconds(0.5f);
             }
             zonesFixed[i] = (zones[i].distance, clusterG);
@@ -378,7 +380,7 @@ public struct NavigationDecision
         map.MaxPriority = pMax;
     }
 
-    private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
+    private static float ActivationToG(DateTime activation, DateTime current, float ping) => MathF.Max(0, (float)(activation - current).TotalSeconds - CushionFromRTT(ping));
 
     public static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
     {
