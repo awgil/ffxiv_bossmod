@@ -34,7 +34,7 @@ public struct NavigationDecision
     // reduce time between now and activation by this value in seconds; increase for more conservativeness
     //public const float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
 
-    public static float CushionFromRTT(float rtt) => rtt + ActorCastInfo.NPCFinishDelay;
+    public static float CushionFromRTT(float rtt) => /* rtt + */ ActorCastInfo.NPCFinishDelay + 0.5f;
 
     public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
     {
@@ -380,7 +380,7 @@ public struct NavigationDecision
         map.MaxPriority = pMax;
     }
 
-    private static float ActivationToG(DateTime activation, DateTime current, float ping) => MathF.Max(0, (float)(activation - current).TotalSeconds - CushionFromRTT(ping));
+    private static float ActivationToG(DateTime activation, DateTime current, float rtt) => MathF.Max(0, (float)(activation - current).TotalSeconds - CushionFromRTT(rtt));
 
     public static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
     {
