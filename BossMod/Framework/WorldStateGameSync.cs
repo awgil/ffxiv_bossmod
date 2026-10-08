@@ -28,6 +28,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private readonly WorldState _ws;
     private readonly ActionManagerEx _amex;
+    private readonly Network.PingTracker _ping;
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
@@ -95,10 +96,11 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private readonly Hook<ActionManager.Delegates.GetActionInRangeOrLoS> _getActionInRangeOrLoSHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex)
+    public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex, Network.PingTracker ping)
     {
         _ws = ws;
         _amex = amex;
+        _ping = ping;
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;
@@ -239,10 +241,13 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (_ws.IsPvPArea != isPVP)
             _ws.Execute(new WorldState.OpPvPArea(isPVP));
 
-        var proxy = fwk->NetworkModuleProxy->ReceiverCallback;
         var scramble = Network.IDScramble.Get();
         if (_ws.Network.IDScramble != scramble)
             _ws.Execute(new NetworkState.OpIDScramble(scramble));
+
+        var rtt = _ping.LastRTT;
+        if (_ws.Network.LastRTT != rtt)
+            _ws.Execute(new NetworkState.OpRTT(rtt));
 
         foreach (var op in _globalOps)
         {

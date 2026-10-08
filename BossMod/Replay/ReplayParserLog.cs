@@ -383,6 +383,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("IPCI"u8)] = ParseNetworkLegacyIDScramble,
             [new("IPCX"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
+            [new("RTT "u8)] = ParseNetworkRTT,
         };
     }
 
@@ -858,6 +859,7 @@ public sealed class ReplayParserLog : IDisposable
     private NetworkState.OpLegacyIDScramble ParseNetworkLegacyIDScramble() => new(_input.ReadUInt(false));
     private NetworkState.OpIDScramble ParseNetworkIDScramble() => new(new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false)));
     private NetworkState.OpServerIPC ParseNetworkServerIPC() => new(new((Network.ServerIPC.PacketID)_input.ReadInt(), _input.ReadUShort(false), _input.ReadUInt(false), _input.ReadUInt(true), new(_input.ReadLong()), _input.ReadBytes()));
+    private NetworkState.OpRTT ParseNetworkRTT() => new(_input.ReadFloat());
 
     private ActorHPMP ReadActorHPMP()
     {

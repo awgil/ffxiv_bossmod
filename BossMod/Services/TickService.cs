@@ -2,6 +2,7 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.Network;
 using BossMod.ReplayAnalysis;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
@@ -45,6 +46,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly MultiboxManager _mbox;
     TimeSpan _prevUpdateTime;
     readonly PackLoader _packs;
+    readonly PingTracker _ping;
     private readonly IDalamudPluginInterface dalamud;
     private readonly IUiBuilder uiBuilder;
     private readonly ICondition condition;
@@ -127,6 +129,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _packs = new();
         _hints = new();
+        _ping = new(logger);
 
         if (!Service.IsMock)
         {
@@ -148,10 +151,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
+            _ping.Run();
             _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
             _movementOverride = new MovementOverride(dalamud);
             _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
+            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
             _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
@@ -736,6 +740,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
+        _ping.Dispose();
         _movementOverride.Dispose();
         _hintsBuilder.Dispose();
         _zonemod.Dispose();

@@ -17,11 +17,14 @@ public sealed class NetworkState
     }
 
     public IDScrambleFields IDScramble;
+    public float LastRTT;
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
         if (IDScramble != default)
             yield return new OpIDScramble(IDScramble);
+        if (LastRTT != 0)
+            yield return new OpRTT(LastRTT);
     }
 
     public Event<OpLegacyIDScramble> LegacyIDScrambleChanged = new();
@@ -62,5 +65,16 @@ public sealed class NetworkState
             .Emit(Packet.SourceServerActor, "X8")
             .Emit(Packet.SendTimestamp.Ticks)
             .Emit(Packet.Payload);
+    }
+
+    public Event<OpRTT> RTTUpdated = new();
+    public sealed record class OpRTT(float RTT) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.Network.LastRTT = RTT;
+            ws.Network.RTTUpdated.Fire(this);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("RTT "u8).Emit(RTT);
     }
 }
