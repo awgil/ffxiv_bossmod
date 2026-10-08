@@ -29,7 +29,7 @@ public sealed partial class PingTracker(IPluginLog logger) : IDisposable
                 Fetch();
             }
 
-            await Task.Delay(3000, token);
+            await Task.Delay(3000, token).ConfigureAwait(true);
         }
     }
 
@@ -78,5 +78,6 @@ public sealed partial class PingTracker(IPluginLog logger) : IDisposable
     }
 
     [LibraryImport("Iphlpapi.dll", EntryPoint = "GetRTTAndHopCount", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static partial int GetRTTAndHopCount(uint address, ref uint hopCount, uint maxHops, ref uint rtt);
 }
