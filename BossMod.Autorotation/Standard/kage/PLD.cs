@@ -103,7 +103,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private int AoEMinTargets => Player.Level >= 94 ? 3 : 2;
-    private float FoFIn => ReadyIn(AID.FightOrFlight);
+    private float FoFIn; // fight or flight on Delay never comes up, so nothing waits for it
     private AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -115,6 +115,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
+        FoFIn = strategy.FightOrFlight.Value == OffensiveStrategy.Delay ? float.MaxValue : ReadyIn(AID.FightOrFlight);
         RequiescatLeft = SelfStatusLeft(SID.Requiescat);
         ConfiteorLeft = SelfStatusLeft(SID.ConfiteorReady);
         GoringLeft = SelfStatusLeft(SID.GoringBladeReady);
@@ -169,7 +170,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         var holyTarget = holyAction == AID.HolyCircle ? Player : target.Actor;
         var canHoly = Unlocked(holyAction) && MP >= HolySpiritMP;
 
-        var requiescatSoon = FoFLeft > 0 && ReadyIn(BestRequiescat) <= GCD;
+        var requiescatSoon = FoFLeft > 0 && strategy.Requiescat.Value != OffensiveStrategy.Delay && ReadyIn(BestRequiescat) <= GCD;
         if (strategy.Goring.Value != OffensiveStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || strategy.Goring.Value == OffensiveStrategy.Force))
         {
             var goringTarget = AOEMode
@@ -314,7 +315,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => Player.InCombat && FoFIn < 3 && (CombatTime > 15 || ComboLastMove is AID.RiotBlade or AID.FastBlade),
+        PotionStrategy.AlignWithBurst => Player.InCombat && ReadyIn(AID.FightOrFlight) < 3 && (CombatTime > 15 || ComboLastMove is AID.RiotBlade or AID.FastBlade),
         PotionStrategy.Immediate => true,
         _ => false
     };

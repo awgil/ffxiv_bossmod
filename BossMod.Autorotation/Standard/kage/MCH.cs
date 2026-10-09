@@ -372,14 +372,15 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Charges.Value == ChargeStrategy.Automatic && ChargesToSpendBeforeOverheat)
             return false;
 
-        // time until each tool is pressed (by hand under Delay); a tool the AoE rotation skips would hold Hypercharge forever
+        // time until each tool is pressed; tools on Delay or skipped by the AoE rotation don't hold Hypercharge
+        var toolsDelayed = strategy.Tools.Value == OffensiveStrategy.Delay;
         var drillIn = ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue
             : UseBioblaster ? MathF.Max(ReadyIn(AID.Bioblaster), StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left)
             : SkipDrill ? float.MaxValue
             : ReadyIn(AID.Drill);
         var airAnchorIn = UseBioblaster && Unlocked(AID.AirAnchor) ? float.MaxValue : FortySecondToolIn;
-        var toolIn = MathF.Min(drillIn, MathF.Min(airAnchorIn, ReadyIn(AID.ChainSaw)));
-        if (FMFLeft > 0 || ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f)
+        var toolIn = toolsDelayed ? float.MaxValue : MathF.Min(drillIn, MathF.Min(airAnchorIn, ReadyIn(AID.ChainSaw)));
+        if (!toolsDelayed && (FMFLeft > 0 || ExcavatorLeft > 0) || toolIn < GCD + GCDLength * 3 + 0.5f)
             return false;
 
         if (DowntimeIn < GCD + GCDLength * 5)

@@ -241,11 +241,12 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (target == null)
             return;
 
-        // hold for Ire unless Automatic won't press it (Delay: pressed by hand); capped coils block it until Uncoiled Fury spends one
+        // only hold for an Ire the rotation will press; capped coils block it until Uncoiled Fury spends one
         IreWanted = strategy.Ire.Value switch
         {
+            OffensiveStrategy.Force => true,
             OffensiveStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
-            _ => true
+            _ => false
         };
 
         GCDs(strategy, target);
@@ -454,7 +455,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
             return false;
         if (dying)
             return true;
-        var ireSoon = IreIn <= GCDLength * 2;
+        var ireSoon = IreWanted && IreIn <= GCDLength * 2;
         var inBurst = RaidBuffsLeft > GCD || OpenerMode != OpenerStrategy.None && CombatTime < 30;
         if (Coil <= 1 && !ireSoon && !inBurst && TimeToKill.WillLive(target, 6) && DowntimeIn > GCDLength * 3)
             return false;
@@ -531,7 +532,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (SwiftskinsVenom > 0)
             PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (strategy.Ire.Value != OffensiveStrategy.Delay && IreWanted && (Coil < CoilMax || strategy.Ire.Value == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
+        if (IreWanted && (Coil < CoilMax || strategy.Ire.Value == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
         if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)

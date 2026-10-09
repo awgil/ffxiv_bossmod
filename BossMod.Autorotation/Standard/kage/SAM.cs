@@ -203,6 +203,9 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private bool WorthBurst;
     private bool BossDying;
+    private float SeneiPlannedIn; // senei on Delay is pressed by hand, so nothing plans around it coming up
+    private bool IkishotenDelayed;
+    private bool KenkiMakesRoom; // only Automatic kenki spends down to fit ikishoten's 50
     private DateTime DowntimeStart;
     private DateTime ReopenUntil;
 
@@ -215,7 +218,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     private float IaiCastTime => Unlocked(TraitID.EnhancedIaijutsu) ? 1.3f : 1.8f;
     private float FukaGCD => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, Math.Min(World.Client.PlayerStats.Haste, 87), Player.Level);
     private float SeneiIn => ReadyIn(AID.HissatsuSenei);
-    private bool SeneiSoon => SeneiIn < 7;
+    private bool SeneiSoon => SeneiPlannedIn < 7;
     private float SeneiCooldown => Unlocked(TraitID.EnhancedHissatsu) ? 60 : 120;
     private bool SeneiJustUsed(float within) => Unlocked(AID.HissatsuSenei) && SeneiIn > SeneiCooldown - within;
     private bool MidCombo => ComboLeft > GCD && ComboLastMove is AID.Hakaze or AID.Gyofu or AID.Jinpu or AID.Shifu or AID.Fuga or AID.Fuko;
@@ -243,6 +246,9 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         TendoLeft = Unlocked(AID.TendoSetsugekka) ? SelfStatusLeft(SID.Tendo) : 0;
         OgiLeft = SelfStatusLeft(SID.OgiNamikiriReady);
         ZanshinLeft = Unlocked(AID.Zanshin) ? SelfStatusLeft(SID.ZanshinReady) : 0;
+        SeneiPlannedIn = strategy.Senei.Value == OffensiveStrategy.Delay ? float.MaxValue : SeneiIn;
+        IkishotenDelayed = strategy.Ikishoten.Value == OffensiveStrategy.Delay;
+        KenkiMakesRoom = strategy.Kenki.Value == KenkiStrategy.Automatic;
         Tsubame = ReadTsubame();
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
@@ -563,7 +569,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         }
 
         if (strategy.Ikishoten.Value != OffensiveStrategy.Delay && CanWeave(AID.Ikishoten) && ZanshinLeft == 0
-            && (strategy.Ikishoten.Value == OffensiveStrategy.Force || Kenki <= 50 && WorthBurst && DowntimeIn > 10 && (!Unlocked(AID.HissatsuSenei) || SeneiJustUsed(20) || SeneiIn <= GCD + GCDLength * 2)))
+            && (strategy.Ikishoten.Value == OffensiveStrategy.Force || (Kenki <= 50 || !KenkiMakesRoom) && WorthBurst && DowntimeIn > 10 && (!Unlocked(AID.HissatsuSenei) || SeneiJustUsed(20) || SeneiPlannedIn <= GCD + GCDLength * 2)))
             PushOGCD(AID.Ikishoten, Player, 58);
 
         if (strategy.Ikishoten.Value != OffensiveStrategy.Delay && ZanshinLeft > 0 && Kenki >= 50 && CanWeave(AID.Zanshin)
@@ -662,7 +668,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         if (SenCount == 3)
             return false;
         var gcds = SenCount switch { 0 => 8, 1 => 5, _ => 3 };
-        return gcds * GCDLength > SeneiIn + GCD;
+        return gcds * GCDLength > SeneiPlannedIn + GCD;
     }
 
     private bool SeneiWanted()
@@ -682,7 +688,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
             return Kenki >= 90;
 
         var reserve = (ZanshinLeft > 0 ? 50 : 0) + (SeneiSoon ? 25 : 0);
-        if (ZanshinLeft == 0 && Kenki > 50 && ReadyIn(AID.Ikishoten) <= GCD + GCDLength * 4 || RaidBuffsLeft > GCD || SeneiJustUsed(20))
+        if (ZanshinLeft == 0 && Kenki > 50 && !IkishotenDelayed && ReadyIn(AID.Ikishoten) <= GCD + GCDLength * 4 || RaidBuffsLeft > GCD || SeneiJustUsed(20))
             return Kenki - 25 >= reserve;
         return Kenki >= (HasRaidBuffJobs ? 90 : 65) && Kenki - 25 >= reserve;
     }
