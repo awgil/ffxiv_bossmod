@@ -229,17 +229,11 @@ public sealed class AIHintsBuilder : IDisposable
             var rot = aoe.Caster.CastInfo!.Rotation;
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.RemainingTime);
 
-            if (aoe.IsCharge)
-                hints.AddForbiddenZone(ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth), finishAt, aoe.Caster.InstanceID);
-            else if (aoe.Shape is AOEShapeCone cone)
-            {
-                // not sure how best to adjust cone shape distance to account for quantization error - we just pretend it is being cast from MaxError units "behind" the reported position and increase radius similarly
-                var adjustedSourcePos = targetPos + rot.ToDirection() * -MaxError;
-                var adjustedRadius = cone.Radius + MaxError * 2;
-                hints.AddForbiddenZone(ShapeDistance.Cone(adjustedSourcePos, adjustedRadius, rot, cone.HalfAngle), finishAt, aoe.Caster.InstanceID);
-            }
-            else
-                hints.AddForbiddenZone(aoe.Shape, targetPos, rot, finishAt, aoe.Caster.InstanceID);
+            var f = aoe.IsCharge
+                ? ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth)
+                : aoe.Shape.Distance(targetPos, rot);
+
+            hints.AddForbiddenZone(p => f(p) - MaxError, finishAt, aoe.Caster.InstanceID);
         }
 
         foreach (var gaze in _activeGazes.Values)
@@ -315,24 +309,24 @@ public sealed class AIHintsBuilder : IDisposable
         switch (data.CastType)
         {
             case 2:
-                return new AOEShapeCircle(data.EffectRange + MaxError); // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
+                return new AOEShapeCircle(data.EffectRange); // used for some point-blank aoes and enemy location-targeted - does not add caster hitbox
             case 3:
                 return new AOEShapeCone(data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data) * 0.5f);
             case 4:
-                return new AOEShapeRect(data.EffectRange + actor.HitboxRadius + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError);
+                return new AOEShapeRect(data.EffectRange + actor.HitboxRadius, data.XAxisModifier * 0.5f);
             case 5:
-                return new AOEShapeCircle(data.EffectRange + actor.HitboxRadius + MaxError);
+                return new AOEShapeCircle(data.EffectRange + actor.HitboxRadius);
             case 8:
-                return new AOEShapeRect(1, data.XAxisModifier * 0.5f + MaxError);
+                return new AOEShapeRect(1, data.XAxisModifier * 0.5f);
             case 10:
                 var inner = DetermineDonutInner(data);
                 if (inner == 0 && _hintConfig.DonutFallback == AIHintsConfig.DonutFallbackBehavior.Ignore)
                     return null;
-                return new AOEShapeDonut(MathF.Max(0, inner - MaxError), data.EffectRange + MaxError);
+                return new AOEShapeDonut(MathF.Max(0, inner), data.EffectRange);
             case 11:
-                return new AOEShapeCross(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError);
+                return new AOEShapeCross(data.EffectRange, data.XAxisModifier * 0.5f);
             case 12:
-                return new AOEShapeRect(data.EffectRange + MaxError, data.XAxisModifier * 0.5f + MaxError, MaxError);
+                return new AOEShapeRect(data.EffectRange, data.XAxisModifier * 0.5f);
             case 13:
                 return new AOEShapeCone(data.EffectRange, DetermineConeAngle(data) * 0.5f);
 
