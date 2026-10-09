@@ -1,5 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
-using BossMod.Autorotation.kage;
 using static BossMod.Autorotation.TrackPartyHealth;
 
 namespace BossMod.Autorotation.xan;
@@ -41,24 +40,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         public Track<EnabledByDefault> StayNearParty;
         [Track("Allow generic out-of-combat predictive heals on tank (Excogitation, Divine Benison, etc)")]
         public Track<EnabledByDefault> OutOfCombat;
-        [Track("Big cooldowns", InternalName = "Mitigation")]
-        public Track<MitigationMode> Mitigation;
-    }
-
-    public enum MitigationMode
-    {
-        [Option("Use automatically")]
-        Automatic,
-        [Option("Do not use automatically")]
-        LeaveToPlan
     }
 
     private readonly TrackPartyHealth Health = new(manager.WorldState);
-    private DateTime _lastMedicaRegenCast;
-
-    // includes raidwides / tankbusters only marked in the module's timeline (FRU)
-    private new IEnumerable<DateTime> Raidwides => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints);
-    private new IEnumerable<(Actor, DateTime)> Tankbusters => StateTimeline.Tankbusters(Bossmods.ActiveModule, World, Hints);
 
     public enum RaiseStrategy
     {
@@ -126,85 +110,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         }
     }
 
-    private void HealLowest(in Strategy strategy, bool predicted, Action<Actor, float> healFun)
-    {
-        if (strategy.Heal.Value != HealMode.Enabled)
-        {
-            if (predicted)
-                HealSingleSoon(strategy, healFun);
-            else
-                HealSingleNow(strategy, healFun);
-            return;
-        }
-
-        var best = -1;
-        var bestRatio = float.MaxValue;
-        foreach (var (slot, _) in Health.TrackedMembers)
-        {
-            var st = Health.PartyMemberStates[slot];
-            if (st.NoHealStatusRemaining > 1.5f && st.DoomRemaining == 0)
-                continue;
-            var ratio = st.DoomRemaining > 0 ? 0.01f : HealRatio(slot);
-            if (ratio < bestRatio)
-            {
-                bestRatio = ratio;
-                best = slot;
-            }
-        }
-        if (best >= 0 && World.Party[best] is { } target)
-            healFun(target, bestRatio - ThresholdShift(target, best));
-    }
-
-    private static readonly uint[] HealOverTimeStatuses = [
-        (uint)BossMod.WHM.SID.Regen, (uint)BossMod.WHM.SID.MedicaII, (uint)BossMod.WHM.SID.MedicaIII, (uint)BossMod.WHM.SID.Asylum,
-        (uint)BossMod.SGE.SID.Kerakeia, (uint)BossMod.SGE.SID.PhysisII, (uint)BossMod.SGE.SID.Kardion,
-        (uint)BossMod.AST.SID.AspectedBenefic, (uint)BossMod.AST.SID.AspectedHelios, (uint)BossMod.AST.SID.HeliosConjunction,
-        (uint)BossMod.SCH.SID.FeyUnion,
-        315, // Whispering Dawn
-    ];
-    private static bool HasHealOverTime(Actor a) => a.Statuses.Any(s => HealOverTimeStatuses.Contains(s.ID));
-
-    private float NextDamageIn(int slot, bool raidwideOnly = false)
-        => Raidwides.Concat(raidwideOnly ? [] : Tankbusters.Where(t => slot < 0 || World.Party.FindSlot(t.Item1.InstanceID) == slot).Select(t => t.Item2))
-            .Where(t => t >= World.CurrentTime).Select(t => (float)(t - World.CurrentTime).TotalSeconds).DefaultIfEmpty(float.MaxValue).Min();
-
-    // heal earlier before predicted damage, later when nothing is coming
-    private float ThresholdShift(Actor target, int slot)
-    {
-        if (Bossmods.ActiveModule == null)
-            return 0;
-        var damageIn = NextDamageIn(slot);
-        if (damageIn < 8)
-            return 0.15f;
-        if (damageIn < 15)
-            return 0;
-        var hot = HasHealOverTime(target);
-        if (target.Role == Role.Tank)
-            return hot ? -0.1f : 0;
-        return hot ? -0.2f : -0.1f;
-    }
-
-    private float AreaShift()
-    {
-        if (Bossmods.ActiveModule == null)
-            return 0;
-        var damageIn = NextDamageIn(-1, raidwideOnly: true);
-        if (damageIn < 8)
-            return 0.1f;
-        if (damageIn < 15)
-            return 0;
-        var party = LightParty.ToList();
-        return party.Count(HasHealOverTime) * 2 >= party.Count ? -0.2f : -0.1f;
-    }
-
-    private bool QuietPeriod => Bossmods.ActiveModule != null && NextDamageIn(-1) >= 15;
-    private float PredictedRatio(Actor a) => World.Party.FindSlot(a.InstanceID) is var slot && slot >= 0 ? HealRatio(slot) : a.HPRatio;
-    // predicted HP without the flat 30% per upcoming hit: a heal before the hit can't go above max HP
-    private float HealRatio(int slot) => Health.PartyMemberStates[slot].PredictedHPRatio + 0.3f * Hints.PredictedDamage.Count(d => d.Players[slot]);
-    private int MissingWithoutRegen(float radius, float below = 0.85f) => LightParty.Count(p => p.Position.InCircle(Player.Position, radius) && PredictedRatio(p) < below && !HasHealOverTime(p));
-
-    private bool PartyLow(in Strategy strategy, float radius, float ratio) => ShouldHealInAreaNow(strategy, Player.Position, radius, ratio + AreaShift());
-
     /// <summary>
     /// Run the given Action if the party has exactly one tank, otherwise do nothing
     /// </summary>
@@ -247,9 +152,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (strategy.StayNearParty.IsEnabled() && Player.InCombat)
         {
             List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
-            var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
-            // Require a margin when improving coverage, so allies moving near the boundary don't make us shuffle.
-            Hints.GoalZones.Add(p => Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
+            Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 15)));
         }
 
         AutoRaise(strategy);
@@ -278,15 +181,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         }
     }
 
-    private void UseGCD<AID>(AID action, Actor? target, int extraPriority = 0, bool instant = false) where AID : Enum
-        => UseGCD(ActionID.MakeSpell(action), target, extraPriority, instant);
-    private void UseGCD(ActionID action, Actor? target, int extraPriority = 0, bool instant = false)
+    private void UseGCD<AID>(AID action, Actor? target, int extraPriority = 0) where AID : Enum
+        => UseGCD(ActionID.MakeSpell(action), target, extraPriority);
+    private void UseGCD(ActionID action, Actor? target, int extraPriority = 0)
     {
         var def = ActionDefinitions.Instance[action];
         if (def == null)
             return;
 
-        var castTime = instant ? 0 : Math.Max(0, def.CastTime - 0.5f);
+        var castTime = Math.Max(0, def.CastTime - 0.5f);
         if (castTime > 0)
         {
             if (StatusDetails(Player, (uint)BossMod.WHM.SID.Swiftcast, Player.InstanceID).Left > GCD || StatusDetails(Player, (uint)ClassShared.SID.LostChainspell, Player.InstanceID).Left > GCD)
@@ -362,125 +265,51 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private void AutoWHM(in Strategy strategy)
     {
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
-        var canLily = gauge.Lily > 0 && gauge.BloodLily < 3;
-        var inBoss = Bossmods.ActiveModule != null;
 
         var bestC2 = BestActionUnlocked(BossMod.WHM.AID.CureII, BossMod.WHM.AID.Cure);
         var bestM2 = BestActionUnlocked(BossMod.WHM.AID.MedicaIII, BossMod.WHM.AID.MedicaII);
-        var medicaRegenLeft = StatusDetails(Player, (uint)(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII), Player.InstanceID).Left;
-        if (Manager.LastCast.Data is { } lastCast && (lastCast.Action == ActionID.MakeSpell(BossMod.WHM.AID.MedicaII) || lastCast.Action == ActionID.MakeSpell(BossMod.WHM.AID.MedicaIII)))
-            _lastMedicaRegenCast = Manager.LastCast.Time;
-        // The action succeeds before the regen status arrives; don't start another cast in that gap.
-        var canApplyMedicaRegen = medicaRegenLeft < 3 && (World.CurrentTime - _lastMedicaRegenCast).TotalSeconds >= 3;
-        var auto = strategy.Mitigation.Value == MitigationMode.Automatic;
 
-        if (strategy.Heal == HealMode.Enabled && auto)
+        HealSingleNow(strategy, (target, ratio) =>
         {
-            var raidwideIn = Raidwides.Select(r => (float)(r - World.CurrentTime).TotalSeconds).Where(t => t >= 0).DefaultIfEmpty(float.MaxValue).Min();
-            if (raidwideIn < 5)
-            {
-                UseOGCD(BossMod.WHM.AID.Temperance, Player, 20);
-                if (Player.FindStatus(BossMod.WHM.SID.DivineGrace) != null)
-                    UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 19);
-                UseOGCD(BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
-            }
-            if (raidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
-                Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 17, targetPos: GetBestPartyCoverage(10));
+            // TODO add a track for this kind of stuff
+            //if (state.PredictedHPRatio < 1 && target.FindStatus(BossMod.WHM.SID.Regen) == null)
+            //    UseGCD(BossMod.WHM.AID.Regen, target);
 
-            foreach (var (tank, at) in Tankbusters)
+            if (ratio < 0.5)
             {
-                var busterIn = (float)(at - World.CurrentTime).TotalSeconds;
-                if (busterIn is < 0 or > 4 || tank.IsDead || World.Party.FindSlot(tank.InstanceID) < 0)
-                    continue;
-                if (tank.FindStatus(BossMod.WHM.SID.DivineBenison) == null)
-                    UseOGCD(BossMod.WHM.AID.DivineBenison, tank, 25);
-                UseOGCD(BossMod.WHM.AID.Aquaveil, tank, 24);
-            }
-        }
+                if (gauge.Lily > 0)
+                    UseGCD(BossMod.WHM.AID.AfflatusSolace, target);
+                else
+                    UseGCD(bestC2, target);
 
-        HealLowest(strategy, false, (target, ratio) =>
-        {
-            var tank = target.Role == Role.Tank;
-            var raw = PredictedRatio(target);
-            if (QuietPeriod && raw > 0.55f && raw < 0.85f && !HasHealOverTime(target))
-            {
-                if (auto && MissingWithoutRegen(10) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 12, targetPos: GetBestPartyCoverage(10, injuredOnly: true));
-                else if (MissingWithoutRegen(20, 0.8f) >= 3 && canApplyMedicaRegen)
-                    UseGCD(bestM2, Player, 2);
-                else if (raw < 0.7f)
-                    UseGCD(BossMod.WHM.AID.Regen, target, 2);
-                return;
+                UseOGCD(BossMod.WHM.AID.Tetragrammaton, target);
             }
-            if (ratio <= 0.2f)
-                UseOGCD(BossMod.WHM.AID.Benediction, target, 12);
-            if (ratio <= 0.55f)
-                UseOGCD(BossMod.WHM.AID.Tetragrammaton, target, 11);
-            if (auto && tank && ratio <= 0.7f && !inBoss)
-                UseOGCD(BossMod.WHM.AID.Aquaveil, target, 10);
-
-            var ogcdCovers = NextChargeIn(BossMod.WHM.AID.Tetragrammaton) < 1 || ratio <= 0.2f && NextChargeIn(BossMod.WHM.AID.Benediction) < 1;
-            if (!SingledOut(ratio))
-                return;
-            if (ratio <= 0.55f && canLily)
-                UseGCD(BossMod.WHM.AID.AfflatusSolace, target, 2);
-            else if (ratio <= 0.3f || ratio <= 0.5f && !ogcdCovers)
-            {
-                if (Player.FindStatus(BossMod.WHM.SID.ThinAir) == null && Player.HPMP.CurMP < 8000)
-                    UseOGCD(BossMod.WHM.AID.ThinAir, Player, 1);
-                UseGCD(bestC2, target, 1);
-            }
-            else if (ratio <= 0.8f && ratio > 0.3f && tank && target.FindStatus(BossMod.WHM.SID.Regen) == null)
-                UseGCD(BossMod.WHM.AID.Regen, target);
         });
 
-        HealLowest(strategy, true, (target, ratio) =>
+        HealSingleSoon(strategy, (target, ratio) =>
         {
-            if (auto && ratio < 0.75f && target.FindStatus(BossMod.WHM.SID.DivineBenison) == null)
-                UseOGCD(BossMod.WHM.AID.DivineBenison, target, 9);
+            if (ratio < 0.75f && target.FindStatus(BossMod.WHM.SID.DivineBenison) == null)
+                UseOGCD(BossMod.WHM.AID.DivineBenison, target);
         });
 
-        // dungeon trash pulls
-        if (strategy.Heal == HealMode.Enabled && Bossmods.ActiveModule == null)
+        if (ShouldHealInAreaNow(strategy, Player.Position, 15, 0.75f))
         {
-            RunForTank((tank, tankState) =>
+            // do actual heals
+            if (gauge.Lily > 0)
+                UseGCD(BossMod.WHM.AID.AfflatusRapture, Player);
+            else if (Unlocked(BossMod.WHM.AID.CureIII))
             {
-                var pulled = Hints.PotentialTargets.Count(e => e.Actor.InCombat && e.Actor.TargetID == tank.InstanceID);
-                if (!tank.InCombat || pulled < 2)
-                    return;
-                if (tank.FindStatus(BossMod.WHM.SID.Regen, Player.InstanceID) == null && tank.HPRatio < 0.95f)
-                    UseGCD(BossMod.WHM.AID.Regen, tank);
-                if (tank.FindStatus(BossMod.WHM.SID.DivineBenison) == null)
-                    UseOGCD(BossMod.WHM.AID.DivineBenison, tank, 8);
-                if (pulled >= 3 && tankState.MoveDelta < 0.75f)
-                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.Asylum), null, ActionQueue.Priority.Medium + 7, targetPos: tank.PosRot.XYZ());
-            });
-        }
+                if (Player.FindStatus(BossMod.WHM.SID.ThinAir) == null)
+                    UseGCD(BossMod.WHM.AID.ThinAir, Player, 1);
+                UseGCD(BossMod.WHM.AID.CureIII, Player);
+            }
+            else
+                UseGCD(BossMod.WHM.AID.Medica, Player);
 
-        if (PartyLow(strategy, 20, 0.8f))
-        {
-            UseOGCD(BossMod.WHM.AID.Assize, Player, 16);
-            if (auto)
-                UseOGCD(BossMod.WHM.AID.PlenaryIndulgence, Player, 15);
-            if (auto && Player.FindStatus(BossMod.WHM.SID.DivineGrace) != null)
-                UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 14);
-            if (canApplyMedicaRegen)
+            // apply regens
+            if (Player.FindStatus(Unlocked(BossMod.WHM.AID.MedicaIII) ? BossMod.WHM.SID.MedicaIII : BossMod.WHM.SID.MedicaII, World.FutureTime(15)) == null)
                 UseGCD(bestM2, Player);
         }
-        if (auto && PartyLow(strategy, 30, 0.55f))
-            UseOGCD(BossMod.WHM.AID.Temperance, Player, 13);
-        if (auto && PartyLow(strategy, 20, 0.5f) && Player.FindStatus(BossMod.WHM.SID.LiturgyOfTheBell) == null)
-            Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.WHM.AID.LiturgyOfTheBell), null, ActionQueue.Priority.Medium + 12, targetPos: Player.PosRot.XYZ());
-        if (PartyLow(strategy, 20, 0.7f) && canLily)
-            UseGCD(BossMod.WHM.AID.AfflatusRapture, Player, 3);
-        if (PartyLow(strategy, 10, 0.55f) && Unlocked(BossMod.WHM.AID.CureIII) && LightParty.Count(p => p.Position.InCircle(Player.Position, 10)) >= 4)
-        {
-            if (Player.FindStatus(BossMod.WHM.SID.ThinAir) == null)
-                UseOGCD(BossMod.WHM.AID.ThinAir, Player, 1);
-            UseGCD(BossMod.WHM.AID.CureIII, Player, 2);
-        }
-        else if (PartyLow(strategy, 15, 0.55f) && !Unlocked(BossMod.WHM.AID.MedicaII))
-            UseGCD(BossMod.WHM.AID.Medica, Player);
     }
 
     private static readonly (AstrologianCard, BossMod.AST.AID)[] SupportCards = [
@@ -628,9 +457,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     }
 
     // O(n³) :3
-    private Vector3 GetBestPartyCoverage(float radius, bool injuredOnly = false)
+    private Vector3 GetBestPartyCoverage(float radius)
     {
-        var allies = LightParty.Where(p => !injuredOnly || PredictedRatio(p) < 0.85f && !HasHealOverTime(p)).Select(p => p.Position).ToList();
+        var allies = LightParty.Select(p => p.Position).ToList();
         if (allies.Count < 2)
             return Player.PosRot.XYZ();
 
@@ -654,132 +483,38 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         return new Vector3(bestCenter.X, Player.PosRot.Y, bestCenter.Z);
     }
 
-    private static readonly uint[] EukrasianShields = [(uint)BossMod.SGE.SID.EukrasianDiagnosis, (uint)BossMod.SGE.SID.EukrasianPrognosis, (uint)BossMod.SCH.SID.Galvanize];
-    private static bool HasEukrasianShield(Actor a) => a.Statuses.Any(s => EukrasianShields.Contains(s.ID));
-
-    private bool ReadySoon<AID>(AID aid) where AID : Enum => Unlocked(aid) && NextChargeIn(aid) < 0.6f;
-
-    private bool SingledOut(float ratio) => Health.PartyHealth.Count <= 1 || ratio < Health.PartyHealth.AvgCurrent - 0.2f;
-
     private void AutoSGE(in Strategy strategy, Actor? primaryTarget)
     {
         var gauge = World.Client.GetGauge<SageGauge>();
-        var gall = gauge.Addersgall;
-        var eukrasia = gauge.EukrasiaActive;
-        var auto = strategy.Mitigation.Value == MitigationMode.Automatic;
 
-        void UseEukrasian(BossMod.SGE.AID heal, Actor target, int prio)
+        var haveBalls = gauge.Addersgall > 0;
+
+        if (haveBalls && ShouldHealInAreaNow(strategy, Player.Position, 15, 0.5f))
+            UseOGCD(BossMod.SGE.AID.Ixochole, Player);
+
+        if (ShouldHealInAreaSoon(strategy, Player.Position, 30, 0.8f))
         {
-            if (eukrasia)
-                UseGCD(heal, target, prio, instant: true);
-            else
-                UseGCD(BossMod.SGE.AID.Eukrasia, Player, prio);
+            UseOGCD(Unlocked(BossMod.SGE.AID.PhysisII) ? BossMod.SGE.AID.PhysisII : BossMod.SGE.AID.Physis, Player);
         }
 
-        var party = LightParty.Where(p => !p.IsDead).ToList();
-        float UnshieldedShare(float radius)
+        HealSingleNow(strategy, (target, ratio) =>
         {
-            var inRange = party.Where(p => p.Position.InCircle(Player.Position, radius)).ToList();
-            return inRange.Count == 0 ? 0 : (float)inRange.Count(p => !HasEukrasianShield(p)) / inRange.Count;
-        }
+            if (ratio < 0.5)
+            {
+                UseOGCD(BossMod.SGE.AID.Taurochole, target);
+                UseOGCD(BossMod.SGE.AID.Druochole, target);
+            }
+        });
+
+        HealSingleSoon(strategy, (target, ratio) =>
+        {
+            if (ratio < 0.5)
+                UseOGCD(BossMod.SGE.AID.Haima, target);
+        });
 
         if (strategy.Heal == HealMode.Enabled)
-        {
-            var raidwideIn = Raidwides.Select(r => (float)(r - World.CurrentTime).TotalSeconds).Where(t => t >= 0).DefaultIfEmpty(float.MaxValue).Min();
-            var fullRaidwideIn = Hints.PredictedDamage.Where(d => d.Type == AIHints.PredictedDamageType.Raidwide).Select(d => d.Activation)
-                .Concat(StateTimeline.Upcoming(Bossmods.ActiveModule, World).Where(h => h.hint.HasFlag(StateMachine.StateHint.Raidwide)).Select(h => h.at))
-                .Where(t => t >= World.CurrentTime).Select(t => (float)(t - World.CurrentTime).TotalSeconds).DefaultIfEmpty(float.MaxValue).Min();
-
-            if (auto && raidwideIn < 8 && gall > 0)
-                UseOGCD(BossMod.SGE.AID.Kerachole, Player, 20);
-            if (auto && raidwideIn < 5 && Health.PartyHealth.AvgCurrent <= 0.8f)
-                UseOGCD(BossMod.SGE.AID.Holos, Player, 15);
-            if (fullRaidwideIn < GCD + 2.5f && UnshieldedShare(15) >= 0.5f)
-                UseEukrasian(BossMod.SGE.AID.Prognosis, Player, 5);
-
-            foreach (var (tank, at) in Tankbusters)
-            {
-                var busterIn = (float)(at - World.CurrentTime).TotalSeconds;
-                if (busterIn is < 0 or > 5 || tank.IsDead || World.Party.FindSlot(tank.InstanceID) < 0)
-                    continue;
-                if (auto && tank.FindStatus(BossMod.SGE.SID.Haima) == null)
-                    UseOGCD(BossMod.SGE.AID.Haima, tank, 25);
-                if (auto && busterIn < 3 && gall > 0)
-                    UseOGCD(BossMod.SGE.AID.Taurochole, tank, 24);
-                if (busterIn < GCD + 2.5f && !HasEukrasianShield(tank))
-                    UseEukrasian(BossMod.SGE.AID.Diagnosis, tank, 4);
-            }
-        }
-
-        HealLowest(strategy, false, (target, ratio) =>
-        {
-            var tank = target.Role == Role.Tank;
-            var raw = PredictedRatio(target);
-            if (auto && QuietPeriod && raw > 0.3f && (raw < 0.75f || MissingWithoutRegen(30) >= 2) && !HasHealOverTime(target))
-            {
-                if (ReadySoon(BossMod.SGE.AID.PhysisII) || !Unlocked(BossMod.SGE.AID.PhysisII) && ReadySoon(BossMod.SGE.AID.Physis))
-                {
-                    UseOGCD(Unlocked(BossMod.SGE.AID.PhysisII) ? BossMod.SGE.AID.PhysisII : BossMod.SGE.AID.Physis, Player, 12);
-                    return;
-                }
-                if (gall >= 3 && Player.Level >= 78 && ReadySoon(BossMod.SGE.AID.Kerachole))
-                {
-                    UseOGCD(BossMod.SGE.AID.Kerachole, Player, 12);
-                    return;
-                }
-            }
-            if (tank && ratio <= 0.7f)
-                UseOGCD(BossMod.SGE.AID.Krasis, target, 12);
-            if (auto && tank && ratio <= 0.5f && gall > 0)
-                UseOGCD(BossMod.SGE.AID.Taurochole, target, 11);
-            if (auto && tank && ratio <= 0.45f)
-                UseOGCD(BossMod.SGE.AID.Haima, target, 10);
-            if (ratio <= 0.7f && target.FindStatus(BossMod.SGE.SID.Kardion, Player.InstanceID) != null)
-                UseOGCD(BossMod.SGE.AID.Soteria, Player, 9);
-            if (ratio <= 0.55f && gall > 0)
-                UseOGCD(BossMod.SGE.AID.Druochole, target, 8);
-            if (auto && ratio <= 0.4f)
-                UseOGCD(BossMod.SGE.AID.Zoe, Player, 7);
-
-            var ogcdCovers = gall > 0 || auto && tank && (ReadySoon(BossMod.SGE.AID.Taurochole) || ReadySoon(BossMod.SGE.AID.Haima));
-            if (SingledOut(ratio) && (ratio <= 0.3f || ratio <= 0.5f && !ogcdCovers))
-            {
-                if (!HasEukrasianShield(target))
-                    UseEukrasian(BossMod.SGE.AID.Diagnosis, target, 3);
-                else
-                    UseGCD(BossMod.SGE.AID.Diagnosis, target, 2);
-            }
-        });
-
-        HealLowest(strategy, true, (target, ratio) =>
-        {
-            if (auto && ratio < 0.5f && target.Role == Role.Tank)
-                UseOGCD(BossMod.SGE.AID.Haima, target, 10);
-        });
-
-        if (auto && PartyLow(strategy, 30, 0.8f))
-        {
-            UseOGCD(Unlocked(BossMod.SGE.AID.PhysisII) ? BossMod.SGE.AID.PhysisII : BossMod.SGE.AID.Physis, Player, 19);
-            if (gall > 0 && Player.Level >= 78)
-                UseOGCD(BossMod.SGE.AID.Kerachole, Player, 18);
-        }
-        if (auto && PartyLow(strategy, 30, 0.65f))
-            UseOGCD(BossMod.SGE.AID.Holos, Player, 17);
-        if (auto && PartyLow(strategy, 20, 0.6f))
-            UseOGCD(BossMod.SGE.AID.Philosophia, Player, 16);
-        if (auto && PartyLow(strategy, 30, 0.55f) && Player.FindStatus(BossMod.SGE.SID.Panhaima) == null)
-            UseOGCD(BossMod.SGE.AID.Panhaima, Player, 15);
-        if (gall > 0 && PartyLow(strategy, 15, 0.7f))
-            UseOGCD(BossMod.SGE.AID.Ixochole, Player, 14);
-
-        if (auto && PartyLow(strategy, 20, 0.45f) && ReadySoon(BossMod.SGE.AID.Pneuma) && primaryTarget is { IsAlly: false } enemy && Player.DistanceToHitbox(enemy) <= 25)
-        {
-            UseOGCD(BossMod.SGE.AID.Zoe, Player, 13);
-            UseGCD(BossMod.SGE.AID.Pneuma, enemy, 1);
-        }
-
-        if (PartyLow(strategy, 15, 0.55f) && UnshieldedShare(15) >= 0.5f
-            && !(gall > 0 && ReadySoon(BossMod.SGE.AID.Ixochole)) && !(auto && (ReadySoon(BossMod.SGE.AID.PhysisII) || ReadySoon(BossMod.SGE.AID.Holos))))
-            UseEukrasian(BossMod.SGE.AID.Prognosis, Player, 1);
+            foreach (var rw in Raidwides)
+                if ((rw - World.CurrentTime).TotalSeconds < 15 && haveBalls)
+                    UseOGCD(BossMod.SGE.AID.Kerachole, Player);
     }
 }
