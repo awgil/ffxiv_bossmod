@@ -32,7 +32,14 @@ public static class TimeToKill
     {
         if (!_samples.TryGetValue(enemy.InstanceID, out var q) || q.Count < 2)
             return null;
+        // measure from when the damage started, not from an untouched stretch at full hp
         var (t0, hp0) = q.Peek();
+        foreach (var s in q)
+        {
+            if (s.hp < hp0)
+                break;
+            (t0, hp0) = s;
+        }
         var dt = (float)(_lastUpdate - t0).TotalSeconds;
         if (dt < MinObserved)
             return null;
@@ -42,6 +49,10 @@ public static class TimeToKill
 
     public static bool WillLive(Actor enemy, float seconds)
         => enemy.IsStrikingDummy || (Estimate(enemy) is { } ttk ? ttk >= seconds : enemy.HPRatio > 0.05f);
+
+    // WillLive assumes a target with no damage history lives, so only the boss gets that benefit of the doubt
+    public static bool WorthDot(BossModule? module, Actor target, float seconds)
+        => target.IsStrikingDummy || target == module?.PrimaryActor ? WillLive(target, seconds) : Estimate(target) >= seconds;
 
     public static bool IsBossTier(BossModule? module, AIHints hints, Actor target)
         => target.IsStrikingDummy || module?.PrimaryActor is { IsDeadOrDestroyed: false, IsTargetable: true } boss
@@ -189,7 +200,7 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     {
         if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
             return false;
-        return TimeToKill.WillLive(e.Actor, 15);
+        return TimeToKill.WorthDot(Bossmods.ActiveModule, e.Actor, 15);
     }
 
     // a dot we just cast counts as fresh until it lands, so it isn't cast twice

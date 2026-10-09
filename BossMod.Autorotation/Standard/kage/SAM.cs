@@ -334,6 +334,11 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         if (OgiRepeat)
             PushGCD(AID.KaeshiNamikiri, BestConeTarget ?? target.Actor, 85);
 
+        // an oGCD only weaves after a GCD, so the reopen Meikyo has to go out in the GCD slot
+        if (Reopening && SenCount < 3 && MeikyoLeft == 0 && TendoLeft == 0 && WorthBurst && strategy.Meikyo.Value != OffensiveStrategy.Delay
+            && Unlocked(AID.MeikyoShisui) && ReadyIn(AID.MeikyoShisui) <= GCD)
+            PushAction(ActionID.MakeSpell(AID.MeikyoShisui), Player, ActionQueue.Priority.High + 90);
+
         UseTsubame(strategy, target);
         UseIaijutsu(strategy, target);
         UseOgi(strategy, target);
@@ -546,7 +551,9 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private bool BanaWanted(Enemy e, float minLife)
     {
-        if (e.ForbidDOTs || !TimeToKill.WillLive(e.Actor, minLife) || DowntimeIn < 15)
+        if (e.ForbidDOTs || DowntimeIn < 15)
+            return false;
+        if (!TimeToKill.WorthDot(Bossmods.ActiveModule, e.Actor, minLife))
             return false;
         var left = DotLeft(e.Actor);
         if (left == 0)

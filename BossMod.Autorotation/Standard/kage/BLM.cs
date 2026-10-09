@@ -226,7 +226,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(PolyglotAction, target.Actor, 5);
         }
 
-        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < (InOpener ? (InLeyLines ? 7.5f : 5) : 3) && !target.ForbidDOTs && TimeToKill.WillLive(target.Actor, 12)))
+        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < (InOpener ? (InLeyLines ? 7.5f : 5) : 3) && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
 
         if (CantCast && MovementThunder(strategy, target))
@@ -370,7 +370,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         }
     }
 
-    private bool NeedThunderhead(Enemy target) => ThunderheadLeft == 0 && ThunderLeft(target.Actor) < 10 && TimeToKill.WillLive(target.Actor, 15);
+    private bool NeedThunderhead(Enemy target) => ThunderheadLeft == 0 && ThunderLeft(target.Actor) < 10 && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 15);
 
     private bool MovementThunder(in Strategy strategy, Enemy target) => strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && !target.ForbidDOTs;
 
