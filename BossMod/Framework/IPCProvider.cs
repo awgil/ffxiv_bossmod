@@ -13,7 +13,8 @@ sealed class IPCProvider : IDisposable
     public IPCProvider(RotationModuleManager autorotation, ObstacleMapManager obstacles)
     {
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
-        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args), save));
+        // 'save' argument is deprecated
+        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args)));
 
         var lastModified = DateTime.Now;
         Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);

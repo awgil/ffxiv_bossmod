@@ -69,6 +69,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
 
+    private readonly CancellationTokenSource _saveCts = new();
+
     public unsafe TickService(
         MediatorService mediator,
         ILogger<DisposableMediatorSubscriberBase> mLogger,
@@ -118,7 +120,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            _onConfigSave = Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+            Task.Run(SavePeriodically);
 
             // requires windows/wine
             MultiboxUnlock.Exec();
@@ -715,6 +717,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         copy("BossMod.Ultimate.dll");
     }
 
+    private async Task SavePeriodically()
+    {
+        var token = _saveCts.Token;
+
+        while (!token.IsCancellationRequested)
+        {
+            Service.Config.SaveToFile(dalamud.ConfigFile);
+
+            await Task.Delay(30_000, token);
+        }
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -722,8 +736,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
+        _saveCts.Cancel();
+        _saveCts.Dispose();
+        Service.Config.SaveToFile(dalamud.ConfigFile);
+
         GaugeVisualizer.Dispose();
-        _onConfigSave?.Dispose();
         _wndDebug?.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();

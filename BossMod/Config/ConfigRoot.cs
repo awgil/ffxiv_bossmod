@@ -124,7 +124,7 @@ public sealed class ConfigRoot : IDisposable
         }
     }
 
-    public List<string> ConsoleCommand(ReadOnlySpan<char> cmd, bool save = true)
+    public List<string> ConsoleCommand(ReadOnlySpan<char> cmd)
     {
         Span<Range> ranges = stackalloc Range[3];
         var numRanges = cmd.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -226,8 +226,7 @@ public sealed class ConfigRoot : IDisposable
                         else
                         {
                             matchingFields[0].SetValue(matchingNodes[0], val);
-                            if (save)
-                                matchingNodes[0].Modified.Fire();
+                            matchingNodes[0].Modified.Fire();
                         }
                     }
                     catch (Exception e)
