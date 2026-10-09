@@ -161,6 +161,17 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return Hints.PathfindMapBounds.Contains(rear - Hints.PathfindMapCenter);
     }
 
+    // raidwides from predicted damage and the module timeline
+    protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
+
+    // worth dotting: allowed, not filler (unless boss tier), no downtime soon, and it lives long enough to pay off
+    protected bool DotWorthIt(AIHints.Enemy e)
+    {
+        if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
+            return false;
+        return TimeToKill.WillLive(e.Actor, 15);
+    }
+
     protected bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     protected float ReadyIn<AID>(AID aid) where AID : Enum => ReadyIn(ActionID.MakeSpell(aid));
     protected float ReadyIn(ActionID action) => ActionUnlocked(action) && ActionDefinitions.Instance[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;

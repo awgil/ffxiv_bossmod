@@ -211,7 +211,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(AID.Phlegma, target.Actor, 40);
         }
 
-        if (strategy.Pneuma.Value == PneumaStrategy.Automatic && CanCast && Player.InCombat && GCDReady(AID.Pneuma) && !RaidwideSoon(20)
+        if (strategy.Pneuma.Value == PneumaStrategy.Automatic && CanCast && Player.InCombat && GCDReady(AID.Pneuma) && !RaidwideWithin(20)
             && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2)
             PushGCD(AID.Pneuma, target.Actor, 35);
 
@@ -241,13 +241,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             if (StatusDetails(target, sid, Player.InstanceID, 30).Left is > 0 and var left)
                 return left;
         return 0;
-    }
-
-    private bool DotWorthIt(Enemy e)
-    {
-        if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
-            return false;
-        return TimeToKill.WillLive(e.Actor, 15);
     }
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
@@ -284,9 +277,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         return MaxChargesIn(AID.Phlegma) + cooldown <= RaidBuffsIn;
     }
 
-    private bool MPCheckSoon => RaidwideSoon(15) || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
-
-    private bool RaidwideSoon(float within) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(within));
+    private bool MPCheckSoon => RaidwideWithin(15) || World.Party.WithoutSlot(excludeAlliance: true).Any(p => p.IsDead);
 
     #endregion
 
@@ -304,7 +295,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
                 PushOGCD(AID.Rhizomata, Player, 40);
 
         if (strategy.Druochole.Value == DruocholeStrategy.Automatic && Gall >= 3 && NextGall < GCDLength + 1 && CanWeave(AID.Druochole)
-            && !(RaidwideSoon(15) && Unlocked(AID.Kerachole) && ReadyIn(AID.Kerachole) < 5))
+            && !(RaidwideWithin(15) && Unlocked(AID.Kerachole) && ReadyIn(AID.Kerachole) < 5))
         {
             var healTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(p => !p.IsDead && Player.DistanceToHitbox(p) <= 30).MinBy(p => p.PendingHPRatio) ?? Player;
             PushOGCD(AID.Druochole, healTarget, 35);

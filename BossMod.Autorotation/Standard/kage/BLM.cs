@@ -414,7 +414,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
                 PushOGCD(ClassShared.AID.Swiftcast, Player, 49);
         }
 
-        if (strategy.Manaward.Value == ManawardStrategy.Automatic && CanWeave(AID.Manaward) && StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t > World.CurrentTime && t <= World.FutureTime(4)))
+        if (strategy.Manaward.Value == ManawardStrategy.Automatic && CanWeave(AID.Manaward) && RaidwideWithin(4))
             PushOGCD(AID.Manaward, Player, 45);
     }
 

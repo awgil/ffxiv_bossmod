@@ -208,13 +208,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     private float DotRefresh => GCD + GCDLength;
 
-    private bool DotWorthIt(Enemy e)
-    {
-        if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
-            return false;
-        return TimeToKill.WillLive(e.Actor, 15);
-    }
-
     private Actor? DotTarget(in Strategy strategy, Enemy target)
     {
         if (DotWorthIt(target) && (DotLeft(target.Actor) < DotRefresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < 8))
