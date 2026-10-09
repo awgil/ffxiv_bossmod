@@ -10,6 +10,8 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase<Rang
         public Track<EnabledByDefault> SecondWind;
         [Track("Limit Break", InternalName = "Limit Break", Actions = [ClassShared.AID.Desperado, ClassShared.AID.BigShot])]
         public Track<EnabledByDefault> LimitBreak;
+        [Track("Party mitigation", InternalName = "Party mitigation", Actions = [BossMod.MCH.AID.Tactician, BossMod.MCH.AID.Dismantle, BossMod.BRD.AID.Troubadour, BossMod.DNC.AID.ShieldSamba])]
+        public Track<DisabledByDefault> PartyMit;
     }
     public static RotationModuleDefinition Definition()
     {
@@ -31,9 +33,35 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase<Rang
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.SecondWind), Player, ActionQueue.Priority.Medium);
 
         ExecLB(strategy, primaryTarget);
+        PartyMitigation(strategy, primaryTarget);
 
         if (ActionUnlocked(ActionID.MakeSpell(BossMod.BRD.AID.WardensPaean)) && NextChargeIn(BossMod.BRD.AID.WardensPaean) == 0 && ActionDefinitions.FindEsunaTarget(World) is Actor tar)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.BRD.AID.WardensPaean), tar, ActionQueue.Priority.Low);
+    }
+
+    // Tactician / Troubadour / Shield Samba don't stack; Dismantle only if our party mit is on cooldown
+    private void PartyMitigation(in Strategy strategy, Actor? primaryTarget)
+    {
+        if (strategy.PartyMit.Value != DisabledByDefault.Enabled || !Player.InCombat || !RaidwideWithin(5))
+            return;
+
+        var mit = Player.Class switch
+        {
+            Class.MCH => Spell(BossMod.MCH.AID.Tactician),
+            Class.BRD => Spell(BossMod.BRD.AID.Troubadour),
+            Class.DNC => Spell(BossMod.DNC.AID.ShieldSamba),
+            _ => default
+        };
+        var active = Player.FindStatus(BossMod.MCH.SID.Tactician) != null || Player.FindStatus(BossMod.BRD.SID.Troubadour) != null || Player.FindStatus(BossMod.DNC.SID.ShieldSamba) != null;
+        if (mit != default && ActionUnlocked(mit) && NextChargeIn(mit) == 0)
+        {
+            if (!active)
+                Hints.ActionsToExecute.Push(mit, Player, ActionQueue.Priority.Medium);
+        }
+        else if (Player.Class == Class.MCH && primaryTarget is { IsAlly: false } t && Unlocked(BossMod.MCH.AID.Dismantle) && NextChargeIn(BossMod.MCH.AID.Dismantle) == 0 && t.FindStatus(BossMod.MCH.SID.Dismantled) == null && Player.DistanceToHitbox(t) <= 25)
+        {
+            Hints.ActionsToExecute.Push(Spell(BossMod.MCH.AID.Dismantle), t, ActionQueue.Priority.Medium);
+        }
     }
 
     private void ExecLB(in Strategy strategy, Actor? primaryTarget)

@@ -12,6 +12,8 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
         public Track<EnabledByDefault> Bloodbath;
         [Track(Action = ClassShared.AID.LegSweep)]
         public Track<EnabledByDefault> Stun;
+        [Track("Feint", InternalName = "Feint", Action = ClassShared.AID.Feint)]
+        public Track<DisabledByDefault> Feint;
         [Track("Limit Break", InternalName = "Limit Break", Actions = [ClassShared.AID.Braver, ClassShared.AID.Bladedance])]
         public Track<EnabledByDefault> LimitBreak;
 
@@ -55,6 +57,13 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
                 Hints.ActionsToExecute.Push(BozjaActionID.GetNormal(BozjaHolsterID.LostAssassination), primaryTarget, ActionQueue.Priority.Low);
         }
         */
+
+        // feint before raidwides, unless another melee already did
+        if (strategy.Feint.Value == DisabledByDefault.Enabled && Player.InCombat && primaryTarget is { IsAlly: false } ft
+            && RaidwideWithin(5)
+            && Unlocked(ClassShared.AID.Feint) && NextChargeIn(ClassShared.AID.Feint) == 0
+            && ft.FindStatus(ClassShared.SID.Feint) == null && Player.DistanceToHitbox(ft) <= 10)
+            Hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Feint), ft, ActionQueue.Priority.Medium);
 
         AutoDash(strategy, primaryTarget);
         AutoLB(strategy, primaryTarget);
