@@ -14,12 +14,10 @@ public abstract class AIBase<TValues>(RotationModuleManager manager, Actor playe
 
     internal IEnumerable<AIHints.Enemy> EnemiesAutoingMe => Hints.PotentialTargets.Where(x => x.Actor.CastInfo == null && x.Actor.TargetID == Player.InstanceID && Player.DistanceToHitbox(x.Actor) <= 6);
 
-    internal IEnumerable<DateTime> Raidwides => Hints.PredictedDamage.Where(d => d.Type is AIHints.PredictedDamageType.Raidwide or AIHints.PredictedDamageType.Shared).Select(d => d.Activation);
-    internal IEnumerable<(Actor, DateTime)> Tankbusters => Hints.PredictedDamage
-        .Where(p => p.Type == AIHints.PredictedDamageType.Tankbuster)
-        .SelectMany(d => World.Party.WithSlot()
-            .IncludedInMask(d.Players)
-            .Select(player => (player.Item2, d.Activation)));
+    // predicted damage, plus raidwides / tankbusters only marked in the module's timeline
+    internal IEnumerable<DateTime> Raidwides => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints);
+    internal IEnumerable<(Actor, DateTime)> Tankbusters => StateTimeline.Tankbusters(Bossmods.ActiveModule, World, Hints);
+    internal bool RaidwideWithin(float seconds) => Raidwides.Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 }
 
 public enum HintedStrategy

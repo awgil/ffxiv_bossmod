@@ -4,12 +4,15 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageVPR(RotationModuleManager manager, Actor player) : TypedRotationModule<KageVPR.Strategy>(manager, player)
+public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageRotation<KageVPR.Strategy>(manager, player)
 {
     public struct Strategy
     {
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
+
+        [Track("Burst (Serpent's Ire, Reawaken)", InternalName = "Burst", MinLevel = 86)]
+        public Track<OffensiveStrategy> Burst;
 
         [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
         public Track<ReawakenStrategy> Reawaken;
@@ -38,15 +41,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
 
-        [Track("Opener", MinLevel = 100, UiPriority = -10, Context = StrategyContext.Plan)]
+        [Track("Opener", MinLevel = 96, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
     public enum ReawakenStrategy
     {
-        [Option("Use with Serpent's Ire, during raid buffs, at full Offering, and at the odd-minute window")]
+        [Option("Use with Serpent's Ire and raid buffs; saved for the boss")]
         Automatic,
-        [Option("Use as soon as Offering allows", MinLevel = 90)]
+        [Option("Use as soon as possible", MinLevel = 90)]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -54,11 +57,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos, never overcap, use when out of melee range", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Like Automatic, but keep one stack", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, but always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
-        [Option("Only use when out of melee range or about to overcap", Targets = ActionTargets.Hostile)]
+        [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
         [Option("Do not use")]
         Delay
@@ -90,11 +93,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum EngageStrategy
     {
-        [Option("Slither to the target, or use the opening GCD right before the pull if already in melee range")]
+        [Option("Slither in, or open at the pull if already in melee")]
         Slither,
         [Option("Sprint into melee range")]
         Sprint,
-        [Option("Walk into melee range and use the opening GCD right before the pull")]
+        [Option("Walk in and open at the pull")]
         Facepull
     }
 
@@ -112,9 +115,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public enum OpenerStrategy
     {
-        [Option("Standard; FRU or DMU opener in those ultimates")]
+        [Option("Automatic (FRU / DMU openers in those fights)")]
         Automatic,
-        [Option("Reaving Fangs, Swiftskin's Sting, Vicewinder, Hunter's Coil first")]
+        [Option("Standard opener")]
         Standard,
         [Option("Vicewinder first, Swiftskin's Coil first (FRU)")]
         FRU,
@@ -126,7 +129,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage VPR", "Viper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage VPR", "Viper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.VPR), 100).WithStrategies<Strategy>();
     }
 
     private DreadCombo Dread;
@@ -152,50 +155,36 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private float PoisedForTwinblood;
     private float ReawakenReady;
     private float Reawakened;
-    private float TrueNorthLeft;
 
-    private float RaidBuffsLeft;
-    private float RaidBuffsIn;
-    private float DowntimeIn;
-    private bool InBossFight;
-
-    private Actor? BestSplashTarget;
     private bool AllowAoE;
     private bool AOEMode;
     private bool InMelee;
-    private float AnimLockDelay;
 
-    private Targeting TargetMode;
     private OpenerStrategy OpenerMode;
-    private AID NextGCD;
-    private float NextGCDPrio;
+    private bool IreWanted;
 
-    private float GCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
-    private float ComboLeft => World.Client.ComboState.Remaining;
+    private AID NextGCD => NextGCDAction.As<AID>();
     private int CoilMax => Unlocked(TraitID.EnhancedVipersRattle) ? 3 : 2;
-    private bool HasBothBuffs => Swiftscaled > GCD && Instinct > GCD;
-    private bool TwinWeavesPending => HuntersVenom > 0 || SwiftskinsVenom > 0 || FellhuntersVenom > 0 || FellskinsVenom > 0 || PoisedForTwinfang > 0 || PoisedForTwinblood > 0;
+    private int MaxAnguine => Unlocked(TraitID.EnhancedSerpentsLineage) ? 5 : 4;
+    private bool BuffsExpiring(float within)
+        => IsExpiring(FlankstungVenom, within) || IsExpiring(FlanksbaneVenom, within) || IsExpiring(HindstungVenom, within) || IsExpiring(HindsbaneVenom, within)
+        || IsExpiring(HonedSteel, within) || IsExpiring(HonedReavers, within);
+    private static bool IsExpiring(float left, float within) => left > 0 && left < within;
+
+    private bool TwinWeavesPending => Unlocked(AID.TwinfangBite) && (HuntersVenom > 0 || SwiftskinsVenom > 0 || FellhuntersVenom > 0 || FellskinsVenom > 0 || PoisedForTwinfang > 0 || PoisedForTwinblood > 0);
     private float IreIn => ReadyIn(AID.SerpentsIre);
-    private float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
+
+    private ReawakenStrategy ReawakenStrat;
+    private OffensiveStrategy IreStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        AnimLockDelay = estimatedAnimLockDelay;
-        NextGCD = AID.None;
-        NextGCDPrio = 0;
-
-        var target = Hints.FindEnemy(primaryTarget);
-        if (target?.Priority is Enemy.PriorityInvincible or Enemy.PriorityForbidden)
-            target = null;
-
-        TargetMode = strategy.Targeting.Value == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : strategy.Targeting.Value;
-        if (TargetMode == Targeting.Auto && target == null)
-        {
-            target = Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MinBy(e => Player.DistanceToHitbox(e.Actor)) ?? target;
-            primaryTarget = target?.Actor;
-        }
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        ReawakenStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => ReawakenStrategy.Delay, OffensiveStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
+        IreStrat = WithBurst(strategy.Burst.Value, strategy.Ire.Value);
+        var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
         {
@@ -209,14 +198,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         };
 
         var gauge = World.Client.GetGauge<ViperGauge>();
-        Dread = gauge.DreadCombo;
+        // force-ST drops AoE-only follow-ups left over from AoE (Den chain, Thresh weaves, Last Lash)
+        Dread = forceST && gauge.DreadCombo is DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen ? default : gauge.DreadCombo;
         Coil = gauge.RattlingCoilStacks;
         Offering = gauge.SerpentOffering;
         Anguine = gauge.AnguineTribute;
         CurSerpentsTail = gauge.SerpentCombo switch
         {
             SerpentCombo.DeathRattle => AID.DeathRattle,
-            SerpentCombo.LastLash => AID.LastLash,
+            SerpentCombo.LastLash when !forceST => AID.LastLash,
             SerpentCombo.FirstLegacy => AID.FirstLegacy,
             SerpentCombo.SecondLegacy => AID.SecondLegacy,
             SerpentCombo.ThirdLegacy => AID.ThirdLegacy,
@@ -235,27 +225,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         GrimskinsVenom = SelfStatusLeft(SID.GrimskinsVenom);
         HuntersVenom = SelfStatusLeft(SID.HuntersVenom);
         SwiftskinsVenom = SelfStatusLeft(SID.SwiftskinsVenom);
-        FellhuntersVenom = SelfStatusLeft(SID.FellhuntersVenom);
-        FellskinsVenom = SelfStatusLeft(SID.FellskinsVenom);
+        FellhuntersVenom = forceST ? 0 : SelfStatusLeft(SID.FellhuntersVenom);
+        FellskinsVenom = forceST ? 0 : SelfStatusLeft(SID.FellskinsVenom);
         PoisedForTwinfang = SelfStatusLeft(SID.PoisedForTwinfang);
         PoisedForTwinblood = SelfStatusLeft(SID.PoisedForTwinblood);
         ReawakenReady = SelfStatusLeft(SID.ReawakenReady);
         Reawakened = SelfStatusLeft(SID.Reawakened);
-        TrueNorthLeft = SelfStatusLeft(SID.TrueNorth);
-
-        (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
-        DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
-        InBossFight = Bossmods.ActiveModule != null || primaryTarget?.IsStrikingDummy == true;
 
         AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
-        AOEMode = Unlocked(AID.SteelMaw) && strategy.AOE.Value switch
-        {
-            AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => Hints.NumPriorityTargetsInAOECircle(Player.Position, 5) >= 3,
-            _ => false
-        };
+        AOEMode = Unlocked(AID.SteelMaw) && UseAOE(strategy.AOE.Value, Hints.NumPriorityTargetsInAOECircle(Player.Position, 5), 3);
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
-        BestSplashTarget = target == null ? null : BestSplash(target, 20);
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
@@ -270,9 +249,17 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (target == null)
             return;
 
+        // only hold for an Ire the rotation will press; capped coils block it until Uncoiled Fury spends one
+        IreWanted = IreStrat switch
+        {
+            OffensiveStrategy.Force => true,
+            OffensiveStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
+            _ => false
+        };
+
         GCDs(strategy, target);
         UpdatePositionals(strategy, target);
-        AddGoalZone(strategy, target);
+        AddGoalZone(target);
 
         if (Player.InCombat)
             OGCD(strategy, target);
@@ -281,7 +268,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     private void Engage(in Strategy strategy, Enemy target, float countdown)
     {
         var first = VicewinderOpener ? AID.Vicewinder : OpenerMode == OpenerStrategy.Standard ? AID.ReavingFangs : AID.SteelFangs;
-        switch (strategy.Engage.Value)
+        var engage = strategy.Engage.Value == EngageStrategy.Slither && !Unlocked(AID.Slither) ? EngageStrategy.Facepull : strategy.Engage.Value;
+        switch (engage)
         {
             case EngageStrategy.Slither:
                 if (InMelee ? countdown < 1.16f : countdown < 0.7f)
@@ -312,7 +300,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
     {
         var dying = target.Priority == Enemy.PriorityPointless;
 
-        // twinblade continuations always come first
         switch (Dread)
         {
             case DreadCombo.Dreadwinder:
@@ -338,21 +325,22 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (Anguine > 0)
             PushGCD(NextGeneration(), BestSplash(target, 3), 35);
 
-        if (ShouldReawaken(strategy, dying))
+        if (ShouldReawaken(strategy, dying, target.Actor))
             PushGCD(AID.Reawaken, target.Actor, 30);
 
         if (strategy.Uncoiled.Value != UncoiledStrategy.Delay && Coil >= CoilMax && Dread == 0 && Reawakened == 0 && !TwinWeavesPending && (IreIn <= GCDLength * 3 || GCDReady(AID.Vicewinder)))
             PushGCD(AID.UncoiledFury, target.Actor, 25);
 
-        if (ShouldTwinblade(strategy))
-            PushGCD(AOEMode ? AID.Vicepit : AID.Vicewinder, AOEMode ? Player : target.Actor, 20);
+        var twinblade = AOEMode && Unlocked(AID.Vicepit) ? AID.Vicepit : AID.Vicewinder;
+        if (ShouldTwinblade(strategy, twinblade))
+            PushGCD(twinblade, target.Actor, 20);
 
-        if (ShouldUncoil(strategy, dying))
-            PushGCD(AID.UncoiledFury, BestSplashTarget ?? target.Actor, 15);
+        if (ShouldUncoil(strategy, dying, target.Actor))
+            PushGCD(AID.UncoiledFury, BestSplash(target, 20), 15);
 
         if (!InMelee)
         {
-            if (Coil > 0 && strategy.Uncoiled.Value != UncoiledStrategy.Delay)
+            if (Coil > 0 && Unlocked(AID.UncoiledFury) && strategy.Uncoiled.Value != UncoiledStrategy.Delay)
                 PushGCD(AID.UncoiledFury, target.Actor, 5);
             else if (strategy.Snap.Value == SnapStrategy.Ranged)
                 PushGCD(AID.WrithingSnap, target.Actor, 4);
@@ -364,20 +352,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             DualWieldST(target);
     }
 
-    // positional of the dual-wield finisher that follows the twinblade combo, from the venom buff we're holding
     private Positional NextFinisherPositional
         => FlankstungVenom > 0 || FlanksbaneVenom > 0 ? Positional.Flank
          : HindstungVenom > 0 || HindsbaneVenom > 0 ? Positional.Rear
          : Positional.Any;
 
-    // order the coils so the second one is on the same side as the next finisher (one reposition instead of two);
-    // an expiring buff always goes first, and without a venom we start on the side we're already standing
     private AID FirstCoil(Actor target)
     {
-        if (CombatTime < 10 && OpenerMode is OpenerStrategy.Standard or OpenerStrategy.DMU)
-            return AID.HuntersCoil;
-        if (CombatTime < 10 && OpenerMode == OpenerStrategy.FRU)
-            return AID.SwiftskinsCoil;
+        if (CombatTime < 10 && OpenerMode != OpenerStrategy.None)
+            return OpenerMode == OpenerStrategy.FRU ? AID.SwiftskinsCoil : AID.HuntersCoil;
 
         var refresh = GCDLength * 6;
         if (Swiftscaled < refresh && Swiftscaled <= Instinct)
@@ -393,41 +376,31 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         };
     }
 
-    private Positional CurrentPositional(Actor target)
+    private AID NextGeneration() => (MaxAnguine - Anguine) switch
     {
-        var dir = target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized());
-        return dir < -0.7071068f ? Positional.Rear : dir < 0.7071068f ? Positional.Flank : Positional.Front;
-    }
-
-    private AID NextGeneration()
-    {
-        var max = Unlocked(TraitID.EnhancedSerpentsLineage) ? 5 : 4;
-        return (max - Anguine) switch
-        {
-            0 => AID.FirstGeneration,
-            1 => AID.SecondGeneration,
-            2 => AID.ThirdGeneration,
-            3 => AID.FourthGeneration,
-            4 => AID.Ouroboros,
-            _ => AID.None
-        };
-    }
+        0 => AID.FirstGeneration,
+        1 => AID.SecondGeneration,
+        2 => AID.ThirdGeneration,
+        3 => AID.FourthGeneration,
+        4 => AID.Ouroboros,
+        _ => AID.None
+    };
 
     private void DualWieldST(Enemy target)
     {
         if (ComboLeft > 0)
         {
-            if (ComboLastMove == AID.HuntersSting)
+            if (ComboLastMove == AID.HuntersSting && Unlocked(AID.FlankstingStrike))
             {
                 PushGCD(FlanksbaneVenom > 0 || HindsbaneVenom > 0 ? AID.FlanksbaneFang : AID.FlankstingStrike, target.Actor, 3);
                 return;
             }
-            if (ComboLastMove == AID.SwiftskinsSting)
+            if (ComboLastMove == AID.SwiftskinsSting && Unlocked(AID.HindstingStrike))
             {
                 PushGCD(HindsbaneVenom > 0 || FlanksbaneVenom > 0 ? AID.HindsbaneFang : AID.HindstingStrike, target.Actor, 3);
                 return;
             }
-            if (ComboLastMove is AID.SteelFangs or AID.ReavingFangs)
+            if (ComboLastMove is AID.SteelFangs or AID.ReavingFangs && Unlocked(AID.HuntersSting))
             {
                 var hindNext = HindstungVenom > 0 || HindsbaneVenom > 0;
                 var flankNext = FlankstungVenom > 0 || FlanksbaneVenom > 0;
@@ -458,13 +431,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         PushGCD(Unlocked(AID.ReavingMaw) && (HonedReavers > 0 || HonedSteel == 0) ? AID.ReavingMaw : AID.SteelMaw, Player, 1);
     }
 
-    // hold a fresh twinblade combo when Serpent's Ire is about to come up, so its Rattling Coil isn't wasted
-    private bool HoldForIre => InBossFight && IreIn is > 0 and <= 10 && Swiftscaled > GCDLength * 4 && Instinct > GCDLength * 4;
+    private bool HoldForIre => IreWanted && InBossFight && IreIn <= 10 && Swiftscaled > GCDLength * 4 && Instinct > GCDLength * 4;
 
-    private bool ShouldTwinblade(in Strategy strategy)
+    private bool ShouldTwinblade(in Strategy strategy, AID aid)
     {
-        var aid = AOEMode ? AID.Vicepit : AID.Vicewinder;
-        if (!Unlocked(aid) || !GCDReady(aid) || Dread != 0 || Reawakened > 0 || Anguine > 0 || TwinWeavesPending)
+        if (!GCDReady(aid) || Dread != 0 || Reawakened > 0 || Anguine > 0 || TwinWeavesPending)
             return false;
 
         switch (strategy.Twinblade.Value)
@@ -475,20 +446,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
                 return false;
         }
 
-        if (HoldForIre || !AOEMode && !InMelee)
+        if (HoldForIre || aid == AID.Vicewinder && !InMelee)
             return false;
-        // standard opener: Swiftskin's Sting before the first Vicewinder
         if (OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove != AID.SwiftskinsSting)
             return false;
-        // the combo is 3 GCDs plus two twin weaves; don't start it into downtime
         if (DowntimeIn < GCD + GCDLength * 3)
             return false;
-        if (ComboLeft > 0 && ComboLeft < GCDLength * 6)
-            return false;
-        return !HasBothBuffs || Swiftscaled < GCDLength * 4 || Instinct < GCDLength * 4 || IreIn >= GCDLength * 3 || !InBossFight;
+        return !IsExpiring(ComboLeft, GCDLength * 6) && !BuffsExpiring(GCDLength * 4);
     }
 
-    private bool ShouldUncoil(in Strategy strategy, bool dying)
+    private bool ShouldUncoil(in Strategy strategy, bool dying, Actor target)
     {
         if (Coil == 0 || strategy.Uncoiled.Value is UncoiledStrategy.Delay or UncoiledStrategy.Overcap)
             return false;
@@ -496,19 +463,23 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
             return false;
         if (dying)
             return true;
-        if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 || TwinWeavesPending || HoldForIre)
+        var ireSoon = IreWanted && IreIn <= GCDLength * 2;
+        var inBurst = RaidBuffsLeft > GCD || OpenerMode != OpenerStrategy.None && CombatTime < 30;
+        if (Coil <= 1 && !ireSoon && !inBurst && TimeToKill.WillLive(target, 6) && DowntimeIn > GCDLength * 3)
             return false;
-        if (!HasBothBuffs || Swiftscaled < GCDLength * 3 || Instinct < GCDLength * 3)
+        if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 && Unlocked(AID.Reawaken) || TwinWeavesPending || HoldForIre && !ireSoon)
             return false;
-        return ComboLeft == 0 || ComboLeft > GCDLength * 2;
+        if (Swiftscaled < GCDLength * 3 || Instinct < GCDLength * 3)
+            return false;
+        return !IsExpiring(ComboLeft, GCDLength * 2) && !BuffsExpiring(GCDLength * 2);
     }
 
-    private bool ShouldReawaken(in Strategy strategy, bool dying)
+    private bool ShouldReawaken(in Strategy strategy, bool dying, Actor target)
     {
         if (!Unlocked(AID.Reawaken) || Reawakened > 0 || ReawakenReady == 0 && Offering < 50 || Dread != 0 || TwinWeavesPending)
             return false;
 
-        switch (strategy.Reawaken.Value)
+        switch (ReawakenStrat)
         {
             case ReawakenStrategy.Delay:
                 return false;
@@ -519,14 +490,18 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (!InMelee && !AOEMode)
             return false;
 
-        // generations need both buffs to last the whole window
-        var windowLength = (Unlocked(TraitID.EnhancedSerpentsLineage) ? 5 : 4) * GCDLength + GCDLength;
-        if (Swiftscaled < windowLength || Instinct < windowLength || ComboLeft > 0 && ComboLeft < GCDLength * 6)
+        if (!TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, GCDLength * 6))
             return false;
 
-        // no raid-buff jobs in the party: nothing to align with
-        if (dying || !InBossFight || RaidBuffsIn > 9000 && RaidBuffsLeft == 0)
+        var windowLength = (MaxAnguine + 1) * GCDLength;
+        if (Swiftscaled < windowLength || Instinct < windowLength || IsExpiring(ComboLeft, GCDLength * 6))
+            return false;
+
+        if (dying || !InBossFight || NoRaidBuffs || !TimeToKill.WillLive(target, 20))
             return true;
+
+        if (ReawakenReady > 30 - GCDLength && DowntimeIn > windowLength * 2 + GCDLength)
+            return false;
 
         if (DowntimeIn < windowLength)
             return false;
@@ -537,7 +512,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (RaidBuffsLeft > windowLength)
             return true;
 
-        // odd-minute Reawaken: ~1 minute into Serpent's Ire cooldown, unless the burst is close
         return IreIn is >= 50 and <= 62;
     }
 
@@ -547,73 +521,44 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     private void OGCD(in Strategy strategy, Enemy target)
     {
+        // these expire on the next GCD, so they go ahead of plan utilities (Feint, Bloodbath...)
         if (CurSerpentsTail != AID.None)
-            PushOGCD(CurSerpentsTail, target.Actor, 60);
+            PushExpiringOGCD(CurSerpentsTail, target.Actor, 60);
 
         if (PoisedForTwinfang > 0)
-            PushOGCD(AID.UncoiledTwinfang, target.Actor, 55);
+            PushExpiringOGCD(AID.UncoiledTwinfang, target.Actor, 55);
         if (PoisedForTwinblood > 0)
-            PushOGCD(AID.UncoiledTwinblood, target.Actor, 55);
+            PushExpiringOGCD(AID.UncoiledTwinblood, target.Actor, 55);
 
         if (FellhuntersVenom > 0)
-            PushOGCD(AID.TwinfangThresh, Player, 55);
+            PushExpiringOGCD(AID.TwinfangThresh, Player, 55);
         if (FellskinsVenom > 0)
-            PushOGCD(AID.TwinbloodThresh, Player, 55);
+            PushExpiringOGCD(AID.TwinbloodThresh, Player, 55);
 
         if (HuntersVenom > 0)
-            PushOGCD(AID.TwinfangBite, target.Actor, 55);
+            PushExpiringOGCD(AID.TwinfangBite, target.Actor, 55);
         if (SwiftskinsVenom > 0)
-            PushOGCD(AID.TwinbloodBite, target.Actor, 55);
+            PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (ShouldIre(strategy, target))
+        if (IreWanted && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
         if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
             PushOGCD(AID.Slither, ResolveTarget(strategy.Slither) ?? target.Actor, 30);
     }
 
-    private bool ShouldIre(in Strategy strategy, Enemy target)
-    {
-        if (!Unlocked(AID.SerpentsIre) || !CanWeave(AID.SerpentsIre))
-            return false;
-        return strategy.Ire.Value switch
-        {
-            OffensiveStrategy.Force => true,
-            OffensiveStrategy.Automatic => Coil < CoilMax && target.Priority != Enemy.PriorityPointless,
-            _ => false
-        };
-    }
-
     private void UpdatePositionals(in Strategy strategy, Enemy target)
     {
         var (pos, imminent) = NextPositional(target.Actor);
-
-        var actor = target.Actor;
-        if (actor.Omnidirectional || actor.TargetID == Player.InstanceID && actor.CastInfo == null && !actor.IsStrikingDummy || target.Priority < 0)
-            (pos, imminent) = (Positional.Any, false);
-
-        var tn = TrueNorthLeft > GCD;
-        var dir = actor.Rotation.ToDirection().Dot((Player.Position - actor.Position).Normalized());
-        var correct = tn || pos switch
-        {
-            Positional.Flank => MathF.Abs(dir) < 0.7071067f,
-            Positional.Rear => dir < -0.7071068f,
-            _ => true
-        };
-        Hints.RecommendedPositional = (actor, pos, imminent && !tn, correct);
-
-        if (strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && imminent && !correct && InMelee)
-            PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
+        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && InMelee);
     }
 
-    // melee goal; includes the positional when the next hit needs one (or Vicewinder is queued), so the AI walks there
-    private void AddGoalZone(in Strategy strategy, Enemy target)
+    private void AddGoalZone(Enemy target)
     {
         var (_, pos, imminent, _) = Hints.RecommendedPositional;
         var wantPositional = imminent || NextGCD == AID.Vicewinder && pos is Positional.Flank or Positional.Rear;
         var single = Hints.GoalSingleTarget(target.Actor, wantPositional ? pos : Positional.Any, Player, World.Actors, 3);
 
-        // coils need the target for positionals; dens need enemies around us; otherwise stack up 3+ for the AoE combo
         var aoeBreakpoint = Dread switch
         {
             DreadCombo.Dreadwinder or DreadCombo.HuntersCoil or DreadCombo.SwiftskinsCoil => 50,
@@ -630,23 +575,18 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
         if (!Unlocked(AID.FlankstingStrike) || AOEMode || Reawakened > 0)
             return (Positional.Any, false);
 
-        // start walking towards the first coil as soon as Vicewinder is queued
-        if (NextGCD == AID.Vicewinder)
-            return (FirstCoil(target) == AID.HuntersCoil ? Positional.Flank : Positional.Rear, false);
-
-        var imminent = NextGCD is AID.FlankstingStrike or AID.FlanksbaneFang or AID.HindstingStrike or AID.HindsbaneFang or AID.HuntersCoil or AID.SwiftskinsCoil;
-        var pos = NextGCD switch
+        return NextGCD switch
         {
-            AID.FlankstingStrike or AID.FlanksbaneFang or AID.HuntersCoil => Positional.Flank,
-            AID.HindstingStrike or AID.HindsbaneFang or AID.SwiftskinsCoil => Positional.Rear,
-            _ => ComboLastMove switch
+            AID.FlankstingStrike or AID.FlanksbaneFang or AID.HuntersCoil => (Positional.Flank, true),
+            AID.HindstingStrike or AID.HindsbaneFang or AID.SwiftskinsCoil => (Positional.Rear, true),
+            AID.Vicewinder => (FirstCoil(target) == AID.HuntersCoil ? Positional.Flank : Positional.Rear, false),
+            _ => (ComboLastMove switch
             {
                 AID.HuntersSting => Positional.Flank,
                 AID.SwiftskinsSting => Positional.Rear,
                 _ => Swiftscaled <= Instinct ? Positional.Rear : Positional.Flank
-            }
+            }, false)
         };
-        return (pos, imminent);
     }
 
     #endregion
@@ -655,70 +595,19 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : Typed
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => World.Client.CountdownRemaining is > 0 and < 2 || Player.InCombat && Unlocked(AID.SerpentsIre) && ReadyIn(AID.SerpentsIre) < 6,
-        PotionStrategy.AlignWithRaidBuffs => World.Client.CountdownRemaining is > 0 and < 2 || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.SerpentsIre) ? IreIn < 6 : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
         PotionStrategy.Immediate => true,
         _ => false
     };
 
-    // 5y splash target that hits the most priority targets without touching a forbidden one
     private Actor BestSplash(Enemy primary, float range)
-    {
-        int Count(Actor c) => Hints.ForbiddenTargets.Any(e => TargetInAOECircle(e.Actor, c.Position, 5)) ? 0 : Hints.PriorityTargets.Count(e => TargetInAOECircle(e.Actor, c.Position, 5));
-        var best = primary.Actor;
-        if (!AllowAoE || TargetMode == Targeting.Manual)
-            return best;
-        var bestCount = Count(best);
-        foreach (var e in Hints.PriorityTargets)
-        {
-            if (e.Actor == best || Player.DistanceToHitbox(e.Actor) > range || TargetMode == Targeting.AutoPrimary && !TargetInAOECircle(primary.Actor, e.Actor.Position, 5))
-                continue;
-            var c = Count(e.Actor);
-            if (c > bestCount)
-                (best, bestCount) = (e.Actor, c);
-        }
-        return best;
-    }
+        => BestAOETarget(primary, range, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best ?? primary.Actor;
 
-    private bool Unlocked(AID aid) => ActionUnlocked(aid);
     private bool Unlocked(TraitID tid) => TraitUnlocked((uint)tid);
 
-    private float ReadyIn(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-    private bool GCDReady(AID aid) => ReadyIn(aid) < GCD + 0.05f;
-
-    private bool CanWeave(AID aid)
-    {
-        if (!Unlocked(aid))
-            return false;
-        var def = ActionDefinitions.Instance.Spell(aid)!;
-        return MathF.Max(ReadyIn(aid), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
-    }
-
-    private void PushGCD(AID aid, Actor? target, int priority)
-    {
-        if (PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, 0) && priority > NextGCDPrio)
-        {
-            NextGCD = aid;
-            NextGCDPrio = priority;
-        }
-    }
-
-    private void PushOGCD(AID aid, Actor? target, int priority, float delay = 0)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
-
-    private void PushOGCD(ClassShared.AID aid, Actor? target, int priority, float delay = 0)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
-
-    private bool PushAction(ActionID action, Actor? target, float priority, float delay)
-    {
-        if (action.ID == 0 || !ActionUnlocked(action))
-            return false;
-        var def = ActionDefinitions.Instance[action];
-        if (def == null || def.Range != 0 && target == null)
-            return false;
-        Hints.ActionsToExecute.Push(action, target, priority, delay: delay);
-        return true;
-    }
+    private void PushExpiringOGCD(AID aid, Actor? target, int priority)
+        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Medium + priority);
 
     #endregion
 }
