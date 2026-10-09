@@ -23,7 +23,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         [Track("Tsubame-gaeshi", MinLevel = 76, Actions = [AID.KaeshiSetsugekka, AID.TendoKaeshiSetsugekka, AID.KaeshiGoken, AID.TendoKaeshiGoken])]
         public Track<TsubameStrategy> Tsubame;
 
-        [Track("Burst (Ikishoten, Senei / Guren)", InternalName = "Burst", MinLevel = 68)]
+        [Track("Burst (Ikishoten, Senei, Meikyo, Shoha)", InternalName = "Burst", MinLevel = 50)]
         public Track<OffensiveStrategy> Burst;
 
         [Track("Ikishoten / Ogi Namikiri / Zanshin", MinLevel = 68, Actions = [AID.Ikishoten, AID.OgiNamikiri, AID.Zanshin])]
@@ -227,17 +227,21 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     private bool MidCombo => ComboLeft > GCD && ComboLastMove is AID.Hakaze or AID.Gyofu or AID.Jinpu or AID.Shifu or AID.Fuga or AID.Fuko;
     private bool Recovering => CombatTime > 10 && (FugetsuLeft == 0 || FukaLeft == 0);
     private bool Reopening => World.CurrentTime < ReopenUntil;
-    private bool MeikyoUnavailable => MeikyoLeft == 0 && ReadyIn(AID.MeikyoShisui) > GCD;
+    private bool MeikyoUnavailable => MeikyoLeft == 0 && (MeikyoStrat == OffensiveStrategy.Delay || ReadyIn(AID.MeikyoShisui) > GCD);
     private bool DowntimeWithin(int gcds) => DowntimeIn < GCD + GCDLength * gcds;
 
     private OffensiveStrategy IkishotenStrat;
     private OffensiveStrategy SeneiStrat;
+    private OffensiveStrategy MeikyoStrat;
+    private OffensiveStrategy ShohaStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         IkishotenStrat = WithBurst(strategy.Burst.Value, strategy.Ikishoten.Value);
         SeneiStrat = WithBurst(strategy.Burst.Value, strategy.Senei.Value);
+        MeikyoStrat = WithBurst(strategy.Burst.Value, strategy.Meikyo.Value);
+        ShohaStrat = WithBurst(strategy.Burst.Value, strategy.Shoha.Value);
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SamuraiGauge>();
@@ -437,7 +441,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     }
 
     private bool MeikyoBurstNow(in Strategy strategy)
-        => Unlocked(AID.TendoSetsugekka) && MeikyoLeft == 0 && strategy.Meikyo.Value != OffensiveStrategy.Delay && WorthBurst
+        => Unlocked(AID.TendoSetsugekka) && MeikyoLeft == 0 && MeikyoStrat != OffensiveStrategy.Delay && WorthBurst
         && ReadyIn(AID.MeikyoShisui) <= GCD && DowntimeIn >= GCDLength * 3 && (SeneiSoon || HasRaidBuffJobs && RaidBuffsLeft > GCD);
 
     private bool MeikyoAoE => Unlocked(AID.Oka) && NumCircleTargets >= 4;
@@ -584,8 +588,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
             && (ZanshinLeft <= 8 || BossDying || WorthBurst && (RaidBuffsLeft > GCD || !HasRaidBuffJobs || RaidBuffsIn > ZanshinLeft)))
             PushOGCD(AID.Zanshin, BestConeTarget ?? target.Actor, 56);
 
-        if (strategy.Shoha.Value != OffensiveStrategy.Delay && Meditation >= 3 && CanWeave(AID.Shoha)
-            && (strategy.Shoha.Value == OffensiveStrategy.Force || BossDying || GrantsMeditation(NextGCD) || RaidBuffsLeft > GCD || !HasRaidBuffJobs && !SeneiSoon))
+        if (ShohaStrat != OffensiveStrategy.Delay && Meditation >= 3 && CanWeave(AID.Shoha)
+            && (ShohaStrat == OffensiveStrategy.Force || BossDying || GrantsMeditation(NextGCD) || RaidBuffsLeft > GCD || !HasRaidBuffJobs && !SeneiSoon))
             PushOGCD(AID.Shoha, BestLineTarget ?? target.Actor, 54);
 
         if (strategy.Kenki.Value != KenkiStrategy.Delay && ShouldSpendKenki(strategy))
@@ -635,9 +639,9 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private void UseMeikyo(in Strategy strategy, Enemy target)
     {
-        if (strategy.Meikyo.Value == OffensiveStrategy.Delay || MeikyoLeft > 0 || !CanWeave(AID.MeikyoShisui))
+        if (MeikyoStrat == OffensiveStrategy.Delay || MeikyoLeft > 0 || !CanWeave(AID.MeikyoShisui))
             return;
-        if (strategy.Meikyo.Value == OffensiveStrategy.Force)
+        if (MeikyoStrat == OffensiveStrategy.Force)
         {
             PushOGCD(AID.MeikyoShisui, Player, 70);
             return;

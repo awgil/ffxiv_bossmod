@@ -14,7 +14,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         [Track("Hypercharge", MinLevel = 30, Action = AID.Hypercharge)]
         public Track<HyperchargeStrategy> Hypercharge;
 
-        [Track("Burst (Wildfire, Barrel Stabilizer)", InternalName = "Burst", MinLevel = 45)]
+        [Track("Burst (Wildfire, Barrel Stabilizer, tools, Reassemble, Queen)", InternalName = "Burst", MinLevel = 10)]
         public Track<OffensiveStrategy> Burst;
 
         [Track("Wildfire", InternalName = "WF", MinLevel = 45, Action = AID.Wildfire)]
@@ -163,12 +163,18 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
     private WildfireStrategy WildfireStrat;
     private OffensiveStrategy StabilizerStrat;
+    private OffensiveStrategy ToolsStrat;
+    private ReassembleStrategy ReassembleStrat;
+    private QueenStrategy QueenStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         WildfireStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => WildfireStrategy.Delay, OffensiveStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
         StabilizerStrat = WithBurst(strategy.Burst.Value, strategy.Stabilizer.Value);
+        ToolsStrat = WithBurst(strategy.Burst.Value, strategy.Tools.Value);
+        ReassembleStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
+        QueenStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => QueenStrategy.Delay, OffensiveStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
 
         OpenerMode = strategy.Opener.Value switch
         {
@@ -211,7 +217,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            if (countdown < 5 && ReassembleLeft == 0 && ReadyIn(AID.AirAnchor) <= 0 && strategy.Reassemble.Value != ReassembleStrategy.Delay)
+            if (countdown < 5 && ReassembleLeft == 0 && ReadyIn(AID.AirAnchor) <= 0 && ReassembleStrat != ReassembleStrategy.Delay)
                 PushGCD(AID.Reassemble, Player, 50);
             if (countdown < 1.15f)
                 PushGCD(BestActionUnlocked(AID.AirAnchor, AID.HotShot, AID.HeatedSplitShot, AID.SplitShot), target?.Actor, 10);
@@ -245,7 +251,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
     private void NormalGCD(in Strategy strategy, Enemy target)
     {
-        var tools = strategy.Tools.Value;
+        var tools = ToolsStrat;
         if (tools != OffensiveStrategy.Delay && target.Priority != Enemy.PriorityPointless)
         {
             var bonus = tools == OffensiveStrategy.Force ? 100 : 0;
@@ -332,7 +338,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         var dying = target.Priority == Enemy.PriorityPointless;
 
-        if (HasMinion && (dying || !TimeToKill.WillLive(target.Actor, 2)) && strategy.Queen.Value != QueenStrategy.Delay)
+        if (HasMinion && (dying || !TimeToKill.WillLive(target.Actor, 2)) && QueenStrat != QueenStrategy.Delay)
             PushOGCD(BestActionUnlocked(AID.QueenOverdrive, AID.RookOverdrive), Player, 80);
 
         if (ShouldHypercharge(strategy, dying, target.Actor))
@@ -381,7 +387,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             return false;
 
         // time until each tool is pressed; tools on Delay or skipped by the AoE rotation don't hold Hypercharge
-        var toolsDelayed = strategy.Tools.Value == OffensiveStrategy.Delay;
+        var toolsDelayed = ToolsStrat == OffensiveStrategy.Delay;
         var drillIn = ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue
             : UseBioblaster ? MathF.Max(ReadyIn(AID.Bioblaster), StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left)
             : SkipDrill ? float.MaxValue
@@ -443,7 +449,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
     private bool ShouldReassemble(in Strategy strategy)
     {
-        if (strategy.Reassemble.Value == ReassembleStrategy.Delay || LowTarget || ReassembleLeft > 0 || Overheated || !CanWeave(AID.Reassemble))
+        if (ReassembleStrat == ReassembleStrategy.Delay || LowTarget || ReassembleLeft > 0 || Overheated || !CanWeave(AID.Reassemble))
             return false;
 
         if (StandardOpener && Unlocked(AID.Excavator))
@@ -471,7 +477,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             AID.Drill or AID.AirAnchor or AID.ChainSaw or AID.Excavator => !aoeFiller,
             AID.CleanShot or AID.HeatedCleanShot => !Unlocked(AID.Drill),
             AID.HotShot => !Unlocked(AID.CleanShot),
-            AID.SpreadShot or AID.Scattergun => aoeFiller || strategy.Reassemble.Value == ReassembleStrategy.Any,
+            AID.SpreadShot or AID.Scattergun => aoeFiller || ReassembleStrat == ReassembleStrategy.Any,
             _ => false
         };
     }
@@ -488,7 +494,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (!Unlocked(AID.RookAutoturret) || HasMinion || Battery < 50 || dying || !CanWeave(AID.RookAutoturret))
             return false;
 
-        return strategy.Queen.Value switch
+        return QueenStrat switch
         {
             QueenStrategy.Fifty => true,
             QueenStrategy.Hundred => Battery == 100,

@@ -14,6 +14,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia])]
         public Track<DotStrategy> Dot;
 
+        [Track("Burst (Phlegma, Psyche)", InternalName = "Burst", MinLevel = 26)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Phlegma", MinLevel = 26, Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII])]
         public Track<OffensiveStrategy> Phlegma;
 
@@ -130,9 +133,14 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     protected override bool UsesSpellSpeed => true;
     private bool CanCast => Hints.MaxCastTime >= SlideCast(ScaledCastTime(AID.Dosis));
 
+    private OffensiveStrategy PhlegmaStrat;
+    private OffensiveStrategy PsycheStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        PhlegmaStrat = WithBurst(strategy.Burst.Value, strategy.Phlegma.Value);
+        PsycheStrat = WithBurst(strategy.Burst.Value, strategy.Psyche.Value);
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SageGauge>();
@@ -249,7 +257,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     {
         if (ReadyIn(AID.Phlegma) > GCD)
             return false;
-        switch (strategy.Phlegma.Value)
+        switch (PhlegmaStrat)
         {
             case OffensiveStrategy.Force:
                 return true;
@@ -275,8 +283,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (strategy.Psyche.Value != OffensiveStrategy.Delay && CanWeave(AID.Psyche)
-            && (strategy.Psyche.Value == OffensiveStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
+        if (PsycheStrat != OffensiveStrategy.Delay && CanWeave(AID.Psyche)
+            && (PsycheStrat == OffensiveStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
                 && (RaidBuffsLeft > 0 || RaidBuffsIn > 10 || !InBossFight)))
             PushOGCD(AID.Psyche, target.Actor, 50);
 

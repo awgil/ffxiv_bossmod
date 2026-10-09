@@ -11,7 +11,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Fight or Flight, Requiescat / Imperator)", InternalName = "Burst", MinLevel = 2)]
+        [Track("Burst (Fight or Flight, Requiescat, Circle of Scorn, Intervene)", InternalName = "Burst", MinLevel = 2)]
         public Track<OffensiveStrategy> Burst;
 
         [Track("Fight or Flight", MinLevel = 2, Action = AID.FightOrFlight)]
@@ -111,6 +111,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private OffensiveStrategy FightOrFlightStrat;
     private OffensiveStrategy RequiescatStrat;
+    private OffensiveStrategy SpendersStrat;
+    private InterveneStrategy InterveneStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -120,6 +122,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         FightOrFlightStrat = WithBurst(strategy.Burst.Value, strategy.FightOrFlight.Value);
         RequiescatStrat = WithBurst(strategy.Burst.Value, strategy.Requiescat.Value);
+        SpendersStrat = WithBurst(strategy.Burst.Value, strategy.Spenders.Value);
+        InterveneStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
@@ -254,9 +258,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
             && (RequiescatStrat == OffensiveStrategy.Force || FoFLeft > 0 || FoFIn > 50))
             PushOGCD(requiescat, imperator ? BestSplashTarget : target.Actor, 64);
 
-        if (strategy.Spenders.Value != OffensiveStrategy.Delay)
+        if (SpendersStrat != OffensiveStrategy.Delay)
         {
-            var hold = strategy.Spenders.Value != OffensiveStrategy.Force && FoFLeft == 0 && FoFIn < 2.5f;
+            var hold = SpendersStrat != OffensiveStrategy.Force && FoFLeft == 0 && FoFIn < 2.5f;
             if (!hold && CanWeave(AID.CircleOfScorn) && NumAOETargets > 0)
                 PushOGCD(AID.CircleOfScorn, Player, 60);
             var spirits = Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
@@ -302,10 +306,10 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private void Intervene(in Strategy strategy, Enemy target)
     {
-        if (strategy.Intervene.Value == InterveneStrategy.Delay || !CanWeave(AID.Intervene))
+        if (InterveneStrat == InterveneStrategy.Delay || !CanWeave(AID.Intervene))
             return;
         var dist = Player.DistanceToHitbox(target.Actor);
-        if (strategy.Intervene.Value == InterveneStrategy.GapClose && dist > 3 && dist <= 20)
+        if (InterveneStrat == InterveneStrategy.GapClose && dist > 3 && dist <= 20)
         {
             PushOGCD(AID.Intervene, ResolveTarget(strategy.Intervene) ?? target.Actor, 55);
             return;

@@ -11,7 +11,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Ley Lines, Amplifier)", InternalName = "Burst", MinLevel = 52)]
+        [Track("Burst (Ley Lines, Amplifier, Manafont, Polyglot)", InternalName = "Burst", MinLevel = 30)]
         public Track<OffensiveStrategy> Burst;
 
         [Track("Ley Lines", MinLevel = 52, Action = AID.LeyLines)]
@@ -154,12 +154,16 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
     private LeyLinesStrategy LeyLinesStrat;
     private OffensiveStrategy AmplifierStrat;
+    private OffensiveStrategy ManafontStrat;
+    private PolyglotStrategy PolyglotStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         LeyLinesStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => LeyLinesStrategy.Delay, OffensiveStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
         AmplifierStrat = WithBurst(strategy.Burst.Value, strategy.Amplifier.Value);
+        ManafontStrat = WithBurst(strategy.Burst.Value, strategy.Manafont.Value);
+        PolyglotStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => PolyglotStrategy.Overcap, OffensiveStrategy.Force => PolyglotStrategy.ASAP, _ => strategy.Polyglot.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         OpenerMode = strategy.Opener.Value == OpenerStrategy.Flare && !Unlocked(AID.FlareStar) ? OpenerStrategy.Standard : strategy.Opener.Value;
 
@@ -176,7 +180,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         Instant = SelfStatusLeft(SID.Triplecast) > 0 || SelfStatusLeft(SID.Swiftcast) > 0;
         InLeyLines = SelfStatusLeft(SID.CircleOfPower) > 0;
         // a Manafont we won't press (Delay, or out of combat where oGCDs don't run) must not hold the fire phase open
-        ManafontIn = strategy.Manafont.Value != OffensiveStrategy.Delay && Player.InCombat ? ReadyIn(AID.Manafont) : float.MaxValue;
+        ManafontIn = ManafontStrat != OffensiveStrategy.Delay && Player.InCombat ? ReadyIn(AID.Manafont) : float.MaxValue;
 
         NumAOETargets = target == null ? 0 : Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5);
         AOEMode = Unlocked(AID.Fire2) && UseAOE(strategy.AOE.Value, NumAOETargets, 2);
@@ -207,10 +211,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     {
         var dying = !TimeToKill.WillLive(target.Actor, 5);
 
-        if (Polyglot > 0 && strategy.Polyglot.Value != PolyglotStrategy.Delay && CanSpendPolyglot)
+        if (Polyglot > 0 && PolyglotStrat != PolyglotStrategy.Delay && CanSpendPolyglot)
         {
             var overcap = Polyglot >= MaxPolyglot && (EnochianLeft <= 5 || Unlocked(AID.Amplifier) && ReadyIn(AID.Amplifier) < 5);
-            var spend = strategy.Polyglot.Value switch
+            var spend = PolyglotStrat switch
             {
                 PolyglotStrategy.ASAP => true,
                 PolyglotStrategy.Overcap => overcap,
@@ -376,7 +380,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (strategy.Manafont.Value != OffensiveStrategy.Delay && InFire && (CanWeave(AID.Manafont) || GCD == 0 && ReadyIn(AID.Manafont) <= 0) && (strategy.Manafont.Value == OffensiveStrategy.Force || (AOEMode ? AoEFireMPOut : FireMPOut) && AstralSoul < 6 || OpenerManafont))
+        if (ManafontStrat != OffensiveStrategy.Delay && InFire && (CanWeave(AID.Manafont) || GCD == 0 && ReadyIn(AID.Manafont) <= 0) && (ManafontStrat == OffensiveStrategy.Force || (AOEMode ? AoEFireMPOut : FireMPOut) && AstralSoul < 6 || OpenerManafont))
             PushOGCD(AID.Manafont, Player, 70);
 
         if (CanUseTranspose)
@@ -414,7 +418,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
         // hold only for an instant GCD that actually gets pushed: Foul is instant from 80, AoE never uses Firestarter
         if (strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant
-            && (Polyglot == 0 || Player.Level < 80 || strategy.Polyglot.Value == PolyglotStrategy.Delay) && !MovementThunder(strategy, target) && !(InFire && FirestarterLeft > 0 && !AOEMode))
+            && (Polyglot == 0 || Player.Level < 80 || PolyglotStrat == PolyglotStrategy.Delay) && !MovementThunder(strategy, target) && !(InFire && FirestarterLeft > 0 && !AOEMode))
         {
             if (!InLeyLines && CanWeave(AID.Triplecast))
                 PushOGCD(AID.Triplecast, Player, 50);

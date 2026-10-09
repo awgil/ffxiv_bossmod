@@ -11,7 +11,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Technical Step, Devilment, Flourish)", InternalName = "Burst", MinLevel = 62)]
+        [Track("Burst (Standard / Technical Step, Devilment, Flourish, feathers)", InternalName = "Burst", MinLevel = 15)]
         public Track<OffensiveStrategy> Burst;
 
         [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]
@@ -129,6 +129,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     private OffensiveStrategy TechnicalStrat;
     private OffensiveStrategy DevilmentStrat;
     private OffensiveStrategy FlourishStrat;
+    private OffensiveStrategy StandardStrat;
+    private FeatherStrategy FeathersStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -136,6 +138,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         TechnicalStrat = WithBurst(strategy.Burst.Value, strategy.Technical.Value);
         DevilmentStrat = WithBurst(strategy.Burst.Value, strategy.Devilment.Value);
         FlourishStrat = WithBurst(strategy.Burst.Value, strategy.Flourish.Value);
+        StandardStrat = WithBurst(strategy.Burst.Value, strategy.Standard.Value);
+        FeathersStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => FeatherStrategy.Overcap, _ => strategy.Feathers.Value };
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;
@@ -349,7 +353,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     private AID Symmetry => AOEMode && Unlocked(AID.RisingWindmill) ? AID.RisingWindmill : AID.ReverseCascade;
 
     private bool StandardAllowed(in Strategy strategy, bool targetAlive)
-        => strategy.Standard.Value != OffensiveStrategy.Delay && (targetAlive || strategy.Standard.Value == OffensiveStrategy.Force);
+        => StandardStrat != OffensiveStrategy.Delay && (targetAlive || StandardStrat == OffensiveStrategy.Force);
 
     private bool ShouldTechnical(in Strategy strategy, bool targetAlive)
     {
@@ -359,7 +363,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Delay => false,
-            _ => targetAlive && (strategy.Standard.Value == OffensiveStrategy.Delay || !GCDReady(AID.StandardStep)) && DowntimeIn > GCD + 7
+            _ => targetAlive && (StandardStrat == OffensiveStrategy.Delay || !GCDReady(AID.StandardStep)) && DowntimeIn > GCD + 7
         };
     }
 
@@ -374,7 +378,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     private bool NeedToFinish(in Strategy strategy)
     {
-        if (strategy.Standard.Value == OffensiveStrategy.Force)
+        if (StandardStrat == OffensiveStrategy.Force)
             return true;
         if (LastDanceLeft > GCD)
             return false;
@@ -386,7 +390,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (ReadyIn(AID.StandardStep) > GCD + 0.5f || FinishingMoveLeft > 0)
             return false;
-        if (strategy.Standard.Value == OffensiveStrategy.Force)
+        if (StandardStrat == OffensiveStrategy.Force)
             return true;
         if (Unlocked(AID.FinishingMove) && TechFinishLeft > GCD)
             return false;
@@ -460,11 +464,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     private bool ShouldSpendFeather(in Strategy strategy, Enemy target)
     {
-        if (Feathers == 0 || !Unlocked(AID.FanDance) || strategy.Feathers.Value == FeatherStrategy.Delay)
+        if (Feathers == 0 || !Unlocked(AID.FanDance) || FeathersStrat == FeatherStrategy.Delay)
             return false;
         // reverse cascade, fountainfall, rising windmill and bloodshower can each add a feather
         var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0);
-        if (strategy.Feathers.Value == FeatherStrategy.Overcap)
+        if (FeathersStrat == FeatherStrategy.Overcap)
             return overcap;
         if (!TimeToKill.WillLive(target.Actor, 5) || !Unlocked(AID.TechnicalStep))
             return true;

@@ -14,6 +14,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         [Track("Dia", MinLevel = 4, Actions = [AID.Dia, AID.AeroII, AID.Aero])]
         public Track<DotStrategy> Dot;
 
+        [Track("Burst (Presence of Mind, Assize, Afflatus Misery)", InternalName = "Burst", MinLevel = 30)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Presence of Mind", MinLevel = 30, Action = AID.PresenceOfMind)]
         public Track<OffensiveStrategy> PresenceOfMind;
 
@@ -97,9 +100,16 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     private bool CanCast => Hints.MaxCastTime >= SlideCast(CastTime(AID.Stone));
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
+    private OffensiveStrategy PresenceOfMindStrat;
+    private OffensiveStrategy AssizeStrat;
+    private MiseryStrategy MiseryStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        PresenceOfMindStrat = WithBurst(strategy.Burst.Value, strategy.PresenceOfMind.Value);
+        AssizeStrat = WithBurst(strategy.Burst.Value, strategy.Assize.Value);
+        MiseryStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => MiseryStrategy.Delay, OffensiveStrategy.Force => MiseryStrategy.ASAP, _ => strategy.Misery.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
@@ -172,7 +182,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         {
             if (CanSpendLily(strategy))
                 PushGCD(LilySpell, Player, 9);
-            if (BloodLily >= 3 && strategy.Misery.Value != MiseryStrategy.Delay)
+            if (BloodLily >= 3 && MiseryStrat != MiseryStrategy.Delay)
                 PushGCD(AID.AfflatusMisery, misery, 8);
             if (SacredSight > 0)
                 PushGCD(AID.GlareIV, splash.Actor, 7);
@@ -189,9 +199,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     private bool ShouldMisery(in Strategy strategy, Enemy target, Actor misery)
     {
-        if (BloodLily < 3 || strategy.Misery.Value == MiseryStrategy.Delay)
+        if (BloodLily < 3 || MiseryStrat == MiseryStrategy.Delay)
             return false;
-        if (strategy.Misery.Value == MiseryStrategy.ASAP || !HasRaidBuffJobs || RaidBuffsLeft > GCD)
+        if (MiseryStrat == MiseryStrategy.ASAP || !HasRaidBuffJobs || RaidBuffsLeft > GCD)
             return true;
         if (!ForceST && Hints.NumPriorityTargetsInAOECircle(misery.Position, 5) >= 2)
             return true;
@@ -223,12 +233,12 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (strategy.PresenceOfMind.Value != OffensiveStrategy.Delay && CanWeave(AID.PresenceOfMind)
-            && (strategy.PresenceOfMind.Value == OffensiveStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + 1 || RaidBuffsIn > 30)))
+        if (PresenceOfMindStrat != OffensiveStrategy.Delay && CanWeave(AID.PresenceOfMind)
+            && (PresenceOfMindStrat == OffensiveStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + 1 || RaidBuffsIn > 30)))
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
-        if (strategy.Assize.Value != OffensiveStrategy.Delay && CanWeave(AID.Assize)
-            && (strategy.Assize.Value == OffensiveStrategy.Force || AssizeHits(target)))
+        if (AssizeStrat != OffensiveStrategy.Delay && CanWeave(AID.Assize)
+            && (AssizeStrat == OffensiveStrategy.Force || AssizeHits(target)))
             PushOGCD(AID.Assize, Player, 40);
 
         if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 9000)
