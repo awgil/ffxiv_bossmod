@@ -42,7 +42,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase<Rang
     // Tactician / Troubadour / Shield Samba don't stack; Dismantle only if our party mit is on cooldown
     private void PartyMitigation(in Strategy strategy, Actor? primaryTarget)
     {
-        if (strategy.PartyMit.Value != DisabledByDefault.Enabled || !Player.InCombat || !RaidwideWithin(5))
+        if (!strategy.PartyMit.IsEnabled() || !Player.InCombat || !RaidwideWithin(5))
             return;
 
         var mit = Player.Class switch

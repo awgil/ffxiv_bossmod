@@ -93,7 +93,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     private bool AOEMode;
 
     protected override bool UsesSpellSpeed => true;
-    private bool CanCast => Hints.MaxCastTime >= Math.Max(0, CastTime(AID.Stone) - 0.5f);
+    private bool CanCast => Hints.MaxCastTime >= SlideCast(CastTime(AID.Stone));
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -108,12 +108,8 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         SacredSight = sight?.Extra ?? 0;
         SacredSightLeft = sight is { } s ? StatusDuration(s.ExpireAt) : 0;
 
-        AOEMode = Unlocked(AID.Holy) && strategy.AOE.Value switch
-        {
-            AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => Hints.NumPriorityTargetsInAOECircle(Player.Position, 8) >= (Player.Level < 82 ? 2 : 3),
-            _ => false
-        };
+        var minAoETargets = Player.Level < 82 ? 2 : 3;
+        AOEMode = Unlocked(AID.Holy) && UseAOE(strategy.AOE.Value, Hints.NumPriorityTargetsInAOECircle(Player.Position, 8), minAoETargets);
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.Medium);
@@ -125,14 +121,15 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
             return;
         }
 
-        if (target == null && strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery))
-            PushGCD(LilySpell, Player, 10);
-
         if (target == null)
+        {
+            if (CanSpendLily(strategy))
+                PushGCD(LilySpell, Player, 10);
             return;
+        }
 
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
-        Hints.GoalZones.Add(strategy.AOE.Value == AOEStrategy.ST || !Unlocked(AID.Holy) ? goal : GoalCombined(goal, Hints.GoalAOECircle(8), Player.Level < 82 ? 2 : 3));
+        Hints.GoalZones.Add(strategy.AOE.Value == AOEStrategy.ST || !Unlocked(AID.Holy) ? goal : GoalCombined(goal, Hints.GoalAOECircle(8), minAoETargets));
 
         GCDs(strategy, target);
         if (Player.InCombat)
@@ -155,12 +152,12 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
             && (strategy.GlareIV.Value == OffensiveStrategy.Force || !CanCast || RaidBuffsLeft > GCD || !HasRaidBuffJobs || SacredSightLeft < GCD + GCDLength * SacredSight + 1 || DowntimeIn < GCDLength * (SacredSight + 1)))
             PushGCD(AID.GlareIV, splash.Actor, 40);
 
-        if (Player.InCombat && strategy.Lilies.Value != OffensiveStrategy.Delay && Unlocked(AID.AfflatusMisery) && BloodLily < 3 && Lily > 0
+        if (Player.InCombat && CanSpendLily(strategy)
             && (strategy.Lilies.Value == OffensiveStrategy.Force || LilyCapIn < GCD + 8 || Hints.NumPriorityTargetsInAOECircle(splash.Actor.Position, 5) >= 2))
             PushGCD(LilySpell, Player, 35);
 
-        if (strategy.Opener.Value == OpenerStrategy.DoubleMisery && Player.InCombat && CombatTime < 30 && Unlocked(AID.AfflatusRapture) && strategy.Lilies.Value != OffensiveStrategy.Delay
-            && BloodLily < 3 && Lily >= 3 - BloodLily && RaidBuffsLeft > GCD + GCDLength * (3 - BloodLily))
+        if (strategy.Opener.Value == OpenerStrategy.DoubleMisery && Player.InCombat && CombatTime < 30 && Unlocked(AID.AfflatusRapture) && CanSpendLily(strategy)
+            && Lily >= 3 - BloodLily && RaidBuffsLeft > GCD + GCDLength * (3 - BloodLily))
             PushGCD(AID.AfflatusRapture, Player, 38);
 
         if (AOEMode)
@@ -170,7 +167,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
         if (!CanCast)
         {
-            if (Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery) && strategy.Lilies.Value != OffensiveStrategy.Delay)
+            if (CanSpendLily(strategy))
                 PushGCD(LilySpell, Player, 9);
             if (BloodLily >= 3 && strategy.Misery.Value != MiseryStrategy.Delay)
                 PushGCD(AID.AfflatusMisery, splash.Actor, 8);
@@ -183,6 +180,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     }
 
     private AID LilySpell => Unlocked(AID.AfflatusRapture) ? AID.AfflatusRapture : AID.AfflatusSolace;
+
+    // lilies only do damage by feeding Blood Lily
+    private bool CanSpendLily(in Strategy strategy) => strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery);
 
     private bool ShouldMisery(in Strategy strategy, Enemy target, Enemy splash)
     {
@@ -200,11 +200,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     private Enemy BestSplashTarget(Enemy target)
         => Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MaxBy(e => Hints.NumPriorityTargetsInAOECircle(e.Actor.Position, 5) * 10 + (e == target ? 1 : 0)) ?? target;
 
-    private float DotLeft(Actor target)
-    {
-        float Left(SID sid) => StatusDetails(target, sid, Player.InstanceID, 30).Left;
-        return MathF.Max(Left(SID.Dia), MathF.Max(Left(SID.AeroII), Left(SID.Aero)));
-    }
+    private float DotLeft(Actor target) => MaxDotLeft(target, SID.Dia, SID.AeroII, SID.Aero);
 
     private float DotRefresh => GCD + GCDLength;
 
@@ -212,9 +208,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     {
         if (DotWorthIt(target) && (DotLeft(target.Actor) < DotRefresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < 8))
             return target.Actor;
-        if (strategy.Dot.Value != DotStrategy.Automatic || AOEMode)
-            return null;
-        if (Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
+        if (strategy.Dot.Value != DotStrategy.Automatic || AOEMode || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
             return null;
         return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
     }
@@ -233,7 +227,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
             && (strategy.Assize.Value == OffensiveStrategy.Force || Hints.NumPriorityTargetsInAOECircle(Player.Position, 20) > 0))
             PushOGCD(AID.Assize, Player, 40);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && Player.HPMP.CurMP <= 9000)
+        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 9000)
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
@@ -249,16 +243,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         _ => false
     };
 
-    private float CastTime(AID aid)
-    {
-        if (SelfStatusLeft(ClassShared.SID.Swiftcast) > 0)
-            return 0;
-        var def = ActionDefinitions.Instance.Spell(aid);
-        return def == null || def.CastTime == 0 ? 0 : def.CastTime * GCDLength / 2.5f;
-    }
+    private float CastTime(AID aid) => SelfStatusLeft(ClassShared.SID.Swiftcast) > 0 ? 0 : ScaledCastTime(aid);
 
-    private void PushGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, castTime: MathF.Max(0, CastTime(aid) - 0.5f));
+    private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 
     #endregion
 }

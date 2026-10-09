@@ -16,8 +16,8 @@ public abstract class AIBase<TValues>(RotationModuleManager manager, Actor playe
 
     // predicted damage, plus raidwides / tankbusters only marked in the module's timeline
     internal IEnumerable<DateTime> Raidwides => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints);
-    internal bool RaidwideWithin(float seconds) => Raidwides.Any(t => t > World.CurrentTime && t <= World.FutureTime(seconds));
     internal IEnumerable<(Actor, DateTime)> Tankbusters => StateTimeline.Tankbusters(Bossmods.ActiveModule, World, Hints);
+    internal bool RaidwideWithin(float seconds) => Raidwides.Any(t => t > World.CurrentTime && t <= World.FutureTime(seconds));
 }
 
 public enum HintedStrategy

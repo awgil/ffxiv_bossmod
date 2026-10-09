@@ -145,24 +145,21 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     private Actor? BestSawTarget;
     private Actor? BestSplashTarget;
     private bool AOEMode;
+    private bool UseBioblaster;
     private bool LowTarget;
 
     private OpenerStrategy OpenerMode;
-    private AID NextGCD;
-    private float NextGCDPrio;
 
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
+    private AID NextGCD => NextGCDAction.As<AID>();
     private bool InOpener => OpenerMode != OpenerStrategy.None && CombatTime < 30;
+    private bool StandardOpener => InOpener && OpenerMode == OpenerStrategy.Standard;
+    private bool EarlyWFOpener => InOpener && OpenerMode == OpenerStrategy.EarlyWildfire;
     private bool InBurst => RaidBuffsLeft > GCD || WildfireLeft > 0;
-    private float BurstIn => InBurst ? 0 : Unlocked(AID.Wildfire) ? ReadyIn(AID.Wildfire) : float.MaxValue;
-    private bool StandardOpener => OpenerMode == OpenerStrategy.Standard && CombatTime < 30;
-    private bool EarlyWFOpener => OpenerMode == OpenerStrategy.EarlyWildfire && CombatTime < 30;
+    private float BurstIn => InBurst ? 0 : ReadyIn(AID.Wildfire);
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        NextGCD = AID.None;
-        NextGCDPrio = 0;
-
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25);
 
         OpenerMode = strategy.Opener.Value switch
@@ -188,20 +185,16 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             return;
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
+        var minAoETargets = Unlocked(AID.Scattergun) ? 3 : 2;
         (BestConeTarget, NumConeTargets) = BestAOETarget(target, 12, allowAoE, (t, e) => TargetInAOECone(e, Player.Position, 12, Player.DirectionTo(t), 60.Degrees()));
         BestSawTarget = BestAOETarget(target, 25, allowAoE, (t, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(t), 25, 2)).Best;
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (t, e) => TargetInAOECircle(e, t.Position, 5)).Best;
-        AOEMode = Unlocked(AID.SpreadShot) && strategy.AOE.Value switch
-        {
-            AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => NumConeTargets >= (Unlocked(AID.Scattergun) ? 3 : 2),
-            _ => false
-        };
+        AOEMode = Unlocked(AID.SpreadShot) && UseAOE(strategy.AOE.Value, NumConeTargets, minAoETargets);
 
         if (target != null)
         {
             var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
-            Hints.GoalZones.Add(allowAoE && Unlocked(AID.SpreadShot) ? AIHints.GoalCombined(goal, Hints.GoalAOECone(BestConeTarget ?? target.Actor, 12, 60.Degrees()), Unlocked(AID.Scattergun) ? 3 : 2) : goal);
+            Hints.GoalZones.Add(allowAoE && Unlocked(AID.SpreadShot) ? GoalCombined(goal, Hints.GoalAOECone(BestConeTarget ?? target.Actor, 12, 60.Degrees()), minAoETargets) : goal);
         }
 
         if (UsePotion(strategy))
@@ -209,7 +202,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            if (countdown < 5 && ReassembleLeft == 0 && Unlocked(AID.AirAnchor) && ReadyIn(AID.AirAnchor) <= 0 && strategy.Reassemble.Value != ReassembleStrategy.Delay)
+            if (countdown < 5 && ReassembleLeft == 0 && ReadyIn(AID.AirAnchor) <= 0 && strategy.Reassemble.Value != ReassembleStrategy.Delay)
                 PushGCD(AID.Reassemble, Player, 50);
             if (countdown < 1.15f)
                 PushGCD(BestActionUnlocked(AID.AirAnchor, AID.HotShot, AID.HeatedSplitShot, AID.SplitShot), target?.Actor, 10);
@@ -220,6 +213,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             return;
 
         LowTarget = !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor) && !TimeToKill.WillLive(target.Actor, 8);
+        UseBioblaster = AOEMode && Unlocked(AID.Bioblaster) && BioblasterAllowed(target);
 
         if (Overheated && Unlocked(AID.HeatBlast))
             OverheatGCD(target);
@@ -257,23 +251,18 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             if (GCDReady(AID.ChainSaw) && !saveTools)
                 PushGCD(AID.ChainSaw, BestSawTarget ?? target.Actor, 14 + bonus, faceTarget: true);
 
-            var useBioblaster = AOEMode && Unlocked(AID.Bioblaster) && BioblasterAllowed(target);
-            if (GCDReady(AID.AirAnchor) && !useBioblaster && !saveTools)
+            if (GCDReady(AID.AirAnchor) && !UseBioblaster && !saveTools)
                 PushGCD(AID.AirAnchor, target.Actor, 13 + bonus);
 
             if (!Unlocked(AID.AirAnchor) && GCDReady(AID.HotShot) && !saveTools)
                 PushGCD(AID.HotShot, target.Actor, 13 + bonus);
 
+            if (UseBioblaster && GCDReady(AID.Bioblaster) && !saveTools && StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left == 0)
+                PushGCD(AID.Bioblaster, BestConeTarget ?? target.Actor, 12 + bonus, faceTarget: true);
+
             var drillCapped = MaxChargesIn(AID.Drill) <= GCD;
-            if (useBioblaster)
-            {
-                if (GCDReady(AID.Bioblaster) && !saveTools && StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left == 0)
-                    PushGCD(AID.Bioblaster, BestConeTarget ?? target.Actor, 12 + bonus, faceTarget: true);
-            }
-            else if (GCDReady(AID.Drill) && !saveTools && (drillCapped || !HoldDrillForBurst) && !(AOEMode && !Unlocked(AID.Bioblaster) && NumConeTargets >= 6))
-            {
+            if (!SkipDrill && GCDReady(AID.Drill) && !saveTools && (drillCapped || !HoldDrillForBurst))
                 PushGCD(AID.Drill, target.Actor, (drillCapped ? 17 : 12) + bonus);
-            }
         }
 
         if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && strategy.AOE.Value != AOEStrategy.ST && NumConeTargets >= 2 && Hints.MaxCastTime >= 2 && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
@@ -285,7 +274,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             return;
         }
 
-        if (World.Client.ComboState.Remaining > 0)
+        if (ComboLeft > 0)
         {
             if (ComboLastMove is AID.SlugShot or AID.HeatedSlugShot && Unlocked(AID.CleanShot))
             {
@@ -306,6 +295,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         var dir = Player.DirectionTo(BestConeTarget ?? target.Actor);
         return !Hints.PriorityTargets.Any(e => e.ForbidDOTs && TargetInAOECone(e.Actor, Player.Position, 12, dir, 60.Degrees()));
     }
+
+    // Bioblaster shares Drill's charges
+    private bool SkipDrill => UseBioblaster || AOEMode && !Unlocked(AID.Bioblaster) && NumConeTargets >= 6;
 
     private bool HoldDrillForBurst
         => HasRaidBuffJobs && !InOpener && BurstIn > 0 && BurstIn < 20 && !BurstStarted && MaxChargesIn(AID.Drill) > BurstIn + GCDLength * 2;
@@ -349,6 +341,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (ShouldQueen(strategy, dying, target.Actor))
             PushOGCD(AID.RookAutoturret, Player, 57);
 
+        // the queen picks the first enemy we hit after the summon; leg graze makes that our target
         if (Manager.LastCast.Data?.Action.ID is (uint)AID.AutomatonQueen or (uint)AID.RookAutoturret && World.CurrentTime - Manager.LastCast.Time < TimeSpan.FromSeconds(3)
             && Hints.PriorityTargets.Count() > 1 && Player.DistanceToHitbox(target.Actor) <= 25)
             PushOGCD(AID.LegGraze, target.Actor, 90);
@@ -372,21 +365,26 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (StandardOpener && WildfireLeft > 0 && FMFLeft == 0 || EarlyWFOpener && WildfireLeft > 0 && ExcavatorLeft == 0)
             return true;
 
-        if (dying || LowTarget || FMFLeft > 0 || ReassembleLeft > 0)
+        if (dying || LowTarget || ReassembleLeft > 0)
             return false;
 
-        if (strategy.Charges.Value != ChargeStrategy.Delay && ChargesToSpendBeforeOverheat)
+        if (strategy.Charges.Value == ChargeStrategy.Automatic && ChargesToSpendBeforeOverheat)
             return false;
 
-        var drillIn = Unlocked(AID.Wildfire) && ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue : ReadyIn(AID.Drill);
-        var toolIn = MathF.Min(drillIn, MathF.Min(FortySecondToolIn, ReadyIn(AID.ChainSaw)));
-        if (ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f)
+        // time until NormalGCD presses each tool; one it never presses would hold Hypercharge forever
+        var drillIn = ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue
+            : UseBioblaster ? MathF.Max(ReadyIn(AID.Bioblaster), StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left)
+            : SkipDrill ? float.MaxValue
+            : ReadyIn(AID.Drill);
+        var airAnchorIn = UseBioblaster && Unlocked(AID.AirAnchor) ? float.MaxValue : FortySecondToolIn;
+        var toolIn = MathF.Min(drillIn, MathF.Min(airAnchorIn, ReadyIn(AID.ChainSaw)));
+        if (strategy.Tools.Value != OffensiveStrategy.Delay && (FMFLeft > 0 || ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f))
             return false;
 
         if (DowntimeIn < GCD + GCDLength * 5)
             return false;
 
-        if (World.Client.ComboState.Remaining is > 0 and < 7.6f)
+        if (ComboLeft is > 0 and < 7.6f)
             return false;
 
         if (!Unlocked(AID.Wildfire) || strategy.Wildfire.Value == WildfireStrategy.Delay || !WildfireTargetWorthIt(target))
@@ -401,8 +399,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         return ReadyIn(AID.Wildfire) > GCDLength * 15 || Heat >= 95;
     }
 
-    private bool ChargesToSpendBeforeOverheat
-        => Unlocked(AID.GaussRound) && MaxChargesIn(AID.GaussRound) <= 30 || Unlocked(AID.Ricochet) && MaxChargesIn(AID.Ricochet) <= 30;
+    private bool ChargesToSpendBeforeOverheat => MaxChargesIn(AID.GaussRound) <= 30 || MaxChargesIn(AID.Ricochet) <= 30;
 
     private bool ShouldWildfire(in Strategy strategy, bool dying, Actor target)
     {
@@ -480,14 +477,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         if (!Unlocked(AID.RookAutoturret) || HasMinion || Battery < 50 || dying || !CanWeave(AID.RookAutoturret))
             return false;
-        if (strategy.Queen.Value == QueenStrategy.Automatic && !TimeToKill.WillLive(target, 10))
-            return false;
 
         return strategy.Queen.Value switch
         {
             QueenStrategy.Fifty => true,
             QueenStrategy.Hundred => Battery == 100,
-            QueenStrategy.Automatic => AutoQueen(target),
+            QueenStrategy.Automatic => TimeToKill.WillLive(target, 10) && AutoQueen(target),
             _ => false
         };
     }
@@ -495,11 +490,11 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     // Queen lives ~24s and snapshots raid buffs per action
     private const float QueenLife = 24;
     private const float QueenLeadIn = 5;
+    private const float BuffWeight = 1.15f;
 
     private bool AutoQueen(Actor target)
     {
-        var gain = BatteryFrom(NextGCD);
-        var capNext = Battery + gain > 100;
+        var capNext = Battery + BatteryFrom(NextGCD) > 100;
 
         if (TimeToKill.Estimate(target) is > 8f and < 40f)
             return true;
@@ -521,24 +516,35 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
                 return true;
             if (Battery < 50 || Battery + income <= 100)
                 return false;
-            const float buffBonus = BurstPlanner.BuffWeight - 1;
-            var inBuffsNow = BurstPlanner.Overlap(0.8f, QueenLife, RaidBuffsIn, 20) / QueenLife;
-            var inBuffsIdeal = 20 / QueenLife;
+            const float buffBonus = BuffWeight - 1;
+            const float buffLength = 20;
+            var inBuffsNow = Overlap(0.8f, QueenLife, RaidBuffsIn, buffLength) / QueenLife;
+            var inBuffsIdeal = buffLength / QueenLife;
             return Battery * (1 + buffBonus * inBuffsNow) + income > MathF.Min(100, Battery + income) * (1 + buffBonus * inBuffsIdeal) + 5;
         }
 
-        return capNext || BurstPlanner.SpendNow(Battery, income, 100, CombatTime < 120 ? 90 : 50);
+        return capNext || SpendNow(Battery, income, 100, CombatTime < 120 ? 90 : 50);
     }
+
+    private static bool SpendNow(float have, float income, float cap, float minSpend, float margin = 5)
+    {
+        if (have < minSpend || have + income <= cap)
+            return false;
+        return have + BuffWeight * MathF.Min(cap, income) > BuffWeight * cap + margin;
+    }
+
+    private static float Overlap(float start, float length, float buffStart, float buffLength)
+        => MathF.Max(0, MathF.Min(start + length, buffStart + buffLength) - MathF.Max(start, buffStart));
 
     private float BatteryIncome(float within)
     {
         var gcdLength = GCDLength;
-        var heat = (float)Heat;
-        var step = World.Client.ComboState.Remaining > 0 ? ComboLastMove switch { AID.HeatedSplitShot or AID.SplitShot => 1, AID.HeatedSlugShot or AID.SlugShot => 2, _ => 0 } : 0;
+        var heat = Heat;
+        var step = ComboLeft > 0 ? ComboLastMove switch { AID.HeatedSplitShot or AID.SplitShot => 1, AID.HeatedSlugShot or AID.SlugShot => 2, _ => 0 } : 0;
         var airAnchorIn = FortySecondToolIn;
-        var chainSawIn = Unlocked(AID.ChainSaw) ? ReadyIn(AID.ChainSaw) : float.MaxValue;
-        var drillIn = Unlocked(AID.Drill) ? ReadyIn(AID.Drill) : float.MaxValue;
-        var wildfireIn = Unlocked(AID.Wildfire) ? ReadyIn(AID.Wildfire) : float.MaxValue;
+        var chainSawIn = ReadyIn(AID.ChainSaw);
+        var drillIn = ReadyIn(AID.Drill);
+        var wildfireIn = ReadyIn(AID.Wildfire);
         var excavator = ExcavatorLeft > 0;
         var overheat = Overheated ? 3 : 0;
         var battery = 0f;
@@ -593,24 +599,27 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Charges.Value == ChargeStrategy.Delay)
             return;
 
-        foreach (var aid in (ReadOnlySpan<AID>)[AID.GaussRound, AID.Ricochet])
-            if (Unlocked(aid) && MaxChargesIn(aid) <= GCD + 0.6f && CanWeave(aid))
-                PushOGCD(aid, target, 45);
+        // heat blast cuts 15s off both, so spend ahead of it; the one closer to cap goes first
+        var capIn = GCD + 0.6f + (NextGCD is AID.HeatBlast or AID.BlazingShot ? 15 : 0);
+        var gauss = MaxChargesIn(AID.GaussRound);
+        var rico = MaxChargesIn(AID.Ricochet);
+        if (gauss <= capIn && CanWeave(AID.GaussRound))
+            PushOGCD(AID.GaussRound, target, gauss <= rico ? 45 : 44);
+        if (rico <= capIn && CanWeave(AID.Ricochet))
+            PushOGCD(AID.Ricochet, target, rico < gauss ? 45 : 44);
 
         if (strategy.Charges.Value != ChargeStrategy.Automatic)
             return;
 
         if (!Overheated && (Heat >= 50 || HyperchargedLeft > 0))
             foreach (var aid in (ReadOnlySpan<AID>)[AID.GaussRound, AID.Ricochet])
-                if (Unlocked(aid) && MaxChargesIn(aid) <= 30 && CanWeave(aid))
+                if (MaxChargesIn(aid) <= 30 && CanWeave(aid))
                     PushOGCD(aid, target, 46);
 
         var spend = Overheated || WildfireLeft > 0 || dying || InOpener || RaidBuffsLeft > GCD || !HasRaidBuffJobs || !Unlocked(AID.Hypercharge);
         if (!spend)
             return;
 
-        var gauss = MaxChargesIn(AID.GaussRound);
-        var rico = MaxChargesIn(AID.Ricochet);
         if (CanWeave(AID.GaussRound))
             PushOGCD(AID.GaussRound, target, gauss <= rico ? 11 : 10);
         if (CanWeave(AID.Ricochet))
@@ -623,20 +632,14 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && Unlocked(AID.BarrelStabilizer) && ReadyIn(AID.BarrelStabilizer) < 6,
+        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && ReadyIn(AID.BarrelStabilizer) < 6,
         PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
         PotionStrategy.Immediate => true,
         _ => false
     };
 
     private void PushGCD(AID aid, Actor? target, int priority, bool faceTarget = false)
-    {
-        if (PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, facing: faceTarget && target != null ? Player.AngleTo(target) : null) && priority > NextGCDPrio)
-        {
-            NextGCD = aid;
-            NextGCDPrio = priority;
-        }
-    }
+        => base.PushGCD(aid, target, priority, facing: faceTarget && target != null ? Player.AngleTo(target) : null);
 
     #endregion
 }

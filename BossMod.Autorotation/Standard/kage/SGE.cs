@@ -119,8 +119,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
     }
 
-    private static readonly SID[] DotStatus = [SID.EukrasianDosisIII, SID.EukrasianDosisII, SID.EukrasianDosis, SID.EukrasianDyskrasia];
-
     private int Gall;
     private int Sting;
     private float NextGall;
@@ -129,7 +127,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     private bool AOEMode;
 
     protected override bool UsesSpellSpeed => true;
-    private bool CanCast => Hints.MaxCastTime >= MathF.Max(0, 1.5f * GCDLength / 2.5f - 0.5f);
+    private bool CanCast => Hints.MaxCastTime >= SlideCast(ScaledCastTime(AID.Dosis));
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -142,12 +140,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         Eukrasia = gauge.EukrasiaActive;
 
         var numAround = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        AOEMode = Unlocked(AID.Dyskrasia) && strategy.AOE.Value switch
-        {
-            AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => numAround >= 3,
-            _ => false
-        };
+        AOEMode = Unlocked(AID.Dyskrasia) && UseAOE(strategy.AOE.Value, numAround, 3);
 
         Kardia(strategy);
 
@@ -158,7 +151,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         {
             var precast = strategy.Opener.Value switch
             {
-                OpenerStrategy.Pneuma when Unlocked(AID.Pneuma) && GCDReady(AID.Pneuma) => AID.Pneuma,
+                OpenerStrategy.Pneuma when GCDReady(AID.Pneuma) => AID.Pneuma,
                 OpenerStrategy.Toxikon or OpenerStrategy.Pneuma when Sting > 0 && Unlocked(AID.Toxikon) && strategy.Toxikon.Value != ToxikonStrategy.Delay => AID.Toxikon,
                 _ => AID.None
             };
@@ -169,7 +162,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
                 else if (countdown < 1.5f)
                     PushGCD(precast, target.Actor, 10);
             }
-            else if (target != null && countdown < 1.5f * GCDLength / 2.5f + 0.2f)
+            else if (target != null && countdown < CastTime(AID.Dosis) + 0.2f)
                 PushGCD(AID.Dosis, target.Actor, 10);
             return;
         }
@@ -199,7 +192,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
         if (Player.InCombat && strategy.Dot.Value != DotStrategy.Delay)
         {
-            var dotAoE = AOEMode && Unlocked(AID.EukrasianDyskrasia) && Hints.PriorityTargets.Count(e => Player.DistanceToHitbox(e.Actor) <= 5 && DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh) >= 3;
+            var dotAoE = AOEMode && Unlocked(AID.EukrasianDyskrasia) && Hints.PriorityTargets.Count(e => Player.DistanceToHitbox(e.Actor) <= 5 && NeedsDot(e)) >= 3;
             if (dotAoE || !AOEMode && DotTarget(strategy, target) != null)
                 PushGCD(AID.Eukrasia, Player, 50);
         }
@@ -215,8 +208,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2)
             PushGCD(AID.Pneuma, target.Actor, 35);
 
-        var toxTargets = Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5);
-        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.Automatic && toxTargets >= 2 && numAround < 3)
+        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.Automatic && numAround < 3 && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 2)
             PushGCD(AID.Toxikon, target.Actor, 30);
 
         if (AOEMode)
@@ -235,29 +227,22 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
     private float DotRefresh => GCD + GCDLength + 1;
 
-    private float DotLeft(Actor target)
-    {
-        foreach (var sid in DotStatus)
-            if (StatusDetails(target, sid, Player.InstanceID, 30).Left is > 0 and var left)
-                return left;
-        return 0;
-    }
+    private float DotLeft(Actor target) => MaxDotLeft(target, SID.EukrasianDosisIII, SID.EukrasianDosisII, SID.EukrasianDosis, SID.EukrasianDyskrasia);
+
+    private bool NeedsDot(Enemy e) => DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh;
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
     {
-        if (DotWorthIt(target) && DotLeft(target.Actor) < DotRefresh)
+        if (NeedsDot(target))
             return target.Actor;
-        if (strategy.Dot.Value != DotStrategy.Automatic)
+        if (strategy.Dot.Value != DotStrategy.Automatic || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
             return null;
-        var dotted = Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh);
-        if (dotted >= 2)
-            return null;
-        return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
+        return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && NeedsDot(e)).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
     }
 
     private bool ShouldPhlegma(in Strategy strategy, Enemy target)
     {
-        if (!Unlocked(AID.Phlegma) || ReadyIn(AID.Phlegma) > GCD)
+        if (ReadyIn(AID.Phlegma) > GCD)
             return false;
         switch (strategy.Phlegma.Value)
         {
@@ -270,7 +255,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         if (MaxChargesIn(AID.Phlegma) <= GCD + GCDLength)
             return !buffsSoon;
         if (!Player.InCombat || target.Priority == Enemy.PriorityPointless && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
-            return MaxChargesIn(AID.Phlegma) <= GCD + GCDLength;
+            return false;
         if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !InBossFight || Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)
             return true;
         var cooldown = ActionDefinitions.Instance.Spell(AID.Phlegma)!.Cooldown;
@@ -295,7 +280,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
                 PushOGCD(AID.Rhizomata, Player, 40);
 
         if (strategy.Druochole.Value == DruocholeStrategy.Automatic && Gall >= 3 && NextGall < GCDLength + 1 && CanWeave(AID.Druochole)
-            && !(RaidwideWithin(15) && Unlocked(AID.Kerachole) && ReadyIn(AID.Kerachole) < 5))
+            && !(RaidwideWithin(15) && ReadyIn(AID.Kerachole) < 5))
         {
             var healTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(p => !p.IsDead && Player.DistanceToHitbox(p) <= 30).MinBy(p => p.PendingHPRatio) ?? Player;
             PushOGCD(AID.Druochole, healTarget, 35);
@@ -305,22 +290,24 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             if (CanWeave(AID.Soteria))
                 PushOGCD(AID.Soteria, Player, 30);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (Player.HPMP.CurMP <= 6500 || Player.HPMP.CurMP <= 8500 && MPCheckSoon))
+        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
 
     private void Kardia(in Strategy strategy)
     {
-        if (!Unlocked(AID.Kardia) || strategy.Kardia.Value == KardiaStrategy.Manual || ReadyIn(AID.Kardia) > 0)
+        if (strategy.Kardia.Value == KardiaStrategy.Manual || ReadyIn(AID.Kardia) > 0)
             return;
 
         var desired = strategy.Kardia.Value == KardiaStrategy.Specific ? ResolveTarget(strategy.Kardia) : KardiaTarget();
-        if (desired == null || desired.IsDead || desired.FindStatus(SID.Kardion, Player.InstanceID, World.FutureTime(1000)) != null)
+        if (desired == null || desired.IsDead || HasKardion(desired))
             return;
 
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Kardia), desired, Player.InCombat ? ActionQueue.Priority.Low + 60 : ActionQueue.Priority.High);
     }
+
+    private bool HasKardion(Actor a) => a.FindStatus(SID.Kardion, Player.InstanceID, World.FutureTime(1000)) != null;
 
     private Actor? KardiaTarget()
     {
@@ -328,17 +315,13 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         if (party.Count == 1)
             return Player;
         var tanks = party.Where(p => p.Role == Role.Tank && !p.IsDead).ToList();
-        if (tanks.Count == 0)
-            return null;
-        if (tanks.Count == 1)
-            return tanks[0];
+        if (tanks.Count <= 1)
+            return tanks.FirstOrDefault();
 
-        var current = tanks.FirstOrDefault(t => t.FindStatus(SID.Kardion, Player.InstanceID, World.FutureTime(1000)) != null);
+        var current = tanks.FirstOrDefault(HasKardion);
         int Aggro(Actor t) => Hints.PriorityTargets.Sum(e => e.Actor.TargetID != t.InstanceID ? 0 : e.Actor == Bossmods.ActiveModule?.PrimaryActor ? 10 : 1);
         var best = tanks.MaxBy(Aggro)!;
-        if (current != null && Aggro(best) <= Aggro(current))
-            return current;
-        return Aggro(best) > 0 ? best : current ?? tanks[0];
+        return current != null && Aggro(best) <= Aggro(current) ? current : best;
     }
 
     #endregion
@@ -352,16 +335,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         _ => false
     };
 
-    private float CastTime(AID aid)
-    {
-        if (Eukrasia || SelfStatusLeft(ClassShared.SID.Swiftcast) > GCD)
-            return 0;
-        var def = ActionDefinitions.Instance.Spell(aid);
-        return def == null || def.CastTime == 0 ? 0 : def.CastTime * GCDLength / 2.5f;
-    }
+    private float CastTime(AID aid) => Eukrasia && aid == AID.Dosis || SelfStatusLeft(ClassShared.SID.Swiftcast) > GCD ? 0 : ScaledCastTime(aid);
 
-    private void PushGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, castTime: MathF.Max(0, CastTime(aid) - 0.5f));
+    private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 
     #endregion
 }

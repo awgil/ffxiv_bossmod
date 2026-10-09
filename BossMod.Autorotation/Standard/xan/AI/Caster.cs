@@ -30,7 +30,7 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         // addle before raidwides, unless another caster already did
-        if (strategy.Addle.Value == DisabledByDefault.Enabled && Player.InCombat && primaryTarget is { IsAlly: false } at
+        if (strategy.Addle.IsEnabled() && Player.InCombat && primaryTarget is { IsAlly: false } at
             && RaidwideWithin(5)
             && Unlocked(ClassShared.AID.Addle) && NextChargeIn(ClassShared.AID.Addle) == 0
             && at.FindStatus(ClassShared.SID.Addle) == null && Player.DistanceToHitbox(at) <= 25)

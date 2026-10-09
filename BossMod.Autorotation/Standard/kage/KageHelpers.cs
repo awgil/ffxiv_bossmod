@@ -43,8 +43,6 @@ public static class TimeToKill
     public static bool WillLive(Actor enemy, float seconds)
         => enemy.IsStrikingDummy || (Estimate(enemy) is { } ttk ? ttk >= seconds : enemy.HPRatio > 0.05f);
 
-    public static bool InBossFight(BossModule? module, Actor? target) => module != null || target?.IsStrikingDummy == true;
-
     public static bool IsBossTier(BossModule? module, AIHints hints, Actor target)
         => target.IsStrikingDummy || module?.PrimaryActor is { IsDeadOrDestroyed: false, IsTargetable: true } boss
             && (target == boss || target.HPMP.CurHP >= boss.HPMP.CurHP || (hints.FindEnemy(target)?.Priority ?? 0) > (hints.FindEnemy(boss)?.Priority ?? 0));
@@ -61,8 +59,10 @@ public static class TimeToKill
 public static class RaidBuffs
 {
     public const float OpenerBuffs = 7.8f;
+    // a buff this overdue after this much boss uptime isn't coming (buffer dead or not pressing it); waiting longer would stall every hold-for-buffs check
+    private const float OverdueGrace = 10;
 
-    public static (float Left, float In) Estimate(BossModuleManager bossmods, WorldState world, Actor player, Actor? target, float combatTime)
+    public static (float Left, float In) Estimate(BossModuleManager bossmods, WorldState world, Actor player, Actor? target, float combatTime, float uptime)
     {
         if (target?.IsStrikingDummy == true)
         {
@@ -75,8 +75,8 @@ public static class RaidBuffs
 
         var left = bossmods.RaidCooldowns.DamageBuffLeft(player, target);
         if (bossmods.RaidCooldowns.NextDamageBuffIn2() is { } next)
-            return (left, next);
-        if (!world.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Any(p => p != player && HasPartyBuff(p)))
+            return (left, left == 0 && next < -OverdueGrace && uptime > OverdueGrace ? float.MaxValue : MathF.Max(0, next));
+        if (combatTime > OpenerBuffs + OverdueGrace || !world.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Any(p => p != player && HasPartyBuff(p)))
             return (left, float.MaxValue);
         return (left, MathF.Max(0, OpenerBuffs - combatTime));
     }
@@ -98,21 +98,6 @@ public static class RaidBuffs
     };
 }
 
-public static class BurstPlanner
-{
-    public const float BuffWeight = 1.15f;
-
-    public static bool SpendNow(float have, float income, float cap, float minSpend, float margin = 5)
-    {
-        if (have < minSpend || have + income <= cap)
-            return false;
-        return have + BuffWeight * MathF.Min(cap, income) > BuffWeight * cap + margin;
-    }
-
-    public static float Overlap(float start, float length, float buffStart, float buffLength)
-        => MathF.Max(0, MathF.Min(start + length, buffStart + buffLength) - MathF.Max(start, buffStart));
-}
-
 public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Actor player) : TypedRotationModule<TStrategy>(manager, player) where TStrategy : struct
 {
     protected float AnimLockDelay;
@@ -121,10 +106,16 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected float RaidBuffsLeft;
     protected float RaidBuffsIn;
     protected bool InBossFight;
+    // highest-priority GCD pushed this frame
+    protected ActionID NextGCDAction { get; private set; }
+    private int NextGCDPriority;
+    private DateTime LastDowntime;
 
     protected virtual bool UsesSpellSpeed => false;
     protected float GCDLength => ActionSpeed.GCDRounded(UsesSpellSpeed ? World.Client.PlayerStats.SpellSpeed : World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
+    protected float ComboLeft => World.Client.ComboState.Remaining;
+    protected int MP => (int)Player.HPMP.CurMP;
     protected bool NoRaidBuffs => RaidBuffsIn > 9000 && RaidBuffsLeft == 0;
     protected bool HasRaidBuffJobs => InBossFight && !NoRaidBuffs;
     protected bool PotionPrepull => World.Client.CountdownRemaining is > 0 and < 2;
@@ -133,6 +124,8 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected AIHints.Enemy? SelectTarget(Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange)
     {
         AnimLockDelay = estimatedAnimLockDelay;
+        NextGCDAction = default;
+        NextGCDPriority = 0;
         TimeToKill.Update(World, Hints);
 
         var target = Hints.FindEnemy(primaryTarget);
@@ -147,8 +140,10 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         }
 
         DowntimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
-        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, CombatTime);
-        InBossFight = TimeToKill.InBossFight(Bossmods.ActiveModule, target?.Actor ?? primaryTarget);
+        if (DowntimeIn == 0)
+            LastDowntime = World.CurrentTime;
+        (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, CombatTime, MathF.Min(CombatTime, (float)(World.CurrentTime - LastDowntime).TotalSeconds));
+        InBossFight = Bossmods.ActiveModule != null || primaryTarget?.IsStrikingDummy == true;
         return target;
     }
 
@@ -161,15 +156,43 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return Hints.PathfindMapBounds.Contains(rear - Hints.PathfindMapCenter);
     }
 
-    // raidwides from predicted damage and the module timeline
+    protected Positional CurrentPositional(Actor target)
+    {
+        var dir = target.Rotation.ToDirection().Dot((Player.Position - target.Position).Normalized());
+        return dir < -0.7071068f ? Positional.Rear : dir < 0.7071068f ? Positional.Flank : Positional.Front;
+    }
+
+    // an enemy we're tanking keeps facing us outside its casts
+    protected void RecommendPositional(AIHints.Enemy target, Positional pos, bool imminent, bool useTrueNorth)
+    {
+        var actor = target.Actor;
+        if (!HasPositionals(actor) || actor.TargetID == Player.InstanceID && actor.CastInfo == null && !actor.IsStrikingDummy || target.Priority < 0)
+            (pos, imminent) = (Positional.Any, false);
+
+        var tn = SelfStatusLeft(ClassShared.SID.TrueNorth) > GCD;
+        var correct = tn || pos == Positional.Any || CurrentPositional(actor) == pos;
+        Hints.RecommendedPositional = (actor, pos, imminent && !tn, correct);
+
+        if (useTrueNorth && imminent && !correct)
+            PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
+    }
+
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 
-    // worth dotting: allowed, not filler (unless boss tier), no downtime soon, and it lives long enough to pay off
     protected bool DotWorthIt(AIHints.Enemy e)
     {
         if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
             return false;
         return TimeToKill.WillLive(e.Actor, 15);
+    }
+
+    // a dot we just cast counts as fresh until it lands, so it isn't cast twice
+    protected float MaxDotLeft<SID>(Actor target, params SID[] sids) where SID : Enum
+    {
+        var left = 0f;
+        foreach (var sid in sids)
+            left = MathF.Max(left, StatusDetails(target, sid, Player.InstanceID, 30).Left);
+        return left;
     }
 
     protected bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
@@ -185,6 +208,12 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
     }
 
+    // cast times scale with speed like the GCD
+    protected float ScaledCastTime<AID>(AID aid) where AID : Enum => ActionDefinitions.Instance.Spell(aid) is { CastTime: > 0 } def ? def.CastTime * GCDLength / 2.5f : 0;
+
+    // moving during the last 0.5s doesn't interrupt a cast
+    protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
+
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)
     {
         if (action.ID == 0 || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
@@ -194,8 +223,22 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return true;
     }
 
+    protected void PushGCD<AID>(AID aid, Actor? target, int priority, float castTime = 0, Angle? facing = null) where AID : Enum
+    {
+        var action = ActionID.MakeSpell(aid);
+        if (PushAction(action, target, ActionQueue.Priority.High + priority, castTime: SlideCast(castTime), facing: facing) && priority > NextGCDPriority)
+            (NextGCDAction, NextGCDPriority) = (action, priority);
+    }
+
     protected bool PushOGCD<AID>(AID aid, Actor? target, int priority, float delay = 0) where AID : Enum
         => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
+
+    protected static bool UseAOE(AOEStrategy strategy, int targets, int minTargets) => strategy switch
+    {
+        AOEStrategy.ForceAOE => true,
+        AOEStrategy.AOE => targets >= minTargets,
+        _ => false
+    };
 
     protected (Actor? Best, int Count) BestAOETarget(AIHints.Enemy? primary, float range, bool allowAoE, Func<Actor, Actor, bool> hits)
     {

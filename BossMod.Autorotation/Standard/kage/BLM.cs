@@ -104,9 +104,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         return new RotationModuleDefinition("Kage BLM", "Black Mage", "Standard rotation (Kage)|Caster", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.BLM, Class.THM), 100).WithStrategies<Strategy>();
     }
 
-    private const uint CircleOfPowerSID = 738;
-    private const uint SwiftcastSID = 167;
-
     private int Astral;
     private int Umbral;
     private int Hearts;
@@ -118,6 +115,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     private float ThunderheadLeft;
     private bool Instant;
     private bool InLeyLines;
+    private float ManafontIn;
 
     private bool AOEMode;
     private int NumAOETargets;
@@ -125,21 +123,26 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     private OpenerStrategy OpenerMode;
 
     protected override bool UsesSpellSpeed => true;
-    private bool ManafontReady => Unlocked(AID.Manafont) && ReadyIn(AID.Manafont) <= GCD;
+    private bool ManafontReady => ManafontIn <= GCD;
     private int FireCost => Hearts > 0 ? 800 : 1600;
     private bool FlareFinisher => Unlocked(AID.Flare) && !Unlocked(AID.Fire4);
     private bool FireMPOut => MP < (Unlocked(AID.Despair) || FlareFinisher ? 800 : FireCost);
     private bool AoEFireMPOut => Unlocked(AID.Flare) ? MP < (Hearts > 0 ? 800 : 1000) : MP < 3000;
-    private bool OpenerManafont => OpenerMode == OpenerStrategy.Standard && CombatTime < 30 && ManafontReady && InFire && AstralSoul < 6 && MP < (Hearts > 0 ? 800 : 1600) + 800;
-    private bool FlareOpenerFinish => OpenerMode == OpenerStrategy.Flare && CombatTime < 60 && Unlocked(AID.FlareStar) && Unlocked(AID.Manafont) && ReadyIn(AID.Manafont) > 30 && AstralSoul < 6;
+    private bool OpenerManafont => OpenerMode == OpenerStrategy.Standard && CombatTime < 30 && ManafontReady && InFire && AstralSoul < 6 && MP < FireCost + 800;
+    private bool FlareOpenerFinish => OpenerMode == OpenerStrategy.Flare && CombatTime < 60 && Unlocked(AID.Manafont) && ReadyIn(AID.Manafont) > 30 && AstralSoul < 6;
     private bool AoECastSwap => Unlocked(AID.Fire3) && !Unlocked(AID.Freeze);
-    private bool InOpener => OpenerMode is OpenerStrategy.Standard or OpenerStrategy.Flare && CombatTime < 35;
-    private int MP => (int)Player.HPMP.CurMP;
+    private bool InOpener => OpenerMode != OpenerStrategy.None && CombatTime < 35;
     private bool MPFull => Player.HPMP.CurMP >= Player.HPMP.MaxMP;
     private int MaxPolyglot => Player.Level >= 98 ? 3 : Player.Level >= 80 ? 2 : 1;
     private bool InFire => Astral > 0;
     private bool InIce => Umbral > 0;
-    private bool CantCast => Hints.MaxCastTime < SlideCastTime(InIce ? (Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1) : (Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1));
+    private bool CantCast => Hints.MaxCastTime < SlideCast(CastTime(InIce ? (Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1) : (Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1)));
+    private bool BuffsActive => HasRaidBuffJobs && RaidBuffsLeft > GCD;
+    private bool HoldPolyglotForBuffs => HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn <= 15;
+
+    // queued rather than weave-checked: a weave check fails exactly when the GCD comes up
+    // oGCDs only run in combat, so out of combat the GCD paths have to swap elements themselves
+    private bool CanUseTranspose => Player.InCombat && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) <= GCD;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -152,20 +155,17 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         Hearts = gauge.UmbralHearts;
         Polyglot = gauge.PolyglotStacks;
         AstralSoul = gauge.AstralSoulStacks;
-        Paradox = gauge.ParadoxActive;
+        Paradox = gauge.ParadoxActive && Unlocked(AID.Paradox);
         EnochianLeft = gauge.EnochianTimer / 1000f;
         FirestarterLeft = ProcLeft(SID.Firestarter);
         ThunderheadLeft = ProcLeft(SID.Thunderhead);
-        Instant = SelfStatusLeft(SID.Triplecast) > 0 || SelfStatusLeft(SwiftcastSID) > 0;
-        InLeyLines = SelfStatusLeft(CircleOfPowerSID) > 0;
+        Instant = SelfStatusLeft(SID.Triplecast) > 0 || SelfStatusLeft(SID.Swiftcast) > 0;
+        InLeyLines = SelfStatusLeft(SID.CircleOfPower) > 0;
+        // a Manafont we won't press (Delay, or out of combat where oGCDs don't run) must not hold the fire phase open
+        ManafontIn = strategy.Manafont.Value != OffensiveStrategy.Delay && Player.InCombat ? ReadyIn(AID.Manafont) : float.MaxValue;
 
         NumAOETargets = target == null ? 0 : Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5);
-        AOEMode = Unlocked(AID.Fire2) && strategy.AOE.Value switch
-        {
-            AOEStrategy.ForceAOE => true,
-            AOEStrategy.AOE => NumAOETargets >= 2,
-            _ => false
-        };
+        AOEMode = Unlocked(AID.Fire2) && UseAOE(strategy.AOE.Value, NumAOETargets, 2);
 
         if (UsePotion(strategy))
             Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium);
@@ -192,7 +192,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     private void GCDs(in Strategy strategy, Enemy target)
     {
         var dying = !TimeToKill.WillLive(target.Actor, 5);
-        var polyAction = AOEMode && Unlocked(AID.Foul) || !Unlocked(AID.Xenoglossy) ? AID.Foul : AID.Xenoglossy;
 
         if (Polyglot > 0 && strategy.Polyglot.Value != PolyglotStrategy.Delay)
         {
@@ -204,9 +203,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
                 _ => overcap || dying || DowntimeIn < GCDLength * Polyglot + 1 || InFire && !HoldPolyglotForBuffs && (Polyglot > 1 || BuffsActive || Player.Level < 80)
             };
             if (spend)
-                PushGCD(polyAction, target.Actor, 70);
+                PushGCD(PolyglotAction, target.Actor, 70);
             if (CantCast)
-                PushGCD(polyAction, target.Actor, 5);
+                PushGCD(PolyglotAction, target.Actor, 5);
         }
 
         if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < (InOpener ? (InLeyLines ? 7.5f : 5) : 3) && !target.ForbidDOTs && TimeToKill.WillLive(target.Actor, 12)))
@@ -231,13 +230,11 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
     private void Fire(Enemy target)
     {
-        var f4Cost = Hearts > 0 ? 800 : 1600;
-
         if (Astral < 3)
         {
             if (FirestarterLeft > GCD)
                 PushGCD(AID.Fire3, target.Actor, 50);
-            else if (Paradox && Unlocked(AID.Paradox))
+            else if (Paradox)
                 PushGCD(AID.Paradox, target.Actor, 50);
             else if (Unlocked(AID.Fire3))
                 PushGCD(AID.Fire3, target.Actor, 49);
@@ -248,8 +245,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
         if (Unlocked(AID.Fire4))
         {
-            var paradoxReserve = Paradox && Unlocked(AID.Paradox) && Astral == 3 && !FlareOpenerFinish && !(OpenerMode == OpenerStrategy.Standard && CombatTime < 60) ? 1600 : 0;
-            if (MP - f4Cost >= (FlareOpenerFinish ? 2400 : Unlocked(AID.Despair) && !OpenerManafont ? 800 : 0) + paradoxReserve)
+            var paradoxReserve = Paradox && Astral == 3 && !FlareOpenerFinish && !(OpenerMode == OpenerStrategy.Standard && CombatTime < 60) ? 1600 : 0;
+            if (MP - FireCost >= (FlareOpenerFinish ? 2400 : Unlocked(AID.Despair) && !OpenerManafont ? 800 : 0) + paradoxReserve)
                 PushGCD(AID.Fire4, target.Actor, 40);
         }
         else if (MP >= FireCost + (FlareFinisher ? 800 : 0))
@@ -264,14 +261,14 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         if (!Unlocked(AID.Fire4) && FirestarterLeft > GCD)
             PushGCD(AID.Fire3, target.Actor, 45);
 
-        if (Paradox && Unlocked(AID.Paradox) && MP >= 1600)
+        if (Paradox && MP >= 1600)
             PushGCD(AID.Paradox, target.Actor, 38);
 
         if (FlareOpenerFinish && AstralSoul >= 3 && MP >= 800)
             PushGCD(AID.Flare, target.Actor, 36);
 
         if (OpenerManafont && Polyglot > 0)
-            PushGCD(Unlocked(AID.Xenoglossy) ? AID.Xenoglossy : AID.Foul, target.Actor, 36);
+            PushGCD(PolyglotAction, target.Actor, 36);
         else if (Unlocked(AID.Despair) && MP >= 800)
             PushGCD(AID.Despair, target.Actor, 35);
 
@@ -292,7 +289,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         else if (!Unlocked(AID.Blizzard4) && (!MPFull || !Unlocked(AID.Fire1)))
             PushGCD(AID.Blizzard1, target.Actor, 45);
 
-        if (Paradox && Unlocked(AID.Paradox) && (FirestarterLeft > 0 || !Unlocked(AID.Transpose) || Umbral == 3 && Hearts >= 3))
+        if (Paradox && (FirestarterLeft > 0 || !Unlocked(AID.Transpose) || Umbral == 3 && Hearts >= 3))
             PushGCD(AID.Paradox, target.Actor, 42);
 
         if (MPFull && (Hearts >= 3 || !Unlocked(AID.Blizzard4)))
@@ -305,7 +302,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
             PushGCD(AID.Blizzard1, target.Actor, 1);
         }
 
-        if (CantCast && Paradox && Unlocked(AID.Paradox))
+        if (CantCast && Paradox)
             PushGCD(AID.Paradox, target.Actor, 6);
     }
 
@@ -317,17 +314,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         {
             if (Unlocked(AID.FlareStar) && AstralSoul >= 6)
                 PushGCD(AID.FlareStar, target.Actor, 50);
-            if (Unlocked(AID.Flare))
-            {
-                if (!Unlocked(AID.Blizzard4) && Astral < 3 && MP >= 3000)
-                    PushGCD(fireAoE, target.Actor, 46);
-                if (MP >= (Hearts > 0 ? 800 : 1000))
-                    PushGCD(AID.Flare, target.Actor, 45);
-            }
-            else if (MP >= 3000)
-            {
-                PushGCD(fireAoE, target.Actor, 45);
-            }
+            if (Unlocked(AID.Flare) && !Unlocked(AID.Blizzard4) && Astral < 3 && MP >= 3000)
+                PushGCD(fireAoE, target.Actor, 46);
+            if (!AoEFireMPOut)
+                PushGCD(Unlocked(AID.Flare) ? AID.Flare : fireAoE, target.Actor, 45);
             if (AoEFireMPOut && (!CanUseTranspose || AoECastSwap) && !ManafontReady)
                 PushGCD(iceAoE, target.Actor, 20);
             if (AoEFireMPOut && AstralSoul < 6 && CanUseTranspose && !AoECastSwap && !ManafontReady && Polyglot > 0 && Unlocked(AID.Foul))
@@ -348,7 +338,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
             {
                 PushGCD(iceSpell, target.Actor, 45);
             }
-            if (Paradox && Unlocked(AID.Paradox))
+            if (Paradox)
                 PushGCD(AID.Paradox, target.Actor, 30);
             if (Unlocked(AID.Blizzard4) ? !CanUseTranspose && (MPFull || Hearts >= 3) : AoEExitIce && (!CanUseTranspose || AoECastSwap))
                 PushGCD(fireAoE, target.Actor, 25);
@@ -375,28 +365,28 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
         if (CanUseTranspose)
         {
-            var endOfFire = InFire && FireMPOut && !(Unlocked(AID.Manafont) && ReadyIn(AID.Manafont) < 5) && AstralSoul < 6;
+            var endOfFire = InFire && FireMPOut && ManafontIn >= 5 && AstralSoul < 6;
             if (endOfFire && (Instant || !Unlocked(AID.Blizzard3)))
                 PushOGCD(AID.Transpose, Player, 65);
             var endOfIce = InIce && MPFull && (Hearts >= 3 || !Unlocked(AID.Blizzard4)) && (!Paradox || FirestarterLeft == 0);
             if (endOfIce && !AOEMode && (FirestarterLeft > GCD || Unlocked(AID.Paradox) || !Unlocked(AID.Fire3)))
                 PushOGCD(AID.Transpose, Player, 65);
-            if (AOEMode && !AoECastSwap && (InFire && AoEFireMPOut && AstralSoul < 6 && !(Unlocked(AID.Manafont) && ReadyIn(AID.Manafont) <= GCD) || InIce && AoEExitIce))
+            if (AOEMode && !AoECastSwap && (InFire && AoEFireMPOut && AstralSoul < 6 && !ManafontReady || InIce && AoEExitIce))
                 PushOGCD(AID.Transpose, Player, 65);
         }
 
-        if (!AOEMode && InFire && FireMPOut && Astral == 3 && !Instant && !(Unlocked(AID.Manafont) && ReadyIn(AID.Manafont) < 5) && AstralSoul < 6)
+        if (!AOEMode && InFire && FireMPOut && Astral == 3 && !Instant && ManafontIn >= 5 && AstralSoul < 6)
         {
             if (CanWeave(ClassShared.AID.Swiftcast))
                 PushOGCD(ClassShared.AID.Swiftcast, Player, 66);
-            else if (CanWeave(AID.Triplecast) && SelfStatusLeft(SID.Triplecast) == 0 && !InLeyLines && TriplecastCharges >= 2)
+            else if (CanWeave(AID.Triplecast) && !InLeyLines && TriplecastCharges >= 2)
                 PushOGCD(AID.Triplecast, Player, 66);
         }
 
         if (!AOEMode && InOpener && CombatTime < 10 && InFire && !Instant && ThunderLeft(target.Actor) > 20 && Unlocked(AID.LeyLines) && ReadyIn(AID.LeyLines) < 5 && CanWeave(ClassShared.AID.Swiftcast))
             PushOGCD(ClassShared.AID.Swiftcast, Player, 61);
 
-        if (!AOEMode && FlareOpenerFinish && InFire && AstralSoul >= 3 && !Instant && MP - (Hearts > 0 ? 800 : 1600) < 2400 && CanWeave(AID.Triplecast))
+        if (!AOEMode && FlareOpenerFinish && InFire && AstralSoul >= 3 && !Instant && MP - FireCost < 2400 && CanWeave(AID.Triplecast))
             PushOGCD(AID.Triplecast, Player, 67);
 
         if (strategy.Amplifier.Value != OffensiveStrategy.Delay && CanWeave(AID.Amplifier) && (strategy.Amplifier.Value == OffensiveStrategy.Force || Polyglot < MaxPolyglot))
@@ -406,7 +396,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
             && (strategy.LeyLines.Value == LeyLinesStrategy.ASAP || ShouldLeyLines(target.Actor)))
             PushOGCD(AID.LeyLines, Player, 55);
 
-        if (strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant && Polyglot == 0 && ThunderheadLeft == 0 && !(InFire && FirestarterLeft > 0))
+        // hold only for an instant GCD that actually gets pushed: Foul is instant from 80, AoE never uses Firestarter
+        if (strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant
+            && (Polyglot == 0 || Player.Level < 80 || strategy.Polyglot.Value == PolyglotStrategy.Delay) && (ThunderheadLeft == 0 || target.ForbidDOTs) && !(InFire && FirestarterLeft > 0 && !AOEMode))
         {
             if (!InLeyLines && CanWeave(AID.Triplecast))
                 PushOGCD(AID.Triplecast, Player, 50);
@@ -418,16 +410,13 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.Manaward, Player, 45);
     }
 
-    private bool BuffsActive => HasRaidBuffJobs && RaidBuffsLeft > GCD;
-    private bool HoldPolyglotForBuffs => HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn <= 15;
-
     private bool ShouldLeyLines(Actor target)
     {
         if (Hints.MaxCastTime < 2.5f || DowntimeIn <= 15 || !TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, 15))
             return false;
         if (InOpener && CombatTime < 10 && InFire)
             return true;
-        var full = LeyLinesCharges >= MaxCharges(AID.LeyLines);
+        var full = MaxChargesIn(AID.LeyLines) <= 0;
         if (!InBossFight || NoRaidBuffs)
             return full;
         if (RaidBuffsLeft > 10 || RaidBuffsIn <= 3)
@@ -435,38 +424,27 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         return full && RaidBuffsIn > 40;
     }
 
-    // queued rather than weave-checked: a weave check fails exactly when the GCD comes up
-    private bool CanUseTranspose => Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) <= GCD;
-
     #endregion
 
     #region Helpers
 
-    private AID ThunderAction => AOEMode
+    private AID PolyglotAction => AOEMode && Unlocked(AID.Foul) || !Unlocked(AID.Xenoglossy) ? AID.Foul : AID.Xenoglossy;
+
+    // aoe mode starts with Fire II at 18, Thunder II only comes at 26
+    private AID ThunderAction => AOEMode && Unlocked(AID.Thunder2)
         ? (Unlocked(AID.HighThunder2) ? AID.HighThunder2 : Unlocked(AID.Thunder4) ? AID.Thunder4 : AID.Thunder2)
         : (Unlocked(AID.HighThunder) ? AID.HighThunder : Unlocked(AID.Thunder3) ? AID.Thunder3 : AID.Thunder1);
 
     // Firestarter and Thunderhead can have no timer, which would otherwise read as 0s left
     private float ProcLeft(SID sid) => Player.FindStatus(sid) is { } st ? MathF.Max(StatusDuration(st.ExpireAt), st.ExpireAt <= World.CurrentTime ? float.MaxValue : 0) : 0;
 
-    private float ThunderLeft(Actor target)
-    {
-        float Left(SID sid) => StatusDetails(target, sid, Player.InstanceID, 30).Left;
-        return MathF.Max(MathF.Max(Left(SID.HighThunder), Left(SID.HighThunderII)), MathF.Max(MathF.Max(Left(SID.Thunder), Left(SID.ThunderII)), MathF.Max(Left(SID.ThunderIII), Left(SID.ThunderIV))));
-    }
-
-    private float SlideCastTime(AID aid) => MathF.Max(0, CastTime(aid) - 0.5f);
+    private float ThunderLeft(Actor target) => MaxDotLeft(target, SID.HighThunder, SID.HighThunderII, SID.Thunder, SID.ThunderII, SID.ThunderIII, SID.ThunderIV);
 
     private float CastTime(AID aid)
     {
-        if (Instant)
+        if (Instant || aid == AID.Foul && Player.Level >= 80)
             return 0;
-        var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null || def.CastTime == 0)
-            return 0;
-        if (aid == AID.Foul && Player.Level >= 80)
-            return 0;
-        var t = def.CastTime * GCDLength / 2.5f;
+        var t = ScaledCastTime(aid);
         var isFire = aid is AID.Fire1 or AID.Fire3 or AID.Fire4 or AID.Fire2 or AID.HighFire2 or AID.Flare or AID.Despair or AID.FlareStar;
         var isIce = aid is AID.Blizzard1 or AID.Blizzard3 or AID.Blizzard4 or AID.Blizzard2 or AID.HighBlizzard2 or AID.Freeze;
         if (isFire && Umbral == 3 || isIce && Astral == 3)
@@ -484,7 +462,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         _ => false
     };
 
-    private int LeyLinesCharges => Charges(AID.LeyLines);
     private int TriplecastCharges => Charges(AID.Triplecast);
     private int Charges(AID aid)
     {
@@ -496,9 +473,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         return max - (int)MathF.Ceiling(capIn / def.Cooldown);
     }
 
-    private int MaxCharges(AID aid) => Unlocked(aid) ? ActionDefinitions.Instance.Spell(aid)!.MaxChargesAtLevel(Player.Level) : 0;
-    private void PushGCD(AID aid, Actor? target, int priority)
-        => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.High + priority, castTime: SlideCastTime(aid));
+    private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 
     #endregion
 }
