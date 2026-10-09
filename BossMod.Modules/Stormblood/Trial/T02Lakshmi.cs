@@ -172,7 +172,7 @@ class T02LakshmiStates : StateMachineBuilder
 {
     public T02LakshmiStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<DreamingKshatriyaAdds>()
             .ActivateOnEnter<TailSlap>()
             .ActivateOnEnter<InnerDemons>()
@@ -187,6 +187,17 @@ class T02LakshmiStates : StateMachineBuilder
             .ActivateOnEnter<VrilOrbs>()
             .ActivateOnEnter<CircleZone>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.Stotram, 67, "Stotram");
+        Targetable(id + 0x10, false, 5.8f, "Disappear");
+        Targetable(id + 0x20, true, 42.5f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)]

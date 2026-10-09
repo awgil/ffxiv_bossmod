@@ -197,7 +197,7 @@ class T03HadesStates : StateMachineBuilder
 
     private void Phase2(uint id)
     {
-        SimpleState(id, 10000, "Enrage")
+        Condition(id, 600, () => _module.BossP2()?.CastInfo?.IsSpell(AID.LifeInCaptivity) ?? false, "Life in Captivity", 300)
             .ActivateOnEnter<Titanomachy>()
             .ActivateOnEnter<ShadowStreamPurgation>()
             .ActivateOnEnter<DualStrike>()
@@ -212,7 +212,14 @@ class T03HadesStates : StateMachineBuilder
             .ActivateOnEnter<DoomTowers>()
             .ActivateOnEnter<NetherBlast>()
             .ActivateOnEnter<ShadowAdds>();
+        NothingTargetable(id + 0x10, true, 4.1f, "Disappear");
+        NothingTargetable(id + 0x20, false, 49.25f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "Enrage");
     }
+
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
 [ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352)] // TODO: clear Incomplete after P1/P2 + Doom towers verify

@@ -52,6 +52,7 @@ public enum AID : uint
     DeathSentence = 8731, // Hakkinryu->player, 4.0s cast, single-target
     SpikedTail = 8729, // Ginryu->player, 1.0s cast, single-target
     JudgmentBolt = 8077, // Helper->self, 10.0s cast, range 60 circle
+    JudgmentBoltVisual = 8108, // Boss->self, 9.7s cast, single-target
     EarthenFury = 8079, // Helper->self, 10.0s cast, range 60 circle
     EarthenFurySmash = 9146, // Helper->location, range 20 width 20 rect
     AkhRhai = 8102, // Helper->location, no cast, range 4 circle
@@ -333,7 +334,7 @@ class T03ShinryuStates : StateMachineBuilder
 {
     public T03ShinryuStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<TidalWave>()
             .ActivateOnEnter<WaterPuddles>()
             .ActivateOnEnter<Levinbolt>()
@@ -371,6 +372,21 @@ class T03ShinryuStates : StateMachineBuilder
             .ActivateOnEnter<AerialBlast>()
             .ActivateOnEnter<Hypernova>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.JudgmentBoltVisual, 90, "Judgment Bolt");
+        NothingTargetable(id + 0x10, true, 13.2f, "Disappear");
+        NothingTargetable(id + 0x20, false, 12.9f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
+
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 239, NameID = 5640)]

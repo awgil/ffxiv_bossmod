@@ -140,7 +140,7 @@ class T04TsukuyomiStates : StateMachineBuilder
 {
     public T04TsukuyomiStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<TsukiNoMaiogi>()
             .ActivateOnEnter<TormentUntoDeath>()
             .ActivateOnEnter<SteelOfTheUnderworld>()
@@ -160,7 +160,22 @@ class T04TsukuyomiStates : StateMachineBuilder
             .ActivateOnEnter<DarkBladeBrightBlade>()
             .ActivateOnEnter<ToAshes>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.Nightbloom, 91, "Nightbloom");
+        NothingTargetable(id + 0x10, true, 7, "Disappear");
+        NothingTargetable(id + 0x20, false, 20.5f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
+
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)] // TODO: clear Incomplete after specter timeline
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)]
 public class T04Tsukuyomi(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

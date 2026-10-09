@@ -381,9 +381,10 @@ class T02EverkeepStates : StateMachineBuilder
             .ActivateOnEnter<DoubleEdgedSwords>();
     }
 
+    // TODO: downtime after Soul Overflow only seen in one run
     private void Phase2(uint id)
     {
-        SimpleState(id, 10000, "Enrage")
+        NothingTargetable(id, true, 7.1f, "Disappear")
             .ActivateOnEnter<DawnOfAnAge>()
             .ActivateOnEnter<Actualize>()
             .ActivateOnEnter<ChasmOfVollok>()
@@ -397,7 +398,13 @@ class T02EverkeepStates : StateMachineBuilder
             .ActivateOnEnter<HalfCircuitCircle>()
             .ActivateOnEnter<SmitingCircuitDonut>()
             .ActivateOnEnter<SmitingCircuitCircle>();
+        NothingTargetable(id + 0x10, false, 81.5f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "Enrage");
     }
+
+    private State NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
 [ModuleInfo(Contributors = "Gabriel Deleon, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 995, NameID = 12881)]

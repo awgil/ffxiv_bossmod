@@ -45,20 +45,62 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 {
     private readonly ImperialAI _ai = new(ws);
+    private bool _sneak;
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
         foreach (var h in hints.PotentialTargets.Where(p => p.Actor.Position.InCircle(player.Position, 40)))
             if (!h.Actor.InCombat && !h.Actor.Position.AlmostEqual(new(111, -317), 10))
             {
-                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, 12 + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
+                var sight = h.Actor.OID == 0x3515 ? 10 : 8.5f;
+                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, sight + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
                 hints.AddForbiddenZone(ShapeDistance.Circle(h.Actor.Position, h.Actor.HitboxRadius));
             }
+
+        if (_sneak)
+            SneakAlongRoute(player, hints);
+        _sneak = false;
 
         _ai.Execute(player, hints);
     }
 
+    private void SneakAlongRoute(Actor player, AIHints hints)
+    {
+        if (hints.ForcedMovement is not { } route || player.InCombat)
+            return;
+
+        if (hints.InteractWithTarget is { } target && player.DistanceToHitbox(target) < 20)
+        {
+            hints.ForcedMovement = null;
+            return;
+        }
+
+        var dir = new WDir(route.X, route.Z);
+        var len = dir.Length();
+        if (len < 0.5f)
+            return;
+        var next = player.Position + dir;
+        var step = dir / len;
+        for (var d = 1f; d <= Math.Min(len, 8); d += 1)
+        {
+            var p = player.Position + step * d;
+            if (hints.ForbiddenZones.Any(z => z.shape.Check(p)))
+            {
+                hints.ForcedMovement = null;
+                hints.GoalZones.Add(AIHints.GoalProximity(next, Math.Max(40, len + 10), 1));
+                return;
+            }
+        }
+    }
+
     private bool HasFuel => World.Party.Player()?.FindStatus(404) != null;
+    private bool FuelInNearWreckage => World.Actors.Any(a => a.OID == 0x1EB69E && a.IsTargetable);
+
+    private void RefuelHints(Actor player, AIHints hints)
+    {
+        _sneak = true;
+        InteractWithFirst(player, hints, HasFuel ? 0x1EB4F1u : 0x1EB56Fu);
+    }
 
     private void InteractWithFirst(Actor player, AIHints hints, params uint[] oids)
     {
@@ -115,35 +157,46 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
             .WithInteract(0xFE20B)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76E2)),
 
-        // TODO: verify the near wreckage variant (0x1EB69D-F), only the far one was seen in replays
         new QuestObjective(ws)
-            .Named("Fuel (near wreckage)")
-            .WithConnections(V3(124.5f, 10.8f, -232.9f), V3(175.5f, 10.8f, -227.7f), V3(188.4f, 10.8f, -256.8f))
+            .Named("Leave church")
+            .WithConnections(new Waypoint(V3(108.5f, 10.8f, -258.2f), false), new Waypoint(V3(116, 10.8f, -259.3f), false))
             .Hints((player, hints) => {
-                InteractWithFirst(player, hints, 0x1EB69D, 0x1EB69E, 0x1EB69F);
                 if (player.Position.AlmostEqual(new WPos(109, -257.263f), 2))
                     hints.WantJump = true;
             })
-            .With(obj => {
-                var arrived = false;
-                obj.OnNavigationComplete += () => arrived = true;
-                obj.Update += () => obj.CompleteIf(HasFuel || arrived && !World.Actors.Any(a => a.OID is 0x1EB69D or 0x1EB69E or 0x1EB69F && a.IsTargetable));
-            }),
+            .With(obj => obj.OnNavigationComplete += () => obj.CompleteIf(true)),
+
+        new QuestObjective(ws)
+            .Named("Fuel (near wreckage)")
+            .WithConnections(V3(124.5f, 10.8f, -232.9f), V3(175.5f, 10.8f, -227.7f))
+            .Hints((player, hints) => {
+                _sneak = true;
+                InteractWithFirst(player, hints, 0x1EB69E);
+            })
+            .With(obj => obj.Update += () => obj.CompleteIf(HasFuel || !FuelInNearWreckage)),
 
         new QuestObjective(ws)
             .Named("Fuel (far wreckage)")
-            .WithConnections(V3(225.1f, 10.8f, -286.9f), V3(268.8f, 10.8f, -325.2f), V3(295.5f, 10.8f, -366.3f))
-            .Hints((player, hints) => InteractWithFirst(player, hints, 0x1EB451, 0x1EB452, 0x1EB453))
-            .With(obj => obj.Update += () => obj.CompleteIf(HasFuel)),
+            .WithConnections(V3(124.5f, 10.8f, -232.9f), V3(175.5f, 10.8f, -227.7f), V3(188.4f, 10.8f, -256.8f), V3(225.1f, 10.8f, -286.9f), V3(268.8f, 10.8f, -325.2f), V3(295.5f, 10.8f, -366.3f))
+            .Hints((player, hints) => {
+                _sneak = true;
+                InteractWithFirst(player, hints, 0x1EB452);
+            })
+            .With(obj => obj.Update += () => obj.CompleteIf(HasFuel || FuelInNearWreckage)),
+
+        new QuestObjective(ws)
+            .Named("Back from far wreckage")
+            .WithConnections(V3(268.8f, 10.8f, -325.2f), V3(225.1f, 10.8f, -286.9f), V3(188.4f, 10.8f, -256.8f))
+            .Hints(RefuelHints)
+            .With(obj => {
+                obj.OnNavigationComplete += () => obj.CompleteIf(true);
+                obj.Update += () => obj.CompleteIf(FuelInNearWreckage);
+            }),
 
         new QuestObjective(ws)
             .Named("Refuel")
-            .WithConnections(V3(239.3f, 10.5f, -275.1f), V3(192.5f, 11.2f, -260.4f), V3(130.3f, 10.7f, -230.5f))
-            .Hints((player, hints) => {
-                hints.InteractWithOID(World, 0x1EB56F);
-                if (hints.InteractWithTarget == null)
-                    hints.InteractWithOID(World, 0x1EB4F1);
-            })
+            .WithConnections(V3(175.5f, 10.8f, -227.7f), V3(130.3f, 10.7f, -230.5f))
+            .Hints(RefuelHints)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76C1)),
 
         new QuestObjective(ws)

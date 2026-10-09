@@ -679,7 +679,13 @@ class T05NecronStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDead;
     }
 
-    private void P1(uint id) => ActivateCommon(id);
+    private void P1(uint id)
+    {
+        ActivateCommon(Condition(id, 260, () => Module.PrimaryActor.CastInfo?.IsSpell(AID.DarknessOfEternityCast) ?? false, "Darkness of Eternity", 300));
+        NothingTargetable(id + 0x10, true, 16.5f, "Disappear");
+        NothingTargetable(id + 0x20, false, 14, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "Enrage");
+    }
 
     private void PJail(uint id)
     {
@@ -689,11 +695,15 @@ class T05NecronStates : StateMachineBuilder
             .ActivateOnEnter<SpreadingFear>();
     }
 
-    private void P2(uint id) => ActivateCommon(id);
+    private void P2(uint id) => ActivateCommon(SimpleState(id, 10000, "Enrage"));
 
-    private void ActivateCommon(uint id)
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
+
+    private void ActivateCommon(State state)
     {
-        SimpleState(id, 10000, "Enrage")
+        state
             .ActivateOnEnter<FearOfDeath>()
             .ActivateOnEnter<FearOfDeathPuddle>()
             .ActivateOnEnter<ChokingGrasp>()

@@ -437,7 +437,7 @@ class T01RavanaStates : StateMachineBuilder
 {
     public T01RavanaStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<PreludeToSlaughterCast>()
             .ActivateOnEnter<PreludeToSlaughterCircle>()
             .ActivateOnEnter<PreludeToSlaughterRect>()
@@ -462,6 +462,22 @@ class T01RavanaStates : StateMachineBuilder
             .ActivateOnEnter<BlindingBlade>()
             .ActivateOnEnter<RavanaAdds>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.PreludeToSlaughterCast, 100, "Prelude to Slaughter");
+        Targetable(id + 0x10, false, 14.9f, "Disappear");
+        Targetable(id + 0x20, true, 16.5f, "Reappear");
+        Targetable(id + 0x30, false, 20.4f, "Disappear");
+        Targetable(id + 0x40, true, 15.5f, "Reappear");
+        WaitForCast(id + 0x50, AID.BloodyFuller, 90, "Bloody Fuller");
+        Targetable(id + 0x60, false, 6.7f, "Disappear");
+        Targetable(id + 0x70, true, 13.3f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 86, NameID = 3660)]
