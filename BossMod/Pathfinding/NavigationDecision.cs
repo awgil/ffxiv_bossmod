@@ -34,7 +34,7 @@ public struct NavigationDecision
     // reduce time between now and activation by this value in seconds; increase for more conservativeness
     //public const float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
 
-    public static float CushionFromRTT(float rtt) => /* rtt */ 0.5f + ActorCastInfo.NPCFinishDelay;
+    public static float CushionFromRTT(float rtt) => 0.5f /*rtt*/ + ActorCastInfo.NPCFinishDelay;
 
     public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
     {
