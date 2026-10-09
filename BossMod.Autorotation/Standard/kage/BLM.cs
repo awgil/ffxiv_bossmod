@@ -152,6 +152,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     // oGCDs only run in combat, so out of combat the GCD paths have to swap elements themselves
     private bool CanUseTranspose => Player.InCombat && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) <= GCD;
 
+    private DateTime NoTargetSince;
     private LeyLinesStrategy LeyLinesStrat;
     private OffensiveStrategy AmplifierStrat;
     private OffensiveStrategy ManafontStrat;
@@ -196,13 +197,30 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         }
 
         if (target == null)
+        {
+            if (NoTargetSince == default)
+                NoTargetSince = World.CurrentTime;
+            Downtime();
             return;
+        }
+        NoTargetSince = default;
 
         Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25));
 
         GCDs(strategy, target);
         if (Player.InCombat)
             OGCDs(strategy, target);
+    }
+
+    // a short target swap shouldn't drop astral fire, so wait a moment before treating it as downtime
+    private void Downtime()
+    {
+        if (!Player.InCombat || (World.CurrentTime - NoTargetSince).TotalSeconds < 1.5f)
+            return;
+        if (InFire && CanUseTranspose)
+            PushOGCD(AID.Transpose, Player, 65);
+        if (InIce && Unlocked(AID.UmbralSoul) && (Umbral < 3 || Hearts < 3 || !MPFull))
+            PushGCD(AID.UmbralSoul, Player, 10);
     }
 
     #region GCD

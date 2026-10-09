@@ -20,7 +20,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         [Track("Higanbana", MinLevel = 30, Action = AID.Higanbana)]
         public Track<HiganbanaStrategy> Higanbana;
 
-        [Track("Tsubame-gaeshi", MinLevel = 76, Actions = [AID.KaeshiSetsugekka, AID.TendoKaeshiSetsugekka, AID.KaeshiGoken, AID.TendoKaeshiGoken])]
+        [Track("Tsubame-gaeshi", MinLevel = 74, Actions = [AID.KaeshiSetsugekka, AID.TendoKaeshiSetsugekka, AID.KaeshiGoken, AID.TendoKaeshiGoken])]
         public Track<TsubameStrategy> Tsubame;
 
         [Track("Burst (Ikishoten, Senei, Meikyo, Shoha)", InternalName = "Burst", MinLevel = 50)]
@@ -675,7 +675,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.MeikyoShisui, Player, 70);
     }
 
-    private bool UseMAL(in Strategy strategy) => strategy.Loop.Value switch
+    // the acceleration loop needs the second meikyo charge, otherwise it spends the burst charge
+    private bool UseMAL(in Strategy strategy) => Unlocked(TraitID.EnhancedMeikyoShisui) && strategy.Loop.Value switch
     {
         LoopStrategy.MAL => true,
         LoopStrategy.Standard => false,
@@ -746,7 +747,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
         PotionStrategy.Immediate => true,
         _ => false
     };
