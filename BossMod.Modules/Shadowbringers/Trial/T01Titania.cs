@@ -48,7 +48,7 @@ public enum AID : uint
     BrightSabbath = 15708, // Boss->self, 4.0s cast, range 60 circle
     PhantomRuneIn = 15709, // Boss->self, 5.0s cast, range 10 circle
     PhantomRuneOut = 15710, // Boss->self, 5.0s cast, range 5-60 donut
-    WarAndPease = 15789, // Helper->player, 5.0s cast, range 10 circle stack
+    WarAndPease = 15789, // Helper->player, 5.0s cast, range 10 circle spread
     LeafstormRepeat = 15875, // Helper->self, 5.0s cast, range 50 20-degree cone
     GentleBreeze = 16259, // Puck->self, 2.5s cast, range 60 width 4 rect
     Uplift = 16927, // Helper->player, 5.0s cast, range 6 circle spread
@@ -73,15 +73,24 @@ class PucksCaprice(BossModule module) : Components.RaidwideCast(module, AID.Puck
 class PucksBreath(BossModule module) : Components.StackWithCastTargets(module, AID.PucksBreath, 6);
 class PucksRebukeNear(BossModule module) : Components.StandardAOEs(module, AID.PucksRebukeNear, 5);
 class PucksRebuke(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PucksRebuke, 10);
-class DivinationRune(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 37.5f.Degrees()), (uint)IconID.Divination, AID.DivinationRune, 4f, damageType: AIHints.PredictedDamageType.Tankbuster); // TODO: verify cone half-angle (replays: nearest unhit player at 55°, so < 55°)
+class DivinationRune(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 45.Degrees()), (uint)IconID.Divination, AID.DivinationRune, 4f, damageType: AIHints.PredictedDamageType.Tankbuster);
 class BrightSabbath(BossModule module) : Components.RaidwideCast(module, AID.BrightSabbath);
 class PhantomRuneIn(BossModule module) : Components.StandardAOEs(module, AID.PhantomRuneIn, 10);
 class PhantomRuneOut(BossModule module) : Components.StandardAOEs(module, AID.PhantomRuneOut, new AOEShapeDonut(5, 60));
-class WarAndPease(BossModule module) : Components.StackWithCastTargets(module, AID.WarAndPease, 10, 8, 8);
+class WarAndPease(BossModule module) : Components.SpreadFromCastTargets(module, AID.WarAndPease, 10);
 class GentleBreeze(BossModule module) : Components.StandardAOEs(module, AID.GentleBreeze, new AOEShapeRect(60, 2));
 class Uplift(BossModule module) : Components.SpreadFromCastTargets(module, AID.Uplift, 6);
 class FlameRune(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.FlameHammer, 6, 5.1f, 8, 8);
-class TitaniaAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.Mustardseed, (uint)OID.Peaseblossom, (uint)OID.Puck, (uint)OID.MustardseedGiant, (uint)OID.PeaseblossomGiant, (uint)OID.PuckGiant, (uint)OID.SpiritOfFlame, (uint)OID.SpiritOfDew], 1);
+class TitaniaAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.Mustardseed, (uint)OID.Peaseblossom, (uint)OID.Puck, (uint)OID.MustardseedGiant, (uint)OID.PeaseblossomGiant, (uint)OID.PuckGiant, (uint)OID.SpiritOfFlame, (uint)OID.SpiritOfDew], 1)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        hints.PrioritizeTargetsByOID([(uint)OID.Mustardseed, (uint)OID.MustardseedGiant], 4);
+        hints.PrioritizeTargetsByOID([(uint)OID.Puck, (uint)OID.PuckGiant], 3);
+        hints.PrioritizeTargetsByOID([(uint)OID.Peaseblossom, (uint)OID.PeaseblossomGiant], 2);
+        hints.PrioritizeTargetsByOID([(uint)OID.SpiritOfFlame, (uint)OID.SpiritOfDew], 1);
+    }
+}
 
 class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
 {
@@ -110,6 +119,21 @@ class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
     {
         if (actor.OID == (uint)OID.RootGrowth)
             _aoes.RemoveAll(a => a.Origin.AlmostEqual(actor.Position, 1));
+    }
+}
+
+class MistRunePuddles(BossModule module) : Components.GenericTowers(module, damageType: AIHints.PredictedDamageType.None)
+{
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.WaterPuddles)
+            Towers.Add(new(actor.Position, 3, 1, 8, activation: WorldState.FutureTime(11.2f)));
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if (actor.OID == (uint)OID.WaterPuddles && state == 0x01000200)
+            Towers.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 1));
     }
 }
 
@@ -211,9 +235,10 @@ class T01TitaniaStates : StateMachineBuilder
             .ActivateOnEnter<FlameRune>()
             .ActivateOnEnter<WoodsEmbrace>()
             .ActivateOnEnter<WaterPuddles>()
+            .ActivateOnEnter<MistRunePuddles>()
             .ActivateOnEnter<TitaniaAdds>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 657, NameID = 8361)]
 public class T01Titania(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
