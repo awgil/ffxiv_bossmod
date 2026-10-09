@@ -39,7 +39,7 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase<Rang
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.BRD.AID.WardensPaean), tar, ActionQueue.Priority.Low);
     }
 
-    // Tactician / Troubadour / Shield Samba don't stack; Dismantle only if our party mit is on cooldown
+    // Tactician / Troubadour / Shield Samba don't stack; Dismantle only if none is up and ours is on cooldown
     private void PartyMitigation(in Strategy strategy, Actor? primaryTarget)
     {
         if (!strategy.PartyMit.IsEnabled() || !Player.InCombat || !RaidwideWithin(5))
@@ -52,13 +52,15 @@ public class RangedAI(RotationModuleManager manager, Actor player) : AIBase<Rang
             Class.DNC => Spell(BossMod.DNC.AID.ShieldSamba),
             _ => default
         };
-        var active = Player.FindStatus(BossMod.MCH.SID.Tactician) != null || Player.FindStatus(BossMod.BRD.SID.Troubadour) != null || Player.FindStatus(BossMod.DNC.SID.ShieldSamba) != null;
+        // pending counts: the buff lands after its cooldown starts, and Dismantle could be woven in between
+        var pending = World.FutureTime(15);
+        var active = Player.FindStatus(BossMod.MCH.SID.Tactician, pending) != null || Player.FindStatus(BossMod.BRD.SID.Troubadour, pending) != null || Player.FindStatus(BossMod.DNC.SID.ShieldSamba, pending) != null;
         if (mit != default && ActionUnlocked(mit) && NextChargeIn(mit) == 0)
         {
             if (!active)
                 Hints.ActionsToExecute.Push(mit, Player, ActionQueue.Priority.Medium);
         }
-        else if (Player.Class == Class.MCH && primaryTarget is { IsAlly: false } t && Unlocked(BossMod.MCH.AID.Dismantle) && NextChargeIn(BossMod.MCH.AID.Dismantle) == 0 && t.FindStatus(BossMod.MCH.SID.Dismantled) == null && Player.DistanceToHitbox(t) <= 25)
+        else if (!active && Player.Class == Class.MCH && primaryTarget is { IsAlly: false } t && Unlocked(BossMod.MCH.AID.Dismantle) && NextChargeIn(BossMod.MCH.AID.Dismantle) == 0 && t.FindStatus(BossMod.MCH.SID.Dismantled) == null && Player.DistanceToHitbox(t) <= 25)
         {
             Hints.ActionsToExecute.Push(Spell(BossMod.MCH.AID.Dismantle), t, ActionQueue.Priority.Medium);
         }

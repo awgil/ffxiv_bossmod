@@ -107,7 +107,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     private float DevilmentLeft;
     private float SymmetryLeft;
     private float FlowLeft;
-    private float SilkenLeft;
     private float StarfallLeft;
     private float ThreefoldLeft;
     private float FourfoldLeft;
@@ -126,7 +125,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25);
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;
@@ -140,7 +139,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         DevilmentLeft = SelfStatusLeft(SID.Devilment);
         SymmetryLeft = MathF.Max(SelfStatusLeft(SID.SilkenSymmetry), SelfStatusLeft(SID.FlourishingSymmetry));
         FlowLeft = MathF.Max(SelfStatusLeft(SID.SilkenFlow), SelfStatusLeft(SID.FlourishingFlow));
-        SilkenLeft = MathF.Max(SelfStatusLeft(SID.SilkenSymmetry), SelfStatusLeft(SID.SilkenFlow));
         StarfallLeft = SelfStatusLeft(SID.FlourishingStarfall);
         ThreefoldLeft = SelfStatusLeft(SID.ThreefoldFanDance);
         FourfoldLeft = SelfStatusLeft(SID.FourfoldFanDance);
@@ -148,7 +146,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         FinishingMoveLeft = SelfStatusLeft(SID.FinishingMoveReady);
         DawnLeft = SelfStatusLeft(SID.DanceOfTheDawnReady);
 
-        EnemyIn15 = Hints.PriorityTargets.Any(e => Player.DistanceToHitbox(e.Actor) <= 15);
+        // force-ST dances only for the primary target
+        EnemyIn15 = strategy.AOE.Value == AOEStrategy.ForceST ? Player.DistanceToHitbox(target?.Actor) <= 15 : Hints.PriorityTargets.Any(e => Player.DistanceToHitbox(e.Actor) <= 15);
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         AOEMode = Unlocked(AID.Windmill) && UseAOE(strategy.AOE.Value, Hints.NumPriorityTargetsInAOECircle(Player.Position, 5), 2);
@@ -206,7 +205,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
         if (Dancing)
         {
-            var finishStandard = mode == OpenerStrategy.Technical30 ? countdown < 15.2f : countdown < 0.3f || StandardStepLeft < 0.6f;
+            var finishStandard = (mode == OpenerStrategy.Technical30 ? countdown < 15.2f : countdown < 0.3f) || StandardStepLeft < 0.6f;
             Dance(finishStandard, countdown < 0.3f || TechStepLeft < 0.6f);
             return;
         }
@@ -408,8 +407,16 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (ShouldSpendFeather(strategy, target))
             PushOGCD(AOEMode && Unlocked(AID.FanDanceII) ? AID.FanDanceII : AID.FanDance, target.Actor, 50);
 
-        if (strategy.Waltz.Value == WaltzStrategy.Automatic && (Player.PendingHPRatio < 0.4f || World.Party.WithoutSlot(excludeAlliance: true).Count(p => p.Position.InCircle(Player.Position, 5) && p.PendingHPRatio < 0.5f) >= 3) && CanWeave(AID.CuringWaltz))
+        if (strategy.Waltz.Value == WaltzStrategy.Automatic && (Player.PendingHPRatio < 0.4f || NumLowInWaltz() >= 3) && CanWeave(AID.CuringWaltz))
             PushOGCD(AID.CuringWaltz, Player, 45);
+    }
+
+    // the dance partner echoes the heal around themselves
+    private int NumLowInWaltz()
+    {
+        var party = World.Party.WithoutSlot(excludeAlliance: true).ToList();
+        var partner = party.FirstOrDefault(IsPartner);
+        return party.Count(p => p.PendingHPRatio < 0.5f && (TargetInAOECircle(p, Player.Position, 3) || partner != null && TargetInAOECircle(p, partner.Position, 3)));
     }
 
     private bool ShouldDevilment(in Strategy strategy)
@@ -443,7 +450,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (Feathers == 0 || !Unlocked(AID.FanDance) || strategy.Feathers.Value == FeatherStrategy.Delay)
             return false;
-        var overcap = Feathers > 3 && SilkenLeft > 0;
+        // reverse cascade, fountainfall, rising windmill and bloodshower can each add a feather
+        var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0);
         if (strategy.Feathers.Value == FeatherStrategy.Overcap)
             return overcap;
         if (!TimeToKill.WillLive(target.Actor, 5) || !Unlocked(AID.TechnicalStep))
@@ -471,10 +479,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (Player.InCombat && current != null && (DevilmentLeft > 0 || strategy.Partner.Value == PartnerStrategy.Automatic && NotSick(current) && NotDD(current)))
             return;
 
-        if (SelfStatusLeft(SID.ClosedPosition) > 0)
-            PushOGCD(AID.Ending, Player, 40);
-        else
+        // don't drop the current partner unless the new one is in closed position range
+        if (SelfStatusLeft(SID.ClosedPosition) == 0)
             PushOGCD(AID.ClosedPosition, desired, 40);
+        else if (Player.DistanceToHitbox(desired) <= 30)
+            PushOGCD(AID.Ending, Player, 40);
     }
 
     private static readonly uint[] _damageDown = [2911, 62, 3304];

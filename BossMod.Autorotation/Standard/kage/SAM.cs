@@ -192,6 +192,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     private float ZanshinLeft;
 
     private bool AOEMode;
+    private bool ForceST;
     private bool InMelee;
     private int NumCircleTargets;
     private int NumTenkaTargets;
@@ -225,7 +226,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3);
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SamuraiGauge>();
         Kenki = gauge.Kenki;
@@ -237,14 +239,16 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         FugetsuLeft = SelfStatusLeft(SID.Fugetsu);
         FukaLeft = SelfStatusLeft(SID.Fuka);
         (MeikyoLeft, MeikyoStacks) = SelfStatusDetails(SID.MeikyoShisui);
-        TendoLeft = SelfStatusLeft(SID.Tendo);
+        // statuses can outlive a level sync that locks their follow-ups
+        TendoLeft = Unlocked(AID.TendoSetsugekka) ? SelfStatusLeft(SID.Tendo) : 0;
         OgiLeft = SelfStatusLeft(SID.OgiNamikiriReady);
-        ZanshinLeft = SelfStatusLeft(SID.ZanshinReady);
+        ZanshinLeft = Unlocked(AID.Zanshin) ? SelfStatusLeft(SID.ZanshinReady) : 0;
         Tsubame = ReadTsubame();
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
-        NumCircleTargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        NumTenkaTargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 8);
+        // force-ST counts no extra targets, as in Basexan
+        NumCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+        NumTenkaTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 8);
         AOEMode = Unlocked(AID.Fuga) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         (BestLineTarget, NumLineTargets) = BestAOETarget(target, 10, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 10, 2));
@@ -330,6 +334,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private (float, Repeat) ReadTsubame()
     {
+        if (!Unlocked(AID.TsubameGaeshi))
+            return (0, Repeat.None);
         float Left(SID sid) => SelfStatusLeft(sid);
         if (Left(SID.TendoKaeshiSetsugekka) is > 0 and var ts)
             return (ts, Repeat.TendoSetsugekka);
@@ -344,7 +350,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private void UseTsubame(in Strategy strategy, Enemy target)
     {
-        if (Tsubame.Kind == Repeat.None || strategy.Tsubame.Value == TsubameStrategy.Delay)
+        if (Tsubame.Kind == Repeat.None || strategy.Tsubame.Value == TsubameStrategy.Delay || ForceST && Tsubame.Kind is Repeat.Goken or Repeat.TendoGoken)
             return;
 
         switch (Tsubame.Kind)
@@ -390,7 +396,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
             return;
         }
 
-        if (SenCount == 2 && Unlocked(AID.TenkaGoken) && (NumTenkaTargets >= 3 && AOEMode || !Unlocked(AID.MidareSetsugekka)))
+        if (SenCount == 2 && Unlocked(AID.TenkaGoken) && !ForceST && (NumTenkaTargets >= 3 && AOEMode || !Unlocked(AID.MidareSetsugekka)))
             PushGCD(TendoLeft > GCD ? AID.TendoGoken : AID.TenkaGoken, Player, 70);
 
         if (SenCount == 3 && Tsubame.Kind != Repeat.Setsugekka && !(TendoLeft == 0 && MeikyoBurstNow(strategy)))
@@ -550,8 +556,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
         if (strategy.Senei.Value != OffensiveStrategy.Delay && Kenki >= 25 && (strategy.Senei.Value == OffensiveStrategy.Force || (WorthBurst || BossDying) && SeneiWanted()))
         {
-            // shared cooldown; guren also covers the levels before senei
-            var aid = NumLineTargets >= 2 && Unlocked(AID.HissatsuGuren) || !Unlocked(AID.HissatsuSenei) ? AID.HissatsuGuren : AID.HissatsuSenei;
+            // shared cooldown; guren also covers the levels before senei, except under force-ST
+            var aid = !ForceST && (NumLineTargets >= 2 && Unlocked(AID.HissatsuGuren) || !Unlocked(AID.HissatsuSenei)) ? AID.HissatsuGuren : AID.HissatsuSenei;
             if (CanWeave(aid))
                 PushOGCD(aid, aid == AID.HissatsuGuren ? BestLineTarget ?? target.Actor : target.Actor, 60);
         }

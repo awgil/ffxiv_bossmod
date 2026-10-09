@@ -125,13 +125,15 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     private bool Eukrasia;
 
     private bool AOEMode;
+    private bool ForceST;
 
     protected override bool UsesSpellSpeed => true;
     private bool CanCast => Hints.MaxCastTime >= SlideCast(ScaledCastTime(AID.Dosis));
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25);
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SageGauge>();
         Gall = gauge.Addersgall;
@@ -139,7 +141,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         NextGall = MathF.Max(0, 20f - gauge.AddersgallTimer / 1000f);
         Eukrasia = gauge.EukrasiaActive;
 
-        var numAround = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+        // force-ST counts no extra targets, as in Basexan
+        var numAround = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         AOEMode = Unlocked(AID.Dyskrasia) && UseAOE(strategy.AOE.Value, numAround, 3);
 
         Kardia(strategy);
@@ -171,7 +174,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             return;
 
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
-        Hints.GoalZones.Add(strategy.AOE.Value == AOEStrategy.ST || !Unlocked(AID.Dyskrasia) ? goal : GoalCombined(goal, Hints.GoalAOECircle(5), 3));
+        Hints.GoalZones.Add(strategy.AOE.Value is AOEStrategy.ST or AOEStrategy.ForceST || !Unlocked(AID.Dyskrasia) ? goal : GoalCombined(goal, Hints.GoalAOECircle(5), 3));
 
         GCDs(strategy, target, numAround);
         if (Player.InCombat)
@@ -182,9 +185,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
     private void GCDs(in Strategy strategy, Enemy target, int numAround)
     {
+        // only automatic dots spread with Eukrasian Dyskrasia
+        var allowDotAoE = AOEMode && strategy.Dot.Value == DotStrategy.Automatic && Unlocked(AID.EukrasianDyskrasia);
         if (Eukrasia)
         {
-            if (AOEMode && Unlocked(AID.EukrasianDyskrasia))
+            if (allowDotAoE)
                 PushGCD(AID.Dyskrasia, Player, 60);
             PushGCD(AID.Dosis, DotTarget(strategy, target) ?? target.Actor, 59);
             return;
@@ -192,7 +197,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
         if (Player.InCombat && strategy.Dot.Value != DotStrategy.Delay)
         {
-            var dotAoE = AOEMode && Unlocked(AID.EukrasianDyskrasia) && Hints.PriorityTargets.Count(e => Player.DistanceToHitbox(e.Actor) <= 5 && NeedsDot(e)) >= 3;
+            var dotAoE = allowDotAoE && Hints.PriorityTargets.Count(e => Player.DistanceToHitbox(e.Actor) <= 5 && NeedsDot(e)) >= 3;
             if (dotAoE || !AOEMode && DotTarget(strategy, target) != null)
                 PushGCD(AID.Eukrasia, Player, 50);
         }
@@ -205,10 +210,10 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         }
 
         if (strategy.Pneuma.Value == PneumaStrategy.Automatic && CanCast && Player.InCombat && GCDReady(AID.Pneuma) && !RaidwideWithin(20)
-            && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2)
+            && !ForceST && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2)
             PushGCD(AID.Pneuma, target.Actor, 35);
 
-        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.Automatic && numAround < 3 && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 2)
+        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.Automatic && numAround < 3 && !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 2)
             PushGCD(AID.Toxikon, target.Actor, 30);
 
         if (AOEMode)
@@ -256,7 +261,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             return !buffsSoon;
         if (!Player.InCombat || target.Priority == Enemy.PriorityPointless && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
             return false;
-        if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !InBossFight || Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)
+        if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !InBossFight || !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)
             return true;
         var cooldown = ActionDefinitions.Instance.Spell(AID.Phlegma)!.Cooldown;
         return MaxChargesIn(AID.Phlegma) + cooldown <= RaidBuffsIn;
@@ -315,8 +320,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         if (party.Count == 1)
             return Player;
         var tanks = party.Where(p => p.Role == Role.Tank && !p.IsDead).ToList();
+        // no living tank (tankless party, NPC allies): keep it on ourselves
         if (tanks.Count <= 1)
-            return tanks.FirstOrDefault();
+            return tanks.FirstOrDefault() ?? Player;
 
         var current = tanks.FirstOrDefault(HasKardion);
         int Aggro(Actor t) => Hints.PriorityTargets.Sum(e => e.Actor.TargetID != t.InstanceID ? 0 : e.Actor == Bossmods.ActiveModule?.PrimaryActor ? 10 : 1);

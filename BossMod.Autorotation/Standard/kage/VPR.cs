@@ -38,7 +38,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
 
-        [Track("Opener", MinLevel = 100, UiPriority = -10)]
+        [Track("Opener", MinLevel = 96, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
@@ -175,7 +175,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3);
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
         {
@@ -189,14 +190,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         };
 
         var gauge = World.Client.GetGauge<ViperGauge>();
-        Dread = gauge.DreadCombo;
+        // force-ST drops AoE-only follow-ups left over from AoE (Den chain, Thresh weaves, Last Lash)
+        Dread = forceST && gauge.DreadCombo is DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen ? default : gauge.DreadCombo;
         Coil = gauge.RattlingCoilStacks;
         Offering = gauge.SerpentOffering;
         Anguine = gauge.AnguineTribute;
         CurSerpentsTail = gauge.SerpentCombo switch
         {
             SerpentCombo.DeathRattle => AID.DeathRattle,
-            SerpentCombo.LastLash => AID.LastLash,
+            SerpentCombo.LastLash when !forceST => AID.LastLash,
             SerpentCombo.FirstLegacy => AID.FirstLegacy,
             SerpentCombo.SecondLegacy => AID.SecondLegacy,
             SerpentCombo.ThirdLegacy => AID.ThirdLegacy,
@@ -215,8 +217,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         GrimskinsVenom = SelfStatusLeft(SID.GrimskinsVenom);
         HuntersVenom = SelfStatusLeft(SID.HuntersVenom);
         SwiftskinsVenom = SelfStatusLeft(SID.SwiftskinsVenom);
-        FellhuntersVenom = SelfStatusLeft(SID.FellhuntersVenom);
-        FellskinsVenom = SelfStatusLeft(SID.FellskinsVenom);
+        FellhuntersVenom = forceST ? 0 : SelfStatusLeft(SID.FellhuntersVenom);
+        FellskinsVenom = forceST ? 0 : SelfStatusLeft(SID.FellskinsVenom);
         PoisedForTwinfang = SelfStatusLeft(SID.PoisedForTwinfang);
         PoisedForTwinblood = SelfStatusLeft(SID.PoisedForTwinblood);
         ReawakenReady = SelfStatusLeft(SID.ReawakenReady);
@@ -239,12 +241,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (target == null)
             return;
 
-        // only hold for Ire if it'll actually be pressed; capped coils block it until Uncoiled Fury spends one
+        // hold for Ire unless Automatic won't press it (Delay: pressed by hand); capped coils block it until Uncoiled Fury spends one
         IreWanted = strategy.Ire.Value switch
         {
-            OffensiveStrategy.Force => true,
             OffensiveStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
-            _ => false
+            _ => true
         };
 
         GCDs(strategy, target);
@@ -457,7 +458,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         var inBurst = RaidBuffsLeft > GCD || OpenerMode != OpenerStrategy.None && CombatTime < 30;
         if (Coil <= 1 && !ireSoon && !inBurst && TimeToKill.WillLive(target, 6) && DowntimeIn > GCDLength * 3)
             return false;
-        if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 || TwinWeavesPending || HoldForIre && !ireSoon)
+        if (Dread != 0 || Reawakened > 0 || ReawakenReady > 0 && Unlocked(AID.Reawaken) || TwinWeavesPending || HoldForIre && !ireSoon)
             return false;
         if (Swiftscaled < GCDLength * 3 || Instinct < GCDLength * 3)
             return false;
@@ -530,7 +531,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (SwiftskinsVenom > 0)
             PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (IreWanted && (Coil < CoilMax || strategy.Ire.Value == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
+        if (strategy.Ire.Value != OffensiveStrategy.Delay && IreWanted && (Coil < CoilMax || strategy.Ire.Value == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
         if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)

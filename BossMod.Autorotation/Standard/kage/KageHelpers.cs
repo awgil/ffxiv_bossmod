@@ -121,7 +121,7 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected bool PotionPrepull => World.Client.CountdownRemaining is > 0 and < 2;
     protected bool PotionWithRaidBuffs => PotionPrepull || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5);
 
-    protected AIHints.Enemy? SelectTarget(Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange)
+    protected AIHints.Enemy? SelectTarget(Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange, AOEStrategy aoe = AOEStrategy.AOE)
     {
         AnimLockDelay = estimatedAnimLockDelay;
         NextGCDAction = default;
@@ -132,6 +132,9 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         if (target?.Priority is AIHints.Enemy.PriorityInvincible or AIHints.Enemy.PriorityForbidden || target?.Priority == AIHints.Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
 
+        // force-ST never switches targets, as in Basexan
+        if (aoe == AOEStrategy.ForceST)
+            targeting = Targeting.Manual;
         TargetMode = targeting == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : targeting;
         if (TargetMode == Targeting.Auto && target == null)
         {

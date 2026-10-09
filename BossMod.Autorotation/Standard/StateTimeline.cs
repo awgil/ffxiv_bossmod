@@ -3,13 +3,19 @@
 // raidwides / tankbusters from the module's timeline, for modules that don't predict damage
 public static class StateTimeline
 {
+    // timeline estimates are usually off by a second or two; a state overdue by more is waiting on something else (hp push, adds), so its end time is unknown
+    private const float OverdueGrace = 3;
+
     public static IEnumerable<(DateTime at, StateMachine.StateHint hint)> Upcoming(BossModule? module, WorldState ws, float horizon = 30)
     {
         var sm = module?.StateMachine;
         var s = sm?.ActiveState;
         if (sm == null || s == null)
             yield break;
-        var t = MathF.Max(0, s.Duration - sm.TimeSinceTransition);
+        var overdue = sm.TimeSinceTransition - s.Duration;
+        if (overdue > OverdueGrace)
+            yield break; // nothing after it can be timed either
+        var t = MathF.Max(0, -overdue);
         for (var i = 0; i < 256 && t <= horizon; i++)
         {
             if ((s.EndHint & (StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster)) != 0)

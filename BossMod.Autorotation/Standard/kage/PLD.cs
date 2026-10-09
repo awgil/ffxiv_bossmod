@@ -111,7 +111,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         if (Player.FindStatus(PassageOfArmsSID, Player.InstanceID) != null)
             return;
 
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3);
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
@@ -126,6 +126,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         NumAOETargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+        // force-ST counts only the primary target, keeping the forbidden-target check
+        if (strategy.AOE.Value == AOEStrategy.ForceST)
+            NumAOETargets = NumAOETargets > 0 && target != null && TargetInAOECircle(target.Actor, Player.Position, 5) ? 1 : 0;
         AOEMode = Unlocked(AID.TotalEclipse) && UseAOE(strategy.AOE.Value, NumAOETargets, AoEMinTargets);
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;

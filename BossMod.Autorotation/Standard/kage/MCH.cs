@@ -118,7 +118,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Standard opener")]
         Standard,
-        [Option("Early Wildfire opener", MinLevel = 100)]
+        [Option("Early Wildfire opener", MinLevel = 96)]
         EarlyWildfire,
         [Option("No opener-specific rules")]
         None
@@ -160,7 +160,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25);
+        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
 
         OpenerMode = strategy.Opener.Value switch
         {
@@ -189,7 +189,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         (BestConeTarget, NumConeTargets) = BestAOETarget(target, 12, allowAoE, (t, e) => TargetInAOECone(e, Player.Position, 12, Player.DirectionTo(t), 60.Degrees()));
         BestSawTarget = BestAOETarget(target, 25, allowAoE, (t, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(t), 25, 2)).Best;
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (t, e) => TargetInAOECircle(e, t.Position, 5)).Best;
-        AOEMode = Unlocked(AID.SpreadShot) && UseAOE(strategy.AOE.Value, NumConeTargets, minAoETargets);
+        // the cone GCDs are aimed at the cone target, which must be within their 12y range
+        AOEMode = Unlocked(AID.SpreadShot) && Player.DistanceToHitbox(BestConeTarget) <= 12 && UseAOE(strategy.AOE.Value, NumConeTargets, minAoETargets);
 
         if (target != null)
         {
@@ -265,7 +266,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(AID.Drill, target.Actor, (drillCapped ? 17 : 12) + bonus);
         }
 
-        if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && strategy.AOE.Value != AOEStrategy.ST && NumConeTargets >= 2 && Hints.MaxCastTime >= 2 && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
+        if (strategy.Flamethrower.Value == FlamethrowerStrategy.Automatic && strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE && NumConeTargets >= 2 && Hints.MaxCastTime >= 2 && GCDReady(AID.Flamethrower) && ReassembleLeft == 0)
             PushGCD(AID.Flamethrower, BestConeTarget ?? target.Actor, 5, faceTarget: true);
 
         if (AOEMode)
@@ -371,14 +372,14 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Charges.Value == ChargeStrategy.Automatic && ChargesToSpendBeforeOverheat)
             return false;
 
-        // time until NormalGCD presses each tool; one it never presses would hold Hypercharge forever
+        // time until each tool is pressed (by hand under Delay); a tool the AoE rotation skips would hold Hypercharge forever
         var drillIn = ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue
             : UseBioblaster ? MathF.Max(ReadyIn(AID.Bioblaster), StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left)
             : SkipDrill ? float.MaxValue
             : ReadyIn(AID.Drill);
         var airAnchorIn = UseBioblaster && Unlocked(AID.AirAnchor) ? float.MaxValue : FortySecondToolIn;
         var toolIn = MathF.Min(drillIn, MathF.Min(airAnchorIn, ReadyIn(AID.ChainSaw)));
-        if (strategy.Tools.Value != OffensiveStrategy.Delay && (FMFLeft > 0 || ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f))
+        if (FMFLeft > 0 || ExcavatorLeft > 0 || toolIn < GCD + GCDLength * 3 + 0.5f)
             return false;
 
         if (DowntimeIn < GCD + GCDLength * 5)
