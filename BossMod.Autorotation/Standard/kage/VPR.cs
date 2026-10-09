@@ -11,6 +11,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Burst (Serpent's Ire, Reawaken)", InternalName = "Burst", MinLevel = 86)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
         public Track<ReawakenStrategy> Reawaken;
 
@@ -173,9 +176,14 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
     private float IreIn => ReadyIn(AID.SerpentsIre);
     private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
 
+    private ReawakenStrategy ReawakenStrat;
+    private OffensiveStrategy IreStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        ReawakenStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => ReawakenStrategy.Delay, OffensiveStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
+        IreStrat = WithBurst(strategy.Burst.Value, strategy.Ire.Value);
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
@@ -242,7 +250,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
             return;
 
         // only hold for an Ire the rotation will press; capped coils block it until Uncoiled Fury spends one
-        IreWanted = strategy.Ire.Value switch
+        IreWanted = IreStrat switch
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
@@ -471,7 +479,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (!Unlocked(AID.Reawaken) || Reawakened > 0 || ReawakenReady == 0 && Offering < 50 || Dread != 0 || TwinWeavesPending)
             return false;
 
-        switch (strategy.Reawaken.Value)
+        switch (ReawakenStrat)
         {
             case ReawakenStrategy.Delay:
                 return false;
@@ -532,7 +540,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (SwiftskinsVenom > 0)
             PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (IreWanted && (Coil < CoilMax || strategy.Ire.Value == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
+        if (IreWanted && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
         if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)

@@ -11,6 +11,9 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Burst (Technical Step, Devilment, Flourish)", InternalName = "Burst", MinLevel = 62)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]
         public Track<OffensiveStrategy> Technical;
 
@@ -123,9 +126,16 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private bool Dancing => StandardStepLeft > 0 || TechStepLeft > 0;
 
+    private OffensiveStrategy TechnicalStrat;
+    private OffensiveStrategy DevilmentStrat;
+    private OffensiveStrategy FlourishStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        TechnicalStrat = WithBurst(strategy.Burst.Value, strategy.Technical.Value);
+        DevilmentStrat = WithBurst(strategy.Burst.Value, strategy.Devilment.Value);
+        FlourishStrat = WithBurst(strategy.Burst.Value, strategy.Flourish.Value);
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;
@@ -176,7 +186,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
         if (target == null)
         {
-            if (strategy.Technical.Value == OffensiveStrategy.Force && ShouldTechnical(strategy, false))
+            if (TechnicalStrat == OffensiveStrategy.Force && ShouldTechnical(strategy, false))
                 PushGCD(AID.TechnicalStep, Player, 50);
             return;
         }
@@ -345,7 +355,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (ReadyIn(AID.TechnicalStep) > GCD + 0.5f || FlourishingFinishLeft > 0)
             return false;
-        return strategy.Technical.Value switch
+        return TechnicalStrat switch
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Delay => false,
@@ -356,7 +366,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     // save it for technical finish if it outlasts the 7s dance, even if technical slips up to a gcd past its cooldown
     private bool ShouldLastDance(in Strategy strategy)
     {
-        if (strategy.Technical.Value == OffensiveStrategy.Delay)
+        if (TechnicalStrat == OffensiveStrategy.Delay)
             return true;
         var techIn = ReadyIn(AID.TechnicalStep);
         return !(InBossFight && techIn is > 0 and < 20 && LastDanceLeft > techIn + GCDLength + 7);
@@ -383,7 +393,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (DowntimeIn < GCD + 4)
             return false;
         var flourishIn = ReadyIn(AID.Flourish);
-        return !Unlocked(AID.Flourish) || strategy.Flourish.Value == OffensiveStrategy.Delay || flourishIn == 0 || flourishIn > 5;
+        return !Unlocked(AID.Flourish) || FlourishStrat == OffensiveStrategy.Delay || flourishIn == 0 || flourishIn > 5;
     }
 
     #endregion
@@ -425,11 +435,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (!CanWeave(AID.Devilment))
             return false;
-        return strategy.Devilment.Value switch
+        return DevilmentStrat switch
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Delay => false,
-            _ => TechFinishLeft > 0 || !Unlocked(AID.TechnicalStep) || strategy.Technical.Value == OffensiveStrategy.Delay
+            _ => TechFinishLeft > 0 || !Unlocked(AID.TechnicalStep) || TechnicalStrat == OffensiveStrategy.Delay
         };
     }
 
@@ -437,15 +447,15 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (!CanWeave(AID.Flourish))
             return false;
-        if (strategy.Flourish.Value == OffensiveStrategy.Force)
+        if (FlourishStrat == OffensiveStrategy.Force)
             return true;
-        if (strategy.Flourish.Value == OffensiveStrategy.Delay)
+        if (FlourishStrat == OffensiveStrategy.Delay)
             return false;
-        if (strategy.Devilment.Value != OffensiveStrategy.Delay && ReadyIn(AID.Devilment) <= 50)
+        if (DevilmentStrat != OffensiveStrategy.Delay && ReadyIn(AID.Devilment) <= 50)
             return false;
         if (ThreefoldLeft > 0 || FourfoldLeft > 0 || SelfStatusLeft(SID.FlourishingSymmetry) > 0 || SelfStatusLeft(SID.FlourishingFlow) > 0 || FinishingMoveLeft > 0)
             return false;
-        return TechFinishLeft > 0 || strategy.Technical.Value == OffensiveStrategy.Delay || ReadyIn(AID.TechnicalStep) > 15;
+        return TechFinishLeft > 0 || TechnicalStrat == OffensiveStrategy.Delay || ReadyIn(AID.TechnicalStep) > 15;
     }
 
     private bool ShouldSpendFeather(in Strategy strategy, Enemy target)

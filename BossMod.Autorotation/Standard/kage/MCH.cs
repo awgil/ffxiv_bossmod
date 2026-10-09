@@ -14,6 +14,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         [Track("Hypercharge", MinLevel = 30, Action = AID.Hypercharge)]
         public Track<HyperchargeStrategy> Hypercharge;
 
+        [Track("Burst (Wildfire, Barrel Stabilizer)", InternalName = "Burst", MinLevel = 45)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Wildfire", InternalName = "WF", MinLevel = 45, Action = AID.Wildfire)]
         public Track<WildfireStrategy> Wildfire;
 
@@ -158,9 +161,14 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     private bool InBurst => RaidBuffsLeft > GCD || WildfireLeft > 0;
     private float BurstIn => InBurst ? 0 : ReadyIn(AID.Wildfire);
 
+    private WildfireStrategy WildfireStrat;
+    private OffensiveStrategy StabilizerStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        WildfireStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => WildfireStrategy.Delay, OffensiveStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
+        StabilizerStrat = WithBurst(strategy.Burst.Value, strategy.Stabilizer.Value);
 
         OpenerMode = strategy.Opener.Value switch
         {
@@ -331,7 +339,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.Hypercharge, Player, 70);
 
         if (ShouldWildfire(strategy, dying, target.Actor))
-            PushOGCD(AID.Wildfire, ResolveTarget(strategy.Wildfire) ?? target.Actor, 75, strategy.Wildfire.Value == WildfireStrategy.Force ? 0 : GCD - 0.8f);
+            PushOGCD(AID.Wildfire, ResolveTarget(strategy.Wildfire) ?? target.Actor, 75, WildfireStrat == WildfireStrategy.Force ? 0 : GCD - 0.8f);
 
         if (ShouldStabilize(strategy, dying, target.Actor))
             PushOGCD(AID.BarrelStabilizer, Player, 60);
@@ -389,7 +397,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (ComboLeft is > 0 and < 7.6f)
             return false;
 
-        if (!Unlocked(AID.Wildfire) || strategy.Wildfire.Value == WildfireStrategy.Delay || !WildfireTargetWorthIt(target))
+        if (!Unlocked(AID.Wildfire) || WildfireStrat == WildfireStrategy.Delay || !WildfireTargetWorthIt(target))
             return true;
 
         if (ReadyIn(AID.Wildfire) <= GCD)
@@ -407,7 +415,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         if (!Unlocked(AID.Wildfire) || !CanWeave(AID.Wildfire))
             return false;
-        return strategy.Wildfire.Value switch
+        return WildfireStrat switch
         {
             WildfireStrategy.Force => true,
             WildfireStrategy.Automatic => !dying && WildfireLeft == 0 && (Overheated || OpenerWildfire) && WildfireTargetWorthIt(target),
@@ -425,7 +433,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         if (!Unlocked(AID.BarrelStabilizer) || !CanWeave(AID.BarrelStabilizer) || FMFLeft > 0 || HyperchargedLeft > 0)
             return false;
-        return strategy.Stabilizer.Value switch
+        return StabilizerStrat switch
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Automatic => !dying && WildfireTargetWorthIt(target) && (!Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) <= 20),

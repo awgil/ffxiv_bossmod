@@ -180,6 +180,9 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
     }
 
+    // a burst option set to Delay/Force overrides the individual burst cooldowns
+    protected static OffensiveStrategy WithBurst(OffensiveStrategy burst, OffensiveStrategy own) => burst == OffensiveStrategy.Automatic ? own : burst;
+
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 
     protected bool DotWorthIt(AIHints.Enemy e)

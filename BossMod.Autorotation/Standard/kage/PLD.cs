@@ -11,6 +11,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Burst (Fight or Flight, Requiescat / Imperator)", InternalName = "Burst", MinLevel = 2)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Fight or Flight", MinLevel = 2, Action = AID.FightOrFlight)]
         public Track<OffensiveStrategy> FightOrFlight;
 
@@ -106,16 +109,21 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
     private float FoFIn; // fight or flight on Delay never comes up, so nothing waits for it
     private AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
 
+    private OffensiveStrategy FightOrFlightStrat;
+    private OffensiveStrategy RequiescatStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (Player.FindStatus(PassageOfArmsSID, Player.InstanceID) != null)
             return;
 
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        FightOrFlightStrat = WithBurst(strategy.Burst.Value, strategy.FightOrFlight.Value);
+        RequiescatStrat = WithBurst(strategy.Burst.Value, strategy.Requiescat.Value);
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
-        FoFIn = strategy.FightOrFlight.Value == OffensiveStrategy.Delay ? float.MaxValue : ReadyIn(AID.FightOrFlight);
+        FoFIn = FightOrFlightStrat == OffensiveStrategy.Delay ? float.MaxValue : ReadyIn(AID.FightOrFlight);
         RequiescatLeft = SelfStatusLeft(SID.Requiescat);
         ConfiteorLeft = SelfStatusLeft(SID.ConfiteorReady);
         GoringLeft = SelfStatusLeft(SID.GoringBladeReady);
@@ -170,7 +178,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         var holyTarget = holyAction == AID.HolyCircle ? Player : target.Actor;
         var canHoly = Unlocked(holyAction) && MP >= HolySpiritMP;
 
-        var requiescatSoon = FoFLeft > 0 && strategy.Requiescat.Value != OffensiveStrategy.Delay && ReadyIn(BestRequiescat) <= GCD;
+        var requiescatSoon = FoFLeft > 0 && RequiescatStrat != OffensiveStrategy.Delay && ReadyIn(BestRequiescat) <= GCD;
         if (strategy.Goring.Value != OffensiveStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || strategy.Goring.Value == OffensiveStrategy.Force))
         {
             var goringTarget = AOEMode
@@ -242,8 +250,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
         // requiescat and spirits within are single target melee; only imperator and expiacion can take the splash target
         var imperator = requiescat == AID.Imperator;
-        if (strategy.Requiescat.Value != OffensiveStrategy.Delay && CanWeave(requiescat) && Player.DistanceToHitbox(target.Actor) <= (imperator ? 25 : 3)
-            && (strategy.Requiescat.Value == OffensiveStrategy.Force || FoFLeft > 0 || FoFIn > 50))
+        if (RequiescatStrat != OffensiveStrategy.Delay && CanWeave(requiescat) && Player.DistanceToHitbox(target.Actor) <= (imperator ? 25 : 3)
+            && (RequiescatStrat == OffensiveStrategy.Force || FoFLeft > 0 || FoFIn > 50))
             PushOGCD(requiescat, imperator ? BestSplashTarget : target.Actor, 64);
 
         if (strategy.Spenders.Value != OffensiveStrategy.Delay)
@@ -268,9 +276,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private bool ShouldFightOrFlight(in Strategy strategy, Actor target)
     {
-        if (!CanWeave(AID.FightOrFlight) || strategy.FightOrFlight.Value == OffensiveStrategy.Delay)
+        if (!CanWeave(AID.FightOrFlight) || FightOrFlightStrat == OffensiveStrategy.Delay)
             return false;
-        if (strategy.FightOrFlight.Value == OffensiveStrategy.Force)
+        if (FightOrFlightStrat == OffensiveStrategy.Force)
             return true;
         if (DowntimeIn < 10)
             return false;

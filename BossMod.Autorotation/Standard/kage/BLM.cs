@@ -11,6 +11,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Burst (Ley Lines, Amplifier)", InternalName = "Burst", MinLevel = 52)]
+        public Track<OffensiveStrategy> Burst;
+
         [Track("Ley Lines", MinLevel = 52, Action = AID.LeyLines)]
         public Track<LeyLinesStrategy> LeyLines;
 
@@ -149,9 +152,14 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     // oGCDs only run in combat, so out of combat the GCD paths have to swap elements themselves
     private bool CanUseTranspose => Player.InCombat && Unlocked(AID.Transpose) && ReadyIn(AID.Transpose) <= GCD;
 
+    private LeyLinesStrategy LeyLinesStrat;
+    private OffensiveStrategy AmplifierStrat;
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        LeyLinesStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => LeyLinesStrategy.Delay, OffensiveStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
+        AmplifierStrat = WithBurst(strategy.Burst.Value, strategy.Amplifier.Value);
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         OpenerMode = strategy.Opener.Value == OpenerStrategy.Flare && !Unlocked(AID.FlareStar) ? OpenerStrategy.Standard : strategy.Opener.Value;
 
@@ -397,11 +405,11 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         if (!AOEMode && FlareOpenerFinish && InFire && AstralSoul >= 3 && !Instant && MP - FireCost < 2400 && CanWeave(AID.Triplecast))
             PushOGCD(AID.Triplecast, Player, 67);
 
-        if (strategy.Amplifier.Value != OffensiveStrategy.Delay && (InFire || InIce) && CanWeave(AID.Amplifier) && (strategy.Amplifier.Value == OffensiveStrategy.Force || Polyglot < MaxPolyglot))
+        if (AmplifierStrat != OffensiveStrategy.Delay && (InFire || InIce) && CanWeave(AID.Amplifier) && (AmplifierStrat == OffensiveStrategy.Force || Polyglot < MaxPolyglot))
             PushOGCD(AID.Amplifier, Player, 60);
 
-        if (strategy.LeyLines.Value != LeyLinesStrategy.Delay && CanWeave(AID.LeyLines) && !InLeyLines && SelfStatusLeft(SID.LeyLines) == 0
-            && (strategy.LeyLines.Value == LeyLinesStrategy.ASAP || ShouldLeyLines(target.Actor)))
+        if (LeyLinesStrat != LeyLinesStrategy.Delay && CanWeave(AID.LeyLines) && !InLeyLines && SelfStatusLeft(SID.LeyLines) == 0
+            && (LeyLinesStrat == LeyLinesStrategy.ASAP || ShouldLeyLines(target.Actor)))
             PushOGCD(AID.LeyLines, Player, 55);
 
         // hold only for an instant GCD that actually gets pushed: Foul is instant from 80, AoE never uses Firestarter
