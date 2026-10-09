@@ -202,7 +202,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     private float DotLeft(Actor target)
     {
-        float Left(SID sid) => target.FindStatus((uint)sid, Player.InstanceID) is { } st ? StatusDuration(st.ExpireAt) : 0;
+        float Left(SID sid) => StatusDetails(target, sid, Player.InstanceID, 30).Left;
         return MathF.Max(Left(SID.Dia), MathF.Max(Left(SID.AeroII), Left(SID.Aero)));
     }
 

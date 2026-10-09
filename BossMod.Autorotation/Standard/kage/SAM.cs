@@ -550,7 +550,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         return true;
     }
 
-    private float DotLeft(Actor target) => target.FindStatus((uint)SID.Higanbana, Player.InstanceID) is { } st ? StatusDuration(st.ExpireAt) : 0;
+    private float DotLeft(Actor target) => StatusDetails(target, SID.Higanbana, Player.InstanceID, 60).Left;
 
     #endregion
 

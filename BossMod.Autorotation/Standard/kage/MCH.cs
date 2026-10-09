@@ -267,7 +267,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             var drillCapped = MaxChargesIn(AID.Drill) <= GCD;
             if (useBioblaster)
             {
-                if (GCDReady(AID.Bioblaster) && !saveTools && target.Actor.FindStatus(SID.Bioblaster, Player.InstanceID) == null)
+                if (GCDReady(AID.Bioblaster) && !saveTools && StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left == 0)
                     PushGCD(AID.Bioblaster, BestConeTarget ?? target.Actor, 12 + bonus, faceTarget: true);
             }
             else if (GCDReady(AID.Drill) && !saveTools && (drillCapped || !HoldDrillForBurst) && !(AOEMode && !Unlocked(AID.Bioblaster) && NumConeTargets >= 6))

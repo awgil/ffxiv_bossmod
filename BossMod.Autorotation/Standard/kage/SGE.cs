@@ -238,8 +238,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     private float DotLeft(Actor target)
     {
         foreach (var sid in DotStatus)
-            if (target.FindStatus((uint)sid, Player.InstanceID) is { } st)
-                return StatusDuration(st.ExpireAt);
+            if (StatusDetails(target, sid, Player.InstanceID, 30).Left is > 0 and var left)
+                return left;
         return 0;
     }
 
@@ -325,7 +325,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             return;
 
         var desired = strategy.Kardia.Value == KardiaStrategy.Specific ? ResolveTarget(strategy.Kardia) : KardiaTarget();
-        if (desired == null || desired.IsDead || desired.FindStatus(SID.Kardion, Player.InstanceID) != null)
+        if (desired == null || desired.IsDead || desired.FindStatus(SID.Kardion, Player.InstanceID, World.FutureTime(1000)) != null)
             return;
 
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Kardia), desired, Player.InCombat ? ActionQueue.Priority.Low + 60 : ActionQueue.Priority.High);
@@ -342,7 +342,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         if (tanks.Count == 1)
             return tanks[0];
 
-        var current = tanks.FirstOrDefault(t => t.FindStatus(SID.Kardion, Player.InstanceID) != null);
+        var current = tanks.FirstOrDefault(t => t.FindStatus(SID.Kardion, Player.InstanceID, World.FutureTime(1000)) != null);
         int Aggro(Actor t) => Hints.PriorityTargets.Sum(e => e.Actor.TargetID != t.InstanceID ? 0 : e.Actor == Bossmods.ActiveModule?.PrimaryActor ? 10 : 1);
         var best = tanks.MaxBy(Aggro)!;
         if (current != null && Aggro(best) <= Aggro(current))

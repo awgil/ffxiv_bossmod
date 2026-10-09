@@ -260,7 +260,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Sheltron.Value == SheltronStrategy.Automatic && Oath >= 95 && Hints.PotentialTargets.Any(e => e.Actor.TargetID == Player.InstanceID && e.Actor.InCombat))
         {
             var sheltron = Unlocked(AID.HolySheltron) ? AID.HolySheltron : AID.Sheltron;
-            if (CanWeave(sheltron) && Player.FindStatus(sheltron == AID.HolySheltron ? HolySheltronSID : SheltronSID) == null)
+            if (CanWeave(sheltron) && SelfStatusLeft(sheltron == AID.HolySheltron ? HolySheltronSID : SheltronSID, 8) == 0)
                 PushOGCD(sheltron, Player, 40);
         }
     }

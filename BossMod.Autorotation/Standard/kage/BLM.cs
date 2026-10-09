@@ -451,7 +451,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
     private float ThunderLeft(Actor target)
     {
-        float Left(SID sid) => target.FindStatus((uint)sid, Player.InstanceID) is { } st ? StatusDuration(st.ExpireAt) : 0;
+        float Left(SID sid) => StatusDetails(target, sid, Player.InstanceID, 30).Left;
         return MathF.Max(MathF.Max(Left(SID.HighThunder), Left(SID.HighThunderII)), MathF.Max(MathF.Max(Left(SID.Thunder), Left(SID.ThunderII)), MathF.Max(Left(SID.ThunderIII), Left(SID.ThunderIV))));
     }
 

@@ -504,7 +504,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (desired == null || World.Party.Members.BoundSafeAt(World.Party.FindSlot(desired.InstanceID)).InCutscene)
             return;
 
-        var current = World.Party.WithoutSlot(excludeAlliance: true).FirstOrDefault(p => p.FindStatus(SID.DancePartner, Player.InstanceID) != null);
+        var current = World.Party.WithoutSlot(excludeAlliance: true).FirstOrDefault(p => p.FindStatus(SID.DancePartner, Player.InstanceID, World.FutureTime(1000)) != null);
         if (current == desired)
             return;
         if (Player.InCombat && current != null && (DevilmentLeft > 0 || strategy.Partner.Value == PartnerStrategy.Automatic
@@ -524,7 +524,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     private Actor? BestPartner()
     {
         var candidates = World.Party.WithoutSlot(excludeAlliance: true).Exclude(Player)
-            .Where(p => !p.IsDead && p.IsTargetable && Player.DistanceToHitbox(p) <= 30 && (p.FindStatus(SID.DancePartner) == null || p.FindStatus(SID.DancePartner, Player.InstanceID) != null))
+            .Where(p => !p.IsDead && p.IsTargetable && Player.DistanceToHitbox(p) <= 30 && (p.FindStatus(SID.DancePartner, World.FutureTime(1000)) == null || p.FindStatus(SID.DancePartner, Player.InstanceID, World.FutureTime(1000)) != null))
             .ToList();
         if (candidates.Count == 0)
             return World.Actors.FirstOrDefault(x => x.Type == ActorType.Chocobo && x.OwnerID == Player.InstanceID);
