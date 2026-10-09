@@ -227,6 +227,8 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                 _colTarget.AddElement(state, o.TimeSinceActivation, o.WindowLength, o.Disabled, (StrategyValueTrack)o.Value, o.ConditionType, o.ConditionParam);
             }
         }
+
+        Plan.Targeting = targeting;
     }
 
     private Action AddModuleAction(Type type, RotationModuleRegistry.Entry md) => () =>

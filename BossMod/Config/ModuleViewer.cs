@@ -524,5 +524,6 @@ public sealed class ModuleViewer : IDisposable
         Class.SGE,
         Class.VPR,
         Class.PCT,
+        Class.BST
     ];
 }
