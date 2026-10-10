@@ -6,17 +6,18 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public sealed class UIRotationWindow : UIWindow
+public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
 {
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
     private readonly EventSubscriptions _subscriptions;
-    private readonly MediatorService _mediator;
+
+    public MediatorService MediatorService { get; }
 
     public UIRotationWindow(RotationModuleManager mgr, IAmex amex, MediatorService mediator) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
-        _mediator = mediator;
+        MediatorService = mediator;
         _mgr = mgr;
         _amex = amex;
         _subscriptions = new
@@ -55,7 +56,7 @@ public sealed class UIRotationWindow : UIWindow
         if (player == null)
             return;
 
-        DrawRotationSelector(_mgr, _mediator);
+        DrawRotationSelector(_mgr, MediatorService);
 
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)

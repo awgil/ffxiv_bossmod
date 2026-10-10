@@ -61,7 +61,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly UIRotationWindow _wndRotation;
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
-    private readonly ConfigUI _configUI;
+    private readonly ConfigWindow _wndConfig;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
@@ -170,8 +170,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
-        _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
 
+        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB), mediator);
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod);
@@ -190,9 +190,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
 
         RegisterSlashCommands();
-
-        MediatorService.Subscribe<OpenConfigMessage>(this, c => OpenConfigUI(c.Tab));
-        MediatorService.Subscribe<OpenPresetEditorMessage>(this, c => OpenPresetEditor(c.Name));
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -377,14 +374,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OpenConfigUI(string tab = "")
     {
-        _configUI.ShowTab(tab);
-        _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
-    }
-
-    void OpenPresetEditor(string name)
-    {
-        _configUI.ShowPreset(name);
-        _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
+        MediatorService.Publish(new OpenConfigMessage(tab));
     }
 
     void OpenUi() => OpenConfigUI();
@@ -744,7 +734,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _saveCts.Cancel();
         _saveCts.Dispose();
-        Service.Config.SaveToFile(dalamud.ConfigFile);
+        if (!Service.IsMock)
+            Service.Config.SaveToFile(dalamud.ConfigFile);
 
         GaugeVisualizer.Dispose();
         _wndDebug?.Dispose();
@@ -754,7 +745,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndZone.Dispose();
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
-        _configUI.Dispose();
+        _wndConfig.Dispose();
         _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
