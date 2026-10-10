@@ -68,10 +68,10 @@ internal sealed class DtrProvider : IMediatorSubscriber
         }
 
         foreach (var (p, e) in _autorotEntries)
-            e.Text = $"{p}: {(_mgr.PresetNames.Contains(p) ? "On" : "Off")}";
+            e.Text = $"{p}: {(_mgr.PresetNames.Contains(p, StringComparison.Ordinal) ? "On" : "Off")}";
 
         _arEntry.Shown = _dtrConfig.ShowAutorot;
-        var active = _mgr.Presets.Count(p => p.Name != "");
+        var active = _mgr.Presets.Count(p => p.Name.Length > 0);
         _arEntry.Text = active > 0 ? $"vbm: {active} active" : "vbm: Idle";
 
         _aiEntry.Shown = _dtrConfig.ShowAI;
@@ -145,7 +145,10 @@ internal sealed class DtrProvider : IMediatorSubscriber
 
         ImGui.Separator();
 
-        if (ImGui.MenuItem("Remove entry"))
+        if (ImGui.MenuItem("Open in preset editor"))
+            MediatorService.Publish(new OpenPresetEditorMessage(_popupFor));
+
+        if (ImGui.MenuItem("Remove from info bar"))
         {
             _dtrConfig.ShowPresets.Remove(_popupFor);
             _dtrConfig.Modified.Fire();

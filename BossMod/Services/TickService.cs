@@ -721,7 +721,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             Service.Config.SaveToFile(dalamud.ConfigFile);
 
-            await Task.Delay(30_000, token);
+            await Task.Delay(30_000, token).ConfigureAwait(true);
         }
     }
 

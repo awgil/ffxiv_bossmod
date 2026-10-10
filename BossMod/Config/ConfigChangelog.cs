@@ -152,6 +152,17 @@ class MacroNotice : ChangelogNotice
     }
 }
 
+class DtrNotice : ChangelogNotice
+{
+    public override Version Since => new(7, 5, 6, 22);
+
+    public override void Draw()
+    {
+        ImGui.TextWrapped("The server info bar settings have been moved. They now have their own separate section in the Settings tab.");
+        ImGui.TextWrapped("You can now configure individual presets to be shown in the info bar. Once configured, clicking on the preset name will turn it on and off, and right clicking on it will open a context menu with more options.");
+    }
+}
+
 public class ConfigChangelogWindow : UIWindow
 {
     private readonly Version PreviousVersion;
