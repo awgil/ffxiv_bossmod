@@ -1,15 +1,17 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-internal sealed class DTRProvider : IDisposable
+internal sealed class DtrProvider : IMediatorSubscriber
 {
     private readonly RotationModuleManager _mgr;
     private readonly List<(string, IDtrBarEntry)> _autorotEntries = [];
+    private readonly IDtrBarEntry _arEntry = Service.DtrBar.Get("vbm-ar");
     private readonly IDtrBarEntry _aiEntry = Service.DtrBar.Get("vbm-ai");
     private readonly IDtrBarEntry _statsEntry = Service.DtrBar.Get("vbm-stats");
     private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
@@ -17,12 +19,14 @@ internal sealed class DTRProvider : IDisposable
     private bool _wantOpenPopup;
     private string? _popupFor;
 
-    public DTRProvider(RotationModuleManager manager)
+    public MediatorService MediatorService { get; }
+
+    public DtrProvider(RotationModuleManager manager, MediatorService mediator)
     {
         _mgr = manager;
+        MediatorService = mediator;
 
         _aiEntry.Tooltip = "Left click: toggle AI - Right click: toggle window";
-
         _aiEntry.OnClick = ev =>
         {
             if (ev.ClickType == MouseClickType.Right)
@@ -31,6 +35,9 @@ internal sealed class DTRProvider : IDisposable
                 _aiConfig.Enabled ^= true;
             _aiConfig.Modified.Fire();
         };
+
+        _arEntry.Tooltip = "Left click: open preset selector; right click: disable all";
+        _arEntry.OnClick = OnAutorotClick;
     }
 
     public void Dispose()
@@ -38,6 +45,7 @@ internal sealed class DTRProvider : IDisposable
         foreach (var (_, e) in _autorotEntries)
             e.Dispose();
         _aiEntry.Dispose();
+        _arEntry.Dispose();
         _statsEntry.Dispose();
     }
 
@@ -62,6 +70,10 @@ internal sealed class DTRProvider : IDisposable
         foreach (var (p, e) in _autorotEntries)
             e.Text = $"{p}: {(_mgr.PresetNames.Contains(p) ? "On" : "Off")}";
 
+        _arEntry.Shown = _dtrConfig.ShowAutorot;
+        var active = _mgr.Presets.Count(p => p.Name != "");
+        _arEntry.Text = active > 0 ? $"vbm: {active} active" : "vbm: Idle";
+
         _aiEntry.Shown = _dtrConfig.ShowAI;
         _aiEntry.Text = "AI: " + (_aiConfig.Enabled ? "On" : "Off");
 
@@ -79,6 +91,18 @@ internal sealed class DTRProvider : IDisposable
         using var popup = ImRaii.Popup("vbm_dtr_menu");
         if (popup)
             DrawPopup();
+    }
+
+    void OnAutorotClick(DtrInteractionEvent ev)
+    {
+        if (ev.ClickType == MouseClickType.Left)
+        {
+            _popupFor = null;
+            _wantOpenPopup = true;
+        }
+
+        if (ev.ClickType == MouseClickType.Right)
+            _mgr.Clear();
     }
 
     void OnPresetClick(DtrInteractionEvent ev, string name)
@@ -106,7 +130,13 @@ internal sealed class DTRProvider : IDisposable
     {
         if (_popupFor == null)
         {
-            ImGui.CloseCurrentPopup();
+            UIRotationWindow.DrawRotationSelector(_mgr, MediatorService);
+            ImGui.Separator();
+            if (ImGui.MenuItem("Remove from info bar"))
+            {
+                _dtrConfig.ShowAutorot = false;
+                _dtrConfig.Modified.Fire();
+            }
             return;
         }
 

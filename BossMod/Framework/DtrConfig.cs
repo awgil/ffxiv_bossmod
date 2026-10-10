@@ -8,11 +8,14 @@ namespace BossMod;
 [ConfigDisplay(Name = "Server info bar", Order = 6)]
 public sealed class DtrConfig : ConfigNode
 {
+    [PropertyDisplay("Show autorotation status", since: "7.5.6.22")]
+    public bool ShowAutorot = true;
+
     [PropertyDisplay("Show legacy AI status", since: "7.5.6.22")]
-    public bool ShowAI = true;
+    public bool ShowAI = false;
 
     [PropertyDisplay("Show performance stats", since: "7.5.6.22")]
-    public bool ShowStats = true;
+    public bool ShowStats = false;
 
     public List<string> ShowPresets = ["VBM Default", "VBM AI"];
 

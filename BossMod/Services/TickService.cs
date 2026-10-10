@@ -41,7 +41,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IWorldStateGameSync _wsSync;
     readonly RotationModuleManager _rotation;
     readonly IPCProvider _ipc;
-    readonly DTRProvider _dtr;
+    readonly DtrProvider _dtr;
     readonly SlashCommandProvider _slashCmd;
     readonly MultiboxManager _mbox;
     TimeSpan _prevUpdateTime;
@@ -165,7 +165,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation);
+        _dtr = new(_rotation, mediator);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
