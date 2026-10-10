@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using BossMod.Autorotation;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -68,7 +69,7 @@ public abstract class ConfigNode
     public Event Modified = new();
 
     // draw custom contents; override this for complex config nodes
-    public virtual void DrawCustom(UITree tree, WorldState ws) { }
+    public virtual void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db) { }
 
     // deserialize fields from json; default implementation should work fine for most cases
     public virtual void Deserialize(JsonElement j, JsonSerializerOptions ser)

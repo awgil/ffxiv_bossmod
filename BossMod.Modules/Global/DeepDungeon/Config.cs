@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
@@ -64,7 +65,7 @@ public class AutoDDConfig : ConfigNode
     public BitMask AutoMagicite;
     public BitMask AutoDemiclone;
 
-    public override void DrawCustom(UITree tree, WorldState ws)
+    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
     {
         foreach (var _ in tree.Node("Automatic pomander usage"))
         {

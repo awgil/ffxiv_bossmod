@@ -132,6 +132,18 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
             ImportNewPresetFromClipboard();
     }
 
+    public void SelectPresetByName(string name)
+    {
+        var defaultPresets = !_cfg.HideDefaultPreset;
+        var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
+        var ix = presets.FindIndex(p => p.Name == name);
+        if (ix >= 0)
+        {
+            _pendingSelectPresetIndex = ix;
+            _pendingSelectPresetDefault = defaultPresets;
+        }
+    }
+
     private void DrawPresetListElements(bool defaultPresets)
     {
         var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;

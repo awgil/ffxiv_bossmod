@@ -1,4 +1,5 @@
 ﻿using BossMod.Services;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
@@ -11,9 +12,11 @@ public sealed class UIRotationWindow : UIWindow
     private readonly IAmex _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
     private readonly EventSubscriptions _subscriptions;
+    private readonly MediatorService _mediator;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, Action openConfig) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, MediatorService mediator) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
     {
+        _mediator = mediator;
         _mgr = mgr;
         _amex = amex;
         _subscriptions = new
@@ -21,7 +24,7 @@ public sealed class UIRotationWindow : UIWindow
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
         );
         RespectCloseHotkey = false;
-        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => openConfig() });
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => mediator.Publish(new OpenConfigMessage("Autorotation Presets")) });
     }
 
     protected override void Dispose(bool disposing)
@@ -52,7 +55,7 @@ public sealed class UIRotationWindow : UIWindow
         if (player == null)
             return;
 
-        DrawRotationSelector(_mgr);
+        DrawRotationSelector(_mgr, _mediator);
 
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)
@@ -138,8 +141,10 @@ public sealed class UIRotationWindow : UIWindow
 
     public override void OnClose() => SetVisible(false);
 
-    public static bool DrawRotationSelector(RotationModuleManager mgr)
+    public static bool DrawRotationSelector(RotationModuleManager mgr, MediatorService? mediator = null)
     {
+        var dtrConfig = Service.Config.Get<DtrConfig>();
+
         var modified = false;
         if (mgr.Player == null)
             return modified;
@@ -171,10 +176,26 @@ public sealed class UIRotationWindow : UIWindow
             using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, isActive);
             using var colHovered = ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff005050, isActive);
             using var colActive = ImRaii.PushColor(ImGuiCol.ButtonActive, 0xff006060, isActive);
-            if (ImGui.Button(p.Name))
+            ImGui.Button(p.Name);
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 mgr.Toggle(p);
                 modified |= true;
+            }
+            using var ctx = ImRaii.ContextPopupItem($"###{p}");
+            if (ctx)
+            {
+                var sel = dtrConfig.ShowPresets.Contains(p.Name);
+                if (ImGui.MenuItem("Show in server info bar", sel))
+                {
+                    if (sel)
+                        dtrConfig.ShowPresets.Remove(p.Name);
+                    else
+                        dtrConfig.ShowPresets.Add(p.Name);
+                    dtrConfig.Modified.Fire();
+                }
+                if (mediator != null && ImGui.MenuItem("Open in preset editor"))
+                    mediator.Publish(new OpenPresetEditorMessage(p.Name));
             }
         }
 

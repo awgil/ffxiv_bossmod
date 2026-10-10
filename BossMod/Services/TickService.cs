@@ -61,10 +61,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly UIRotationWindow _wndRotation;
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
-
-    private readonly ConfigUI _configUI; // TODO: should be a proper window!
-
-    private readonly EventSubscription? _onConfigSave;
+    private readonly ConfigUI _configUI;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
@@ -179,7 +176,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+        _wndRotation = new UIRotationWindow(_rotation, _amex, MediatorService);
         _wndAI = new AIWindow(_rotation);
 
         if (Service.IsMock)
@@ -193,6 +190,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
 
         RegisterSlashCommands();
+
+        MediatorService.Subscribe<OpenConfigMessage>(this, c => OpenConfigUI(c.Tab));
+        MediatorService.Subscribe<OpenPresetEditorMessage>(this, c => OpenPresetEditor(c.Name));
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -378,6 +378,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     void OpenConfigUI(string tab = "")
     {
         _configUI.ShowTab(tab);
+        _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
+    }
+
+    void OpenPresetEditor(string name)
+    {
+        _configUI.ShowPreset(name);
         _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
     }
 

@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Full duty automation", Order = 6)]
+[ConfigDisplay(Name = "Full duty automation", Order = 7)]
 public sealed class ZoneModuleConfig : ConfigNode
 {
     [PropertyDisplay("Enable automatic execution of quest battles / solo duties")]
