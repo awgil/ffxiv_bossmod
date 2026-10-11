@@ -47,22 +47,7 @@ public enum AID : uint
 
 class Earthshatter(BossModule module) : Components.StandardAOEs(module, AID.Earthshatter, 8);
 class TranscendentShot(BossModule module) : Components.StandardAOEs(module, AID.TranscendentShot, new AOEShapeRect(60, 2.5f), maxCasts: 4);
-class LeapingCleave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.LeapingCleave, 22)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-            {
-                var center = Arena.Center;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
-                {
-                    var kb = (p - center).Normalized() * 22;
-                    return !(p + kb).InRect(center, default(Angle), 20, 20, 25);
-                }), src.Activation);
-            }
-    }
-}
+class LeapingCleave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.LeapingCleave, 22);
 class FeralLunge(BossModule module) : Components.StandardAOEs(module, AID.FeralLunge, 10);
 class WhirlingSlash(BossModule module) : Components.StandardAOEs(module, AID.WhirlingSlash, 6);
 class Perdition(BossModule module) : Components.StandardAOEs(module, AID.Perdition, 9);

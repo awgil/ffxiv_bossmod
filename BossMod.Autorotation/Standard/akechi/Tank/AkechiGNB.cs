@@ -265,7 +265,7 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         NMstatus = Status(SID.NoMercy, 20f);
         SBstatus = Status(SID.ReadyToBreak, 30f);
         Rstatus = Status(SID.ReadyToReign, 30f);
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3.5f, IsSplashTarget);
+        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3, IsSplashTarget);
         BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
         BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
         var aoe = strategy.Option(Track.AOE);

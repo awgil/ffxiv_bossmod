@@ -57,18 +57,6 @@ class ElectrifyingFlight(BossModule module) : Components.Knockback(module)
             _caster = null;
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            var orig = src.Origin;
-            var kbDir = src.Direction;
-            var dist = src.Distance;
-
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(orig - kbDir.ToDirection() * dist, 20), src.Activation);
-        }
-    }
-
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (_caster == null)

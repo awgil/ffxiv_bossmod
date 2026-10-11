@@ -15,8 +15,11 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
             if (actor.Position.InCircle(z.Position, 6))
                 hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
             else
+            {
                 // forbid AI from dodging into fire to avoid twisters
                 hints.TemporaryObstacles.Add(ShapeDistance.Circle(z.Position, 6));
+                hints.AddForbiddenZone(Shape, z.Position);
+            }
         }
     }
 }

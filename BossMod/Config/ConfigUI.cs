@@ -31,6 +31,7 @@ public sealed class ConfigUI : IDisposable
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
+    private readonly RotationDatabase? _rotationDB;
 
     private readonly List<List<string>> _filterNodes = [];
 
@@ -41,6 +42,7 @@ public sealed class ConfigUI : IDisposable
         _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB) : null;
+        _rotationDB = rotationDB;
 
         _tabs.Add("About", _about.Draw);
         _tabs.Add("Settings", DrawSettings);
@@ -84,6 +86,12 @@ public sealed class ConfigUI : IDisposable
     }
 
     public void ShowTab(string name) => _tabs.Select(name);
+
+    public void ShowPreset(string name)
+    {
+        ShowTab("Autorotation Presets");
+        _presets?.SelectPresetByName(name);
+    }
 
     public void Draw()
     {
@@ -147,7 +155,7 @@ public sealed class ConfigUI : IDisposable
                 yield return [node.Name, .. path];
     }
 
-    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, Func<PropertyDisplayAttribute, bool>? filter = null)
+    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, RotationDatabase? db, Func<PropertyDisplayAttribute, bool>? filter = null)
     {
         // draw standard properties
         foreach (var field in node.GetType().GetFields())
@@ -198,7 +206,7 @@ public sealed class ConfigUI : IDisposable
         }
 
         // draw custom stuff
-        node.DrawCustom(tree, ws);
+        node.DrawCustom(tree, ws, db);
     }
 
     private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name[..^"Config".Length] : t.Name;
@@ -214,7 +222,7 @@ public sealed class ConfigUI : IDisposable
     {
         foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new(n.Name)))
         {
-            DrawNode(n.Node, _root, _tree, _ws, props => MatchesFilter([.. n.Path, props.Label]));
+            DrawNode(n.Node, _root, _tree, _ws, _rotationDB, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);
         }
     }

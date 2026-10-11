@@ -165,6 +165,36 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
                 break;
         }
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // arbitrary polygon in-bounds test is too expensive, don't bother
+        if (Arena.Bounds is ArenaBoundsCustom)
+            return;
+
+        foreach (var src in Sources(slot, actor))
+        {
+            if (IsImmune(slot, src.Activation))
+                continue;
+
+            WPos? projected(WPos starting)
+            {
+                if (src.Shape?.Check(starting, src.Origin, src.Direction) == false)
+                    return null;
+
+                return src.Kind switch
+                {
+                    Kind.AwayFromOrigin => AwayFromSource(starting, src.Origin, src.Distance),
+                    Kind.DirForward => starting + src.Direction.ToDirection() * src.Distance,
+                    Kind.DirLeft => starting + src.Direction.ToDirection().OrthoL() * src.Distance,
+                    Kind.DirRight => starting + src.Direction.ToDirection().OrthoR() * src.Distance,
+                    _ => null,
+                };
+            }
+
+            hints.AddForbiddenZone(Sdf.Discrete(p => projected(p) is { } proj && !Arena.InBounds(proj)), src.Activation);
+        }
+    }
 }
 
 // generic 'knockback from/attract to cast target' component

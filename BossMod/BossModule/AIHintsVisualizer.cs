@@ -101,7 +101,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     private MapVisualizer BuildPathfindingVisualizer()
     {
         var now = DateTime.Now;
-        _navi = NavigationDecision.Build(_naviCtx, ws.CurrentTime, hints, player.Position, forbiddenZoneCushion: cushionSize);
+        _navi = NavigationDecision.Build(_naviCtx, ws.CurrentTime, hints, player.Position, 6, ws.Network.LastRTT, cushionSize);
         _naviTime = (float)(DateTime.Now - now).TotalSeconds;
 
         return new MapVisualizer(_naviCtx.Map, player.Position);

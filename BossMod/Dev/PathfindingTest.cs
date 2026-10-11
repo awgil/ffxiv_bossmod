@@ -15,6 +15,7 @@ class PathfindingTest : TestWindow
     private Vector2 _mapHalfSize = new(20, 20);
     private float _mapRotationDeg;
     private float _cushion;
+    private float _ping;
 
     private Vector2 _startingPos = new(15, 0);
     private Vector2 _targetPos = new(-15, 0);
@@ -55,6 +56,7 @@ class PathfindingTest : TestWindow
             rebuild |= ImGui.DragFloat2("Half-size", ref _mapHalfSize, 1, 0, 30);
             rebuild |= ImGui.DragFloat("Rotation", ref _mapRotationDeg, 5, -180, 180);
             rebuild |= ImGui.DragFloat("Cushion", ref _cushion, 0.1f, 0, 5);
+            rebuild |= ImGui.DragFloat("Ping", ref _ping, 0.01f, 0, 0.5f);
 
             rebuild |= ImGui.DragFloat2("Starting position", ref _startingPos, 1, -30, 30);
             rebuild |= ImGui.DragFloat2("Target position", ref _targetPos, 1, -30, 30);
@@ -91,7 +93,7 @@ class PathfindingTest : TestWindow
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
         List<float> sg = [];
         var sb = new BitArray(0);
-        var now = DateTime.MinValue.AddSeconds(NavigationDecision.ActivationTimeCushion);
+        var now = DateTime.MinValue;
         List<(Sdf containsFn, DateTime activation, ulong source)> zones = [];
         if (_blockCone)
             zones.Add((Sdf.Continuous(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees())), now.AddSeconds(_blockConeG), 0));
@@ -100,9 +102,9 @@ class PathfindingTest : TestWindow
         zones.SortBy(z => z.activation);
 
         if (_useNewRasterizer)
-            NavigationDecision.RasterizeForbiddenZones(map, zones, now, sg, sb, _cushion);
+            NavigationDecision.RasterizeForbiddenZones(map, zones, now, sg, sb, _ping, _cushion);
         else
-            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, sg, sb, _cushion);
+            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, sg, sb, _ping, _cushion);
 
         List<Func<WPos, float>> goals = [];
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));

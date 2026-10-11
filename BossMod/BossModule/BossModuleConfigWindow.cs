@@ -23,7 +23,7 @@ public class BossModuleConfigWindow : UIWindow
     private void DrawEncounterTab()
     {
         if (_node != null)
-            ConfigUI.DrawNode(_node, Service.Config, _tree, _ws);
+            ConfigUI.DrawNode(_node, Service.Config, _tree, _ws, null);
         else
             ImGui.TextUnformatted("This module does not expose any configuration");
     }
@@ -31,6 +31,6 @@ public class BossModuleConfigWindow : UIWindow
     private void DrawPartyRolesAssignmentsTab()
     {
         if (_ws.Party.Player() != null)
-            ConfigUI.DrawNode(_prc, Service.Config, _tree, _ws);
+            ConfigUI.DrawNode(_prc, Service.Config, _tree, _ws, null);
     }
 }

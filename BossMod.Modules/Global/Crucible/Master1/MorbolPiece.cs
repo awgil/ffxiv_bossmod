@@ -120,14 +120,7 @@ class ExtremelyBadBreath(BossModule module) : Components.GenericRotatingAOE(modu
 }
 
 class AcidMist(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_AcidMist, 6);
-class Tremblor(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Tremblor1, 10)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 10), src.Activation);
-    }
-}
+class Tremblor(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Tremblor1, 10);
 class VineProbe(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_VineProbe, new AOEShapeRect(13, 4));
 
 class Adds(BossModule module) : Components.AddsMulti(module, [OID._Gen_SeedlingPiece, OID._Gen_OchuPiece, OID._Gen_CarrionBroth]);

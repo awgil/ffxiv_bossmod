@@ -433,7 +433,7 @@ class DivideAndConquer(BossModule module) : Components.GenericBaitAway(module, A
 }
 
 class DownburstKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Downburst, 10, stopAtWall: true);
-class PowerfulGustKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PowerfulGust, 20, kind: Components.Knockback.Kind.DirForward, stopAtWall: true);
+class PowerfulGustKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PowerfulGust, 20, kind: Kind.DirForward, stopAtWall: true);
 class ProsecutionOfWar(BossModule module) : Components.SingleTargetCast(module, AID.ProsecutionOfWar);
 class VirtualShiftRoyalDomain(BossModule module) : Components.RaidwideCast(module, AID.VirtualShift1, "Virtual shift + raidwide");
 class VirtualShift2(BossModule module) : Components.RaidwideCast(module, AID.VirtualShift2);

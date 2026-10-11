@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Dawntrail.Savage.RM12S2TheLindwurm;
@@ -13,7 +14,7 @@ public class RM12S2TheLindwurmConfig : ConfigNode
     };
     public Replication3Tethers Rep3Assignments = new() { RolesOrdered = [.. Replication3Tethers.DN.RolesOrdered] };
 
-    public override void DrawCustom(UITree tree, WorldState ws)
+    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
     {
         Rep2Assignments.DrawCustom(tree, Modified);
         Rep3Assignments.DrawCustom(tree, Modified);

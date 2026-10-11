@@ -2,6 +2,7 @@
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.Network;
 using BossMod.ReplayAnalysis;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
@@ -40,11 +41,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IWorldStateGameSync _wsSync;
     readonly RotationModuleManager _rotation;
     readonly IPCProvider _ipc;
-    readonly DTRProvider _dtr;
+    readonly DtrProvider _dtr;
     readonly SlashCommandProvider _slashCmd;
     readonly MultiboxManager _mbox;
     TimeSpan _prevUpdateTime;
     readonly PackLoader _packs;
+    readonly PingTracker _ping;
     private readonly IDalamudPluginInterface dalamud;
     private readonly IUiBuilder uiBuilder;
     private readonly ICondition condition;
@@ -59,13 +61,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly UIRotationWindow _wndRotation;
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
-
-    private readonly ConfigUI _configUI; // TODO: should be a proper window!
-
-    private readonly EventSubscription? _onConfigSave;
+    private readonly ConfigWindow _wndConfig;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
+
+    private readonly CancellationTokenSource _saveCts = new();
 
     public unsafe TickService(
         MediatorService mediator,
@@ -116,7 +117,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            _onConfigSave = Service.Config.Modified.Subscribe(() => Task.Run(() => Service.Config.SaveToFile(dalamud.ConfigFile)));
+            Task.Run(SavePeriodically);
 
             // requires windows/wine
             MultiboxUnlock.Exec();
@@ -127,6 +128,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _packs = new();
         _hints = new();
+        _ping = new(logger);
 
         if (!Service.IsMock)
         {
@@ -148,10 +150,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
+            _ping.Run();
             _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
             _movementOverride = new MovementOverride(dalamud);
             _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex);
+            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
             _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
@@ -162,18 +165,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation);
+        _dtr = new(_rotation, mediator);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
-        _configUI = new(Service.Config, _ws, replayDir, _rotationDB);
 
+        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB), mediator);
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new UIRotationWindow(_rotation, _amex, () => OpenConfigUI("Autorotation Presets"));
+        _wndRotation = new UIRotationWindow(_rotation, _amex, MediatorService);
         _wndAI = new AIWindow(_rotation);
 
         if (Service.IsMock)
@@ -371,8 +374,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OpenConfigUI(string tab = "")
     {
-        _configUI.ShowTab(tab);
-        _ = new UISimpleWindow("Boss Mod Settings", _configUI.Draw, true, new(300, 300));
+        MediatorService.Publish(new OpenConfigMessage(tab));
     }
 
     void OpenUi() => OpenConfigUI();
@@ -711,6 +713,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         copy("BossMod.Ultimate.dll");
     }
 
+    private async Task SavePeriodically()
+    {
+        var token = _saveCts.Token;
+
+        while (!token.IsCancellationRequested)
+        {
+            Service.Config.SaveToFile(dalamud.ConfigFile);
+
+            await Task.Delay(30_000, token).ConfigureAwait(true);
+        }
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -718,8 +732,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
+        _saveCts.Cancel();
+        _saveCts.Dispose();
+        if (!Service.IsMock)
+            Service.Config.SaveToFile(dalamud.ConfigFile);
+
         GaugeVisualizer.Dispose();
-        _onConfigSave?.Dispose();
         _wndDebug?.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
@@ -727,7 +745,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndZone.Dispose();
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
-        _configUI.Dispose();
+        _wndConfig.Dispose();
         _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
@@ -736,6 +754,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
+        _ping.Dispose();
         _movementOverride.Dispose();
         _hintsBuilder.Dispose();
         _zonemod.Dispose();

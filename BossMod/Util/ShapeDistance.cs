@@ -41,63 +41,61 @@ public struct Sdf
         }
     }
 
-    public readonly Func<WPos, bool> Check
+#pragma warning disable IDE0066 // Convert switch statement to expression
+    public readonly bool Check(WPos p)
     {
-        get
+        switch (Type)
         {
-            switch (Type)
-            {
-                case SdfType.Continuous:
-                    var fc = SdfCont;
-                    return (p) => fc(p) < 0;
-                case SdfType.Discrete:
-                    return SdfDisc;
-                case SdfType.Indexed:
-                    var fi = SdfIx;
-                    return (p) => fi(p, -1);
-                default:
-                    throw new UnreachableException();
-            }
+            case SdfType.Continuous:
+                return SdfCont(p) < 0;
+
+            case SdfType.Discrete:
+                return SdfDisc(p);
+
+            case SdfType.Indexed:
+                return SdfIx(p, -1);
+
+            default:
+                throw new UnreachableException();
         }
     }
-    public readonly Func<WPos, float> Distance
+
+    public readonly float Distance(WPos p)
     {
-        get
+        switch (Type)
         {
-            switch (Type)
-            {
-                case SdfType.Continuous:
-                    return SdfCont;
-                case SdfType.Discrete:
-                    var fd = SdfDisc;
-                    return (p) => fd(p) ? float.MinValue : float.MaxValue;
-                case SdfType.Indexed:
-                    var fi = SdfIx;
-                    return (p) => fi(p, -1) ? float.MinValue : float.MaxValue;
-                default:
-                    throw new UnreachableException();
-            }
+            case SdfType.Continuous:
+                return SdfCont(p);
+
+            case SdfType.Discrete:
+                return SdfDisc(p) ? float.MinValue : float.MaxValue;
+
+            case SdfType.Indexed:
+                return SdfIx(p, -1) ? float.MinValue : float.MaxValue;
+
+            default:
+                throw new UnreachableException();
         }
     }
-    public readonly Func<WPos, int, bool> CheckIndexed
+
+    public readonly bool CheckIndexed(WPos p, int index)
     {
-        get
+        switch (Type)
         {
-            switch (Type)
-            {
-                case SdfType.Continuous:
-                    var fc = SdfCont;
-                    return (p, _) => fc(p) < 0;
-                case SdfType.Discrete:
-                    var fd = SdfDisc;
-                    return (p, _) => fd(p);
-                case SdfType.Indexed:
-                    return SdfIx;
-                default:
-                    throw new UnreachableException();
-            }
+            case SdfType.Continuous:
+                return SdfCont(p) < 0;
+
+            case SdfType.Discrete:
+                return SdfDisc(p);
+
+            case SdfType.Indexed:
+                return SdfIx(p, index);
+
+            default:
+                throw new UnreachableException();
         }
     }
+#pragma warning restore IDE0066 // Convert switch statement to expression
 
     public readonly bool IsContinuous => Type == SdfType.Continuous;
 }

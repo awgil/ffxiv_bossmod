@@ -48,6 +48,7 @@ public class Rocks(BossModule module) : BossComponent(module)
     ]));
 
     private readonly DateTime[] _drowning = Utils.MakeArray<DateTime>(4, default);
+    private BitArray? _rocks;
 
     private bool _quicksand;
     private DateTime _bitingWind;
@@ -101,7 +102,9 @@ public class Rocks(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var check = RockShape.GetSdf(Arena.Center, default);
+        _rocks ??= hints.BitsFromMap((p, i) => RockShape.Check(p, Arena.Center, default));
+
+        var check = Sdf.Indexed((p, i) => _rocks[i]);
 
         // movement speed in quicksand is 0.86 x base, so if not currently drowning we have 3.44s of leeway
         // if already drowning, movespeed has already been adjusted on the client so we can let pathfinder do its thing
@@ -205,6 +208,8 @@ class BitingWind(BossModule module) : Components.Knockback(module, AID.BitingWin
         if (spell.Action == WatchedAction)
             _caster = null;
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) { }
 }
 
 class D50OgbunabaliStates : StateMachineBuilder
