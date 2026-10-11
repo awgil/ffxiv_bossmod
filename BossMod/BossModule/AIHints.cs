@@ -151,6 +151,9 @@ public sealed class AIHints
     // teleporters for pathfind
     public List<(WPos from, float fromRadius, WPos to)> Portals = [];
 
+    // only used for "dash safety" functionality, not read by pathfinder
+    public List<(WPos Center, float Radius)> Voidzones = [];
+
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
 
@@ -188,6 +191,7 @@ public sealed class AIHints
     // misc stuff to execute
     public bool WantJump;
     public bool WantDismount;
+    public bool AllowDash;
     public FateSync WantFateSync;
     public bool ShouldLeaveDuty;
 
@@ -207,6 +211,7 @@ public sealed class AIHints
         ForbiddenZones.Clear();
         GoalZones.Clear();
         GoalZonesEnabled = true;
+        Voidzones.Clear();
         TemporaryObstacles.Clear();
         Portals.Clear();
         RecommendedPositional = default;
@@ -222,6 +227,7 @@ public sealed class AIHints
         ScriptedDeath = false;
         WantJump = false;
         WantDismount = false;
+        AllowDash = true;
         WantFateSync = FateSync.None;
         ShouldLeaveDuty = false;
     }

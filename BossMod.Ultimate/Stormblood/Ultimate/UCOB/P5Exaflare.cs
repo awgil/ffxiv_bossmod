@@ -35,9 +35,13 @@ class P5Preposition(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (((UCOB)Module).BahamutPrime() is { IsTargetable: false })
+        if (((UCOB)Module).BahamutPrime() is { } p)
         {
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 5));
+            if (p.IsTargetable)
+                // make ranged stay close during exaflares
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(p.Position, p.HitboxRadius + 5, 0.1f));
+            else
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 5));
         }
     }
 }

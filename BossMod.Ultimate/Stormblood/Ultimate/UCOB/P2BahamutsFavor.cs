@@ -228,7 +228,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
 
             if (d.Player == actor)
             {
-                if (actor.FindStatus(SID.Thunderstruck)?.ExpireAt < d.Expiration)
+                if (actor.FindStatus(SID.Thunderstruck)?.ExpireAt.AddSeconds(0.5f) < d.Expiration)
                     return;
 
                 // despite our best efforts, it's possible that a wings puddle can spawn on top of the cleanse puddle

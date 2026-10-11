@@ -31,10 +31,14 @@ public struct NavigationDecision
 
     public const float CushionDepriority = 0.5f; // should be lower than any priority specifically added by rotation modules
 
-    // reduce time between now and activation by this value in seconds; increase for more conservativeness
-    //public const float ActivationTimeCushion = ActorCastInfo.NPCFinishDelay + 0.3f;
-
-    public static float CushionFromRTT(float rtt) => 0.5f /*rtt*/ + ActorCastInfo.NPCFinishDelay;
+    // factors to account for:
+    // 1. ping (of course)
+    // 2. snapshot delay (probably 300ms for NPC casts, see NPCFinishDelay)
+    // 3. unknown (variable) amount of delay between movement packet being sent and server deciding to update our position; can be bypassed (kind of) by forcing a position update through various means
+    //  - jumping (has its own issues; player gets stuck in the air for a bit, you can't steer while jumping, etc)
+    //  - sending position update packet (not an option, can't be done in the vanilla client, so it doesn't match our philosophy)
+    // TODO: make configurable?
+    public static float CushionFromRTT(float rtt) => rtt + 0.3f + ActorCastInfo.NPCFinishDelay;
 
     public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
     {
