@@ -82,12 +82,9 @@ class DaybreakAOE(BossModule module) : Components.StandardAOEs(module, AID.Daybr
 class ScoldsBridle(BossModule module) : Components.RaidwideCast(module, AID.ScoldsBridle);
 class HolySword(BossModule module) : Components.SingleTargetCast(module, AID.HolySword);
 class RighteousBolt(BossModule module) : Components.BaitAwayCast(module, AID.RighteousBolt, new AOEShapeCircle(3), centerAtTarget: true, endsOnCastEvent: true);
-// S-ribbon through the centre with a safe ring gap (~second golden circle), +15° CCW
-// latest replay: Instant1 every ~1.0s; Instant2 is the same step +0.3s — advance only on Instant1
 class SoulAndBody : Components.GenericRotatingAOE
 {
     private static readonly AOEShapeCustom _shape = BuildShape();
-    private DateTime _lastAdvance;
 
     public SoulAndBody(BossModule module) : base(module)
     {
@@ -97,7 +94,6 @@ class SoulAndBody : Components.GenericRotatingAOE
     private static AOEShapeCustom BuildShape()
     {
         var clipper = new PolygonClipper();
-        // replay: hits at r≤11.1 on the ribbon, safe on-ribbon at r≈12–16 (golden ring)
         var gap = clipper.Difference(new(CurveApprox.Circle(16f, 0.25f)), new(CurveApprox.Circle(11.5f, 0.25f)));
         return new(clipper.Difference(new(Ribbon()), new(gap)));
     }
@@ -127,8 +123,9 @@ class SoulAndBody : Components.GenericRotatingAOE
 
     public override void Update()
     {
-        // drop once the spins stop (repeat count isn't fixed: 8 then 12)
-        if (Sequences.Count > 0 && Sequences[0].NextActivation < WorldState.CurrentTime.AddSeconds(-1.5f))
+        while (Sequences.Count > 0 && Sequences[0].NumRemainingCasts > 0 && Sequences[0].NextActivation <= WorldState.CurrentTime)
+            AdvanceSequence(0, WorldState.CurrentTime);
+        if (Sequences.Count > 0 && Sequences[0].NumRemainingCasts <= 0)
             Sequences.Clear();
     }
 
@@ -136,7 +133,6 @@ class SoulAndBody : Components.GenericRotatingAOE
     {
         if ((AID)spell.Action.ID != AID.SoulAndBody1)
             return;
-        // Action rotation is sector-facing; ribbon axis is through the rim helpers (= radial, eventRot - 90°).
         var rot = (caster.Position - Arena.Center).ToAngle();
         if (Sequences.Count > 0)
         {
@@ -145,40 +141,13 @@ class SoulAndBody : Components.GenericRotatingAOE
                 return;
             Sequences.Clear();
         }
-        Sequences.Add(new(_shape, Arena.Center, rot, 15.Degrees(), Module.CastFinishAt(spell), 1f, 16, 1));
-        _lastAdvance = default;
+        Sequences.Add(new(_shape, Arena.Center, rot, 8.Degrees(), Module.CastFinishAt(spell), 0.6f, 26, 2));
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    public override void OnActorDestroyed(Actor actor)
     {
-        var aid = (AID)spell.Action.ID;
-        if (aid is not (AID.SoulAndBody1 or AID.SoulAndBodyInstant1))
-            return;
-        // event rot is sector-facing; ribbon axis is -90°. After a hit, show the next step.
-        var next = spell.Rotation - 90.Degrees() + 15.Degrees();
-        if (aid == AID.SoulAndBody1)
-        {
-            if (Sequences.Count == 0)
-                Sequences.Add(new(_shape, Arena.Center, next, 15.Degrees(), WorldState.FutureTime(1f), 1f, 16, 1));
-            else
-            {
-                ref var s = ref Sequences.AsSpan()[0];
-                // opposite SAB1 is +180° (same ribbon) — only snap once per step
-                if (!s.Rotation.AlmostEqual(next, 0.1f) && !s.Rotation.AlmostEqual(next + 180.Degrees(), 0.1f))
-                    s.Rotation = next;
-                s.NextActivation = WorldState.FutureTime(1f);
-            }
-            return;
-        }
-        if (Sequences.Count == 0)
-            return;
-        if (_lastAdvance != default && WorldState.CurrentTime < _lastAdvance.AddSeconds(0.5f))
-            return;
-        ref var seq = ref Sequences.AsSpan()[0];
-        seq.Rotation = next;
-        seq.NextActivation = WorldState.CurrentTime.AddSeconds(seq.SecondsBetweenActivations);
-        ++NumCasts;
-        _lastAdvance = WorldState.CurrentTime;
+        if (actor.OID == (uint)OID.NailOfCondemnation && actor.Position.AlmostEqual(Arena.Center, 1))
+            Sequences.Clear();
     }
 }
 class HolyTrinity(BossModule module) : Components.StandardAOEs(module, AID.HolyTrinity, new AOEShapeRect(40, 2));
@@ -206,7 +175,6 @@ class ReprobationLongPredicted(BossModule module) : Components.GenericAOEs(modul
 class GodRayCone(BossModule module) : Components.StandardAOEs(module, AID.GodRayCone, new AOEShapeCone(5, 50.Degrees()));
 class GodRayDonut1(BossModule module) : Components.StandardAOEs(module, AID.GodRayDonut1, new AOEShapeDonutSector(5, 10, 50.Degrees()));
 class GodRayDonut2(BossModule module) : Components.StandardAOEs(module, AID.GodRayDonut2, new AOEShapeDonutSector(10, 20, 50.Degrees()));
-// EX/normal guides: unmarked proximity to the *charge line* — stand on a side edge (L/R of Innocence), not the far end of the dash
 class BeatificVision : Components.StandardAOEs
 {
     public BeatificVision(BossModule module) : base(module, AID.BeatificVision, new AOEShapeRect(45, 20), warningText: "Side edge — away from the line!")
@@ -224,12 +192,10 @@ class BeatificVision : Components.StandardAOEs
             hints.AddPredictedDamage(Raid.WithSlot().Mask(), activation);
             var dir = caster.CastInfo.Rotation.ToDirection();
             var side = dir.OrthoL() * Arena.Bounds.Radius;
-            // either side rim is safe; pick the one closer to the player
             var a = Arena.Center + side;
             var b = Arena.Center - side;
             var far = (actor.Position - a).LengthSq() <= (actor.Position - b).LengthSq() ? a : b;
             hints.GoalZones.Add(AIHints.GoalProximity(far, 6, 80));
-            // keep people off the charge axis
             hints.AddForbiddenZone(new AOEShapeRect(45, 6), caster.Position, caster.CastInfo.Rotation, activation);
         }
     }
@@ -350,5 +316,5 @@ public class T02Innocence(ModuleInit init) : BossModule(init, new(100, 100), new
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
 public class T02InnocenceP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
