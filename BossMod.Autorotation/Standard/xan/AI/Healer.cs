@@ -377,21 +377,23 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
+            var rwBudget = 2;
             if (RaidwideIn < 5)
             {
-                UseOGCD(BossMod.WHM.AID.Temperance, Player, 20);
+                PushMitOGCD(ref rwBudget, BossMod.WHM.AID.Temperance, Player, 20);
                 if (hasDivineGrace)
-                    UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 19);
-                UseOGCD(BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
+                    PushMitOGCD(ref rwBudget, BossMod.WHM.AID.DivineCaress, Player, 19);
+                PushMitOGCD(ref rwBudget, BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
             }
             if (RaidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
-                UseOGCDAt(BossMod.WHM.AID.Asylum, GetBestPartyCoverage(10), 17);
+                PushMitOGCDAt(ref rwBudget, BossMod.WHM.AID.Asylum, GetBestPartyCoverage(10), 17);
 
             foreach (var (tank, _) in TankbustersWithin(4))
             {
+                var tbBudget = 2;
                 if (tank.FindStatus(BossMod.WHM.SID.DivineBenison, World.FutureTime(15)) == null)
-                    UseOGCD(BossMod.WHM.AID.DivineBenison, tank, 25);
-                UseOGCD(BossMod.WHM.AID.Aquaveil, tank, 24);
+                    PushMitOGCD(ref tbBudget, BossMod.WHM.AID.DivineBenison, tank, 25);
+                PushMitOGCD(ref tbBudget, BossMod.WHM.AID.Aquaveil, tank, 24);
             }
         }
 
@@ -712,6 +714,25 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         => StatusDetails(Player, regen, Player.InstanceID).Left < 3 && !IsCasting(casts);
 
     private bool ReadySoon<AID>(AID aid) where AID : Enum => Unlocked(aid) && NextChargeIn(aid) < 0.6f;
+
+    // predictive raidwide/tankbuster mits: at most 2 ready big oGCDs per event (GCDs/shields don't count)
+    private bool PushMitOGCD<AID>(ref int budget, AID aid, Actor? target, int prio) where AID : Enum
+    {
+        if (budget <= 0 || !ReadySoon(aid))
+            return false;
+        UseOGCD(aid, target, prio);
+        --budget;
+        return true;
+    }
+
+    private bool PushMitOGCDAt<AID>(ref int budget, AID aid, Vector3 location, int prio) where AID : Enum
+    {
+        if (budget <= 0 || !ReadySoon(aid))
+            return false;
+        UseOGCDAt(aid, location, prio);
+        --budget;
+        return true;
+    }
 
     private bool SingledOut(float ratio) => Health.PartyHealth.Count <= 1 || ratio < Health.PartyHealth.AvgCurrent - 0.2f;
 
