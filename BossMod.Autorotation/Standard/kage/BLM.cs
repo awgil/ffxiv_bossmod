@@ -104,7 +104,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage BLM", "Black Mage", "Standard rotation (Kage)|Caster", "Kagekazu", RotationModuleQuality.Basic, BitMask.Build(Class.BLM, Class.THM), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage BLM", "Black Mage", "Standard rotation (Kage)|Caster", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.BLM, Class.THM), 100).WithStrategies<Strategy>();
     }
 
     private int Astral;

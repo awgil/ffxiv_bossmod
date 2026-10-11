@@ -96,7 +96,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage DNC", "Dancer", "Standard rotation (Kage)|Ranged", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.DNC), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage DNC", "Dancer", "Standard rotation (Kage)|Ranged", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.DNC), 100).WithStrategies<Strategy>();
     }
 
     private int Feathers;
@@ -438,9 +438,13 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Delay => false,
-            _ => TechFinishLeft > 0 || !Unlocked(AID.TechnicalStep) || TechnicalStrat == OffensiveStrategy.Delay
+            _ => TechFinishLeft > 0 || TechnicalJustUsed || !Unlocked(AID.TechnicalStep) || TechnicalStrat == OffensiveStrategy.Delay
         };
     }
+
+    private bool TechnicalJustUsed => Unlocked(AID.TechnicalStep) && ReadyIn(AID.TechnicalStep) > 105 && TechStepLeft == 0;
+
+    private bool DevilmentFirst => DevilmentStrat != OffensiveStrategy.Delay && Unlocked(AID.Devilment) && ReadyIn(AID.Devilment) <= GCD && (TechFinishLeft > 0 || TechnicalJustUsed);
 
     private bool ShouldFlourish(in Strategy strategy)
     {
@@ -450,18 +454,16 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
             return true;
         if (FlourishStrat == OffensiveStrategy.Delay)
             return false;
-        if (DevilmentStrat != OffensiveStrategy.Delay && ReadyIn(AID.Devilment) <= 50)
+        if (ThreefoldLeft > 0 || FourfoldLeft > 0 || SelfStatusLeft(SID.FlourishingSymmetry) > 0 || SelfStatusLeft(SID.FlourishingFlow) > 0 || FinishingMoveLeft > 0 || DevilmentFirst || Feathers > 3 && FeathersStrat != FeatherStrategy.Delay)
             return false;
-        if (ThreefoldLeft > 0 || FourfoldLeft > 0 || SelfStatusLeft(SID.FlourishingSymmetry) > 0 || SelfStatusLeft(SID.FlourishingFlow) > 0 || FinishingMoveLeft > 0)
-            return false;
-        return TechFinishLeft > 0 || TechnicalStrat == OffensiveStrategy.Delay || ReadyIn(AID.TechnicalStep) > 15;
+        return TechFinishLeft > 0 || TechnicalStrat == OffensiveStrategy.Delay || ReadyIn(AID.TechnicalStep) >= 50;
     }
 
     private bool ShouldSpendFeather(in Strategy strategy, Enemy target)
     {
         if (Feathers == 0 || !Unlocked(AID.FanDance) || FeathersStrat == FeatherStrategy.Delay)
             return false;
-        var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0);
+        var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0 || FlourishStrat != OffensiveStrategy.Delay && Unlocked(AID.Flourish) && ReadyIn(AID.Flourish) <= GCD);
         if (FeathersStrat == FeatherStrategy.Overcap)
             return overcap;
         if (!TimeToKill.WillLive(target.Actor, 5) || !Unlocked(AID.TechnicalStep))
