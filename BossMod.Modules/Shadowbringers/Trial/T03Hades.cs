@@ -91,14 +91,14 @@ class BrokenFaith(BossModule module) : Components.GenericAOEs(module, AID.Broken
     private static readonly AOEShapeCircle _shape = new(10);
     private readonly List<AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.OrderBy(a => a.Activation).Take(4);
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (actor.OID != (uint)OID.BrokenFaithObject)
             return;
-        if (state == 0x00020001u)
-            _aoes.Add(new(_shape, actor.Position, default, WorldState.FutureTime(8.5f)));
+        if (state is 0x00010002u or 0x00020001u && !_aoes.Any(a => a.Origin.AlmostEqual(actor.Position, 1)))
+            _aoes.Add(new(_shape, actor.Position, default, WorldState.FutureTime(9.1f)));
         else if (state == 0x00080004u)
             _aoes.RemoveAll(i => i.Origin.AlmostEqual(actor.Position, 1));
     }
@@ -177,15 +177,7 @@ class T03HadesStates : StateMachineBuilder
     public T03HadesStates(T03Hades module) : base(module)
     {
         _module = module;
-        SimplePhase(0, Phase1, "P1")
-            .Raw.Update = () => _module.BossP2() != null || Module.PrimaryActor.IsDeadOrDestroyed;
-        SimplePhase(1, Phase2, "P2")
-            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed && (_module.BossP2()?.IsDead ?? false);
-    }
-
-    private void Phase1(uint id)
-    {
-        SimpleState(id, 10000, "P2")
+        SimplePhase(0, id => SimpleState(id, 10000, "P2"), "P1")
             .ActivateOnEnter<RavenousAssault>()
             .ActivateOnEnter<BadFaith>()
             .ActivateOnEnter<ShadowSpread>()
@@ -196,12 +188,16 @@ class T03HadesStates : StateMachineBuilder
             .ActivateOnEnter<AncientDarkness>()
             .ActivateOnEnter<AncientAero>()
             .ActivateOnEnter<AncientDarkIV>()
-            .ActivateOnEnter<ShadowAdds>();
+            .ActivateOnEnter<ShadowAdds>()
+            .Raw.Update = () => _module.BossP2()?.IsTargetable == true || Module.PrimaryActor.IsDeadOrDestroyed;
     }
+}
 
-    private void Phase2(uint id)
+class T03HadesP2States : StateMachineBuilder
+{
+    public T03HadesP2States(T03HadesP2 module) : base(module)
     {
-        Condition(id, 600, () => _module.BossP2()?.CastInfo?.IsSpell(AID.LifeInCaptivity) ?? false, "Life in Captivity", 300)
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<Titanomachy>()
             .ActivateOnEnter<ShadowStreamPurgation>()
             .ActivateOnEnter<DualStrike>()
@@ -216,6 +212,11 @@ class T03HadesStates : StateMachineBuilder
             .ActivateOnEnter<DoomTowers>()
             .ActivateOnEnter<NetherBlast>()
             .ActivateOnEnter<ShadowAdds>();
+    }
+
+    private void SinglePhase(uint id)
+    {
+        Condition(id, 600, () => Module.PrimaryActor.CastInfo?.IsSpell(AID.LifeInCaptivity) ?? false, "Life in Captivity", 300);
         NothingTargetable(id + 0x10, true, 4.1f, "Disappear");
         NothingTargetable(id + 0x20, false, 49.25f, "Reappear");
         SimpleState(id + 0xFF0000, 10000, "Enrage");
@@ -230,10 +231,7 @@ class T03HadesStates : StateMachineBuilder
 public class T03Hades(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     public Actor? BossP2() => Enemies(OID.BossP2).FirstOrDefault(a => !a.IsDestroyed);
-
-    protected override void DrawEnemies(int pcSlot, Actor pc)
-    {
-        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
-        Arena.Actor(BossP2(), ArenaColor.Enemy);
-    }
 }
+
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
+public class T03HadesP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

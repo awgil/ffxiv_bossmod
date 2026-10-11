@@ -76,7 +76,14 @@ public enum TetherID : uint
     HolySword = 88, // ForgivenVenery2->ForgivenShame2
 }
 
-class Enthrall(BossModule module) : Components.CastGaze(module, AID.Enthrall);
+class Enthrall(BossModule module) : Components.CastGaze(module, AID.Enthrall)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var eye in ActiveEyes(slot, actor))
+            hints.ForbiddenDirections.Add((Angle.FromDirection(eye.Position - actor.Position), 120.Degrees(), eye.Activation));
+    }
+}
 class Realmrazer(BossModule module) : Components.RaidwideCastDelay(module, AID.Realmrazer, AID.RealmrazerAOE, 0.5f);
 class DaybreakAOE(BossModule module) : Components.StandardAOEs(module, AID.DaybreakAOE, 6);
 class ScoldsBridle(BossModule module) : Components.RaidwideCast(module, AID.ScoldsBridle);
@@ -304,7 +311,7 @@ class T02InnocenceP2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353)]
 public class T02Innocence(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     public Actor? BossP2() => Enemies(OID.BossP2).FirstOrDefault(a => !a.IsDestroyed);
