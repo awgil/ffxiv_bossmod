@@ -18,9 +18,9 @@ public enum AID : uint
 
     TheFallingSkyVisual = 15561, // Boss->self, 3.0s cast, single-target
     TheFallingSky = 15562, // Helper->location, 4.5s cast, range 10 circle
-    TheFinalSky = 15563, // Boss->self, 12.0s cast, range 70 circle, meteor if failed to LoS
-    CosmicKiss = 17108, // FallenStar->self, 4.5s cast, range 50 circle, meteor, damage fall off AOE
-    CosmicShrapnel = 17110, // FallenStar->self, no cast, range 8 circle, meteor explodes after final sky, can be ignored since it only does like 500 dmg
+    TheFinalSky = 15563, // Boss->self, 12.0s cast, range 70 circle
+    CosmicKiss = 17108, // FallenStar->self, 4.5s cast, range 50 circle
+    CosmicShrapnel = 17110, // FallenStar->self, no cast, range 8 circle
 
     Towerfall = 15564, // FallingTower->self, 8.0s cast, range 35 width 40 rect
     Earthquake = 15565, // Boss->self, 4.0s cast, range 10 circle

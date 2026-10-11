@@ -182,7 +182,6 @@ class Border(BossModule module) : Components.GenericAOEs(module)
 
     public IEnumerable<WPos> UnsafePlatformPositions => SidePlatforms.Where((_, i) => UnsafePlatforms[i]).Select(p => OriginalCenter + p);
 
-    // TODO this really should be in a separate component lol
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Stage == 0 && Module.PrimaryActor.CastInfo is { Action.ID: 15587 } ci)
@@ -228,7 +227,6 @@ class Border(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    // TODO: eventobjs moved???????
     private int FindPlatform(Actor act) => SidePlatforms.FindIndex(p => (OriginalCenter + p).AlmostEqual(act.Position, 1));
 
     public override void OnActorEAnim(Actor actor, uint state)

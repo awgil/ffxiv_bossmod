@@ -2,7 +2,7 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D113Batraal;
 
 public enum OID : uint
 {
-    Boss = 0x4A8D, // R4.600, Batraal (Duty Support / remaster)
+    Boss = 0x4A8D, // R4.600
     CorruptedCrystal = 0x4A8E, // R1.000
 }
 

@@ -2,7 +2,7 @@
 
 public enum OID : uint
 {
-    Boss = 0x4A8A, // R2.700, All-seeing Eye (Duty Support / remaster)
+    Boss = 0x4A8A, // R2.700
     Helper = 0x233C, // R0.500
 }
 

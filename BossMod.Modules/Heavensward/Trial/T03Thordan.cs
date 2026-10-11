@@ -2,7 +2,7 @@ namespace BossMod.Heavensward.Trial.T03Thordan;
 
 public enum OID : uint
 {
-    Boss = 0x1073, // R3.800, King Thordan
+    Boss = 0x1073, // R3.800
     SerZephirin = 0x1074, // R2.200
     SerAdelphel = 0x1075, // R2.200
     SerJanlenoux = 0x1076, // R2.200
@@ -16,11 +16,11 @@ public enum OID : uint
     SerHaumeric = 0x107E, // R2.200
     SerNoudenet = 0x107F, // R2.200
     Ascalon = 0x1080, // R3.800
-    Brightsphere = 0x1081, // R1.000, left behind by Shining Blade, explodes ~4.8s after spawning
+    Brightsphere = 0x1081, // R1.000
     MeteorCircle = 0x1082, // R1.000
     CometCircle = 0x1083, // R1.000
     Helper = 0x1084, // R0.500
-    IcePuddle = 0x1E9729, // R2.000, EventObj, left by Hiemal Storm, slows + damages from ~3s after spawning, lasts 18s
+    IcePuddle = 0x1E9729, // R2.000, EventObj
 }
 
 public enum AID : uint
@@ -30,7 +30,7 @@ public enum AID : uint
     KnightVisual2 = 4121, // Knights->self, no cast, single-target
     KnightVisual3 = 4185, // Knights->self, no cast, single-target
     BossVisual1 = 4186, // Boss->self, no cast, single-target
-    LightOfAscalonStart = 4187, // Boss->self, no cast, single-target, first Light of Ascalon ~10.8s later
+    LightOfAscalonStart = 4187, // Boss->self, no cast, single-target
     Attack = 4190, // Boss->self, no cast, range 8+R 90-degree cone
     AscalonsMight = 4191, // Boss->self, no cast, range 8+R cone
     AscalonsMercyBoss = 4192, // Boss->self, 3.0s cast, range 31+R cone
@@ -38,37 +38,37 @@ public enum AID : uint
     LightningStormVisual = 4194, // Boss->self, 3.5s cast, single-target
     LightningStorm = 4195, // Helper->player, 4.0s cast, range 5 circle spread
     MeteorainVisual = 4196, // Boss->self, 2.7s cast, single-target
-    Meteorain = 4197, // Helper->location, 3.0s cast, range 6 circle, placed on players
+    Meteorain = 4197, // Helper->location, 3.0s cast, range 6 circle
     AncientQuaga = 4198, // Boss->self, 3.0s cast, range 80 circle
     KnightsOfTheRound = 4199, // Boss->self, 3.0s cast, single-target
     TheDragonsEye = 4200, // Boss->self, 4.0s cast, single-target
     TheDragonsGaze = 4201, // Boss->self, 5.0s cast, range 80+R circle gaze
-    UltimateEnd = 4202, // Boss->self, no cast, range 80 circle, right after the last Light of Ascalon
-    TheLightOfAscalon = 4203, // Helper->self, no cast, range 80 circle, 3y knockback x7 ~1.4s apart
+    UltimateEnd = 4202, // Boss->self, no cast, range 80 circle
+    TheLightOfAscalon = 4203, // Helper->self, no cast, range 80 circle
     BroadSwing = 4204, // Boss->location, no cast, width 10 rect
     SacredCross = 4205, // SerZephirin->self, 15.0s cast, range 80+R circle
-    ShiningBlade = 4210, // SerAdelphel/SerJanlenoux->location, no cast, width 6 charge, 3 chained dashes with no telegraph
+    ShiningBlade = 4210, // SerAdelphel/SerJanlenoux->location, no cast, width 6 charge
     BrightFlare = 4211, // Brightsphere->self, no cast, range 5+R circle
     DimensionalCollapseVisual = 4212, // SerGrinnaux->self, 5.5s cast, single-target
-    DimensionalCollapse = 4213, // Helper->location, 6.0s cast, range 3 circle, grows to ~10 before it resolves
+    DimensionalCollapse = 4213, // Helper->location, 6.0s cast, range 3 circle
     ConvictionVisual = 4214, // SerHermenost->self, 5.2s cast, single-target
     Conviction = 4215, // Helper->location, 8.0s cast, range 2 circle tower
     EternalConviction = 4216, // Helper->self, no cast, range 80 circle, unsoaked tower
     HeavyImpactVisual = 4217, // SerGuerrique->self, no cast, single-target
     HeavyImpact1 = 4218, // Helper->self, 3.0s cast, range 6 270-degree cone, gap behind
-    HeavyImpact2 = 4219, // Helper->self, 3.0s cast, range 6-12 270-degree ring, ~1.9s after the previous ring
+    HeavyImpact2 = 4219, // Helper->self, 3.0s cast, range 6-12 270-degree ring
     HeavyImpact3 = 4220, // Helper->self, 3.0s cast, range 12-18 270-degree ring
     HeavyImpact4 = 4221, // Helper->self, 3.0s cast, range 18-27 270-degree ring
     SpiralThrust = 4222, // SerVellguine->self, 3.0s cast, range 52+R width 12 rect
     SpiralPierce = 4223, // SerPaulecrain->player, 4.0s cast, width 12 charge
-    SkywardLeapVisual = 4225, // Helper->self, 6.0s cast, range 80 circle, marks where Ser Ignasse lands
-    SkywardLeap = 4226, // SerIgnasse->self, no cast, range 80 circle, damage falls off with distance
+    SkywardLeapVisual = 4225, // Helper->self, 6.0s cast, range 80 circle
+    SkywardLeap = 4226, // SerIgnasse->self, no cast, range 80 circle
     HeavensflameVisual = 4227, // SerCharibert->self, 2.5s cast, single-target
     Heavensflame1 = 4228, // Helper->location, 3.0s cast, range 3 circle
     Heavensflame2 = 4229, // Helper->location, 3.0s cast, range 4 circle
     Heavensflame3 = 4230, // Helper->location, 3.0s cast, range 5 circle
     Heavensflame4 = 4231, // Helper->location, 3.0s cast, range 6 circle
-    HolyChain = 4232, // Helper->self, no cast, damage while the chain holds
+    HolyChain = 4232, // Helper->self, no cast, single-target
     HiemalStormVisual = 4233, // SerHaumeric->self, 2.5s cast, single-target
     HiemalStorm = 4234, // Helper->location, no cast, range 6 circle, on icon targets
     HolyMeteor = 4235, // SerNoudenet->self, 3.0s cast, single-target

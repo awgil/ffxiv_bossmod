@@ -2,7 +2,7 @@ namespace BossMod.Shadowbringers.Trial.T01Titania;
 
 public enum OID : uint
 {
-    Boss = 0x27ED, // R3.600, Titania
+    Boss = 0x27ED, // R3.600
     Helper = 0x233C, // R0.500
     Mustardseed = 0x27EE, // R2.400
     Peaseblossom = 0x27EF, // R2.850

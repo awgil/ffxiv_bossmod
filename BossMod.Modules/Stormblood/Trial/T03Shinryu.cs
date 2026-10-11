@@ -3,18 +3,18 @@ namespace BossMod.Stormblood.Trial.T03Shinryu;
 public enum OID : uint
 {
     Boss = 0x1983, // R22.000
-    Platform = 0x1EA1A1, // R2.000, EventObj, destructible arena tiles (9)
+    Platform = 0x1EA1A1, // R2.000, EventObj
     RightWing = 0x1B1A, // R15.000, Part
     LeftWing = 0x1B19, // R15.000, Part
     WaterSpout = 0x1E8536, // R2.000, EventObj
     WaterPuddles = 0x1E950D, // R0.500, EventObj
     Icicle = 0x1B16, // R2.500
-    EyeOfTheStorm = 0x1B17, // R1.000, pulsing knockback
+    EyeOfTheStorm = 0x1B17, // R1.000
     Cocoon1 = 0x1B13, // R3.000
     MassiveCocoon = 0x1C86, // R6.000
     Ginryu = 0x1B14, // R1.800
     Hakkinryu = 0x1C83, // R3.600
-    Fetters = 0x1B15, // R1.000, fetters + button mash
+    Fetters = 0x1B15, // R1.000
     Tail = 0x1B12, // R17.940, Helper
     Helper = 0x18D6, // R0.500
 }
@@ -26,8 +26,8 @@ public enum AID : uint
     TidalWaveCast = 8106, // Boss->self, 10.0s cast, single-target, visual
     Levinbolt = 8092, // Helper->player, no cast, range 5 circle
     LevinboltVisual = 8091, // RightWing->self, 6.0s cast, single-target, visual
-    AkhMornVisual = 8100, // Boss->players, 4.0s cast, single-target, shared tankbuster visual
-    AkhMorn1 = 8101, // Boss->players, no cast, single-target, shared tankbuster hit
+    AkhMornVisual = 8100, // Boss->players, 4.0s cast, single-target
+    AkhMorn1 = 8101, // Boss->players, no cast, single-target
     SummonIcicle = 8095, // LeftWing->self, 4.0s cast, single-target
     IcicleImpact = 8096, // Icicle->self, no cast, range 6 circle
     Spikesicle = 8097, // Icicle->self, 2.5s cast, range 62+R width 10 rect

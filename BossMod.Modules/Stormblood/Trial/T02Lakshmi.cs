@@ -5,7 +5,7 @@ public enum OID : uint
     Boss = 0x1E20, // R3.500
     Helper = 0x18D6, // R0.500
     DreamingKshatriya = 0x1E22, // R1.000
-    Vril = 0x1E21, // R1.000, orbs; touching one (Aether Drain) refills the Vril duty action; sets of ~15 a few seconds before each Vril check
+    Vril = 0x1E21, // R1.000
     VoidZone = 0x1EA76C, // R0.500
 }
 
@@ -18,9 +18,9 @@ public enum AID : uint
     HandOfGrace = 9350, // Boss->self, 7.0s cast, single-target
     HandOfBeauty = 9351, // Boss->self, 7.0s cast, single-target
     AlluringArm = 9352, // Boss->self, 7.0s cast, single-target
-    BlissfulSpearCross1 = 9355, // Helper->self, no cast, range 40 width 8 cross, cardinal, ~12.8s after icon 107
+    BlissfulSpearCross1 = 9355, // Helper->self, no cast, range 40 width 8 cross
     BlissfulSpearCross2 = 9356, // Helper->self, no cast, range 40 width 8 cross
-    BlissfulSpearCircle1 = 9364, // Helper->player, no cast, range 7 circle, ~12.2s after icon 109
+    BlissfulSpearCircle1 = 9364, // Helper->player, no cast, range 7 circle
     BlissfulSpearCircle2 = 9365, // Helper->player, no cast, range 7 circle
     ThePallOfLightStack = 9361, // Boss->players, 5.0s cast, range 7 circle
     ThePullOfLight = 9362, // Boss->player, 5.0s cast, single-target
@@ -28,8 +28,8 @@ public enum AID : uint
     ThePathOfLight = 9359, // Boss->self, no cast, range 40+R cone
     ThePathOfLightProtean = 9377, // Boss->self, no cast, range 40+R cone
     StotramChanchala = 9374, // Boss->self, 3.0s cast, range 40 circle
-    VrilDuty = 9345, // player duty action, 1 charge, grants Vril
-    AetherDrain = 9357, // Vril->player, no cast, refills the Vril duty action
+    VrilDuty = 9345,
+    AetherDrain = 9357, // Vril->player, no cast
     TailSlap = 9612, // DreamingKshatriya->self, no cast, range 6+R cone
     InnerDemons = 9613, // DreamingKshatriya->self, 4.0s cast, range 6+R circle
 }
@@ -43,7 +43,7 @@ public enum IconID : uint
 
 public enum SID : uint
 {
-    Vril = 1290, // reduces Divine Denial / Alluring Embrace / Chanchala Stotram; without it Alluring Embrace hit for 48-76k
+    Vril = 1290,
 }
 
 class DreamingKshatriyaAdds(BossModule module) : Components.Adds(module, (uint)OID.DreamingKshatriya);

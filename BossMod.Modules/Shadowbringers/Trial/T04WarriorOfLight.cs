@@ -120,8 +120,30 @@ class SolemnConfiteor(BossModule module) : Components.StandardAOEs(module, AID.S
 class RadiantSacrament(BossModule module) : Components.StandardAOEs(module, AID.RadiantSacrament, new AOEShapeRect(60, 20));
 class Ascendance(BossModule module) : Components.RaidwideCast(module, AID.Ascendance);
 class UltimateCrossoverAOE(BossModule module) : Components.RaidwideCast(module, AID.UltimateCrossoverAOE, "Tank LB3 when 'Transcend your limits...'");
-class AbsoluteHoly(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.AbsoluteHoly, 6, 5.1f);
-class RadiantDesperado(BossModule module) : Components.MultiLineStack(module, 4, 60, AID.RadiantDesperadoMarker, AID.RadiantDesperado, 6);
+class AbsoluteHoly(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.AbsoluteHoly, 6, 5.1f)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == StackAction)
+        {
+            Stacks.Clear();
+            ++NumFinishedStacks;
+        }
+    }
+}
+class RadiantDesperado(BossModule module) : Components.MultiLineStack(module, 4, 60, AID.RadiantDesperadoMarker, AID.RadiantDesperado, 6)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.RadiantDesperado or AID.RadiantDesperadoRepeat)
+        {
+            NumCasts++;
+            Stacks.Clear();
+            return;
+        }
+        base.OnEventCast(caster, spell);
+    }
+}
 class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.MeteoricBurst)
 {
     public override void OnMapEffect(byte index, uint state)
@@ -218,13 +240,13 @@ class AbsoluteFireIce(BossModule module) : Components.StayMove(module)
                 Apply(Requirement.Stay, Module.CastFinishAt(spell));
                 break;
             case AID.AbsoluteBlizzardIII:
-                Apply(Requirement.NoMove, Module.CastFinishAt(spell));
+                Apply(Requirement.Move, Module.CastFinishAt(spell));
                 break;
             case AID.ImbuedAbsoluteFireIII:
                 _imbued = Requirement.Stay;
                 break;
             case AID.ImbuedAbsoluteBlizzardIII:
-                _imbued = Requirement.NoMove;
+                _imbued = Requirement.Move;
                 break;
             case AID.ImbuedCoruscanceIn:
             case AID.ImbuedCoruscanceOut:

@@ -2,7 +2,7 @@ namespace BossMod.Heavensward.Dungeon.D17BaelsarsWall.D172ArmoredWeapon;
 
 public enum OID : uint
 {
-    Boss = 0x193A, // R5.400, x1
+    Boss = 0x193A, // R5.400
     MagitekSlasher = 0x193C, // R1.05
     MagitekBit = 0x193B, // R0.9
     Helper2 = 0x19A,
@@ -17,8 +17,8 @@ public enum AID : uint
 
     MagitekCannon = 7352, // Boss->player, no cast, single-target
     Launcher = 7356, // Boss->self, 3.0s cast, range 80+R circle, raidwide
-    DynamicSensoryJammer = 7353, // Boss->self, 3.0s cast, range 80+R circle, applies extreme caution
-    DynamicSensoryJammerFail = 7354, // Helper2->player, no cast, single-target, extreme caution fail
+    DynamicSensoryJammer = 7353, // Boss->self, 3.0s cast, range 80+R circle
+    DynamicSensoryJammerFail = 7354, // Helper2->player, no cast, single-target
 
     DiffractiveLaserVisual = 31352, // Helper->self, 2.0s cast, range 5 circle
     DiffractiveLaser1 = 31469, // Boss->location, 4.0s cast, range 5 circle

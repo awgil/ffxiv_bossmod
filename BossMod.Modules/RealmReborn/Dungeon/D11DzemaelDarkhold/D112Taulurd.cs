@@ -2,7 +2,7 @@ namespace BossMod.RealmReborn.Dungeon.D11DzemaelDarkhold.D112Taulurd;
 
 public enum OID : uint
 {
-    Boss = 0x4A8B, // R1.560, Taulurd
+    Boss = 0x4A8B, // R1.560
     DeepvoidSlave = 0x4A8C, // R1.040
 }
 

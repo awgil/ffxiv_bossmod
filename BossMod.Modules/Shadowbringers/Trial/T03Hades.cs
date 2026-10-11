@@ -95,14 +95,18 @@ class BrokenFaith(BossModule module) : Components.GenericAOEs(module, AID.Broken
 
     public override void OnActorEAnim(Actor actor, uint state)
     {
-        if (actor.OID == (uint)OID.BrokenFaithObject && state == 0x00010002u)
+        if (actor.OID != (uint)OID.BrokenFaithObject)
+            return;
+        if (state == 0x00020001u)
             _aoes.Add(new(_shape, actor.Position, default, WorldState.FutureTime(8.5f)));
+        else if (state == 0x00080004u)
+            _aoes.RemoveAll(i => i.Origin.AlmostEqual(actor.Position, 1));
     }
 
     public override void OnActorDestroyed(Actor actor)
     {
         if (actor.OID == (uint)OID.BrokenFaithObject)
-            _aoes.RemoveAll(i => i.Origin == actor.Position);
+            _aoes.RemoveAll(i => i.Origin.AlmostEqual(actor.Position, 1));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -124,7 +128,7 @@ class ShadowStreamPurgation(BossModule module) : Components.GroupedAOEs(module, 
 class DualStrike(BossModule module) : Components.BaitAwayCast(module, AID.DualStrike, new AOEShapeCircle(5), centerAtTarget: true, endsOnCastEvent: true);
 class WailOfTheLost(BossModule module) : Components.StandardAOEs(module, AID.WailOfTheLost, new AOEShapeRect(40, 20));
 class EchoOfTheLost(BossModule module) : Components.GroupedAOEs(module, [AID.EchoOfTheLostL, AID.EchoOfTheLostR], new AOEShapeCone(100, 45.Degrees()));
-class HellbornYawp(BossModule module) : Components.BaitAwayCast(module, AID.HellbornYawp, new AOEShapeCone(100, 30.Degrees()));
+class HellbornYawp(BossModule module) : Components.StandardAOEs(module, AID.HellbornYawp, new AOEShapeCone(100, 30.Degrees()));
 class CaptivityBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.CaptivityBait, AID.CaptivityCast, 4.7f, centerAtTarget: true);
 class LifeInCaptivity(BossModule module) : Components.RaidwideCast(module, AID.LifeInCaptivity);
 class TheDarkDevours(BossModule module) : Components.RaidwideCastDelay(module, AID.TheDarkDevoursVisual, AID.TheDarkDevours, 0.5f);

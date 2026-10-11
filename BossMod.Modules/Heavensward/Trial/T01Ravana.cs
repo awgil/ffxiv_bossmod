@@ -2,7 +2,7 @@
 
 public enum OID : uint
 {
-    Boss = 0xEB4, // R3.500, Ravana
+    Boss = 0xEB4, // R3.500
     MoonGana = 0xEB6, // R1.000
     SpiritGana = 0xEB8, // R0.600
     RavanasWill = 0xEBA, // R1.000
@@ -19,9 +19,9 @@ public enum AID : uint
     DragonflyAvatar = 3712, // Boss->self, no cast, single-target
     ScorpionAvatar = 3713, // Boss->self, no cast, single-target
     BeetleAvatar = 3714, // Boss->self, no cast, single-target
-    BlindingBlade = 3715, // Boss->self, no cast, range 7 ~90-degree cone on the tank
-    TheSeeingTail = 3716, // Boss->self, 1.2s cast, applies directional parry (front+back)
-    TheSeeingWing = 3717, // Boss->self, 1.2s cast, applies directional parry (left+right)
+    BlindingBlade = 3715, // Boss->self, no cast, range 7 ~90-degree cone
+    TheSeeingTail = 3716, // Boss->self, 1.2s cast, single-target
+    TheSeeingWing = 3717, // Boss->self, 1.2s cast, single-target
     Revengeance = 3718, // Helper->self, no cast, single-target
     PreludeToSlaughterCast = 3719, // Boss->self, 14.7s cast, range 15 circle
     PreludeToSlaughterVisual = 3720, // Boss->self, 2.7s cast, single-target
@@ -30,24 +30,24 @@ public enum AID : uint
     SlaughterCast = 3723, // Boss->self, 15.7s cast, range 40 270-degree cone
     SlaughterVisual = 3724, // Boss->self, 2.7s cast, single-target
     SlaughterRect = 3725, // Helper->self, 3.7s cast, range 44 width 8 rect
-    SlaughterCircle = 3726, // HelperA->self, no cast, range 12 circle on icon-marked players
-    Tapasya = 3727, // Boss->self, no cast, range 9 ~120-degree cone on the tank
-    TapasyaFollowUp = 3728, // Helper->self, no cast, range 12 ~120-degree cone, 2.6s and 3.1s after Tapasya in the same direction
+    SlaughterCircle = 3726, // HelperA->self, no cast, range 12 circle
+    Tapasya = 3727, // Boss->self, no cast, range 9 ~120-degree cone
+    TapasyaFollowUp = 3728, // Helper->self, no cast, range 12 ~120-degree cone
     AtmaLinga = 3729, // Boss->self, no cast, single-target
     FallingLaughter = 3730, // MoonGana/SpiritGana->self, 9.7s cast, single-target
     BloodyFuller = 3731, // Boss->self, 4.7s cast, range 100 circle
     ChandrahasSpawn = 3732, // Chandrahas->self, no cast, single-target
-    LaughingMoon = 3734, // HelperA->self, no cast, raidwide if Moon Gana survives
-    ChandrahasFinale = 3735, // HelperB->self, no cast, raidwide while everyone is Fettered
+    LaughingMoon = 3734, // HelperA->self, no cast, raidwide
+    ChandrahasFinale = 3735, // HelperB->self, no cast, raidwide
     TheRoseOfConviction = 3736, // Boss->self, no cast, single-target
-    TheRoseOfConquest = 3737, // RavanasWill->self, no cast, range 6 circle at the tethered player, vulnerability on hit
-    PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle, knockback to the wall ~1s after the cast
-    Surpanakha = 3739, // Boss->self, no cast, range 40 ~130-degree cone on the tank, vulnerability on hit
+    TheRoseOfConquest = 3737, // RavanasWill->self, no cast, range 6 circle
+    PillarsOfHeaven = 3738, // Boss->self, 2.7s cast, range 40 circle
+    Surpanakha = 3739, // Boss->self, no cast, range 40 ~130-degree cone
     TheRoseOfHate = 3740, // Boss->self, 2.7s cast, range 40 width 8 rect
-    SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target, numbered markers on 4 players during the cast
-    SwiftSlaughterDash = 3742, // Boss/HelperA->location, no cast, range ~20 width 6 rect from center through marked player, in marker order ~1s apart
-    SwiftSlaughterVisual = 4769, // Boss->self, 2.7s cast, range 20, post-enrage loop, hits only arena objects
-    SwiftSlaughterAOE = 4770, // Boss->self, 3.7s cast, range 15 circle, post-enrage loop
+    SwiftSlaughter = 3741, // Boss->self, 16.7s cast, single-target
+    SwiftSlaughterDash = 3742, // Boss/HelperA->location, no cast, range ~20 width 6 rect
+    SwiftSlaughterVisual = 4769, // Boss->self, 2.7s cast, range 20
+    SwiftSlaughterAOE = 4770, // Boss->self, 3.7s cast, range 15 circle
     BladesOfCarnageAndLiberation = 4986, // Boss->self, no cast, single-target, visual
     FireAdd = 5015, // MoonGana->player, 0.7s cast, single-target
     BlizzardAdd = 5016, // SpiritGana->player, 0.7s cast, single-target
@@ -58,8 +58,8 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Stack = 41, // player, Rose of Conquest
-    Slaughter = 57, // player, 12y Slaughter spread ~7.3s later
+    Stack = 41, // player
+    Slaughter = 57, // player
     SwiftSlaughter1 = 50, // player
     SwiftSlaughter2 = 51, // player
     SwiftSlaughter3 = 52, // player
@@ -73,8 +73,8 @@ public enum TetherID : uint
 
 public enum SID : uint
 {
-    Invincibility = 325, // boss jump / cutscene immunity (Lunar Ravana quest)
-    DirectionalParry = 680, // Seeing Tail/Wing; extra 0x3 = front+back, 0xC = left+right
+    Invincibility = 325,
+    DirectionalParry = 680,
 }
 
 class PreludeToSlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.PreludeToSlaughterCast, 15);

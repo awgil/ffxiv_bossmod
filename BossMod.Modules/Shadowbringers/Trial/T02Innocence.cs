@@ -36,8 +36,8 @@ public enum AID : uint
     AutoAttackP2 = 16032, // BossP2->player, no cast, single-target
     RighteousBolt = 16035, // BossP2->player, 5.0s cast, single-target, tankbuster
     NailExplosion = 16041, // NailOfCondemnation->self, no cast
-    SoulAndBody1 = 16049, // Helper->self, 3.0s cast, range 5-20 donut
-    SoulAndBody2 = 16050, // Helper->self, 3.0s cast, range 5-20 donut
+    SoulAndBody1 = 16049, // Helper->self, 3.0s cast, rotating wave; the pair is one ribbon
+    SoulAndBody2 = 16050, // Helper->self, 3.0s cast, opposite half of the same wave
     HolyTrinity = 16051, // Helper->self, 3.0s cast, range 40 width 4 rect
     RightfulReprobation = 16053, // BossP2->self, 3.0s cast, single-target
     Reprobation = 16054, // ThornOfCondemnation->self, 3.0s cast, single-target
@@ -52,12 +52,12 @@ public enum AID : uint
     DropOfLightVisual = 16068, // BossP2->self, no cast, single-target
     DropOfLight = 16069, // Helper->self, no cast, range 10 circle
     LightPillar = 16070, // BossP2->self, no cast, range 40 width 6 rect
-    BeatificVision = 16071, // BossP2->self, 5.0s cast, range 45 width 40 rect, covers whole arena
+    BeatificVision = 16071, // BossP2->self, 5.0s cast, range 45 width 40 rect, line proximity from the rim across the arena
     ReprobationLong = 16075, // Helper->self, 1.5s cast, range 42 width 4 rect
     Shadowreaver = 16106, // BossP2->self, 5.0s cast, range 40 circle
     ExaltedPlumes = 16114, // Helper->self, no cast, range 40 circle
-    SoulAndBodyInstant1 = 16121, // Helper->self, no cast, range 5-20 donut
-    SoulAndBodyInstant2 = 16122, // Helper->self, no cast, range 5-20 donut
+    SoulAndBodyInstant1 = 16121, // Helper->self, no cast, same wave advanced +15°
+    SoulAndBodyInstant2 = 16122, // Helper->self, no cast, opposite half of that step
     WingedReprobation = 16572, // BossP2->self, 3.0s cast, single-target
     HolySwordInstant = 17175, // ForgivenVenery->player, no cast, single-target
     Manacle = 18064, // ForgivenShame2->location, 3.5s cast, range 6 circle
@@ -71,57 +71,114 @@ public enum IconID : uint
     DropOfLight = 138, // player
 }
 
+public enum TetherID : uint
+{
+    HolySword = 88, // ForgivenVenery2->ForgivenShame2
+}
+
 class Enthrall(BossModule module) : Components.CastGaze(module, AID.Enthrall);
 class Realmrazer(BossModule module) : Components.RaidwideCastDelay(module, AID.Realmrazer, AID.RealmrazerAOE, 0.5f);
 class DaybreakAOE(BossModule module) : Components.StandardAOEs(module, AID.DaybreakAOE, 6);
 class ScoldsBridle(BossModule module) : Components.RaidwideCast(module, AID.ScoldsBridle);
 class HolySword(BossModule module) : Components.SingleTargetCast(module, AID.HolySword);
 class RighteousBolt(BossModule module) : Components.BaitAwayCast(module, AID.RighteousBolt, new AOEShapeCircle(3), centerAtTarget: true, endsOnCastEvent: true);
-class SoulAndBody(BossModule module) : Components.GenericAOEs(module)
+// S-ribbon through the centre with a safe ring gap (~second golden circle), +15° CCW
+// latest replay: Instant1 every ~1.0s; Instant2 is the same step +0.3s — advance only on Instant1
+class SoulAndBody : Components.GenericRotatingAOE
 {
-    private static readonly AOEShapeCone _shape = new(20, 30.Degrees());
-    private Angle _base;
-    private DateTime _start;
-    private DateTime _lastEvent;
-    private int _tick = -1;
+    private static readonly AOEShapeCustom _shape = BuildShape();
+    private DateTime _lastAdvance;
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public SoulAndBody(BossModule module) : base(module)
     {
-        if (_tick < 0)
-            yield break;
-        for (var k = _tick; k < _tick + 3; ++k)
-        {
-            var rot = _base + (15 * k - 15).Degrees();
-            var activation = k == 0 ? _start : _start.AddSeconds(1.3f + (k - 1));
-            yield return new(_shape, Arena.Center, rot, activation);
-            yield return new(_shape, Arena.Center, rot + 180.Degrees(), activation);
-        }
+        FutureRisky = false;
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    private static AOEShapeCustom BuildShape()
     {
-        if ((AID)spell.Action.ID == AID.SoulAndBody1 && _tick < 0)
-        {
-            _base = Angle.FromDirection(spell.LocXZ - Arena.Center) - 90.Degrees();
-            _start = Module.CastFinishAt(spell);
-            _lastEvent = _start;
-            _tick = 0;
-        }
+        var clipper = new PolygonClipper();
+        // replay: hits at r≤11.1 on the ribbon, safe on-ribbon at r≈12–16 (golden ring)
+        var gap = clipper.Difference(new(CurveApprox.Circle(16f, 0.25f)), new(CurveApprox.Circle(11.5f, 0.25f)));
+        return new(clipper.Difference(new(Ribbon()), new(gap)));
     }
 
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    private static List<WDir> Ribbon()
     {
-        if ((AID)spell.Action.ID is AID.SoulAndBody2 or AID.SoulAndBodyInstant2 && _tick >= 0)
+        const int n = 48;
+        const float amp = 2f, period = 30f, halfWidth = 3f;
+        var k = 2 * MathF.PI / period;
+        var left = new List<WDir>(n + 1);
+        var right = new List<WDir>(n + 1);
+        for (var i = 0; i <= n; ++i)
         {
-            _lastEvent = WorldState.CurrentTime;
-            _tick = Math.Max(_tick, (int)MathF.Round((spell.Rotation - _base).Normalized().Deg / 15) + 1);
+            var z = -22f + 44f * i / n;
+            var x = amp * MathF.Sin(k * z);
+            var dx = amp * k * MathF.Cos(k * z);
+            var len = MathF.Sqrt(dx * dx + 1);
+            var ox = halfWidth / len;
+            var oz = halfWidth * -dx / len;
+            left.Add(new(x + ox, z + oz));
+            right.Add(new(x - ox, z - oz));
         }
+        right.Reverse();
+        left.AddRange(right);
+        return left;
     }
 
     public override void Update()
     {
-        if (_tick >= 0 && WorldState.CurrentTime > _lastEvent.AddSeconds(2))
-            _tick = -1;
+        // drop once the spins stop (repeat count isn't fixed: 8 then 12)
+        if (Sequences.Count > 0 && Sequences[0].NextActivation < WorldState.CurrentTime.AddSeconds(-1.5f))
+            Sequences.Clear();
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID != AID.SoulAndBody1)
+            return;
+        // Action rotation is sector-facing; ribbon axis is through the rim helpers (= radial, eventRot - 90°).
+        var rot = (caster.Position - Arena.Center).ToAngle();
+        if (Sequences.Count > 0)
+        {
+            var cur = Sequences[0].Rotation;
+            if (cur.AlmostEqual(rot, 0.1f) || cur.AlmostEqual(rot + 180.Degrees(), 0.1f))
+                return;
+            Sequences.Clear();
+        }
+        Sequences.Add(new(_shape, Arena.Center, rot, 15.Degrees(), Module.CastFinishAt(spell), 1f, 16, 1));
+        _lastAdvance = default;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        var aid = (AID)spell.Action.ID;
+        if (aid is not (AID.SoulAndBody1 or AID.SoulAndBodyInstant1))
+            return;
+        // event rot is sector-facing; ribbon axis is -90°. After a hit, show the next step.
+        var next = spell.Rotation - 90.Degrees() + 15.Degrees();
+        if (aid == AID.SoulAndBody1)
+        {
+            if (Sequences.Count == 0)
+                Sequences.Add(new(_shape, Arena.Center, next, 15.Degrees(), WorldState.FutureTime(1f), 1f, 16, 1));
+            else
+            {
+                ref var s = ref Sequences.AsSpan()[0];
+                // opposite SAB1 is +180° (same ribbon) — only snap once per step
+                if (!s.Rotation.AlmostEqual(next, 0.1f) && !s.Rotation.AlmostEqual(next + 180.Degrees(), 0.1f))
+                    s.Rotation = next;
+                s.NextActivation = WorldState.FutureTime(1f);
+            }
+            return;
+        }
+        if (Sequences.Count == 0)
+            return;
+        if (_lastAdvance != default && WorldState.CurrentTime < _lastAdvance.AddSeconds(0.5f))
+            return;
+        ref var seq = ref Sequences.AsSpan()[0];
+        seq.Rotation = next;
+        seq.NextActivation = WorldState.CurrentTime.AddSeconds(seq.SecondsBetweenActivations);
+        ++NumCasts;
+        _lastAdvance = WorldState.CurrentTime;
     }
 }
 class HolyTrinity(BossModule module) : Components.StandardAOEs(module, AID.HolyTrinity, new AOEShapeRect(40, 2));
@@ -149,13 +206,53 @@ class ReprobationLongPredicted(BossModule module) : Components.GenericAOEs(modul
 class GodRayCone(BossModule module) : Components.StandardAOEs(module, AID.GodRayCone, new AOEShapeCone(5, 50.Degrees()));
 class GodRayDonut1(BossModule module) : Components.StandardAOEs(module, AID.GodRayDonut1, new AOEShapeDonutSector(5, 10, 50.Degrees()));
 class GodRayDonut2(BossModule module) : Components.StandardAOEs(module, AID.GodRayDonut2, new AOEShapeDonutSector(10, 20, 50.Degrees()));
-class BeatificVision(BossModule module) : Components.RaidwideCast(module, AID.BeatificVision);
+// EX/normal guides: unmarked proximity to the *charge line* — stand on a side edge (L/R of Innocence), not the far end of the dash
+class BeatificVision : Components.StandardAOEs
+{
+    public BeatificVision(BossModule module) : base(module, AID.BeatificVision, new AOEShapeRect(45, 20), warningText: "Side edge — away from the line!")
+    {
+        Risky = false;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var caster in Casters)
+        {
+            if (caster.CastInfo == null)
+                continue;
+            var activation = Module.CastFinishAt(caster.CastInfo);
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), activation);
+            var dir = caster.CastInfo.Rotation.ToDirection();
+            var side = dir.OrthoL() * Arena.Bounds.Radius;
+            // either side rim is safe; pick the one closer to the player
+            var a = Arena.Center + side;
+            var b = Arena.Center - side;
+            var far = (actor.Position - a).LengthSq() <= (actor.Position - b).LengthSq() ? a : b;
+            hints.GoalZones.Add(AIHints.GoalProximity(far, 6, 80));
+            // keep people off the charge axis
+            hints.AddForbiddenZone(new AOEShapeRect(45, 6), caster.Position, caster.CastInfo.Rotation, activation);
+        }
+    }
+}
 class Shadowreaver(BossModule module) : Components.RaidwideCast(module, AID.Shadowreaver);
 class Manacle(BossModule module) : Components.StandardAOEs(module, AID.Manacle, 6);
-class HolySwordAdd(BossModule module) : Components.SingleTargetCast(module, AID.HolySwordAdd, "Interrupt add");
+class HolySwordAdd(BossModule module) : Components.SingleTargetCast(module, AID.HolySwordAdd, "Kill tethered Shame");
 class DropOfLight(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(10), (uint)IconID.DropOfLight, AID.DropOfLight, 5.1f, centerAtTarget: true);
 class LightPillar(BossModule module) : Components.SimpleLineStack(module, 3, 40, AID.LightPillarMarker, AID.LightPillar, 4.7f);
-class InnocenceAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ForgivenShame, (uint)OID.ForgivenVenery, (uint)OID.ForgivenShame2, (uint)OID.ForgivenVenery2, (uint)OID.NailOfCondemnation, (uint)OID.SwordOfCondemnation], 1);
+class InnocenceAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.ForgivenShame, (uint)OID.ForgivenVenery, (uint)OID.ForgivenShame2, (uint)OID.ForgivenVenery2, (uint)OID.NailOfCondemnation, (uint)OID.SwordOfCondemnation], 1)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        foreach (var venery in Module.Enemies(OID.ForgivenVenery2))
+        {
+            if (venery.Tether.ID == (uint)TetherID.HolySword && WorldState.Actors.Find(venery.Tether.Target) is { } tethered)
+                hints.SetPriority(tethered, 3);
+            if (venery.CastInfo?.IsSpell(AID.HolySwordAdd) == true && WorldState.Actors.Find(venery.CastInfo.TargetID) is { } castTarget)
+                hints.SetPriority(castTarget, 3);
+        }
+    }
+}
 
 class SinSphere(BossModule module) : Components.GenericTowers(module)
 {
@@ -187,6 +284,40 @@ class ExaltedPlumes(BossModule module) : InstantRaidwide(module, AID.ExaltedPlum
 class GuiltyVerdict(BossModule module) : InstantRaidwide(module, AID.GuiltyVerdict);
 class FlamingSwordRaidwide(BossModule module) : InstantRaidwide(module, AID.FlamingSword);
 
+static class T02InnocenceComponents
+{
+    public static StateMachineBuilder.Phase ActivateP1(StateMachineBuilder.Phase p) => p
+        .ActivateOnEnter<Enthrall>()
+        .ActivateOnEnter<Realmrazer>()
+        .ActivateOnEnter<DaybreakAOE>()
+        .ActivateOnEnter<ScoldsBridle>()
+        .ActivateOnEnter<HolySword>()
+        .ActivateOnEnter<SinSphere>()
+        .ActivateOnEnter<ExaltedWing>()
+        .ActivateOnEnter<ExaltedPlumes>()
+        .ActivateOnEnter<InnocenceAdds>();
+
+    public static StateMachineBuilder.Phase ActivateP2(StateMachineBuilder.Phase p) => p
+        .ActivateOnEnter<RighteousBolt>()
+        .ActivateOnEnter<SoulAndBody>()
+        .ActivateOnEnter<HolyTrinity>()
+        .ActivateOnEnter<ReprobationLine>()
+        .ActivateOnEnter<ReprobationLong>()
+        .ActivateOnEnter<ReprobationLongPredicted>()
+        .ActivateOnEnter<GodRayCone>()
+        .ActivateOnEnter<GodRayDonut1>()
+        .ActivateOnEnter<GodRayDonut2>()
+        .ActivateOnEnter<BeatificVision>()
+        .ActivateOnEnter<Shadowreaver>()
+        .ActivateOnEnter<Manacle>()
+        .ActivateOnEnter<HolySwordAdd>()
+        .ActivateOnEnter<GuiltyVerdict>()
+        .ActivateOnEnter<FlamingSwordRaidwide>()
+        .ActivateOnEnter<DropOfLight>()
+        .ActivateOnEnter<LightPillar>()
+        .ActivateOnEnter<InnocenceAdds>();
+}
+
 class T02InnocenceStates : StateMachineBuilder
 {
     private readonly T02Innocence _module;
@@ -194,51 +325,20 @@ class T02InnocenceStates : StateMachineBuilder
     public T02InnocenceStates(T02Innocence module) : base(module)
     {
         _module = module;
-        SimplePhase(0, Phase1, "P1")
-            .Raw.Update = () => _module.BossP2() != null || Module.PrimaryActor.IsDeadOrDestroyed;
-        SimplePhase(1, Phase2, "P2")
-            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed && (_module.BossP2()?.IsDead ?? false);
-    }
-
-    private void Phase1(uint id)
-    {
-        SimpleState(id, 10000, "P2")
-            .ActivateOnEnter<Enthrall>()
-            .ActivateOnEnter<Realmrazer>()
-            .ActivateOnEnter<DaybreakAOE>()
-            .ActivateOnEnter<ScoldsBridle>()
-            .ActivateOnEnter<HolySword>()
-            .ActivateOnEnter<SinSphere>()
-            .ActivateOnEnter<ExaltedWing>()
-            .ActivateOnEnter<ExaltedPlumes>()
-            .ActivateOnEnter<InnocenceAdds>();
-    }
-
-    private void Phase2(uint id)
-    {
-        SimpleState(id, 10000, "Enrage")
-            .ActivateOnEnter<RighteousBolt>()
-            .ActivateOnEnter<SoulAndBody>()
-            .ActivateOnEnter<HolyTrinity>()
-            .ActivateOnEnter<ReprobationLine>()
-            .ActivateOnEnter<ReprobationLong>()
-            .ActivateOnEnter<ReprobationLongPredicted>()
-            .ActivateOnEnter<GodRayCone>()
-            .ActivateOnEnter<GodRayDonut1>()
-            .ActivateOnEnter<GodRayDonut2>()
-            .ActivateOnEnter<BeatificVision>()
-            .ActivateOnEnter<Shadowreaver>()
-            .ActivateOnEnter<Manacle>()
-            .ActivateOnEnter<HolySwordAdd>()
-            .ActivateOnEnter<GuiltyVerdict>()
-            .ActivateOnEnter<FlamingSwordRaidwide>()
-            .ActivateOnEnter<DropOfLight>()
-            .ActivateOnEnter<LightPillar>()
-            .ActivateOnEnter<InnocenceAdds>();
+        T02InnocenceComponents.ActivateP1(SimplePhase(0, id => SimpleState(id, 10000, "P2"), "P1"))
+            .Raw.Update = () => _module.BossP2()?.IsTargetable == true || Module.PrimaryActor.IsDeadOrDestroyed;
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353)] // TODO: clear Incomplete after P1/P2 full replay verify
+class T02InnocenceP2States : StateMachineBuilder
+{
+    public T02InnocenceP2States(T02InnocenceP2 module) : base(module)
+    {
+        T02InnocenceComponents.ActivateP2(TrivialPhase());
+    }
+}
+
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353)]
 public class T02Innocence(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     public Actor? BossP2() => Enemies(OID.BossP2).FirstOrDefault(a => !a.IsDestroyed);
@@ -249,3 +349,6 @@ public class T02Innocence(ModuleInit init) : BossModule(init, new(100, 100), new
         Arena.Actor(BossP2(), ArenaColor.Enemy);
     }
 }
+
+[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
+public class T02InnocenceP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

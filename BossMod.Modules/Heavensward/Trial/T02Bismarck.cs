@@ -2,18 +2,18 @@ namespace BossMod.Heavensward.Trial.T02Bismarck;
 
 public enum OID : uint
 {
-    Boss = 0xEF8, // R6.000, Bismarck, untargetable all fight
+    Boss = 0xEF8, // R6.000
     Helper = 0xEF9, // R0.500
     VaporBubble = 0xEFA, // R1.200
     LanMaiiVundu = 0xEFC, // R1.500
     VukMaiiVundu = 0xEFD, // R1.300
     SoSanuwa = 0xEFE, // R3.500
-    FunnelCloud = 0xEFF, // R1.000, wanders across the deck
+    FunnelCloud = 0xEFF, // R1.000
     UlSanuwa = 0xF00, // R3.500
     MagitekFieldGenerator = 0xF60, // R1.000
-    ChitinCarapace = 0x1147, // R5.000, Part, first shell
-    Corona = 0x1148, // R5.000, Part, second shell
-    Dragonkiller = 0x12EB, // R1.000, armed cannon
+    ChitinCarapace = 0x1147, // R5.000, Part
+    Corona = 0x1148, // R5.000, Part
+    Dragonkiller = 0x12EB, // R1.000
     HelperB = 0x1214, // R0.500
     HelperC = 0x1303, // R1.000
     FieldGeneratorSwitch = 0x1E9A25, // EventObj
@@ -26,20 +26,20 @@ public enum AID : uint
     AutoAttackAdd = 872, // LanMaiiVundu/SoSanuwa/UlSanuwa->player, no cast, single-target
     BaleenBombVisual = 4011, // Boss->self, 3.0s cast, single-target, visual
     LightningBoltVisual = 4016, // Boss->self, 3.0s cast, single-target, visual
-    MagickedBubble = 4017, // Boss->self, no cast, single-target, spawns Vapor Bubbles
+    MagickedBubble = 4017, // Boss->self, no cast, single-target
     WhaleSong = 4019, // Boss->self, no cast, single-target
-    Windcaller = 4021, // Boss->self, 3.0s cast, single-target, spawns Vuk'maii Vundu
+    Windcaller = 4021, // Boss->self, 3.0s cast, single-target
     WaterCannon = 4024, // VaporBubble->self, no cast, range 3 circle
     Morrowmotes = 4026, // LanMaiiVundu/VukMaiiVundu->self, no cast, single-target
     PowerfulGust = 4029, // VukMaiiVundu->player, 1.0s cast, single-target
-    DryFin = 4031, // SoSanuwa->self, no cast, range 9+R cone, hits the add's target
-    WetFin = 4033, // UlSanuwa->self, no cast, range 9+R cone, hits the add's target
-    Shrug = 4038, // Helper->player, no cast, single-target, throws everyone off the shell
+    DryFin = 4031, // SoSanuwa->self, no cast, range 9+R cone
+    WetFin = 4033, // UlSanuwa->self, no cast, range 9+R cone
+    Shrug = 4038, // Helper->player, no cast, single-target
     BismarckHit4039 = 4039, // Boss->self, no cast, single-target
     BismarckHit4040 = 4040, // Boss->self, no cast, single-target
     BismarckHit4041 = 4041, // Boss->self, no cast, single-target
-    HardsilverChain = 4042, // Dragonkiller->self, no cast, single-target, harpoon fired
-    FunnelCloudHit = 4765, // Helper->self, no cast, range 4 circle, players touching a Funnel Cloud
+    HardsilverChain = 4042, // Dragonkiller->self, no cast, single-target
+    FunnelCloudHit = 4765, // Helper->self, no cast, range 4 circle
     GeneratorHit = 4778, // MagitekFieldGenerator->self, no cast, single-target
     ThunderheadVisual = 4906, // Boss->self, 3.0s cast, single-target, visual
     CetaceanRage = 4918, // Boss->self, 6.0s cast, range 50 circle
@@ -47,23 +47,23 @@ public enum AID : uint
     HowlingWing = 4928, // LanMaiiVundu->self, 2.5s cast, range 30 width 6 rect
     ExtremeWind = 4929, // VukMaiiVundu->location, 2.5s cast, range 5 circle
     BaleenBomb = 4932, // Helper->location, 3.5s cast, range 5 circle
-    VacuumWave = 4933, // Helper->self, no cast, range 100 circle, every ~6s during the Sanuwa phase
-    AtmosphericDisruption = 4934, // Helper->self, no cast, every ~5s to players on the shell
-    Thunderhead = 4935, // Helper->location, 3.0s cast, range 5 circle, placed on players
-    LightningBolt = 4936, // Helper->location, 4.0s cast, range 4 circle, placed on players
+    VacuumWave = 4933, // Helper->self, no cast, range 100 circle
+    AtmosphericDisruption = 4934, // Helper->self, no cast
+    Thunderhead = 4935, // Helper->location, 3.0s cast, range 5 circle
+    LightningBolt = 4936, // Helper->location, 4.0s cast, range 4 circle
     BreachBlastRepeat = 5062, // Helper->self, no cast, range 50 circle
-    AtmosphericDisruptionLand = 5064, // Helper->player, no cast, single-target, on landing on the shell
+    AtmosphericDisruptionLand = 5064, // Helper->player, no cast, single-target
 }
 
 public enum SID : uint
 {
-    VulnerabilityDown = 350, // none->SoSanuwa/UlSanuwa, extra=0x0, while the Sanuwas are linked
-    Whaleback = 719, // none->player, extra=0x0, on Bismarck's back; the shells only take damage from players with it
+    VulnerabilityDown = 350, // none->SoSanuwa/UlSanuwa
+    Whaleback = 719, // none->player
 }
 
 public enum TetherID : uint
 {
-    SanuwaLink = 35, // SoSanuwa->UlSanuwa, when they come within ~15y of each other
+    SanuwaLink = 35, // SoSanuwa->UlSanuwa
     DragonkillerA = 39, // Dragonkiller->Boss
     DragonkillerB = 40, // Dragonkiller->Boss
 }

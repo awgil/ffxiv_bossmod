@@ -45,6 +45,7 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 {
     private readonly ImperialAI _ai = new(ws);
+    private readonly Dictionary<ulong, (WPos Position, DateTime Time, WDir Velocity)> _motion = [];
     private bool _sneak;
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
@@ -52,9 +53,15 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         foreach (var h in hints.PotentialTargets.Where(p => p.Actor.Position.InCircle(player.Position, 40)))
             if (!h.Actor.InCombat && !h.Actor.Position.AlmostEqual(new(111, -317), 10))
             {
-                var sight = h.Actor.OID == 0x3515 ? 10 : 8.5f;
-                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, sight + h.Actor.HitboxRadius, h.Actor.Rotation, 45.Degrees()));
+                // 0x3515 spots the player from ~10.1y away
+                var sight = (h.Actor.OID == 0x3515 ? 11 : 8.5f) + h.Actor.HitboxRadius;
+                hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, sight, h.Actor.Rotation, 45.Degrees()));
                 hints.AddForbiddenZone(ShapeDistance.Circle(h.Actor.Position, h.Actor.HitboxRadius));
+
+                // patrols walk into paths that only clear their current cone
+                var velocity = Velocity(h.Actor);
+                if (velocity.LengthSq() > 0.25f)
+                    hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position + velocity * 1.5f, sight, h.Actor.Rotation, 45.Degrees()));
             }
 
         if (_sneak)
@@ -62,6 +69,22 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         _sneak = false;
 
         _ai.Execute(player, hints);
+    }
+
+    private WDir Velocity(Actor actor)
+    {
+        if (!_motion.TryGetValue(actor.InstanceID, out var m))
+        {
+            _motion[actor.InstanceID] = (actor.Position, World.CurrentTime, default);
+            return default;
+        }
+        var dt = (float)(World.CurrentTime - m.Time).TotalSeconds;
+        if (dt >= 0.5f)
+        {
+            m = (actor.Position, World.CurrentTime, (actor.Position - m.Position) / dt);
+            _motion[actor.InstanceID] = m;
+        }
+        return m.Velocity;
     }
 
     private void SneakAlongRoute(Actor player, AIHints hints)
@@ -138,8 +161,8 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .Named("Reaper 1")
             .MoveHint(new WPos(134, -290), 0.1f)
-            .MoveHint(new WPos(129, -264), 0.2f)
-            .MoveHint(new WPos(126, -236), 0.3f)
+            .MoveHint(new WPos(126, -264), 0.2f)
+            .MoveHint(new WPos(123, -238), 0.3f)
             .WithInteract(0x1EB456)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76DF)),
 

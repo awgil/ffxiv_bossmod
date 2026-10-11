@@ -2,15 +2,15 @@ namespace BossMod.Dawntrail.Trial.T02Everkeep;
 
 public enum OID : uint
 {
-    Boss = 0x42A9, // R2.500, phase 1 (human form)
+    Boss = 0x42A9, // R2.500
     BossP2 = 0x42B4, // phase 2 (Vollok form) - spawns mid-fight
     Helper = 0x233C,
-    ShadowOfTural = 0x43A8, // R0.500, initial add waves (phase 1)
+    ShadowOfTural = 0x43A8, // R0.500
     Fang = 0x42AA, // spawn during fight
     ShadowOfTuralSword = 0x42AC, // spawn during fight, later wave
     ShadowOfTuralSpear = 0x42AD, // spawn during fight, later wave
-    FangSmall = 0x42B6, // R1.000, Phase 2 Fang that telegraphs Chasm of Vollok preview
-    HalfCircuitHelper = 0x42B9, // R10.050, Smiting Circuit visuals (shared OID with Ex2)
+    FangSmall = 0x42B6, // R1.000
+    HalfCircuitHelper = 0x42B9, // R10.050
 }
 
 public enum AID : uint
@@ -164,8 +164,6 @@ class DutysEdge(BossModule module) : Components.GenericWildCharge(module, 4, AID
     }
 }
 
-// Mode A: 37720 cells inside the arena are the damage. Mode B: 37720 is an outer-ring preview;
-// 37722 hits inner cells ~6s later. Outer cells map inward by 15√2 on X and Z.
 class ChasmOfVollok(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Dictionary<ulong, AOEInstance> _previewAoes = [];
@@ -207,7 +205,6 @@ class ChasmOfVollok(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-// NW-SE lanes stay on the preview; NE-SW lanes shift 5m perpendicular, sign from floor(perp/5) parity.
 class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Dictionary<ulong, AOEInstance> _aoes = [];

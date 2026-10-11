@@ -9,7 +9,7 @@ public enum OID : uint
     AmaNoIwatoStone = 0x1C20, // R1.800
     AmeNoMurakumo = 0x1C84, // R8.000, Part
     DarkCloud = 0x1F53, // R3.000
-    DarkLevin = 0x1B9B, // R1.000, lightning orbs
+    DarkLevin = 0x1B9B, // R1.000
     BladesShadow = 0x1EA479, // R2.000, EventObj
 }
 
@@ -19,18 +19,18 @@ public enum AID : uint
     Assail = 8220, // Boss->player, no cast, single-target
     RasenKaikyoVisual = 8221, // Boss->self, 3.0s cast, single-target
     RasenKaikyo = 8222, // AmaNoIwato->self, 3.0s cast, range 6 circle
-    YataNoKagami = 8223, // Boss->player, no cast, single-target, ~20y knockback on the icon target, ~5.3s after icon 23
+    YataNoKagami = 8223, // Boss->player, no cast, single-target
     Brightstorm = 8224, // Boss->players, no cast, range 6 circle
     SheerForce = 8225, // AmaNoIwato->self, no cast, range 40+R circle
     AmeNoMurakumoRaidwide = 8226, // SusanoBig->self, no cast, range 40+R circle
-    Stormsplitter = 8227, // Boss->self/player, 5.0s cast, range 20+R width 4 rect, icon target only
+    Stormsplitter = 8227, // Boss->self/player, 5.0s cast, range 20+R width 4 rect
     Ukehi = 8230, // Boss->self, 4.0s cast, range 40+R circle
-    Seasplitter = 8232, // AmaNoIwato->self, 3.0s cast, range 21+R width 40 rect, pair facing opposite ways, only the line between them is safe
+    Seasplitter = 8232, // AmaNoIwato->self, 3.0s cast, range 21+R width 40 rect
     Seasplitter2 = 8233, // AmaNoIwato->self, no cast, range 7+R width 40 rect
     Seasplitter3 = 8234, // AmaNoIwato->self, no cast, range 7+R width 40 rect
     Seasplitter4 = 8235, // AmaNoIwato->self, no cast, range 7+R width 40 rect
     AmeNoMurakumoRect = 8588, // AmaNoIwato->self, 4.0s cast, range 40+R width 6 rect
-    Shock = 8259, // DarkLevin->self, no cast, range 6 circle, when a player touches the orb
+    Shock = 8259, // DarkLevin->self, no cast, range 6 circle
     ThePartingClouds = 9631, // DarkCloud->self, 3.5s cast, range 50+R width 10 rect
     AmeNoMurakumoEnrage = 9506, // AmeNoMurakumo->self, 24.0s cast, single-target
 }
