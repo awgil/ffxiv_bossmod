@@ -106,7 +106,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private int AoEMinTargets => Player.Level >= 94 ? 3 : 2;
-    private float FoFIn; // fight or flight on Delay never comes up, so nothing waits for it
+    private float FoFIn;
     private AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
 
     private OffensiveStrategy FightOrFlightStrat;
@@ -139,7 +139,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         NumAOETargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        // force-ST counts only the primary target, keeping the forbidden-target check
         if (strategy.AOE.Value == AOEStrategy.ForceST)
             NumAOETargets = NumAOETargets > 0 && target != null && TargetInAOECircle(target.Actor, Player.Position, 5) ? 1 : 0;
         AOEMode = Unlocked(AID.TotalEclipse) && UseAOE(strategy.AOE.Value, NumAOETargets, AoEMinTargets);
@@ -152,7 +151,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
-            // the AI walks into melee after the cast; moving now would stop it from starting
             if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 2.2f && Unlocked(AID.HolySpirit) && MP >= HolySpiritMP && Player.DistanceToHitbox(target.Actor) <= 25)
             {
                 var pos = Player.Position;
@@ -199,7 +197,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
             3 => AID.BladeOfValor,
             _ => ConfiteorLeft > GCD ? AID.Confiteor : AID.None
         };
-        // below 90 the confiteor chain doesn't use up requiescat, so the rest goes to holy
         if (next != AID.None && Unlocked(next) && MP >= HolySpiritMP)
             PushGCD(next, BestSplashTarget, 58);
         else if (RequiescatLeft > GCD && canHoly)
@@ -252,7 +249,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         if (BladeOfHonorLeft > 0)
             PushOGCD(AID.BladeOfHonor, BestSplashTarget, 65);
 
-        // requiescat and spirits within are single target melee; only imperator and expiacion can take the splash target
         var imperator = requiescat == AID.Imperator;
         if (RequiescatStrat != OffensiveStrategy.Delay && CanWeave(requiescat) && Player.DistanceToHitbox(target.Actor) <= (imperator ? 25 : 3)
             && (RequiescatStrat == OffensiveStrategy.Force || FoFLeft > 0 || FoFIn > 50))
@@ -334,7 +330,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 
-    // 1.5s cast unless Divine Might or Requiescat; the queue needs it to not cast into a dodge
     private float CastTime(AID aid)
     {
         if (aid is not (AID.HolySpirit or AID.HolyCircle) || DivineMightLeft > GCD || RequiescatLeft > GCD)

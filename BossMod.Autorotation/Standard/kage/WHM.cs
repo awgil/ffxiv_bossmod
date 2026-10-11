@@ -84,7 +84,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage WHM", "White Mage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.WHM, Class.CNJ), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage WHM", "White Mage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100).WithStrategies<Strategy>();
     }
 
     private int Lily;
@@ -194,7 +194,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     private AID LilySpell => Unlocked(AID.AfflatusRapture) ? AID.AfflatusRapture : AID.AfflatusSolace;
 
-    // lilies only do damage by feeding Blood Lily
     private bool CanSpendLily(in Strategy strategy) => strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery);
 
     private bool ShouldMisery(in Strategy strategy, Enemy target, Actor misery)
@@ -210,7 +209,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         return LilyCapIn < RaidBuffsIn;
     }
 
-    // force-ST keeps every splash on the primary target
     private Enemy BestSplashTarget(Enemy target)
         => ForceST ? target : Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25).MaxBy(e => Hints.NumPriorityTargetsInAOECircle(e.Actor.Position, 5) * 10 + (e == target ? 1 : 0)) ?? target;
 
@@ -246,7 +244,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
 
-    // force-ST only needs the primary target in range, still never hitting forbidden targets
     private bool AssizeHits(Enemy target) => ForceST
         ? TargetInAOECircle(target.Actor, Player.Position, 15) && !Hints.ForbiddenTargets.Any(e => TargetInAOECircle(e.Actor, Player.Position, 15))
         : Hints.NumPriorityTargetsInAOECircle(Player.Position, 15) > 0;

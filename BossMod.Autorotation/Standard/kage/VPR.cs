@@ -198,7 +198,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         };
 
         var gauge = World.Client.GetGauge<ViperGauge>();
-        // force-ST drops AoE-only follow-ups left over from AoE (Den chain, Thresh weaves, Last Lash)
         Dread = forceST && gauge.DreadCombo is DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen ? default : gauge.DreadCombo;
         Coil = gauge.RattlingCoilStacks;
         Offering = gauge.SerpentOffering;
@@ -249,7 +248,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (target == null)
             return;
 
-        // only hold for an Ire the rotation will press; capped coils block it until Uncoiled Fury spends one
         IreWanted = IreStrat switch
         {
             OffensiveStrategy.Force => true,
@@ -521,7 +519,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
     private void OGCD(in Strategy strategy, Enemy target)
     {
-        // these expire on the next GCD, so they go ahead of plan utilities (Feint, Bloodbath...)
         if (CurSerpentsTail != AID.None)
             PushExpiringOGCD(CurSerpentsTail, target.Actor, 60);
 

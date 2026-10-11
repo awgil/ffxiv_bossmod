@@ -32,7 +32,6 @@ public static class TimeToKill
     {
         if (!_samples.TryGetValue(enemy.InstanceID, out var q) || q.Count < 2)
             return null;
-        // measure from when the damage started, not from an untouched stretch at full hp
         var (t0, hp0) = q.Peek();
         foreach (var s in q)
         {
@@ -50,7 +49,6 @@ public static class TimeToKill
     public static bool WillLive(Actor enemy, float seconds)
         => enemy.IsStrikingDummy || (Estimate(enemy) is { } ttk ? ttk >= seconds : enemy.HPRatio > 0.05f);
 
-    // WillLive assumes a target with no damage history lives, so only the boss gets that benefit of the doubt
     public static bool WorthDot(BossModule? module, Actor target, float seconds)
         => target.IsStrikingDummy || target == module?.PrimaryActor ? WillLive(target, seconds) : Estimate(target) >= seconds;
 
@@ -66,11 +64,9 @@ public static class TimeToKill
     }
 }
 
-// BossMod's estimate reads "buffs now" until someone uses one (forever if nobody has a raid buff)
 public static class RaidBuffs
 {
     public const float OpenerBuffs = 7.8f;
-    // a buff this overdue after this much boss uptime isn't coming (buffer dead or not pressing it); waiting longer would stall every hold-for-buffs check
     private const float OverdueGrace = 10;
 
     public static (float Left, float In) Estimate(BossModuleManager bossmods, WorldState world, Actor player, Actor? target, float combatTime, float uptime)
@@ -117,7 +113,6 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected float RaidBuffsLeft;
     protected float RaidBuffsIn;
     protected bool InBossFight;
-    // highest-priority GCD pushed this frame
     protected ActionID NextGCDAction { get; private set; }
     private int NextGCDPriority;
     private DateTime LastDowntime;
@@ -126,7 +121,7 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected float GCDLength => ActionSpeed.GCDRounded(UsesSpellSpeed ? World.Client.PlayerStats.SpellSpeed : World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
     protected float ComboLeft => World.Client.ComboState.Remaining;
-    protected int MP => (int)Player.HPMP.CurMP;
+    protected int MP => (int)Math.Clamp(Player.PendingMPRaw, 0, Player.HPMP.MaxMP);
     protected bool NoRaidBuffs => RaidBuffsIn > 9000 && RaidBuffsLeft == 0;
     protected bool HasRaidBuffJobs => InBossFight && !NoRaidBuffs;
     protected bool PotionPrepull => World.Client.CountdownRemaining is > 0 and < 2;
@@ -143,7 +138,6 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         if (target?.Priority is AIHints.Enemy.PriorityInvincible or AIHints.Enemy.PriorityForbidden || target?.Priority == AIHints.Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
 
-        // force-ST never switches targets, as in Basexan
         if (aoe == AOEStrategy.ForceST)
             targeting = Targeting.Manual;
         TargetMode = targeting == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : targeting;
@@ -161,7 +155,6 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return target;
     }
 
-    // wall bosses often lack the omnidirectional flag
     protected bool HasPositionals(Actor target)
     {
         if (target.Omnidirectional)
@@ -176,7 +169,6 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return dir < -0.7071068f ? Positional.Rear : dir < 0.7071068f ? Positional.Flank : Positional.Front;
     }
 
-    // an enemy we're tanking keeps facing us outside its casts
     protected void RecommendPositional(AIHints.Enemy target, Positional pos, bool imminent, bool useTrueNorth)
     {
         var actor = target.Actor;
@@ -191,7 +183,6 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
     }
 
-    // a burst option set to Delay/Force overrides the individual burst cooldowns
     protected static OffensiveStrategy WithBurst(OffensiveStrategy burst, OffensiveStrategy own) => burst == OffensiveStrategy.Automatic ? own : burst;
 
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
@@ -203,7 +194,6 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return TimeToKill.WorthDot(Bossmods.ActiveModule, e.Actor, 15);
     }
 
-    // a dot we just cast counts as fresh until it lands, so it isn't cast twice
     protected float MaxDotLeft<SID>(Actor target, params SID[] sids) where SID : Enum
     {
         var left = 0f;
@@ -225,10 +215,8 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
     }
 
-    // cast times scale with speed like the GCD
     protected float ScaledCastTime<AID>(AID aid) where AID : Enum => ActionDefinitions.Instance.Spell(aid) is { CastTime: > 0 } def ? def.CastTime * GCDLength / 2.5f : 0;
 
-    // moving during the last 0.5s doesn't interrupt a cast
     protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
 
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)

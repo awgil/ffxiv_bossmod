@@ -119,7 +119,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
     }
 
     private int Gall;
@@ -149,7 +149,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         NextGall = MathF.Max(0, 20f - gauge.AddersgallTimer / 1000f);
         Eukrasia = gauge.EukrasiaActive;
 
-        // force-ST counts no extra targets, as in Basexan
         var numAround = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         AOEMode = Unlocked(AID.Dyskrasia) && UseAOE(strategy.AOE.Value, numAround, 3);
 
@@ -193,7 +192,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
     private void GCDs(in Strategy strategy, Enemy target, int numAround)
     {
-        // only automatic dots spread with Eukrasian Dyskrasia
         var allowDotAoE = AOEMode && strategy.Dot.Value == DotStrategy.Automatic && Unlocked(AID.EukrasianDyskrasia);
         if (Eukrasia)
         {
@@ -328,7 +326,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         if (party.Count == 1)
             return Player;
         var tanks = party.Where(p => p.Role == Role.Tank && !p.IsDead).ToList();
-        // no living tank (tankless party, NPC allies): keep it on ourselves
         if (tanks.Count <= 1)
             return tanks.FirstOrDefault() ?? Player;
 

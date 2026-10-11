@@ -177,7 +177,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage SAM", "Samurai", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.WIP, BitMask.Build(Class.SAM), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage SAM", "Samurai", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.SAM), 100).WithStrategies<Strategy>();
     }
 
     private int Kenki;
@@ -206,9 +206,9 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private bool WorthBurst;
     private bool BossDying;
-    private float SeneiPlannedIn; // senei on Delay is pressed by hand, so nothing plans around it coming up
+    private float SeneiPlannedIn;
     private bool IkishotenDelayed;
-    private bool KenkiMakesRoom; // only Automatic kenki spends down to fit ikishoten's 50
+    private bool KenkiMakesRoom;
     private DateTime DowntimeStart;
     private DateTime ReopenUntil;
 
@@ -254,7 +254,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         FugetsuLeft = SelfStatusLeft(SID.Fugetsu);
         FukaLeft = SelfStatusLeft(SID.Fuka);
         (MeikyoLeft, MeikyoStacks) = SelfStatusDetails(SID.MeikyoShisui);
-        // statuses can outlive a level sync that locks their follow-ups
         TendoLeft = Unlocked(AID.TendoSetsugekka) ? SelfStatusLeft(SID.Tendo) : 0;
         OgiLeft = SelfStatusLeft(SID.OgiNamikiriReady);
         ZanshinLeft = Unlocked(AID.Zanshin) ? SelfStatusLeft(SID.ZanshinReady) : 0;
@@ -264,7 +263,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         Tsubame = ReadTsubame();
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
-        // force-ST counts no extra targets, as in Basexan
         NumCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         NumTenkaTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 8);
         AOEMode = Unlocked(AID.Fuga) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
@@ -334,7 +332,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         if (OgiRepeat)
             PushGCD(AID.KaeshiNamikiri, BestConeTarget ?? target.Actor, 85);
 
-        // an oGCD only weaves after a GCD, so the reopen Meikyo has to go out in the GCD slot
         if (Reopening && SenCount < 3 && MeikyoLeft == 0 && TendoLeft == 0 && WorthBurst && strategy.Meikyo.Value != OffensiveStrategy.Delay
             && Unlocked(AID.MeikyoShisui) && ReadyIn(AID.MeikyoShisui) <= GCD)
             PushAction(ActionID.MakeSpell(AID.MeikyoShisui), Player, ActionQueue.Priority.High + 90);
@@ -581,7 +578,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
         if (SeneiStrat != OffensiveStrategy.Delay && Kenki >= 25 && (SeneiStrat == OffensiveStrategy.Force || (WorthBurst || BossDying) && SeneiWanted()))
         {
-            // shared cooldown; guren also covers the levels before senei, except under force-ST
             var aid = !ForceST && (NumLineTargets >= 2 && Unlocked(AID.HissatsuGuren) || !Unlocked(AID.HissatsuSenei)) ? AID.HissatsuGuren : AID.HissatsuSenei;
             if (CanWeave(aid))
                 PushOGCD(aid, aid == AID.HissatsuGuren ? BestLineTarget ?? target.Actor : target.Actor, 60);
@@ -670,12 +666,11 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
             || !Unlocked(AID.HissatsuSenei)
             || UseMAL(strategy) && NeedAcceleration()
             || SeneiSoon
-            || SenCount == 3 && MeikyoBurstNow(strategy); // midare is being held for tendo
+            || SenCount == 3 && MeikyoBurstNow(strategy);
         if (use)
             PushOGCD(AID.MeikyoShisui, Player, 70);
     }
 
-    // the acceleration loop needs the second meikyo charge, otherwise it spends the burst charge
     private bool UseMAL(in Strategy strategy) => Unlocked(TraitID.EnhancedMeikyoShisui) && strategy.Loop.Value switch
     {
         LoopStrategy.MAL => true,

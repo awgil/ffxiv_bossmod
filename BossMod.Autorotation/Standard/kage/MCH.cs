@@ -203,7 +203,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         (BestConeTarget, NumConeTargets) = BestAOETarget(target, 12, allowAoE, (t, e) => TargetInAOECone(e, Player.Position, 12, Player.DirectionTo(t), 60.Degrees()));
         BestSawTarget = BestAOETarget(target, 25, allowAoE, (t, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(t), 25, 2)).Best;
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (t, e) => TargetInAOECircle(e, t.Position, 5)).Best;
-        // the cone GCDs are aimed at the cone target, which must be within their 12y range
         AOEMode = Unlocked(AID.SpreadShot) && Player.DistanceToHitbox(BestConeTarget) <= 12 && UseAOE(strategy.AOE.Value, NumConeTargets, minAoETargets);
 
         if (target != null)
@@ -311,7 +310,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         return !Hints.PriorityTargets.Any(e => e.ForbidDOTs && TargetInAOECone(e.Actor, Player.Position, 12, dir, 60.Degrees()));
     }
 
-    // Bioblaster shares Drill's charges
     private bool SkipDrill => UseBioblaster || AOEMode && !Unlocked(AID.Bioblaster) && NumConeTargets >= 6;
 
     private bool HoldDrillForBurst
@@ -356,7 +354,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (ShouldQueen(strategy, dying, target.Actor))
             PushOGCD(AID.RookAutoturret, Player, 57);
 
-        // the queen picks the first enemy we hit after the summon; leg graze makes that our target
         if (Manager.LastCast.Data?.Action.ID is (uint)AID.AutomatonQueen or (uint)AID.RookAutoturret && World.CurrentTime - Manager.LastCast.Time < TimeSpan.FromSeconds(3)
             && Hints.PriorityTargets.Count() > 1 && Player.DistanceToHitbox(target.Actor) <= 25)
             PushOGCD(AID.LegGraze, target.Actor, 90);
@@ -386,7 +383,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Charges.Value == ChargeStrategy.Automatic && ChargesToSpendBeforeOverheat)
             return false;
 
-        // time until each tool is pressed; tools on Delay or skipped by the AoE rotation don't hold Hypercharge
         var toolsDelayed = ToolsStrat == OffensiveStrategy.Delay;
         var drillIn = ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue
             : UseBioblaster ? MathF.Max(ReadyIn(AID.Bioblaster), StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left)
@@ -457,7 +453,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (EarlyWFOpener)
             return NextGCD == AID.ChainSaw;
 
-        // one Reassemble per Excavator (60s), the rest only to avoid capping
         if (HasRaidBuffJobs && Unlocked(AID.Excavator))
         {
             if (NextGCD == AID.Excavator)
@@ -503,7 +498,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         };
     }
 
-    // Queen lives ~24s and snapshots raid buffs per action
     private const float QueenLife = 24;
     private const float QueenLeadIn = 5;
     private const float BuffWeight = 1.15f;
@@ -615,7 +609,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Charges.Value == ChargeStrategy.Delay)
             return;
 
-        // heat blast cuts 15s off both, so spend ahead of it; the one closer to cap goes first
         var capIn = GCD + 0.6f + (NextGCD is AID.HeatBlast or AID.BlazingShot ? 15 : 0);
         var gauss = MaxChargesIn(AID.GaussRound);
         var rico = MaxChargesIn(AID.Ricochet);

@@ -159,8 +159,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         LastDanceLeft = SelfStatusLeft(SID.LastDanceReady);
         FinishingMoveLeft = SelfStatusLeft(SID.FinishingMoveReady);
         DawnLeft = SelfStatusLeft(SID.DanceOfTheDawnReady);
-
-        // force-ST dances only for the primary target
         EnemyIn15 = strategy.AOE.Value == AOEStrategy.ForceST ? Player.DistanceToHitbox(target?.Actor) <= 15 : Hints.PriorityTargets.Any(e => Player.DistanceToHitbox(e.Actor) <= 15);
 
         var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
@@ -348,7 +346,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     private AID Combo2 => AOEMode ? AID.Bladeshower : AID.Fountain;
     private bool Combo2Ready => Unlocked(Combo2) && ComboLastMove == Combo1 && ComboLeft > GCD;
 
-    // pass the enemy even in aoe mode: below the aoe unlocks these fall back to the single-target versions
     private AID Flow => AOEMode && Unlocked(AID.Bloodshower) ? AID.Bloodshower : AID.Fountainfall;
     private AID Symmetry => AOEMode && Unlocked(AID.RisingWindmill) ? AID.RisingWindmill : AID.ReverseCascade;
 
@@ -367,7 +364,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         };
     }
 
-    // save it for technical finish if it outlasts the 7s dance, even if technical slips up to a gcd past its cooldown
     private bool ShouldLastDance(in Strategy strategy)
     {
         if (TechnicalStrat == OffensiveStrategy.Delay)
@@ -427,7 +423,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.CuringWaltz, Player, 45);
     }
 
-    // the dance partner echoes the heal around themselves
     private int NumLowInWaltz()
     {
         var party = World.Party.WithoutSlot(excludeAlliance: true).ToList();
@@ -466,7 +461,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (Feathers == 0 || !Unlocked(AID.FanDance) || FeathersStrat == FeatherStrategy.Delay)
             return false;
-        // reverse cascade, fountainfall, rising windmill and bloodshower can each add a feather
         var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0);
         if (FeathersStrat == FeatherStrategy.Overcap)
             return overcap;
@@ -487,7 +481,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         var desired = strategy.Partner.Value == PartnerStrategy.SelectTarget ? ResolveTarget(strategy.Partner) : BestPartner();
         if (strategy.Partner.Value == PartnerStrategy.SelectTarget && desired != null && (desired.IsDead || !NotSick(desired)))
             desired = BestPartner();
-        // the chocobo fallback isn't in the party list, so check the desired partner directly
         if (desired == null || IsPartner(desired) || World.Party.Members.BoundSafeAt(World.Party.FindSlot(desired.InstanceID)).InCutscene)
             return;
 
@@ -495,7 +488,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (Player.InCombat && current != null && (DevilmentLeft > 0 || strategy.Partner.Value == PartnerStrategy.Automatic && NotSick(current) && NotDD(current)))
             return;
 
-        // don't drop the current partner unless the new one is in closed position range
         if (SelfStatusLeft(SID.ClosedPosition) == 0)
             PushOGCD(AID.ClosedPosition, desired, 40);
         else if (Player.DistanceToHitbox(desired) <= 30)
