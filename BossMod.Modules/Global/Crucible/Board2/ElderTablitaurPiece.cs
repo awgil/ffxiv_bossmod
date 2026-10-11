@@ -212,7 +212,7 @@ public class ElderTablitaurPiece(ModuleInit init) : BossModule(init, new(120, 0)
     {
         base.DrawEnemies(pcSlot, pc);
 
-        Arena.Actor(YoungerTablitaur, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID._Gen_YoungerTablitaurPiece), ArenaColor.Enemy);
     }
 }
 

@@ -511,8 +511,9 @@ public abstract partial class AutoClear : ZoneModule
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
             else if (canTarget && numAggro < _config.MaxPull && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)))
             {
-                if (IsInThisRoomOrAdjacent(pp.Actor))
-                    pp.Priority = 0;
+                // TODO: should no longer be necessary with raycasting support, verify
+                //if (IsInThisRoomOrAdjacent(pp.Actor))
+                pp.Priority = 0;
             }
         }
     }
@@ -521,7 +522,7 @@ public abstract partial class AutoClear : ZoneModule
     {
         IterAndExpire(HintDisabled, g => g.CastInfo == null, g =>
         {
-            hints.ForbiddenZones.RemoveAll(z => z.Source == g.InstanceID);
+            hints.ForbiddenZones.RemoveAll(z => z.tag == g.InstanceID);
         });
 
         IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>

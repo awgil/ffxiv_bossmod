@@ -22,6 +22,6 @@
   <Target Name="CopyDll" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
     <Copy
       SourceFiles="$(OutDir)\$(AssemblyName).dll"
-      DestinationFolder="$(AppData)\vbm\modules" />
+      DestinationFolder="$(AppData)\vbm\modules-dev" />
   </Target>
 </Project>

@@ -116,7 +116,8 @@ public class YmirPiece(ModuleInit init) : BossModule(init, new(120, 0), new Aren
     {
         base.DrawEnemies(pcSlot, pc);
 
-        Arena.Actor(Sahagin, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID._Gen_SahaginPiece), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID._Gen_YmirShell), ArenaColor.Enemy);
     }
 }
 

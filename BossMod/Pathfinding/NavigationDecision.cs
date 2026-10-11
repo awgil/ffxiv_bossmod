@@ -13,8 +13,8 @@ public struct NavigationDecision
     // context that allows reusing large memory allocations
     public class Context
     {
-        public float[] ScratchG = [];
-        public bool[] ScratchD = [];
+        public List<float> ScratchG = [];
+        public BitArray ScratchD = new(0);
         public Map Map = new();
         public ThetaStar ThetaStar = new();
     }
@@ -42,7 +42,7 @@ public struct NavigationDecision
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, forbiddenZoneCushion);
         if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
         else if (forbiddenZoneCushion > 0)
@@ -75,7 +75,7 @@ public struct NavigationDecision
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, forbiddenZoneCushion));
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
+    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float cushion = 0)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new List<(Sdf distance, float g)>(zones.Count);
@@ -93,16 +93,18 @@ public struct NavigationDecision
         }
 
         map.MaxG = clusterG;
-        var lenPlus1 = (map.Width + 1) * (map.Height + 1);
-        if (gScratch.Length < lenPlus1)
-            gScratch = new float[lenPlus1];
-        if (dScratch.Length < lenPlus1)
-            dScratch = new bool[lenPlus1];
+        var dim = (map.Width + 1) * (map.Height + 1);
+        if (gScratch.Count != dim)
+        {
+            gScratch.Clear();
+            gScratch.AddRange(Enumerable.Repeat(0f, dim));
+        }
+        dScratch.Length = dim;
 
         // TODO: group continuous sdfs with same gscore together
         //zonesFixed.SortBy(z => (z.g, z.distance.IsContinuous));
         foreach (var (d, g) in zonesFixed)
-            RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
+            RasterizeForbiddenZone(map, d, g, gScratch.AsSpan(), dScratch, cushion);
 
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         var ipx = map.Width * map.Height;
@@ -118,10 +120,10 @@ public struct NavigationDecision
         }
     }
 
-    public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
+    public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, Span<float> gScratch, BitArray dScratch, float cushion)
     {
-        Array.Fill(gScratch, float.MinValue);
-        Array.Fill(dScratch, false);
+        gScratch.Fill(float.MinValue);
+        dScratch.SetAll(false);
 
         var discrete = !sdf.IsContinuous;
 
@@ -161,7 +163,7 @@ public struct NavigationDecision
                 {
                     // TODO optimize; this drastically increases the number of sdf evaluations since they need to be executed for each grid point within the cushion zone
                     distPixels = (int)((distance - cushion) / map.Resolution);
-                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(distPixels, toRowEnd) + 1);
+                    gScratch.Slice(iCell, Math.Min(distPixels, toRowEnd) + 1).Fill(float.MaxValue);
                 }
                 else if (cushion > 0 && distance >= 0)
                 {
@@ -171,7 +173,7 @@ public struct NavigationDecision
                 else
                 {
                     distPixels = (int)MathF.Ceiling(-distance / map.Resolution);
-                    Array.Fill(gScratch, g, iCell, Math.Min(distPixels, toRowEnd + 1));
+                    gScratch.Slice(iCell, Math.Min(distPixels, toRowEnd + 1)).Fill(g);
                 }
             }
         }
@@ -248,7 +250,7 @@ public struct NavigationDecision
             AddCushion(map);
     }
 
-    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
+    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float cushion = 0)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Sdf distance, float g)[zones.Count];
@@ -271,10 +273,12 @@ public struct NavigationDecision
         // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
         // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
         map.MaxG = clusterG;
-        if (gScratch.Length < map.PixelMaxG.Length)
-            gScratch = new float[map.PixelMaxG.Length];
-        if (dScratch.Length < map.PixelMaxG.Length)
-            dScratch = new bool[map.PixelMaxG.Length];
+        if (gScratch.Count != map.PixelMaxG.Length)
+        {
+            gScratch.Clear();
+            gScratch.AddRange(Enumerable.Repeat(0f, map.PixelMaxG.Length));
+        }
+        dScratch.Length = map.PixelMaxG.Length;
         var numBlockedCells = 0;
 
         // see Map.EnumeratePixels, note that we care about corners rather than centers

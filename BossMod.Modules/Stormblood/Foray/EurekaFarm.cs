@@ -75,7 +75,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
 
         AddAIHints(playerSlot, player, hints);
 
-        hints.ForbiddenZones.RemoveAll(z => World.Actors.Find(z.Source) is Actor src && ShouldIgnore(src, player));
+        hints.ForbiddenZones.RemoveAll(z => World.Actors.Find(z.tag) is Actor src && ShouldIgnore(src, player));
 
         var farmNameID = GetPrepID(FarmTarget);
         var farmMax = _globalConfig.MaxPullCount;

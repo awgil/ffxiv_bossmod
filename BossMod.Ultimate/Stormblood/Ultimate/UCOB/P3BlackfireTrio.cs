@@ -101,7 +101,7 @@ class P3BlackfireLiquidHell(BossModule module) : LiquidHell(module)
             {
                 var relN = bft.RelativeNorth.ToDirection();
                 var safety = actor.Class.IsDD() ? relN.OrthoL() : relN.OrthoR();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + relN * 17 + safety * 8, 2));
+                hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center, safety));
             }
             else
             {
@@ -220,6 +220,7 @@ class P3BlackfireTower(BossModule module) : P3MegaflareTower(module)
 class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module, 5, 0, 4, 4)
 {
     bool _twinBait;
+    int _numHypernovas;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -241,6 +242,9 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
     {
         if ((AID)spell.Action.ID == AID.MegaflareStack)
             Stacks.Clear();
+
+        if ((AID)spell.Action.ID == AID.Hypernova)
+            _numHypernovas++;
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -258,7 +262,8 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
         // bft: stack spot is relative south of puddles
         else if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
         {
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, 2.5f), st.Activation);
+            // delay for one hypernova
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, _numHypernovas == 0 ? 7.5f : 2.5f), st.Activation);
         }
 
         // GO: stack on wall on the opposite side of the twin bait

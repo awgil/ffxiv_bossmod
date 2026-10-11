@@ -2,6 +2,7 @@
 
 namespace BossMod.Stormblood.Ultimate.UCOB;
 
+// TODO: delete this and just put a "stand here" entry in each cdplan for countdown
 class Multibox(RotationModuleManager manager, Actor player) : RotationModule(manager, player)
 {
     public static RotationModuleDefinition Definition()
@@ -35,25 +36,4 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
             }
         }
     }
-
-    /*
-    void SetStance(bool enabled)
-    {
-        var (stance, stanceBuff) = Player.Class switch
-        {
-            Class.WAR => (ActionID.MakeSpell(WAR.AID.Defiance), (uint)WAR.SID.Defiance),
-            Class.PLD => (ActionID.MakeSpell(PLD.AID.IronWill), (uint)PLD.SID.IronWill),
-            Class.DRK => (ActionID.MakeSpell(DRK.AID.Grit), (uint)DRK.SID.Grit),
-            Class.GNB => (ActionID.MakeSpell(GNB.AID.RoyalGuard), (uint)GNB.SID.RoyalGuard),
-            _ => (default, default)
-        };
-
-        if (stanceBuff == 0)
-            return;
-
-        var haveStance = Player.FindStatus(stanceBuff) != null;
-        if (enabled != haveStance)
-            Hints.ActionsToExecute.Push(stance, Player, ActionQueue.Priority.Medium);
-    }
-    */
 }
