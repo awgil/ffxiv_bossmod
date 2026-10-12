@@ -11,6 +11,7 @@ public enum OID : uint
     ElectricAether = 0x2D76, // R0.960
     LuminousAether = 0x2E13, // R0.960
     Gaia = 0x2D96, // R1.000
+    IceVeil = 0x2D83, // R5.000
 }
 
 public enum AID : uint
@@ -46,6 +47,24 @@ public enum AID : uint
     LuminousReach = 20426, // LuminousAether->Mothercrystal, no cast, single-target
     RushHit = 20425, // LuminousAether->player, no cast, range 4 circle
     Skyfall = 19988, // Helper->location, no cast, range 100 circle (enrage)
+    FrigidStone = 20070, // Helper->location, no cast, range 5 circle
+    Skyfall2 = 19987, // Helper->location, no cast, range 100 circle
+    Holy = 19949, // Boss->location, 8.0s cast, eight outer meteors
+    Holy2 = 19948, // Boss->location, 8.0s cast, single center meteor
+    HolyDivided = 19985, // Helper->location, no cast, individual meteor
+    HolyHit = 19984, // Helper->location, no cast, center meteor resolve
+    LightRampant = 19944, // Boss->self, 5.0s cast, range 40 circle
+    ThePathOfLight = 19929, // Boss->self, 5.0s cast, single-target
+    ThePathOfLightCone = 19979, // Helper->self, no cast, range 40 cone
+    BrightHunger = 19980, // Helper->location, no cast, range 4 circle (towers)
+    ReflectedAxeKick = 19968, // FrozenMirror->self, 5.0s cast, range 16 circle
+    TwinStillness = 19933, // Boss->self, 5.0s cast, range 30 270-degree cone (then 90 behind)
+    TwinSilence = 19934, // Boss->self, 5.0s cast, range 40 90-degree cone (then 270 front)
+    TwinSecond = 19955, // Helper->self, 7.0s cast, range 40 90-degree cone (Twin Stillness follow-up telegraph)
+    TwinStillnessSecond = 19936, // Boss->self, no cast, second hit
+    AbsoluteZeroHit = 20008, // Boss->self, no cast, range 40 circle
+    AbsoluteZeroHitTarget = 20009, // Helper->player, no cast, single-target
+    EndlessIceAge = 19991, // IceVeil->self, 45.0s cast, range 40 circle (enrage)
 }
 
 public enum SID : uint
@@ -58,6 +77,7 @@ public enum IconID : uint
     Gaze = 214, // Boss
     Proximity = 87, // player -> FrigidWater
     Eruption = 197, // player -> FrigidEruption
+    PathOfLight = 23, // player -> The Path of Light cone
 }
 
 public enum TetherID : uint
@@ -70,10 +90,130 @@ class DiamondFrost(BossModule module) : Components.RaidwideCast(module, AID.Diam
 class ThinIceCast(BossModule module) : Components.RaidwideCast(module, AID.ThinIce, "Slippery ground soon");
 class DoubleSlap(BossModule module) : Components.SingleTargetCast(module, AID.DoubleSlap);
 class ScytheKick(BossModule module) : Components.StandardAOEs(module, AID.ScytheKick, new AOEShapeDonut(4, 20));
-class AxeKick(BossModule module) : Components.StandardAOEs(module, AID.AxeKick, 16);
+class AxeKick(BossModule module) : Components.GroupedAOEs(module, [AID.AxeKick, AID.ReflectedAxeKick], new AOEShapeCircle(16));
 class DrivingFrost(BossModule module) : Components.GroupedAOEs(module, [AID.DrivingFrost, AID.ReflectedDrivingFrost], new AOEShapeCone(40, 45.Degrees()));
 class BitingFrost(BossModule module) : Components.GroupedAOEs(module, [AID.BitingFrost, AID.ReflectedBitingFrost], new AOEShapeCone(30, 135.Degrees()));
 class IcicleImpact(BossModule module) : Components.StandardAOEs(module, AID.IcicleImpact, 10);
+class Holy(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> _aoes = [];
+    private static readonly AOEShapeCircle _shape = new(12);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID != AID.Holy)
+            return;
+
+        _aoes.Clear();
+        var act = Module.CastFinishAt(spell);
+        for (var i = 0; i < 8; ++i)
+            _aoes.Add(new(_shape, E08Shiva.Phase1Center + 16 * (i * 45f).Degrees().ToDirection(), default, act));
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.Holy)
+            _aoes.Clear();
+    }
+}
+
+class HolyCenter(BossModule module) : Components.StandardAOEs(module, AID.Holy2, 15);
+class LightRampant(BossModule module) : Components.RaidwideCast(module, AID.LightRampant);
+class EndlessIceAge(BossModule module) : Components.CastHint(module, AID.EndlessIceAge, "Kill Ice Veil!", true);
+
+class ThePathOfLight(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 30.Degrees()), (uint)IconID.PathOfLight, AID.ThePathOfLightCone, 6.0f);
+
+class BrightHunger(BossModule module) : Components.GenericTowers(module, AID.BrightHunger)
+{
+    private BitMask _forbidden; // prohibit path of light people from soaking
+
+    public override void OnMapEffect(byte index, uint state)
+    {
+        if (state != 0x00020001)
+            return;
+
+        var (dir, min) = index switch
+        {
+            0x16 => (225.Degrees(), 1), // NW
+            0x17 => (315.Degrees(), 1), // SW
+            0x18 => (45.Degrees(), 1),  // SE
+            0x19 => (135.Degrees(), 1), // NE
+            0x1A => (270.Degrees(), 2), // W
+            0x1B => (90.Degrees(), 2),  // E
+            0x1C => (0.Degrees(), 4),   // S
+            _ => default
+        };
+        if (min == 0)
+            return;
+
+        Towers.Add(new(Module.Center + 8 * dir.ToDirection(), 4, min, min, _forbidden, WorldState.FutureTime(8)));
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID != (uint)IconID.PathOfLight)
+            return;
+        _forbidden.Set(Raid.FindSlot(actor.InstanceID));
+        UpdateForbidden();
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.ThePathOfLightCone)
+        {
+            foreach (var t in spell.Targets)
+                _forbidden.Clear(Raid.FindSlot(t.ID));
+            UpdateForbidden();
+        }
+
+        if ((AID)spell.Action.ID != AID.BrightHunger)
+            return;
+        ++NumCasts;
+        Towers.RemoveAll(t => t.Position.AlmostEqual(spell.TargetXZ, 1));
+    }
+
+    private void UpdateForbidden()
+    {
+        for (var i = 0; i < Towers.Count; ++i)
+            Towers.Ref(i).ForbiddenSoakers = _forbidden;
+    }
+}
+
+class TwinStillnessSilence(BossModule module) : Components.GenericAOEs(module)
+{
+    private readonly List<AOEInstance> _aoes = [];
+    private static readonly AOEShapeCone _wide = new(30, 135.Degrees());
+    private static readonly AOEShapeCone _narrow = new(40, 45.Degrees());
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.TwinStillness:
+                _aoes.Add(new(_wide, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+                _aoes.Add(new(_narrow, caster.Position, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, 2.1f)));
+                break;
+            case AID.TwinSilence:
+                _aoes.Add(new(_narrow, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+                _aoes.Add(new(_wide, caster.Position, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, 2.1f)));
+                break;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.TwinStillness or AID.TwinSilence or AID.TwinSecond or AID.TwinStillnessSecond)
+        {
+            ++NumCasts;
+            if (_aoes.Count > 0)
+                _aoes.RemoveAt(0);
+        }
+    }
+}
 class FrigidEruption(BossModule module) : Components.StandardAOEs(module, AID.FrigidEruption, 5);
 class FrigidWater(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Proximity, AID.FrigidWater, 15, 5.2f)
 {
@@ -289,32 +429,37 @@ class ShatteredWorld(BossModule module) : Components.RaidwideCast(module, AID.Sh
     public override void Update()
     {
         var e08 = (E08Shiva)Module;
-        if (!e08.AddsPhase)
-        {
-            foreach (var p in Raid.WithoutSlot())
-            {
-                foreach (var c in E08Shiva.CrystalCenters)
-                {
-                    if ((p.Position - c).LengthSq() < 12 * 12)
-                    {
-                        e08.AddsPhase = true;
-                        break;
-                    }
-                }
-                if (e08.AddsPhase)
-                    break;
-            }
-        }
-
-        if (!e08.AddsPhase)
-            return;
-
         var focus = Raid.Player() ?? Raid.WithoutSlot().FirstOrDefault();
         if (focus == null)
             return;
-        var crystal = E08Shiva.NearestCrystal(Module, focus.Position);
-        Module.Arena.Center = crystal;
-        Module.Arena.Bounds = E08Shiva.LocalPlatformBounds;
+
+        if (!e08.AddsPhase)
+        {
+            foreach (var c in E08Shiva.CrystalCenters)
+            {
+                if ((focus.Position - c).LengthSq() < 12 * 12)
+                {
+                    e08.AddsPhase = true;
+                    break;
+                }
+            }
+        }
+
+        if (e08.AddsPhase)
+        {
+            // back to main arena after adds
+            if (focus.Position.InCircle(E08Shiva.Phase1Center, E08Shiva.Phase1Bounds.Radius + 5))
+            {
+                e08.AddsPhase = false;
+                Module.Arena.Center = E08Shiva.Phase1Center;
+                Module.Arena.Bounds = E08Shiva.Phase1Bounds;
+                return;
+            }
+
+            var crystal = E08Shiva.NearestCrystal(Module, focus.Position);
+            Module.Arena.Center = crystal;
+            Module.Arena.Bounds = E08Shiva.LocalPlatformBounds;
+        }
     }
 }
 
@@ -352,7 +497,7 @@ class E08ShivaStates : StateMachineBuilder
 {
     public E08ShivaStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        var phase = TrivialPhase()
             .ActivateOnEnter<AbsoluteZero>()
             .ActivateOnEnter<ShiningArmor>()
             .ActivateOnEnter<ScytheKick>()
@@ -367,12 +512,20 @@ class E08ShivaStates : StateMachineBuilder
             .ActivateOnEnter<HeavenlyStrike>()
             .ActivateOnEnter<BitingFrost>()
             .ActivateOnEnter<AxeKick>()
+            .ActivateOnEnter<Holy>()
+            .ActivateOnEnter<HolyCenter>()
+            .ActivateOnEnter<LightRampant>()
+            .ActivateOnEnter<ThePathOfLight>()
+            .ActivateOnEnter<BrightHunger>()
+            .ActivateOnEnter<TwinStillnessSilence>()
+            .ActivateOnEnter<EndlessIceAge>()
             .ActivateOnEnter<ShatteredWorld>()
             .ActivateOnEnter<HeartAsunder>()
             .ActivateOnEnter<CrystalBleed>()
             .ActivateOnEnter<Stoneskin>()
             .ActivateOnEnter<LuminousRush>()
             .ActivateOnEnter<AetherAdds>();
+        phase.Raw.Update = () => Module.Enemies(OID.IceVeil).Any(e => e.IsDead || e.HPMP.CurHP == 0) || Module.PrimaryActor.IsDestroyed;
     }
 }
 
@@ -406,7 +559,6 @@ public class E08Shiva(ModuleInit init) : BossModule(init, Phase1Center, Phase1Bo
             }
         }
 
-        // update arena pos from crystal
         foreach (var m in module.Enemies(OID.Mothercrystal).Where(a => !a.IsDeadOrDestroyed))
         {
             var d = (m.Position - pos).LengthSq();
@@ -419,9 +571,16 @@ public class E08Shiva(ModuleInit init) : BossModule(init, Phase1Center, Phase1Bo
         return best;
     }
 
+    public override Actor? GetDefaultTarget(int slot)
+    {
+        var veil = Enemies(OID.IceVeil).FirstOrDefault(a => a.IsTargetable && !a.IsDeadOrDestroyed);
+        return veil ?? base.GetDefaultTarget(slot);
+    }
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.IceVeil), ArenaColor.Enemy);
         Arena.Actors(Enemies(OID.FrozenMirror), ArenaColor.Object);
         if (AddsPhase)
         {
