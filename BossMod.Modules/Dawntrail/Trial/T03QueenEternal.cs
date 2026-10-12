@@ -201,7 +201,7 @@ class Besiegement(BossModule module) : Components.GenericAOEs(module)
         ++NumCasts;
         var act = WorldState.FutureTime(6.6f);
         foreach (var (shapeIndex, x) in aoes)
-            AOEs.Add(new(Rects[shapeIndex], new WPos(x, 80), 90.Degrees(), act));
+            AOEs.Add(new(Rects[shapeIndex], new WPos(x, 80), default, act));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -363,7 +363,28 @@ class RuthlessRegalia(BossModule module) : Components.GenericAOEs(module)
 
 class AbsoluteAuthorityCircle(BossModule module) : Components.StandardAOEs(module, AID.AbsoluteAuthorityCircle, 8);
 class AbsoluteAuthorityFlare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(12), (uint)IconID.Flare, AID.AbsoluteAuthorityFlare, 6, centerAtTarget: true);
-class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(module, (uint)IconID.DoritoStack, AID.AbsoluteAuthorityDoritoStack1, 3, 5.1f, 8, 8);
+class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(module, (uint)IconID.DoritoStack, AID.AbsoluteAuthorityDoritoStack1, 3, 5.1f, 2, 8)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Stacks.FindIndex(s => s.Target == actor) is var own && own < 0)
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+        if (Raid.WithoutSlot().Exclude(actor).Closest(actor.Position) is { } partner)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(partner.Position, 2), Stacks[own].Activation);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.AbsoluteAuthorityDoritoStack1 or AID.AbsoluteAuthorityDoritoStack2 && Stacks.Count > 0)
+        {
+            Stacks.Clear();
+            ++NumFinishedStacks;
+        }
+    }
+}
 
 class AuthoritysHold(BossModule module) : Components.StayMove(module, 3)
 {
@@ -432,8 +453,30 @@ class DivideAndConquer(BossModule module) : Components.GenericBaitAway(module, A
     }
 }
 
-class DownburstKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Downburst, 10, stopAtWall: true);
-class PowerfulGustKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PowerfulGust, 20, kind: Kind.DirForward, stopAtWall: true);
+class PlatformKnockback(BossModule module, AID aid, float distance, Components.Knockback.Kind kind = Components.Knockback.Kind.AwayFromOrigin) : Components.KnockbackFromCastTarget(module, aid, distance, kind: kind)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var src in Sources(slot, actor))
+        {
+            if (IsImmune(slot, src.Activation))
+                continue;
+            var bounds = Arena.Bounds;
+            var center = Arena.Center;
+            var push = src.Kind == Kind.DirForward ? src.Direction.ToDirection() * src.Distance : default;
+            var origin = src.Origin;
+            var distance = src.Distance;
+#pragma warning disable VBM006 // Reference type captured in closure
+            hints.AddForbiddenZone(Sdf.Discrete(p => !bounds.Contains(Landing(p, push, origin, distance) - center)), src.Activation);
+#pragma warning restore VBM006 // Reference type captured in closure
+        }
+    }
+
+    private static WPos Landing(WPos from, WDir push, WPos origin, float distance) => push != default ? from + push : from + (from - origin).Normalized() * distance;
+}
+
+class DownburstKB(BossModule module) : PlatformKnockback(module, AID.Downburst, 10);
+class PowerfulGustKB(BossModule module) : PlatformKnockback(module, AID.PowerfulGust, 20, Kind.DirForward);
 class ProsecutionOfWar(BossModule module) : Components.SingleTargetCast(module, AID.ProsecutionOfWar);
 class VirtualShiftRoyalDomain(BossModule module) : Components.RaidwideCast(module, AID.VirtualShift1, "Virtual shift + raidwide");
 class VirtualShift2(BossModule module) : Components.RaidwideCast(module, AID.VirtualShift2);
@@ -444,6 +487,11 @@ class DynasticDiadem(BossModule module) : Components.StandardAOEs(module, AID.Dy
 class RoyalBanishment(BossModule module) : Components.StandardAOEs(module, AID.RoyalBanishment, new AOEShapeCone(100, 15.Degrees()));
 class RoyalBanishmentRaidwide(BossModule module) : Components.RaidwideCast(module, AID.RoyalBanishmentVisual, "Multiple raidwides");
 class AbsoluteAuthorityRaidwide(BossModule module) : Components.RaidwideCast(module, AID.AbsoluteAuthorityRaidwide1, "Multiple raidwides");
+class AbsoluteAuthorityHits(BossModule module) : Components.RaidwideMultiHit(module, AID.AbsoluteAuthorityRaidwide1, [AID.AbsoluteAuthorityRaidwide2, AID.AbsoluteAuthorityRaidwide3, AID.AbsoluteAuthorityRaidwide4, AID.AbsoluteAuthorityRaidwide5], 6.7f, 1.2f, 11)
+{
+    protected override (int Hits, float Interval) Sequence(int index) => index == 0 ? (11, 1.2f) : (3, 1.4f);
+}
+class AethertitheTicks(BossModule module) : Components.RaidwideMultiHit(module, AID.AethertitheVisual, [AID.AethertitheRaidwide], 0.8f, 1.07f, 24);
 
 class T03QueenEternalStates : StateMachineBuilder
 {
@@ -463,6 +511,8 @@ class T03QueenEternalStates : StateMachineBuilder
             .ActivateOnEnter<VirtualShift3>()
             .ActivateOnEnter<RoyalDomain>()
             .ActivateOnEnter<AbsoluteAuthorityRaidwide>()
+            .ActivateOnEnter<AbsoluteAuthorityHits>()
+            .ActivateOnEnter<AethertitheTicks>()
             .ActivateOnEnter<DownburstKB>()
             .ActivateOnEnter<PowerfulGustKB>()
             .ActivateOnEnter<BrutalCrown>()

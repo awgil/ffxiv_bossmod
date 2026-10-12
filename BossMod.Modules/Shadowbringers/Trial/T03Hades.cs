@@ -65,6 +65,7 @@ public enum IconID : uint
 {
     Spread = 139, // player
     CaptivityBait = 120, // player
+    HellbornYawp = 40, // player
 }
 
 public enum TetherID : uint
@@ -119,7 +120,22 @@ class BrokenFaith(BossModule module) : Components.GenericAOEs(module, AID.Broken
     }
 }
 
-class AncientWaterIII(BossModule module) : Components.StackWithCastTargets(module, AID.AncientWaterIII, 6, 2, 8);
+class AncientWaterIII(BossModule module) : Components.StackWithCastTargets(module, AID.AncientWaterIII, 6, 2, 8)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var spreads = new BitMask();
+        foreach (var b in Module.FindComponent<AncientDarkness>()?.ActiveBaits ?? [])
+            spreads.Set(Raid.FindSlot(b.Target.InstanceID));
+        for (var i = 0; i < Stacks.Count; ++i)
+        {
+            var s = Stacks[i];
+            s.ForbiddenPlayers |= spreads;
+            Stacks[i] = s;
+        }
+        base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
 class AncientDarkness(BossModule module) : Components.BaitAwayCast(module, AID.AncientDarkness, new AOEShapeCircle(5), centerAtTarget: true);
 class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.AncientAero, new AOEShapeRect(40, 4));
 class AncientDarkIV(BossModule module) : Components.RaidwideCast(module, AID.AncientDarkIV);
@@ -129,6 +145,28 @@ class DualStrike(BossModule module) : Components.BaitAwayCast(module, AID.DualSt
 class WailOfTheLost(BossModule module) : Components.StandardAOEs(module, AID.WailOfTheLost, new AOEShapeRect(40, 20));
 class EchoOfTheLost(BossModule module) : Components.GroupedAOEs(module, [AID.EchoOfTheLostL, AID.EchoOfTheLostR], new AOEShapeCone(100, 45.Degrees()));
 class HellbornYawp(BossModule module) : Components.StandardAOEs(module, AID.HellbornYawp, new AOEShapeCone(100, 30.Degrees()));
+class HellbornYawpBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(100, 30.Degrees()), (uint)IconID.HellbornYawp, AID.HellbornYawp, 9)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.HellbornYawp)
+            CurrentBaits.Clear();
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!ActiveBaitsOn(actor).Any())
+        {
+            base.AddAIHints(slot, actor, assignment, hints);
+            return;
+        }
+        foreach (var b in ActiveBaitsNotOn(actor))
+            hints.AddForbiddenZone(b.Shape, BaitOrigin(b), b.Rotation, b.Activation);
+        var other = ActiveBaitsNotOn(actor).Select(b => b.Target).FirstOrDefault();
+        var west = actor.Position.X <= (other?.Position.X ?? Arena.Center.X);
+        hints.GoalZones.Add(AIHints.GoalProximity(Arena.Center + new WDir(west ? -17 : 17, 0), 40, 1));
+    }
+}
 class CaptivityBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.CaptivityBait, AID.CaptivityCast, 4.7f, centerAtTarget: true);
 class LifeInCaptivity(BossModule module) : Components.RaidwideCast(module, AID.LifeInCaptivity);
 class TheDarkDevours(BossModule module) : Components.RaidwideCastDelay(module, AID.TheDarkDevoursVisual, AID.TheDarkDevours, 0.5f);
@@ -149,7 +187,7 @@ class DoomTowers(BossModule module) : Components.GenericTowers(module)
     public override void OnActorCreated(Actor actor)
     {
         if (actor.OID == (uint)OID.DoomTower)
-            Towers.Add(new(actor.Position, 5, 1, 2));
+            Towers.Add(new(actor.Position, 2, 1, 2));
     }
 
     public override void OnActorDestroyed(Actor actor)
@@ -204,6 +242,7 @@ class T03HadesP2States : StateMachineBuilder
             .ActivateOnEnter<EchoOfTheLost>()
             .ActivateOnEnter<WailOfTheLost>()
             .ActivateOnEnter<HellbornYawp>()
+            .ActivateOnEnter<HellbornYawpBait>()
             .ActivateOnEnter<TheDarkDevours>()
             .ActivateOnEnter<BlackCauldron>()
             .ActivateOnEnter<LifeInCaptivity>()
@@ -227,11 +266,11 @@ class T03HadesP2States : StateMachineBuilder
             .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352)] // TODO: clear Incomplete after P1/P2 + Doom towers verify
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352)]
 public class T03Hades(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     public Actor? BossP2() => Enemies(OID.BossP2).FirstOrDefault(a => !a.IsDestroyed);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 687, NameID = 8352, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
 public class T03HadesP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
