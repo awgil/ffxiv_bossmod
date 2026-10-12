@@ -101,7 +101,8 @@ public sealed class AIHints
         Disable // unsync from fate
     }
 
-    public record struct DamagePrediction(BitMask Players, DateTime Activation, PredictedDamageType Type = PredictedDamageType.None)
+    // multi-hit sequences are a single entry for the next hit: Hits = hits left (including the next one), LastHit = when the sequence ends
+    public record struct DamagePrediction(BitMask Players, DateTime Activation, PredictedDamageType Type = PredictedDamageType.None, int Hits = 1, DateTime LastHit = default)
     {
         public readonly BitMask Players = Players;
     }
@@ -262,7 +263,7 @@ public sealed class AIHints
     public void AddForbiddenZone(Sdf sdf, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((sdf, activation, source));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((shape.GetSdf(origin, rot), activation, source));
 
-    public void AddPredictedDamage(BitMask players, DateTime activation, PredictedDamageType type = PredictedDamageType.Raidwide) => PredictedDamage.Add(new(players, activation, type));
+    public void AddPredictedDamage(BitMask players, DateTime activation, PredictedDamageType type = PredictedDamageType.Raidwide, int hits = 1, DateTime lastHit = default) => PredictedDamage.Add(new(players, activation, type, hits, lastHit));
 
     public void AddSpecialMode(SpecialMode mode, DateTime activation)
     {

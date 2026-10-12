@@ -109,6 +109,8 @@ public enum SID : uint
     GiantDominance = 1248,
     ClarifyingDraw = 2713,
     Macrocosmos = 2718,
+    CollectiveUnconscious = 849, // applied by Collective Unconscious to party, damage reduction
+    SunSign = 3896, // applied by Sun Sign to party, damage reduction
     Lightspeed = 841,
     SelfSynastry = 845,
     TargetSynastry = 846,

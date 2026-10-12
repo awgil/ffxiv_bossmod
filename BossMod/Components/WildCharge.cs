@@ -14,6 +14,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
     }
 
     public float HalfWidth = halfWidth;
+    public int Hits = 1; // number of hits for multi-hit line stacks
     public float FixedLength = fixedLength; // if == 0, length is up to target
     public Actor? Source; // if null, mechanic is not active
     public DateTime Activation;
@@ -95,7 +96,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
 
         foreach (var aoe in EnumerateAOEs())
             // TODO add separate "tankbuster" hint for PlayerRole.Share if there are any ShareNotFirsts in the party
-            hints.AddPredictedDamage(Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation);
+            hints.AddPredictedDamage(Raid.WithSlot().Where(p => InAOE(aoe, p.Item2)).Mask(), Activation, AIHints.PredictedDamageType.Raidwide, Hits);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -155,7 +156,7 @@ public class SimpleLineStack(BossModule module, float halfWidth, float fixedLeng
     }
 }
 
-public class IconLineStack(BossModule module, float halfWidth, float fixedLength, uint iconID, Enum aidResolve, float activationDelay) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
+public class IconLineStack(BossModule module, float halfWidth, float fixedLength, uint iconID, Enum aidResolve, float activationDelay, int hits = 1) : GenericWildCharge(module, halfWidth, aidResolve, fixedLength)
 {
     public uint Icon => iconID;
 
@@ -165,6 +166,7 @@ public class IconLineStack(BossModule module, float halfWidth, float fixedLength
         {
             Source = actor;
             Activation = WorldState.FutureTime(activationDelay);
+            Hits = hits;
             foreach (var (i, p) in Raid.WithSlot(true))
                 PlayerRoles[i] = p.InstanceID == targetID ? PlayerRole.Target : PlayerRole.Share;
         }

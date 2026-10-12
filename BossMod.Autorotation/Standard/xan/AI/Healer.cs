@@ -45,7 +45,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
             BossMod.AST.AID.CollectiveUnconscious, BossMod.AST.AID.Macrocosmos, BossMod.AST.AID.EarthlyStar, BossMod.AST.AID.CelestialOpposition,
 
-            BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.FeyIllumination, BossMod.SCH.AID.Expedient, BossMod.SCH.AID.SummonSeraph, BossMod.SCH.AID.FeyBlessing,
+            BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.FeyIllumination, BossMod.SCH.AID.Expedient, BossMod.SCH.AID.SummonSeraph, BossMod.SCH.AID.FeyBlessing, BossMod.SCH.AID.Seraphism,
 
             BossMod.SGE.AID.Kerachole, BossMod.SGE.AID.Holos, BossMod.SGE.AID.Physis, BossMod.SGE.AID.PhysisII, BossMod.SGE.AID.Philosophia, BossMod.SGE.AID.Panhaima, BossMod.SGE.AID.Zoe, BossMod.SGE.AID.Pneuma
         ])]
@@ -66,6 +66,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private bool AutoMit; // Mitigation track allows automatic use
     private float RaidwideIn; // seconds until the next raidwide or shared hit
     private float FullRaidwideIn; // same, but only hits on everyone (GCD shields are wasted on stacks)
+    private float MultiHitIn; // seconds until the next hit of a multi-hit raidwide or stack
+    private bool MultiHitLong; // a predicted sequence of 8+ hits or 10+ seconds
 
     public enum RaiseStrategy
     {
@@ -245,6 +247,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         AutoMit = strategy.Mitigation.Value == MitigationMode.Automatic;
         RaidwideIn = SecondsUntilNext(Raidwides);
         FullRaidwideIn = SecondsUntilNext(StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints, includeShared: false));
+        var multiHit = Hints.PredictedDamage.Where(d => d.Hits > 1 && d.Type is AIHints.PredictedDamageType.Raidwide or AIHints.PredictedDamageType.Shared).ToList();
+        MultiHitIn = SecondsUntilNext(multiHit.Select(d => d.Activation));
+        MultiHitLong = multiHit.Any(d => d.Hits >= 8 || (d.LastHit - d.Activation).TotalSeconds >= 10);
 
         if (strategy.StayNearParty.IsEnabled() && Player.InCombat)
         {
@@ -377,7 +382,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
-            var rwBudget = 2;
+            var rwBudget = RaidwideBudget(BossMod.WHM.AID.Temperance, BossMod.WHM.AID.DivineCaress, BossMod.WHM.AID.PlenaryIndulgence, BossMod.WHM.AID.Asylum);
+            if (WantMultiHitTool && ReadySoon(BossMod.WHM.AID.LiturgyOfTheBell))
+                UseOGCDAt(BossMod.WHM.AID.LiturgyOfTheBell, Player.PosRot.XYZ(), 21);
             if (RaidwideIn < 5)
             {
                 PushMitOGCD(ref rwBudget, BossMod.WHM.AID.Temperance, Player, 20);
@@ -493,10 +500,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
+            var rwBudget = RaidwideBudget(BossMod.AST.AID.CollectiveUnconscious);
             if (RaidwideIn < 5)
-                UseOGCD(BossMod.AST.AID.CollectiveUnconscious, Player, 20);
-            if (RaidwideIn < 3)
-                UseGCD(BossMod.AST.AID.Macrocosmos, Player, 5);
+                PushMitOGCD(ref rwBudget, BossMod.AST.AID.CollectiveUnconscious, Player, 20);
+            if (WantMultiHitTool)
+                UseGCD(BossMod.AST.AID.Macrocosmos, Player, 6);
             if (Player.InCombat)
                 UseOGCDAt(BossMod.AST.AID.EarthlyStar, GetBestPartyCoverage(20), 5);
 
@@ -580,12 +588,18 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
-            if (RaidwideIn < 5 && NextChargeIn(BossMod.SCH.AID.SacredSoil) == 0)
+            var rwBudget = RaidwideBudget(BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.Expedient);
+            if (WantMultiHitTool && !haveSeraph && ReadySoon(BossMod.SCH.AID.Seraphism))
+                UseOGCD(BossMod.SCH.AID.Seraphism, Player, 21);
+            if (RaidwideIn < 5 && rwBudget > 0 && NextChargeIn(BossMod.SCH.AID.SacredSoil) == 0)
+            {
                 UseSoil(GetBestPartyCoverage(15), 20);
+                --rwBudget;
+            }
             if (RaidwideIn < 8 && pet != null)
                 UseOGCD(BossMod.SCH.AID.FeyIllumination, Player, 19);
             if (RaidwideIn < 5)
-                UseOGCD(BossMod.SCH.AID.Expedient, Player, 18);
+                PushMitOGCD(ref rwBudget, BossMod.SCH.AID.Expedient, Player, 18);
             if (FullRaidwideIn < GCD + 2.5f && UnshieldedShare(15) >= 0.5f)
                 UseGCD(succor, Player, 5);
 
@@ -734,6 +748,34 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         return true;
     }
 
+    // party mitigation; another healer's on most of the light party means the hit is already partly covered
+    private static readonly uint[] PartyMitStatuses = [
+        (uint)BossMod.SGE.SID.Kerachole, (uint)BossMod.SGE.SID.Panhaima, (uint)BossMod.SGE.SID.Holosakos, (uint)BossMod.AST.SID.Macrocosmos,
+        (uint)BossMod.SCH.SID.SacredSoil, (uint)BossMod.SCH.SID.DesperateMeasures, (uint)BossMod.AST.SID.CollectiveUnconscious,
+        (uint)BossMod.WHM.SID.TemperanceParty, (uint)BossMod.AST.SID.SunSign,
+    ];
+    // another healer's multi-hit tool: on the party, or on the caster (Bell, Seraphism)
+    private static readonly uint[] MultiHitPartyStatuses = [(uint)BossMod.SGE.SID.Panhaima, (uint)BossMod.AST.SID.Macrocosmos, (uint)BossMod.SCH.SID.SeraphismRegen];
+    private static readonly uint[] MultiHitSelfStatuses = [(uint)BossMod.WHM.SID.LiturgyOfTheBell, (uint)BossMod.SCH.SID.Seraphism];
+
+    private bool CoveredByOthers(uint[] ids)
+    {
+        var party = LightParty.ToList();
+        return party.Count > 0 && party.Count(p => p.Statuses.Any(s => ids.Contains(s.ID) && s.SourceID != Player.InstanceID)) * 2 >= party.Count;
+    }
+
+    private bool OtherMultiHitToolUp => CoveredByOthers(MultiHitPartyStatuses) || LightParty.Any(p => p != Player && p.Statuses.Any(s => MultiHitSelfStatuses.Contains(s.ID)));
+
+    // a multi-hit sequence starts soon and no healer has a multi-hit tool out yet
+    private bool WantMultiHitTool => AutoMit && MultiHitIn < 5 && !OtherMultiHitToolUp;
+
+    // big party oGCDs for one raidwide or sequence: 2, one less if the co-healer already covers it, one more for long sequences
+    private int RaidwideBudget<AID>(params AID[] tools) where AID : Enum
+        => 2 - (CoveredByOthers(PartyMitStatuses) ? 1 : 0) + (MultiHitLong ? 1 : 0) - tools.Count(t => UsedWithin(ActionID.MakeSpell(t), 10));
+
+    private bool UsedWithin(ActionID action, float seconds)
+        => ActionDefinitions.Instance[action] is { MainCooldownGroup: >= 0 } def && World.Client.Cooldowns[def.MainCooldownGroup] is { Total: > 0 } cd && cd.Elapsed < seconds;
+
     private bool SingledOut(float ratio) => Health.PartyHealth.Count <= 1 || ratio < Health.PartyHealth.AvgCurrent - 0.2f;
 
     private void AutoSGE(in Strategy strategy, Actor? primaryTarget)
@@ -755,10 +797,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled)
         {
+            var rwBudget = RaidwideBudget(BossMod.SGE.AID.Kerachole, BossMod.SGE.AID.Holos);
+            if (WantMultiHitTool && ReadySoon(BossMod.SGE.AID.Panhaima))
+                UseOGCD(BossMod.SGE.AID.Panhaima, Player, 21);
             if (AutoMit && RaidwideIn < 8 && gall > 0)
-                UseOGCD(BossMod.SGE.AID.Kerachole, Player, 20);
+                PushMitOGCD(ref rwBudget, BossMod.SGE.AID.Kerachole, Player, 20);
             if (AutoMit && RaidwideIn < 5 && Health.PartyHealth.AvgCurrent <= 0.8f)
-                UseOGCD(BossMod.SGE.AID.Holos, Player, 15);
+                PushMitOGCD(ref rwBudget, BossMod.SGE.AID.Holos, Player, 15);
             if (FullRaidwideIn < GCD + 2.5f && UnshieldedShare(15) >= 0.5f)
                 UseEukrasian(BossMod.SGE.AID.Prognosis, Player, 5);
 
