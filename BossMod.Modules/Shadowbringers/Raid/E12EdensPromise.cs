@@ -111,18 +111,6 @@ public enum IconID : uint
     FormlessJudgment = 218,
 }
 
-public enum SID : uint
-{
-    _Gen_DownForTheCount = 2408, // Boss->player, extra=0xEC7
-    _Gen_Incurable = 2398, // none->TreasuredMemory1/TreasuredMemory2/TreasuredMemory3, extra=0x0
-    _Gen_Levitation = 1390, // none->3095/3094/2DCF/2DCE/2D26/2CF0, extra=0xC8
-    _Gen_StockHolder = 2466, // none->Boss, extra=0x2
-    _Gen_JunctionTitan = 2469, // Boss->Boss, extra=0x0
-    _Gen_VulnerabilityUp = 1789, // Boss->player, extra=0x1
-    _Gen_JunctionShiva = 2468, // Boss->Boss, extra=0x0
-    _Gen_ThinIce = 911, // none->player, extra=0x64
-}
-
 class Arenas(BossModule module) : BossComponent(module)
 {
     public override void Update()
