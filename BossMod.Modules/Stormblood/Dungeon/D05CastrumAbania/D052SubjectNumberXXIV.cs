@@ -3,7 +3,7 @@ namespace BossMod.Stormblood.Dungeon.D05CastrumAbania.D052SubjectNumberXXIV;
 public enum OID : uint
 {
     Boss = 0x3F3B, // R3.600, x?
-    Helper = 0x233C, // R0.500, x?, Helper type
+    Helper = 0x233C, // R0.500, Helper, x?
 }
 
 public enum AID : uint
@@ -26,7 +26,7 @@ public enum AID : uint
     DiscreteMagick6 = 33749, // 3F3B->self, 4.5+0.5s cast, single-target -- SparkingCurrent
 
     SerialMagicks1 = 33747, // 3F3B->self, 3.5+0.5s cast, single-target -- Fire Raidwide
-    SerialMagicks2 = 33456, // 3F3B->self, 3.5+0.5s cast, single-target -- Blizzard II + Ice Grid (Checkerboard)
+    SerialMagicks2 = 33456, // 3F3B->self, 3.5+0.5s cast, single-target
     SerialMagicks3 = 33750, // 3F3B->self, 5.0+0.5s cast, single-target -- ThunderII Towers
 
     FireII = 33462, // 233C->players, 5.0s cast, range 5 circle -- Stack
@@ -41,9 +41,9 @@ public enum AID : uint
 }
 public enum SID : uint
 {
-    FireLoaded = 3626, // Boss->Boss, extra=0x0
-    IceLoaded = 3627, // Boss->Boss, extra=0x0
-    LightningLoaded = 3628, // Boss->Boss, extra=0x0
+    FireLoaded = 3626, // Boss->Boss
+    IceLoaded = 3627, // Boss->Boss
+    LightningLoaded = 3628, // Boss->Boss
     SystemError = 3562, // Boss->Boss, extra=0x255
 }
 
@@ -96,14 +96,7 @@ class ThunderII(BossModule module) : Components.CastTowers(module, AID.ThunderII
             Towers.RemoveAll(t => t.Position.AlmostEqual(caster.Position, 1));
         }
     }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var t in Towers.Where(t => !t.ForbiddenSoakers[slot] && (!t.CorrectAmountInside(Module) || t.IsInside(actor))))
-        {
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, Radius - 0.5f));
-        }
-    }
-};
+}
 class BlizzardII(BossModule module) : Components.CastStackSpread(module, default, AID.BlizzardII, 0, 5);
 class Triflame(BossModule module) : Components.StandardAOEs(module, AID.Triflame, new AOEShapeCone(60, 30.Degrees()));
 class IceGrid(BossModule module) : Components.StandardAOEs(module, AID.IceGrid, new AOEShapeRect(40, 2f));
@@ -127,5 +120,5 @@ class D052SubjectNumberXXIVStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 12392)]
+[ModuleInfo(Contributors = "VeraNala, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 12392)]
 public class D052SubjectNumberXXIV(ModuleInit init) : BossModule(init, new(10.4f, 186.5f), new ArenaBoundsCircle(19));

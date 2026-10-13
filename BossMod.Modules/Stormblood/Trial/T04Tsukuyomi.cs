@@ -99,7 +99,15 @@ class TormentUntoDeath(BossModule module) : Components.GenericBaitAway(module, d
 
 class LeadOfTheUnderworld(BossModule module) : Components.SimpleLineStack(module, 4, 70, AID.LeadOfTheUnderworldMarker, AID.LeadOfTheUnderworld, 5);
 class SteelOfTheUnderworld(BossModule module) : Components.StandardAOEs(module, AID.SteelOfTheUnderworld, new AOEShapeCone(70, 45.Degrees()));
-class TsukiNoMaiogi(BossModule module) : Components.StandardAOEs(module, AID.TsukiNoMaiogi, 10, maxCasts: 7);
+class TsukiNoMaiogi(BossModule module) : Components.StandardAOEs(module, AID.TsukiNoMaiogi, 10.5f, maxCasts: 9)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Casters.Count > 0 && !Casters.Any(c => c.Position.AlmostEqual(Module.Center, 1)))
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.Center, 4.5f, 3));
+    }
+}
 class DarkBladeBrightBlade(BossModule module) : Components.GroupedAOEs(module, [AID.DarkBlade, AID.BrightBlade], new AOEShapeCone(70, 105.Degrees()));
 class Lunacy(BossModule module) : Components.StackWithCastTargets(module, AID.Lunacy, 6, 8, 8);
 class LunarHalo(BossModule module) : Components.StandardAOEs(module, AID.LunarHalo, new AOEShapeDonut(2, 15));
@@ -110,12 +118,21 @@ class SpecterAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.S
 
 class MoonStatus(BossModule module) : BossComponent(module)
 {
-    // TODO: draw moonlit/moonshadowed safe sides instead of a text hint once arena half mapping is confirmed
+    private const int SwapStacks = 3;
+
     public override void AddGlobalHints(GlobalHints hints)
     {
         var pc = Raid.Player();
-        if (pc != null && (pc.FindStatus(SID.Moonlit) is { Extra: >= 3 } || pc.FindStatus(SID.Moonshadowed) is { Extra: >= 3 }))
+        if (pc != null && (pc.FindStatus(SID.Moonlit) is { Extra: >= SwapStacks } || pc.FindStatus(SID.Moonshadowed) is { Extra: >= SwapStacks }))
             hints.Add("Swap sides to drop moon stacks!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor.FindStatus(SID.Moonlit) is { Extra: >= SwapStacks })
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(new(Module.Center.X + 1, Module.Center.Z), new(1, 0)));
+        else if (actor.FindStatus(SID.Moonshadowed) is { Extra: >= SwapStacks })
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(new(Module.Center.X - 1, Module.Center.Z), new(-1, 0)));
     }
 }
 
@@ -123,7 +140,7 @@ class T04TsukuyomiStates : StateMachineBuilder
 {
     public T04TsukuyomiStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<TsukiNoMaiogi>()
             .ActivateOnEnter<TormentUntoDeath>()
             .ActivateOnEnter<SteelOfTheUnderworld>()
@@ -143,7 +160,22 @@ class T04TsukuyomiStates : StateMachineBuilder
             .ActivateOnEnter<DarkBladeBrightBlade>()
             .ActivateOnEnter<ToAshes>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.Nightbloom, 91, "Nightbloom");
+        NothingTargetable(id + 0x10, true, 7, "Disappear");
+        NothingTargetable(id + 0x20, false, 20.5f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
+
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)] // TODO: clear Incomplete after moon-gauge safespots + specter timeline
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 537, NameID = 7225)]
 public class T04Tsukuyomi(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

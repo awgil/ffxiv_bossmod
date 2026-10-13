@@ -2,7 +2,7 @@ namespace BossMod.Heavensward.Dungeon.D17BaelsarsWall.D172ArmoredWeapon;
 
 public enum OID : uint
 {
-    Boss = 0x193A, // R5.400, x1
+    Boss = 0x193A, // R5.400
     MagitekSlasher = 0x193C, // R1.05
     MagitekBit = 0x193B, // R0.9
     Helper2 = 0x19A,
@@ -17,8 +17,8 @@ public enum AID : uint
 
     MagitekCannon = 7352, // Boss->player, no cast, single-target
     Launcher = 7356, // Boss->self, 3.0s cast, range 80+R circle, raidwide
-    DynamicSensoryJammer = 7353, // Boss->self, 3.0s cast, range 80+R circle, applies extreme caution
-    DynamicSensoryJammerFail = 7354, // Helper2->player, no cast, single-target, extreme caution fail
+    DynamicSensoryJammer = 7353, // Boss->self, 3.0s cast, range 80+R circle
+    DynamicSensoryJammerFail = 7354, // Helper2->player, no cast, single-target
 
     DiffractiveLaserVisual = 31352, // Helper->self, 2.0s cast, range 5 circle
     DiffractiveLaser1 = 31469, // Boss->location, 4.0s cast, range 5 circle
@@ -35,7 +35,20 @@ public enum SID : uint
 }
 
 class Launcher(BossModule module) : Components.RaidwideCast(module, AID.Launcher);
-class DynamicSensoryJammer(BossModule module) : Components.CastHint(module, AID.DynamicSensoryJammer, "Stop moving!", true); // TODO: Extreme Caution / StayMove once status timing is confirmed
+class ExtremeCaution(BossModule module) : Components.StayMove(module, 3)
+{
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if (status.ID == (uint)SID.ExtremeCaution && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
+    }
+
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
+    {
+        if (status.ID == (uint)SID.ExtremeCaution && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+            PlayerStates[slot] = default;
+    }
+}
 class DiffractiveLaserVisual(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaserVisual, 5);
 class DiffractiveLaser1(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser1, 5);
 class DiffractiveLaser2(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaser2, 5);
@@ -48,7 +61,7 @@ class D172ArmoredWeaponStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Launcher>()
-            .ActivateOnEnter<DynamicSensoryJammer>()
+            .ActivateOnEnter<ExtremeCaution>()
             .ActivateOnEnter<DiffractiveLaserVisual>()
             .ActivateOnEnter<DiffractiveLaser1>()
             .ActivateOnEnter<DiffractiveLaser2>()
@@ -57,5 +70,5 @@ class D172ArmoredWeaponStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)] // TODO: clear after Extreme Caution StayMove
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 219, NameID = 5562)]
 public class D172ArmoredWeapon(ModuleInit init) : BossModule(init, new(116, 0), new ArenaBoundsSquare(19.5f));

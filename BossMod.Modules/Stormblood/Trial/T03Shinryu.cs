@@ -3,18 +3,18 @@ namespace BossMod.Stormblood.Trial.T03Shinryu;
 public enum OID : uint
 {
     Boss = 0x1983, // R22.000
-    Platform = 0x1EA1A1, // R2.000, EventObj, destructible arena tiles (9)
+    Platform = 0x1EA1A1, // R2.000, EventObj
     RightWing = 0x1B1A, // R15.000, Part
     LeftWing = 0x1B19, // R15.000, Part
     WaterSpout = 0x1E8536, // R2.000, EventObj
     WaterPuddles = 0x1E950D, // R0.500, EventObj
     Icicle = 0x1B16, // R2.500
-    EyeOfTheStorm = 0x1B17, // R1.000, pulsing knockback
+    EyeOfTheStorm = 0x1B17, // R1.000
     Cocoon1 = 0x1B13, // R3.000
     MassiveCocoon = 0x1C86, // R6.000
     Ginryu = 0x1B14, // R1.800
     Hakkinryu = 0x1C83, // R3.600
-    Fetters = 0x1B15, // R1.000, fetters + button mash
+    Fetters = 0x1B15, // R1.000
     Tail = 0x1B12, // R17.940, Helper
     Helper = 0x18D6, // R0.500
 }
@@ -26,8 +26,8 @@ public enum AID : uint
     TidalWaveCast = 8106, // Boss->self, 10.0s cast, single-target, visual
     Levinbolt = 8092, // Helper->player, no cast, range 5 circle
     LevinboltVisual = 8091, // RightWing->self, 6.0s cast, single-target, visual
-    AkhMornVisual = 8100, // Boss->players, 4.0s cast, single-target, shared tankbuster visual
-    AkhMorn1 = 8101, // Boss->players, no cast, single-target, shared tankbuster hit
+    AkhMornVisual = 8100, // Boss->players, 4.0s cast, single-target
+    AkhMorn1 = 8101, // Boss->players, no cast, single-target
     SummonIcicle = 8095, // LeftWing->self, 4.0s cast, single-target
     IcicleImpact = 8096, // Icicle->self, no cast, range 6 circle
     Spikesicle = 8097, // Icicle->self, 2.5s cast, range 62+R width 10 rect
@@ -52,6 +52,7 @@ public enum AID : uint
     DeathSentence = 8731, // Hakkinryu->player, 4.0s cast, single-target
     SpikedTail = 8729, // Ginryu->player, 1.0s cast, single-target
     JudgmentBolt = 8077, // Helper->self, 10.0s cast, range 60 circle
+    JudgmentBoltVisual = 8108, // Boss->self, 9.7s cast, single-target
     EarthenFury = 8079, // Helper->self, 10.0s cast, range 60 circle
     EarthenFurySmash = 9146, // Helper->location, range 20 width 20 rect
     AkhRhai = 8102, // Helper->location, no cast, range 4 circle
@@ -88,8 +89,50 @@ public enum TetherID : uint
     BurningTether = 9
 }
 
-class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 35, kind: Components.Knockback.Kind.DirForward);
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 35, kind: Components.Knockback.Kind.DirForward)
+{
+    private DateTime _knockbackUntil;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if ((AID)spell.Action.ID == AID.TidalWave)
+            _knockbackUntil = WorldState.FutureTime(3.2f);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (WorldState.CurrentTime < _knockbackUntil && !IsImmune(slot, _knockbackUntil))
+            hints.MaxCastTime = 0;
+        foreach (var c in Casters)
+        {
+            var activation = Module.CastFinishAt(c.CastInfo);
+            if (IsImmune(slot, activation))
+                continue;
+            var dir = c.CastInfo!.Rotation.ToDirection();
+            hints.AddForbiddenZone(ShapeDistance.HalfPlane(Arena.Center - 15.5f * dir, -dir), activation);
+        }
+    }
+}
 class Levinbolt(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Levinbolt, AID.Levinbolt, 5, 6);
+class Paralysis(BossModule module) : BossComponent(module)
+{
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!actor.Class.CanEsuna())
+            return;
+        foreach (var member in Raid.WithoutSlot())
+            if (!member.IsDead && member.FindStatus(SID.Paralysis) != null && member.PendingDispels.Count == 0)
+                hints.Add($"Cleanse {member.Name}!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var (partySlot, member) in Raid.WithSlot())
+            if (!member.IsDead && member.FindStatus(SID.Paralysis) != null)
+                hints.ShouldCleanse.Set(partySlot);
+    }
+}
 class EarthBreathBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), (uint)IconID.EarthBreath, AID.EarthBreathAOE);
 class EarthBreathAOE(BossModule module) : Components.StandardAOEs(module, AID.EarthBreathAOE, new AOEShapeCone(60, 30.Degrees()));
 class IcicleAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.Icicle]);
@@ -105,7 +148,48 @@ class TailSlap(BossModule module) : Components.GroupedAOEs(module, [AID.TailSlap
 class Dragonfist(BossModule module) : Components.StandardAOEs(module, AID.DragonfistVisual, 16);
 class EarthenFurySmash(BossModule module) : Components.StandardAOEs(module, AID.EarthenFurySmash, new AOEShapeRect(20, 10));
 class SuperCyclone(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SuperCyclone, 5);
-class AerialBlast(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AerialBlast, 15);
+class AerialBlast(BossModule module) : Components.Knockback(module, AID.AerialBlast)
+{
+    private WPos _origin;
+    private DateTime _activation;
+    private DateTime _positionDeadline;
+    private int _smallPushes;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.AerialBlast)
+        {
+            _origin = caster.Position;
+            _activation = Module.CastFinishAt(spell, 1.6f);
+            _positionDeadline = Module.CastFinishAt(spell, -6.3f);
+            _smallPushes = 0;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if ((AID)spell.Action.ID == AID.SuperCyclone && _activation != default)
+            _positionDeadline = ++_smallPushes < 3 ? WorldState.FutureTime(2.1f) : _activation;
+    }
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        if (_activation != default && WorldState.CurrentTime <= _activation)
+            yield return new(_origin, 15, _activation);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_activation == default || WorldState.CurrentTime > _activation.AddSeconds(0.5) || IsImmune(slot, _activation))
+            return;
+        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_origin, 10), _positionDeadline);
+        var origin = _origin;
+        var center = Arena.Center;
+        var bounds = Arena.Bounds;
+        hints.AddForbiddenZone(Sdf.Discrete(p => !bounds.Contains(AwayFromSource(p, origin, 15) - center)), _positionDeadline);
+    }
+}
 class Hypernova(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HypernovaStack, AID.Hypernova, 7, 6);
 class Spikesicle(BossModule module) : Components.StandardAOEs(module, AID.Spikesicle, new AOEShapeRect(64.5f, 5), maxCasts: 3);
 class SpikesicleKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Spikesicle, 10, maxCasts: 3, shape: new AOEShapeRect(64.5f, 5), kind: Components.Knockback.Kind.DirForward);
@@ -142,33 +226,66 @@ class AkhRhai(BossModule module) : Components.GenericAOEs(module)
 
 class WaterPuddles(BossModule module) : BossComponent(module)
 {
-    // TODO: puddle radius and Levinbolt/Hellfire timing still unverified; consider forbidden zones instead of hints
-    private bool _levinCasting;
-    private bool _fireCasting;
+    private const float Radius = 5;
+    private DateTime _levinActivation;
+    private DateTime _boltActivation;
+    private DateTime _fireActivation;
+    private bool LevinCasting => _levinActivation != default;
+    private bool BoltCasting => _boltActivation != default;
+    private bool FireCasting => _fireActivation != default;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.LevinboltVisual)
-            _levinCasting = true;
+            _levinActivation = Module.CastFinishAt(spell);
+        else if ((AID)spell.Action.ID == AID.JudgmentBolt)
+            _boltActivation = Module.CastFinishAt(spell);
         else if ((AID)spell.Action.ID == AID.HellfireVisual)
-            _fireCasting = true;
+            _fireActivation = Module.CastFinishAt(spell);
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.LevinboltVisual)
-            _levinCasting = false;
+            _levinActivation = default;
+        else if ((AID)spell.Action.ID == AID.JudgmentBolt)
+            _boltActivation = default;
         else if ((AID)spell.Action.ID == AID.HellfireVisual)
-            _fireCasting = false;
+            _fireActivation = default;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var puddles = Module.Enemies((uint)OID.WaterPuddles).Where(z => !z.IsDead).ToList();
+        if (puddles.Count == 0)
+            return;
+
+        if (LevinCasting || BoltCasting)
+        {
+            var activation = !LevinCasting ? _boltActivation : !BoltCasting ? _levinActivation : _levinActivation < _boltActivation ? _levinActivation : _boltActivation;
+            foreach (var p in puddles)
+                hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, Radius + 1), activation);
+        }
+        else if (FireCasting)
+        {
+            var closest = puddles.MinBy(p => (p.Position - actor.Position).LengthSq())!;
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, Radius - 1.5f), _fireActivation);
+        }
+        else if (Module.FindComponent<Hypernova>() is { } nova && nova.Stacks.Count > 0)
+        {
+            var stack = nova.Stacks[0];
+            var closest = puddles.MinBy(p => (p.Position - stack.Target.Position).LengthSq())!;
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(closest.Position, Radius - 1.5f), stack.Activation);
+        }
     }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
         if (!Module.Enemies((uint)OID.WaterPuddles).Any(z => !z.IsDead))
             return;
-        if (_levinCasting)
+        if (LevinCasting || BoltCasting)
             hints.Add("Avoid puddles during lightning bolts.");
-        else if (_fireCasting)
+        else if (FireCasting)
             hints.Add("Stand in puddles during hellfire.");
     }
 
@@ -178,12 +295,12 @@ class WaterPuddles(BossModule module) : BossComponent(module)
         {
             if (orb.IsDead)
                 continue;
-            if (_levinCasting)
-                Arena.ZoneCircle(orb.Position, 5, ArenaColor.Danger);
-            else if (_fireCasting)
-                Arena.ZoneCircle(orb.Position, 5, ArenaColor.SafeFromAOE);
+            if (LevinCasting || BoltCasting)
+                Arena.ZoneCircle(orb.Position, Radius, ArenaColor.Danger);
+            else if (FireCasting)
+                Arena.ZoneCircle(orb.Position, Radius, ArenaColor.SafeFromAOE);
             else
-                Arena.AddCircle(orb.Position, 5, ArenaColor.Object);
+                Arena.AddCircle(orb.Position, Radius, ArenaColor.Object);
         }
     }
 }
@@ -217,10 +334,11 @@ class T03ShinryuStates : StateMachineBuilder
 {
     public T03ShinryuStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<TidalWave>()
             .ActivateOnEnter<WaterPuddles>()
             .ActivateOnEnter<Levinbolt>()
+            .ActivateOnEnter<Paralysis>()
             .ActivateOnEnter<EarthBreathBait>()
             .ActivateOnEnter<EarthBreathAOE>()
             .ActivateOnEnter<AkhMornStack>()
@@ -254,7 +372,22 @@ class T03ShinryuStates : StateMachineBuilder
             .ActivateOnEnter<AerialBlast>()
             .ActivateOnEnter<Hypernova>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.JudgmentBoltVisual, 90, "Judgment Bolt");
+        NothingTargetable(id + 0x10, true, 13.2f, "Disappear");
+        NothingTargetable(id + 0x20, false, 12.9f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
+
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 239, NameID = 5640)] // TODO: clear Incomplete after puddle/arena/Fetters verify
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 239, NameID = 5640)]
 public class T03Shinryu(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20, MapResolution: 0.3f));
