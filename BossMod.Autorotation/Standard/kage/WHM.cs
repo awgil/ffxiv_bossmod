@@ -135,7 +135,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
         if (target == null)
         {
-            if (CanSpendLily(strategy))
+            if (Player.InCombat && CanSpendLily(strategy))
                 PushGCD(LilySpell, Player, 10);
             return;
         }

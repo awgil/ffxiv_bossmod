@@ -119,12 +119,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Basic, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
     }
 
     private int Gall;
     private int Sting;
-    private float NextGall;
     private bool Eukrasia;
 
     private bool AOEMode;
@@ -146,7 +145,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         var gauge = World.Client.GetGauge<SageGauge>();
         Gall = gauge.Addersgall;
         Sting = gauge.Addersting;
-        NextGall = MathF.Max(0, 20f - gauge.AddersgallTimer / 1000f);
         Eukrasia = gauge.EukrasiaActive;
 
         var numAround = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
@@ -290,7 +288,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             if (CanWeave(AID.Rhizomata))
                 PushOGCD(AID.Rhizomata, Player, 40);
 
-        if (strategy.Druochole.Value == DruocholeStrategy.Automatic && Gall >= 3 && NextGall < GCDLength + 1 && CanWeave(AID.Druochole)
+        // the gall timer stops at 3, so every second at cap is wasted
+        if (strategy.Druochole.Value == DruocholeStrategy.Automatic && Gall >= 3 && CanWeave(AID.Druochole)
             && !(RaidwideWithin(15) && ReadyIn(AID.Kerachole) < 5))
         {
             var healTarget = World.Party.WithoutSlot(excludeAlliance: true).Where(p => !p.IsDead && Player.DistanceToHitbox(p) <= 30).MinBy(p => p.PendingHPRatio) ?? Player;
@@ -312,7 +311,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             return;
 
         var desired = strategy.Kardia.Value == KardiaStrategy.Specific ? ResolveTarget(strategy.Kardia) : KardiaTarget();
-        if (desired == null || desired.IsDead || HasKardion(desired))
+        if (desired == null || desired.IsDead || !desired.IsTargetable || HasKardion(desired))
             return;
 
         Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Kardia), desired, Player.InCombat ? ActionQueue.Priority.Low + 60 : ActionQueue.Priority.High);
