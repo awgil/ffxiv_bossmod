@@ -24,11 +24,25 @@ internal class StifledScreams(WorldState ws) : QuestBattle(ws)
             .CompleteOnDestroyed(0x1E9757),
 
         new QuestObjective(ws)
-            .WithInteract(0x1E9757)
-            .CompleteOnDestroyed(0x1E9757),
+            .WithInteract(0x1E9758)
+            .CompleteOnDestroyed(0x1E9758),
 
         new QuestObjective(ws)
             .Hints((player, hints) => hints.PrioritizeTargetsByOID(0xD47))
     ];
+
+    public override void AddQuestAIHints(Actor player, AIHints hints)
+    {
+        if (!player.InCombat)
+        {
+            if (player.FindStatus(BossMod.NIN.SID.Hidden) == null)
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.NIN.AID.Hide), player, ActionQueue.Priority.VeryLow);
+            hints.ActionsToExecute.Push(ActionDefinitions.IDSprint, player, ActionQueue.Priority.VeryLow);
+        }
+
+        // stupid ass complicated ass room layouts
+        if (World.Actors.Find(player.TargetID) is { Visibility: Visibility.Blocked } t)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(t.Position, 1));
+    }
 }
 

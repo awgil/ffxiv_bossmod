@@ -88,9 +88,7 @@ public sealed class NIN(RotationModuleManager manager, Actor player) : Attackxan
 
     private bool CanTrickInCombat => Unlocked(AID.Suiton);
 
-    private static readonly uint[] NoUnhideZones = [
-        452
-    ];
+    private static readonly uint[] NoUnhideZones = [381, 382, 384, 385, 386];
 
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
