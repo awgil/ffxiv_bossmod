@@ -118,7 +118,7 @@ public sealed class ActionQueue
                 return false;
         }
 
-        if (_config.CountdownHold && entry.Manual && entry.Target is { IsAlly: false } enemy && ApplicationDelay.Get(entry.Action) + entry.CastTime > ws.Client.CountdownRemaining)
+        if (_config.CountdownHold && entry.Manual && entry.Target is { IsAlly: false } enemy && ws.Client.CountdownRemaining > entry.CastTime + ApplicationDelay.Get(entry.Action))
             return false;
 
         return def.AllowExecute?.Invoke(ws, player, entry, hints) != false;
