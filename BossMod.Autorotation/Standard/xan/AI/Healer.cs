@@ -118,6 +118,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (strategy.Heal.Value != HealMode.Enabled)
             return;
 
+        // the first action after a raise goes off on the frame we revive, before we see our own hp
+        if (Player.IsDead && Player.FindStatus(ClassShared.SID.Raise) != null)
+        {
+            healFun(Player, 0.2f);
+            return;
+        }
+
         var best = -1;
         var bestRatio = float.MaxValue;
         foreach (var (slot, _) in Health.TrackedMembers)
@@ -251,12 +258,14 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         MultiHitIn = SecondsUntilNext(multiHit.Select(d => d.Activation));
         MultiHitLong = multiHit.Any(d => d.Hits >= 8 || (d.LastHit - d.Activation).TotalSeconds >= 10);
 
-        if (strategy.StayNearParty.IsEnabled() && Player.InCombat)
+        // module goals (towers, stacks, baits) come first; goals are summed, so keep this one at most 1
+        if (strategy.StayNearParty.IsEnabled() && Player.InCombat && Hints.GoalZones.Count == 0)
         {
             List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
             var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
+            var scale = 1f / Math.Max(1, allies.Count);
             // require a margin to improve coverage, so allies moving near the edge don't make us shuffle
-            Hints.GoalZones.Add(p => Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
+            Hints.GoalZones.Add(p => scale * Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
         }
 
         AutoRaise(strategy);
