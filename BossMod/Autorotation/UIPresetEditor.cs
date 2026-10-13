@@ -32,7 +32,9 @@ public sealed class UIPresetEditor
         "BossMod.Autorotation.xan.AST",
         "BossMod.Autorotation.xan.SCH",
         "BossMod.Autorotation.xan.SGE",
-        "BossMod.Autorotation.akechi.AkechiSCH"
+        "BossMod.Autorotation.akechi.AkechiSCH",
+        "BossMod.Autorotation.kage.KageWHM",
+        "BossMod.Autorotation.kage.KageSGE"
     ];
 
     public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
@@ -54,6 +56,7 @@ public sealed class UIPresetEditor
             Modified = false; // don't bother...
         }
         _availableModules = BuildAvailableModules();
+        _currentModuleHasHealerAI = Preset.Modules.Any(m => m.Type.FullName == THealerAI);
         SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
