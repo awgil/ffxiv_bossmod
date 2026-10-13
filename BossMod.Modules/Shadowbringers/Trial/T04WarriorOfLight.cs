@@ -77,6 +77,7 @@ public enum AID : uint
     TwincastHit = 21278, // SpectralWhiteMage/BlackMage->BossP2, no cast
     Ascendance = 21297, // Boss->self, 6.0s cast, range 60 circle
     AbsoluteTeleport = 21298, // Boss->self, 5.0s cast, single-target
+    AbsoluteTeleportHit = 20611, // Helper->player, no cast, single-target, one hit on every player ~4.8s after Absolute Teleport
     UltimateCrossover = 21627, // BossP2->self, 7.0s cast, single-target
     UltimateCrossoverAOE = 21628, // Helper->self, 6.0s cast, range 60 circle
 }
@@ -103,31 +104,151 @@ class CoruscantSaberIn(BossModule module) : Components.StandardAOEs(module, AID.
 class CoruscantSaberOut(BossModule module) : Components.StandardAOEs(module, AID.CoruscantSaberOut, new AOEShapeDonut(5, 60));
 class ImbuedCoruscanceIn(BossModule module) : Components.StandardAOEs(module, AID.ImbuedCoruscanceIn, 10);
 class ImbuedCoruscanceOut(BossModule module) : Components.StandardAOEs(module, AID.ImbuedCoruscanceOut, new AOEShapeDonut(5, 60));
-class RadiantMeteorSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.RadiantMeteorSpread, 20);
+class RadiantMeteorSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.RadiantMeteorSpread, 20)
+{
+    private static readonly WPos[] _corners = [new(82, 82), new(118, 82), new(82, 118), new(118, 118)];
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Spreads.FindIndex(s => s.Target == actor) is var own && own >= 0)
+        {
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 14), Spreads[own].Activation);
+            var corner = _corners.MinBy(c => (c - actor.Position).LengthSq());
+            hints.GoalZones.Add(AIHints.GoalProximity(corner, 40, 1));
+        }
+    }
+}
 class SuitonSan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SuitonSan, 30, kind: Kind.DirForward);
 class KatonSan(BossModule module) : Components.StackWithCastTargets(module, AID.KatonSan, 6, 6);
-class BrimstoneEarth(BossModule module) : Components.StandardAOEs(module, AID.BrimstoneEarth, 6);
+class BrimstoneEarth(BossModule module) : Components.GenericAOEs(module, AID.BrimstoneEarth)
+{
+    private const int MaxRepeats = 12;
+    private readonly List<(WPos Position, int Hits, DateTime Next)> _puddles = [];
+
+    private static float Radius(int hits) => Math.Min(6 + 0.95f * hits, 16.5f);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+        => _puddles.Select(p => new AOEInstance(new AOEShapeCircle(Radius(p.Hits)), p.Position, default, p.Next));
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BrimstoneEarth)
+            _puddles.Add((spell.LocXZ, 0, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is not (AID.BrimstoneEarth or AID.BrimstoneEarthRepeat))
+            return;
+        var pos = (AID)spell.Action.ID == AID.BrimstoneEarth ? spell.TargetXZ : caster.Position;
+        var index = _puddles.FindIndex(p => p.Position.AlmostEqual(pos, 1));
+        if (index < 0)
+            return;
+        var hits = _puddles[index].Hits + 1;
+        if (hits > MaxRepeats)
+            _puddles.RemoveAt(index);
+        else
+            _puddles[index] = (_puddles[index].Position, hits, WorldState.FutureTime(hits == 1 ? 2.1f : 1.07f));
+    }
+}
 class PerfectDecimation(BossModule module) : Components.StandardAOEs(module, AID.PerfectDecimation, new AOEShapeCone(60, 22.5f.Degrees()), 4);
 class FlareBreathTether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeCone(60, 45.Degrees()), (uint)TetherID.FlareBreath, AID.FlareBreath);
 class FlareBreathAOE(BossModule module) : Components.StandardAOEs(module, AID.FlareBreath, new AOEShapeCone(60, 45.Degrees()));
 class Cauterize(BossModule module) : Components.StandardAOEs(module, AID.Cauterize, new AOEShapeRect(40, 10));
-class DelugeOfDeath(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(20), (uint)IconID.ProximityBait, AID.DelugeOfDeath, 5.1f, centerAtTarget: true);
+class DelugeOfDeath(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(20), (uint)IconID.ProximityBait, AID.DelugeOfDeath, 5.1f, centerAtTarget: true)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (ActiveBaitsOn(actor).Any())
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
 class TerrorUnleashed(BossModule module) : Components.RaidwideCast(module, AID.TerrorUnleashed, "Heal to full");
 class TheBitterEnd(BossModule module) : Components.BaitAwayCast(module, AID.TheBitterEnd, new AOEShapeCircle(5), true, true);
 class ElddragonDive(BossModule module) : Components.RaidwideCast(module, AID.ElddragonDive);
 class SolemnConfiteor(BossModule module) : Components.StandardAOEs(module, AID.SolemnConfiteor, 6);
-class RadiantSacrament(BossModule module) : Components.StandardAOEs(module, AID.RadiantSacrament, new AOEShapeRect(60, 20));
+class RadiantSacrament(BossModule module) : Components.RaidwideCast(module, AID.RadiantSacrament);
 class Ascendance(BossModule module) : Components.RaidwideCast(module, AID.Ascendance);
 class UltimateCrossoverAOE(BossModule module) : Components.RaidwideCast(module, AID.UltimateCrossoverAOE, "Tank LB3 when 'Transcend your limits...'");
-class AbsoluteHoly(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.AbsoluteHoly, 6, 5.1f);
-class RadiantDesperado(BossModule module) : Components.MultiLineStack(module, 4, 60, AID.RadiantDesperadoMarker, AID.RadiantDesperado, 6);
+class AbsoluteHoly(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.AbsoluteHoly, 6, 5.1f)
+{
+    private BitMask _proximityBaits;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        foreach (var s in ActiveStacks.Where(s => s.Target != actor && !s.ForbiddenPlayers[slot]).Take(1))
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(s.Target.Position, s.Radius - 2), s.Activation);
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        base.OnEventIcon(actor, iconID, targetID);
+        if (iconID == (uint)IconID.ProximityBait && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+            _proximityBaits.Set(slot);
+        for (var i = 0; i < Stacks.Count; ++i)
+        {
+            var stack = Stacks[i];
+            stack.ForbiddenPlayers |= _proximityBaits;
+            Stacks[i] = stack;
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.DelugeOfDeath)
+            _proximityBaits.Reset();
+        if (spell.Action == StackAction || (AID)spell.Action.ID == AID.KatonSan)
+        {
+            Stacks.Clear();
+            ++NumFinishedStacks;
+        }
+    }
+}
+class RadiantDesperado(BossModule module) : Components.MultiLineStack(module, 4, 60, AID.RadiantDesperadoMarker, AID.RadiantDesperado, 6)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.RadiantDesperado or AID.RadiantDesperadoRepeat)
+        {
+            NumCasts++;
+            Stacks.Clear();
+            return;
+        }
+        base.OnEventCast(caster, spell);
+    }
+}
 class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.MeteoricBurst)
 {
+    private BitMask _soaked;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (_soaked[slot] || Towers.Count == 0)
+            return;
+        var next = Towers.MinBy(t => t.Activation);
+        if (next.IsInside(actor) || next.NumInside(Module) < next.MaxSoakers)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(next.Position, next.Radius - 1.5f), next.Activation);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if ((AID)spell.Action.ID == AID.MeteorImpact)
+            foreach (var t in spell.Targets)
+                if (Raid.FindSlot(t.ID) is var slot && slot >= 0)
+                    _soaked.Set(slot);
+    }
+
     public override void OnMapEffect(byte index, uint state)
     {
         var pos = TowerPos(index);
         if (pos == default)
             return;
+        if (state == 0x00020001 && Towers.Count == 0)
+            _soaked.Reset();
         if (state == 0x00020001)
             Towers.Add(new(pos, 4, 2, 5, activation: WorldState.FutureTime(10)));
         else if (state == 0x00080004)
@@ -139,7 +260,7 @@ class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.M
         if (index <= 7)
         {
             var start = new WPos(100, 89.5f);
-            return Arena.Center + (start - Arena.Center).Rotate((45f * index).Degrees());
+            return Arena.Center + (start - Arena.Center).Rotate((-45f * index).Degrees());
         }
         return index switch
         {
@@ -196,6 +317,13 @@ class RadiantBraver(BossModule module) : Components.BaitAwayIcon(module, new AOE
         }
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        foreach (var b in ActiveBaitsOn(actor))
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, Module.PrimaryActor.HitboxRadius + 2), b.Activation);
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.RadiantBraver or AID.RadiantBraverAOE)
@@ -217,13 +345,13 @@ class AbsoluteFireIce(BossModule module) : Components.StayMove(module)
                 Apply(Requirement.Stay, Module.CastFinishAt(spell));
                 break;
             case AID.AbsoluteBlizzardIII:
-                Apply(Requirement.NoMove, Module.CastFinishAt(spell));
+                Apply(Requirement.Move, Module.CastFinishAt(spell));
                 break;
             case AID.ImbuedAbsoluteFireIII:
                 _imbued = Requirement.Stay;
                 break;
             case AID.ImbuedAbsoluteBlizzardIII:
-                _imbued = Requirement.NoMove;
+                _imbued = Requirement.Move;
                 break;
             case AID.ImbuedCoruscanceIn:
             case AID.ImbuedCoruscanceOut:
@@ -313,8 +441,8 @@ class T04WarriorOfLightP2States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462)] // TODO: clear Incomplete after imbued saber order + spectral adds pass
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462)]
 public class T04WarriorOfLight(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)] // TODO: P2 Absolute Fire/Ice + Ult Crossover timing
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 738, NameID = 9462, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
 public class T04WarriorOfLightP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

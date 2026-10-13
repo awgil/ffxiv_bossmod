@@ -1,4 +1,4 @@
-namespace BossMod.Stormblood.Trial.T01Susano;
+﻿namespace BossMod.Stormblood.Trial.T01Susano;
 
 public enum OID : uint
 {
@@ -9,7 +9,7 @@ public enum OID : uint
     AmaNoIwatoStone = 0x1C20, // R1.800
     AmeNoMurakumo = 0x1C84, // R8.000, Part
     DarkCloud = 0x1F53, // R3.000
-    DarkLevin = 0x1B9B, // R1.000, lightning orbs
+    DarkLevin = 0x1B9B, // R1.000
     BladesShadow = 0x1EA479, // R2.000, EventObj
 }
 
@@ -35,8 +35,14 @@ public enum AID : uint
     AmeNoMurakumoEnrage = 9506, // AmeNoMurakumo->self, 24.0s cast, single-target
 }
 
+public enum SID : uint
+{
+    Fetters = 292, // none->player, trapped in an Ama-no-iwato stone
+}
+
 public enum IconID : uint
 {
+    YataNoKagami = 23, // player
     Stack = 62, // player
     Stormsplitter = 230, // player
 }
@@ -44,55 +50,108 @@ public enum IconID : uint
 class RasenKaikyo(BossModule module) : Components.StandardAOEs(module, AID.RasenKaikyo, 6);
 class Ukehi(BossModule module) : Components.RaidwideCast(module, AID.Ukehi);
 class Brightstorm(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Stack, AID.Brightstorm, 6, 8);
-class ThePartingClouds(BossModule module) : Components.StandardAOEs(module, AID.ThePartingClouds, new AOEShapeRect(65, 5));
+class ThePartingClouds(BossModule module) : Components.StandardAOEs(module, AID.ThePartingClouds, new AOEShapeRect(53, 5));
 class AmeNoMurakumoRaidwide(BossModule module) : Components.RaidwideInstant(module, AID.AmeNoMurakumoRaidwide, 0);
-class AmeNoMurakumoRect(BossModule module) : Components.StandardAOEs(module, AID.AmeNoMurakumoRect, new AOEShapeRect(65, 3));
+class AmeNoMurakumoRect(BossModule module) : Components.StandardAOEs(module, AID.AmeNoMurakumoRect, new AOEShapeRect(40.5f, 3));
 class Shock(BossModule module) : Components.StandardAOEs(module, AID.Shock, 6);
-class Seasplitter(BossModule module) : Components.StandardAOEs(module, AID.Seasplitter, new AOEShapeRect(41, 20));
-class Stormsplitter(BossModule module) : Components.IconSharedTankbuster(module, (uint)IconID.Stormsplitter, AID.Stormsplitter, new AOEShapeRect(40, 2));
-class SheerForce(BossModule module) : Components.RaidwideInstant(module, AID.SheerForce, 0);
-class SusanoAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.SusanoBig, (uint)OID.AmaNoIwato, (uint)OID.AmaNoIwatoStone, (uint)OID.AmeNoMurakumo, (uint)OID.DarkLevin], 1);
-
-class YataNoKagami(BossModule module) : Components.Knockback(module, AID.YataNoKagami)
+class Seasplitter(BossModule module) : Components.GenericAOEs(module, AID.Seasplitter)
 {
-    private readonly List<(WPos origin, DateTime activation)> _sources = [];
+    private readonly List<AOEInstance> _aoes = [];
+
+    private static readonly AOEShapeRect _shape = new(21.5f, 20);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.YataNoKagami)
+        if ((AID)spell.Action.ID == AID.Seasplitter4)
         {
             ++NumCasts;
-            _sources.Add((caster.Position, WorldState.CurrentTime.AddSeconds(1)));
+            _aoes.RemoveAll(aoe => aoe.Rotation.AlmostEqual(spell.Rotation, 0.1f));
         }
     }
-
-    public override IEnumerable<Source> Sources(int slot, Actor actor)
-    {
-        var now = WorldState.CurrentTime;
-        foreach (var s in _sources)
-        {
-            if (now <= s.activation)
-                yield return new(s.origin, 20, s.activation);
-        }
-    }
-
-    public override void Update() => _sources.RemoveAll(s => WorldState.CurrentTime > s.activation);
 }
 
-class DarkLevinOrbs(BossModule module) : BossComponent(module)
+class Stormsplitter(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(23.5f, 2), (uint)IconID.Stormsplitter, AID.Stormsplitter, 5.1f, damageType: AIHints.PredictedDamageType.Tankbuster);
+class SheerForce(BossModule module) : Components.RaidwideInstant(module, AID.SheerForce, 0);
+class SusanoAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.SusanoBig, (uint)OID.AmaNoIwato, (uint)OID.AmaNoIwatoStone, (uint)OID.AmeNoMurakumo, (uint)OID.DarkLevin], 1);
+
+class SealedGate(BossModule module) : BossComponent(module)
 {
-    // TODO: proper soak towers / bait radius once Dark Levin size is confirmed from replay
     public override void AddGlobalHints(GlobalHints hints)
     {
-        if (Module.Enemies((uint)OID.DarkLevin).Any(z => !z.IsDead))
-            hints.Add("Soak lightning orbs!");
+        if (TrappedStones().Any())
+            hints.Add("Break the stone with the trapped player!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var trapped = TrappedStones().ToList();
+        foreach (var stone in Module.Enemies(OID.AmaNoIwatoStone))
+            if (hints.FindEnemy(stone) is { } e)
+                e.Priority = trapped.Contains(stone) ? 2 : AIHints.Enemy.PriorityInvincible;
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var z in Module.Enemies((uint)OID.DarkLevin).Where(z => !z.IsDead))
-            Arena.AddCircle(z.Position, 1, ArenaColor.Danger);
+        foreach (var stone in TrappedStones())
+            Arena.AddCircle(stone.Position, 2, ArenaColor.Danger);
     }
+
+    private IEnumerable<Actor> TrappedStones() => Module.Enemies(OID.AmaNoIwatoStone).Where(s => !s.IsDead && Raid.WithoutSlot().Any(p => p.FindStatus(SID.Fetters) != null && p.Position.InCircle(s.Position, 2.5f)));
+}
+
+class YataNoKagami(BossModule module) : Components.Knockback(module, AID.YataNoKagami, stopAtWall: true)
+{
+    private Actor? _target;
+    private DateTime _activation;
+
+    public override IEnumerable<Source> Sources(int slot, Actor actor)
+    {
+        if (actor == _target)
+            yield return new(Module.PrimaryActor.Position, 20, _activation);
+    }
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID == (uint)IconID.YataNoKagami)
+        {
+            _target = actor;
+            _activation = WorldState.FutureTime(5.3f);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            ++NumCasts;
+            _target = null;
+        }
+    }
+}
+
+class DarkLevinOrbs(BossModule module) : BossComponent(module)
+{
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (Orbs().Any())
+            hints.Add("Pop lightning orbs, one player each");
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var z in Orbs())
+            Arena.AddCircle(z.Position, 6, ArenaColor.Danger);
+    }
+
+    private IEnumerable<Actor> Orbs() => Module.Enemies(OID.DarkLevin).Where(z => !z.IsDead);
 }
 
 class T01SusanoStates : StateMachineBuilder
@@ -112,9 +171,10 @@ class T01SusanoStates : StateMachineBuilder
             .ActivateOnEnter<Seasplitter>()
             .ActivateOnEnter<Stormsplitter>()
             .ActivateOnEnter<SheerForce>()
-            .ActivateOnEnter<SusanoAdds>();
+            .ActivateOnEnter<SusanoAdds>()
+            .ActivateOnEnter<SealedGate>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)] // TODO: clear Incomplete after live/replay pass (Seasplitter timing, Levin soak)
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 243, NameID = 6221)]
 public class T01Susano(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

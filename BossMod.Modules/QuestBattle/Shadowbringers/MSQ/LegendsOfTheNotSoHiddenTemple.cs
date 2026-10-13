@@ -115,5 +115,12 @@ public class LegendsOfTheNotSoHiddenTemple(WorldState ws) : QuestBattle(ws)
         foreach (var h in hints.PotentialTargets)
             if (h.Actor.OID == 0x2955)
                 h.Priority = AIHints.Enemy.PriorityForbidden;
+
+        foreach (var flame in World.Actors.Where(a => a.OID == 0x233C && a.CastInfo?.Action.ID == 17841))
+        {
+            hints.ForbiddenZones.RemoveAll(z => z.tag == flame.InstanceID);
+            if (World.Actors.Find(flame.CastInfo!.TargetID) is { } stackTarget)
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(stackTarget.Position, 5, 10));
+        }
     }
 }

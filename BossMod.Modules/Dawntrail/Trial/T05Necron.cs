@@ -2,17 +2,17 @@ namespace BossMod.Dawntrail.Trial.T05Necron;
 
 public enum OID : uint
 {
-    Boss = 0x4870, // R20.000, Necron
+    Boss = 0x4870, // R20.000
     Helper = 0x233C, // R0.500
     AutoAttacker = 0x49B1, // R0.000, Part
     NecronHelper = 0x4945, // R1.000
     IcyHands1 = 0x4903, // R3.575
-    IcyHandsJail = 0x4904, // R3.575, intermission adds
+    IcyHandsJail = 0x4904, // R3.575
     IcyHands5 = 0x4905, // R3.575
     IcyHands6 = 0x4906, // R3.575
     LoomingSpecter1 = 0x4907, // R15.750
     IcyHands3 = 0x4908, // R4.400
-    IcyHandsTower = 0x4909, // R3.575, SpreadingFear
+    IcyHandsTower = 0x4909, // R3.575
     AzureAether1 = 0x490A, // R1.000
     AzureAether2 = 0x4948, // R1.000
     LoomingSpecter2 = 0x49DD, // R3.000
@@ -330,7 +330,6 @@ class MacabreMark(BossModule module) : Components.GenericTowers(module)
         hints.GoalZones.Add(AIHints.GoalSingleTarget(t.Position, 1, 5));
     }
 
-    // Duty Support: player takes east towers (NE then SE); west left for NPCs
     private int PreferredIndex()
     {
         var ne = -1;
@@ -679,7 +678,13 @@ class T05NecronStates : StateMachineBuilder
             .Raw.Update = () => Module.PrimaryActor.IsDead;
     }
 
-    private void P1(uint id) => ActivateCommon(id);
+    private void P1(uint id)
+    {
+        ActivateCommon(Condition(id, 260, () => Module.PrimaryActor.CastInfo?.IsSpell(AID.DarknessOfEternityCast) ?? false, "Darkness of Eternity", 300));
+        NothingTargetable(id + 0x10, true, 16.5f, "Disappear");
+        NothingTargetable(id + 0x20, false, 14, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "Enrage");
+    }
 
     private void PJail(uint id)
     {
@@ -689,11 +694,15 @@ class T05NecronStates : StateMachineBuilder
             .ActivateOnEnter<SpreadingFear>();
     }
 
-    private void P2(uint id) => ActivateCommon(id);
+    private void P2(uint id) => ActivateCommon(SimpleState(id, 10000, "Enrage"));
 
-    private void ActivateCommon(uint id)
+    private void NothingTargetable(uint id, bool nothing, float delay, string name)
+        => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
+            .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
+
+    private void ActivateCommon(State state)
     {
-        SimpleState(id, 10000, "Enrage")
+        state
             .ActivateOnEnter<FearOfDeath>()
             .ActivateOnEnter<FearOfDeathPuddle>()
             .ActivateOnEnter<ChokingGrasp>()
