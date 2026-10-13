@@ -177,8 +177,6 @@ public enum SID : uint
 
 public sealed class Definitions : Defs
 {
-    private readonly GNBConfig _config = Service.Config.Get<GNBConfig>();
-
     public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
@@ -247,8 +245,6 @@ public sealed class Definitions : Defs
     private void Customize(ActionDefinitions d)
     {
         d.RegisterChargeIncreaseTrait(AID.Aurora, TraitID.EnhancedAurora);
-
-        d.Spell(AID.LightningShot)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyLightningShot && !player.InCombat && ws.Client.CountdownRemaining > 0.7f);
 
         d.Spell(AID.Trajectory)!.AllowExecute = ActionPredicate.AllowDashToTarget;
 

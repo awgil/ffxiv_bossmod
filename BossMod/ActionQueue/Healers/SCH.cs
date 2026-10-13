@@ -117,8 +117,6 @@ public enum SID : uint
 
 public sealed class Definitions : Defs
 {
-    private readonly SCHConfig _config = Service.Config.Get<SCHConfig>();
-
     public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.AngelFeathers, castAnimLock: 8.10f); // animLock=8.100s?
@@ -169,11 +167,6 @@ public sealed class Definitions : Defs
 
     private void Customize(ActionDefinitions d)
     {
-        d.Spell(AID.Broil1)!.AllowExecute =
-        d.Spell(AID.Broil2)!.AllowExecute =
-        d.Spell(AID.Broil3)!.AllowExecute =
-        d.Spell(AID.Broil4)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyBroil && !player.InCombat && ws.Client.CountdownRemaining > 1.5f);
-
         d.Spell(AID.SacredSoil)!.AllowExecute =
         d.Spell(AID.Excogitation)!.AllowExecute =
         d.Spell(AID.Indomitability)!.AllowExecute = (ws, _, _, _) => ws.Client.GetGauge<ScholarGauge>().Aetherflow > 0;

@@ -6,20 +6,6 @@ public sealed class AutorotationConfig : ConfigNode
     [PropertyDisplay("Show in-game UI")]
     public bool ShowUI = false;
 
-    public enum DtrStatus
-    {
-        [PropertyDisplay("Disabled")]
-        None,
-        [PropertyDisplay("Text only")]
-        TextOnly,
-        [PropertyDisplay("With icon")]
-        Icon
-    }
-
-    [PropertyDisplay("Show active presets in server bar")]
-    [PropertyRadio]
-    public DtrStatus ShowDTR = DtrStatus.None;
-
     [PropertyDisplay("Hide built-in presets", tooltip: "If you've created your own presets and no longer need the included defaults, this option will prevent them from being shown in the Autorotation and Preset Editor windows.", since: "0.0.0.253")]
     public bool HideDefaultPreset = false;
 
@@ -46,4 +32,10 @@ public sealed class AutorotationConfig : ConfigNode
 
     [PropertyDisplay("Disable autorotation if the boss is pulled without a countdown", tooltip: "Only applies if you have a cooldown plan active.", since: "7.5.1.28")]
     public bool PlannedPullSafety = true;
+
+    // defined here for DtrConfig migration
+    public bool ShowStatsDTR = false;
+
+    // defined here for DtrConfig migration
+    public DtrConfig.DtrStatus ShowDTR = DtrConfig.DtrStatus.None;
 }
