@@ -84,7 +84,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage WHM", "White Mage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Basic, BitMask.Build(Class.WHM, Class.CNJ), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage WHM", "White Mage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.WHM, Class.CNJ), 100).WithStrategies<Strategy>();
     }
 
     private int Lily;
