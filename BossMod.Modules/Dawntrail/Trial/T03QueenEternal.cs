@@ -114,7 +114,7 @@ class ArenaChanges(BossModule module) : BossComponent(module)
                     SetArena(T03QueenEternal.GetXArena(), T03QueenEternal.XArenaCenter);
                     break;
                 case 0x02:
-                    SetArena(T03QueenEternal.GetSplitArena(), T03QueenEternal.SplitArenaCenter);
+                    SetArena(T03QueenEternal.SplitPlatforms, T03QueenEternal.SplitArenaCenter);
                     break;
             }
         }
@@ -160,7 +160,42 @@ class ArenaChanges(BossModule module) : BossComponent(module)
         if (countGravity != 0 && !isRect)
             SetArena(new ArenaBoundsRect(12, 8), T03QueenEternal.SplitArenaCenter);
         else if (countGravity == 0 && isRect)
-            SetArena(T03QueenEternal.GetSplitArena(), T03QueenEternal.SplitArenaCenter);
+            SetArena(T03QueenEternal.SplitPlatforms, T03QueenEternal.SplitArenaCenter);
+    }
+}
+
+class GravityGap(BossModule module) : Components.GenericAOEs(module)
+{
+    private static readonly AOEShapeRect _shape = new(8, 4, 8);
+    private DateTime _end;
+    private int _numApplications;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_end != default && _end <= WorldState.FutureTime(6))
+            yield return new(_shape, T03QueenEternal.SplitArenaCenter, default, _end);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_end == default || _end > WorldState.FutureTime(6))
+            return;
+        var platforms = T03QueenEternal.SplitPlatforms;
+#pragma warning disable VBM006 // Reference type captured in closure
+        hints.AddForbiddenZone(Sdf.Discrete(p => !platforms.Contains(p - T03QueenEternal.SplitArenaCenter)), _end);
+#pragma warning restore VBM006 // Reference type captured in closure
+    }
+
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        if (status.ID == (uint)SID.GravitationalAnomaly && _end == default)
+            _end = WorldState.FutureTime(_numApplications++ == 0 ? 21.2f : 15f);
+    }
+
+    public override void Update()
+    {
+        if (_end != default && WorldState.CurrentTime > _end.AddSeconds(1))
+            _end = default;
     }
 }
 
@@ -296,7 +331,7 @@ class WaltzOfTheRegaliaBait(BossModule module) : Components.GenericAOEs(module)
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var t in _targets)
-            yield return new(Circle, t.actor.Position, default, t.activation);
+            yield return new(Circle, t.actor.Position, default, t.activation, Risky: t.activation <= WorldState.FutureTime(2.5f));
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -372,8 +407,11 @@ class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(modu
             base.AddAIHints(slot, actor, assignment, hints);
             return;
         }
-        if (Raid.WithoutSlot().Exclude(actor).Closest(actor.Position) is { } partner)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(partner.Position, 2), Stacks[own].Activation);
+        WPos[] partners = [.. Raid.WithoutSlot().Exclude(actor).Select(p => p.Position)];
+        if (partners.Length > 0)
+#pragma warning disable VBM006 // Reference type captured in closure
+            hints.AddForbiddenZone(Sdf.Discrete(p => !partners.Any(c => p.InCircle(c, 2))), Stacks[own].Activation);
+#pragma warning restore VBM006 // Reference type captured in closure
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -443,6 +481,13 @@ class DivideAndConquer(BossModule module) : Components.GenericBaitAway(module, A
             CurrentBaits.Add(new(Module.PrimaryActor, target, _shape, WorldState.FutureTime(3)));
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var b in ActiveBaits)
+            if (b.Target != actor)
+                hints.AddForbiddenZone(b.Shape, b.Source.Position, b.Rotation, b.Activation);
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action != WatchedAction)
@@ -467,12 +512,21 @@ class PlatformKnockback(BossModule module, AID aid, float distance, Components.K
             var origin = src.Origin;
             var distance = src.Distance;
 #pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(Sdf.Discrete(p => !bounds.Contains(Landing(p, push, origin, distance) - center)), src.Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(p => LeavesBounds(bounds, center, p, push, origin, distance)), src.Activation);
 #pragma warning restore VBM006 // Reference type captured in closure
         }
     }
 
     private static WPos Landing(WPos from, WDir push, WPos origin, float distance) => push != default ? from + push : from + (from - origin).Normalized() * distance;
+
+    private static bool LeavesBounds(ArenaBounds bounds, WPos center, WPos from, WDir push, WPos origin, float distance)
+    {
+        var step = (Landing(from, push, origin, distance) - from) / 20;
+        for (var i = 1; i <= 20; ++i)
+            if (!bounds.Contains(from + step * i - center))
+                return true;
+        return false;
+    }
 }
 
 class DownburstKB(BossModule module) : PlatformKnockback(module, AID.Downburst, 10);
@@ -494,6 +548,7 @@ class T03QueenEternalStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<ArenaChanges>()
+            .ActivateOnEnter<GravityGap>()
             .ActivateOnEnter<Besiegement>()
             .ActivateOnEnter<LegitimateForce>()
             .ActivateOnEnter<Aethertithe>()
@@ -527,22 +582,24 @@ public sealed class T03QueenEternal(ModuleInit init) : BossModule(init, new(100,
     private static readonly ArenaBoundsSquare Builder = new(20);
     public static readonly WPos XArenaCenter = new(100, 92.5f);
     public static readonly WPos SplitArenaCenter = new(100, 94);
+    public static readonly ArenaBoundsCustom SplitPlatforms = GetSplitArena();
 
     public static ArenaBoundsCustom GetXArena()
     {
         var clipper = Builder.Clipper;
-        var north = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 12.5f, 2.5f).Select(c => c + new WDir(0, -10))]);
-        var south = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 12.5f, 2.5f).Select(c => c + new WDir(0, 10))]);
-        var arm1 = new PolygonClipper.Operand([.. CurveApprox.Rect(45.Degrees().ToDirection(), 15, 2.5f)]);
-        var arm2 = new PolygonClipper.Operand([.. CurveApprox.Rect((-45).Degrees().ToDirection(), 15, 2.5f)]);
+        const float margin = 0.3f;
+        var north = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 12.5f - margin, 2.5f - margin).Select(c => c + new WDir(0, -10))]);
+        var south = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 12.5f - margin, 2.5f - margin).Select(c => c + new WDir(0, 10))]);
+        var arm1 = new PolygonClipper.Operand([.. CurveApprox.Rect(45.Degrees().ToDirection(), 15, 2.5f - margin)]);
+        var arm2 = new PolygonClipper.Operand([.. CurveApprox.Rect((-45).Degrees().ToDirection(), 15, 2.5f - margin)]);
         return new(20, clipper.UnionAll(north, south, arm1, arm2));
     }
 
     public static ArenaBoundsCustom GetSplitArena()
     {
         var clipper = Builder.Clipper;
-        var west = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 4, 8).Select(c => c + new WDir(-8, 0))]);
-        var east = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 4, 8).Select(c => c + new WDir(8, 0))]);
+        var west = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 3.25f, 5.75f).Select(c => c + new WDir(-8, 0))]);
+        var east = new PolygonClipper.Operand([.. CurveApprox.Rect(new WDir(0, 1), 3.25f, 5.75f).Select(c => c + new WDir(8, 0))]);
         return new(20, clipper.Union(west, east));
     }
 }
