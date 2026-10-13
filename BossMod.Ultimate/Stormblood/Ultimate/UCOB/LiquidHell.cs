@@ -6,14 +6,20 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // baiter gets burns about 5% of the time regardless of how early we dodge, just go next
+        foreach (var p in _predictedByEvent)
+            if (p.time < WorldState.FutureTime(0.9f + ActivationDelay))
+                hints.AddForbiddenZone(Shape, p.pos, default, p.time);
+
         foreach (var (z, spawn) in _sources)
         {
             if (actor.Position.InCircle(z.Position, 6))
                 hints.AddForbiddenZone(Shape, z.Position, activation: spawn.AddSeconds(ActivationDelay));
             else
+            {
                 // forbid AI from dodging into fire to avoid twisters
                 hints.TemporaryObstacles.Add(ShapeDistance.Circle(z.Position, 6));
+                hints.AddForbiddenZone(Shape, z.Position);
+            }
         }
     }
 }

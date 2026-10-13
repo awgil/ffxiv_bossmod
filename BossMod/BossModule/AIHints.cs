@@ -57,16 +57,7 @@ public sealed class AIHints
             ShouldBeTanked = shouldBeTanked;
         }
 
-        public bool ShouldBeTargeted
-        {
-            set
-            {
-                field = value;
-                if (value)
-                    Priority = Math.Max(0, Priority);
-            }
-            get;
-        }
+        public bool ShouldBeTargeted;
 
         // easier to read
         public bool AllowDOTs { get => !ForbidDOTs; set => ForbidDOTs = !value; }
@@ -113,6 +104,8 @@ public sealed class AIHints
     public WPos PathfindMapCenter;
     public ArenaBounds PathfindMapBounds = DefaultBounds;
     public Bitmap.Region PathfindMapObstacles;
+    private readonly List<float> _scratchG = [];
+    private readonly BitArray _scratchD = new(0);
 
     // list of potential targets
     public readonly Enemy?[] Enemies = new Enemy?[100];
@@ -138,7 +131,8 @@ public sealed class AIHints
 
     // positioning: list of shapes that are either forbidden to stand in now or will be in near future
     // AI will try to move in such a way to avoid standing in any forbidden zone after its activation or outside of some restricted zone after its activation, even at the cost of uptime
-    public List<(Sdf shape, DateTime activation, ulong Source)> ForbiddenZones = [];
+    // zone might be tagged with an arbitrary non-unique id for convenience. for generic solver zones, tag = caster's instanceid
+    public List<(Sdf shape, DateTime activation, ulong tag)> ForbiddenZones = [];
 
     // positioning: list of goal functions
     // AI will try to move to reach non-forbidden point with highest goal value (sum of values returned by all functions)
@@ -157,6 +151,9 @@ public sealed class AIHints
     public TempObstaclesList TemporaryObstacles = [];
     // teleporters for pathfind
     public List<(WPos from, float fromRadius, WPos to)> Portals = [];
+
+    // only used for "dash safety" functionality, not read by pathfinder
+    public List<(WPos Center, float Radius)> Voidzones = [];
 
     // positioning: next positional hint (TODO: reconsider, maybe it should be a list prioritized by in-gcds, and imminent should be in-gcds instead? or maybe it should be property of an enemy? do we need correct?)
     public (Actor? Target, Positional Pos, bool Imminent, bool Correct) RecommendedPositional;
@@ -189,9 +186,13 @@ public sealed class AIHints
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
 
+    // scripted party wipes in some encounters; in these cases we shouldn't run the disable-on-death logic
+    public bool ScriptedDeath;
+
     // misc stuff to execute
     public bool WantJump;
     public bool WantDismount;
+    public bool AllowDash;
     public FateSync WantFateSync;
     public bool ShouldLeaveDuty;
 
@@ -211,6 +212,7 @@ public sealed class AIHints
         ForbiddenZones.Clear();
         GoalZones.Clear();
         GoalZonesEnabled = true;
+        Voidzones.Clear();
         TemporaryObstacles.Clear();
         Portals.Clear();
         RecommendedPositional = default;
@@ -223,8 +225,10 @@ public sealed class AIHints
         ForceCancelCast = false;
         ActionsToExecute.Clear();
         StatusesToCancel.Clear();
+        ScriptedDeath = false;
         WantJump = false;
         WantDismount = false;
+        AllowDash = true;
         WantFateSync = FateSync.None;
         ShouldLeaveDuty = false;
     }
@@ -295,10 +299,20 @@ public sealed class AIHints
     public void InitPathfindMap(Pathfinding.Map map)
     {
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
+        var dim = (map.Height + 1) * (map.Width + 1);
+        if (_scratchG.Count != dim)
+        {
+            _scratchG.Clear();
+            _scratchG.AddRange(Enumerable.Repeat(0f, dim));
+        }
+        _scratchD.Length = dim;
+
         foreach (var o in TemporaryObstacles)
-            map.BlockPixelsInside(o, -1000);
+            Pathfinding.NavigationDecision.RasterizeForbiddenZone(map, o, -1000, _scratchG.AsSpan(), _scratchD, 0);
+
         foreach (var (from, radius, to) in Portals)
             map.AddPortal(from, radius, to);
+
         if (PathfindMapObstacles.Bitmap != null)
         {
             var offX = -PathfindMapObstacles.Rect.Left;
@@ -316,6 +330,18 @@ public sealed class AIHints
         var map = new Pathfinding.Map();
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
         var arr = new T[(map.Width + 1) * (map.Height + 1)];
+
+        foreach (var (cell, _, _, p) in map.EnumerateGrid())
+            arr[cell] = init(p, cell);
+
+        return arr;
+    }
+
+    public BitArray BitsFromMap(Func<WPos, int, bool> init)
+    {
+        var map = new Pathfinding.Map();
+        PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
+        var arr = new BitArray((map.Width + 1) * (map.Height + 1));
 
         foreach (var (cell, _, _, p) in map.EnumerateGrid())
             arr[cell] = init(p, cell);
@@ -490,10 +516,10 @@ public sealed class AIHints
             return GoalSingleTarget(target.Position, adjRange, 0.1f);
 
         var distance = distToGoal;
-        if (greed && gcd < 0.5f)
+        if (greed && gcd < 0.5f && player.TargetID == target.InstanceID)
         {
             var playerEffRange = player.Role is Role.Tank or Role.Melee ? 3 : 25;
-            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange);
+            distToGoal = MathF.Min(distToGoal, target.HitboxRadius + player.HitboxRadius + playerEffRange) - 0.1f;
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);

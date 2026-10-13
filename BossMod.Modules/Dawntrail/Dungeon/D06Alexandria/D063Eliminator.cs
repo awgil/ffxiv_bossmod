@@ -116,15 +116,7 @@ class Electray(BossModule module) : Components.SpreadFromCastTargets(module, AID
 class Overexposure(BossModule module) : Components.SimpleLineStack(module, 3, 40, AID.OverexposureTargetSelect, AID.OverexposureAOE, 5.1f);
 
 class CompressionAOE(BossModule module) : Components.StandardAOEs(module, AID.CompressionAOE, new AOEShapeCircle(6));
-class CompressionImpact(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CompressionImpact, 15)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var c in Casters)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(c.Position, 8, Angle.FromDirection(Module.Center - c.Position), 30.Degrees()), Module.CastFinishAt(c.CastInfo)); // just a hack...
-    }
-}
-
+class CompressionImpact(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CompressionImpact, 15);
 class LightningGenerator(BossModule module) : Components.Adds(module, (uint)OID.LightningGenerator);
 
 class LightOfSalvation(BossModule module) : Components.BaitAwayCast(module, AID.LightOfSalvationVisual, new AOEShapeRect(40, 3), false, true)

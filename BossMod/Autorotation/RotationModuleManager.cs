@@ -358,6 +358,9 @@ public sealed class RotationModuleManager : IDisposable
         if (PlayerInstanceId != actor.InstanceID)
             return; // don't care
 
+        if (Hints.ScriptedDeath)
+            return;
+
         // note: if combat ends while player is dead, we'll reset the preset, which is desirable
         if (actor.IsDead && actor.InCombat && Config.ClearPresetOnDeath)
         {

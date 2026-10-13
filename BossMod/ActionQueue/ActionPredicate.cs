@@ -78,6 +78,9 @@ public static class ActionPredicate
     // check if dashing to target will put the player inside a forbidden zone
     public static bool IsDashSafe(WPos from, WPos to, AIHints hints)
     {
+        if (!hints.AllowDash)
+            return false;
+
         var center = hints.PathfindMapCenter;
         if (!hints.PathfindMapBounds.Contains(to - center))
             return false;
@@ -85,12 +88,27 @@ public static class ActionPredicate
         // if arena is a weird shape, try to ensure player won't dash out of it
         if (from != to && hints.PathfindMapBounds is ArenaBoundsCustom)
         {
-            var len = (to - from).Length();
-            var distToNearestWall = hints.PathfindMapBounds.IntersectRay(from - center, (to - from).Normalized());
-            if (distToNearestWall >= 0 && distToNearestWall < len)
+            var dir = to - from;
+            if (hints.PathfindMapBounds.IntersectRay(from - center, dir.Normalized()) < dir.Length())
                 return false;
         }
 
-        return !hints.ForbiddenZones.Any(d => d.shape.Distance(to) < 0);
+        foreach (var vz in hints.Voidzones)
+        {
+            // if destination is inside a voidzone, abort
+            // realistically, voidzones will always have an accompanying AOE, so this check is redundant
+            //if (to.InCircle(vz.Center, vz.Radius))
+            //    return false;
+
+            // if dash trajectory would move us into a voidzone, abort (though if we're inside it already, we assume gap closing won't make the situation worse)
+            if (!from.InCircle(vz.Center, vz.Radius))
+            {
+                var dir = to - from;
+                if (Intersect.RayCircle(from, dir.Normalized(), vz.Center, vz.Radius) < dir.Length())
+                    return false;
+            }
+        }
+
+        return !hints.ForbiddenZones.Any(d => d.shape.Check(to));
     }
 }

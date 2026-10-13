@@ -13,8 +13,8 @@ public struct NavigationDecision
     // context that allows reusing large memory allocations
     public class Context
     {
-        public float[] ScratchG = [];
-        public bool[] ScratchD = [];
+        public List<float> ScratchG = [];
+        public BitArray ScratchD = new(0);
         public Map Map = new();
         public ThetaStar ThetaStar = new();
     }
@@ -31,21 +31,25 @@ public struct NavigationDecision
 
     public const float CushionDepriority = 0.5f; // should be lower than any priority specifically added by rotation modules
 
-    // reduce time between now and activation by this value in seconds; increase for more conservativeness
-    public static readonly float ActivationTimeCushion = Service.IsDev
-        ? ActorCastInfo.NPCFinishDelay + 0.3f
-        : 1;
+    // factors to account for:
+    // 1. ping (of course)
+    // 2. snapshot delay (probably 300ms for NPC casts, see NPCFinishDelay)
+    // 3. unknown (variable) amount of delay between movement packet being sent and server deciding to update our position; can be bypassed (kind of) by forcing a position update through various means
+    //  - jumping (has its own issues; player gets stuck in the air for a bit, you can't steer while jumping, etc)
+    //  - sending position update packet (not an option, can't be done in the vanilla client, so it doesn't match our philosophy)
+    // TODO: make configurable?
+    public static float CushionFromRTT(float rtt) => rtt + 0.3f + ActorCastInfo.NPCFinishDelay;
 
-    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed = 6, float forbiddenZoneCushion = 0)
+    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
     {
         var startTime = DateTime.Now;
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, forbiddenZoneCushion);
+            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
         if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
-            RasterizeGoalZones(ctx.Map, hints.GoalZones, forbiddenZoneCushion > 0);
-        else if (forbiddenZoneCushion > 0)
+            RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
+        else if (spaceCushion > 0)
             AddCushion(ctx.Map);
 
         var rasterFinish = DateTime.Now;
@@ -59,7 +63,7 @@ public struct NavigationDecision
         return new NavigationDecision() { Destination = waypoints.first, NextWaypoint = waypoints.second, LeewaySeconds = bestNode.PathLeeway, TimeToGoal = bestNode.GScore, PathfindTime = finishTime - rasterFinish, RasterizeTime = rasterFinish - startTime, TotalTime = finishTime - startTime };
     }
 
-    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed, float forbiddenZoneCushion)
+    public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed, float rtt, float spaceCushion)
     {
         var hintsCopy = new AIHints()
         {
@@ -72,10 +76,10 @@ public struct NavigationDecision
             GoalZones = [.. hints.GoalZones],
             GoalZonesEnabled = hints.GoalZonesEnabled
         };
-        return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, forbiddenZoneCushion));
+        return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, rtt, spaceCushion));
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
+    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new List<(Sdf distance, float g)>(zones.Count);
@@ -86,23 +90,25 @@ public struct NavigationDecision
             var activation = zone.activation.Clamp(globalStart, globalEnd);
             if (activation > clusterEnd)
             {
-                clusterG = ActivationToG(activation, current);
+                clusterG = ActivationToG(activation, current, rtt);
                 clusterEnd = activation.AddSeconds(0.5f);
             }
             zonesFixed.Add((zone.distance, clusterG));
         }
 
         map.MaxG = clusterG;
-        var lenPlus1 = (map.Width + 1) * (map.Height + 1);
-        if (gScratch.Length < lenPlus1)
-            gScratch = new float[lenPlus1];
-        if (dScratch.Length < lenPlus1)
-            dScratch = new bool[lenPlus1];
+        var dim = (map.Width + 1) * (map.Height + 1);
+        if (gScratch.Count != dim)
+        {
+            gScratch.Clear();
+            gScratch.AddRange(Enumerable.Repeat(0f, dim));
+        }
+        dScratch.Length = dim;
 
         // TODO: group continuous sdfs with same gscore together
         //zonesFixed.SortBy(z => (z.g, z.distance.IsContinuous));
         foreach (var (d, g) in zonesFixed)
-            RasterizeForbiddenZone(map, d, g, ref gScratch, ref dScratch, cushion);
+            RasterizeForbiddenZone(map, d, g, gScratch.AsSpan(), dScratch, cushion);
 
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         var ipx = map.Width * map.Height;
@@ -118,10 +124,10 @@ public struct NavigationDecision
         }
     }
 
-    public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, ref float[] gScratch, ref bool[] dScratch, float cushion)
+    public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, Span<float> gScratch, BitArray dScratch, float cushion)
     {
-        Array.Fill(gScratch, float.MinValue);
-        Array.Fill(dScratch, false);
+        gScratch.Fill(float.MinValue);
+        dScratch.SetAll(false);
 
         var discrete = !sdf.IsContinuous;
 
@@ -161,7 +167,7 @@ public struct NavigationDecision
                 {
                     // TODO optimize; this drastically increases the number of sdf evaluations since they need to be executed for each grid point within the cushion zone
                     distPixels = (int)((distance - cushion) / map.Resolution);
-                    Array.Fill(gScratch, float.MaxValue, iCell, Math.Min(distPixels, toRowEnd) + 1);
+                    gScratch.Slice(iCell, Math.Min(distPixels, toRowEnd) + 1).Fill(float.MaxValue);
                 }
                 else if (cushion > 0 && distance >= 0)
                 {
@@ -171,7 +177,7 @@ public struct NavigationDecision
                 else
                 {
                     distPixels = (int)MathF.Ceiling(-distance / map.Resolution);
-                    Array.Fill(gScratch, g, iCell, Math.Min(distPixels, toRowEnd + 1));
+                    gScratch.Slice(iCell, Math.Min(distPixels, toRowEnd + 1)).Fill(g);
                 }
             }
         }
@@ -248,7 +254,7 @@ public struct NavigationDecision
             AddCushion(map);
     }
 
-    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float cushion = 0)
+    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Sdf distance, float g)[zones.Count];
@@ -259,7 +265,7 @@ public struct NavigationDecision
             var activation = zones[i].activation.Clamp(globalStart, globalEnd);
             if (activation > clusterEnd)
             {
-                clusterG = ActivationToG(activation, current);
+                clusterG = ActivationToG(activation, current, rtt);
                 clusterEnd = activation.AddSeconds(0.5f);
             }
             zonesFixed[i] = (zones[i].distance, clusterG);
@@ -271,10 +277,12 @@ public struct NavigationDecision
         // - inner loop calculates the g value at the left border, then iterates over all right corners and fills minimums of two g values to the cells
         // - second outer loop calculates values at 'bottom' edge and then updates the values of all cells to correspond to the cells rather than edges
         map.MaxG = clusterG;
-        if (gScratch.Length < map.PixelMaxG.Length)
-            gScratch = new float[map.PixelMaxG.Length];
-        if (dScratch.Length < map.PixelMaxG.Length)
-            dScratch = new bool[map.PixelMaxG.Length];
+        if (gScratch.Count != map.PixelMaxG.Length)
+        {
+            gScratch.Clear();
+            gScratch.AddRange(Enumerable.Repeat(0f, map.PixelMaxG.Length));
+        }
+        dScratch.Length = map.PixelMaxG.Length;
         var numBlockedCells = 0;
 
         // see Map.EnumeratePixels, note that we care about corners rather than centers
@@ -376,7 +384,7 @@ public struct NavigationDecision
         map.MaxPriority = pMax;
     }
 
-    private static float ActivationToG(DateTime activation, DateTime current) => MathF.Max(0, (float)(activation - current).TotalSeconds - ActivationTimeCushion);
+    private static float ActivationToG(DateTime activation, DateTime current, float rtt) => MathF.Max(0, (float)(activation - current).TotalSeconds - CushionFromRTT(rtt));
 
     public static (WPos? first, WPos? second) GetFirstWaypoints(ThetaStar pf, Map map, int cell, WPos startingPos)
     {

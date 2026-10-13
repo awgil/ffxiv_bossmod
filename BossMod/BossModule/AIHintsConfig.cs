@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Generic solver settings", Order = 7)]
+[ConfigDisplay(Name = "Generic solver settings", Order = 8)]
 public sealed class AIHintsConfig : ConfigNode
 {
     public enum DonutFallbackBehavior

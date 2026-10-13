@@ -116,16 +116,7 @@ class BrutalHalo(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DisorientingGroan, 7)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(ShapeDistance.Donut(Arena.Center, 3, 20), src.Activation);
-    }
-}
-
+class DisorientingGroan(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DisorientingGroan, 7);
 class OctupleSwipe(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _predicted = [];

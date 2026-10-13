@@ -120,10 +120,14 @@ class Hatch : Components.CastCounter
                 hints.GoalZones.Add(p => p.InRect(src, dir * 1000, 1) ? 1 : 0);
             }
 
+            /*
+            // now that we don't do super long twister dodges, i don't think this is necessary anymore?
+            // but it might be worth bringing back the logic to let ranged have more non-neurolink uptime
             if (WaitForTwister[slot])
                 hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.DonutSector(myLink.Position, 3, 5, Module.PrimaryActor.AngleTo(myLink), 90.Degrees())).Inverted(), WorldState.FutureTime(leewaySeconds));
             else
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
+            */
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(myLink.Position, 2), WorldState.FutureTime(leewaySeconds));
         }
         else
         {
@@ -150,6 +154,9 @@ class Hatch : Components.CastCounter
                     hints.AddForbiddenZone(ShapeDistance.Circle(tar.Position + toOrb, Radius + 1), WorldState.FutureTime(waitMove + tar.DistanceToHitbox(closest) / 5f));
                 }
             }
+
+            if (_neurolinks.Count == 1 && _orbs.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.Circle(_neurolinks[0].Position, 12));
 
             hints.AddForbiddenZone(linkShape, DateTime.MaxValue);
         }
@@ -379,5 +386,11 @@ class Hatch : Components.CastCounter
     {
         if ((OID)actor.OID == OID.Oviform)
             _orbs.RemoveAll(o => o.orb == actor);
+    }
+
+    public override void Update()
+    {
+        if (WaitForTwister.Any() && Module.FindComponent<Twister>() is { PredictedPositions.Count: > 0 })
+            WaitForTwister.Reset();
     }
 }

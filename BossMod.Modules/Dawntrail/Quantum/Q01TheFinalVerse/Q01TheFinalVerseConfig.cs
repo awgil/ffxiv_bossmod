@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
 
@@ -44,7 +45,7 @@ public class Q01TheFinalVerseConfig : ConfigNode
 
     public FlamebornAssignment FlamebornAssignments;
 
-    public override void DrawCustom(UITree tree, WorldState ws)
+    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
     {
         var modified = false;
 

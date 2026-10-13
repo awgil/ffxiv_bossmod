@@ -35,7 +35,7 @@ public sealed class PlanDatabase : IDisposable
         {
             EnableRaisingEvents = true
         };
-        _subscriptions = new(_watcher.Changed.Subscribe(OnPlanFileChanged));
+        _subscriptions = new(_watcher.Changed.Subscribe(OnPlanFileChanged), _watcher.Deleted.Subscribe(OnPlanFileDeleted));
 
         Load();
     }
@@ -205,7 +205,7 @@ public sealed class PlanDatabase : IDisposable
             // just modify the plan
             SavePlan(modified);
             var plans = Plans[existing.Encounter][existing.Class].Plans;
-            var index = plans.IndexOf(existing);
+            var index = plans.FindIndex(p => p.Guid == existing.Guid);
             plans[index] = modified;
         }
         else
@@ -285,6 +285,13 @@ public sealed class PlanDatabase : IDisposable
         {
             Service.Log($"Failed to parse modified plan file '{args.FullPath}': {ex}");
         }
+    }
+
+    private void OnPlanFileDeleted(FileSystemEventArgs args)
+    {
+        var guid = Path.GetFileNameWithoutExtension(args.FullPath);
+        if (_pendingFiles.TryPeek(out var pp) && pp == guid)
+            _pendingFiles.Dequeue();
     }
 
     public void Dispose()

@@ -37,7 +37,7 @@ public enum SID : uint
 class MagitekFireII(BossModule module) : Components.StandardAOEs(module, AID.MagitekFireII, 5);
 class MagitekFireIII(BossModule module) : Components.RaidwideCast(module, AID.MagitekFireIII);
 class MagitekPulse(BossModule module) : Components.StandardAOEs(module, AID.MagitekPulse, 6);
-class Haywire(BossModule module) : Components.StandardAOEs(module, AID.HaywireTelegraph, new AOEShapeRect(43.2f, 3)); // TODO: confirm WildSpeedVisual vs HaywireTelegraph
+class Haywire(BossModule module) : Components.StandardAOEs(module, AID.HaywireTelegraph, new AOEShapeRect(40.5f, 3));
 class LegionAdds(BossModule module) : Components.AddsMulti(module, [OID.MarkXLIIIMiniCannon, OID.TwelfthLegionTriarius, OID.TwelfthLegionOptio], 1);
 
 class D051MagnaRoaderStates : StateMachineBuilder
@@ -53,5 +53,5 @@ class D051MagnaRoaderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 6263)] // TODO: clear after Haywire telegraph verify
-public class D051MagnaRoader(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 242, NameID = 6263)]
+public class D051MagnaRoader(ModuleInit init) : BossModule(init, new(-213, 187), new ArenaBoundsCircle(19.5f));

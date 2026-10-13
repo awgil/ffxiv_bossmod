@@ -18,9 +18,9 @@ public enum AID : uint
 
     TheFallingSkyVisual = 15561, // Boss->self, 3.0s cast, single-target
     TheFallingSky = 15562, // Helper->location, 4.5s cast, range 10 circle
-    TheFinalSky = 15563, // Boss->self, 12.0s cast, range 70 circle, meteor if failed to LoS
-    CosmicKiss = 17108, // FallenStar->self, 4.5s cast, range 50 circle, meteor, damage fall off AOE
-    CosmicShrapnel = 17110, // FallenStar->self, no cast, range 8 circle, meteor explodes after final sky, can be ignored since it only does like 500 dmg
+    TheFinalSky = 15563, // Boss->self, 12.0s cast, range 70 circle
+    CosmicKiss = 17108, // FallenStar->self, 4.5s cast, range 50 circle
+    CosmicShrapnel = 17110, // FallenStar->self, no cast, range 8 circle
 
     Towerfall = 15564, // FallingTower->self, 8.0s cast, range 35 width 40 rect
     Earthquake = 15565, // Boss->self, 4.0s cast, range 10 circle
@@ -47,6 +47,16 @@ class TheBurningSky2(BossModule module) : Components.SpreadFromCastTargets(modul
 class Meteors(BossModule module) : Components.GenericBaitAway(module)
 {
     public List<Actor> targets = [];
+    private DateTime _drop;
+    private static readonly WPos[] DropSpots = [new(-64, 71), new(-96, 71), new(-80, 98)];
+
+    private WPos DropSpot(Actor actor)
+    {
+        foreach (var s in DropSpots)
+            if (!targets.Any(t => t != actor && t.Position.InCircle(s, 4)))
+                return s;
+        return DropSpots[0];
+    }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -54,6 +64,7 @@ class Meteors(BossModule module) : Components.GenericBaitAway(module)
         {
             CurrentBaits.Add(new(actor, actor, new AOEShapeCircle(10)));
             targets.Add(actor);
+            _drop = WorldState.FutureTime(8.4f);
         }
     }
 
@@ -77,7 +88,14 @@ class Meteors(BossModule module) : Components.GenericBaitAway(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (targets.Contains(actor))
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new(-80, 97), new(-80, 67), 15));
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(DropSpot(actor), 2), _drop);
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        if (targets.Contains(pc))
+            Arena.AddCircle(DropSpot(pc), 2, ArenaColor.Safe);
     }
 }
 
@@ -104,5 +122,5 @@ class D061FirstBeastStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus)", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8201)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus), Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 652, NameID = 8201)]
 public class D061FirstBeast(ModuleInit init) : BossModule(init, new(-80, 82), new ArenaBoundsSquare(19.5f));

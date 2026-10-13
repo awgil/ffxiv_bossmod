@@ -132,6 +132,18 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
             ImportNewPresetFromClipboard();
     }
 
+    public void SelectPresetByName(string name)
+    {
+        var defaultPresets = !_cfg.HideDefaultPreset;
+        var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
+        var ix = presets.FindIndex(p => p.Name == name);
+        if (ix >= 0)
+        {
+            _pendingSelectPresetIndex = ix;
+            _pendingSelectPresetDefault = defaultPresets;
+        }
+    }
+
     private void DrawPresetListElements(bool defaultPresets)
     {
         var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
@@ -263,11 +275,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
 
                 rotationDB.Plans.ModifyPlan(null, plan);
 
-                Service.Notifications.AddNotification(new()
-                {
-                    Content = $"Imported plan '{plan.Name}' for L{plan.Level} {plan.Class}"
-                });
-
+                Service.ShowNotification($"Imported plan '{plan.Name}' for L{plan.Level} {plan.Class}");
                 return;
             }
 
@@ -284,12 +292,13 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
         catch (Exception ex)
         {
             Service.Logger.Warning(ex, $"Failed to parse preset");
-            Service.Notifications.AddNotification(new()
-            {
-                Title = "Error while importing preset",
-                Content = ex.Message,
-                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Warning
-            });
+            Service.ShowNotification(ex.Message, "Error while importing preset", Dalamud.Interface.ImGuiNotification.NotificationType.Warning);
+            //Service.Notifications.AddNotification(new()
+            //{
+            //    Title = "Error while importing preset",
+            //    Content = ex.Message,
+            //    Type = Dalamud.Interface.ImGuiNotification.NotificationType.Warning
+            //});
         }
     }
 }

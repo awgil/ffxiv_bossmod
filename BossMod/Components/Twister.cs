@@ -9,7 +9,7 @@ public class GenericTwister(BossModule module, float radius, uint oid, Enum? aid
     public readonly float Radius = radius;
     protected IReadOnlyList<Actor> Twisters = module.Enemies(oid);
     protected DateTime PredictedActivation;
-    protected List<WPos> PredictedPositions = [];
+    public List<WPos> PredictedPositions = [];
 
     public IEnumerable<Actor> ActiveTwisters => Twisters.Where(v => v.EventState != 7);
     public bool Active => ActiveTwisters.Any();
@@ -39,17 +39,18 @@ public class GenericTwister(BossModule module, float radius, uint oid, Enum? aid
 }
 
 // twister that activates on cast end, or slightly before
-public class CastTwister(BossModule module, float radius, uint oid, Enum aid, float spawnDelay, float predictBeforeSpawn = 0) : GenericTwister(module, radius, oid, aid)
+public class CastTwister(BossModule module, float radius, uint oid, Enum aid, float spawnDelay, float predictBeforeSpawn = 0, float? predictRadius = null) : GenericTwister(module, radius, oid, aid)
 {
     public readonly float SpawnDelay = spawnDelay; // from cast event to twister spawn
     public readonly float PredictionTime = predictBeforeSpawn;
+    public readonly float PredictionRadius = predictRadius ?? radius * 3;
     protected DateTime _predictAt = DateTime.MaxValue;
     protected DateTime _spawnAt;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var p in PredictedPositions)
-            hints.AddForbiddenZone(ShapeDistance.Circle(p, Radius * 3));
+            hints.AddForbiddenZone(ShapeDistance.Circle(p, PredictionRadius));
         foreach (var p in ActiveTwisters)
             hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, Radius));
     }

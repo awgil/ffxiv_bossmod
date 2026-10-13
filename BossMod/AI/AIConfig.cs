@@ -1,6 +1,6 @@
 ﻿namespace BossMod.AI;
 
-[ConfigDisplay(Name = "AI Configuration", Order = 8)]
+[ConfigDisplay(Name = "AI Configuration", Order = 9)]
 public sealed class AIConfig : ConfigNode
 {
     [PropertyDisplay("Enable")]
@@ -9,9 +9,6 @@ public sealed class AIConfig : ConfigNode
     // ui settings
     [PropertyDisplay("Show config window")]
     public bool DrawUI = true;
-
-    [PropertyDisplay("Show status in the server info bar")]
-    public bool ShowDTR = true;
 
     [PropertyDisplay("Focus target master")]
     public bool FocusTargetMaster = false;

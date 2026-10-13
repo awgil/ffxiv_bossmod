@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x3DE, // Inferno Drake
 
-    TemplestBiast = 0x3DF // Templest Biast
+    TempestBiast = 0x3DF // Tempest Biast
 }
 
 public enum AID : uint
@@ -17,9 +17,9 @@ public enum AID : uint
     Levinfang = 519 // Trash->player, no cast, single target
 }
 
-class BurningCyclone(BossModule module) : Components.StandardAOEs(module, AID.BurningCyclone, new AOEShapeCone(9.6f, 60.Degrees())); // TODO: verify angle
+class BurningCyclone(BossModule module) : Components.StandardAOEs(module, AID.BurningCyclone, new AOEShapeCone(9.6f, 60.Degrees()));
 class Levinshower(BossModule module) : Components.StandardAOEs(module, AID.Levinshower, new AOEShapeCone(8.2f, 45.Degrees())); // TODO: verify angle
-class TemplestBiast(BossModule module) : Components.Adds(module, (uint)OID.TemplestBiast, 1);
+class TempestBiast(BossModule module) : Components.Adds(module, (uint)OID.TempestBiast, 1);
 
 class D072InfernoDrakeStates : StateMachineBuilder
 {
@@ -28,9 +28,9 @@ class D072InfernoDrakeStates : StateMachineBuilder
         TrivialPhase()
             .ActivateOnEnter<BurningCyclone>()
             .ActivateOnEnter<Levinshower>()
-            .ActivateOnEnter<TemplestBiast>();
+            .ActivateOnEnter<TempestBiast>();
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1284)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 8, NameID = 1284)]
 public class D072InfernoDrake(ModuleInit init) : BossModule(init, init.Primary.Position, new ArenaBoundsCircle(20));

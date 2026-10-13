@@ -67,16 +67,6 @@ class Buffet(BossModule module) : Components.Knockback(module)
             base.AddHints(slot, actor, hints);
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in _sources)
-            if (!IsImmune(slot, src.Activation))
-            {
-                var safeCenter = Arena.Center - src.Direction.ToDirection() * 24;
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(safeCenter, Arena.Bounds.Radius), src.Activation);
-            }
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.Buffet)

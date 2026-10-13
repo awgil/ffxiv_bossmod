@@ -92,22 +92,7 @@ class ThermobaricChargeBait(BossModule module) : Components.CastCounter(module, 
         }
     }
 }
-class ThermobaricCharge(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_ThermobaricCharge1, 40, true)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            var orig = src.Origin;
-            var ctr = Arena.Center;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
-            {
-                var dir = (p - orig).Normalized() * 40;
-                return !(p + dir).AlmostEqual(ctr, 20);
-            }), src.Activation);
-        }
-    }
-}
+class ThermobaricCharge(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_ThermobaricCharge1, 40, true);
 
 class DurgaPieceStates : StateMachineBuilder
 {

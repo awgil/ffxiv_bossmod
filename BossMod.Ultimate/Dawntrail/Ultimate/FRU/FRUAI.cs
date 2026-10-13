@@ -48,7 +48,7 @@ sealed class FRUAI(RotationModuleManager manager, Actor player) : AIRotationModu
     // TODO: account for leeway for casters
     private WPos PathfindPosition(Actor? meleeGreedTarget)
     {
-        var res = NavigationDecision.Build(NavigationContext, World.CurrentTime, Hints, Player.Position, Speed());
+        var res = NavigationDecision.Build(NavigationContext, World.CurrentTime, Hints, Player.Position, Speed(), World.Network.LastRTT, 0);
         return meleeGreedTarget != null && res.Destination != null ? ClosestInMelee(res.Destination.Value, meleeGreedTarget) : (res.Destination ?? Player.Position);
     }
 

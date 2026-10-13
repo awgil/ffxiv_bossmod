@@ -85,8 +85,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         var map = new Map();
         hints.InitPathfindMap(map);
         var gScratch = Utils.MakeArray((map.Width + 1) * (map.Height + 1), float.MinValue);
-        var dScratch = new bool[(map.Width + 1) * (map.Height + 1)];
-        NavigationDecision.RasterizeForbiddenZone(map, shape, 0, ref gScratch, ref dScratch, 0);
+        var dScratch = new BitArray(gScratch.Length);
+        NavigationDecision.RasterizeForbiddenZone(map, shape, 0, gScratch.AsSpan(), dScratch, 0);
         return new MapVisualizer(map, player.Position, gScratch);
     }
 
@@ -101,7 +101,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     private MapVisualizer BuildPathfindingVisualizer()
     {
         var now = DateTime.Now;
-        _navi = NavigationDecision.Build(_naviCtx, ws.CurrentTime, hints, player.Position, forbiddenZoneCushion: cushionSize);
+        _navi = NavigationDecision.Build(_naviCtx, ws.CurrentTime, hints, player.Position, 6, ws.Network.LastRTT, cushionSize);
         _naviTime = (float)(DateTime.Now - now).TotalSeconds;
 
         return new MapVisualizer(_naviCtx.Map, player.Position);

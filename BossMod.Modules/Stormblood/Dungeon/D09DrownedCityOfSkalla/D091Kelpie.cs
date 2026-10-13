@@ -62,17 +62,7 @@ class HydroPull(BossModule module) : Components.KnockbackFromCastTarget(module, 
         }
     }
 }
-class HydroPush(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, kind: Kind.DirForward)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor).Where(s => !IsImmune(slot, s.Activation)))
-        {
-            var safeCenter = Arena.Center - src.Direction.ToDirection() * src.Distance;
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(safeCenter, new WDir(0, 1), 15, 15, 15), src.Activation);
-        }
-    }
-}
+class HydroPush(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, kind: Kind.DirForward);
 class BloodyPuddleSpread(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.BigSpread, AID.BloodyPuddle, 8, 5.1f)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

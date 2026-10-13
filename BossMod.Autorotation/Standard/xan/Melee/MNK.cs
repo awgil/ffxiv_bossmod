@@ -445,7 +445,9 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
 
         UpdatePositionals(primaryTarget, ref pos);
 
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, BeastCount > 0 ? 2 : AOEBreakpoint, maximumActionRange: 20);
+        var isAoeBlitz = BeastCount == 3 && !currentBlitzIsTargeted;
+
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.ArmOfTheDestroyer, isAoeBlitz ? 2 : AOEBreakpoint, maximumActionRange: 20);
 
         OGCD(strategy, primaryTarget);
     }

@@ -225,12 +225,6 @@ class DeadlyRebirthKB(BossModule module) : Components.Knockback(module, AID.Dead
             yield return new(default, 20, _activation, Direction: 0.Degrees(), Kind: Kind.DirForward);
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center - new WDir(0, 20), 25), src.Activation);
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DeadlyRebirthCast)

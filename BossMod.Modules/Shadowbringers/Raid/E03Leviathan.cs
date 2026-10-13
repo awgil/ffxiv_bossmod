@@ -70,23 +70,8 @@ class Tsunami(BossModule module) : Components.RaidwideCast(module, AID.Tsunami);
 
 class MonsterWave(BossModule module) : Components.StandardAOEs(module, AID.MonsterWave, 6f);
 
-class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 20, kind: Kind.DirForward)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (s.Origin.X > 100)
-            {
-                hints.AddForbiddenZone(new AOEShapeRect(20, 15, 20), Arena.Center - new WDir(10, 0), default, s.Activation);
-            }
-            else
-            {
-                hints.AddForbiddenZone(new AOEShapeRect(20, 15, 20), Arena.Center + new WDir(10, 0), default, s.Activation);
-            }
-        }
-    }
-}
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 20, kind: Kind.DirForward);
+
 class UnderseaQuakeSides(BossModule module) : Components.StandardAOEs(module, AID.UnderseaQuakeSides, new AOEShapeRect(40f, 5f));
 class UnderseaQuakeMid(BossModule module) : Components.StandardAOEs(module, AID.UnderseaQuakeMid, new AOEShapeRect(40f, 10f))
 {

@@ -72,17 +72,7 @@ class HeadSnatch(BossModule module) : BossComponent(module)
 class WaterII(BossModule module) : Components.StandardAOEs(module, AID._Spell_WaterII, 6);
 
 class BlanketThunder(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_BlanketThunder);
-class Tsunami(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Tsunami1, 35, kind: Kind.DirForward)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Casters is [{ CastInfo: { } ci }, ..])
-        {
-            var rot = (ci.Rotation + 180.Degrees()).ToDirection();
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center + rot * 15, Arena.Center + rot * 20, 20), Module.CastFinishAt(ci));
-        }
-    }
-}
+class Tsunami(BossModule module) : Components.KnockbackFromCastTarget(module, AID._Weaponskill_Tsunami1, 35, kind: Kind.DirForward);
 class Dreadwash(BossModule module) : Components.CastInterruptHint(module, AID._Spell_Dreadwash);
 
 class YmirPieceStates : StateMachineBuilder
@@ -116,7 +106,8 @@ public class YmirPiece(ModuleInit init) : BossModule(init, new(120, 0), new Aren
     {
         base.DrawEnemies(pcSlot, pc);
 
-        Arena.Actor(Sahagin, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID._Gen_SahaginPiece), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID._Gen_YmirShell), ArenaColor.Enemy);
     }
 }
 

@@ -78,20 +78,6 @@ class CrushingBlade(BossModule module) : Components.Knockback(module, AID._Weapo
             Casters.Remove(caster);
         }
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            var origin = src.Origin;
-            var ctr = Arena.Center;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
-            {
-                var dir = (p - origin).Normalized() * 15;
-                return !(p + dir).AlmostEqual(ctr, 20);
-            }), src.Activation);
-        }
-    }
 }
 
 class Valfodr(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Valfodr1, new AOEShapeRect(60, 4));

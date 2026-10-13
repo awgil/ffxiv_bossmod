@@ -1,4 +1,4 @@
-namespace BossMod.Stormblood.Trial.T02Lakshmi;
+﻿namespace BossMod.Stormblood.Trial.T02Lakshmi;
 
 public enum OID : uint
 {
@@ -28,6 +28,8 @@ public enum AID : uint
     ThePathOfLight = 9359, // Boss->self, no cast, range 40+R cone
     ThePathOfLightProtean = 9377, // Boss->self, no cast, range 40+R cone
     StotramChanchala = 9374, // Boss->self, 3.0s cast, range 40 circle
+    VrilDuty = 9345,
+    AetherDrain = 9357, // Vril->player, no cast
     TailSlap = 9612, // DreamingKshatriya->self, no cast, range 6+R cone
     InnerDemons = 9613, // DreamingKshatriya->self, 4.0s cast, range 6+R circle
 }
@@ -57,12 +59,41 @@ class CircleZone(BossModule module) : Components.Voidzone(module, 10, OID.VoidZo
 
 class VrilOrbs(BossModule module) : BossComponent(module)
 {
-    // TODO: Vril pickup radius / Chanchala knockback interaction still approximate — verify with replay
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (!Orbs().Any() || actor != Raid.Player())
+            return;
+        if (Charges > 0 && actor.FindStatus(SID.Vril) == null)
+            hints.Add("Use Vril!");
+        else if (Charges == 0)
+            hints.Add("Grab an orb to refill Vril");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor != Raid.Player() || !Orbs().Any())
+            return;
+
+        if (Charges > 0)
+        {
+            if (actor.FindStatus(SID.Vril) == null)
+                hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.VrilDuty), actor, ActionQueue.Priority.VeryHigh);
+            return;
+        }
+
+        var orbs = Orbs().Select(o => ShapeDistance.InvertedCircle(o.Position, 1.5f)).ToList();
+        hints.AddForbiddenZone(ShapeDistance.Intersection(orbs), WorldState.FutureTime(8));
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var z in Module.Enemies((uint)OID.Vril).Where(z => !z.IsDead))
-            Arena.AddCircle(z.Position, 0.75f, ArenaColor.Safe);
+        if (Charges == 0)
+            foreach (var z in Orbs())
+                Arena.AddCircle(z.Position, 1, ArenaColor.Safe);
     }
+
+    private int Charges => WorldState.Client.DutyActions.FirstOrDefault(a => a.Action.ID == (uint)AID.VrilDuty).CurCharges;
+    private IEnumerable<Actor> Orbs() => Module.Enemies(OID.Vril).Where(z => !z.IsDead);
 }
 
 class PathOfLight(BossModule module) : Components.GenericBaitAway(module, AID.ThePathOfLight, damageType: AIHints.PredictedDamageType.Tankbuster)
@@ -72,7 +103,7 @@ class PathOfLight(BossModule module) : Components.GenericBaitAway(module, AID.Th
         if ((IconID)iconID != IconID.ProteanCleave)
             return;
         if (WorldState.Actors.Find(targetID) is { } target)
-            CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeCone(40, 37.5f.Degrees()), WorldState.FutureTime(4.7f))); // TODO: verify Path of Light half-angle
+            CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeCone(40, 37.5f.Degrees()), WorldState.FutureTime(5.3f))); // TODO: verify Path of Light half-angle
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -91,11 +122,40 @@ class BlissfulBaits(BossModule module) : Components.GenericBaitAway(module)
     {
         if (WorldState.Actors.Find(targetID) is not { } target)
             return;
-        var act = WorldState.FutureTime(4.7f);
         if (iconID == (uint)IconID.SpreadCross)
-            CurrentBaits.Add(new(target, target, new AOEShapeCross(40, 4), act));
+            CurrentBaits.Add(new(target, target, new AOEShapeCross(40, 4), WorldState.FutureTime(12.7f), IgnoreRotation: true));
         else if (iconID == (uint)IconID.SpreadCircle)
-            CurrentBaits.Add(new(target, target, new AOEShapeCircle(7), act));
+            CurrentBaits.Add(new(target, target, new AOEShapeCircle(7), WorldState.FutureTime(12.2f)));
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (Zone(actor) is var (dir, halfAngle, minRadius, activation) && activation != default)
+            hints.AddForbiddenZone(ShapeDistance.Union([ShapeDistance.Circle(Arena.Center, minRadius), ShapeDistance.InvertedCone(Arena.Center, 30, dir, halfAngle)]), activation);
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaBackground(pcSlot, pc);
+        if (Zone(pc) is var (dir, halfAngle, minRadius, activation) && activation != default)
+            Arena.ZoneCone(Arena.Center, minRadius, 20, dir, halfAngle, ArenaColor.SafeFromAOE);
+    }
+
+    private (Angle dir, Angle halfAngle, float minRadius, DateTime activation) Zone(Actor actor)
+    {
+        if (ActiveBaitsOn(actor).FirstOrDefault() is not { Target: not null } mine)
+            return default;
+        var f = Module.PrimaryActor.Rotation.ToDirection();
+        var fwd = MathF.Abs(f.X) >= MathF.Abs(f.Z) ? new WDir(MathF.Sign(f.X), 0) : new WDir(0, MathF.Sign(f.Z));
+        var side = fwd.OrthoL();
+        var circle = mine.Shape is AOEShapeCircle;
+        var goLeft = ActiveBaits.FirstOrDefault(b => b.Target != actor && b.Shape.GetType() == mine.Shape.GetType()) is { Target: not null } other
+            ? (actor.Position - other.Target.Position).Dot(side) >= 0
+            : (actor.Position - Arena.Center).Dot(side) >= 0;
+        var sideDir = goLeft ? side : -side;
+        var dir = circle ? sideDir * 0.97f + fwd * 0.26f : sideDir + (goLeft ? fwd : -fwd);
+        return (Angle.FromDirection(dir), (circle ? 30 : 25).Degrees(), circle ? 14 : 10, mine.Activation);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -112,7 +172,7 @@ class T02LakshmiStates : StateMachineBuilder
 {
     public T02LakshmiStates(BossModule module) : base(module)
     {
-        TrivialPhase()
+        DeathPhase(0, SinglePhase)
             .ActivateOnEnter<DreamingKshatriyaAdds>()
             .ActivateOnEnter<TailSlap>()
             .ActivateOnEnter<InnerDemons>()
@@ -127,7 +187,18 @@ class T02LakshmiStates : StateMachineBuilder
             .ActivateOnEnter<VrilOrbs>()
             .ActivateOnEnter<CircleZone>();
     }
+
+    private void SinglePhase(uint id)
+    {
+        WaitForCast(id, AID.Stotram, 67, "Stotram");
+        Targetable(id + 0x10, false, 5.8f, "Disappear");
+        Targetable(id + 0x20, true, 42.5f, "Reappear");
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void WaitForCast(uint id, AID aid, float expected, string name)
+        => Condition(id, expected, () => Module.PrimaryActor.CastInfo?.IsSpell(aid) ?? false, name, 300);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)] // TODO: clear Incomplete after Vril/Blissful Arrow verify
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 263, NameID = 6385)]
 public class T02Lakshmi(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20));

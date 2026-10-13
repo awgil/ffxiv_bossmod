@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
@@ -65,7 +66,7 @@ public class PartyRolesConfig : ConfigNode
 
     record struct PartyMember(ulong CID, string Name, Class Class, Assignment Assignment);
 
-    public override void DrawCustom(UITree tree, WorldState ws)
+    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
     {
         List<PartyMember> party = [];
         using (var table = ImRaii.Table("tab2", 10, ImGuiTableFlags.SizingFixedFit))
