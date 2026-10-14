@@ -251,7 +251,7 @@ public class ConfigChangelogWindow : UIWindow
                 ImGui.AlignTextToFramePadding();
                 ImGui.Bullet();
                 if (!string.IsNullOrEmpty(disp?.Tooltip))
-                    UIMisc.HelpMarker(disp!.Tooltip);
+                    UIMisc.HelpMarker(disp.Tooltip);
                 ImGui.SameLine();
                 ImGui.TextUnformatted(disp?.Label ?? "unknown");
                 ImGui.SameLine();

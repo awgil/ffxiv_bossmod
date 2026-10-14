@@ -1,4 +1,5 @@
 ﻿using BossMod.Pathfinding;
+using Dalamud.Plugin.Ipc;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
@@ -88,6 +89,8 @@ public abstract partial class AutoClear : ZoneModule
     private ObstacleMapManager _obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
+
+    private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
 
     protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {

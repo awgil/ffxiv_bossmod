@@ -1,4 +1,5 @@
-﻿using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
+﻿using Dalamud.Plugin.Ipc.Exceptions;
+using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
 
@@ -7,6 +8,7 @@ abstract partial class AutoClear : ZoneModule
     private readonly List<Vector3> _trapsCurrentZone = [];
     private readonly List<WPos> ProblematicTrapLocations = [];
     private bool _trapsHidden = true;
+    private IpcNotReadyError? _palantirError;
 
     private readonly List<Vector3> _trapsCurrentFloor = [];
 
@@ -15,8 +17,16 @@ abstract partial class AutoClear : ZoneModule
         _trapsCurrentFloor.Clear();
         if (_trapsCurrentZone.Count == 0)
         {
-            _trapsCurrentZone.AddRange(TODO.GetTrapLocationsForZone(World.CurrentZone));
-            _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
+            try
+            {
+                _trapsCurrentZone.AddRange(_palantirListTraps.InvokeFunc(World.CurrentZone));
+                _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
+                _palantirError = null;
+            }
+            catch (IpcNotReadyError err)
+            {
+                _palantirError = err;
+            }
         }
 
         if (Palace.Progress.Tileset >= 0 && Palace.Progress.Tileset < _floorRects.Count)

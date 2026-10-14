@@ -21,6 +21,19 @@ abstract partial class AutoClear : ZoneModule
         if (targetRoom >= 0)
             DesiredRoom = targetRoom;
 
+        void err(string text)
+        {
+            ImGui.SameLine();
+            UIMisc.HelpMarker(() => text, Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
+        }
+
+        if (_palantirError != null)
+        {
+            ImGui.Text("Couldn't connect to Palantir. Trap locations will not be displayed.");
+            if (ImGui.Button("Retry"))
+                FilterTraps();
+        }
+
         ImGui.Text($"Kills: {Kills}");
 
         var maxPull = _config.MaxPull;
@@ -50,12 +63,6 @@ abstract partial class AutoClear : ZoneModule
 
         if (player == null)
             return;
-
-        void err(string text)
-        {
-            ImGui.SameLine();
-            UIMisc.HelpMarker(() => text, Dalamud.Interface.FontAwesomeIcon.ExclamationTriangle);
-        }
 
         var (entry, data) = _obstacles.Find(player.PosRot.XYZ());
         if (entry == null)
