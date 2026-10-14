@@ -265,6 +265,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
         _amex.FinishActionGather();
+        _wsSync.UpdateReplayState(_rotation, _movementOverride, _hints);
 
         Service.IconFont = uiBuilder.FontIcon;
         Service.MonoFont = uiBuilder.FontMono;

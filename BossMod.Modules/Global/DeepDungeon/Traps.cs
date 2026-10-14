@@ -15,7 +15,7 @@ abstract partial class AutoClear : ZoneModule
         _trapsCurrentFloor.Clear();
         if (_trapsCurrentZone.Count == 0)
         {
-            _trapsCurrentZone.AddRange(PalacePalInterop.GetTrapLocationsForZone(World.CurrentZone));
+            _trapsCurrentZone.AddRange(TODO.GetTrapLocationsForZone(World.CurrentZone));
             _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
         }
 

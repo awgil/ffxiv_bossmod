@@ -1,6 +1,8 @@
-﻿using System.Globalization;
+﻿using BossMod.Autorotation;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Text.Json;
 using System.Threading;
 
 namespace BossMod;
@@ -384,6 +386,11 @@ public sealed class ReplayParserLog : IDisposable
             [new("IPCX"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
             [new("RTT "u8)] = ParseNetworkRTT,
+            [new("RPRE"u8)] = ParseReplayPresets,
+            [new("RMOD"u8)] = ParseReplayModifiers,
+            [new("RROL"u8)] = ParseReplayRoles,
+            [new("RMOV"u8)] = ParseReplayMove,
+            [new("RACT"u8)] = ParseReplayActions,
         };
     }
 
@@ -872,5 +879,38 @@ public sealed class ReplayParserLog : IDisposable
         {
             return new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version >= 24 ? _input.ReadUInt(false) : 10000);
         }
+    }
+
+    private ReplayState.OpActivePresetsChange ParseReplayPresets()
+    {
+        var stream = new MemoryStream(_input.ReadBytes());
+        if (JsonSerializer.Deserialize<List<Preset>>(stream) is { } ps)
+            return new(ps);
+
+        Service.PluginLog.Warning("unable to parse preset JSON");
+        return new([]);
+    }
+    private ReplayState.OpModifierKeysChange ParseReplayModifiers() => new((Preset.Modifier)_input.ReadByte(false));
+    private ReplayState.OpRoleAssignmentsChange ParseReplayRoles()
+    {
+        var roles = new PartyRolesConfig.Assignment[PartyState.MaxPartySize];
+        for (var i = 0; i < roles.Length; i++)
+            roles[i] = (PartyRolesConfig.Assignment)_input.ReadByte(false);
+        return new(roles);
+    }
+    private ReplayState.OpMoveInputChange ParseReplayMove() => new(new WDir(_input.ReadFloat(), _input.ReadFloat()));
+    private ReplayState.OpManualActionsChange ParseReplayActions()
+    {
+        var length = _input.ReadInt();
+        List<ReplayState.SimpleEntry> entries = [];
+        for (var i = 0; i < length; i++)
+            entries.Add(new(
+                _input.ReadAction(),
+                _input.ReadActorID(),
+                _input.ReadFloat(),
+                _input.ReadFloat(),
+                _input.ReadVec3()
+            ));
+        return new(entries);
     }
 }

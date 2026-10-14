@@ -84,6 +84,44 @@ public sealed record class Preset(string Name)
             mods |= Modifier.Alt;
         return mods;
     }
+
+    public bool ShallowCompare(Preset other)
+    {
+        if (Name != other.Name)
+            return false;
+
+        if (Modules.Count != other.Modules.Count)
+            return false;
+
+        for (var i = 0; i < Modules.Count; i++)
+        {
+            var thismod = Modules[i];
+            var othermod = other.Modules[i];
+
+            if (thismod.Type != othermod.Type)
+                return false;
+
+            if (!MemoryExtensions.SequenceEqual(thismod.SerializedSettings.AsSpan(), othermod.SerializedSettings.AsSpan()))
+                return false;
+
+            if (!MemoryExtensions.SequenceEqual(thismod.TransientSettings.AsSpan(), othermod.TransientSettings.AsSpan()))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static bool ShallowCompare(List<Preset> a, List<Preset> b)
+    {
+        if (a.Count != b.Count)
+            return false;
+
+        for (var i = 0; i < a.Count; i++)
+            if (!a[i].ShallowCompare(b[i]))
+                return false;
+
+        return true;
+    }
 }
 
 // we want to serialize track/option indices as internal names, to simplify making changes

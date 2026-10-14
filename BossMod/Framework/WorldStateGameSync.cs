@@ -1,4 +1,5 @@
-﻿using BossMod.Services;
+﻿using BossMod.Autorotation;
+using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Memory;
@@ -265,6 +266,30 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         UpdateParty();
         UpdateClient();
         UpdateDeepDungeon();
+    }
+
+    public void UpdateReplayState(RotationModuleManager rmm, IMovementOverride move, AIHints hints)
+    {
+        var active = rmm.Presets;
+        var stored = _ws.ReplayState.ActivePresets;
+        if (!Preset.ShallowCompare(active, stored))
+            _ws.Execute(new ReplayState.OpActivePresetsChange(active));
+
+        var mods = Preset.CurrentModifiers();
+        if (mods != _ws.ReplayState.ModifierKeys)
+            _ws.Execute(new ReplayState.OpModifierKeysChange(mods));
+
+        var prc = Service.Config.Get<PartyRolesConfig>();
+        var roleAssignments = Utils.GenArrayI(PartyState.MaxPartySize, i => prc[_ws.Party.Members[i].ContentId]);
+        if (!MemoryExtensions.SequenceEqual(roleAssignments.AsSpan(), _ws.ReplayState.RoleAssignments.AsSpan()))
+            _ws.Execute(new ReplayState.OpRoleAssignmentsChange(roleAssignments));
+
+        if (move.UserMove != _ws.ReplayState.MoveInput)
+            _ws.Execute(new ReplayState.OpMoveInputChange(move.UserMove));
+
+        var manual = hints.ActionsToExecute.Entries.Where(e => e.Manual).Select(e => new ReplayState.SimpleEntry(e.Action, e.Target?.InstanceID ?? 0xE0000000, e.Priority, e.CastTime, e.TargetPos)).ToList();
+        if (!MemoryExtensions.SequenceEqual(manual.AsSpan(), _ws.ReplayState.ManualActions.AsSpan()))
+            _ws.Execute(new ReplayState.OpManualActionsChange(manual));
     }
 
     private unsafe void UpdateWaymarks()
