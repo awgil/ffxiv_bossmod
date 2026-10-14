@@ -1,5 +1,5 @@
-﻿using BossMod.BST;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Text;
 
 namespace BossMod.Dev;

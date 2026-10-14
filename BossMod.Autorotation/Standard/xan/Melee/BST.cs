@@ -1,4 +1,5 @@
 ﻿using BossMod.BST;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using System.Diagnostics;
 using static BossMod.AIHints;
 
@@ -114,12 +115,12 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         CurrentPetIndex = 0;
         TP = gauge.TPGauge;
-        PetTP = gauge.FamiliarTPGauge;
+        PetTP = gauge.PetTPGauge;
         ComboAffinity = gauge.CurrentAffinity;
-        if (gauge.ActiveBattlehornIndex > 0)
+        if (gauge.ActiveBattlehorn > 0)
         {
-            LastUsedHorn = gauge.ActiveBattlehornIndex;
-            CurrentPetIndex = World.Client.BeastmasterBeasts[gauge.ActiveBattlehornIndex - 1];
+            LastUsedHorn = gauge.ActiveBattlehorn;
+            CurrentPetIndex = World.Client.BeastmasterBeasts[gauge.ActiveBattlehorn - 1];
         }
         OneWithNature = Player.Statuses.Any(s => (SID)s.ID == SID.OneWithNature);
         PetInfo = Definitions.PetInfos[CurrentPetIndex];
@@ -241,13 +242,13 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
 
         PushGCD(AID.SmashAxe, primaryTarget);
 
-        if (gauge.Classification == 5)
+        if (gauge.KinshipClassification == 5)
             PushGCD(AID.QuellingWave, primaryTarget);
 
         ManagePet(strategy);
         Prep(strategy, gauge);
 
-        GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.Classification == 5 ? 30 : null);
+        GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.KinshipClassification == 5 ? 30 : null);
     }
 
     void ManagePet(in Strategy strategy)
@@ -281,11 +282,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
             return;
 
         // resummon
-        if (strategy.Resummon.IsEnabled() && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && gauge.KinshipBattlehornIndex != gauge.ActiveBattlehornIndex)
+        if (strategy.Resummon.IsEnabled() && Unlocked(TraitID.BattlehornMastery) && !OneWithNature && gauge.KinshipBattlehorn != gauge.ActiveBattlehorn)
         {
             if (HavePet)
                 Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.High);
-            else if (LastUsedHorn > 0 && LastUsedHorn != gauge.KinshipBattlehornIndex)
+            else if (LastUsedHorn > 0 && LastUsedHorn != gauge.KinshipBattlehorn)
             {
                 var horn = LastUsedHorn switch
                 {
@@ -304,14 +305,14 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         // TODO this should not be hardcoded to horn 3
         if (strategy.Preborrow.IsEnabled() && World.Client.BeastmasterBeasts[2] > 0)
         {
-            if (gauge.Classification == 0)
+            if (gauge.KinshipClassification == 0)
             {
-                if (gauge.ActiveBattlehornIndex > 1)
+                if (gauge.ActiveBattlehorn > 1)
                     PushGCD(AID.Borrow, Player, 10);
                 else
                     PushGCD(AID.ThirdBattlehorn, Player, 10);
             }
-            else if (gauge.KinshipBattlehornIndex > 1 && gauge.ActiveBattlehornIndex == gauge.KinshipBattlehornIndex)
+            else if (gauge.KinshipBattlehorn > 1 && gauge.ActiveBattlehorn == gauge.KinshipBattlehorn)
                 Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), Player, ActionQueue.Priority.High);
         }
     }
@@ -411,11 +412,11 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     {
         var sum = 0;
 
-        if (gauge.ActiveBattlehornIndex != 1 && World.Client.BeastmasterBeasts[0] > 0 && CanWeave(AID.FirstBattlehorn, 1))
+        if (gauge.ActiveBattlehorn != 1 && World.Client.BeastmasterBeasts[0] > 0 && CanWeave(AID.FirstBattlehorn, 1))
             sum++;
-        if (gauge.ActiveBattlehornIndex != 2 && World.Client.BeastmasterBeasts[1] > 0 && CanWeave(AID.SecondBattlehorn, 1))
+        if (gauge.ActiveBattlehorn != 2 && World.Client.BeastmasterBeasts[1] > 0 && CanWeave(AID.SecondBattlehorn, 1))
             sum++;
-        if (gauge.ActiveBattlehornIndex != 3 && World.Client.BeastmasterBeasts[2] > 0 && CanWeave(AID.ThirdBattlehorn, 1))
+        if (gauge.ActiveBattlehorn != 3 && World.Client.BeastmasterBeasts[2] > 0 && CanWeave(AID.ThirdBattlehorn, 1))
             sum++;
 
         return sum;

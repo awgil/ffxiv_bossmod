@@ -34,7 +34,7 @@ public sealed class AutorotationConfig : ConfigNode
     public bool PlannedPullSafety = true;
 
     // defined here for DtrConfig migration
-    public bool ShowStatsDTR = false;
+    public bool ShowStatsDTR;
 
     // defined here for DtrConfig migration
     public DtrConfig.DtrStatus ShowDTR = DtrConfig.DtrStatus.None;

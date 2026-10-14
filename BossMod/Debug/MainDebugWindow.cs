@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.BST;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
@@ -93,13 +92,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Action effects"))
         {
             DrawEffects();
-        }
-        if (ImGui.CollapsingHeader("Gauge"))
-        {
-            var gauge = ws.Client.GaugePayload;
-            ImGui.Text($"Raw: {gauge.High:X8} {gauge.Low:X8}");
-            var as_ = ws.Client.GetGauge<BeastmasterGauge>();
-            Dalamud.Utility.Util.ShowObject(as_);
         }
         if (ImGui.CollapsingHeader("Map effects"))
         {
