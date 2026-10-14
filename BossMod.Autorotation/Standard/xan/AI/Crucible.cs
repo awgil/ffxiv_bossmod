@@ -1,4 +1,5 @@
 ﻿using BossMod.BST;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace BossMod.Autorotation.xan;
 
@@ -28,7 +29,7 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
     {
         var gauge = World.Client.GetGauge<BeastmasterGauge>();
 
-        var havePet = gauge.ActiveBattlehornIndex > 0;
+        var havePet = gauge.ActiveBattlehorn > 0;
 
         if (strategy.Snarl.IsEnabled() && havePet && Hints.PotentialTargets.FirstOrDefault(p => p.PreferShirking) is { } e1)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Snarl), e1.Actor, ActionQueue.Priority.Medium, forced: true);
@@ -36,10 +37,10 @@ public class CrucibleAI(RotationModuleManager manager, Actor player) : AIBase<Cr
         if (strategy.Challenge.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.PreferProvoking) is { } e2)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Challenge), e2.Actor, ActionQueue.Priority.Medium, forced: true);
 
-        if (strategy.Dispel.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeDispelled) is { } d && gauge.Classification == 5)
+        if (strategy.Dispel.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeDispelled) is { } d && gauge.KinshipClassification == 5)
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.QuellingWave), d.Actor, ActionQueue.Priority.VeryHigh);
 
-        if (strategy.Interrupt.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeInterrupted) is { } i && gauge.Classification == 7)
+        if (strategy.Interrupt.IsEnabled() && Hints.PotentialTargets.FirstOrDefault(p => p.ShouldBeInterrupted) is { } i && gauge.KinshipClassification == 7)
         {
             Hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.SoulCrush), i.Actor, ActionQueue.Priority.Medium, forced: true);
             Hints.GoalZones.Add(AIHints.GoalSingleTarget(i.Actor.Position, i.Actor.HitboxRadius + 3 + Player.HitboxRadius, 5));

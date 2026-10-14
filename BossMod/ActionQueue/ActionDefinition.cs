@@ -66,6 +66,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public delegate bool ConditionDelegate(WorldState ws, Actor player, ActionQueue.Entry action, AIHints hints);
     public delegate Actor? SmartTargetDelegate(WorldState ws, Actor player, Actor? target, AIHints hints);
     public delegate Angle? TransformAngleDelegate(WorldState ws, Actor player, AIHints hints);
+    public delegate float? AdjustedRangeDelegate(WorldState ws, Actor player);
 
     public BitMask AllowedClasses = new(~0ul);
     public int MinLevel;
@@ -87,6 +88,7 @@ public sealed record class ActionDefinition(ActionID ID)
     public ConditionDelegate? AllowExecute; // optional condition, if it returns false, action is not executed
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
+    public AdjustedRangeDelegate? GetAdjustedRange;
 
     public float TotalDuration => CastTime > 0 ? CastTime + CastAnimLock : InstantAnimLock;
 

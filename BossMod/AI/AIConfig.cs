@@ -31,4 +31,7 @@ public sealed class AIConfig : ConfigNode
 
     [PropertyDisplay("Print AI status changes to chat", since: "7.5.1.36")]
     public bool ChatConfirmation = false;
+
+    // defined here for DtrConfig migration
+    public bool ShowDTR = true;
 }

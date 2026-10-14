@@ -8,6 +8,8 @@
 // - repeat the process until no more actions can be found
 public sealed class ActionQueue
 {
+    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
+
     public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle, bool Manual, bool Force);
 
     // reference priority guidelines
@@ -106,12 +108,9 @@ public sealed class ActionQueue
         if (def.ID.Type == ActionType.Item && ws.Client.GetInventoryItemQuantity(def.ID.ID) == 0)
             return false;
 
-        var range = def.Range;
+        var range = def.GetAdjustedRange?.Invoke(ws, player) ?? def.Range;
         if (range > 0)
         {
-            if ((RDM.AID)def.ID.ID is RDM.AID.Riposte or RDM.AID.Zwerchhau or RDM.AID.Redoublement or RDM.AID.EnchantedRiposte or RDM.AID.EnchantedZwerchhau or RDM.AID.EnchantedRedoublement && player.FindStatus(RDM.SID.Manafication) != null)
-                range = 25;
-
             var to = entry.Target?.Position ?? new(entry.TargetPos.XZ());
             var distSq = (to - player.Position).LengthSq();
             var effRange = range + player.HitboxRadius + (entry.Target?.HitboxRadius ?? 0);
@@ -119,6 +118,9 @@ public sealed class ActionQueue
                 return false;
         }
 
-        return def.AllowExecute == null || def.AllowExecute.Invoke(ws, player, entry, hints);
+        if (_config.CountdownHold && entry.Manual && entry.Target is { IsAlly: false } enemy && ws.Client.CountdownRemaining > entry.CastTime + ApplicationDelay.Get(entry.Action))
+            return false;
+
+        return def.AllowExecute?.Invoke(ws, player, entry, hints) != false;
     }
 }

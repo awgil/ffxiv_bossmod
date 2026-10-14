@@ -162,8 +162,6 @@ public sealed class Definitions : Defs
         d.RegisterChargeIncreaseTrait(AID.SoulSlice, TraitID.TemperedSoul);
         d.RegisterChargeIncreaseTrait(AID.SoulScythe, TraitID.TemperedSoul);
 
-        d.Spell(AID.Harpe)!.AllowExecute = (ws, player, _, _) => !(_config.ForbidEarlyHarpe && !player.InCombat && ws.Client.CountdownRemaining > 1.7f);
-
         d.Spell(AID.HellsEgress)!.TransformAngle =
             d.Spell(AID.HellsIngress)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera
                 ? ws.Client.CameraAzimuth + 180.Degrees()

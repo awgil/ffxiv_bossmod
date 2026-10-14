@@ -3,6 +3,8 @@ using BossMod.Autorotation;
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
@@ -70,9 +72,10 @@ internal sealed class DtrProvider : IMediatorSubscriber
         foreach (var (p, e) in _autorotEntries)
             e.Text = $"{p}: {(_mgr.PresetNames.Contains(p, StringComparison.Ordinal) ? "On" : "Off")}";
 
-        _arEntry.Shown = _dtrConfig.ShowAutorot;
-        var active = _mgr.Presets.Count(p => p.Name.Length > 0);
-        _arEntry.Text = active > 0 ? $"vbm: {active} active" : "vbm: Idle";
+        _arEntry.Shown = _dtrConfig.ShowAutorot != DtrConfig.DtrStatus.None;
+        var (icon, name) = _mgr.Presets.Count == 0 ? (BitmapFontIcon.SwordSheathed, "Idle") : _mgr.IsForceDisabled ? (BitmapFontIcon.SwordSheathed, "Disabled") : (BitmapFontIcon.SwordUnsheathed, $"{_mgr.Presets.Count} active");
+        Payload prefix = _dtrConfig.ShowAutorot == DtrConfig.DtrStatus.TextOnly ? new TextPayload("vbm: ") : new IconPayload(icon);
+        _arEntry.Text = new SeString(prefix, new TextPayload(name));
 
         _aiEntry.Shown = _dtrConfig.ShowAI;
         _aiEntry.Text = "AI: " + (_aiConfig.Enabled ? "On" : "Off");
@@ -134,7 +137,7 @@ internal sealed class DtrProvider : IMediatorSubscriber
             ImGui.Separator();
             if (ImGui.MenuItem("Remove from info bar"))
             {
-                _dtrConfig.ShowAutorot = false;
+                _dtrConfig.ShowAutorot = DtrConfig.DtrStatus.None;
                 _dtrConfig.Modified.Fire();
             }
             return;

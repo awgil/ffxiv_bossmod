@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using BossMod.BST;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
@@ -41,7 +40,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
     {
         var playerCID = UIState.Instance()->PlayerState.ContentId;
         var player = Service.ObjectTable.LocalPlayer;
-        ImGui.TextUnformatted($"Current zone: {ws.CurrentZone}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
+        ImGui.TextUnformatted($"Current zone: {ws.CurrentZone} / {ws.CurrentCFCID}, player=0x{(ulong)Utils.GameObjectInternal(player):X}, playerCID={playerCID:X}, pos = {Utils.Vec3String(player?.Position ?? new Vector3())}");
         ImGui.TextUnformatted($"Last RTT: {ws.Network.LastRTT}");
         // ImGui.TextUnformatted($"ID scramble: {Network.IDScramble.Delta} = {*Network.IDScramble.OffsetAdjusted} - {*Network.IDScramble.OffsetBaseFixed} - {*Network.IDScramble.OffsetBaseChanging}");
         ImGui.TextUnformatted($"Player mode: {(player is null ? "No player found" : Utils.CharacterInternal(player)->Mode.ToString())}");
@@ -93,13 +92,6 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ZoneModuleMa
         if (ImGui.CollapsingHeader("Action effects"))
         {
             DrawEffects();
-        }
-        if (ImGui.CollapsingHeader("Gauge"))
-        {
-            var gauge = ws.Client.GaugePayload;
-            ImGui.Text($"Raw: {gauge.High:X8} {gauge.Low:X8}");
-            var as_ = ws.Client.GetGauge<BeastmasterGauge>();
-            Dalamud.Utility.Util.ShowObject(as_);
         }
         if (ImGui.CollapsingHeader("Map effects"))
         {

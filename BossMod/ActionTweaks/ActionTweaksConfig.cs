@@ -54,6 +54,9 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Smart ability targeting", tooltip: "If the usual (mouseover/primary) target is not valid for an action, select the next best target automatically (e.g. co-tank for Shirk)", depends: nameof(UseManualQueue))]
     public bool SmartTargets = true;
 
+    [PropertyDisplay("Delay actions during countdown", tooltip: "If enabled, manually pressed actions will be delayed during countdown to ensure that they hit at 0 seconds.", depends: nameof(UseManualQueue), since: "7.5.7.0")]
+    public bool CountdownHold = false;
+
     [PropertyDisplay("Try to prevent dashing into AOEs", tooltip: "Prevent automatic use of targeted dashes (like WAR Onslaught) if they would move you into a dangerous area. May not work as expected in instances that do not have modules.\n\nThis option will also apply to manually pressed dashes if you have \"Use custom queueing for manually pressed actions\" enabled.", since: "0.0.0.290")]
     public bool DashSafety = true;
 
