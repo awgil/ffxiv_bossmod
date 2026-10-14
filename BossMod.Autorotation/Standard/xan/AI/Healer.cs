@@ -167,11 +167,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (RaidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
                 PushMitOGCDAt(ref budget, BossMod.WHM.AID.Asylum, GetBestPartyCoverage(AsylumRadius), 17);
 
-            foreach (var (tank, _) in TankbustersWithin(4))
+            if (BusterTanks(4) is [var (first, _), .., var (second, _)])
             {
-                if (tank.FindStatus(BossMod.WHM.SID.DivineBenison, World.FutureTime(15)) == null)
-                    UseOGCD(BossMod.WHM.AID.DivineBenison, tank, 25);
-                UseOGCD(BossMod.WHM.AID.Aquaveil, tank, 24);
+                if (second.FindStatus(BossMod.WHM.SID.DivineBenison, World.FutureTime(15)) == null)
+                    UseOGCD(BossMod.WHM.AID.DivineBenison, second, 25);
+                UseOGCD(BossMod.WHM.AID.Aquaveil, first, 24);
             }
         }
 
@@ -286,12 +286,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (Player.InCombat && !starPlaced && (RaidwideIn is > 8 and < 20 || RaidwideIn > 30))
                 UseOGCDAt(BossMod.AST.AID.EarthlyStar, GetBestPartyCoverage(EarthlyStarRadius), 5);
 
-            foreach (var (tank, _) in TankbustersWithin(4))
+            if (BusterTanks(4) is [var (first, _), .., var (second, _)])
             {
-                UseOGCD(BossMod.AST.AID.Exaltation, tank, 25);
-                UseOGCD(BossMod.AST.AID.CelestialIntersection, tank, 24);
-                UseCard(AstrologianCard.Bole, BossMod.AST.AID.TheBole, tank, 23);
-                UseCard(AstrologianCard.Spire, BossMod.AST.AID.TheSpire, tank, 22);
+                UseOGCD(BossMod.AST.AID.Exaltation, first, 25);
+                UseOGCD(BossMod.AST.AID.CelestialIntersection, second, 24);
+                UseCard(AstrologianCard.Bole, BossMod.AST.AID.TheBole, first, 23);
+                UseCard(AstrologianCard.Spire, BossMod.AST.AID.TheSpire, second, 22);
             }
         }
 
@@ -361,6 +361,21 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (PartyLow(strategy, 20, 0.6f) && !canApplyHeliosHoT)
             UseGCD(BossMod.AST.AID.Helios, Player, 2);
 
+        // the next astral / umbral draw overwrites the support cards: play them instead of losing them
+        if (strategy.Heal == HealMode.Enabled && Player.InCombat && Unlocked(BossMod.AST.AID.AstralDraw) && NextChargeIn(BossMod.AST.AID.AstralDraw) < 2.5f)
+        {
+            if (LightParty.Where(p => p.Role == Role.Tank).MinBy(PredictedRatio) is { } cardTank)
+            {
+                UseCard(AstrologianCard.Bole, BossMod.AST.AID.TheBole, cardTank, 4);
+                UseCard(AstrologianCard.Spire, BossMod.AST.AID.TheSpire, cardTank, 4);
+            }
+            if (LightParty.MinBy(PredictedRatio) is { } cardTarget)
+            {
+                UseCard(AstrologianCard.Arrow, BossMod.AST.AID.TheArrow, cardTarget, 4);
+                UseCard(AstrologianCard.Ewer, BossMod.AST.AID.TheEwer, cardTarget, 4);
+            }
+        }
+
         // release macrocosmos once the multi-hit sequence is over, or early if the party is low
         if (LightParty.Any(p => p.FindStatus(BossMod.AST.SID.Macrocosmos, Player.InstanceID) != null) && (MultiHitIn == float.MaxValue || PartyLow(strategy, 20, 0.5f)))
             UseOGCD(BossMod.AST.AID.MicrocosmosEnd, Player, 17);
@@ -412,11 +427,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     PushMitOGCD(ref budget, BossMod.SCH.AID.FeyIllumination, Player, 19);
             }
 
-            foreach (var (tank, _) in TankbustersWithin(5))
+            if (BusterTanks(5) is [var (first, _), .., var (second, _)])
             {
-                UseOGCD(BossMod.SCH.AID.Protraction, tank, 25);
+                UseOGCD(BossMod.SCH.AID.Protraction, first, 25);
                 if (aetherflow)
-                    UseOGCD(BossMod.SCH.AID.Excogitation, tank, 24);
+                    UseOGCD(BossMod.SCH.AID.Excogitation, second, 24);
             }
         }
 
@@ -520,12 +535,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (RaidwideIn < 5 && Health.PartyHealth.AvgCurrent <= 0.8f)
                 PushMitOGCD(ref budget, BossMod.SGE.AID.Holos, Player, 15);
 
-            foreach (var (tank, busterIn) in TankbustersWithin(5))
+            if (BusterTanks(5) is [var (first, _), .., var (second, secondIn)])
             {
-                if (tank.FindStatus(BossMod.SGE.SID.Haima, World.FutureTime(15)) == null)
-                    UseOGCD(BossMod.SGE.AID.Haima, tank, 25);
-                if (busterIn < 3 && gall > 0)
-                    UseOGCD(BossMod.SGE.AID.Taurochole, tank, 24);
+                if (first.FindStatus(BossMod.SGE.SID.Haima, World.FutureTime(15)) == null)
+                    UseOGCD(BossMod.SGE.AID.Haima, first, 25);
+                if (secondIn < 3 && gall > 0)
+                    UseOGCD(BossMod.SGE.AID.Taurochole, second, 24);
             }
         }
 
@@ -736,6 +751,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     // slot < 0: any party member
     private float NextDamageIn(int slot)
         => SecondsUntilNext(Raidwides.Concat(Tankbusters.Where(t => slot < 0 || World.Party.FindSlot(t.Item1.InstanceID) == slot).Select(t => t.Item2)));
+
+    // lowest tank first; with one tank first == last, with two the single-target tools are split instead of all landing on one tank
+    private List<(Actor tank, float busterIn)> BusterTanks(float seconds) => [.. TankbustersWithin(seconds).GroupBy(t => t.tank).Select(g => (g.Key, g.Min(t => t.busterIn))).OrderBy(t => t.Key.HPRatio)];
 
     private IEnumerable<(Actor tank, float busterIn)> TankbustersWithin(float seconds)
     {
