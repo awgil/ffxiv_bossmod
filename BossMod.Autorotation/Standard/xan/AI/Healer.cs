@@ -63,9 +63,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         [Track("Allow automatic use of mitigation and big healing cooldowns (Temperance, Kerachole, Collective Unconscious, etc)", InternalName = "Mitigation", Actions = [
             BossMod.WHM.AID.Temperance, BossMod.WHM.AID.PlenaryIndulgence, BossMod.WHM.AID.DivineCaress, BossMod.WHM.AID.Asylum, BossMod.WHM.AID.LiturgyOfTheBell, BossMod.WHM.AID.Aquaveil,
 
-            BossMod.AST.AID.CollectiveUnconscious, BossMod.AST.AID.Macrocosmos, BossMod.AST.AID.EarthlyStar, BossMod.AST.AID.CelestialOpposition,
+            BossMod.AST.AID.CollectiveUnconscious, BossMod.AST.AID.Macrocosmos, BossMod.AST.AID.EarthlyStar, BossMod.AST.AID.CelestialOpposition, BossMod.AST.AID.NeutralSect, BossMod.AST.AID.Horoscope,
 
-            BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.FeyIllumination, BossMod.SCH.AID.Expedient, BossMod.SCH.AID.SummonSeraph, BossMod.SCH.AID.FeyBlessing, BossMod.SCH.AID.Seraphism,
+            BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.FeyIllumination, BossMod.SCH.AID.Expedient, BossMod.SCH.AID.SummonSeraph, BossMod.SCH.AID.FeyBlessing, BossMod.SCH.AID.Seraphism, BossMod.SCH.AID.DeploymentTactics, BossMod.SCH.AID.Recitation,
 
             BossMod.SGE.AID.Kerachole, BossMod.SGE.AID.Holos, BossMod.SGE.AID.Physis, BossMod.SGE.AID.PhysisII, BossMod.SGE.AID.Philosophia, BossMod.SGE.AID.Panhaima, BossMod.SGE.AID.Zoe, BossMod.SGE.AID.Pneuma
         ])]
@@ -154,18 +154,18 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
-            var budget = RaidwideBudget(BossMod.WHM.AID.Temperance, BossMod.WHM.AID.DivineCaress, BossMod.WHM.AID.PlenaryIndulgence, BossMod.WHM.AID.Asylum);
+            var budget = RaidwideBudget(BossMod.WHM.AID.Temperance, BossMod.WHM.AID.PlenaryIndulgence, BossMod.WHM.AID.Asylum);
             if (WantMultiHitTool && ReadySoon(BossMod.WHM.AID.LiturgyOfTheBell))
-                UseOGCDAt(BossMod.WHM.AID.LiturgyOfTheBell, Player.PosRot.XYZ(), 21);
+                UseOGCDAt(BossMod.WHM.AID.LiturgyOfTheBell, GetBestPartyCoverage(LiturgyOfTheBellRadius), 21);
             if (RaidwideIn < 5)
             {
                 PushMitOGCD(ref budget, BossMod.WHM.AID.Temperance, Player, 20);
-                if (hasDivineGrace)
-                    PushMitOGCD(ref budget, BossMod.WHM.AID.DivineCaress, Player, 19);
+                if (hasDivineGrace) // temperance's follow-up, part of its budget slot
+                    UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 19);
                 PushMitOGCD(ref budget, BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
             }
             if (RaidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
-                PushMitOGCDAt(ref budget, BossMod.WHM.AID.Asylum, GetBestPartyCoverage(10), 17);
+                PushMitOGCDAt(ref budget, BossMod.WHM.AID.Asylum, GetBestPartyCoverage(AsylumRadius), 17);
 
             foreach (var (tank, _) in TankbustersWithin(4))
             {
@@ -182,8 +182,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.WHM.AID.DivineBenison, target, 9);
             if (PreferRegen(target))
             {
-                if (AutoMit && MissingWithoutRegen(10) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
-                    UseOGCDAt(BossMod.WHM.AID.Asylum, GetBestPartyCoverage(10, injuredOnly: true), 12);
+                if (AutoMit && MissingWithoutRegen(AsylumRadius) >= 3 && ReadySoon(BossMod.WHM.AID.Asylum))
+                    UseOGCDAt(BossMod.WHM.AID.Asylum, GetBestPartyCoverage(AsylumRadius, injuredOnly: true), 12);
                 else if (MissingWithoutRegen(20, 0.8f) >= 3 && canApplyMedicaRegen)
                     UseGCD(bestM2, Player, 2);
                 else if (PredictedRatio(target) < 0.7f)
@@ -235,7 +235,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (AutoMit && PartyLow(strategy, 30, 0.55f))
             UseOGCD(BossMod.WHM.AID.Temperance, Player, 13);
         if (AutoMit && PartyLow(strategy, 20, 0.5f) && Player.FindStatus(BossMod.WHM.SID.LiturgyOfTheBell, World.FutureTime(20)) == null)
-            UseOGCDAt(BossMod.WHM.AID.LiturgyOfTheBell, Player.PosRot.XYZ(), 12);
+            UseOGCDAt(BossMod.WHM.AID.LiturgyOfTheBell, GetBestPartyCoverage(LiturgyOfTheBellRadius), 12);
         var useRapture = canLily && Unlocked(BossMod.WHM.AID.AfflatusRapture) && PartyLow(strategy, 20, 0.7f);
         if (useRapture)
             UseGCD(BossMod.WHM.AID.AfflatusRapture, Player, 3);
@@ -245,16 +245,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.WHM.AID.ThinAir, Player, 1);
             UseGCD(BossMod.WHM.AID.CureIII, Player, 2);
         }
-        else if (PartyLow(strategy, 15, 0.55f) && !useRapture)
+        else if (PartyLow(strategy, 20, 0.55f) && !useRapture)
             UseGCD(canApplyMedicaRegen ? bestM2 : BossMod.WHM.AID.Medica, Player);
     }
-
-    private static readonly (AstrologianCard, BossMod.AST.AID)[] SupportCards = [
-        (AstrologianCard.Arrow, BossMod.AST.AID.TheArrow),
-        (AstrologianCard.Spire, BossMod.AST.AID.TheSpire),
-        (AstrologianCard.Bole, BossMod.AST.AID.TheBole),
-        (AstrologianCard.Ewer, BossMod.AST.AID.TheEwer)
-    ];
 
     private void AutoAST(in Strategy strategy)
     {
@@ -262,30 +255,57 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         AstrologianCard[] cards = [gauge.Card1, gauge.Card2, gauge.Card3];
         var heliosHoT = Unlocked(BossMod.AST.AID.HeliosConjunction) ? BossMod.AST.SID.HeliosConjunction : BossMod.AST.SID.AspectedHelios;
         var canApplyHeliosHoT = Unlocked(BossMod.AST.AID.AspectedHelios) && CanApplyPartyRegen(heliosHoT, BossMod.AST.AID.AspectedHelios, BossMod.AST.AID.HeliosConjunction);
+        var starMatured = Player.FindStatus(BossMod.AST.SID.GiantDominance) != null;
+        var starPlaced = starMatured || Player.FindStatus(BossMod.AST.SID.EarthlyDominance) != null;
+        var horoscope = Player.FindStatus(BossMod.AST.SID.Horoscope) != null || Player.FindStatus(BossMod.AST.SID.HoroscopeHelios) != null;
+        var downtimeIn = Manager.Planner?.EstimateTimeToNextDowntime() is (var downNow, var stateLeft) ? (downNow ? 0 : stateLeft) : float.MaxValue;
+
+        void UseCard(AstrologianCard card, BossMod.AST.AID action, Actor target, int prio)
+        {
+            if (cards.Contains(card))
+                UseOGCD(action, target, prio);
+        }
 
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
-            var budget = RaidwideBudget(BossMod.AST.AID.CollectiveUnconscious);
+            var budget = RaidwideBudget(BossMod.AST.AID.NeutralSect, BossMod.AST.AID.CollectiveUnconscious, BossMod.AST.AID.Horoscope);
             if (WantMultiHitTool && ReadySoon(BossMod.AST.AID.Macrocosmos))
                 UseGCD(BossMod.AST.AID.Macrocosmos, Player, 6);
+            if (FullRaidwideIn < GCD + 5)
+                PushMitOGCD(ref budget, BossMod.AST.AID.NeutralSect, Player, 21);
             if (RaidwideIn < 5)
+            {
                 PushMitOGCD(ref budget, BossMod.AST.AID.CollectiveUnconscious, Player, 20);
-            if (Player.InCombat)
-                UseOGCDAt(BossMod.AST.AID.EarthlyStar, GetBestPartyCoverage(20), 5);
+                if (!horoscope)
+                    PushMitOGCD(ref budget, BossMod.AST.AID.Horoscope, Player, 7);
+            }
+            // sun sign comes from neutral sect: use it before the hit, or before it runs out
+            if (StatusDetails(Player, BossMod.AST.SID.Suntouched, Player.InstanceID).Left is > 0 and var suntouched && (RaidwideIn < 5 || suntouched < 2))
+                UseOGCD(BossMod.AST.AID.SunSign, Player, 19);
+            // the star matures after 10s: place it 10-20s before a raidwide, on cooldown when none is predicted
+            if (Player.InCombat && !starPlaced && (RaidwideIn is > 8 and < 20 || RaidwideIn > 30))
+                UseOGCDAt(BossMod.AST.AID.EarthlyStar, GetBestPartyCoverage(EarthlyStarRadius), 5);
 
             foreach (var (tank, _) in TankbustersWithin(4))
             {
                 UseOGCD(BossMod.AST.AID.Exaltation, tank, 25);
                 UseOGCD(BossMod.AST.AID.CelestialIntersection, tank, 24);
+                UseCard(AstrologianCard.Bole, BossMod.AST.AID.TheBole, tank, 23);
+                UseCard(AstrologianCard.Spire, BossMod.AST.AID.TheSpire, tank, 22);
             }
         }
+
+        // neutral sect (shield) and horoscope (bigger heal) are both upgraded by the next helios
+        if (strategy.Heal == HealMode.Enabled && FullRaidwideIn < GCD + 2.5f && Unlocked(BossMod.AST.AID.AspectedHelios)
+            && (Player.FindStatus(BossMod.AST.SID.NeutralSect) != null && Player.FindStatus(BossMod.AST.SID.NeutralSectShield, Player.InstanceID) == null || Player.FindStatus(BossMod.AST.SID.Horoscope) != null))
+            UseGCD(BossMod.AST.AID.AspectedHelios, Player, 5);
 
         HealLowest(strategy, (target, ratio) =>
         {
             var tank = target.Role == Role.Tank;
             if (PreferRegen(target))
             {
-                if (MissingWithoutRegen(15, 0.8f) >= 3 && canApplyHeliosHoT)
+                if (MissingWithoutRegen(20, 0.8f) >= 3 && canApplyHeliosHoT)
                     UseGCD(BossMod.AST.AID.AspectedHelios, Player, 2);
                 else if (PredictedRatio(target) < 0.7f && Unlocked(BossMod.AST.AID.AspectedBenefic))
                     UseGCD(BossMod.AST.AID.AspectedBenefic, target, 2);
@@ -296,9 +316,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (ratio <= 0.5f)
                 UseOGCD(BossMod.AST.AID.CelestialIntersection, target, 11);
             if (ratio <= 0.55f)
-                foreach (var (card, action) in SupportCards)
-                    if (cards.Contains(card))
-                        UseOGCD(action, target, 10);
+            {
+                UseCard(AstrologianCard.Arrow, BossMod.AST.AID.TheArrow, target, 10);
+                UseCard(AstrologianCard.Ewer, BossMod.AST.AID.TheEwer, target, 10);
+                UseCard(AstrologianCard.Spire, BossMod.AST.AID.TheSpire, target, 10);
+                if (tank)
+                    UseCard(AstrologianCard.Bole, BossMod.AST.AID.TheBole, target, 10);
+            }
             if (AutoMit && tank && ratio <= 0.6f)
                 UseOGCD(BossMod.AST.AID.Exaltation, target, 9);
 
@@ -306,7 +330,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 return;
             var ogcdCovers = ReadySoon(BossMod.AST.AID.EssentialDignity) || ReadySoon(BossMod.AST.AID.CelestialIntersection);
             if (ratio <= 0.3f || ratio <= 0.5f && !ogcdCovers)
+            {
+                // synastry copies part of single target heals on someone else to a hurt tank
+                if (!tank && Player.FindStatus(BossMod.AST.SID.SelfSynastry) == null && LightParty.FirstOrDefault(p => p.Role == Role.Tank && PredictedRatio(p) < 0.7f) is { } hurtTank)
+                    UseOGCD(BossMod.AST.AID.Synastry, hurtTank, 8);
                 UseGCD(BestActionUnlocked(BossMod.AST.AID.BeneficII, BossMod.AST.AID.Benefic), target, 1);
+            }
             else if (ratio <= 0.8f && tank && Unlocked(BossMod.AST.AID.AspectedBenefic) && target.FindStatus(BossMod.AST.SID.AspectedBenefic, World.FutureTime(15)) == null)
                 UseGCD(BossMod.AST.AID.AspectedBenefic, target);
         });
@@ -329,8 +358,18 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (canApplyHeliosHoT)
                 UseGCD(BossMod.AST.AID.AspectedHelios, Player);
         }
-        if (PartyLow(strategy, 15, 0.6f) && !canApplyHeliosHoT)
+        if (PartyLow(strategy, 20, 0.6f) && !canApplyHeliosHoT)
             UseGCD(BossMod.AST.AID.Helios, Player, 2);
+
+        // release macrocosmos once the multi-hit sequence is over, or early if the party is low
+        if (LightParty.Any(p => p.FindStatus(BossMod.AST.SID.Macrocosmos, Player.InstanceID) != null) && (MultiHitIn == float.MaxValue || PartyLow(strategy, 20, 0.5f)))
+            UseOGCD(BossMod.AST.AID.MicrocosmosEnd, Player, 17);
+        // after the raidwide: horoscope heals when it ends anyway, end it early if the party is low
+        if (horoscope && RaidwideIn > 3 && PartyLow(strategy, 20, 0.75f))
+            UseOGCD(BossMod.AST.AID.HoroscopeEnd, Player, 14);
+        // detonate the star for healing, or before the boss goes untargetable so its damage isn't lost
+        if (starPlaced && (downtimeIn < 1.5f || PartyLow(strategy, 20, starMatured ? 0.8f : 0.55f)))
+            UseOGCD(BossMod.AST.AID.StellarDetonation, Player, 13);
     }
 
     private void AutoSCH(in Strategy strategy)
@@ -344,17 +383,34 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         // fairy abilities are centered on the pet
         bool PetLow(in Strategy s, float radius, float ratio) => pet != null && ShouldHealInAreaNow(s, pet.Position, radius, ratio + AreaShift());
 
+        var deploying = false;
         if (strategy.Heal == HealMode.Enabled && AutoMit)
         {
-            var budget = RaidwideBudget(BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.Expedient);
+            var budget = RaidwideBudget(BossMod.SCH.AID.DeploymentTactics, BossMod.SCH.AID.SacredSoil, BossMod.SCH.AID.Expedient, BossMod.SCH.AID.FeyIllumination);
             if (WantMultiHitTool && !haveSeraph && ReadySoon(BossMod.SCH.AID.Seraphism))
                 UseOGCD(BossMod.SCH.AID.Seraphism, Player, 21);
-            if (RaidwideIn < 5 && aetherflow)
-                PushMitOGCDAt(ref budget, BossMod.SCH.AID.SacredSoil, GetBestPartyCoverage(15), 20);
-            if (RaidwideIn < 8 && pet != null)
-                UseOGCD(BossMod.SCH.AID.FeyIllumination, Player, 19);
+
+            // big party shield: recitation crit adloquium on us, spread with deployment tactics; holds its budget slot over the few GCDs it takes
+            deploying = budget > 0 && FullRaidwideIn < GCD + 5 && ReadySoon(BossMod.SCH.AID.DeploymentTactics) && UnshieldedShare(30) >= 0.5f;
+            if (deploying)
+            {
+                --budget;
+                var ownGalvanize = Player.FindStatus(BossMod.SCH.SID.Galvanize, Player.InstanceID) != null || Player.PendingStatuses.Any(s => s.StatusId == (uint)BossMod.SCH.SID.Galvanize);
+                if (ownGalvanize)
+                    UseOGCD(BossMod.SCH.AID.DeploymentTactics, Player, 22);
+                else if (Player.FindStatus(BossMod.SCH.SID.Recitation) == null && ReadySoon(BossMod.SCH.AID.Recitation))
+                    UseOGCD(BossMod.SCH.AID.Recitation, Player, 22);
+                else
+                    UseGCD(BossMod.SCH.AID.Adloquium, Player, 6);
+            }
             if (RaidwideIn < 5)
+            {
+                if (aetherflow)
+                    PushMitOGCDAt(ref budget, BossMod.SCH.AID.SacredSoil, GetBestPartyCoverage(SacredSoilRadius), 20);
                 PushMitOGCD(ref budget, BossMod.SCH.AID.Expedient, Player, 18);
+                if (pet != null && MostOfPartyNear(pet.Position, 30))
+                    PushMitOGCD(ref budget, BossMod.SCH.AID.FeyIllumination, Player, 19);
+            }
 
             foreach (var (tank, _) in TankbustersWithin(5))
             {
@@ -366,7 +422,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled)
         {
-            if (FullRaidwideIn < GCD + 2.5f && UnshieldedShare(15) >= 0.5f)
+            if (!deploying && FullRaidwideIn < GCD + 2.5f && UnshieldedShare(20) >= 0.5f)
                 UseGCD(succor, Player, 5);
             foreach (var (tank, busterIn) in TankbustersWithin(5))
                 if (busterIn < GCD + 2.5f && !HasGCDShield(tank))
@@ -376,14 +432,14 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         HealLowest(strategy, (target, ratio) =>
         {
             var tank = target.Role == Role.Tank;
-            if (PreferRegen(target) && MissingWithoutRegen(15) >= 3 && pet != null && ReadySoon(BossMod.SCH.AID.WhisperingDawn))
+            if (PreferRegen(target) && pet != null && MissingWithoutRegen(pet.Position, 20) >= 3 && ReadySoon(BossMod.SCH.AID.WhisperingDawn))
             {
                 UseOGCD(BossMod.SCH.AID.WhisperingDawn, Player, 12);
                 return;
             }
             if (aetherflow && (tank ? ratio <= 0.6f : ratio < 0.5f))
                 UseOGCD(BossMod.SCH.AID.Excogitation, target, tank ? 12 : 8);
-            if (ratio <= 0.5f && gauge.FairyGauge >= 10 && pet != null && !haveSeraph && target.FindStatus(BossMod.SCH.SID.FeyUnion, World.FutureTime(1000)) == null)
+            if (ratio <= 0.5f && gauge.FairyGauge >= 10 && pet != null && !haveSeraph && target.Position.InCircle(pet.Position, 30) && target.FindStatus(BossMod.SCH.SID.FeyUnion, World.FutureTime(1000)) == null)
                 UseOGCD(BossMod.SCH.AID.Aetherpact, target, 11);
             if (AutoMit && tank && ratio <= 0.5f)
                 UseOGCD(BossMod.SCH.AID.Protraction, target, 10);
@@ -429,11 +485,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         }
         if (AutoMit && !haveSeraph && PetLow(strategy, 20, 0.6f))
             UseOGCD(BossMod.SCH.AID.FeyBlessing, Player, 16);
-        if (PetLow(strategy, 15, 0.8f))
+        if (PetLow(strategy, 20, 0.8f))
             UseOGCD(BossMod.SCH.AID.WhisperingDawn, Player, 15);
-        if (aetherflow && PartyLow(strategy, 15, 0.6f))
+        if (aetherflow && PartyLow(strategy, 20, 0.6f))
             UseOGCD(BossMod.SCH.AID.Indomitability, Player, 14);
-        if (PartyLow(strategy, 15, 0.5f) && UnshieldedShare(15) >= 0.5f && !(aetherflow && ReadySoon(BossMod.SCH.AID.Indomitability)))
+        if (PartyLow(strategy, 20, 0.5f) && UnshieldedShare(20) >= 0.5f && !(aetherflow && ReadySoon(BossMod.SCH.AID.Indomitability)))
             UseGCD(succor, Player, 1);
     }
 
@@ -475,7 +531,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled)
         {
-            if (FullRaidwideIn < GCD + 2.5f && UnshieldedShare(15) >= 0.5f)
+            if (FullRaidwideIn < GCD + 2.5f && UnshieldedShare(20) >= 0.5f)
                 UseEukrasian(BossMod.SGE.AID.Prognosis, Player, 5);
             foreach (var (tank, busterIn) in TankbustersWithin(5))
                 if (busterIn < GCD + 2.5f && !HasGCDShield(tank))
@@ -530,30 +586,28 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.SGE.AID.Kerachole, Player, 7);
         });
 
-        if (AutoMit && PartyLow(strategy, 30, 0.8f))
-        {
+        if (AutoMit && PartyLow(strategy, physis == BossMod.SGE.AID.PhysisII ? 30 : 20, 0.8f))
             UseOGCD(physis, Player, 19);
-            if (gall > 0 && keracholeRegen)
-                UseOGCD(BossMod.SGE.AID.Kerachole, Player, 18);
-        }
+        if (AutoMit && gall > 0 && keracholeRegen && PartyLow(strategy, 30, 0.8f))
+            UseOGCD(BossMod.SGE.AID.Kerachole, Player, 18);
         if (AutoMit && PartyLow(strategy, 30, 0.65f))
             UseOGCD(BossMod.SGE.AID.Holos, Player, 17);
         if (AutoMit && PartyLow(strategy, 20, 0.6f))
             UseOGCD(BossMod.SGE.AID.Philosophia, Player, 16);
         if (AutoMit && PartyLow(strategy, 30, 0.55f) && Player.FindStatus(BossMod.SGE.SID.Panhaima, World.FutureTime(15)) == null)
             UseOGCD(BossMod.SGE.AID.Panhaima, Player, 15);
-        if (gall > 0 && PartyLow(strategy, 15, 0.7f))
+        if (gall > 0 && PartyLow(strategy, 20, 0.7f))
             UseOGCD(BossMod.SGE.AID.Ixochole, Player, 14);
         if (AutoMit && PartyLow(strategy, 20, 0.45f) && ReadySoon(BossMod.SGE.AID.Pneuma) && primaryTarget is { IsAlly: false } enemy && Player.DistanceToHitbox(enemy) <= 25)
         {
             UseOGCD(BossMod.SGE.AID.Zoe, Player, 13);
             UseGCD(BossMod.SGE.AID.Pneuma, enemy, 1);
         }
-        if (PartyLow(strategy, 15, 0.55f))
+        if (PartyLow(strategy, 20, 0.55f))
         {
             if (!Unlocked(BossMod.SGE.AID.Eukrasia))
                 UseGCD(BossMod.SGE.AID.Prognosis, Player, 1);
-            else if (UnshieldedShare(15) >= 0.5f && !(gall > 0 && ReadySoon(BossMod.SGE.AID.Ixochole))
+            else if (UnshieldedShare(20) >= 0.5f && !(gall > 0 && ReadySoon(BossMod.SGE.AID.Ixochole))
                 && !(AutoMit && (ReadySoon(BossMod.SGE.AID.PhysisII) || ReadySoon(BossMod.SGE.AID.Holos))))
                 UseEukrasian(BossMod.SGE.AID.Prognosis, Player, 1);
         }
@@ -647,7 +701,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     // nothing is coming for a while: top up a chipped target with a regen instead of a direct heal
     private bool QuietPeriod => Bossmods.ActiveModule != null && NextDamageIn(-1) >= 15;
     private bool PreferRegen(Actor target) => QuietPeriod && PredictedRatio(target) is > 0.55f and < 0.85f && !HasHealOverTime(target);
-    private int MissingWithoutRegen(float radius, float below = 0.85f) => LightParty.Count(p => p.Position.InCircle(Player.Position, radius) && PredictedRatio(p) < below && !HasHealOverTime(p));
+    private int MissingWithoutRegen(float radius, float below = 0.85f) => MissingWithoutRegen(Player.Position, radius, below);
+    private int MissingWithoutRegen(WPos center, float radius, float below = 0.85f) => LightParty.Count(p => p.Position.InCircle(center, radius) && PredictedRatio(p) < below && !HasHealOverTime(p));
+    private bool MostOfPartyNear(WPos center, float radius)
+    {
+        var party = LightParty.ToList();
+        return party.Count > 0 && party.Count(p => p.Position.InCircle(center, radius)) * 2 >= party.Count;
+    }
 
     private static readonly uint[] HealOverTimeStatuses = [
         (uint)BossMod.WHM.SID.Regen, (uint)BossMod.WHM.SID.MedicaII, (uint)BossMod.WHM.SID.MedicaIII, (uint)BossMod.WHM.SID.Asylum,
@@ -730,6 +790,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         --budget;
         return true;
     }
+
+    // ground heal radii aren't in the action data
+    private const float AsylumRadius = 15;
+    private const float SacredSoilRadius = 15;
+    private const float EarthlyStarRadius = 20;
+    private const float LiturgyOfTheBellRadius = 20; // heals around the blossom, triggered by damage on us
 
     // O(n³) :3
     private Vector3 GetBestPartyCoverage(float radius, bool injuredOnly = false)
