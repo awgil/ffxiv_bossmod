@@ -111,6 +111,7 @@ public enum SID : uint
     SeraphismRegen = 3885, // applied by Seraphism to party
     SacredSoil = 299, // applied by Sacred Soil to party, damage reduction
     DesperateMeasures = 2711, // applied by Expedient to party, damage reduction
+    WhisperingDawn = 315, // applied by Whispering Dawn to party, regen
 
     //Shared
     Surecast = ClassShared.SID.Surecast, // applied by Surecast to self
