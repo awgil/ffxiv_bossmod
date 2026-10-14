@@ -100,7 +100,9 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
         var generalOpt = strategy.Option(Track.General);
         var generalStrategy = generalOpt.As<GeneralStrategy>();
-        if (generalStrategy == GeneralStrategy.Passive)
+        var fateEngagement = FateUtils.CurrentEngagement(Manager, World, Player);
+        // passive autotarget still has to get out of the way while collecting or handing in
+        if (generalStrategy == GeneralStrategy.Passive && fateEngagement == FateUtils.Engagement.Normal)
             return;
 
         var maxTargets = strategy.GetInt(Track.MaxTargets);
@@ -162,10 +164,14 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         }
 
         var targetZodiac = strategy.Option(Track.Zodiac).As<Flag>() == Flag.Enabled;
+        var fateRestrictsPulls = fateEngagement != FateUtils.Engagement.Normal;
 
         // first deal with pulling new enemies
         foreach (var target in Hints.PotentialTargets)
         {
+            if (FateUtils.ShouldSuppressPull(fateEngagement, target))
+                continue;
+
             if (target.Actor.InstanceID == huntTarget)
             {
                 prioritize(target, 0);
@@ -205,10 +211,21 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
         // prioritizer yielded no results meaning there are no targets to pick, do nothing
         if (bestTarget == null)
+        {
+            if (fateRestrictsPulls)
+                FateUtils.DropTarget(Hints, ref primaryTarget);
             return;
+        }
 
         Hints.PotentialTargets.SortByReverse(x => x.Priority);
         Hints.HighestPotentialTargetPriority = Math.Max(0, Hints.PotentialTargets[0].Priority);
+
+        // collecting or handing in: never keep a passive mob targeted, even if retarget is set to never
+        if (fateRestrictsPulls)
+        {
+            primaryTarget = Hints.ForcedTarget = bestTarget;
+            return;
+        }
 
         var retargetStrategy = strategy.Option(Track.Retarget).As<RetargetStrategy>();
         if (retargetStrategy == RetargetStrategy.Never)
