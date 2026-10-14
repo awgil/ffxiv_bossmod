@@ -62,6 +62,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
     private readonly ConfigWindow _wndConfig;
+    private readonly ConfigChangelogWindow _wndChangelog;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
@@ -101,6 +102,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
         Service.Config = new(dalamud.ConfigFile);
+
+        Service.Config.PreviousAssemblyVersion = Service.Config.AssemblyVersion;
+        Service.Config.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
 
         Service.Config.Reload([], [Assembly.GetExecutingAssembly()]);
         BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
@@ -171,13 +175,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
 
-        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB), mediator);
+        _wndConfig = new(new(Service.Config, _ws, mediator, replayDir, _rotationDB), mediator);
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex, MediatorService);
         _wndAI = new AIWindow(_rotation);
+        _wndChangelog = new();
 
         if (Service.IsMock)
         {
@@ -195,7 +200,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         Version cutoff = new(7, 5, 1, 13);
-        if (ConfigChangelogWindow.GetPreviousPluginVersion() < cutoff && ConfigChangelogWindow.GetCurrentPluginVersion() >= cutoff)
+        if (Service.Config.PreviousAssemblyVersion < cutoff && Service.Config.AssemblyVersion >= cutoff)
         {
             Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
             _hintsBuilder.Obstacles.ClearGenerated();
@@ -212,14 +217,21 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         condition.ConditionChange += OnConditionChanged;
 
-        _ = new ConfigChangelogWindow();
-
         if (Service.IsMock)
         {
             _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
             _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
             //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
         }
+
+        MediatorService.Subscribe<OpenWindowMessage>(this, o =>
+        {
+            windowSystem.Windows.FirstOrDefault(w => w.GetType() == o.WindowType)?.IsOpen = true;
+        });
+        MediatorService.Subscribe<ToggleWindowMessage>(this, t =>
+        {
+            windowSystem.Windows.FirstOrDefault(w => w.GetType() == t.WindowType)?.IsOpen ^= true;
+        });
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -739,6 +751,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         GaugeVisualizer.Dispose();
         _wndDebug?.Dispose();
+        _wndChangelog.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();

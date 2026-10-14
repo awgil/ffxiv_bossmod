@@ -1,11 +1,12 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics;
 using System.IO;
 
 namespace BossMod;
 
-public sealed class AboutTab(DirectoryInfo? replayDir)
+public sealed class AboutTab(MediatorService? mediator, DirectoryInfo? replayDir)
 {
     private readonly Color TitleColor = Color.FromComponents(255, 165, 0);
     private readonly Color SectionBgColor = Color.FromComponents(38, 38, 38);
@@ -19,6 +20,10 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         using var wrap = ImRaii.TextWrapPos(0);
 
         ImGui.TextUnformatted("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab.");
+
+        if (mediator != null && ImGui.Button("Show changelog"))
+            mediator.Publish(new OpenWindowMessage(typeof(ConfigChangelogWindow)));
+
         ImGui.Spacing();
         DrawSection("Radar",
         [

@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
@@ -35,11 +36,11 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, MediatorService? mediator, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
-        _about = new(replayDir);
+        _about = new(mediator, replayDir);
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB) : null;
         _rotationDB = rotationDB;

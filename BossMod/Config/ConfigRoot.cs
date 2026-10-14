@@ -8,6 +8,7 @@ public sealed class ConfigRoot : IDisposable
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
+    public Version PreviousAssemblyVersion = new();
     record LazyNode(ConfigNode Node, EventSubscription OnModified);
     private readonly Dictionary<Type, LazyNode?> _nodes = []; // node is null if the type has been registered but the node has never been loaded before
 
