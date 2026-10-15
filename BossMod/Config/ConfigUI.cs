@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
@@ -10,8 +9,9 @@ namespace BossMod;
 
 public sealed class ConfigUI : IDisposable
 {
-    private class UINode(ConfigNode node)
+    private class UINode(Type type, ConfigNode node)
     {
+        public Type Type = type;
         public ConfigNode Node = node;
         public string Name = "";
         public int Order;
@@ -35,12 +35,14 @@ public sealed class ConfigUI : IDisposable
     private readonly RotationDatabase? _rotationDB;
 
     private readonly List<List<string>> _filterNodes = [];
+    private readonly List<Type> _forceOpen = [];
+    private Type? _forceFocus;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, MediatorService? mediator, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
-        _about = new(mediator, replayDir);
+        _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB) : null;
         _rotationDB = rotationDB;
@@ -53,7 +55,7 @@ public sealed class ConfigUI : IDisposable
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
         {
-            nodes[n] = new(config.Get<ConfigNode>(n));
+            nodes[n] = new(n, config.Get<ConfigNode>(n));
         }
 
         foreach (var (t, n) in nodes)
@@ -94,6 +96,17 @@ public sealed class ConfigUI : IDisposable
         _presets?.SelectPresetByName(name);
     }
 
+    public void OpenConfigNode(Type configType)
+    {
+        ShowTab("Settings");
+        _forceFocus = configType;
+        _forceOpen.Clear();
+        _forceOpen.Add(configType);
+        Type? parentType;
+        while ((parentType = _forceOpen[^1].GetCustomAttribute<ConfigDisplayAttribute>()?.Parent) != null)
+            _forceOpen.Add(parentType);
+    }
+
     public void Draw()
     {
         _tabs.Draw();
@@ -116,6 +129,8 @@ public sealed class ConfigUI : IDisposable
             }
 
         DrawNodes(_roots);
+        _forceFocus = null;
+        _forceOpen.Clear();
     }
 
     private void FilterNodes()
@@ -221,7 +236,7 @@ public sealed class ConfigUI : IDisposable
 
     private void DrawNodes(List<UINode> nodes)
     {
-        foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new(n.Name)))
+        foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new(n.Name, ForceOpen: _forceOpen.Contains(n.Type), ForceSelect: n.Type == _forceFocus)))
         {
             DrawNode(n.Node, _root, _tree, _ws, _rotationDB, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);

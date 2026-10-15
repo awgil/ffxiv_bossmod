@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -400,15 +401,24 @@ public abstract class QuestBattle : ZoneModule
         AddQuestAIHints(player, hints);
     }
 
-    public void DrawDebugInfo()
+    public override WindowDescription? GetWindowDescription() => new("VBM Quest Battle");
+
+    public override void DrawWindow(RotationModuleManager rmm)
     {
+        ImGui.Text($"Module: {GetType().Name}");
+        DrawObjectives();
+
+        if (!Service.IsDev)
+            return;
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         if (UIMisc.Button("Leave duty", !ImGui.GetIO().KeyShift, "Hold shift to leave"))
             _abandonDuty?.Invoke(false);
         ImGui.SameLine();
         UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
-
-        ImGui.Text($"Module: {GetType().Name}");
-        DrawObjectives();
 
         ImGui.Spacing();
         ImGui.Separator();

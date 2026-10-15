@@ -8,7 +8,7 @@ public sealed class ReplayState
 {
     public readonly List<Preset> ActivePresets = [];
     public Preset.Modifier ModifierKeys = default;
-    public PartyRolesConfig.Assignment[] RoleAssignments = new PartyRolesConfig.Assignment[PartyState.MaxPartySize];
+    public PartyRolesConfig.Assignment[] RoleAssignments = Utils.MakeArray(PartyState.MaxPartySize, PartyRolesConfig.Assignment.Unassigned);
     public WDir MoveInput;
     public readonly List<SimpleEntry> ManualActions = [];
 
@@ -20,7 +20,7 @@ public sealed class ReplayState
             yield return new OpActivePresetsChange(ActivePresets);
         if (ModifierKeys != default)
             yield return new OpModifierKeysChange(ModifierKeys);
-        if (RoleAssignments.Any(a => a != default))
+        if (RoleAssignments.Any(a => a != PartyRolesConfig.Assignment.Unassigned))
             yield return new OpRoleAssignmentsChange(RoleAssignments);
         if (MoveInput != default)
             yield return new OpMoveInputChange(MoveInput);

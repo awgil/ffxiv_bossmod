@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Global.DeepDungeon;
 
@@ -11,7 +12,7 @@ abstract partial class AutoClear : ZoneModule
         return new Minimap(Palace, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
     }
 
-    public override void DrawExtra()
+    public override void DrawWindow(RotationModuleManager rmm)
     {
         DrawTraps();
 

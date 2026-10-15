@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Dawntrail.Foray.ForkedTower;
 
@@ -50,9 +51,9 @@ class FTAllianceSelector(WorldState ws) : ZoneModule(ws)
 {
     private readonly ForkedTowerConfig _config = Service.Config.Get<ForkedTowerConfig>();
 
-    public override bool WantDrawExtra() => _config.DrawOverlay && World.Party.Player()?.PosRot.Y < -200;
+    public override WindowDescription? GetWindowDescription() => _config.DrawOverlay && World.Party.Player()?.PosRot.Y < -200 ? new("FT alliance selector") : null;
 
-    public override void DrawExtra()
+    public override void DrawWindow(RotationModuleManager rmm)
     {
         var a = _config.PlayerAlliance;
 

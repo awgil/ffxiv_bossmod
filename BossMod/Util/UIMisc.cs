@@ -71,13 +71,13 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
     }
 
-    public static bool IconButton(FontAwesomeIcon icon, string id) => IconButtonRaw($"{icon.ToIconString()}##{id}");
-    public static bool IconButton(FontAwesomeIcon icon) => IconButtonRaw(icon.ToIconString());
+    public static bool IconButton(FontAwesomeIcon icon, string id, Vector2 size = default) => IconButtonRaw($"{icon.ToIconString()}##{id}", size);
+    public static bool IconButton(FontAwesomeIcon icon, Vector2 size = default) => IconButtonRaw(icon.ToIconString(), size);
 
-    static bool IconButtonRaw(string text)
+    static bool IconButtonRaw(string text, Vector2 size = default)
     {
         using (ImRaii.PushFont(Service.IconFont))
-            return ImGui.Button(text);
+            return ImGui.Button(text, size);
     }
 
     public static bool IconButtonWithText(FontAwesomeIcon icon, string text)

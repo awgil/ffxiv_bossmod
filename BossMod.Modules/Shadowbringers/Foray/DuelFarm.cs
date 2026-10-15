@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using System.Reflection;
 
 namespace BossMod.Shadowbringers.Foray;
@@ -62,9 +63,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
         base.Dispose(disposing);
     }
 
-    public override bool WantDrawExtra() => _globalConfig.Enabled;
-
-    public override string WindowName() => $"{Zone}###Eureka module";
+    public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module") : null;
 
     protected virtual void AddAIHints(int playerSlot, Actor player, AIHints hints) { }
 
@@ -103,15 +102,12 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
             }
     }
 
-    public override void DrawExtra()
+    public override void DrawWindow(RotationModuleManager rmm)
     {
         var modified = false;
 
-        ImGui.SetNextItemWidth(200);
-        modified |= ImGui.Checkbox("Enable", ref _globalConfig.Enabled);
-
         var tar = FarmTarget;
-        if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label ?? t.ToString()))
+        if (UICombo.Enum("Duel", ref tar, t => GetAttr(t)?.Label ?? t.ToString()))
             FarmTarget = tar;
 
         ImGui.Spacing();
