@@ -147,8 +147,6 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
         return false;
     }
 
-    private static readonly ActionTargets NonHostileTargets = ActionTargets.Self | ActionTargets.Party | ActionTargets.Alliance | ActionTargets.Friendly | ActionTargets.OwnPet | ActionTargets.PartyPet | ActionTargets.Area | ActionTargets.Dead;
-
     // true when the filler aoe on the player or on a mob already in the pack would hit this add, so it doesn't need its own pull
     public static bool InsidePackAOE(Actor player, Actor target, AIHints hints)
     {
@@ -398,15 +396,14 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
             return false;
         if (def.Range < 15 || !def.IsUnlocked(world, player))
             return false;
-        if ((def.AllowedTargets & ActionTargets.Hostile) == 0 || (def.AllowedTargets & NonHostileTargets) != 0)
+        if (def.AllowedTargets != ActionTargets.Hostile)
             return false;
         return Service.LuminaRow<Lumina.Excel.Sheets.Action>(def.ID.ID) is { IsPvP: false, CastType: 1 };
     }
 
     private static bool IsHostileSingleTarget(ActionDefinition def)
         => def.ID.Type == ActionType.Spell
-            && (def.AllowedTargets & ActionTargets.Hostile) != 0
-            && (def.AllowedTargets & NonHostileTargets) == 0
+            && def.AllowedTargets == ActionTargets.Hostile
             && Service.LuminaRow<Lumina.Excel.Sheets.Action>(def.ID.ID) is { CastType: 1 };
 
     // damage gcds the tag has to beat: a spell on an enemy, or a point-blank aoe. heals and self buffs are left alone.
@@ -414,8 +411,7 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
     {
         if (def.ID.Type != ActionType.Spell)
             return false;
-        var hostileOnly = (def.AllowedTargets & ActionTargets.Hostile) != 0 && (def.AllowedTargets & NonHostileTargets) == 0;
-        if (hostileOnly)
+        if (def.AllowedTargets == ActionTargets.Hostile)
             return true;
         return def.AllowedTargets == ActionTargets.Self && Service.LuminaRow<Lumina.Excel.Sheets.Action>(def.ID.ID) is { CastType: > 1 };
     }
