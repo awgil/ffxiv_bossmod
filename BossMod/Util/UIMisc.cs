@@ -57,7 +57,7 @@ public static class UIMisc
         var wrap = icon?.GetWrapOrDefault();
         if (wrap != null)
         {
-            Vector4 tintColor = state ? new(1f, 1f, 1f, 1f) : new(0.5f, 0.5f, 0.5f, 0.85f);
+            Vector4 tintColor = state ? new(1) : new(0.5f, 0.5f, 0.5f, 0.85f);
             ImGui.Image(wrap.Handle, size, Vector2.Zero, Vector2.One, tintColor);
         }
         else

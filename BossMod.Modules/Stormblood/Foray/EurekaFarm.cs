@@ -141,7 +141,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
         ImGui.Spacing();
 
         ImGui.SetNextItemWidth(200);
-        modified |= ImGui.SliderFloat("Search distance (yalms)", ref _globalConfig.MaxPullDistance, 20, 80);
+        modified |= ImGui.SliderFloat("Search distance (yalms)", ref _globalConfig.MaxPullDistance, 20, 120);
         ImGui.SetNextItemWidth(200);
         modified |= ImGui.SliderInt("Max pull size (0 = unlimited)", ref _globalConfig.MaxPullCount, 0, 30);
         modified |= ImGui.Checkbox("Only attack mobs that are already in combat", ref _globalConfig.AssistMode);
