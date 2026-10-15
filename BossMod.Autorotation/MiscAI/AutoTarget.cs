@@ -191,7 +191,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
             {
                 if (!target.Actor.IsDead && target.Actor.IsForlorn)
                 {
-                    prioritize(target, 1);
+                    prioritize(target, 2);
                     continue;
                 }
                 if (forlornEngaged) // no sense in pulling anything else since they will be ignored while forlorn is up anyway
@@ -200,7 +200,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 {
                     // mark the whole pack as one priority, because autorot would single target mobs instead of using its aoe
                     if (!target.Actor.IsDead && (target.Actor.AggroPlayer || target.Actor.TargetID == Player.InstanceID || FateUtils.InsidePackAOE(Player, target.Actor, Hints)))
-                        prioritize(target, 2);
+                        prioritize(target, 1);
                     continue;
                 }
                 if (targetFateMobs && canPullMore)
@@ -242,7 +242,8 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         // an out-of-range mob must not stay the action target while a pack is already engaged, or the rotation walks over to it
         if (trashHold)
         {
-            if (canPullMore)
+            // don't bother pulling more if you're attacking a forlorn
+            if (canPullMore && bestTarget?.IsForlorn != true)
             {
                 Hints.TagMobsAtRange = true;
                 FateUtils.PullTrashAtRange(World, Player, Hints);
