@@ -6,7 +6,7 @@ namespace BossMod;
 
 public static class Overlays
 {
-    public static void DrawPseudoTitlebar(string title, Type configType, uint iconId, Action onClose)
+    public static void DrawPseudoTitlebar(string title, Type configType, uint iconId, string closeTooltip, Action onClose)
     {
         if (iconId != 0 && Service.Texture.TryGetFromGameIcon(iconId, out var tex))
         {
@@ -30,7 +30,7 @@ public static class Overlays
         if (UIMisc.IconButton(FontAwesomeIcon.SquareXmark, new(w, 0)))
             onClose.Invoke();
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Disable this module (hides overlay)");
+            ImGui.SetTooltip(closeTooltip);
 
         ImGui.Spacing();
         ImGui.Separator();

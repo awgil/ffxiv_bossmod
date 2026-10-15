@@ -293,8 +293,6 @@ public abstract partial class AutoClear : ZoneModule
 
     private bool OpenBronze => _config.BronzeCoffer;
 
-    public override WindowDescription? GetWindowDescription() => _config.EnableMinimap && !Palace.IsBossFloor ? new("VBM Deep Dungeon minimap##VBMDD") : null;
-
     private bool CanAutoUse(PomanderID p, Actor player)
     {
         if (Palace.Party.Count(p => p.EntityId > 0) > 1)

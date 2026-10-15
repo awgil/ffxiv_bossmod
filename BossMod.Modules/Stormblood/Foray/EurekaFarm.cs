@@ -124,7 +124,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
 
     public override void DrawWindow(RotationModuleManager rmm)
     {
-        Overlays.DrawPseudoTitlebar($"VBM Farmer: {Zone}", typeof(EurekaConfig), 61833, () =>
+        Overlays.DrawPseudoTitlebar($"VBM Farmer: {Zone}", typeof(EurekaConfig), 61833, "Disable module (and hide this overlay)", () =>
         {
             _globalConfig.Enabled = false;
             _globalConfig.Modified.Fire();

@@ -124,7 +124,7 @@ public sealed class PackLoader : IDisposable
             Service.Config.Reload(ctx.Assemblies, []);
             RotationModuleRegistry.Reload(ctx.Assemblies, []);
             BossModuleRegistry.Reload(ctx.Assemblies, []);
-            RotationModuleRegistry.Reload(ctx.Assemblies, []);
+            ZoneModuleRegistry.Reload(ctx.Assemblies, []);
             AnalyzerRegistry.Reload(ctx.Assemblies, []);
 
             ctx.Unload();

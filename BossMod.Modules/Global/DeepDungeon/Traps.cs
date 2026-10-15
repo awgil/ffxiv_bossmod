@@ -15,7 +15,7 @@ abstract partial class AutoClear : ZoneModule
     private void FilterTraps()
     {
         _trapsCurrentFloor.Clear();
-        if (_trapsCurrentZone.Count == 0)
+        if (_trapsCurrentZone.Count == 0 && _palantirListTraps != null)
         {
             try
             {
