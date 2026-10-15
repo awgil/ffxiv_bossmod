@@ -191,6 +191,7 @@ public sealed class AIHints
     // misc stuff to execute
     public bool WantJump;
     public bool WantDismount;
+    public bool TagMobsAtRange; // for fate mobs: tag them with a ranged gcd instead of chasing
     public bool AllowDash;
     public FateSync WantFateSync;
     public bool ShouldLeaveDuty;
@@ -227,6 +228,7 @@ public sealed class AIHints
         ScriptedDeath = false;
         WantJump = false;
         WantDismount = false;
+        TagMobsAtRange = false;
         AllowDash = true;
         WantFateSync = FateSync.None;
         ShouldLeaveDuty = false;

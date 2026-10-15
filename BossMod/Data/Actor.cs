@@ -143,6 +143,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;
     public bool IsStrikingDummy => NameID == 541; // this is a hack, but striking dummies are special in some ways
+    public bool IsForlorn => NameID is 6737 or 6738;
     public int CharacterSpawnIndex => SpawnIndex < 200 && (SpawnIndex & 1) == 0 ? (SpawnIndex >> 1) : -1; // [0,100) for 'real' characters, -1 otherwise
     public float HPRatio => (float)HPMP.CurHP / HPMP.MaxHP;
     public int PendingHPDifference => PendingHPDifferences.Sum(p => p.Value);

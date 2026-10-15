@@ -165,6 +165,9 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
         var targetZodiac = strategy.Option(Track.Zodiac).As<Flag>() == Flag.Enabled;
         var fateRestrictsPulls = fateEngagement != FateUtils.Engagement.Normal;
+        // trash fates: once something is already aggroed, keep that pack as the action target. tagging more is separate.
+        var trashHold = targetFates && FateUtils.HoldingTrashPack(World, Player, Hints, fateEngagement);
+        var forlornEngaged = targetFates && FateUtils.EngagedWithForlorn(Player, Hints);
 
         // first deal with pulling new enemies
         foreach (var target in Hints.PotentialTargets)
@@ -186,9 +189,18 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
 
             if (targetFates && target.Actor.FateID == World.Client.ActiveFate.ID)
             {
-                if (target.Actor.NameID is 6737 or 6738)
+                if (!target.Actor.IsDead && target.Actor.IsForlorn)
                 {
                     prioritize(target, 1);
+                    continue;
+                }
+                if (forlornEngaged) // no sense in pulling anything else since they will be ignored while forlorn is up anyway
+                    continue;
+                if (trashHold)
+                {
+                    // mark the whole pack as one priority, because autorot would single target mobs instead of using its aoe
+                    if (!target.Actor.IsDead && (target.Actor.AggroPlayer || target.Actor.TargetID == Player.InstanceID || FateUtils.InsidePackAOE(Player, target.Actor, Hints)))
+                        prioritize(target, 2);
                     continue;
                 }
                 if (targetFateMobs && canPullMore)
@@ -223,6 +235,18 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         // collecting or handing in: never keep a passive mob targeted, even if retarget is set to never
         if (fateRestrictsPulls)
         {
+            primaryTarget = Hints.ForcedTarget = bestTarget;
+            return;
+        }
+
+        // an out-of-range mob must not stay the action target while a pack is already engaged, or the rotation walks over to it
+        if (trashHold)
+        {
+            if (canPullMore)
+            {
+                Hints.TagMobsAtRange = true;
+                FateUtils.PullTrashAtRange(World, Player, Hints);
+            }
             primaryTarget = Hints.ForcedTarget = bestTarget;
             return;
         }
