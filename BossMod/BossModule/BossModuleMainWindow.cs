@@ -25,7 +25,7 @@ public class BossModuleMainWindow : UIWindow
         var showZoneModule = ShowZoneModule();
         IsOpen = _mgr.Config.Enable && (_mgr.LoadedModules.Count > 0 || showZoneModule);
         ShowCloseButton = _mgr.ActiveModule != null && !showZoneModule;
-        WindowName = (showZoneModule ? $"Zone module ({_zmm.ActiveModule?.GetType().Name})" : _mgr.ActiveModule != null ? $"Boss module ({_mgr.ActiveModule.GetType().Name})" : "Loaded boss modules") + _windowID;
+        WindowName = (showZoneModule ? $"Zone module ({_zmm.ActiveModule?.GetType().Name})" : _mgr.ActiveModule != null ? ModuleTitle(_mgr.ActiveModule) : "Loaded boss modules") + _windowID;
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (_mgr.Config.TrishaMode)
             Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
@@ -35,6 +35,32 @@ public class BossModuleMainWindow : UIWindow
 
         if (_mgr.Config.ShowWorldArrows && _mgr.ActiveModule != null && _mgr.WorldState.Party[PartyState.PlayerSlot] is var pc && pc != null)
             DrawMovementHints(_mgr.ActiveModule.CalculateMovementHintsForRaidMember(PartyState.PlayerSlot, pc), pc.PosRot.Y);
+    }
+
+    private readonly Dictionary<Type, string> _titles = [];
+
+    private string ModuleTitle(BossModule module)
+    {
+        var type = module.GetType();
+        if (_titles.TryGetValue(type, out var title))
+            return title;
+
+        title = type.Name;
+        if (module.Info is { } info)
+        {
+            try
+            {
+                if (info.NameID != 0)
+                    title = ModuleViewer.BNpcName(info.NameID);
+            }
+            catch (Exception ex)
+            {
+                Service.Log($"[BMM] Failed to get boss name for {type}: {ex.Message}");
+            }
+            if (info.Incomplete)
+                title += " [WIP]";
+        }
+        return _titles[type] = title;
     }
 
     public override void OnOpen()

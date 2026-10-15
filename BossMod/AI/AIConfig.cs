@@ -1,6 +1,6 @@
 ﻿namespace BossMod.AI;
 
-[ConfigDisplay(Name = "AI Configuration", Order = 9)]
+[ConfigDisplay(Name = "AI Configuration", Order = 9, Group = "AI & Automation")]
 public sealed class AIConfig : ConfigNode
 {
     [PropertyDisplay("Enable")]

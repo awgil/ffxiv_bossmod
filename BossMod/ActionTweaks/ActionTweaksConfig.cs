@@ -1,9 +1,10 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Action Tweaks", Order = 4)]
+[ConfigDisplay(Name = "Action Tweaks", Order = 4, Group = "Autorotation")]
 public sealed class ActionTweaksConfig : ConfigNode
 {
     // TODO: consider exposing max-delay to config; 0 would mean 'remove all delay', max-value would mean 'disable'
+    [PageStart("Animation lock")]
     [PropertyDisplay("Remove extra lag-induced animation lock delay from instant casts (read tooltip!)", tooltip: "Do NOT use with XivAlexander or NoClippy - this should automatically disable itself if they are detected, but double check first!")]
     public bool RemoveAnimationLockDelay = false;
 
@@ -14,6 +15,7 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertyDisplay("Remove extra framerate-induced cooldown delay", tooltip: "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations")]
     public bool RemoveCooldownDelay = false;
 
+    [PageStart("Movement & casting")]
     [PropertyDisplay("Prevent movement while casting", tags: ["slidecast"])]
     public bool PreventMovingWhileCasting = false;
 
@@ -45,6 +47,7 @@ public sealed class ActionTweaksConfig : ConfigNode
     [PropertySlider(0, 180)]
     public float MisdirectionThreshold = 180;
 
+    [PageStart("Targeting & queueing")]
     [PropertyDisplay("Use actions on mouseover target")]
     public bool PreferMouseover = false;
 

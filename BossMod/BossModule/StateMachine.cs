@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using System.Text;
 
 namespace BossMod;
@@ -109,15 +110,45 @@ public class StateMachine(List<StateMachine.Phase> phases)
 
     public void Draw(Color outlineColor)
     {
-        (var activeName, var next) = ActiveState != null ? BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true) : ("Inactive", null);
-        var future = BuildStateChain(next, " ---> ");
-
-        Utils.TextOutlined($"Cur: {activeName}", outlineColor);
-
-        if (future.Length == 0)
+        if (ActiveState == null)
+        {
+            Utils.TextOutlined("Cur: Inactive", outlineColor);
             ImGui.TextUnformatted("");
-        else
-            Utils.TextOutlined($"Then: {future}", outlineColor);
+            return;
+        }
+
+        (var activeName, var activeEnd, var next) = BuildComplexState(ActiveState, TimeSinceTransition, true);
+        DrawStateText($"Cur: {activeName}", activeEnd.EndHint, outlineColor);
+
+        List<(string name, StateHint hint)> future = [];
+        while (next != null && future.Count < 5)
+        {
+            (var name, var end, var after) = BuildComplexState(next, 0, false);
+            if (name.Length > 0)
+                future.Add((name, end.EndHint));
+            next = after;
+        }
+
+        if (future.Count == 0)
+        {
+            ImGui.TextUnformatted("");
+            return;
+        }
+
+        Utils.TextOutlined("Then:", outlineColor);
+        for (var i = 0; i < future.Count; ++i)
+        {
+            var text = i == 0 ? future[i].name : $"> {future[i].name}";
+            UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X);
+            DrawStateText(text, future[i].hint, outlineColor);
+        }
+    }
+
+    private static void DrawStateText(string text, StateHint hint, Color outlineColor)
+    {
+        uint? color = hint.HasFlag(StateHint.Tankbuster) ? UIMisc.ColorDanger : hint.HasFlag(StateHint.Raidwide) ? UIMisc.ColorWarning : hint.HasFlag(StateHint.Knockback) ? UIMisc.ColorInfo : null;
+        using var _ = ImRaii.PushColor(ImGuiCol.Text, color ?? 0, color != null);
+        Utils.TextOutlined(text, outlineColor);
     }
 
     public string BuildStateChain(State? start, string sep, int maxCount = 5)
@@ -155,11 +186,20 @@ public class StateMachine(List<StateMachine.Phase> phases)
 
     private (string, State?) BuildComplexStateNameAndDuration(State start, float timeActive, bool writeTime)
     {
+        (var name, _, var next) = BuildComplexState(start, timeActive, writeTime);
+        return (name, next);
+    }
+
+    // very long states are placeholders (eg 'enrage' in modules without a timeline)
+    private static string TimerText(float timeLeft) => timeLeft < 600 ? $" in {timeLeft:f1}s" : "";
+
+    private (string name, State last, State? next) BuildComplexState(State start, float timeActive, bool writeTime)
+    {
         var res = new StringBuilder(start.Name);
         var timeLeft = MathF.Max(0, start.Duration - timeActive);
         if (writeTime && res.Length > 0)
         {
-            res.Append($" in {timeLeft:f1}s");
+            res.Append(TimerText(timeLeft));
             timeLeft = 0;
         }
 
@@ -175,7 +215,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
 
                 if (writeTime && timeLeft > 0)
                 {
-                    res.Append($" in {timeLeft:f1}s");
+                    res.Append(TimerText(timeLeft));
                     timeLeft = 0;
                 }
             }
@@ -185,10 +225,10 @@ public class StateMachine(List<StateMachine.Phase> phases)
         {
             if (res.Length == 0)
                 res.Append("???");
-            res.Append($" in {timeLeft:f1}s");
+            res.Append(TimerText(timeLeft));
         }
 
-        return (res.ToString(), start.NextStates?.Length == 1 ? start.NextStates[0] : null);
+        return (res.ToString(), start, start.NextStates?.Length == 1 ? start.NextStates[0] : null);
     }
 
     private void TransitionToPhase(int nextIndex)

@@ -246,6 +246,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     public ClientState.DutyAction[] GetDutyActions() => [GetDutyAction(0), GetDutyAction(1), GetDutyAction(2), GetDutyAction(3), GetDutyAction(4)];
 
     public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
+    public ActionID AdjustAction(ActionID action) => action.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(action.ID)) : action;
 
     public uint GetSpellIdForAction(ActionID action) => ActionManager.GetSpellIdForAction((CSActionType)action.Type, action.ID);
 

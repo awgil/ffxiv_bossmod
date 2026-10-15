@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Boss Modules and Radar", Order = 1)]
+[ConfigDisplay(Name = "Boss Modules and Radar", Order = 1, Group = "Radar & Modules")]
 public class BossModuleConfig : ConfigNode
 {
     public enum RadarCloseBehavior
@@ -34,7 +34,7 @@ public class BossModuleConfig : ConfigNode
     public bool EnableDummyModule = false;
 
     // radar window settings
-    [SectionStart]
+    [PageStart("Radar window")]
     [PropertyDisplay("Enable radar")]
     public bool Enable = true;
 
@@ -76,6 +76,7 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Give radar extra space for rotations", tooltip: "If you are using the above setting, this gives the radar extra space on the sides before the edges are clipped in order to account for rotating your camera during an encounter")]
     public bool AddSlackForRotations = true;
 
+    [PageStart("Radar contents")]
     [PropertyDisplay("Show arena border in radar")]
     public bool ShowBorder = true;
 
@@ -120,7 +121,7 @@ public class BossModuleConfig : ConfigNode
     public bool ShowFocusTargetPlayer = false;
 
     // hint window settings
-    [SectionStart]
+    [PageStart("Text hints")]
     [PropertyDisplay("Show text hints in separate window", tooltip: "Separates the radar window from the hints window, allowing you to reposition the hints window")]
     public bool HintsInSeparateWindow = false;
 
@@ -140,7 +141,7 @@ public class BossModuleConfig : ConfigNode
     public bool ShowPlayerHints = true;
 
     // misc. settings
-    [SectionStart]
+    [PageStart("In-world hints")]
     [PropertyDisplay("Show movement hints in world")]
     public bool ShowWorldArrows = false;
     [PropertyDisplay("Show predicted mob movements (based on aggro and pull distance)")]

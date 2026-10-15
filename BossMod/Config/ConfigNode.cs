@@ -14,6 +14,7 @@ public sealed class ConfigDisplayAttribute : Attribute
     public Type? Parent { get; set; }
     public string? Since { get; set; }
     public string[]? Tags { get; set; }
+    public string? Group { get; set; }
 }
 
 [AttributeUsage(AttributeTargets.Field)]
@@ -21,6 +22,13 @@ public sealed class SectionStartAttribute(string label = "", bool separator = tr
 {
     public string Label { get; } = label;
     public bool Separator { get; } = separator;
+}
+
+// attribute that starts a new page of a config node; shown as a section header outside the settings window
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class PageStartAttribute(string name) : Attribute
+{
+    public string Name { get; } = name;
 }
 
 // attribute that specifies how config node field or enumeration value is shown in the UI

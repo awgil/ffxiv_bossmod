@@ -6,7 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Server info bar", Order = 6)]
+[ConfigDisplay(Name = "Server info bar", Order = 6, Group = "General")]
 public sealed class DtrConfig : ConfigNode
 {
     public enum DtrStatus

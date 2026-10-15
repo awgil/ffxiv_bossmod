@@ -2,6 +2,7 @@
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Reflection;
@@ -18,8 +19,14 @@ public sealed class ConfigUI : IDisposable
         public UINode? Parent;
         public List<UINode> Children = [];
         public string[] Tags = [];
+        public string Group = "";
+        public List<string> Pages = [];
+        public bool HasGeneral;
 
         public List<string> Path = [];
+
+        public string? DisplayName;
+        public BossModuleInfo.Category? Category;
     }
 
     private static readonly Dictionary<Type, PropertyRenderer> _customRenderers = [];
@@ -63,6 +70,8 @@ public sealed class ConfigUI : IDisposable
             n.Order = props?.Order ?? 0;
             n.Parent = props?.Parent != null ? nodes.GetValueOrDefault(props.Parent) : null;
             n.Tags = props?.Tags ?? [];
+            n.Group = props?.Group ?? "Other";
+            (n.Pages, n.HasGeneral) = GetPages(n.Node);
 
             var parentNodes = n.Parent?.Children ?? _roots;
             parentNodes.Add(n);
@@ -99,23 +108,106 @@ public sealed class ConfigUI : IDisposable
         _tabs.Draw();
     }
 
+    private static readonly string[] _groupOrder = ["General", "Radar & Modules", "Autorotation", "AI & Automation"];
+
     private string _searchText = "";
+    private UINode? _selectedNode;
+    private string _selectedPage = "";
 
     private void DrawSettings()
     {
-        ImGui.SetNextItemWidth(300);
+        ImGui.SetNextItemWidth(300 * ImGuiHelpers.GlobalScale);
         if (ImGui.InputTextEx("", "Search for a setting...", ref _searchText))
             FilterNodes();
 
         ImGui.SameLine();
         using (ImRaii.Disabled(_searchText.Length == 0))
             if (ImGui.Button("Clear"))
+                ClearSearch();
+
+        using (var categories = ImRaii.Child("##categories", new(230 * ImGuiHelpers.GlobalScale, -1), true))
+            if (categories)
             {
-                _searchText = "";
-                FilterNodes();
+                using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
+                using var spacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, 1 * ImGuiHelpers.GlobalScale));
+                foreach (var group in _groupOrder.Concat(_roots.Select(r => r.Group)).Distinct())
+                    if (_roots.Where(r => r.Group == group).ToList() is { Count: > 0 } nodes)
+                    {
+                        UIMisc.SectionHeader(group);
+                        DrawCategoryTree(nodes);
+                    }
+            }
+        ImGui.SameLine();
+        using var content = ImRaii.Child("##settings", new(-1, -1));
+        if (!content)
+            return;
+
+        if (_filterNodes.Count > 0)
+        {
+            DrawNodes(_roots);
+            return;
+        }
+
+        if (_selectedNode == null && (_roots.FirstOrDefault(r => r.Group == _groupOrder[0]) ?? _roots.FirstOrDefault()) is { } first)
+            Select(first, IsHeader(first) && !first.HasGeneral ? first.Pages.FirstOrDefault() ?? "" : "");
+        if (_selectedNode is not { } node)
+            return;
+
+        var title = _selectedPage.Length > 0 ? $"{node.Name} / {_selectedPage}" : IsHeader(node) ? $"{node.Name} / General" : node.Name;
+        UIMisc.SectionHeader(title);
+        DrawNode(node.Node, _root, _tree, _ws, _rotationDB, page: _selectedPage);
+        if (_selectedPage.Length == 0 && node.Parent != null)
+            DrawNodesByCategory(node.Children);
+    }
+
+    private static bool IsHeader(UINode node) => node.Pages.Count > 0 || node.Parent == null && node.Children.Count > 0;
+
+    private void Select(UINode node, string page)
+    {
+        _selectedNode = node;
+        _selectedPage = page;
+        ClearSearch();
+    }
+
+    private void DrawCategoryTree(List<UINode> nodes)
+    {
+        var searching = _filterNodes.Count > 0;
+        foreach (var n in nodes)
+        {
+            using var dim = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), searching && !MatchesFilter(n.Path));
+            var id = string.Join('/', n.Path);
+            if (!IsHeader(n))
+            {
+                DrawCategoryEntry(n.Name, $"{id}#", n, "");
+                continue;
             }
 
-        DrawNodes(_roots);
+            if (!ImGui.TreeNodeEx($"{n.Name}###{id}", ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding))
+                continue;
+            if (n.HasGeneral)
+                DrawCategoryEntry("General", $"{id}#", n, "");
+            foreach (var p in n.Pages)
+                DrawCategoryEntry(p, $"{id}#{p}", n, p);
+            if (n.Parent == null)
+                DrawCategoryTree(n.Children);
+            ImGui.TreePop();
+        }
+    }
+
+    private void DrawCategoryEntry(string label, string id, UINode node, string page)
+    {
+        var flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        if (_filterNodes.Count == 0 && node == _selectedNode && page == _selectedPage)
+            flags |= ImGuiTreeNodeFlags.Selected;
+        ImGui.TreeNodeEx($"{label}###{id}", flags);
+        if (ImGui.IsItemClicked())
+            Select(node, page);
+    }
+
+    private void ClearSearch()
+    {
+        _searchText = "";
+        FilterNodes();
     }
 
     private void FilterNodes()
@@ -156,17 +248,28 @@ public sealed class ConfigUI : IDisposable
                 yield return [node.Name, .. path];
     }
 
-    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, RotationDatabase? db, Func<PropertyDisplayAttribute, bool>? filter = null)
+    // page: "" is the part before the first page start, null draws all pages
+    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, RotationDatabase? db, Func<PropertyDisplayAttribute, bool>? filter = null, string? page = null)
     {
         // draw standard properties
+        var currentPage = "";
         foreach (var field in node.GetType().GetFields())
         {
             var props = field.GetCustomAttribute<PropertyDisplayAttribute>();
             if (props == null)
                 continue;
 
+            var pageStart = field.GetCustomAttribute<PageStartAttribute>();
+            if (pageStart != null)
+                currentPage = pageStart.Name;
+            if (page != null && page != currentPage)
+                continue;
+
             if (filter?.Invoke(props) == false)
                 continue;
+
+            if (pageStart != null && page == null)
+                UIMisc.SectionHeader(pageStart.Name);
 
             var newSection = field.GetCustomAttribute<SectionStartAttribute>();
 
@@ -189,11 +292,10 @@ public sealed class ConfigUI : IDisposable
 
             if (newSection != null)
             {
-                if (newSection.Separator)
-                    ImGui.Separator();
-
                 if (newSection.Label.Length > 0)
-                    ImGui.Text(newSection.Label);
+                    UIMisc.SectionHeader(newSection.Label);
+                else if (newSection.Separator)
+                    ImGui.Separator();
             }
 
             var value = field.GetValue(node);
@@ -203,11 +305,62 @@ public sealed class ConfigUI : IDisposable
                 {
                     node.Modified.Fire();
                 }
+                DrawResetMenu(node, field, value);
             }
         }
 
         // draw custom stuff
-        node.DrawCustom(tree, ws, db);
+        if (page is null or "")
+            node.DrawCustom(tree, ws, db);
+    }
+
+    private static (List<string> pages, bool hasDefault) GetPages(ConfigNode node)
+    {
+        List<string> pages = [];
+        var hasDefault = false;
+        foreach (var field in node.GetType().GetFields())
+        {
+            if (field.GetCustomAttribute<PropertyDisplayAttribute>() == null)
+                continue;
+            if (field.GetCustomAttribute<PageStartAttribute>() is { } p)
+                pages.Add(p.Name);
+            else if (pages.Count == 0)
+                hasDefault = true;
+        }
+        return (pages, hasDefault);
+    }
+
+    private static readonly Dictionary<Type, ConfigNode?> _defaultNodes = [];
+
+    private static void DrawResetMenu(ConfigNode node, FieldInfo field, object? value)
+    {
+        if (!field.FieldType.IsValueType && field.FieldType != typeof(string))
+            return;
+
+        using var ctx = ImRaii.ContextPopupItem($"###reset_{field.Name}");
+        if (!ctx)
+            return;
+
+        var type = node.GetType();
+        if (!_defaultNodes.TryGetValue(type, out var defaults))
+        {
+            try
+            {
+                defaults = Activator.CreateInstance(type) as ConfigNode;
+            }
+            catch (Exception ex)
+            {
+                Service.Log($"[ConfigUI] Cannot create default instance of {type}: {ex.Message}");
+            }
+            _defaultNodes[type] = defaults;
+        }
+
+        var defaultValue = defaults != null ? field.GetValue(defaults) : null;
+        if (ImGui.MenuItem("Reset to default", "", false, defaults != null && !Equals(defaultValue, value)))
+        {
+            field.SetValue(node, defaultValue);
+            node.Modified.Fire();
+        }
     }
 
     private static string GenerateNodeName(Type t) => t.Name.EndsWith("Config", StringComparison.Ordinal) ? t.Name[..^"Config".Length] : t.Name;
@@ -219,9 +372,63 @@ public sealed class ConfigUI : IDisposable
             SortByOrder(n.Children);
     }
 
+    private void DrawNodesByCategory(List<UINode> nodes)
+    {
+        nodes.ForEach(ResolveModule);
+        var groups = nodes.GroupBy(n => n.Category).OrderBy(g => g.Key ?? BossModuleInfo.Category.Count).ToList();
+        if (groups.Count == 1)
+        {
+            DrawNodes(nodes);
+            return;
+        }
+        foreach (var g in groups)
+        {
+            UIMisc.SectionHeader(g.Key switch
+            {
+                null => "Other",
+                BossModuleInfo.Category.Raid => "Normal Raids",
+                BossModuleInfo.Category.Trial => "Trials",
+                BossModuleInfo.Category.Dungeon => "Dungeons",
+                { } c => c.ToString()
+            });
+            DrawNodes([.. g.OrderBy(n => n.DisplayName)]);
+        }
+    }
+
+    private static void ResolveModule(UINode node)
+    {
+        if (node.DisplayName != null)
+            return;
+        node.DisplayName = node.Name;
+        var type = node.Node.GetType();
+        if (type.GetCustomAttribute<ConfigDisplayAttribute>()?.Name != null || BossModuleRegistry.RegisteredModules.Values.FirstOrDefault(i => i.ConfigType == type) is not { } info)
+            return;
+        node.Category = info.Category;
+        try
+        {
+            if (info.GroupType == BossModuleInfo.GroupType.CFC && Service.LuminaRow<Lumina.Excel.Sheets.ContentFinderCondition>(info.GroupID) is { } cfc && !cfc.Name.IsEmpty)
+                node.DisplayName = ModuleViewer.FixCase(cfc.Name);
+            else if (info.NameID != 0)
+                node.DisplayName = ModuleViewer.BNpcName(info.NameID);
+        }
+        catch (Exception ex)
+        {
+            Service.Log($"[ConfigUI] Failed to resolve name for {type}: {ex.Message}");
+        }
+    }
+
     private void DrawNodes(List<UINode> nodes)
     {
-        foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new(n.Name)))
+        nodes.ForEach(ResolveModule);
+        var duplicates = nodes.GroupBy(n => n.DisplayName).Where(g => g.Skip(1).Any()).Select(g => g.Key).ToHashSet();
+        string label(UINode n)
+        {
+            if (!duplicates.Contains(n.DisplayName) || n.DisplayName == n.Name)
+                return n.DisplayName ?? n.Name;
+            var phase = System.Text.RegularExpressions.Regex.Match(n.Name, @"^P\d+S(\d)");
+            return phase.Success ? $"{n.DisplayName} - Phase {phase.Groups[1].Value}" : $"{n.DisplayName} [{n.Name}]";
+        }
+        foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new($"{label(n)}###{n.Name}")))
         {
             DrawNode(n.Node, _root, _tree, _ws, _rotationDB, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);
@@ -299,132 +506,120 @@ public sealed class ConfigUI : IDisposable
         null => false
     };
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, bool v)
+    private static float DrawLabelAbove(PropertyDisplayAttribute attrs, bool nested)
     {
         DrawHelp(attrs.Tooltip, nested);
+        var x = ImGui.GetCursorPosX();
+        ImGui.TextUnformatted(attrs.Label);
+        ImGui.SetCursorPosX(x);
+        ImGui.SetNextItemWidth(ControlWidth());
+        return x;
+    }
+
+    private static float ControlWidth() => MathF.Min(ImGui.GetContentRegionAvail().X, 300 * ImGuiHelpers.GlobalScale);
+
+    private const int MaxRadioOptions = 6;
+
+    private static bool DrawRadioList(float x, string id, string[] options, ref int v)
+    {
+        var res = false;
+        using var _ = ImRaii.PushId(id);
+        x += ImGui.GetFrameHeight();
+        for (var i = 0; i < options.Length; ++i)
+        {
+            ImGui.SetCursorPosX(x);
+            if (ImGui.RadioButton($"{options[i]}###{i}", v == i) && v != i)
+            {
+                v = i;
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    private static bool SetValue(ConfigNode node, FieldInfo member, object value)
+    {
+        member.SetValue(node, value);
+        return true;
+    }
+
+    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, bool v)
+    {
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
         if (combo != null)
         {
-            if (UICombo.Bool(attrs.Label, combo.Values, ref v))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
+            var x = DrawLabelAbove(attrs, nested);
+            var ix = v ? 1 : 0;
+            var modified = combo.Values.Length <= MaxRadioOptions
+                ? DrawRadioList(x, attrs.Label, combo.Values, ref ix) && SetValue(node, member, ix != 0)
+                : UICombo.Bool($"##{attrs.Label}", combo.Values, ref v) && SetValue(node, member, v);
+            ImGui.Spacing();
+            return modified;
         }
-        else
-        {
-            if (ImGui.Checkbox(attrs.Label, ref v))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
-        }
-        return false;
+
+        DrawHelp(attrs.Tooltip, nested);
+        return ImGui.Checkbox(attrs.Label, ref v) && SetValue(node, member, v);
     }
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Enum v)
     {
-        DrawHelp(attrs.Tooltip, nested);
-
-        if (member.GetCustomAttribute<PropertyRadioAttribute>() != null)
+        var x = DrawLabelAbove(attrs, nested);
+        var modified = false;
+        var values = Enum.GetValues(v.GetType()).Cast<Enum>().ToArray();
+        if (values.Length <= MaxRadioOptions || member.GetCustomAttribute<PropertyRadioAttribute>() != null)
         {
-            var values = Enum.GetValues(v.GetType()).Cast<Enum>().ToArray();
             var ix = Array.IndexOf(values, v);
-            ImGui.Text($"{attrs.Label}:");
-            ImGui.SameLine();
-            if (UICombo.Radio(v.GetType(), ref ix, true))
-            {
-                member.SetValue(node, values[ix]);
-                return true;
-            }
+            modified = DrawRadioList(x, attrs.Label, [.. values.Select(UICombo.EnumString)], ref ix) && SetValue(node, member, values[ix]);
         }
         else
         {
-            if (UICombo.Enum(attrs.Label, ref v))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
+            modified = UICombo.Enum($"##{attrs.Label}", ref v) && SetValue(node, member, v);
         }
-
-        return false;
+        ImGui.Spacing();
+        return modified;
     }
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, float v)
     {
-        DrawHelp(attrs.Tooltip, nested);
+        DrawLabelAbove(attrs, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
-        if (slider != null)
-        {
-            var flags = ImGuiSliderFlags.None;
-            if (slider.Logarithmic)
-                flags |= ImGuiSliderFlags.Logarithmic;
-            ImGui.SetNextItemWidth(MathF.Min(ImGui.GetWindowWidth() * 0.30f, 175));
-            if (ImGui.DragFloat(attrs.Label, ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
-        }
-        else
-        {
-            if (ImGui.InputFloat(attrs.Label, ref v))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
-        }
-        return false;
+        var flags = slider?.Logarithmic == true ? ImGuiSliderFlags.Logarithmic : ImGuiSliderFlags.None;
+        var modified = slider != null
+            ? ImGui.DragFloat($"##{attrs.Label}", ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags)
+            : ImGui.InputFloat($"##{attrs.Label}", ref v);
+        modified = modified && SetValue(node, member, v);
+        ImGui.Spacing();
+        return modified;
     }
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, int v)
     {
-        DrawHelp(attrs.Tooltip, nested);
+        DrawLabelAbove(attrs, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
-        if (slider != null)
-        {
-            var flags = ImGuiSliderFlags.None;
-            if (slider.Logarithmic)
-                flags |= ImGuiSliderFlags.Logarithmic;
-            ImGui.SetNextItemWidth(MathF.Min(ImGui.GetWindowWidth() * 0.30f, 175));
-            if (ImGui.DragInt(attrs.Label, ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
-        }
-        else
-        {
-            if (ImGui.InputInt(attrs.Label, ref v))
-            {
-                member.SetValue(node, v);
-                return true;
-            }
-        }
-        return false;
+        var flags = slider?.Logarithmic == true ? ImGuiSliderFlags.Logarithmic : ImGuiSliderFlags.None;
+        var modified = slider != null
+            ? ImGui.DragInt($"##{attrs.Label}", ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags)
+            : ImGui.InputInt($"##{attrs.Label}", ref v);
+        modified = modified && SetValue(node, member, v);
+        ImGui.Spacing();
+        return modified;
     }
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, string v)
     {
-        DrawHelp(attrs.Tooltip, nested);
-        if (ImGui.InputText(attrs.Label, ref v, 256))
-        {
-            member.SetValue(node, v);
-            return true;
-        }
-        return false;
+        DrawLabelAbove(attrs, nested);
+        var modified = ImGui.InputText($"##{attrs.Label}", ref v, 256) && SetValue(node, member, v);
+        ImGui.Spacing();
+        return modified;
     }
+
+    private const ImGuiColorEditFlags ColorFlags = ImGuiColorEditFlags.PickerHueWheel | ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaPreviewHalf;
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color v)
     {
         DrawHelp(attrs.Tooltip, nested);
         var col = v.ToFloat4();
-        if (ImGui.ColorEdit4(attrs.Label, ref col, ImGuiColorEditFlags.PickerHueWheel))
-        {
-            member.SetValue(node, Color.FromFloat4(col));
-            return true;
-        }
-        return false;
+        return ImGui.ColorEdit4(attrs.Label, ref col, ColorFlags) && SetValue(node, member, Color.FromFloat4(col));
     }
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color[] v)
@@ -434,7 +629,7 @@ public sealed class ConfigUI : IDisposable
         {
             DrawHelp(attrs.Tooltip, nested);
             var col = v[i].ToFloat4();
-            if (ImGui.ColorEdit4($"{attrs.Label} {i}", ref col, ImGuiColorEditFlags.PickerHueWheel))
+            if (ImGui.ColorEdit4($"{attrs.Label} {i}", ref col, ColorFlags))
             {
                 v[i] = Color.FromFloat4(col);
                 member.SetValue(node, v);
@@ -513,42 +708,45 @@ public sealed class ConfigUI : IDisposable
         foreach (var tn in tree.Node(attrs.Label, false, v.Validate() ? 0xffffffff : 0xff00ffff))
         {
             using var indent = ImRaii.PushIndent();
-            using var table = ImRaii.Table("table", group.Names.Length + 2, ImGuiTableFlags.SizingFixedFit);
+            const int numRoles = (int)PartyRolesConfig.Assignment.Unassigned;
+            using var table = ImRaii.Table("table", numRoles + 1, ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersInnerH);
             if (!table)
                 continue;
 
-            foreach (var n in group.Names)
-                ImGui.TableSetupColumn(n);
-            ImGui.TableSetupColumn("----");
-            ImGui.TableSetupColumn("Name");
-            ImGui.TableHeadersRow();
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+            for (var i = 0; i < numRoles; ++i)
+                ImGui.TableSetupColumn(((PartyRolesConfig.Assignment)i).ToString(), ImGuiTableColumnFlags.WidthFixed, ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X);
 
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
-            for (var i = 0; i < (int)PartyRolesConfig.Assignment.Unassigned; ++i)
+            ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
+            ImGui.TableNextColumn();
+            for (var i = 0; i < numRoles; ++i)
             {
-                var r = (PartyRolesConfig.Assignment)i;
+                ImGui.TableNextColumn();
+                ImGui.TableHeader(((PartyRolesConfig.Assignment)i).ToString());
+                if (assignments.Length > 0 && ImGui.IsItemHovered())
+                    ImGui.SetTooltip(ws.Party[assignments[i]]?.Name ?? "");
+            }
+
+            for (var c = -1; c < group.Names.Length; ++c)
+            {
                 ImGui.TableNextRow();
-                for (var c = 0; c < group.Names.Length; ++c)
+                ImGui.TableNextColumn();
+                if (c < 0)
+                    ImGui.TextDisabled("Not assigned");
+                else
+                    ImGui.TextWrapped(group.Names[c]);
+                for (var i = 0; i < numRoles; ++i)
                 {
+                    var r = (PartyRolesConfig.Assignment)i;
+                    var selected = c < 0 ? v[r] < 0 || v[r] >= group.Names.Length : v[r] == c;
                     ImGui.TableNextColumn();
-                    if (ImGui.RadioButton($"###{r}:{c}", v[r] == c))
+                    if (ImGui.RadioButton($"###{r}:{c}", selected))
                     {
                         v[r] = c;
                         modified = true;
                     }
                 }
-                ImGui.TableNextColumn();
-                if (ImGui.RadioButton($"###{r}:---", v[r] < 0 || v[r] >= group.Names.Length))
-                {
-                    v[r] = -1;
-                    modified = true;
-                }
-
-                var name = r.ToString();
-                if (assignments.Length > 0)
-                    name += $" ({ws.Party[assignments[i]]?.Name})";
-                ImGui.TableNextColumn();
-                ImGui.TextUnformatted(name);
             }
         }
         return modified;

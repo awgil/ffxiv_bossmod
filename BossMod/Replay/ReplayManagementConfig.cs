@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Replays", Order = 0)]
+[ConfigDisplay(Name = "Replays", Order = 0, Group = "General")]
 public class ReplayManagementConfig : ConfigNode
 {
     [PropertyDisplay("Show replay management UI")]
