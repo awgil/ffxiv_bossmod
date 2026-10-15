@@ -38,26 +38,26 @@ public sealed class AsGoesLightSoGoesDarkness(WorldState ws) : QuestBattle(ws)
         }
 
         return [
-            Refugee(OID.Refugee1).Named("Refugee 1").WithConnection(V3(0, -300, 75)).StopOnCombat(),
+            Refugee(OID.Refugee1).Named("Refugee 1").WithConnection(new Vector3(0, -300, 75)).StopOnCombat(),
 
-            EventState(OID.VaultDoor1).Named("Pack 1").WithConnection(V3(16, -300, 30)),
-            EventState(OID.VaultDoor2).Named("Refugee 2").WithConnection(V3(52, -300, -30)),
-            EventState(OID.ArenaDoor).Named("Pack 2").WithConnection(V3(-30, -300, -75)),
-            EventState(OID.VaultDoor3).Named("Cutscene").WithConnection(V3(-17.5f, -292, -100)),
+            EventState(OID.VaultDoor1).Named("Pack 1").WithConnection(new Vector3(16, -300, 30)),
+            EventState(OID.VaultDoor2).Named("Refugee 2").WithConnection(new Vector3(52, -300, -30)),
+            EventState(OID.ArenaDoor).Named("Pack 2").WithConnection(new Vector3(-30, -300, -75)),
+            EventState(OID.VaultDoor3).Named("Cutscene").WithConnection(new Vector3(-17.5f, -292, -100)),
 
             Refugee(OID.Refugee3)
                 .Named("Refugee 3+4")
                 .WithInteract((uint)OID.Bonds)
-                .WithConnection(V3(-52, -300, -30)),
+                .WithConnection(new Vector3(-52, -300, -30)),
 
             Refugee(OID.Refugee5)
                 .Named("Refugee 5")
                 .WithInteract((uint)OID.Bonds)
-                .WithConnection(V3(55, -300, -68)),
+                .WithConnection(new Vector3(55, -300, -68)),
 
-            EventState(OID.ArenaWall).Named("Help Aymeric").WithConnection(V3(0, -292, -100)),
+            EventState(OID.ArenaWall).Named("Help Aymeric").WithConnection(new Vector3(0, -292, -100)),
 
-            new QuestObjective(ws).Named("Refugee 6").WithConnection(V3(2, -282.35f, -151))
+            new QuestObjective(ws).Named("Refugee 6").WithConnection(new Vector3(2, -282.35f, -151))
         ];
     }
 }

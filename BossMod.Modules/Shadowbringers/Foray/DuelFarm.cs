@@ -63,8 +63,6 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
         base.Dispose(disposing);
     }
 
-    public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
-
     protected virtual void AddAIHints(int playerSlot, Actor player, AIHints hints) { }
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
@@ -102,6 +100,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
             }
     }
 
+    public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
     public override void DrawWindow(RotationModuleManager rmm)
     {
         Overlays.DrawPseudoTitlebar($"VBM Duel prep: {Zone}", typeof(DuelFarmConfig), 61838, "Disable module (and hide this overlay)", () =>

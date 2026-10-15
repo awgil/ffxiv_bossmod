@@ -64,8 +64,6 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
         base.Dispose(disposing);
     }
 
-    public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
-
     protected virtual void AddAIHints(int playerSlot, Actor player, AIHints hints) { }
 
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
@@ -122,6 +120,7 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
             };
     }
 
+    public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
     public override void DrawWindow(RotationModuleManager rmm)
     {
         Overlays.DrawPseudoTitlebar($"VBM Farmer: {Zone}", typeof(EurekaConfig), 61833, "Disable module (and hide this overlay)", () =>
