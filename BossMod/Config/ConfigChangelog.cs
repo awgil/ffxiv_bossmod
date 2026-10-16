@@ -19,7 +19,7 @@ abstract class ChangelogNotice
     {
         ImGui.Bullet();
         ImGui.SameLine();
-        ImGui.TextWrapped(txt);
+        ImGui.TextUnformatted(txt);
     }
 }
 
@@ -54,7 +54,7 @@ class MultiPresetNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped("You can now enable multiple presets at once.");
+        ImGui.TextUnformatted("You can now enable multiple presets at once.");
         Bullet("A new built-in preset has been added - VBM AI. This provides the same functionality as the legacy AI feature. It will try to dodge AOEs and automatically target enemies.");
         Bullet("The existing /vbm ar commands have unchanged behavior. For example, /vbm ar set <preset> will enable the given preset and disable all others. To use multi-preset functionality, you can use the new subcommands 'activate', 'deactivate', and 'togglemulti'.");
     }
@@ -66,7 +66,7 @@ class DashSafetyNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
+        ImGui.TextUnformatted($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
     }
 }
 
@@ -77,7 +77,7 @@ class AIMigrationNotice2 : ChangelogNotice
     public override void Draw()
     {
         var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
-        ImGui.TextWrapped("Legacy AI has been replaced by VBM AI.");
+        ImGui.TextUnformatted("Legacy AI has been replaced by VBM AI.");
         Bullet("If you're a legacy AI user, you don't need to do anything! The existing AI interface has been retained for compatibility.");
         Bullet($"For more information, see {link}.");
         if (ImGui.Button("Open wiki"))
@@ -100,7 +100,10 @@ class SmartRotationNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped("'Smart character orientation' has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.");
+        using (ImRaii.PushFont(Service.MonoFont))
+            ImGui.TextUnformatted("Smart character orientation");
+        ImGui.SameLine();
+        ImGui.TextUnformatted("has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.");
     }
 }
 
@@ -114,10 +117,10 @@ class ArenaScaleNotice : ChangelogNotice
     public override void Draw()
     {
         var scale = ImGuiHelpers.GlobalScale;
-        ImGui.TextWrapped("The VBM radar now respects your global Dalamud UI scale.");
+        ImGui.TextUnformatted("The VBM radar now respects your global Dalamud UI scale.");
         if (scale == 1)
         {
-            ImGui.TextWrapped("You're using a global scale of 100%, so this won't change anything.");
+            ImGui.TextUnformatted("You're using a global scale of 100%, so this won't change anything.");
         }
         else if (_adjusted)
         {
@@ -125,8 +128,8 @@ class ArenaScaleNotice : ChangelogNotice
         }
         else
         {
-            ImGui.TextWrapped($"Your saved radar scale was {_bmc.ArenaScale:f2}, which is now {_bmc.ArenaScale * scale:f2} when global scaling is applied.");
-            ImGui.TextWrapped($"For the radar to be the same size as it was before this update, you should set it to {_bmc.ArenaScale / scale:f2}.");
+            ImGui.TextUnformatted($"Your saved radar scale was {_bmc.ArenaScale:f2}, which is now {_bmc.ArenaScale * scale:f2} when global scaling is applied.");
+            ImGui.TextUnformatted($"For the radar to be the same size as it was before this update, you should set it to {_bmc.ArenaScale / scale:f2}.");
             if (ImGui.Button("Set it for me"))
             {
                 _bmc.ArenaScale /= scale;
@@ -158,43 +161,71 @@ class DtrNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped("The server info bar settings have been moved. They now have their own separate section in the Settings tab.");
-        ImGui.TextWrapped("You can now configure individual presets to be shown in the info bar. Once configured, clicking on the preset name will turn it on and off, and right clicking on it will open a context menu with more options.");
+        ImGui.TextUnformatted("The server info bar settings have been moved. They now have their own separate section in the Settings tab.");
+        ImGui.TextUnformatted("You can now configure individual presets to be shown in the info bar. Once configured, clicking on the preset name will turn it on and off, and right clicking on it will open a context menu with more options.");
     }
 }
 
 public class ConfigChangelogWindow : UIWindow
 {
-    private readonly Version PreviousVersion;
+    public Version PreviousVersion
+    {
+        get;
+        private set
+        {
+            field = value;
+            _versionText = value.ToString();
+            CalculateStuff();
+        }
+    }
     private readonly List<VersionedField> Fields = [];
     private readonly List<ChangelogNotice> Notices = [];
 
     private int StuffCount => Fields.Count + Notices.Count;
 
-    public ConfigChangelogWindow() : base("VBM Changelog", true, new(400, 300))
-    {
-        PreviousVersion = GetPreviousPluginVersion();
-        Service.Config.AssemblyVersion = GetCurrentPluginVersion();
-        if (Service.Config.AssemblyVersion != PreviousVersion)
-        {
-            Service.Config.Modified.Fire();
-            Fields = [.. GetAllFields().Where(f => f.AddedVersion > PreviousVersion)];
-            Notices = [.. GetNotices().Where(f => f.Since > PreviousVersion)];
-        }
+    string _versionText = "";
+    string _versionErr = "";
 
-        if (StuffCount == 0)
-        {
-            // nothing interesting to show...
-            IsOpen = false;
-            Dispose();
-        }
+    public ConfigChangelogWindow() : base("VBM Changelog", false, new(400, 300))
+    {
+        PreviousVersion = Service.Config.PreviousAssemblyVersion;
+        IsOpen = StuffCount > 0;
+    }
+
+    void CalculateStuff()
+    {
+        Fields.Clear();
+        Notices.Clear();
+        Fields.AddRange(GetAllFields().Where(f => f.AddedVersion > PreviousVersion));
+        Notices.AddRange(GetNotices().Where(f => f.Since > PreviousVersion));
     }
 
     public override void Draw()
     {
-        ImGui.TextUnformatted($"The following config options have been added since version {PreviousVersion}:");
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Show changes since:");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(100 * ImGuiHelpers.GlobalScale);
+        if (ImGui.InputText("###changes", ref _versionText))
+        {
+            if (Version.TryParse(_versionText, out var res))
+            {
+                PreviousVersion = res;
+                _versionErr = "";
+            }
+            else
+                _versionErr = "Please enter a version number (2-4 numbers separated by dots).";
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Show everything"))
+            PreviousVersion = new(0, 0, 0, 0);
+
+        if (_versionErr.Length > 0)
+            ImGui.Text(_versionErr);
 
         ImGui.Separator();
+
+        using var _ = ImRaii.TextWrapPos(0);
 
         Action? postIteration = null;
 
@@ -217,9 +248,10 @@ public class ConfigChangelogWindow : UIWindow
 
                 var disp = f.FieldInfo.GetCustomAttribute<PropertyDisplayAttribute>();
 
+                ImGui.AlignTextToFramePadding();
                 ImGui.Bullet();
                 if (!string.IsNullOrEmpty(disp?.Tooltip))
-                    UIMisc.HelpMarker(disp!.Tooltip);
+                    UIMisc.HelpMarker(disp.Tooltip);
                 ImGui.SameLine();
                 ImGui.TextUnformatted(disp?.Label ?? "unknown");
                 ImGui.SameLine();
@@ -230,6 +262,10 @@ public class ConfigChangelogWindow : UIWindow
                     postIteration += () => SetOption(f, false);
             }
         }
+
+        if (StuffCount == 0)
+            ImGui.TextUnformatted($"No changes since {PreviousVersion}.");
+
         postIteration?.Invoke();
     }
 
@@ -243,8 +279,6 @@ public class ConfigChangelogWindow : UIWindow
     private void SetOption(VersionedField field, bool value)
     {
         field.FieldInfo.SetValue(field.Node, value);
-        Service.Config.Modified.Fire();
-
         Fields.Remove(field);
         if (StuffCount == 0)
             IsOpen = false;
@@ -278,19 +312,5 @@ public class ConfigChangelogWindow : UIWindow
             if (inst != null)
                 yield return (ChangelogNotice)inst;
         }
-    }
-
-    public static Version GetCurrentPluginVersion()
-    {
-        return Assembly.GetExecutingAssembly().GetName().Version!;
-    }
-
-#pragma warning disable CA1024 // Use properties where appropriate
-    public static Version GetPreviousPluginVersion()
-    {
-        // uncomment to test changelog
-        //return new(7, 5, 1, 0);
-
-        return Service.Config.AssemblyVersion;
     }
 }

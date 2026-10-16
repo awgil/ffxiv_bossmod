@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using System.Reflection;
 
 namespace BossMod.Shadowbringers.Foray;
@@ -10,7 +11,7 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
     public uint PrepNameID => prepNameID;
     public uint FateID => fateID;
 
-    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID)})";
+    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID).Replace("4T", "4t")})";
 }
 
 [ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
@@ -20,11 +21,11 @@ public class DuelFarmConfig : ConfigNode
     public bool Enabled = true;
 
     [PropertyDisplay("Max range to look for new mobs to pull")]
-    [PropertySlider(20, 100, Speed = 0.1f)]
-    public float MaxPullDistance = 30f;
+    [PropertySlider(20, 120)]
+    public float MaxPullDistance = 30;
 
     [PropertyDisplay("Max number of mobs to pull at once (0 for no limit)")]
-    [PropertySlider(0, 30, Speed = 0.1f)]
+    [PropertySlider(0, 30)]
     public int MaxPullCount = 10;
 
     public bool AssistMode;
@@ -61,10 +62,6 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
         _subscriptions.Dispose();
         base.Dispose(disposing);
     }
-
-    public override bool WantDrawExtra() => _globalConfig.Enabled;
-
-    public override string WindowName() => $"{Zone}###Eureka module";
 
     protected virtual void AddAIHints(int playerSlot, Actor player, AIHints hints) { }
 
@@ -103,27 +100,50 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
             }
     }
 
-    public override void DrawExtra()
+    public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
+    public override void DrawWindow(RotationModuleManager rmm)
     {
+        Overlays.DrawPseudoTitlebar($"VBM Duel prep: {Zone}", typeof(DuelFarmConfig), 61838, "Disable module (and hide this overlay)", () =>
+        {
+            _globalConfig.Enabled = false;
+            _globalConfig.Modified.Fire();
+        });
+
         var modified = false;
 
-        ImGui.SetNextItemWidth(200);
-        modified |= ImGui.Checkbox("Enable", ref _globalConfig.Enabled);
-
         var tar = FarmTarget;
-        if (UICombo.Enum("Prep", ref tar, t => GetAttr(t)?.Label ?? t.ToString()))
+        if (UICombo.Enum("###duel", ref tar, t => (uint)(object)t == 0 ? "Select a duel..." : GetAttr(t)?.Label ?? t.ToString()))
             FarmTarget = tar;
 
         ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
         ImGui.SetNextItemWidth(200);
-        modified |= ImGui.DragFloat("Max distance to look for new mobs", ref _globalConfig.MaxPullDistance, 1, 20, 120);
+        modified |= ImGui.SliderFloat("Search distance (yalms)", ref _globalConfig.MaxPullDistance, 20, 120);
         ImGui.SetNextItemWidth(200);
-        modified |= ImGui.DragInt("Max mobs to pull (set to 0 for no limit)", ref _globalConfig.MaxPullCount, 1, 0, 30);
-        modified |= ImGui.Checkbox("Assist mode (only attack mobs that are already in combat)", ref _globalConfig.AssistMode);
+        modified |= ImGui.SliderInt("Max pull size (0 = unlimited)", ref _globalConfig.MaxPullCount, 0, 30);
+        modified |= ImGui.Checkbox("Only attack mobs that are already in combat", ref _globalConfig.AssistMode);
 
         if (modified)
             _globalConfig.Modified.Fire();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        var isActive = rmm.ActiveModulesFlat.Any(m => m.Module.GetType().ToString() == "BossMod.Autorotation.MiscAI.AutoTarget");
+
+        if (ImGui.Button(isActive ? "Auto-combat: on" : "Auto-combat: off"))
+        {
+            if (isActive)
+                rmm.Clear();
+            else
+            {
+                rmm.Activate(rmm.Database.Presets.FindPresetByName("VBM AI")!);
+                rmm.Activate(rmm.Database.Presets.FindPresetByName("VBM Default")!);
+            }
+        }
     }
 }
 

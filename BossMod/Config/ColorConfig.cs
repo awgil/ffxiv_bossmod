@@ -1,8 +1,9 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Color Scheme", Order = -1)]
+[ConfigDisplay(Name = "Color Scheme", Order = -1, Group = "General")]
 public sealed class ColorConfig : ConfigNode
 {
+    [PageStart("Arena")]
     [PropertyDisplay("Arena: background")]
     public Color ArenaBackground = new(0xc00f0f0f);
 
@@ -67,6 +68,7 @@ public sealed class ColorConfig : ConfigNode
     [PropertyDisplay("Arena: melee range indicator")]
     public Color ArenaMeleeRing = Color.FromComponents(255, 255, 255, 128);
 
+    [PageStart("Planner")]
     [PropertyDisplay("Planner: background")]
     public Color PlannerBackground = new(0x80362b00); // solarized base03; old: 0x40404040
 

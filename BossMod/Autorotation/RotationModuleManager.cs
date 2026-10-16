@@ -13,7 +13,7 @@ public interface IRotationModuleData
 // the manager contains a set of rotation module instances corresponding to the selected preset/plan
 public sealed class RotationModuleManager : IDisposable
 {
-    private readonly record struct ActiveModule(int DataIndex, RotationModuleDefinition Definition, RotationModule Module);
+    public readonly record struct ActiveModule(int DataIndex, RotationModuleDefinition Definition, RotationModule Module);
     public readonly record struct LineOfSightFix(ulong TargetID, WPos Origin, WPos Destination);
 
     public readonly List<Preset> Presets = [];
@@ -27,7 +27,7 @@ public sealed class RotationModuleManager : IDisposable
     private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
     private readonly EventSubscriptions _subscriptions;
     private List<(int index, ActiveModule module)>? _activeModules;
-    private IEnumerable<ActiveModule> ActiveModulesFlat => _activeModules?.Select(m => m.module) ?? [];
+    public IEnumerable<ActiveModule> ActiveModulesFlat => _activeModules?.Select(m => m.module) ?? [];
     private bool WantsLoSFix => ActiveModulesFlat.Any(m => m.Module.WantsLoSFix);
 
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled

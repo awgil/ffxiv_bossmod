@@ -348,12 +348,21 @@ public sealed class ModuleViewer : IDisposable
                     UIMisc.Image(Service.Texture?.GetFromGameIcon(group.Info.Icon != 0 ? group.Info.Icon : _categories[j].icon), _iconSize);
                     ImGui.TableNextColumn();
 
-                    foreach (var ng in tree.Node($"{group.Info.Name}###{i}/{j}/{group.Info.Id}"))
+                    var wipCount = group.Modules.Count(m => m.Info.Incomplete);
+                    var groupLabel = wipCount > 0 ? $"{group.Info.Name} ({wipCount} WIP)" : group.Info.Name;
+                    foreach (var ng in tree.Node($"{groupLabel}###{i}/{j}/{group.Info.Id}", false, wipCount > 0 ? UIMisc.ColorWarning : 0xffffffff))
                     {
                         foreach (var mod in group.Modules)
                         {
                             var identifier = mod.Info.ModuleType.ToString();
                             var isEnabled = !_bmConfig.DisabledModules.Contains(identifier);
+                            var statusColor = mod.Info.Incomplete ? UIMisc.ColorWarning : UIMisc.ColorGood;
+                            ImGui.AlignTextToFramePadding();
+                            using (ImRaii.PushColor(ImGuiCol.Text, statusColor))
+                                UIMisc.IconText(mod.Info.Incomplete ? FontAwesomeIcon.Wrench : FontAwesomeIcon.CheckCircle);
+                            if (ImGui.IsItemHovered())
+                                ImGui.SetTooltip(mod.Info.Incomplete ? "WIP: some mechanics may be missing or wrong. Only loaded with \"Allow WIP modules\" enabled." : "Complete");
+                            ImGui.SameLine();
                             if (ImGui.Checkbox($"###enabled{mod.Info.ModuleType}", ref isEnabled))
                             {
                                 modified = true;
@@ -373,9 +382,16 @@ public sealed class ModuleViewer : IDisposable
                             ImGui.SameLine();
                             UIMisc.HelpMarker(() => ModuleHelpText(mod));
                             ImGui.SameLine();
-                            var textColor = mod.Info.Incomplete ? 0xff0000ff : 0xff00ff00;
-                            using (ImRaii.PushColor(ImGuiCol.Text, textColor))
-                                ImGui.TextUnformatted($"{mod.Name} [{mod.Info.ModuleType.Name}]");
+                            ImGui.AlignTextToFramePadding();
+                            using (ImRaii.PushColor(ImGuiCol.Text, isEnabled ? statusColor : ImGui.GetColorU32(ImGuiCol.TextDisabled)))
+                                ImGui.TextUnformatted(mod.Name);
+                            ImGui.SameLine();
+                            ImGui.TextDisabled($"[{mod.Info.ModuleType.Name}]");
+                            if (mod.Info.PlanLevel > 0)
+                            {
+                                ImGui.SameLine();
+                                UIMisc.Badge($"CD plans L{mod.Info.PlanLevel}", UIMisc.ColorInfo);
+                            }
 
                             using (var popup = ImRaii.Popup($"{mod.Info.ModuleType.FullName}_popup"))
                                 if (popup)

@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
@@ -42,7 +43,11 @@ internal sealed class AIWindow : UIWindow
 
     public override void Draw()
     {
-        using (var leaderCombo = ImRaii.Combo("Follow", _masterSlot == -1 ? "<disabled>" : $"#{_masterSlot} {_manager.WorldState.Party[_masterSlot]?.Name ?? "<unknown>"}"))
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Follow");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(180 * ImGuiHelpers.GlobalScale);
+        using (var leaderCombo = ImRaii.Combo("###follow", _masterSlot == -1 ? "<disabled>" : $"#{_masterSlot} {_manager.WorldState.Party[_masterSlot]?.Name ?? "<unknown>"}"))
         {
             if (leaderCombo)
             {
@@ -54,11 +59,58 @@ internal sealed class AIWindow : UIWindow
             }
         }
 
-        if (ImGui.Checkbox("Disable movement", ref _config.ForbidMovement))
+        if (DrawSwitch("Movement", "move", !_config.ForbidMovement))
+        {
+            _config.ForbidMovement ^= true;
             _config.Modified.Fire();
+        }
+        ImGui.SameLine();
+        if (DrawSwitch("Auto-target", "target", !_config.ForbidActions))
+        {
+            _config.ForbidActions ^= true;
+            _config.Modified.Fire();
+        }
 
-        if (ImGui.Checkbox("Disable auto-target", ref _config.ForbidActions))
-            _config.Modified.Fire();
+        DrawStatus();
+    }
+
+    private static bool DrawSwitch(string label, string id, bool on)
+        => UIMisc.ToggleButton($"{label}: {(on ? "on" : "off")}###{id}", true, on ? UIMisc.ColorActive : 0xff000080);
+
+    private void DrawStatus()
+    {
+        var player = _manager.Player;
+        if (player == null)
+            return;
+
+        List<(string text, uint color)> status = [];
+        if (!_config.Enabled)
+            status.Add(("Not following", ImGui.GetColorU32(ImGuiCol.TextDisabled)));
+        else if (_masterSlot >= 0 && _manager.WorldState.Party[_masterSlot] is { } master && master != player)
+            status.Add(($"Following {master.Name} ({(master.Position - player.Position).Length():f0}y)", UIMisc.ColorInfo));
+
+        var hints = _manager.Hints;
+        var now = _manager.WorldState.CurrentTime;
+        if (hints.ForbiddenZones.Any(z => z.activation <= now.AddSeconds(1) && z.shape.Check(player.Position)))
+            status.Add(("In danger", UIMisc.ColorDanger));
+        else if (hints.ForbiddenZones.Count > 0)
+            status.Add(($"Avoiding {hints.ForbiddenZones.Count} AOE{(hints.ForbiddenZones.Count > 1 ? "s" : "")}", UIMisc.ColorWarning));
+        if (hints.ForcedMovement != null)
+            status.Add(("Forced movement", UIMisc.ColorWarning));
+        if (hints.GoalZones.Count > 0)
+            status.Add(($"{hints.GoalZones.Count} goal zone{(hints.GoalZones.Count > 1 ? "s" : "")}", UIMisc.ColorGood));
+
+        if (status.Count == 0)
+        {
+            ImGui.TextDisabled("Idle");
+            return;
+        }
+        for (var i = 0; i < status.Count; ++i)
+        {
+            if (i > 0)
+                UIMisc.SameLineOrWrap(ImGui.CalcTextSize(status[i].text).X + 10 * ImGuiHelpers.GlobalScale);
+            UIMisc.Badge(status[i].text, status[i].color);
+        }
     }
 
     void ToggleMove()

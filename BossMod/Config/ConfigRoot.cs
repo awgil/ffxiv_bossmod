@@ -8,6 +8,7 @@ public sealed class ConfigRoot : IDisposable
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
+    public Version PreviousAssemblyVersion = new();
     record LazyNode(ConfigNode Node, EventSubscription OnModified);
     private readonly Dictionary<Type, LazyNode?> _nodes = []; // node is null if the type has been registered but the node has never been loaded before
 
@@ -96,14 +97,25 @@ public sealed class ConfigRoot : IDisposable
         try
         {
             var tmp = new FileInfo(Path.GetTempFileName());
+
+            // preserve extra properties, as the corresponding nodes temporarily vanish during hotreload
+            var extraProperties = _payload.EnumerateObject().ToDictionary(t => t.Name, t => t.Value);
+
             ConfigConverter.Schema.Save(tmp, jwriter =>
             {
                 jwriter.WriteStartObject();
                 var ser = Serialization.BuildSerializationOptions();
                 foreach (var t in _nodes.Keys)
                 {
+                    extraProperties.Remove(t.FullName!);
                     jwriter.WritePropertyName(t.FullName!);
                     Get<ConfigNode>(t).Serialize(jwriter, ser);
+                }
+                foreach (var (kExtra, vExtra) in extraProperties)
+                {
+                    Service.PluginLog.Verbose($"serializing dangling config property {kExtra}");
+                    jwriter.WritePropertyName(kExtra);
+                    vExtra.WriteTo(jwriter);
                 }
                 jwriter.WriteEndObject();
                 jwriter.WriteString(nameof(AssemblyVersion), AssemblyVersion.ToString());

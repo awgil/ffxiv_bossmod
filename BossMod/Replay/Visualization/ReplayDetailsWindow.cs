@@ -31,6 +31,7 @@ class ReplayDetailsWindow : UIWindow
     private readonly EventList _events;
     private readonly ReplayAnalysis.AnalysisManager _analysis;
     private BossModule.DebugOptions _moduleDebug = new();
+    private UIWindow? _modulePopout;
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -63,6 +64,7 @@ class ReplayDetailsWindow : UIWindow
 
     protected override void Dispose(bool disposing)
     {
+        _modulePopout?.Dispose();
         _analysis.Dispose();
         _config.Dispose();
         _rmm.Dispose();
@@ -84,13 +86,24 @@ class ReplayDetailsWindow : UIWindow
         DrawControlRow();
         DrawTimelineRow();
         ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}, zone module: {_zmm.ActiveModule?.GetType()}");
-        if (_zmm.ActiveModule != null)
+        if (_zmm.ActiveModule is { } zm)
         {
-            // TODO: reconsider where this is all drawn...
-            if (_zmm.ActiveModule.WantDrawHints())
-                _zmm.ActiveModule.DrawGlobalHints();
-            if (_zmm.ActiveModule.WantDrawExtra())
-                _zmm.ActiveModule.DrawExtra();
+            if (zm.WantDrawHints())
+                zm.DrawGlobalHints();
+
+            if (zm.GetWindowDescription() is { } desc)
+            {
+                if (_modulePopout == null)
+                {
+                    _modulePopout = new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(_rmm), true, new(600, 400), desc.Flags);
+                    _modulePopout.OpenAndBringToFront();
+                }
+            }
+            else
+            {
+                _modulePopout?.IsOpen = false;
+                _modulePopout = null;
+            }
         }
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
@@ -631,5 +644,12 @@ class ReplayDetailsWindow : UIWindow
         player.AdvanceTo(enc.Time.Start, () => { });
         using var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, $"Encounter_{Utils.StringToIdentifier(primaryActorName ?? "unknown")}", false);
         player.AdvanceTo(enc.Time.End, () => { });
+    }
+
+    public override void OnClose()
+    {
+        base.OnClose();
+        _modulePopout?.IsOpen = false;
+        _modulePopout = null;
     }
 }

@@ -30,7 +30,7 @@ public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
         if (target == null || target.IsAlly)
             return currentState;
 
-        if (_config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < ws.FutureTime(_config.PyreticThreshold))
+        if (_config.AutoPyretic && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < ws.FutureTime(_config.PyreticThreshold))
             return false; // pyretic => disable autos
 
         var enemy = hints.FindEnemy(target);

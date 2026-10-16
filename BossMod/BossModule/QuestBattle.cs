@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -251,12 +252,6 @@ public abstract class QuestBattle : ZoneModule
     private readonly AbandonDuty? _abandonDuty;
     private readonly List<WPos> _debugWaymarks = [];
 
-    // low-resolution bounds centered on player character, with radius roughly equal to object load range
-    // this allows AI to pathfind to any priority target regardless of distance, as long as it's loaded - this makes it easier to complete quest objectives which require combat
-    // note that precision for aoe avoidance will obviously suffer
-    public static readonly ArenaBoundsSquare OverworldBounds = new(100, 2.5f);
-
-    protected static Vector3 V3(float x, float y, float z) => new(x, y, z); // TODO: this is cruft, remove...
     private static void Log(string msg) => Service.Log($"[QBD] {msg}");
 
     protected QuestBattle(WorldState ws) : base(ws)
@@ -400,15 +395,32 @@ public abstract class QuestBattle : ZoneModule
         AddQuestAIHints(player, hints);
     }
 
-    public void DrawDebugInfo()
+    public override WindowDescription? GetWindowDescription() => _config.EnableQuestBattles ? new("VBM Quest Battle", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
+
+    public override void DrawWindow(RotationModuleManager rmm)
     {
+        Overlays.DrawPseudoTitlebar("VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
+        {
+            _config.EnableQuestBattles = false;
+            _config.Modified.Fire();
+        });
+
+        DrawObjectives();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        if (!Service.IsDev)
+        {
+            ImGui.Button("Stuck?");
+            return;
+        }
+
         if (UIMisc.Button("Leave duty", !ImGui.GetIO().KeyShift, "Hold shift to leave"))
             _abandonDuty?.Invoke(false);
         ImGui.SameLine();
         UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
-
-        ImGui.Text($"Module: {GetType().Name}");
-        DrawObjectives();
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -574,7 +586,7 @@ public abstract class QuestBattle : ZoneModule
 
     private void Dash(Actor player, Vector3 direction, AIHints hints)
     {
-        if (!_config.UseDash || player.MountId > 0 || player.Statuses.Any(s => (ActionsProhibitedStatus)s.ID is ActionsProhibitedStatus.OutOfTheAction or ActionsProhibitedStatus.InEvent || Autorotation.RotationModuleManager.IsTransformStatus(s)))
+        if (!_config.UseDash || player.MountId > 0 || player.Statuses.Any(s => (ActionsProhibitedStatus)s.ID is ActionsProhibitedStatus.OutOfTheAction or ActionsProhibitedStatus.InEvent || RotationModuleManager.IsTransformStatus(s)))
             return;
 
         var moveDistance = direction.Length();
@@ -638,27 +650,28 @@ public abstract class QuestBattle : ZoneModule
 
     private void DrawObjectives()
     {
-        if (ImGui.Button(Paused ? "Resume" : "Pause"))
-            Paused ^= true;
+        if (Service.IsDev)
+        {
+            if (ImGui.Button(Paused ? "Resume" : "Pause"))
+                Paused ^= true;
+            ImGui.SameLine();
+            if (ImGui.Button("Skip step"))
+                CurrentObjectiveIndex++;
+            ImGui.SameLine();
+            if (ImGui.Button("Restart"))
+                CurrentObjectiveIndex = 0;
 
-        ImGui.SameLine();
+            ImGui.Spacing();
+            ImGui.Separator();
+            ImGui.Spacing();
+        }
 
-        if (ImGui.Button("Skip current step"))
-            CurrentObjectiveIndex++;
-        ImGui.SameLine();
-        if (ImGui.Button("Restart from step 1"))
-            CurrentObjectiveIndex = 0;
-
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.Spacing();
-
-        for (var i = 0; i < Objectives.Count; i++)
+        for (var i = CurrentObjectiveIndex; i < Objectives.Count; i++)
         {
             var n = Objectives[i];
             var highlight = i == CurrentObjectiveIndex;
             using var c = ImRaii.PushColor(ImGuiCol.Text, highlight ? ImGuiColors.DalamudWhite : ImGuiColors.DalamudGrey);
-            ImGui.TextUnformatted($"#{i + 1} {n.DisplayName}");
+            ImGui.TextUnformatted($"Step {i + 1}: {n.DisplayName}");
             if (highlight)
             {
                 foreach (var vec in CurrentWaypoints)

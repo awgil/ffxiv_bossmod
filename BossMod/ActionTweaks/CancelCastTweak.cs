@@ -25,7 +25,7 @@ public sealed class CancelCastTweak(WorldState ws, AIHints hints)
 
     private bool WantCancel()
     {
-        if (_config.PyreticThreshold > 0 && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < _ws.FutureTime(_config.PyreticThreshold))
+        if (_config.AutoPyretic && hints.ImminentSpecialMode.mode == AIHints.SpecialMode.Pyretic && hints.ImminentSpecialMode.activation < _ws.FutureTime(_config.PyreticThreshold))
             return true;
 
         var cast = _ws.Party.Player()?.CastInfo;

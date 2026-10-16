@@ -4,7 +4,7 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Party Roles", Order = 2)]
+[ConfigDisplay(Name = "Party Roles", Order = 2, Group = "General")]
 public class PartyRolesConfig : ConfigNode
 {
     public enum Assignment { MT, OT, H1, H2, M1, M2, R1, R2, Unassigned }

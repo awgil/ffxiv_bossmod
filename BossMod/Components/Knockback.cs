@@ -133,7 +133,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
         {
             if (IsImmune(slot, s.Activation))
                 continue; // this source won't affect player due to immunity
-            if (s.Shape != null && !s.Shape.Check(from, s.Origin, s.Direction))
+            if (s.Shape?.Check(from, s.Origin, s.Direction) == false)
                 continue; // this source won't affect player due to being out of aoe
 
             var dir = s.Kind switch
@@ -170,6 +170,9 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     {
         // arbitrary polygon in-bounds test is too expensive, don't bother
         if (Arena.Bounds is ArenaBoundsCustom)
+            return;
+
+        if (StopAtWall)
             return;
 
         foreach (var src in Sources(slot, actor))

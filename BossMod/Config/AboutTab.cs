@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics;
 using System.IO;
@@ -7,9 +8,6 @@ namespace BossMod;
 
 public sealed class AboutTab(DirectoryInfo? replayDir)
 {
-    private readonly Color TitleColor = Color.FromComponents(255, 165, 0);
-    private readonly Color SectionBgColor = Color.FromComponents(38, 38, 38);
-    private readonly Color BorderColor = Color.FromComponents(178, 178, 178, 204);
     private readonly Color DiscordColor = Color.FromComponents(88, 101, 242);
 
     private string _lastErrorMessage = "";
@@ -19,6 +17,13 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         using var wrap = ImRaii.TextWrapPos(0);
 
         ImGui.TextUnformatted("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab.");
+
+        if (ImGui.Button("Show changelog"))
+            Service.Mediator.Publish(new OpenWindowMessage(typeof(ConfigChangelogWindow)));
+        ImGui.SameLine();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextDisabled($"Version {typeof(AboutTab).Assembly.GetName().Version}");
+
         ImGui.Spacing();
         DrawSection("Radar",
         [
@@ -56,53 +61,45 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         [
             "Useful for creating boss modules, analyzing problems with them, and making CD plans.",
             "When asking for help, make sure to provide a replay! Please note that replays will contain your player name!",
-            "Enabled in Settings > Show replay management UI (or enable auto recording).",
-            $"Files are located in '{replayDir}'.",
+            "Enabled in Settings > General > Replays > Show replay management UI (or enable auto recording).",
+            $"Files are located in '{HideUserFolder(replayDir)}'.",
         ]);
         ImGui.Spacing();
         ImGui.Spacing();
 
         using (ImRaii.PushColor(ImGuiCol.Button, DiscordColor.ABGR))
-            if (ImGui.Button("Puni.sh Discord", new(180, 0)))
+            if (ImGui.Button("Puni.sh Discord"))
                 _lastErrorMessage = OpenLink("https://discord.gg/Zzrcc8kmvy");
-        ImGui.SameLine();
-        if (ImGui.Button("Boss Mod Repository", new(180, 0)))
+        UIMisc.SameLineOrWrap(UIMisc.ButtonWidth("Boss Mod Repository"));
+        if (ImGui.Button("Boss Mod Repository"))
             _lastErrorMessage = OpenLink("https://github.com/awgil/ffxiv_bossmod");
-        ImGui.SameLine();
-        if (ImGui.Button("Boss Mod Wiki Tutorials", new(180, 0)))
+        UIMisc.SameLineOrWrap(UIMisc.ButtonWidth("Boss Mod Wiki Tutorials"));
+        if (ImGui.Button("Boss Mod Wiki Tutorials"))
             _lastErrorMessage = OpenLink("https://github.com/awgil/ffxiv_bossmod/wiki");
-        ImGui.SameLine();
-        if (ImGui.Button("Open Replay Folder", new(180, 0)) && replayDir != null)
+        UIMisc.SameLineOrWrap(UIMisc.ButtonWidth("Open Replay Folder"));
+        if (ImGui.Button("Open Replay Folder") && replayDir != null)
             _lastErrorMessage = OpenDirectory(replayDir);
 
         if (_lastErrorMessage.Length > 0)
-        {
-            using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff0000ff);
-            ImGui.TextUnformatted(_lastErrorMessage);
-        }
+            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, _lastErrorMessage, UIMisc.ColorDanger);
     }
 
-    private void DrawSection(string title, string[] bulletPoints)
+    private static void DrawSection(string title, string[] bulletPoints)
     {
-        using var colorBackground = ImRaii.PushColor(ImGuiCol.ChildBg, SectionBgColor.ABGR);
-        using var colorBorder = ImRaii.PushColor(ImGuiCol.Border, BorderColor.ABGR);
-        using var section = ImRaii.Child(title, new(0, 150), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysUseWindowPadding);
-        if (!section)
-            return;
-
-        using (ImRaii.PushColor(ImGuiCol.Text, TitleColor.ABGR))
-        {
-            ImGui.TextUnformatted(title);
-        }
-
-        ImGui.Separator();
-
+        UIMisc.SectionHeader(title);
         foreach (var point in bulletPoints)
         {
             ImGui.Bullet();
             ImGui.SameLine();
             ImGui.TextUnformatted(point);
         }
+    }
+
+    private static string HideUserFolder(DirectoryInfo? dir)
+    {
+        var path = dir?.FullName ?? "";
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return appData.Length > 0 && path.StartsWith(appData, StringComparison.OrdinalIgnoreCase) ? "%APPDATA%" + path[appData.Length..] : path;
     }
 
     private string OpenLink(string link)

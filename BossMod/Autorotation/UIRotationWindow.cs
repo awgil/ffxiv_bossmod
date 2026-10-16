@@ -1,23 +1,20 @@
-﻿using BossMod.Services;
-using DalaMock.Host.Mediator;
+using BossMod.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
+public sealed class UIRotationWindow : UIWindow
 {
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
     private readonly EventSubscriptions _subscriptions;
 
-    public MediatorService MediatorService { get; }
-
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, MediatorService mediator) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
-        MediatorService = mediator;
         _mgr = mgr;
         _amex = amex;
         _subscriptions = new
@@ -25,7 +22,7 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
         );
         RespectCloseHotkey = false;
-        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => mediator.Publish(new OpenConfigMessage("Autorotation Presets")) });
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => Service.Mediator.Publish(new OpenSettingsWindowMessage("Autorotation Presets")) });
     }
 
     protected override void Dispose(bool disposing)
@@ -56,59 +53,115 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
         if (player == null)
             return;
 
-        DrawRotationSelector(_mgr, MediatorService);
+        DrawRotationSelector(_mgr, true);
+
+        if (_mgr.IsForceDisabled)
+            UIMisc.Banner(FontAwesomeIcon.Ban, "Autorotation is disabled. Click Disabled again or pick a preset to re-enable it.", UIMisc.ColorDanger);
+
+        var dups = _mgr.DuplicateModules.ToList();
+        if (dups.Count > 0)
+            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, $"Multiple copies of the same module are active ({string.Join(", ", dups.Select(d => d.Name))}). Only one of each will execute.", UIMisc.ColorWarning);
 
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)
         {
-            ImGui.TextUnformatted($"CD Plan:");
-
-            if (activeModule.Info?.PlanLevel > 0)
-            {
-                ImGui.SameLine();
-                var plans = _mgr.Database.Plans.GetPlans(activeModule.GetType(), player.Class);
-                var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "###root");
-                if (newSel != plans.SelectedIndex)
-                {
-                    plans.SelectedIndex = newSel;
-                    _mgr.Database.Plans.ModifyManifest(activeModule.GetType(), player.Class);
-                }
-
-                ImGui.SameLine();
-                if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit" : "New"))
-                {
-                    if (plans.SelectedIndex < 0)
-                    {
-                        var plan = new Plan($"New {plans.Plans.Count + 1}", activeModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = activeModule.Info.PlanLevel };
-                        plans.SelectedIndex = plans.Plans.Count;
-                        _mgr.Database.Plans.ModifyPlan(null, plan);
-                    }
-                    UIPlanDatabaseEditor.StartPlanEditor(_mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
-                }
-
-                if (newSel >= 0 && _mgr.Presets.Count > 0)
-                {
-                    ImGui.SameLine();
-                    using var style = ImRaii.PushColor(ImGuiCol.Text, 0xff00ffff);
-                    UIMisc.HelpMarker(() => "You have a preset activated, which fully overrides the CD plan!", FontAwesomeIcon.ExclamationTriangle);
-                }
-            }
+            DrawPlanSelector(activeModule, player);
+            DrawUpcoming(activeModule);
         }
 
-        ImGui.TextUnformatted("Modules: ");
+        DrawActiveModules();
+        DrawNextActions();
+    }
 
-        var dups = _mgr.DuplicateModules.ToList();
-        if (dups.Count > 0)
+    private void DrawPlanSelector(BossModule activeModule, Actor player)
+    {
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("CD Plan:");
+        ImGui.SameLine();
+        if (!(activeModule.Info?.PlanLevel > 0))
+        {
+            ImGui.TextDisabled("not supported by this module");
+            return;
+        }
+
+        var plans = _mgr.Database.Plans.GetPlans(activeModule.GetType(), player.Class);
+        var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "###root");
+        if (newSel != plans.SelectedIndex)
+        {
+            plans.SelectedIndex = newSel;
+            _mgr.Database.Plans.ModifyManifest(activeModule.GetType(), player.Class);
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button(plans.SelectedIndex >= 0 ? "Edit" : "New"))
+        {
+            if (plans.SelectedIndex < 0)
+            {
+                var plan = new Plan($"New {plans.Plans.Count + 1}", activeModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = player.Class, Level = activeModule.Info.PlanLevel };
+                plans.SelectedIndex = plans.Plans.Count;
+                _mgr.Database.Plans.ModifyPlan(null, plan);
+            }
+            UIPlanDatabaseEditor.StartPlanEditor(_mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+        }
+
+        if (newSel >= 0 && _mgr.Presets.Count > 0)
+            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, "A preset is active, which fully overrides the CD plan.", UIMisc.ColorWarning);
+    }
+
+    private void DrawUpcoming(BossModule module)
+    {
+        var now = _mgr.WorldState.CurrentTime;
+        var sm = module.StateMachine;
+        var timelineValid = sm.ActiveState != null && sm.TimeSinceTransition - sm.ActiveState.Duration < 3;
+
+        (float seconds, int targets)? next(AIHints.PredictedDamageType type, StateMachine.StateHint flag)
+        {
+            var at = DateTime.MaxValue;
+            var targets = 0;
+            foreach (var d in _mgr.Hints.PredictedDamage.Where(d => d.Type == type))
+            {
+                if (d.Activation < at)
+                    at = d.Activation;
+                targets = Math.Max(targets, d.Players.NumSetBits());
+            }
+            if (at == DateTime.MaxValue && timelineValid && flag != StateMachine.StateHint.None)
+                at = sm.NextTransitionWithFlag(flag);
+            var seconds = (float)(at - now).TotalSeconds;
+            return at == DateTime.MaxValue || seconds > 60 ? null : (Math.Max(0, seconds), targets);
+        }
+
+        var upcoming = new List<(string label, float seconds)>();
+        if (next(AIHints.PredictedDamageType.Raidwide, StateMachine.StateHint.Raidwide) is var (rw, _))
+            upcoming.Add(("Raidwide", rw));
+        if (next(AIHints.PredictedDamageType.Tankbuster, StateMachine.StateHint.Tankbuster) is var (tb, tanks))
+            upcoming.Add((tanks > 1 ? $"Tankbuster x{tanks}" : "Tankbuster", tb));
+        if (next(AIHints.PredictedDamageType.Shared, StateMachine.StateHint.None) is var (st, _))
+            upcoming.Add(("Stack", st));
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Upcoming:");
+        if (upcoming.Count == 0)
         {
             ImGui.SameLine();
-            using var style = ImRaii.PushColor(ImGuiCol.Text, 0xff00ffff);
-            UIMisc.HelpMarker(() => $"You have multiple copies of the same module active ({string.Join(", ", dups)}). Only one of each will execute. This is probably not what you want.", FontAwesomeIcon.ExclamationTriangle);
+            ImGui.TextDisabled("nothing in the next minute");
+            return;
         }
+        foreach (var (label, seconds) in upcoming.OrderBy(u => u.seconds))
+        {
+            var text = $"{label} {seconds:f1}s";
+            UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X + 10 * ImGuiHelpers.GlobalScale);
+            UIMisc.Badge(text, seconds < 3 ? UIMisc.ColorDanger : seconds < 8 ? UIMisc.ColorWarning : UIMisc.ColorInfo);
+        }
+    }
+
+    private void DrawActiveModules()
+    {
+        ImGui.TextUnformatted("Modules:");
 
         if (_mgr.Presets.Any(p => p.Modules.Any(m => m.TransientSettings.Count > 0)))
         {
             ImGui.SameLine();
-            using (ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00))
+            using (ImRaii.PushColor(ImGuiCol.Text, UIMisc.ColorGood))
                 UIMisc.IconText(FontAwesomeIcon.BoltLightning);
             if (ImGui.IsItemHovered())
             {
@@ -131,18 +184,68 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
         }
 
         ImGui.SameLine();
-        ImGui.TextUnformatted(_mgr.ToString());
+        var modules = _mgr.ToString();
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled)))
+            ImGui.TextWrapped(modules.Length > 0 ? modules : "none");
+    }
 
-        ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_amex.EffectiveAnimationLock:f3}+{_amex.AnimationLockDelayEstimate:f3}, Combo={_amex.ComboTimeLeft:f3}, RBIn={_mgr.Bossmods.RaidCooldowns.NextDamageBuffIn():f3}");
-        foreach (var a in _mgr.Hints.ActionsToExecute.Entries)
+    private void DrawNextActions()
+    {
+        UIMisc.SectionHeader("Next actions");
+        var raidBuffs = _mgr.Bossmods.RaidCooldowns.NextDamageBuffIn2() switch
         {
-            ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2}) @ ({a.Target?.Name ?? "<none>"})");
+            null => "",
+            <= 0 => " · Raid buffs ready",
+            var t => $" · Raid buffs in {t:f1}"
+        };
+        ImGui.TextDisabled($"GCD {_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f2} · Anim lock {_amex.EffectiveAnimationLock:f2}+{_amex.AnimationLockDelayEstimate:f2} · Combo {_amex.ComboTimeLeft:f1}{raidBuffs}");
+
+        var entries = _mgr.Hints.ActionsToExecute.Entries;
+        if (entries.Count == 0)
+        {
+            ImGui.TextDisabled("Nothing queued");
+            return;
+        }
+
+        using var table = ImRaii.Table("queue", 3, ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.SizingStretchProp);
+        if (!table)
+            return;
+        ImGui.TableSetupColumn("Action", ImGuiTableColumnFlags.WidthStretch, 3);
+        ImGui.TableSetupColumn("Priority", ImGuiTableColumnFlags.WidthStretch, 1);
+        ImGui.TableSetupColumn("Target", ImGuiTableColumnFlags.WidthStretch, 2);
+        ImGui.TableHeadersRow();
+        var iconSize = new Vector2(ImGui.GetTextLineHeight());
+        var first = true;
+        foreach (var a in entries.OrderByDescending(e => e.Priority))
+        {
+            ImGui.TableNextRow();
+            if (first)
+                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, (UIMisc.ColorGood & 0x00ffffff) | 0x30000000);
+            first = false;
+            ImGui.TableNextColumn();
+            var action = _amex.AdjustAction(a.Action);
+            var icon = action.Type == ActionType.Spell ? Service.LuminaRow<Lumina.Excel.Sheets.Action>(action.ID)?.Icon ?? 0 : 0;
+            if (icon != 0)
+            {
+                UIMisc.Image(Service.Texture?.GetFromGameIcon(icon), iconSize);
+                ImGui.SameLine();
+            }
+            ImGui.TextUnformatted(action.Name());
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(action == a.Action ? a.Action.ToString() : $"{action} (queued as {a.Action.Name()})");
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted($"{a.Priority:f0}");
+            ImGui.TableNextColumn();
+            if (a.Target == null || a.Target == _mgr.Player)
+                ImGui.TextDisabled(a.Target == null ? "-" : "Self");
+            else
+                ImGui.TextUnformatted(a.Target.Name);
         }
     }
 
     public override void OnClose() => SetVisible(false);
 
-    public static bool DrawRotationSelector(RotationModuleManager mgr, MediatorService? mediator = null)
+    public static bool DrawRotationSelector(RotationModuleManager mgr, bool wrap = false)
     {
         var dtrConfig = Service.Config.Get<DtrConfig>();
 
@@ -150,22 +253,27 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
         if (mgr.Player == null)
             return modified;
 
+        using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(4, 1) * ImGuiHelpers.GlobalScale);
+        using var spacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(3, 3) * ImGuiHelpers.GlobalScale);
+        ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("Presets:");
 
-        ImGui.SameLine();
-
-        using (ImRaii.PushColor(ImGuiCol.Button, 0xff000080, mgr.IsForceDisabled))
-        using (ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff000050, mgr.IsForceDisabled))
-        using (ImRaii.PushColor(ImGuiCol.ButtonActive, 0xff000060, mgr.IsForceDisabled))
+        void nextButton(string label)
         {
-            if (ImGui.Button("Disabled"))
-            {
-                if (mgr.IsForceDisabled)
-                    mgr.Clear();
-                else
-                    mgr.SetForceDisabled();
-                modified |= true;
-            }
+            if (wrap)
+                UIMisc.SameLineOrWrap(UIMisc.ButtonWidth(label));
+            else
+                ImGui.SameLine();
+        }
+
+        nextButton("Disabled");
+        if (UIMisc.ToggleButton("Disabled", mgr.IsForceDisabled, 0xff000080))
+        {
+            if (mgr.IsForceDisabled)
+                mgr.Clear();
+            else
+                mgr.SetForceDisabled();
+            modified |= true;
         }
 
         foreach (var p in mgr.Database.Presets.PresetsForClass(mgr.Player.Class))
@@ -173,11 +281,8 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
             var isActive = mgr.Presets.Contains(p);
             if (!isActive && p.HiddenByDefault)
                 continue;
-            ImGui.SameLine();
-            using var col = ImRaii.PushColor(ImGuiCol.Button, 0xff008080, isActive);
-            using var colHovered = ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff005050, isActive);
-            using var colActive = ImRaii.PushColor(ImGuiCol.ButtonActive, 0xff006060, isActive);
-            ImGui.Button(p.Name);
+            nextButton(p.Name);
+            UIMisc.ToggleButton(p.Name, isActive);
             if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 mgr.Toggle(p);
@@ -195,8 +300,8 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
                         dtrConfig.ShowPresets.Add(p.Name);
                     dtrConfig.Modified.Fire();
                 }
-                if (mediator != null && ImGui.MenuItem("Open in preset editor"))
-                    mediator.Publish(new OpenPresetEditorMessage(p.Name));
+                if (ImGui.MenuItem("Open in preset editor"))
+                    Service.Mediator.Publish(new OpenPresetEditorMessage(p.Name));
             }
         }
 
