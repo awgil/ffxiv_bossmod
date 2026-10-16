@@ -530,6 +530,7 @@ class RM12NTheLindwurmStates : StateMachineBuilder
         SimplePhase(0, Phase1, "P1")
             .ActivateOnEnter<ArenaChanges>()
             .ActivateOnEnter<DirectedGrotesquerie>()
+            .ActivateOnEnter<VisceralBurst>()
             .ActivateOnEnter<PhaseChange>()
             .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.FindComponent<PhaseChange>()?.Done == true;
         DeathPhase(1, Phase2)
@@ -543,23 +544,27 @@ class RM12NTheLindwurmStates : StateMachineBuilder
         RavenousReach(id + 0x20000, 2.2f);
         Burst(id + 0x30000, 9.2f);
         CruelCoil(id + 0x40000, 5.6f, 22.4f);
-        VisceralBurst(id + 0x50000, 6.1f);
+        VisceralBurst(id + 0x50000, 6.1f, 1);
         SerpentineScourge(id + 0x60000, 4.1f);
         GrotesquerieAct1(id + 0x70000, 2.1f);
         SnakeFloor(id + 0x80000, 11.8f);
         GrotesquerieAct2(id + 0x90000, 8.0f);
         SerpentineScourge(id + 0xA0000, 6.7f);
         Splattershed(id + 0xB0000, 2.2f);
-        VisceralBurst(id + 0xC0000, 11.3f);
+        VisceralBurst(id + 0xC0000, 11.3f, 2);
         CruelCoil(id + 0xD0000, 7.1f, 17.2f);
         GrotesquerieAct3(id + 0xE0000, 9.2f);
 
         SimpleState(id + 0xF0000, 120, "Until phase change")
             .ActivateOnEnter<TheFixer>()
+            .ActivateOnEnter<FleshKnockback>()
+            .ActivateOnEnter<BurstingGrotesquerie>()
+            .ActivateOnEnter<SharedGrotesquerie>()
+            .ActivateOnEnter<CruelCoil>()
+            .ActivateOnEnter<Constrictor>()
             .ActivateOnEnter<SerpentineScourge>()
             .ActivateOnEnter<RavenousReach>()
             .ActivateOnEnter<Burst>()
-            .ActivateOnEnter<VisceralBurst>()
             .ActivateOnEnter<Splattershed1>()
             .ActivateOnEnter<Splattershed2>()
             .ActivateOnEnter<GrandEntrance>()
@@ -624,13 +629,11 @@ class RM12NTheLindwurmStates : StateMachineBuilder
             .DeactivateOnExit<Constrictor>();
     }
 
-    private void VisceralBurst(uint id, float delay)
+    private void VisceralBurst(uint id, float delay, int count)
     {
-        Cast(id, AID.VisceralBurstBoss, delay, 4)
-            .ActivateOnEnter<VisceralBurst>();
-        ComponentCondition<VisceralBurst>(id + 0x10, 1, c => c.NumCasts > 0, "Tankbusters")
-            .SetHint(StateMachine.StateHint.Tankbuster)
-            .DeactivateOnExit<VisceralBurst>();
+        Cast(id, AID.VisceralBurstBoss, delay, 4);
+        ComponentCondition<VisceralBurst>(id + 0x10, 1, c => c.NumCasts >= count, "Tankbusters")
+            .SetHint(StateMachine.StateHint.Tankbuster);
     }
 
     private void Splattershed(uint id, float delay)
@@ -731,5 +734,5 @@ class RM12NTheLindwurmStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1074, NameID = 14378, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1074, NameID = 14378)]
 public class RM12NTheLindwurm(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 15));

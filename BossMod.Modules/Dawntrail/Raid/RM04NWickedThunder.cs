@@ -406,8 +406,9 @@ class RM04NWickedThunderStates : StateMachineBuilder
 
     private void WickedBolt(uint id, float delay)
     {
-        Cast(id, AID.WickedBoltVisual, delay, 4)
+        CastStart(id, AID.WickedBoltVisual, delay)
             .ActivateOnEnter<WickedBolt>();
+        CastEnd(id + 1, 4);
         ComponentCondition<WickedBolt>(id + 0x10, 5.1f, c => c.NumFinishedStacks > 0, "Multi-hit stack")
             .DeactivateOnExit<WickedBolt>();
     }

@@ -402,11 +402,12 @@ class RM06NSugarRiotStates : StateMachineBuilder
     private void PuddingParty(uint id, float delay, bool six)
     {
         if (six)
-            Cast(id, AID.PuddingParty, delay, 4)
+            CastStart(id, AID.PuddingParty, delay)
                 .ActivateOnEnter<PuddingParty6>();
         else
-            Cast(id, AID.PuddingParty, delay, 4)
+            CastStart(id, AID.PuddingParty, delay)
                 .ActivateOnEnter<PuddingParty>();
+        CastEnd(id + 1, 4);
         if (six)
             ComponentCondition<PuddingParty6>(id + 0x10, 6.4f, c => c.NumCasts >= 6, "Multi-hit stack")
                 .DeactivateOnExit<PuddingParty6>();

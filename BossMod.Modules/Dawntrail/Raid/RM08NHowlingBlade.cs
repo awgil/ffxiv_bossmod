@@ -364,8 +364,9 @@ class RM08NHowlingBladeStates : StateMachineBuilder
 
     private void TrackingTremors(uint id, float delay)
     {
-        Cast(id, AID.TrackingTremors, delay, 5)
+        CastStart(id, AID.TrackingTremors, delay)
             .ActivateOnEnter<TrackingTremors>();
+        CastEnd(id + 1, 5);
         ComponentCondition<TrackingTremors>(id + 0x10, 1, c => c.NumCasts > 0, "Multi-hit stack start");
         ComponentCondition<TrackingTremors>(id + 0x20, 4.3f, c => c.NumCasts >= 5, "Multi-hit stack end")
             .DeactivateOnExit<TrackingTremors>();

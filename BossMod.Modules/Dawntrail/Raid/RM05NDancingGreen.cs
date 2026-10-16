@@ -261,13 +261,27 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
 class RideTheWaves(BossModule module) : Components.GenericAOEs(module, AID.RideTheWavesAOE)
 {
     private readonly List<AOEInstance> _aoes = [];
+    private readonly List<int> _columns = [];
     private int _wavesStarted;
     private int _hits;
-    private int? _safeColumn;
 
     private static readonly AOEShapeRect _shape = new(15, 2.5f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    private int? SafeColumn(Actor actor, out DateTime activation)
+    {
+        for (var w = 0; w < _columns.Count && w * 7 < _aoes.Count; ++w)
+        {
+            if (_aoes[w * 7].Origin.Z <= actor.Position.Z)
+            {
+                activation = _aoes[w * 7].Activation;
+                return _columns[w];
+            }
+        }
+        activation = default;
+        return null;
+    }
 
     public override void OnMapEffect(byte index, uint state)
     {
@@ -287,7 +301,7 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module, AID.RideT
             ++_wavesStarted;
         if (safe is int column)
         {
-            _safeColumn = column;
+            _columns.Add(column);
             for (var i = 0; i < 8; ++i)
                 if (i != column)
                     _aoes.Add(new(_shape, new(82.5f + i * 5, 70), default, WorldState.FutureTime(3)));
@@ -303,13 +317,14 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module, AID.RideT
         if (_aoes.Count > 6 && _hits is 10 or 16)
         {
             _aoes.RemoveRange(0, 7);
+            if (_columns.Count > 0)
+                _columns.RemoveAt(0);
             --_wavesStarted;
         }
-        if (_hits is 3 or 7)
-            _safeColumn = null;
         if (_aoes.Count == 0)
         {
             _hits = 0;
+            _columns.Clear();
             return;
         }
         var moving = Math.Min(_aoes.Count, _wavesStarted <= 1 ? 7 : 14);
@@ -321,15 +336,15 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module, AID.RideT
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         base.DrawArenaBackground(pcSlot, pc);
-        if (_safeColumn is int column)
-            Arena.ZoneRect(new WPos(82.5f + column * 5, 80), new WDir(0, 1), 5, 0, 2.5f, ArenaColor.SafeFromAOE);
+        if (SafeColumn(pc, out _) is int column)
+            Arena.ZoneRect(new WPos(82.5f + column * 5, 80), new WDir(0, 1), 40, 0, 2.5f, ArenaColor.SafeFromAOE);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (_safeColumn is int column && _aoes.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(82.5f + column * 5, 80), new WDir(0, 1), 5, 0, 2.5f), _aoes[_wavesStarted <= 1 ? 0 : Math.Min(7, _aoes.Count - 1)].Activation.AddSeconds(1));
+        if (SafeColumn(actor, out var activation) is int column)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(82.5f + column * 5, 80), new WDir(0, 1), 40, 0, 2.5f), activation);
     }
 }
 
@@ -340,12 +355,12 @@ class LetsDance(BossModule module) : Components.GenericAOEs(module, AID.LetsDanc
 
     private static readonly AOEShapeRect _shape = new(25, 45);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+
+    public override void AddGlobalHints(GlobalHints hints)
     {
         if (_aoes.Count > 0)
-            yield return _aoes[0];
-        if (_aoes.Count > 1)
-            yield return _aoes[1] with { Risky = false };
+            hints.Add($"Safe: {string.Join(" > ", _aoes.Select(a => a.Rotation.Rad > 0 ? "W" : "E"))}");
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -435,8 +450,9 @@ class RM05NDancingGreenStates : StateMachineBuilder
 
     private void DeepCut(uint id, float delay)
     {
-        Cast(id, AID.DeepCut, delay, 5)
+        CastStart(id, AID.DeepCut, delay)
             .ActivateOnEnter<DeepCut>();
+        CastEnd(id + 1, 5);
         ComponentCondition<DeepCut>(id + 0x10, 0.7f, c => c.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<DeepCut>()
             .SetHint(StateMachine.StateHint.Tankbuster);

@@ -392,10 +392,11 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
 
     private void PulpSmash(uint id, float delay)
     {
-        Cast(id, AID.PulpSmash, delay, 3)
+        CastStart(id, AID.PulpSmash, delay)
             .ActivateOnEnter<PulpSmash>()
             .ActivateOnEnter<TheUnpotted>()
             .ActivateOnEnter<ItCameFromTheDirt>();
+        CastEnd(id + 1, 3);
         ComponentCondition<PulpSmash>(id + 0x10, 2.2f, c => c.NumFinishedStacks > 0, "Stack")
             .DeactivateOnExit<PulpSmash>();
         ComponentCondition<TheUnpotted>(id + 0x20, 3, c => c.NumCasts > 0, "Cones")
@@ -428,8 +429,9 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
 
     private void AbominableBlink(uint id, float delay)
     {
-        Cast(id, AID.AbominableBlink, delay, 5.3f)
+        CastStart(id, AID.AbominableBlink, delay)
             .ActivateOnEnter<AbominableBlink>();
+        CastEnd(id + 1, 5.3f);
         ComponentCondition<AbominableBlink>(id + 0x10, 1, c => c.NumCasts > 0, "Flare")
             .DeactivateOnExit<AbominableBlink>()
             .SetHint(StateMachine.StateHint.Raidwide);

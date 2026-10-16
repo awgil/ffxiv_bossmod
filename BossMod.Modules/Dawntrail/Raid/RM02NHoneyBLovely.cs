@@ -267,8 +267,9 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
 
     private void HoneyedBreeze(uint id, float delay)
     {
-        Cast(id, AID.HoneyedBreeze, delay, 4)
+        CastStart(id, AID.HoneyedBreeze, delay)
             .ActivateOnEnter<HoneyedBreeze>();
+        CastEnd(id + 1, 4);
         ComponentCondition<HoneyedBreeze>(id + 0x10, 0.8f, c => c.NumCasts > 0, "Tankbusters")
             .DeactivateOnExit<HoneyedBreeze>()
             .SetHint(StateMachine.StateHint.Tankbuster);
@@ -317,7 +318,7 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
         CastMulti(id, [AID.SplashOfVenom, AID.DropOfVenom], delay, 3)
             .ActivateOnEnter<Venom>()
             .ActivateOnEnter<PoisonCloud>();
-        HoneyBeeline(id + 0x100, 4.1f);
+        TwistOrBeeline(id + 0x100, 4.1f);
         ComponentCondition<PoisonCloud>(id + 0x200, 5.1f, c => c.NumCasts > 0, "Clouds");
         ComponentCondition<Venom>(id + 0x300, 5.3f, c => c.NumFinishedSpreads + c.NumFinishedStacks > 0, "Spreads/stack")
             .DeactivateOnExit<Venom>();
@@ -327,10 +328,20 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
     {
         CastMulti(id, [AID.SplashOfVenom, AID.DropOfVenom], delay, 3)
             .ActivateOnEnter<Venom>();
-        TemptingTwist(id + 0x100, 3.2f);
+        TwistOrBeeline(id + 0x100, 3.2f);
         ComponentCondition<Venom>(id + 0x200, 10.4f, c => c.NumFinishedSpreads + c.NumFinishedStacks > 0, "Spreads/stack")
             .DeactivateOnExit<Venom>()
             .DeactivateOnExit<PoisonCloud>();
+    }
+
+    private void TwistOrBeeline(uint id, float delay)
+    {
+        CastMulti(id, [AID.TemptingTwist1, AID.TemptingTwist2, AID.HoneyBeeline1, AID.HoneyBeeline2], delay, 5.5f)
+            .ActivateOnEnter<TemptingTwist>()
+            .ActivateOnEnter<HoneyBeeline>();
+        ComponentCondition<TemptingTwist>(id + 0x10, 0.7f, c => c.NumCasts > 0 || Module.FindComponent<HoneyBeeline>()?.NumCasts > 0, "Donut / line")
+            .DeactivateOnExit<TemptingTwist>()
+            .DeactivateOnExit<HoneyBeeline>();
     }
 
     private void AlarmPheromones(uint id, float delay)
