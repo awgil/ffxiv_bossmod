@@ -268,7 +268,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         UpdateDeepDungeon();
     }
 
-    public void UpdateReplayState(RotationModuleManager rmm, IMovementOverride move, AIHints hints)
+    public void UpdateReplayState(RotationModuleManager rmm, IMovementOverride movement, AIHints hints)
     {
         var active = rmm.Presets;
         var stored = _ws.ReplayState.ActivePresets;
@@ -284,8 +284,8 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (!MemoryExtensions.SequenceEqual(roleAssignments.AsSpan(), _ws.ReplayState.RoleAssignments.AsSpan()))
             _ws.Execute(new ReplayState.OpRoleAssignmentsChange(roleAssignments));
 
-        if (move.UserMove != _ws.ReplayState.MoveInput)
-            _ws.Execute(new ReplayState.OpMoveInputChange(move.UserMove));
+        if (movement.UserMove != _ws.ReplayState.MoveInput)
+            _ws.Execute(new ReplayState.OpMoveInputChange(movement.UserMove));
 
         var manual = hints.ActionsToExecute.Entries.Where(e => e.Manual).Select(e => new ReplayState.SimpleEntry(e.Action, e.Target?.InstanceID ?? 0xE0000000, e.Priority, e.CastTime, e.TargetPos)).ToList();
         if (!MemoryExtensions.SequenceEqual(manual.AsSpan(), _ws.ReplayState.ManualActions.AsSpan()))
