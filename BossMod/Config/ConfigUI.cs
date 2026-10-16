@@ -70,7 +70,7 @@ public sealed class ConfigUI : IDisposable
             n.Order = props?.Order ?? 0;
             n.Parent = props?.Parent != null ? nodes.GetValueOrDefault(props.Parent) : null;
             n.Tags = props?.Tags ?? [];
-            n.Group = props?.Group ?? "Other";
+            n.Group = props?.Group ?? "";
             (n.Pages, n.HasGeneral) = GetPages(n.Node);
 
             var parentNodes = n.Parent?.Children ?? _roots;
@@ -106,8 +106,20 @@ public sealed class ConfigUI : IDisposable
     public void OpenConfigNode(Type configType)
     {
         ShowTab("Settings");
-        if (FindNode(_roots, configType) is { } node)
-            Select(node, "");
+        if (FindNode(_roots, configType) is not { } node)
+            return;
+
+        List<UINode> chain = [];
+        for (var n = node; n != null; n = n.Parent)
+            chain.Insert(0, n);
+
+        Select(chain[0], chain.Count > 1 ? SectionKey(chain[1]) : null);
+        _expandCategory = chain[0];
+        if (chain.Count > 2)
+        {
+            _scrollToNode = node;
+            _reveal = [.. chain.Skip(2)];
+        }
     }
 
     private static UINode? FindNode(List<UINode> nodes, Type type)
@@ -121,8 +133,12 @@ public sealed class ConfigUI : IDisposable
     private static readonly string[] _groupOrder = ["General", "Radar & Modules", "Autorotation", "AI & Automation"];
 
     private string _searchText = "";
-    private UINode? _selectedNode;
-    private string _selectedPage = "";
+    private UINode? _selectedRoot;
+    private string? _selectedSection; // null shows the whole category
+    private UINode? _scrollToNode;
+    private HashSet<UINode> _reveal = [];
+    private bool _resetScroll;
+    private UINode? _expandCategory;
 
     private void DrawSettings()
     {
@@ -140,8 +156,8 @@ public sealed class ConfigUI : IDisposable
             {
                 using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
                 using var spacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, 1 * ImGuiHelpers.GlobalScale));
-                foreach (var group in _groupOrder.Concat(_roots.Select(r => r.Group)).Distinct())
-                    if (_roots.Where(r => r.Group == group).ToList() is { Count: > 0 } nodes)
+                foreach (var group in _groupOrder.Concat(_roots.Select(RootGroup)).Distinct())
+                    if (_roots.Where(r => RootGroup(r) == group).ToList() is { Count: > 0 } nodes)
                     {
                         UIMisc.SectionHeader(group);
                         DrawCategoryTree(nodes);
@@ -151,6 +167,9 @@ public sealed class ConfigUI : IDisposable
         using var content = ImRaii.Child("##settings", new(-1, -1));
         if (!content)
             return;
+        if (_resetScroll && _scrollToNode == null)
+            ImGui.SetScrollY(0);
+        _resetScroll = false;
 
         if (_filterNodes.Count > 0)
         {
@@ -158,24 +177,80 @@ public sealed class ConfigUI : IDisposable
             return;
         }
 
-        if (_selectedNode == null && (_roots.FirstOrDefault(r => r.Group == _groupOrder[0]) ?? _roots.FirstOrDefault()) is { } first)
-            Select(first, IsHeader(first) && !first.HasGeneral ? first.Pages.FirstOrDefault() ?? "" : "");
-        if (_selectedNode is not { } node)
+        if (_selectedRoot == null && (_roots.FirstOrDefault(r => RootGroup(r) == _groupOrder[0]) ?? _roots.FirstOrDefault()) is { } first)
+            Select(first, null);
+        if (_selectedRoot is not { } root)
             return;
 
-        var title = _selectedPage.Length > 0 ? $"{node.Name} / {_selectedPage}" : IsHeader(node) ? $"{node.Name} / General" : node.Name;
-        UIMisc.SectionHeader(title);
-        DrawNode(node.Node, _root, _tree, _ws, _rotationDB, page: _selectedPage);
-        if (_selectedPage.Length == 0 && node.Parent != null)
-            DrawNodesByCategory(node.Children);
+        if (!IsHeader(root))
+        {
+            UIMisc.SectionHeader(root.Name);
+            DrawNode(root.Node, _root, _tree, _ws, _rotationDB);
+            return;
+        }
+
+        foreach (var (key, label, draw) in Sections(root))
+        {
+            if (_selectedSection != null && _selectedSection != key)
+                continue;
+            UIMisc.SectionHeader(_selectedSection != null ? $"{root.Name} / {label}" : label);
+            draw();
+        }
     }
 
+    private static string RootGroup(UINode node) => node.Group.Length > 0 ? node.Group : "Other";
     private static bool IsHeader(UINode node) => node.Pages.Count > 0 || node.Parent == null && node.Children.Count > 0;
+    private static string PageKey(UINode node, string page) => $"{string.Join('/', node.Path)}#{page}";
+    private static string SectionKey(UINode child) => child.Parent != null && child.Group.Length > 0 ? $"{string.Join('/', child.Parent.Path)}#group:{child.Group}" : PageKey(child, "");
 
-    private void Select(UINode node, string page)
+    private List<(string key, string label, Action draw)> Sections(UINode root)
     {
-        _selectedNode = node;
-        _selectedPage = page;
+        List<(string key, string label, Action draw)> res = [];
+        if (root.HasGeneral)
+            res.Add((PageKey(root, ""), "General", () => DrawNode(root.Node, _root, _tree, _ws, _rotationDB, page: "")));
+        foreach (var p in root.Pages)
+            res.Add((PageKey(root, p), p, () => DrawNode(root.Node, _root, _tree, _ws, _rotationDB, page: p)));
+
+        List<(string key, string label, List<UINode> nodes)> children = [];
+        foreach (var c in root.Children)
+        {
+            ResolveModule(c);
+            var key = SectionKey(c);
+            var index = children.FindIndex(s => s.key == key);
+            if (index >= 0)
+                children[index].nodes.Add(c);
+            else
+                children.Add((key, c.Group.Length > 0 ? c.Group : c.DisplayName ?? c.Name, [c]));
+        }
+        foreach (var (key, label, nodes) in children)
+            res.Add((key, label, nodes.Count == 1 ? () => DrawChildNode(nodes[0]) : () => DrawChildGroup(nodes)));
+        return res;
+    }
+
+    private void DrawChildNode(UINode node)
+    {
+        DrawNode(node.Node, _root, _tree, _ws, _rotationDB);
+        DrawNodesByCategory(node.Children);
+    }
+
+    private void DrawChildGroup(List<UINode> nodes)
+    {
+        foreach (var n in nodes)
+        {
+            ImGui.Spacing();
+            ImGui.TextUnformatted(n.DisplayName);
+            using var indent = ImRaii.PushIndent();
+            DrawChildNode(n);
+        }
+    }
+
+    private void Select(UINode root, string? section)
+    {
+        _selectedRoot = root;
+        _selectedSection = section;
+        _scrollToNode = null;
+        _reveal = [];
+        _resetScroll = true;
         ClearSearch();
     }
 
@@ -185,33 +260,39 @@ public sealed class ConfigUI : IDisposable
         foreach (var n in nodes)
         {
             using var dim = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), searching && !MatchesFilter(n.Path));
-            var id = string.Join('/', n.Path);
             if (!IsHeader(n))
             {
-                DrawCategoryEntry(n.Name, $"{id}#", n, "");
+                DrawCategoryEntry(n.Name, n, null);
                 continue;
             }
 
-            if (!ImGui.TreeNodeEx($"{n.Name}###{id}", ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding))
+            var flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+            if (!searching && n == _selectedRoot && _selectedSection == null)
+                flags |= ImGuiTreeNodeFlags.Selected;
+            if (_expandCategory == n)
+            {
+                ImGui.SetNextItemOpen(true);
+                _expandCategory = null;
+            }
+            var open = ImGui.TreeNodeEx($"{n.Name}###{string.Join('/', n.Path)}", flags);
+            if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
+                Select(n, null);
+            if (!open)
                 continue;
-            if (n.HasGeneral)
-                DrawCategoryEntry("General", $"{id}#", n, "");
-            foreach (var p in n.Pages)
-                DrawCategoryEntry(p, $"{id}#{p}", n, p);
-            if (n.Parent == null)
-                DrawCategoryTree(n.Children);
+            foreach (var (key, label, _) in Sections(n))
+                DrawCategoryEntry(label, n, key);
             ImGui.TreePop();
         }
     }
 
-    private void DrawCategoryEntry(string label, string id, UINode node, string page)
+    private void DrawCategoryEntry(string label, UINode root, string? key)
     {
         var flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
-        if (_filterNodes.Count == 0 && node == _selectedNode && page == _selectedPage)
+        if (_filterNodes.Count == 0 && root == _selectedRoot && key == _selectedSection)
             flags |= ImGuiTreeNodeFlags.Selected;
-        ImGui.TreeNodeEx($"{label}###{id}", flags);
+        ImGui.TreeNodeEx($"{label}###{key ?? PageKey(root, "")}", flags);
         if (ImGui.IsItemClicked())
-            Select(node, page);
+            Select(root, key);
     }
 
     private void ClearSearch()
@@ -393,7 +474,8 @@ public sealed class ConfigUI : IDisposable
         }
         foreach (var g in groups)
         {
-            UIMisc.SectionHeader(g.Key switch
+            ImGui.Spacing();
+            ImGui.TextDisabled(g.Key switch
             {
                 null => "Other",
                 BossModuleInfo.Category.Raid => "Normal Raids",
@@ -438,10 +520,21 @@ public sealed class ConfigUI : IDisposable
             var phase = System.Text.RegularExpressions.Regex.Match(n.Name, @"^P\d+S(\d)");
             return phase.Success ? $"{n.DisplayName} - Phase {phase.Groups[1].Value}" : $"{n.DisplayName} [{n.Name}]";
         }
-        foreach (var n in _tree.Nodes(nodes.Where(n => MatchesFilter(n.Path)), n => new($"{label(n)}###{n.Name}")))
+        foreach (var n in nodes.Where(n => MatchesFilter(n.Path)))
         {
+            if (_reveal.Remove(n))
+                ImGui.SetNextItemOpen(true);
+            if (_scrollToNode == n)
+            {
+                ImGui.SetScrollHereY(0);
+                _scrollToNode = null;
+            }
+            using var id = ImRaii.PushId(n.Name);
+            if (!ImGui.TreeNodeEx($"{label(n)}###node"))
+                continue;
             DrawNode(n.Node, _root, _tree, _ws, _rotationDB, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);
+            ImGui.TreePop();
         }
     }
 

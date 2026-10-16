@@ -24,7 +24,7 @@ public sealed class SectionStartAttribute(string label = "", bool separator = tr
     public bool Separator { get; } = separator;
 }
 
-// attribute that starts a new page of a config node; shown as a section header outside the settings window
+// attribute that starts a new page of a config node, drawn as a section header outside the settings window
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class PageStartAttribute(string name) : Attribute
 {

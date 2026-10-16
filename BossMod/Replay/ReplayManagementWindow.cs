@@ -146,14 +146,14 @@ public class ReplayManagementWindow : UIWindow
 
     private void DrawCull()
     {
-        _cullFiles ??= ReplayFileMeta.Scan(_logDir);
+        _cullFiles ??= ReplayFileMeta.Scan(_logDir, _config.ZoneSubfolders);
         var matching = MatchingCullFiles(_cullFiles);
         var totalBytes = _cullFiles.Sum(f => f.File.Exists ? f.File.Length : 0);
         var hasFilter = _cullMaxDurationSec > 0 || _cullDutyKey.Length > 0;
 
         if (ImGui.Button("Refresh"))
         {
-            _cullFiles = ReplayFileMeta.Scan(_logDir);
+            _cullFiles = ReplayFileMeta.Scan(_logDir, _config.ZoneSubfolders);
             _cullStatus = "";
         }
         ImGui.SameLine();
@@ -224,7 +224,7 @@ public class ReplayManagementWindow : UIWindow
         }
 
         _manager.UnloadPaths(deleted);
-        _cullFiles = ReplayFileMeta.Scan(_logDir);
+        _cullFiles = ReplayFileMeta.Scan(_logDir, _config.ZoneSubfolders);
         _cullStatus = failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.";
     }
 

@@ -61,8 +61,8 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         [
             "Useful for creating boss modules, analyzing problems with them, and making CD plans.",
             "When asking for help, make sure to provide a replay! Please note that replays will contain your player name!",
-            "Enabled in Settings > Show replay management UI (or enable auto recording).",
-            $"Files are located in '{replayDir}'.",
+            "Enabled in Settings > General > Replays > Show replay management UI (or enable auto recording).",
+            $"Files are located in '{HideUserFolder(replayDir)}'.",
         ]);
         ImGui.Spacing();
         ImGui.Spacing();
@@ -93,6 +93,14 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
             ImGui.SameLine();
             ImGui.TextUnformatted(point);
         }
+    }
+
+    // screenshots of this tab get shared, don't show the windows user name
+    private static string HideUserFolder(DirectoryInfo? dir)
+    {
+        var path = dir?.FullName ?? "";
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return appData.Length > 0 && path.StartsWith(appData, StringComparison.OrdinalIgnoreCase) ? "%APPDATA%" + path[appData.Length..] : path;
     }
 
     private string OpenLink(string link)
