@@ -42,6 +42,7 @@ public sealed class ConfigUI : IDisposable
     private readonly RotationDatabase? _rotationDB;
 
     private readonly List<List<string>> _filterNodes = [];
+    private readonly EventSubscriptions _subscriptions;
 
     public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
@@ -57,10 +58,22 @@ public sealed class ConfigUI : IDisposable
         _tabs.Add("Supported Bosses", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Autorotation Presets", () => _presets?.Draw());
 
+        // module hot reload replaces the config types and instances, so the tree has to be rebuilt
+        _subscriptions = new(BossModuleRegistry.Modified.ExecuteAndSubscribe(RebuildTree));
+    }
+
+    private void RebuildTree()
+    {
+        _roots.Clear();
+        _selectedRoot = null;
+        _scrollToNode = null;
+        _reveal = [];
+        _expandCategory = null;
+
         Dictionary<Type, UINode> nodes = [];
-        foreach (var n in config.Nodes)
+        foreach (var n in _root.Nodes)
         {
-            nodes[n] = new(n, config.Get<ConfigNode>(n));
+            nodes[n] = new(n, _root.Get<ConfigNode>(n));
         }
 
         foreach (var (t, n) in nodes)
@@ -79,6 +92,7 @@ public sealed class ConfigUI : IDisposable
 
         SortByOrder(_roots);
         ResolvePaths(_roots, []);
+        FilterNodes();
     }
 
     private void ResolvePaths(List<UINode> nodes, IEnumerable<string> parent)
@@ -92,6 +106,7 @@ public sealed class ConfigUI : IDisposable
 
     public void Dispose()
     {
+        _subscriptions.Dispose();
         _mv.Dispose();
     }
 
