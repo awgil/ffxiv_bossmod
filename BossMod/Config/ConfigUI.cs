@@ -58,7 +58,6 @@ public sealed class ConfigUI : IDisposable
         _tabs.Add("Supported Bosses", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Autorotation Presets", () => _presets?.Draw());
 
-        // module hot reload replaces the config types and instances, so the tree has to be rebuilt
         _subscriptions = new(BossModuleRegistry.Modified.ExecuteAndSubscribe(RebuildTree));
     }
 
