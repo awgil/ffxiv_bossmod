@@ -843,17 +843,16 @@ public sealed class ConfigUI : IDisposable
         {
             using var indent = ImRaii.PushIndent();
             const int numRoles = (int)PartyRolesConfig.Assignment.Unassigned;
-            using var table = ImRaii.Table("table", numRoles + 1, ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersInnerH);
+            using var table = ImRaii.Table("table", numRoles + 1, ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.PadOuterX);
             if (!table)
                 continue;
 
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
             for (var i = 0; i < numRoles; ++i)
-                ImGui.TableSetupColumn(((PartyRolesConfig.Assignment)i).ToString(), ImGuiTableColumnFlags.WidthFixed, ImGui.GetFrameHeight() + ImGui.GetStyle().CellPadding.X);
+                ImGui.TableSetupColumn(((PartyRolesConfig.Assignment)i).ToString());
+            ImGui.TableSetupColumn("");
 
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
             ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
-            ImGui.TableNextColumn();
             for (var i = 0; i < numRoles; ++i)
             {
                 ImGui.TableNextColumn();
@@ -865,11 +864,6 @@ public sealed class ConfigUI : IDisposable
             for (var c = -1; c < group.Names.Length; ++c)
             {
                 ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                if (c < 0)
-                    ImGui.TextDisabled("Not assigned");
-                else
-                    ImGui.TextWrapped(group.Names[c]);
                 for (var i = 0; i < numRoles; ++i)
                 {
                     var r = (PartyRolesConfig.Assignment)i;
@@ -881,6 +875,11 @@ public sealed class ConfigUI : IDisposable
                         modified = true;
                     }
                 }
+                ImGui.TableNextColumn();
+                if (c < 0)
+                    ImGui.TextDisabled("Unassigned");
+                else
+                    ImGui.TextWrapped(group.Names[c]);
             }
         }
         return modified;

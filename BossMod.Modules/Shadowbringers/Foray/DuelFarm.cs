@@ -11,7 +11,7 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
     public uint PrepNameID => prepNameID;
     public uint FateID => fateID;
 
-    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID)})";
+    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID).Replace("4T", "4t")})";
 }
 
 [ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
