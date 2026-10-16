@@ -138,7 +138,7 @@ public static class UIMisc
         var wrap = icon?.GetWrapOrDefault();
         if (wrap != null)
         {
-            Vector4 tintColor = state ? new(1f, 1f, 1f, 1f) : new(0.5f, 0.5f, 0.5f, 0.85f);
+            Vector4 tintColor = state ? new(1) : new(0.5f, 0.5f, 0.5f, 0.85f);
             ImGui.Image(wrap.Handle, size, Vector2.Zero, Vector2.One, tintColor);
         }
         else
@@ -152,13 +152,13 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
     }
 
-    public static bool IconButton(FontAwesomeIcon icon, string id) => IconButtonRaw($"{icon.ToIconString()}##{id}");
-    public static bool IconButton(FontAwesomeIcon icon) => IconButtonRaw(icon.ToIconString());
+    public static bool IconButton(FontAwesomeIcon icon, string id, Vector2 size = default) => IconButtonRaw($"{icon.ToIconString()}##{id}", size);
+    public static bool IconButton(FontAwesomeIcon icon, Vector2 size = default) => IconButtonRaw(icon.ToIconString(), size);
 
-    static bool IconButtonRaw(string text)
+    static bool IconButtonRaw(string text, Vector2 size = default)
     {
         using (ImRaii.PushFont(Service.IconFont))
-            return ImGui.Button(text);
+            return ImGui.Button(text, size);
     }
 
     public static bool IconButtonWithText(FontAwesomeIcon icon, string text)

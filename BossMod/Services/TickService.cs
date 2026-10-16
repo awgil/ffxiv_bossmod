@@ -92,6 +92,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         windowSystem = windowSystemFactory.Create("vbm");
 
         dalamud.Create<Service>();
+        Service.Mediator = mediator;
         Service.PluginInterface = dalamud;
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
@@ -169,18 +170,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation, mediator);
+        _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
 
-        _wndConfig = new(new(Service.Config, _ws, mediator, replayDir, _rotationDB), mediator);
+        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB));
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
-        _wndZone = new ZoneModuleWindow(_zonemod);
+        _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new UIRotationWindow(_rotation, _amex, MediatorService);
+        _wndRotation = new UIRotationWindow(_rotation, _amex);
         _wndAI = new AIWindow(_rotation);
         _wndChangelog = new();
 
@@ -191,7 +192,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            _wndDebug = new MainDebugWindow(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
+            _wndDebug = new MainDebugWindow(_ws, _rotation, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
         }
 
         RegisterSlashCommands();
@@ -265,6 +266,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
         _amex.FinishActionGather();
+        _wsSync.UpdateReplayState(_rotation, _movementOverride, _hints);
 
         Service.IconFont = uiBuilder.FontIcon;
         Service.MonoFont = uiBuilder.FontMono;
@@ -386,7 +388,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OpenConfigUI(string tab = "")
     {
-        MediatorService.Publish(new OpenConfigMessage(tab));
+        MediatorService.Publish(new OpenSettingsWindowMessage(tab));
     }
 
     void OpenUi() => OpenConfigUI();
@@ -731,9 +733,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         while (!token.IsCancellationRequested)
         {
-            Service.Config.SaveToFile(dalamud.ConfigFile);
-
             await Task.Delay(30_000, token).ConfigureAwait(true);
+
+            Service.Config.SaveToFile(dalamud.ConfigFile);
         }
     }
 

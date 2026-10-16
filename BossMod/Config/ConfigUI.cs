@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using DalaMock.Host.Mediator;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -11,8 +10,9 @@ namespace BossMod;
 
 public sealed class ConfigUI : IDisposable
 {
-    private class UINode(ConfigNode node)
+    private class UINode(Type type, ConfigNode node)
     {
+        public Type Type = type;
         public ConfigNode Node = node;
         public string Name = "";
         public int Order;
@@ -43,11 +43,11 @@ public sealed class ConfigUI : IDisposable
 
     private readonly List<List<string>> _filterNodes = [];
 
-    public ConfigUI(ConfigRoot config, WorldState ws, MediatorService? mediator, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
-        _about = new(mediator, replayDir);
+        _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB) : null;
         _rotationDB = rotationDB;
@@ -60,7 +60,7 @@ public sealed class ConfigUI : IDisposable
         Dictionary<Type, UINode> nodes = [];
         foreach (var n in config.Nodes)
         {
-            nodes[n] = new(config.Get<ConfigNode>(n));
+            nodes[n] = new(n, config.Get<ConfigNode>(n));
         }
 
         foreach (var (t, n) in nodes)
@@ -102,6 +102,16 @@ public sealed class ConfigUI : IDisposable
         ShowTab("Autorotation Presets");
         _presets?.SelectPresetByName(name);
     }
+
+    public void OpenConfigNode(Type configType)
+    {
+        ShowTab("Settings");
+        if (FindNode(_roots, configType) is { } node)
+            Select(node, "");
+    }
+
+    private static UINode? FindNode(List<UINode> nodes, Type type)
+        => nodes.Select(n => n.Type == type ? n : FindNode(n.Children, type)).FirstOrDefault(n => n != null);
 
     public void Draw()
     {

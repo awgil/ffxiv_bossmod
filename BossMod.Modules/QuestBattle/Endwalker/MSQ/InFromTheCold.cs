@@ -182,7 +182,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Leave church")
-            .WithConnections(new Waypoint(V3(108.5f, 10.8f, -258.2f), false), new Waypoint(V3(116, 10.8f, -259.3f), false))
+            .WithConnections(new Waypoint(new Vector3(108.5f, 10.8f, -258.2f), false), new Waypoint(new Vector3(116, 10.8f, -259.3f), false))
             .Hints((player, hints) => {
                 if (player.Position.AlmostEqual(new WPos(109, -257.263f), 2))
                     hints.WantJump = true;
@@ -191,7 +191,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Fuel (near wreckage)")
-            .WithConnections(V3(124.5f, 10.8f, -232.9f), V3(175.5f, 10.8f, -227.7f))
+            .WithConnections(new Vector3(124.5f, 10.8f, -232.9f), new Vector3(175.5f, 10.8f, -227.7f))
             .Hints((player, hints) => {
                 _sneak = true;
                 InteractWithFirst(player, hints, 0x1EB69E);
@@ -200,7 +200,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Fuel (far wreckage)")
-            .WithConnections(V3(124.5f, 10.8f, -232.9f), V3(175.5f, 10.8f, -227.7f), V3(188.4f, 10.8f, -256.8f), V3(225.1f, 10.8f, -286.9f), V3(268.8f, 10.8f, -325.2f), V3(295.5f, 10.8f, -366.3f))
+            .WithConnections(new Vector3(124.5f, 10.8f, -232.9f), new Vector3(175.5f, 10.8f, -227.7f), new Vector3(188.4f, 10.8f, -256.8f), new Vector3(225.1f, 10.8f, -286.9f), new Vector3(268.8f, 10.8f, -325.2f), new Vector3(295.5f, 10.8f, -366.3f))
             .Hints((player, hints) => {
                 _sneak = true;
                 InteractWithFirst(player, hints, 0x1EB452);
@@ -209,7 +209,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Back from far wreckage")
-            .WithConnections(V3(268.8f, 10.8f, -325.2f), V3(225.1f, 10.8f, -286.9f), V3(188.4f, 10.8f, -256.8f))
+            .WithConnections(new Vector3(268.8f, 10.8f, -325.2f), new Vector3(225.1f, 10.8f, -286.9f), new Vector3(188.4f, 10.8f, -256.8f))
             .Hints(RefuelHints)
             .With(obj => {
                 obj.OnNavigationComplete += () => obj.CompleteIf(true);
@@ -218,7 +218,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Refuel")
-            .WithConnections(V3(175.5f, 10.8f, -227.7f), V3(130.3f, 10.7f, -230.5f))
+            .WithConnections(new Vector3(175.5f, 10.8f, -227.7f), new Vector3(130.3f, 10.7f, -230.5f))
             .Hints(RefuelHints)
             .With(obj => obj.OnDirectorUpdate += (diru) => obj.CompleteIf(diru.UpdateID == 0x10000002 && diru.Param1 == 0x76C1)),
 

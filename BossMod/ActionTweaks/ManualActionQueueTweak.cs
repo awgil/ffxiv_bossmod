@@ -135,6 +135,16 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             _emergencyMode = false;
     }
 
+    // here's a list of fixed length dashes which are inexplicably coded as ground targeted actions
+    private static readonly uint[] WeirdDashes = [
+        (uint)PhantomID.StepForth,
+        (uint)BST.AID.CloudSkim1,
+        (uint)BST.AID.CloudSkim2,
+        (uint)BST.AID.CloudSkim3,
+        (uint)BST.AID.CloudSkim4,
+        (uint)BST.AID.CloudSkim5,
+    ];
+
     private bool ResolveTarget(ActionDefinition def, Actor player, ulong targetId, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest, bool allowSmartTarget, Angle? angleOverride, out Actor? target, out Vector3 targetPos)
     {
         target = null;
@@ -161,9 +171,9 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
             return true;
         }
 
-        // Step Forth is area targeted so it's basically BTL but for a fixed distance, which is why we need angleOverride here
+        // these are area targeted so basically BTL but for a fixed distance, which is why we need angleOverride here
         // it's fine to have an incorrect Y, game will attempt to move us in a straight line toward the destination, respecting walls/ledges/gravity
-        if (def.ID.ID == (uint)PhantomID.StepForth)
+        if (WeirdDashes.Contains(def.ID.ID))
         {
             var displacement = (angleOverride ?? player.Rotation).ToDirection() * 10;
 

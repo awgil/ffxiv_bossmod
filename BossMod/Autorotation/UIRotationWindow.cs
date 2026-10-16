@@ -1,5 +1,4 @@
-﻿using BossMod.Services;
-using DalaMock.Host.Mediator;
+using BossMod.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -7,18 +6,15 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
+public sealed class UIRotationWindow : UIWindow
 {
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
     private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
     private readonly EventSubscriptions _subscriptions;
 
-    public MediatorService MediatorService { get; }
-
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, MediatorService mediator) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
-        MediatorService = mediator;
         _mgr = mgr;
         _amex = amex;
         _subscriptions = new
@@ -26,7 +22,7 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
         );
         RespectCloseHotkey = false;
-        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => mediator.Publish(new OpenConfigMessage("Autorotation Presets")) });
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => Service.Mediator.Publish(new OpenSettingsWindowMessage("Autorotation Presets")) });
     }
 
     protected override void Dispose(bool disposing)
@@ -57,7 +53,7 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
         if (player == null)
             return;
 
-        DrawRotationSelector(_mgr, MediatorService, true);
+        DrawRotationSelector(_mgr, true);
 
         if (_mgr.IsForceDisabled)
             UIMisc.Banner(FontAwesomeIcon.Ban, "Autorotation is disabled. Click Disabled again or pick a preset to re-enable it.", UIMisc.ColorDanger);
@@ -249,7 +245,7 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
 
     public override void OnClose() => SetVisible(false);
 
-    public static bool DrawRotationSelector(RotationModuleManager mgr, MediatorService? mediator = null, bool wrap = false)
+    public static bool DrawRotationSelector(RotationModuleManager mgr, bool wrap = false)
     {
         var dtrConfig = Service.Config.Get<DtrConfig>();
 
@@ -304,8 +300,8 @@ public sealed class UIRotationWindow : UIWindow, IMediatorSubscriber
                         dtrConfig.ShowPresets.Add(p.Name);
                     dtrConfig.Modified.Fire();
                 }
-                if (mediator != null && ImGui.MenuItem("Open in preset editor"))
-                    mediator.Publish(new OpenPresetEditorMessage(p.Name));
+                if (ImGui.MenuItem("Open in preset editor"))
+                    Service.Mediator.Publish(new OpenPresetEditorMessage(p.Name));
             }
         }
 

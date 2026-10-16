@@ -44,7 +44,7 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Max number of mobs to pull before pausing navigation (0 = do not navigate while in combat)")]
     [PropertySlider(0, 15)]
     public int MaxPull = 0;
-    [PropertyDisplay("Try to use terrain to LOS attacks")]
+    [PropertyDisplay("Try to use terrain to LOS attacks", tooltip: "This feature is currently very inconsistent and will likely get you killed. Enabling it is not recommended.")]
     public bool AutoLOS = false;
 
     [PropertyDisplay("Automatically navigate to coffers")]

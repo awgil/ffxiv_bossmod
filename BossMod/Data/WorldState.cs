@@ -19,6 +19,7 @@ public sealed class WorldState
     public readonly ClientState Client = new();
     public readonly DeepDungeonState DeepDungeon = new();
     public readonly NetworkState Network = new();
+    public readonly ReplayState ReplayState = new();
 
     public DateTime CurrentTime => Frame.Timestamp;
     public DateTime FutureTime(float deltaSeconds) => Frame.Timestamp.AddSeconds(deltaSeconds);
@@ -74,6 +75,8 @@ public sealed class WorldState
         foreach (var o in Network.CompareToInitial())
             yield return o;
         foreach (var o in DeepDungeon.CompareToInitial())
+            yield return o;
+        foreach (var o in ReplayState.CompareToInitial())
             yield return o;
     }
 
