@@ -164,11 +164,14 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     UseOGCD(BossMod.WHM.AID.DivineCaress, Player, 19);
                 PushMitOGCD(ref budget, BossMod.WHM.AID.PlenaryIndulgence, Player, 18);
             }
-            if (RaidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f)
+            var otherPartyMit = ReadySoon(BossMod.WHM.AID.Temperance) || ReadySoon(BossMod.WHM.AID.PlenaryIndulgence)
+                || UsedWithin(ActionID.MakeSpell(BossMod.WHM.AID.Temperance), 20) || UsedWithin(ActionID.MakeSpell(BossMod.WHM.AID.PlenaryIndulgence), 10);
+            if (RaidwideIn < 3 && Health.PartyHealth.AvgCurrent <= 0.9f || FullRaidwideIn < 3 && !otherPartyMit)
                 PushMitOGCDAt(ref budget, BossMod.WHM.AID.Asylum, GetBestPartyCoverage(AsylumRadius), 17);
 
-            if (BusterTanks(4) is [var (first, _), .., var (second, _)])
+            if (BusterTanks(4) is [var (first, _), ..] whmBusters)
             {
+                var second = whmBusters[^1].tank;
                 if (second.FindStatus(BossMod.WHM.SID.DivineBenison, World.FutureTime(15)) == null)
                     UseOGCD(BossMod.WHM.AID.DivineBenison, second, 25);
                 UseOGCD(BossMod.WHM.AID.Aquaveil, first, 24);
@@ -286,8 +289,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (Player.InCombat && !starPlaced && (RaidwideIn is > 8 and < 20 || RaidwideIn > 30))
                 UseOGCDAt(BossMod.AST.AID.EarthlyStar, GetBestPartyCoverage(EarthlyStarRadius), 5);
 
-            if (BusterTanks(4) is [var (first, _), .., var (second, _)])
+            if (BusterTanks(4) is [var (first, _), ..] astBusters)
             {
+                var second = astBusters[^1].tank;
                 UseOGCD(BossMod.AST.AID.Exaltation, first, 25);
                 UseOGCD(BossMod.AST.AID.CelestialIntersection, second, 24);
                 UseCard(AstrologianCard.Bole, BossMod.AST.AID.TheBole, first, 23);
@@ -406,13 +410,16 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.SCH.AID.Seraphism, Player, 21);
 
             // big party shield: recitation crit adloquium on us, spread with deployment tactics; holds its budget slot over the few GCDs it takes
-            deploying = budget > 0 && FullRaidwideIn < GCD + 5 && ReadySoon(BossMod.SCH.AID.DeploymentTactics) && UnshieldedShare(30) >= 0.5f;
+            // the sequence takes ~4s (recitation, 2s adlo cast, weave); starting it later wastes recitation, but once started it is finished
+            var ownGalvanize = Player.FindStatus(BossMod.SCH.SID.Galvanize, Player.InstanceID) != null || Player.PendingStatuses.Any(s => s.StatusId == (uint)BossMod.SCH.SID.Galvanize);
+            var started = ownGalvanize || Player.FindStatus(BossMod.SCH.SID.Recitation) != null;
+            deploying = budget > 0 && FullRaidwideIn < 8 && (started || FullRaidwideIn >= 4.5f) && ReadySoon(BossMod.SCH.AID.DeploymentTactics) && UnshieldedShare(30) >= 0.5f;
             if (deploying)
             {
                 --budget;
-                var ownGalvanize = Player.FindStatus(BossMod.SCH.SID.Galvanize, Player.InstanceID) != null || Player.PendingStatuses.Any(s => s.StatusId == (uint)BossMod.SCH.SID.Galvanize);
+                // the shield lands close to the hit: take the next weave slot ahead of rotation ogcds
                 if (ownGalvanize)
-                    UseOGCD(BossMod.SCH.AID.DeploymentTactics, Player, 22);
+                    Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.DeploymentTactics), Player, ActionQueue.Priority.High + 22);
                 else if (Player.FindStatus(BossMod.SCH.SID.Recitation) == null && ReadySoon(BossMod.SCH.AID.Recitation))
                     UseOGCD(BossMod.SCH.AID.Recitation, Player, 22);
                 else
@@ -427,8 +434,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     PushMitOGCD(ref budget, BossMod.SCH.AID.FeyIllumination, Player, 19);
             }
 
-            if (BusterTanks(5) is [var (first, _), .., var (second, _)])
+            // protraction lasts 10s: start early so both ogcds fit around the 2s adloquium casts
+            if (BusterTanks(8) is [var (first, _), ..] schBusters)
             {
+                var second = schBusters[^1].tank;
                 UseOGCD(BossMod.SCH.AID.Protraction, first, 25);
                 if (aetherflow)
                     UseOGCD(BossMod.SCH.AID.Excogitation, second, 24);
@@ -437,7 +446,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
         if (strategy.Heal == HealMode.Enabled)
         {
-            if (!deploying && FullRaidwideIn < GCD + 2.5f && UnshieldedShare(20) >= 0.5f)
+            if (!deploying && FullRaidwideIn < GCD + 3.5f && UnshieldedShare(20) >= 0.5f)
                 UseGCD(succor, Player, 5);
             foreach (var (tank, busterIn) in TankbustersWithin(5))
                 if (busterIn < GCD + 2.5f && !HasGCDShield(tank))
@@ -535,8 +544,9 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (RaidwideIn < 5 && Health.PartyHealth.AvgCurrent <= 0.8f)
                 PushMitOGCD(ref budget, BossMod.SGE.AID.Holos, Player, 15);
 
-            if (BusterTanks(5) is [var (first, _), .., var (second, secondIn)])
+            if (BusterTanks(5) is [var (first, _), ..] sgeBusters)
             {
+                var (second, secondIn) = sgeBusters[^1];
                 if (first.FindStatus(BossMod.SGE.SID.Haima, World.FutureTime(15)) == null)
                     UseOGCD(BossMod.SGE.AID.Haima, first, 25);
                 if (secondIn < 3 && gall > 0)
