@@ -157,7 +157,7 @@ public sealed class ConfigUI : IDisposable
     private void DrawSettings()
     {
         ImGui.SetNextItemWidth(300 * ImGuiHelpers.GlobalScale);
-        if (ImGui.InputTextEx("", "Search for a setting...", ref _searchText))
+        if (ImGui.InputTextEx("###settings-search", "Search for a setting...", ref _searchText))
             FilterNodes();
 
         ImGui.SameLine();
@@ -280,7 +280,7 @@ public sealed class ConfigUI : IDisposable
                 continue;
             }
 
-            var flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+            var flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.FramePadding;
             if (!searching && n == _selectedRoot && _selectedSection == null)
                 flags |= ImGuiTreeNodeFlags.Selected;
             if (_expandCategory == n)
@@ -623,11 +623,11 @@ public sealed class ConfigUI : IDisposable
         null => false
     };
 
-    private static float DrawLabelAbove(PropertyDisplayAttribute attrs, bool nested)
+    private static float DrawLabelAbove(PropertyDisplayAttribute attrs, bool radio, bool nested)
     {
         DrawHelp(attrs.Tooltip, nested);
         var x = ImGui.GetCursorPosX();
-        ImGui.TextUnformatted(attrs.Label);
+        ImGui.TextUnformatted($"{attrs.Label}{(radio ? ":" : "")}");
         ImGui.SetCursorPosX(x);
         ImGui.SetNextItemWidth(ControlWidth());
         return x;
@@ -637,19 +637,22 @@ public sealed class ConfigUI : IDisposable
 
     private const int MaxRadioOptions = 6;
 
-    private static bool DrawRadioList(float x, string id, string[] options, ref int v)
+    private static bool DrawRadioList(float x, string id, string[] options, bool inline, ref int v)
     {
         var res = false;
         using var _ = ImRaii.PushId(id);
         x += ImGui.GetFrameHeight();
         for (var i = 0; i < options.Length; ++i)
         {
-            ImGui.SetCursorPosX(x);
+            if (!inline || i == 0)
+                ImGui.SetCursorPosX(x);
             if (ImGui.RadioButton($"{options[i]}###{i}", v == i) && v != i)
             {
                 v = i;
                 res = true;
             }
+            if (inline && i < options.Length - 1)
+                ImGui.SameLine();
         }
         return res;
     }
@@ -665,10 +668,10 @@ public sealed class ConfigUI : IDisposable
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
         if (combo != null)
         {
-            var x = DrawLabelAbove(attrs, nested);
+            var x = DrawLabelAbove(attrs, true, nested);
             var ix = v ? 1 : 0;
             var modified = combo.Values.Length <= MaxRadioOptions
-                ? DrawRadioList(x, attrs.Label, combo.Values, ref ix) && SetValue(node, member, ix != 0)
+                ? DrawRadioList(x, attrs.Label, combo.Values, false, ref ix) && SetValue(node, member, ix != 0)
                 : UICombo.Bool($"##{attrs.Label}", combo.Values, ref v) && SetValue(node, member, v);
             ImGui.Spacing();
             return modified;
@@ -680,13 +683,15 @@ public sealed class ConfigUI : IDisposable
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Enum v)
     {
-        var x = DrawLabelAbove(attrs, nested);
+        var x = DrawLabelAbove(attrs, true, nested);
         var modified = false;
         var values = Enum.GetValues(v.GetType()).Cast<Enum>().ToArray();
-        if (values.Length <= MaxRadioOptions || member.GetCustomAttribute<PropertyRadioAttribute>() != null)
+        var radio = member.GetCustomAttribute<PropertyRadioAttribute>();
+        if (values.Length <= MaxRadioOptions || radio != null)
         {
+            var inline = radio?.Inline ?? false;
             var ix = Array.IndexOf(values, v);
-            modified = DrawRadioList(x, attrs.Label, [.. values.Select(UICombo.EnumString)], ref ix) && SetValue(node, member, values[ix]);
+            modified = DrawRadioList(x, attrs.Label, [.. values.Select(UICombo.EnumString)], inline, ref ix) && SetValue(node, member, values[ix]);
         }
         else
         {
@@ -698,11 +703,11 @@ public sealed class ConfigUI : IDisposable
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, float v)
     {
-        DrawLabelAbove(attrs, nested);
+        DrawLabelAbove(attrs, false, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         var flags = slider?.Logarithmic == true ? ImGuiSliderFlags.Logarithmic : ImGuiSliderFlags.None;
         var modified = slider != null
-            ? ImGui.DragFloat($"##{attrs.Label}", ref v, slider.Speed, slider.Min, slider.Max, "%.3f", flags)
+            ? ImGui.SliderFloat($"##{attrs.Label}", ref v, slider.Min, slider.Max, "%.3f", flags)
             : ImGui.InputFloat($"##{attrs.Label}", ref v);
         modified = modified && SetValue(node, member, v);
         ImGui.Spacing();
@@ -711,11 +716,11 @@ public sealed class ConfigUI : IDisposable
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, int v)
     {
-        DrawLabelAbove(attrs, nested);
+        DrawLabelAbove(attrs, false, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         var flags = slider?.Logarithmic == true ? ImGuiSliderFlags.Logarithmic : ImGuiSliderFlags.None;
         var modified = slider != null
-            ? ImGui.DragInt($"##{attrs.Label}", ref v, slider.Speed, (int)slider.Min, (int)slider.Max, "%d", flags)
+            ? ImGui.SliderInt($"##{attrs.Label}", ref v, (int)slider.Min, (int)slider.Max, "%d", flags)
             : ImGui.InputInt($"##{attrs.Label}", ref v);
         modified = modified && SetValue(node, member, v);
         ImGui.Spacing();
@@ -724,7 +729,7 @@ public sealed class ConfigUI : IDisposable
 
     private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, string v)
     {
-        DrawLabelAbove(attrs, nested);
+        DrawLabelAbove(attrs, false, nested);
         var modified = ImGui.InputText($"##{attrs.Label}", ref v, 256) && SetValue(node, member, v);
         ImGui.Spacing();
         return modified;

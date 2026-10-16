@@ -14,7 +14,7 @@ public sealed class AIConfig : ConfigNode
     public bool FocusTargetMaster = false;
 
     [PropertyDisplay("Distance to master")]
-    [PropertySlider(3, 25, Speed = 0.1f)]
+    [PropertySlider(3, 25)]
     public float DistanceToMaster = 25f;
 
     [PropertyDisplay("Follow master even if a boss module is active")]

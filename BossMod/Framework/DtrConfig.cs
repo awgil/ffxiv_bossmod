@@ -19,8 +19,8 @@ public sealed class DtrConfig : ConfigNode
         Icon
     }
 
-    [PropertyDisplay("Show autorotation status")]
-    [PropertyRadio]
+    [PropertyDisplay("Autorotation status indicator")]
+    [PropertyRadio(inline: true)]
     public DtrStatus ShowAutorot = Service.Config.Get<AutorotationConfig>().ShowDTR;
 
     [PropertyDisplay("Show legacy AI status")]

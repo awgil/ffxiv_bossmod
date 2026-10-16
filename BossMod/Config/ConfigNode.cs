@@ -56,13 +56,15 @@ public sealed class PropertyComboAttribute(string[] values) : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public sealed class PropertyRadioAttribute : Attribute;
+public sealed class PropertyRadioAttribute(bool inline = false) : Attribute
+{
+    public bool Inline { get; } = inline;
+}
 
 // attribute that specifies slider should be used for displaying float/int property
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class PropertySliderAttribute(float min, float max) : Attribute
 {
-    public float Speed { get; set; } = 1;
     public float Min { get; } = min;
     public float Max { get; } = max;
     public bool Logarithmic { get; set; }

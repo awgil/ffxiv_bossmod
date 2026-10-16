@@ -21,12 +21,12 @@ public class AutoDDConfig : ConfigNode
         All,
     }
 
-    [PropertyDisplay("Enable module", tooltip: "WARNING: This feature is very experimental and most likely will contain bugs or unintended behavior.\nTo enable this feature in its current state, you must activate 'Work-in-Progress' maturity modules in the `Full Duty Automation` tab.")]
+    [PropertyDisplay("Enable module", tooltip: "This is experimental. Use at your own risk. You will sometimes need to help the AI to navigate.")]
     public bool Enable = true;
     [PropertyDisplay("Enable minimap")]
     public bool EnableMinimap = true;
     [PropertyDisplay("Minimap scale")]
-    [PropertySlider(min: 0.2f, max: 3, Speed = 0.05f)]
+    [PropertySlider(0.2f, 3)]
     public float MinimapScale = 1.0f;
     [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from PalacePal data. (Traps revealed by a Pomander of Sight will always be avoided regardless of this setting.)")]
     public bool TrapHints = true;
@@ -67,30 +67,39 @@ public class AutoDDConfig : ConfigNode
 
     public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
     {
-        foreach (var _ in tree.Node("Automatic pomander usage"))
-        {
-            ImGui.TextWrapped("Highlighted pomanders will be used when a gold chest contains one that you can't carry.");
-            ImGui.TextWrapped("This feature is disabled in parties.");
+        UIMisc.SectionHeader("Auto-poms");
 
-            for (var i = 1; i < (int)PomanderID.Count; i++)
-                using (ImRaii.PushId($"pom{i}"))
+        using var _ = ImRaii.PushIndent(ImGui.GetFrameHeight());
+
+        ImGui.Spacing();
+
+        ImGui.TextWrapped("Choose pomanders that will be used when a gold chest contains one that you can't carry. This feature is disabled in parties.");
+
+        ImGui.Spacing();
+
+        for (var i = 1; i < (int)PomanderID.Count; i++)
+            using (ImRaii.PushId($"pom{i}"))
+            {
+                var row = Service.LuminaRow<DeepDungeonItem>((uint)i)!.Value;
+                var wrap = Service.Texture.GetFromGameIcon(row.Icon).GetWrapOrEmpty();
+                var scale = new Vector2(32 * ImGuiHelpers.GlobalScale);
+                ImGui.Image(wrap.Handle, scale, new Vector2(0), tintCol: new Vector4(1) with { W = AutoPoms[i] ? 1 : 0.4f });
+                if (ImGui.IsItemClicked())
                 {
-                    var row = Service.LuminaRow<DeepDungeonItem>((uint)i)!.Value;
-                    var wrap = Service.Texture.GetFromGameIcon(row.Icon).GetWrapOrEmpty();
-                    var scale = new Vector2(32 * ImGuiHelpers.GlobalScale);
-                    ImGui.Image(wrap.Handle, scale, new Vector2(0), tintCol: new Vector4(1) with { W = AutoPoms[i] ? 1 : 0.4f });
-                    if (ImGui.IsItemClicked())
-                    {
-                        AutoPoms.Toggle(i);
-                        Modified.Fire();
-                    }
-                    if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip(row.Name.ToString());
-                    if (i % 8 > 0)
-                        ImGui.SameLine();
+                    AutoPoms.Toggle(i);
+                    Modified.Fire();
                 }
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(row.Name.ToString());
+                    ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                }
+                if (i % 8 > 0)
+                    ImGui.SameLine();
+            }
 
-            ImGui.Text(""); // undo last sameline
-        }
+        ImGui.Text(""); // undo last sameline
+
+        ImGui.Spacing();
     }
 }
