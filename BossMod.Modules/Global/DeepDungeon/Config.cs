@@ -73,7 +73,7 @@ public class AutoDDConfig : ConfigNode
 
         ImGui.Spacing();
 
-        ImGui.TextWrapped("Choose pomanders that will be used when a gold chest contains one that you can't carry. This feature is disabled in parties.");
+        ImGui.TextWrapped("Selected pomanders will be used when a gold chest contains one that you can't carry. Disabled while in parties.");
 
         ImGui.Spacing();
 

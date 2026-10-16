@@ -129,6 +129,7 @@ public sealed class ConfigUI : IDisposable
 
         Select(chain[0], chain.Count > 1 ? SectionKey(chain[1]) : null);
         _expandCategory = chain[0];
+        _scrollSidebar = true;
         if (chain.Count > 2)
         {
             _scrollToNode = node;
@@ -153,6 +154,7 @@ public sealed class ConfigUI : IDisposable
     private HashSet<UINode> _reveal = [];
     private bool _resetScroll;
     private UINode? _expandCategory;
+    private bool _scrollSidebar;
 
     private void DrawSettings()
     {
@@ -289,6 +291,11 @@ public sealed class ConfigUI : IDisposable
                 _expandCategory = null;
             }
             var open = ImGui.TreeNodeEx($"{n.Name}###{string.Join('/', n.Path)}", flags);
+            if (_scrollSidebar && n == _selectedRoot && _selectedSection == null)
+            {
+                ImGui.SetScrollHereY(0.5f);
+                _scrollSidebar = false;
+            }
             if (ImGui.IsItemClicked() && !ImGui.IsItemToggledOpen())
                 Select(n, null);
             if (!open)
@@ -305,6 +312,11 @@ public sealed class ConfigUI : IDisposable
         if (_filterNodes.Count == 0 && root == _selectedRoot && key == _selectedSection)
             flags |= ImGuiTreeNodeFlags.Selected;
         ImGui.TreeNodeEx($"{label}###{key ?? PageKey(root, "")}", flags);
+        if (_scrollSidebar && root == _selectedRoot && key == _selectedSection)
+        {
+            ImGui.SetScrollHereY(0.5f);
+            _scrollSidebar = false;
+        }
         if (ImGui.IsItemClicked())
             Select(root, key);
     }
