@@ -206,6 +206,7 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
         VenomTwist(id + 0xF0000, 3.9f);
         AlarmPheromones(id + 0x100000, 9.1f);
 
+        // TODO: Heartsick (4-man stacks) was never reached in a replay
         SimpleState(id + 0x110000, 120, "Until enrage")
             .ActivateOnEnter<CallMeHoney>()
             .ActivateOnEnter<HoneyBFinale>()
@@ -352,5 +353,5 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 987, NameID = 12685, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 987, NameID = 12685)]
 public class RM02NHoneyBLovely(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

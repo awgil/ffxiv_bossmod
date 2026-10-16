@@ -72,8 +72,8 @@ public enum AID : uint
     LetsDanceAOE = 39900, // Helper->self, no cast, range 25 width 90 rect
     LetsPoseFrog1 = 37843, // Frogtourage->self, 5.0s cast, single-target
     LetsPoseFrog2 = 37844, // Frogtourage->self, 5.0s cast, single-target
-    LetsPose1 = 42777, // Boss->self, 5.0s cast, range 60 circle, raidwide
-    LetsPose2 = 42778, // Boss->self, 5.0s cast, range 60 circle, raidwide
+    LetsPose1 = 42777, // Boss->self, 5.0s cast, range 60 circle, hits players hit by a dance
+    LetsPose2 = 42778, // Boss->self, 5.0s cast, range 60 circle, hits players hit by a dance
 
     Frogtourage = 42756, // Boss->self, 3.0s cast, single-target, visual (frogs)
     MoonburnStart = 42781, // Frogtourage->self, no cast, single-target
@@ -99,8 +99,6 @@ class DoTheHustle(BossModule module) : Components.GroupedAOEs(module, [AID.DoThe
 class DeepCut(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 22.5f.Degrees()), (uint)IconID.DeepCut, AID.DeepCutAOE, 5.7f, damageType: AIHints.PredictedDamageType.Tankbuster);
 class DiscoInfernal(BossModule module) : Components.RaidwideCast(module, AID.DiscoInfernal);
 class CelebrateGoodTimes(BossModule module) : Components.RaidwideCast(module, AID.CelebrateGoodTimes);
-class LetsPose1(BossModule module) : Components.RaidwideCast(module, AID.LetsPose1);
-class LetsPose2(BossModule module) : Components.RaidwideCast(module, AID.LetsPose2);
 class FullBeat(BossModule module) : Components.StackWithCastTargets(module, AID.FullBeatAOE, 6, 4);
 class EighthBeats(BossModule module) : Components.SpreadFromCastTargets(module, AID.EighthBeatsAOE, 5);
 class Moonburn(BossModule module) : Components.GroupedAOEs(module, [AID.Moonburn1, AID.Moonburn2], new AOEShapeRect(40, 7.5f));
@@ -188,17 +186,15 @@ class FunkyFloor(BossModule module) : Components.GenericAOEs(module, AID.FunkyFl
 
 class Spotlight(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<WPos> _spots = [];
+    private readonly List<WPos> _lit = [];
     private bool _active;
     private DateTime _activation;
+    private DateTime _lastLit;
     private DateTime _lastResolve;
 
     private static readonly AOEShapeCircle _shape = new(2.5f);
-    private static readonly WPos[] _three = [new(87.5f, 112.5f), new(112.5f, 100), new(100, 87.5f), new(112.5f, 87.5f), new(87.5f, 100), new(100, 112.5f)];
-    private static readonly WPos[] _four1 = [new(95, 87.5f), new(105, 112.5f), new(112.5f, 95), new(87.5f, 105)];
-    private static readonly WPos[] _four2 = [new(105, 87.5f), new(87.5f, 95), new(112.5f, 105), new(95, 112.5f)];
 
-    private IEnumerable<WPos> CurrentSpots => _spots.Count == 6 ? _spots.Take(3) : _spots;
+    private IEnumerable<WPos> CurrentSpots => _lit.Count == 3 ? _lit.Select(p => Module.Center + (Module.Center - p)) : _lit;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -215,7 +211,7 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!_active || _spots.Count == 0)
+        if (!_active || _lit.Count == 0)
             return;
         var spots = CurrentSpots.ToList();
         hints.AddForbiddenZone(ShapeDistance.Intersection([.. spots.Select(s => ShapeDistance.InvertedCircle(s, 2.5f))]), _activation);
@@ -232,16 +228,12 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if ((OID)actor.OID != OID.Spotlight || id != 0x11DC || _spots.Count > 0)
+        if ((OID)actor.OID != OID.Spotlight || id != 0x11DC)
             return;
-        if (actor.Position.AlmostEqual(new(112.5f, 87.5f), 0.5f))
-            _spots.AddRange(_three);
-        else if (actor.Position.AlmostEqual(new(87.5f, 112.5f), 0.5f))
-            _spots.AddRange(_three.Reverse());
-        else if (actor.Position.AlmostEqual(new(95, 87.5f), 0.5f))
-            _spots.AddRange(_four1);
-        else if (actor.Position.AlmostEqual(new(95, 112.5f), 0.5f))
-            _spots.AddRange(_four2);
+        if (WorldState.CurrentTime > _lastLit.AddSeconds(1))
+            _lit.Clear();
+        _lastLit = WorldState.CurrentTime;
+        _lit.Add(actor.Position);
     }
 
     public override void OnStatusLose(Actor actor, in ActorStatus status)
@@ -251,10 +243,8 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
         _lastResolve = WorldState.CurrentTime;
         _active = false;
         ++NumCasts;
-        if (_spots.Count == 6)
-            _spots.RemoveRange(0, 3);
-        else if (Raid.WithoutSlot().All(p => p.FindStatus(SID.BurnBabyBurn) == null))
-            _spots.Clear();
+        if (Raid.WithoutSlot().All(p => p.FindStatus(SID.BurnBabyBurn) == null))
+            _lit.Clear();
     }
 }
 
@@ -392,6 +382,47 @@ class LetsDance(BossModule module) : Components.GenericAOEs(module, AID.LetsDanc
     }
 }
 
+class LetsPose(BossModule module) : BossComponent(module)
+{
+    private BitMask _hitByDance;
+    private DateTime _activation;
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_activation != default && _hitByDance[slot])
+            hints.Add("Let's Pose will hit you!", false);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_activation != default && _hitByDance.Any())
+            hints.AddPredictedDamage(_hitByDance, _activation, AIHints.PredictedDamageType.None);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.LetsPose1 or AID.LetsPose2)
+            _activation = Module.CastFinishAt(spell);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.LetsDanceAOE:
+                foreach (var t in spell.Targets)
+                    if (Raid.FindSlot(t.ID) is var slot && slot >= 0)
+                        _hitByDance.Set(slot);
+                break;
+            case AID.LetsPose1:
+            case AID.LetsPose2:
+                _hitByDance.Reset();
+                _activation = default;
+                break;
+        }
+    }
+}
+
 class RM05NDancingGreenStates : StateMachineBuilder
 {
     public RM05NDancingGreenStates(BossModule module) : base(module)
@@ -421,8 +452,7 @@ class RM05NDancingGreenStates : StateMachineBuilder
             .ActivateOnEnter<DoTheHustle>()
             .ActivateOnEnter<DeepCut>()
             .ActivateOnEnter<CelebrateGoodTimes>()
-            .ActivateOnEnter<LetsPose1>()
-            .ActivateOnEnter<LetsPose2>()
+            .ActivateOnEnter<LetsPose>()
             .ActivateOnEnter<FullBeat>()
             .ActivateOnEnter<EighthBeats>()
             .ActivateOnEnter<Moonburn>()
@@ -507,17 +537,14 @@ class RM05NDancingGreenStates : StateMachineBuilder
     {
         Cast(id, AID.EnsembleAssemble, delay, 3);
         Cast(id + 0x10, AID.ArcadyNightFever, 2.2f, 4.8f)
-            .ActivateOnEnter<LetsDance>();
+            .ActivateOnEnter<LetsDance>()
+            .ActivateOnEnter<LetsPose>();
         Cast(id + 0x20, AID.LetsDance, 14.1f, 5.8f);
         ComponentCondition<LetsDance>(id + 0x30, 1.1f, c => c.NumCasts >= 1, "Dance 1");
         ComponentCondition<LetsDance>(id + 0x40, 13.7f, c => c.NumCasts >= 8, "Dance 8")
             .DeactivateOnExit<LetsDance>();
-        CastMulti(id + 0x50, [AID.LetsPose1, AID.LetsPose2], 2.2f, 5, "Raidwide")
-            .ActivateOnEnter<LetsPose1>()
-            .ActivateOnEnter<LetsPose2>()
-            .DeactivateOnExit<LetsPose1>()
-            .DeactivateOnExit<LetsPose2>()
-            .SetHint(StateMachine.StateHint.Raidwide);
+        CastMulti(id + 0x50, [AID.LetsPose1, AID.LetsPose2], 2.2f, 5, "Pose")
+            .DeactivateOnExit<LetsPose>();
     }
 
     private void Frogtourage(uint id, float delay)
@@ -540,5 +567,5 @@ class RM05NDancingGreenStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1019, NameID = 13778, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1019, NameID = 13778)]
 public class RM05NDancingGreen(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

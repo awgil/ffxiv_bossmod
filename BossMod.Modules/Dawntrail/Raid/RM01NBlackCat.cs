@@ -188,6 +188,7 @@ class Floor(BossModule module) : Components.GenericAOEs(module, AID.MouserAOE)
     }
 
     public bool Unsafe(WPos pos) => !Module.InBounds(pos) || DestroyedCells[CellIndex(pos)];
+    public bool NotIntact(WPos pos) => !Module.InBounds(pos) || DamagedCells[CellIndex(pos)] || DestroyedCells[CellIndex(pos)];
 
     public WPos CellCenter(int index) => Module.Center + new WDir(-15 + 10 * (index & 3), -15 + 10 * (index >> 2));
 
@@ -390,7 +391,7 @@ class ElevateAndEviscerate(BossModule module) : Components.Knockback(module, ign
             yield return new(Caster.Position, Distance, Activation);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.Unsafe(pos) ?? !Module.InBounds(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.NotIntact(pos) ?? !Module.InBounds(pos);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -592,6 +593,7 @@ class RM01NBlackCatStates : StateMachineBuilder
         BiscuitMaker(id + 0xC0000, 2.2f);
         LeapingOneTwoPaw(id + 0xD0000, 8.3f);
 
+        // TODO: Leaping Black Cat Crossing and Copycat (clone) were never reached in a replay
         SimpleState(id + 0xE0000, 120, "Until enrage")
             .ActivateOnEnter<BloodyScratch>()
             .ActivateOnEnter<BiscuitMaker>()
@@ -702,5 +704,5 @@ class RM01NBlackCatStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 985, NameID = 12686, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 985, NameID = 12686)]
 public class RM01NBlackCat(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
