@@ -95,7 +95,6 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         }
     }
 
-    // screenshots of this tab get shared, don't show the windows user name
     private static string HideUserFolder(DirectoryInfo? dir)
     {
         var path = dir?.FullName ?? "";
