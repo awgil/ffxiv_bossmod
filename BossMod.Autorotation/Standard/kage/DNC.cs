@@ -360,9 +360,12 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         {
             OffensiveStrategy.Force => true,
             OffensiveStrategy.Delay => false,
-            _ => targetAlive && (StandardStrat == OffensiveStrategy.Delay || !GCDReady(AID.StandardStep)) && DowntimeIn > GCD + 7
+            _ => targetAlive && (StandardStrat == OffensiveStrategy.Delay || !GCDReady(AID.StandardStep) || StandardDelaysTechnical) && DowntimeIn > GCD + 7
         };
     }
+
+    // a Standard dance takes ~5s until the next GCD, starting it closer to Technical than that drifts Technical
+    private bool StandardDelaysTechnical => Unlocked(AID.TechnicalStep) && TechnicalStrat != OffensiveStrategy.Delay && TechFinishLeft == 0 && ReadyIn(AID.TechnicalStep) < GCD + 4.5f;
 
     private bool ShouldLastDance(in Strategy strategy)
     {
@@ -389,6 +392,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (StandardStrat == OffensiveStrategy.Force)
             return true;
         if (Unlocked(AID.FinishingMove) && TechFinishLeft > GCD)
+            return false;
+        if (StandardDelaysTechnical)
             return false;
         if (DowntimeIn < GCD + 4)
             return false;
