@@ -16,7 +16,7 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
     public enum BozjaStrategy { None, WithIR, BloodRage }
     public enum FellCleaveStrategy { Automatic, Delay }
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions defs)
     {
         var res = new RotationModuleDefinition("Veyn WAR", "Standard rotation module", "Standard rotation (veyn)", "veyn", RotationModuleQuality.Good, BitMask.Build((int)Class.WAR, (int)Class.MRD), 100);
 
@@ -99,9 +99,9 @@ public sealed class VeynWAR(RotationModuleManager manager, Actor player) : Rotat
             .AddOption(BozjaStrategy.None, "Do not use any lost actions automatically")
             .AddOption(BozjaStrategy.WithIR, "Use generic buff lost actions together (right before) inner release")
             .AddOption(BozjaStrategy.BloodRage, "Optimize rotation around lost blood rage usage (delay IR, use onslaught to proc blood rage)")
-            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostFontOfPower))
-            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.BannerHonoredSacrifice))
-            .AddAssociatedAction(BozjaActionID.GetNormal(BozjaHolsterID.LostBloodRage));
+            .AddAssociatedAction(defs.BozjaActions.GetNormal(BozjaHolsterID.LostFontOfPower))
+            .AddAssociatedAction(defs.BozjaActions.GetNormal(BozjaHolsterID.BannerHonoredSacrifice))
+            .AddAssociatedAction(defs.BozjaActions.GetNormal(BozjaHolsterID.LostBloodRage));
 
         res.Define(Track.FellCleave).As<FellCleaveStrategy>("FC", "Fell Cleave", uiPriority: 65)
             .AddOption(FellCleaveStrategy.Automatic, "Use during burst or to prevent overcap")

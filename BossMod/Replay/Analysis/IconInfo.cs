@@ -16,14 +16,13 @@ class IconInfo : CommonEnumInfo
     private readonly Type? _iidType;
     private readonly Dictionary<uint, IconData> _data = [];
 
-    public IconInfo(List<Replay> replays, uint oid)
+    public IconInfo(List<Replay> replays, BossModuleRegistry.Info info)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
-        _oidType = moduleInfo?.ObjectIDType;
-        _iidType = moduleInfo?.IconIDType;
+        _oidType = info.ObjectIDType;
+        _iidType = info.IconIDType;
         foreach (var replay in replays)
         {
-            foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
+            foreach (var enc in replay.Encounters.Where(enc => enc.OID == info.PrimaryActorOID))
             {
                 foreach (var icon in replay.EncounterIcons(enc))
                 {

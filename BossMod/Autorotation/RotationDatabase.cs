@@ -11,24 +11,6 @@ public sealed class RotationDatabase(PresetDatabase presets, PlanDatabase plans,
         plans.Load();
     }));
 
-    /*
-    public RotationDatabase(DirectoryInfo rootPath, FileInfo defaultPresets, PackLoader loader)
-    {
-        if (!rootPath.Exists)
-            rootPath.Create();
-        Presets = new(rootPath.FullName + "/presets", defaultPresets);
-        Plans = new(rootPath.FullName + "/plans");
-
-        _subscriptions = new(
-            loader.Modified.Subscribe(() =>
-            {
-                Presets.Load();
-                Plans.Load();
-            })
-        );
-    }
-    */
-
     public void Dispose()
     {
         _subscriptions.Dispose();

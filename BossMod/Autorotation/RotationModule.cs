@@ -205,6 +205,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public readonly Actor Player = player;
     public BossModuleManager Bossmods => Manager.Bossmods;
     public WorldState World => Manager.Bossmods.WorldState;
+    public BozjaActionID BozjaActionID => Manager.ActionDefinitions.BozjaActions;
     public AIHints Hints => Manager.Hints;
 
     // the main entry point of the module - given a set of strategy values, fill the queue with a set of actions to execute

@@ -10,9 +10,9 @@ sealed class IpcProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IpcProvider(RotationModuleManager autorotation, ObstacleMapManager obstacles)
+    public IpcProvider(BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles)
     {
-        Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
+        Register("HasModuleByDataId", (uint dataId) => bmr.FindByOID(dataId) != null);
         // 'save' argument is deprecated
         Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args)));
 
@@ -142,7 +142,7 @@ sealed class IpcProvider : IDisposable
 
         bool addTransientStrategy(string presetName, string moduleTypeName, string trackName, string value, StrategyTarget target = StrategyTarget.Automatic, int targetParam = 0)
         {
-            if (!RotationModuleRegistry.Modules.TryGetValue(moduleTypeName, out var md))
+            if (!rmr.Modules.TryGetValue(moduleTypeName, out var md))
                 return false;
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
@@ -184,7 +184,7 @@ sealed class IpcProvider : IDisposable
 
         Register("Presets.ClearTransientStrategy", (string presetName, string moduleTypeName, string trackName) =>
         {
-            if (!RotationModuleRegistry.Modules.TryGetValue(moduleTypeName, out var md))
+            if (!rmr.Modules.TryGetValue(moduleTypeName, out var md))
                 return false;
             var iTrack = md.Definition.Configs.FindIndex(td => td.InternalName == trackName);
             if (iTrack < 0)
@@ -200,7 +200,7 @@ sealed class IpcProvider : IDisposable
         });
         Register("Presets.ClearTransientModuleStrategies", (string presetName, string moduleTypeName) =>
         {
-            if (!RotationModuleRegistry.Modules.TryGetValue(moduleTypeName, out var md))
+            if (!rmr.Modules.TryGetValue(moduleTypeName, out var md))
                 return false;
             var ms = autorotation.Database.Presets.FindPresetByName(presetName)?.Modules.Find(m => m.Type == md.ModuleType);
             if (ms == null)

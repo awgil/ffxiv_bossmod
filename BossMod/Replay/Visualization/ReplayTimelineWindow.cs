@@ -1,11 +1,12 @@
 ﻿using BossMod.Autorotation;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.ReplayVisualization;
 
 class ReplayTimelineWindow : UIWindow
 {
+    private readonly BossModuleRegistry bossModuleRegistry;
     private readonly Replay.Encounter _encounter;
     private readonly ReplayDetailsWindow _timelineSync;
     private readonly StateMachineTree _stateTree;
@@ -17,19 +18,20 @@ class ReplayTimelineWindow : UIWindow
     private readonly ColumnPlayersDetails _colPlayers;
     private readonly UITree _configTree = new();
 
-    public ReplayTimelineWindow(Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
+    public ReplayTimelineWindow(BossModuleRegistry bossModuleRegistry, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
     {
+        this.bossModuleRegistry = bossModuleRegistry;
         _encounter = enc;
         _timelineSync = timelineSync;
         (_stateTree, _phaseBranches) = BuildStateData(enc);
         _timeline.MinTime = -30;
         _timeline.MaxTime = _stateTree.TotalMaxTime;
 
-        _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(_timeline, _stateTree, _phaseBranches, replay, enc));
+        _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc));
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
         _timeline.Columns.Add(new ColumnSeparator(_timeline));
-        _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(_timeline, _stateTree, _phaseBranches, replay, enc));
-        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(_timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
+        _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc));
+        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
     }
 
     public override void PreOpenCheck() => RespectCloseHotkey = !_colPlayers.AnyPlanModified;
@@ -71,7 +73,7 @@ class ReplayTimelineWindow : UIWindow
     private (StateMachineTree, List<int>) BuildStateData(Replay.Encounter enc)
     {
         // build state tree with expected timings
-        var m = BossModuleRegistry.CreateModuleForTimeline(enc.OID) ?? throw new ArgumentException($"Encounter module not available");
+        var m = bossModuleRegistry.CreateModuleForTimeline(enc.OID) ?? throw new ArgumentException($"Encounter module not available");
         Dictionary<uint, (StateMachine.State state, StateMachine.State? pred)> stateLookup = [];
         foreach (var p in m.StateMachine.Phases)
             GatherStates(stateLookup, p.InitialState, null);

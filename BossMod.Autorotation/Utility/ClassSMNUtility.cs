@@ -7,10 +7,10 @@ public sealed class ClassSMNUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(SMN.AID.Teraflare);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions adefs)
     {
         var res = new RotationModuleDefinition("Utility: SMN", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "Akechi", RotationModuleQuality.Good, BitMask.Build((int)Class.SMN), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(res, adefs, IDLimitBreak3);
 
         res.Define(Track.RadiantAegis).As<AegisStrategy>("Radiant Aegis", "Aegis", 20)
             .AddOption(AegisStrategy.None, "No use")

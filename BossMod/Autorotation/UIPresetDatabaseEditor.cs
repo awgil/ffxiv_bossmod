@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -175,7 +175,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
 
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(PresetDB, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(PresetDB, rmr, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
@@ -213,7 +213,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
     {
         _selectedPresetIndex = -1;
         _selectedPresetDefault = false;
-        _selectedPreset = new(PresetDB, referenceIndex, referenceDefault, _selectedModuleType);
+        _selectedPreset = new(PresetDB, rmr, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }
@@ -287,7 +287,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
             var preset = JsonSerializer.Deserialize<Preset>(json.AsArray()[0], Serialization.BuildSerializationOptions())!;
             _selectedPresetIndex = -1;
             _selectedPresetDefault = false;
-            _selectedPreset = new(PresetDB, preset, _selectedModuleType);
+            _selectedPreset = new(PresetDB, rmr, preset, _selectedModuleType);
         }
         catch (Exception ex)
         {

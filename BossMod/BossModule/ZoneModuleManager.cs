@@ -3,17 +3,18 @@
 public sealed class ZoneModuleManager : IDisposable
 {
     public readonly WorldState WorldState;
-    public readonly ZoneModuleConfig Config = Service.Config.Get<ZoneModuleConfig>();
-    private readonly EventSubscriptions _subsciptions;
+    public readonly ZoneModuleConfig Config;
+    private readonly EventSubscriptions _subscriptions;
 
     public ZoneModule? ActiveModule;
     public Event<ZoneModule> ModuleLoaded = new();
     public Event<ZoneModule> ModuleUnloaded = new();
 
-    public ZoneModuleManager(WorldState ws)
+    public ZoneModuleManager(WorldState ws, ZoneModuleConfig config)
     {
+        Config = config;
         WorldState = ws;
-        _subsciptions = new
+        _subscriptions = new
         (
             WorldState.CurrentZoneChanged.Subscribe(op => OnZoneChanged(op.CFCID))
         );
@@ -22,7 +23,7 @@ public sealed class ZoneModuleManager : IDisposable
 
     public void Dispose()
     {
-        _subsciptions.Dispose();
+        _subscriptions.Dispose();
         ActiveModule?.Dispose();
     }
 

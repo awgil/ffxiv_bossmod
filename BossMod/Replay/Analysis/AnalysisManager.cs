@@ -64,19 +64,19 @@ public sealed class AnalysisManager : IDisposable
         private readonly Lazy<ArenaBounds> _arenaBounds;
         private readonly List<(string, Lazy<CustomAnalyzer>)> _customAnalyzers = [];
 
-        public PerEncounter(List<Replay> replays, uint oid)
+        public PerEncounter(List<Replay> replays, BossModuleRegistry.Info info)
         {
-            _transitionTimings = new(() => new(replays, oid));
-            _participantInfo = new(() => new(replays, oid));
-            _abilityInfo = new(() => new(replays, oid));
-            _statusInfo = new(() => new(replays, oid));
-            _iconInfo = new(() => new(replays, oid));
-            _tetherInfo = new(() => new(replays, oid));
-            _mapEffectInfo = new(() => new(replays, oid));
-            _directorInfo = new(() => new(replays, oid));
-            _arenaBounds = new(() => new(replays, oid));
-            if (AnalyzerRegistry.ByID(oid) is { } info)
-                _customAnalyzers.Add((info.Label, new(() => info.Factory(replays, oid))));
+            _transitionTimings = new(() => new(replays, info.PrimaryActorOID));
+            _participantInfo = new(() => new(replays, info));
+            _abilityInfo = new(() => new(replays, info));
+            _statusInfo = new(() => new(replays, info));
+            _iconInfo = new(() => new(replays, info));
+            _tetherInfo = new(() => new(replays, info));
+            _mapEffectInfo = new(() => new(replays, info));
+            _directorInfo = new(() => new(replays, info));
+            _arenaBounds = new(() => new(replays, info.PrimaryActorOID));
+            if (AnalyzerRegistry.ByID(info.PrimaryActorOID) is { } ana)
+                _customAnalyzers.Add((ana.Label, new(() => ana.Factory(replays, info.PrimaryActorOID))));
         }
 
         public void Draw(UITree tree)
@@ -115,13 +115,15 @@ public sealed class AnalysisManager : IDisposable
     }
 
     private readonly List<Replay> _replays;
+    private readonly BossModuleRegistry registry;
     private readonly Global _global;
     private readonly Dictionary<uint, PerEncounter> _perEncounter = []; // key = encounter OID
     private readonly UITree _tree = new();
 
-    public AnalysisManager(List<Replay> replays)
+    public AnalysisManager(List<Replay> replays, BossModuleRegistry registry)
     {
         _replays = replays;
+        this.registry = registry;
         _global = new(_replays);
         InitEncounters();
     }
@@ -137,7 +139,7 @@ public sealed class AnalysisManager : IDisposable
         {
             _global.Draw(_tree);
         }
-        foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({BossModuleRegistry.FindByOID(kv.Key)?.ModuleType.Name})")))
+        foreach (var n in _tree.Nodes(_perEncounter, kv => new($"Encounter analysis for {kv.Key:X} ({registry.FindByOID(kv.Key)?.ModuleType.Name})")))
         {
             n.Value.Draw(_tree);
         }
@@ -148,6 +150,6 @@ public sealed class AnalysisManager : IDisposable
         foreach (var replay in _replays)
             foreach (var e in replay.Encounters)
                 if (!_perEncounter.ContainsKey(e.OID))
-                    _perEncounter[e.OID] = new(_replays, e.OID);
+                    _perEncounter[e.OID] = new(_replays, registry.FindByOID(e.OID));
     }
 }

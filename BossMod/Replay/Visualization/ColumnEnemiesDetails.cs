@@ -11,15 +11,17 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
         public List<(Replay.Participant, ColumnEnemyDetails?)> Columns = [];
     }
 
+    private readonly BossModuleRegistry bossModuleRegistry;
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
     private readonly Replay _replay;
     private readonly Replay.Encounter _encounter;
     private readonly List<PerOID> _data = [];
 
-    public ColumnEnemiesDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
+    public ColumnEnemiesDetails(BossModuleRegistry bossModuleRegistry, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc)
         : base(timeline)
     {
+        this.bossModuleRegistry = bossModuleRegistry;
         _tree = tree;
         _phaseBranches = phaseBranches;
         _replay = replay;
@@ -36,7 +38,7 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
 
     public void DrawConfig(UITree tree)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(_encounter.OID);
+        var moduleInfo = bossModuleRegistry.FindByOID(_encounter.OID);
         foreach (var n in tree.Nodes(_data, d => new($"{d.OID:X} ({moduleInfo?.ObjectIDType?.GetEnumName(d.OID)})")))
         {
             for (var i = 0; i < n.Columns.Count; i++)
@@ -45,7 +47,7 @@ public class ColumnEnemiesDetails : Timeline.ColumnGroup
                 if (c != null)
                     c.DrawConfig(tree);
                 else if (ImGui.Button($"Show details for {ReplayUtils.ParticipantString(p, p.WorldExistence.FirstOrDefault().Start)}"))
-                    n.Columns[i] = (p, Add(new ColumnEnemyDetails(Timeline, _tree, _phaseBranches, _replay, _encounter, p)));
+                    n.Columns[i] = (p, Add(new ColumnEnemyDetails(bossModuleRegistry, Timeline, _tree, _phaseBranches, _replay, _encounter, p)));
             }
         }
     }

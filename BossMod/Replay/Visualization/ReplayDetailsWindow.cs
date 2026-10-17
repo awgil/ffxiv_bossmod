@@ -1,4 +1,5 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac;
+using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -9,13 +10,15 @@ namespace BossMod.ReplayVisualization;
 
 class ReplayDetailsWindow : UIWindow
 {
-    private readonly ReplayPlayer _player;
-    private readonly RotationDatabase _rotationDB;
-    private readonly AIHints _hints = new();
-    private BossModuleManager _mgr;
-    private ZoneModuleManager _zmm;
-    private AIHintsBuilder _hintsBuilder;
-    private RotationModuleManager _rmm;
+    private ReplayPlayer _player;
+    private readonly ILifetimeScope _parentScope;
+    private ILifetimeScope _playerScope;
+    private RotationDatabase _rotationDB => _player.RotationDB;
+    private AIHints _hints => _player.Hints;
+    private BossModuleManager _mgr => _player.Bmm;
+    private ZoneModuleManager _zmm => _player.Zmm;
+    private AIHintsBuilder _hintsBuilder => _player.HintsBuilder;
+    private RotationModuleManager _rmm => _player.Rmm;
     private readonly DateTime _first;
     private readonly DateTime _last;
     private DateTime _curTime; // note that is could fall between frames
@@ -44,22 +47,18 @@ class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, RotationDatabase rotationDB, DateTime? initialTime) : base($"Replay: {data.Path}", false, default)
+    public ReplayDetailsWindow(Replay data, DateTime? initialTime, ILifetimeScope scope) : base($"Replay: {data.Path}", false, default)
     {
         Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
-        _player = new(data);
-        _rotationDB = rotationDB;
-        _mgr = null!; // new(_player.WorldState);
-        _zmm = new(_player.WorldState);
-        _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
-        _rmm = new(rotationDB, _mgr, _hints);
+        _parentScope = scope;
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
+        (_playerScope, _player) = ReplayPlayer.CreateOwned(data, _parentScope);
         _player.AdvanceTo(_curTime, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState, null, null);
-        _events = new(data, MoveTo, rotationDB.Plans, this);
-        _analysis = new([data]);
+        _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), null, null);
+        _events = new(scope.Resolve<BossModuleRegistry>(), data, MoveTo, _rotationDB.Plans, this);
+        _analysis = new([data], scope.Resolve<BossModuleRegistry>());
     }
 
     protected override void Dispose(bool disposing)
@@ -198,7 +197,7 @@ class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_player.Replay, enc, BitMask.Build(_povSlot), _rotationDB.Plans, this);
+                        _ = new ReplayTimelineWindow(_parentScope.Resolve<BossModuleRegistry>(), _player.Replay, enc, BitMask.Build(_povSlot), _rotationDB.Plans, this);
                     }
                 }
             }
@@ -500,7 +499,7 @@ class ReplayDetailsWindow : UIWindow
 
     private void DrawEnemyTable(uint oid, List<Actor> actors)
     {
-        var moduleInfo = _mgr.ActiveModule != null ? BossModuleRegistry.FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
+        var moduleInfo = _mgr.ActiveModule != null ? _parentScope.Resolve<BossModuleRegistry>().FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
         var oidName = moduleInfo?.ObjectIDType?.GetEnumName(oid);
         if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
             return;
@@ -574,15 +573,8 @@ class ReplayDetailsWindow : UIWindow
     {
         if (t < _player.WorldState.CurrentTime)
         {
-            _rmm.Dispose();
-            _hintsBuilder.Dispose();
-            _zmm.Dispose();
-            _mgr.Dispose();
-            _player.Reset();
-            _mgr = null!; // new(_player.WorldState);
-            _zmm = new(_player.WorldState);
-            _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
-            _rmm = new(_rotationDB, _mgr, _hints);
+            _playerScope.Dispose();
+            (_playerScope, _player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
         }
         _player.AdvanceTo(t, _mgr.Update);
         _mgr.ActiveModule?.DebugOpts = _moduleDebug;
@@ -620,7 +612,8 @@ class ReplayDetailsWindow : UIWindow
         if (_player.Replay.Ops.Count == 0)
             return;
 
-        var player = new ReplayPlayer(_player.Replay);
+        var (tmpScope, player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
+        using var _ = tmpScope;
         player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp; // so that we get correct name etc.
         using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, false, new FileInfo(_player.Replay.Path).Directory!, "Before", false))
             player.AdvanceTo(_curTime, () => { });
@@ -639,7 +632,8 @@ class ReplayDetailsWindow : UIWindow
 
         var primaryActorName = enc.ParticipantsByOID.TryGetValue(enc.OID, out var primary) ? primary[0].NameAt(enc.Time.Start).name : null;
 
-        var player = new ReplayPlayer(_player.Replay);
+        var (tmpScope, player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
+        using var _ = tmpScope;
         player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp;
         player.AdvanceTo(enc.Time.Start, () => { });
         using var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, $"Encounter_{Utils.StringToIdentifier(primaryActorName ?? "unknown")}", false);

@@ -1,4 +1,7 @@
-﻿namespace BossMod;
+﻿using Dalamud.Plugin.Services;
+using Lumina.Excel;
+
+namespace BossMod;
 
 // allowed categories of targets for an action
 [Flags]
@@ -155,10 +158,10 @@ public sealed record class ActionDefinition(ActionID ID)
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
 public sealed class ActionDefinitions
 {
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet;
+    private readonly ExcelSheet<RawRow> _cjcSheet;
+    private readonly ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet;
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
@@ -166,6 +169,8 @@ public sealed class ActionDefinitions
     public ActionDefinition? Spell<AID>(AID aid) where AID : Enum => _definitions.GetValueOrDefault(ActionID.MakeSpell(aid));
 
     public readonly HashSet<uint> SupportedItems = [];
+
+    public readonly BozjaActionID BozjaActions;
 
     public const int GCDGroup = 57;
     public const int PotionCDGroup = 58;
@@ -211,8 +216,14 @@ public sealed class ActionDefinitions
 
     public Func<uint, bool>? UnlockCheck;
 
-    public ActionDefinitions(IEnumerable<Defs> definitions)
+    public ActionDefinitions(IEnumerable<Defs> definitions, IDataManager dataManager, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet, ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet, BozjaActionID bozjaID)
     {
+        _actionsSheet = actionsSheet;
+        _itemsSheet = itemsSheet;
+        _cjcSheet = dataManager.Excel.GetSheet<RawRow>(null, "ClassJobCategory")!;
+        _traitSheet = traitSheet;
+        BozjaActions = bozjaID;
+
         foreach (var d in definitions)
             d.Define(this);
 
@@ -486,8 +497,8 @@ public sealed class ActionDefinitions
 
     private void RegisterBozja(BozjaHolsterID id)
     {
-        var normalAction = BozjaActionID.GetNormal(id);
-        var isItem = normalAction == BozjaActionID.GetHolster(id);
+        var normalAction = BozjaActions.GetNormal(id);
+        var isItem = normalAction == BozjaActions.GetHolster(id);
         RegisterSpell(normalAction, instantAnimLock: isItem ? 1.1f : 0.6f);
         if (!isItem)
         {

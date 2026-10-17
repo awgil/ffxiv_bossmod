@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod;
 
 // custom action queue
 // the idea is to allow multiple providers (manual input, autorotation, boss modules, etc.) to gather prioritized list of actions
@@ -6,9 +8,9 @@
 // - select highest priority action
 // - if it is still on cooldown, look for the next-best action that can fit without delaying previously selected action
 // - repeat the process until no more actions can be found
-public sealed class ActionQueue
+public sealed class ActionQueue(ActionTweaksConfig config, ActionDefinitions defs, IPluginLog pluginLog)
 {
-    private readonly ActionTweaksConfig _config = new(); // Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _config = config;
 
     public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle, bool Manual, bool Force);
 
@@ -52,10 +54,10 @@ public sealed class ActionQueue
             if (candidate.Priority < Priority.Minimal)
                 break; // this and further actions are something we don't really want to execute (prio < minimal)
 
-            var def = ActionDefinitions.Instance[candidate.Action];
+            var def = defs[candidate.Action];
             if (def == null)
             {
-                Service.Log($"[ActionQueue] unregistered action {candidate.Action} queued and will be discarded, this is a bug");
+                pluginLog.Warning($"[ActionQueue] unregistered action {candidate.Action} queued and will be discarded, this is a bug");
                 continue;
             }
             if (!def.IsUnlocked(ws, player))
@@ -88,7 +90,7 @@ public sealed class ActionQueue
         }
 
         // double check that best candidate can be executed before we return it; it may have been promoted to best if a better action was interrupted for example
-        if (CanExecute(best, ActionDefinitions.Instance[best.Action], ws, player, hints, allowDismount))
+        if (CanExecute(best, defs[best.Action], ws, player, hints, allowDismount))
             return best;
 
         return default;

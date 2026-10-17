@@ -11,6 +11,7 @@ namespace BossMod;
 public class CooldownPlannerColumns : Timeline.ColumnGroup
 {
     public bool Modified;
+    private readonly BossModuleRegistry bossModuleRegistry;
     public Plan Plan; // note: this is a copy of the plan stored in database
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
@@ -24,9 +25,10 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     public Class PlanClass => Plan.Class;
 
-    public CooldownPlannerColumns(Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
+    public CooldownPlannerColumns(BossModuleRegistry bossModuleRegistry, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
         : base(timeline)
     {
+        this.bossModuleRegistry = bossModuleRegistry;
         Plan = plan;
         _tree = tree;
         _phaseBranches = phaseBranches;
@@ -34,7 +36,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         _playerActions = playerActions;
         _encStart = encStart;
 
-        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, BossModuleRegistry.FindByType(plan.Encounter)));
+        _colTarget = Add(new ColumnPlannerTrackTarget(timeline, tree, phaseBranches, bossModuleRegistry.FindByType(plan.Encounter)));
         _colTarget.Width = _trackWidth;
         _colTarget.NotifyModified = OnModifiedTargets;
 
@@ -94,6 +96,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     }
                 }
                 ImGui.Separator();
+                /* FIXME
                 foreach (var m in RotationModuleRegistry.Modules.Values.Where(m => (m.Definition.RelatedBossModule == null || m.Definition.RelatedBossModule == Plan.Encounter) && m.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.ModuleType)))
                 {
                     var added = false;
@@ -109,6 +112,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                         }
                     }
                 }
+                */
                 post?.Invoke();
             }
         }
@@ -266,7 +270,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     private void AddStrategyColumns(int index)
     {
-        var moduleInfo = BossModuleRegistry.FindByType(Plan.Encounter);
+        var moduleInfo = bossModuleRegistry.FindByType(Plan.Encounter);
         var insertionPoint = FindInsertionPoint(index);
         List<ColumnPlannerTrackStrategy> cols = [];
         _colsStrategy.Insert(index, cols);

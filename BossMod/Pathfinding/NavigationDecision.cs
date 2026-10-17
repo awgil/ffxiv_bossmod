@@ -65,17 +65,7 @@ public struct NavigationDecision
 
     public static Task<NavigationDecision> BuildAsync(Context ctx, DateTime currentTime, AIHints hints, WPos playerPos, float playerSpeed, float rtt, float spaceCushion)
     {
-        var hintsCopy = new AIHints()
-        {
-            PathfindMapBounds = hints.PathfindMapBounds,
-            PathfindMapCenter = hints.PathfindMapCenter,
-            PathfindMapObstacles = hints.PathfindMapObstacles,
-            TemporaryObstacles = [.. hints.TemporaryObstacles],
-            Portals = [.. hints.Portals],
-            ForbiddenZones = [.. hints.ForbiddenZones],
-            GoalZones = [.. hints.GoalZones],
-            GoalZonesEnabled = hints.GoalZonesEnabled
-        };
+        var hintsCopy = hints.Clone();
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, rtt, spaceCushion));
     }
 

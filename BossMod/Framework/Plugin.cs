@@ -6,6 +6,8 @@ using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Lumina;
+using Lumina.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Reflection;
@@ -40,20 +42,27 @@ public class Plugin : HostedPlugin
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
-        containerBuilder.RegisterSingletonSelf<PackLoader>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PackLoader>();
 
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PlanDatabase>().WithAttributeFiltering();
+
+        containerBuilder.RegisterSingletonSelf<RotationModuleRegistry>();
+        containerBuilder.RegisterSingletonSelf<RotationDatabase>();
+        containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
+
+        containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
         containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
+
+        containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
 
         containerBuilder.Register((ctx) =>
         {
-            var dalamud = ctx.Resolve<IDalamudPluginInterface>();
-            var root = new ConfigRoot(dalamud.ConfigFile);
+            var root = new ConfigRoot(ctx.Resolve<IDalamudPluginInterface>().ConfigFile, ctx.Resolve<BossModuleRegistry>());
             root.PreviousAssemblyVersion = root.AssemblyVersion;
             root.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
 
-            root.Reload([], [Assembly.GetExecutingAssembly()]);
-
-            //Service.Config = root;
+            Service.Config = root;
 
             return root;
         }).SingleInstance();
@@ -68,12 +77,15 @@ public class Plugin : HostedPlugin
         }
 
         containerBuilder.RegisterType<ActionQueue>();
+
+        containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
+
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(Defs))).SingleInstance();
 
-        containerBuilder.RegisterSingletonSelf<PresetDatabase>().WithAttributeFiltering();
-        containerBuilder.RegisterSingletonSelf<PlanDatabase>().WithAttributeFiltering();
-        containerBuilder.RegisterSingletonSelf<RotationDatabase>();
         containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
+
+        containerBuilder.RegisterType<ReplayPlayer>();
 
         var autorotRoot = Path.Join(GetStorageDir(), "autorot");
 
@@ -86,7 +98,24 @@ public class Plugin : HostedPlugin
         containerBuilder.Register(ctx => new FileInfo(Path.Join(autorotRoot, "plans.manifest.json")))
             .Keyed<FileInfo>(Keys.PlanManifest);
 
+        containerBuilder.RegisterGeneric((ctx, prms) =>
+        {
+            var gd = ctx.Resolve<IDataManager>().GameData;
+            var method = typeof(GameData).GetMethod(nameof(GameData.GetExcelSheet))?.MakeGenericMethod(prms);
+            return method!.Invoke(gd, [null, null])!;
+        }).As(typeof(ExcelSheet<>));
+
+        containerBuilder.RegisterSingletonSelf<BozjaActionID>();
+
         ConfigureExtra(containerBuilder);
+
+        containerBuilder.RegisterBuildCallback(scope =>
+        {
+            var self = Assembly.GetExecutingAssembly();
+            scope.Resolve<ConfigRoot>().Reload([], [self]);
+            scope.Resolve<BossModuleRegistry>().Reload([], [self]);
+            scope.Resolve<RotationModuleRegistry>().Reload([], [self]);
+        });
     }
 
     public override void ConfigureServices(IServiceCollection serviceCollection) { }

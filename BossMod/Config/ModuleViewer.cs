@@ -20,6 +20,7 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
+    private readonly BossModuleRegistry bossModuleRegistry;
     private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
 
     private BitMask _filterExpansions;
@@ -36,10 +37,11 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws, BossModuleRegistry bossModuleRegistry)
     {
         _planDB = planDB;
         _ws = ws;
+        this.bossModuleRegistry = bossModuleRegistry;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
@@ -88,7 +90,7 @@ public sealed class ModuleViewer : IDisposable
         _groups = new List<ModuleGroup>[(int)BossModuleInfo.Expansion.Count, (int)BossModuleInfo.Category.Count];
 
         _subscriptions = new(
-            BossModuleRegistry.Modified.ExecuteAndSubscribe(Rebuild)
+            bossModuleRegistry.Modified.ExecuteAndSubscribe(Rebuild)
         );
     }
 
@@ -98,7 +100,7 @@ public sealed class ModuleViewer : IDisposable
             for (var j = 0; j < (int)BossModuleInfo.Category.Count; ++j)
                 _groups[i, j] = [];
 
-        foreach (var info in BossModuleRegistry.RegisteredModules.Values)
+        foreach (var info in bossModuleRegistry.RegisteredModules.Values)
         {
             var groups = _groups[(int)info.Expansion, (int)info.Category];
             var (groupInfo, moduleInfo) = Classify(info);

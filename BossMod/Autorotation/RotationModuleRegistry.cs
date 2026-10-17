@@ -3,24 +3,27 @@
 namespace BossMod.Autorotation;
 
 // database containing all registered rotation module definitions and builder functions
-public static class RotationModuleRegistry
+public class RotationModuleRegistry(ActionDefinitions actionDefinitions)
 {
-    public static readonly Event Modified = new();
+    public readonly Event Modified = new();
 
     public readonly record struct Entry(Type ModuleType, RotationModuleDefinition Definition, Func<RotationModuleManager, Actor, RotationModule> Builder);
 
-    public static IReadOnlyDictionary<string, Entry> Modules => _modules;
+    public IReadOnlyDictionary<string, Entry> Modules => _modules;
 
-    private static readonly Dictionary<string, Entry> _modules = [];
+    private readonly Dictionary<string, Entry> _modules = [];
 
-    private static bool ScanAssembly(Assembly assembly)
+    private bool ScanAssembly(Assembly assembly)
     {
         var modified = false;
 
         foreach (var t in Utils.GetDerivedTypes<RotationModule>(assembly).Where(t => !t.IsAbstract))
         {
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
-            var def = defMethod?.Invoke(null, null) as RotationModuleDefinition;
+            object?[] args = [];
+            if (defMethod?.GetParameters().Length == 1)
+                args = [actionDefinitions];
+            var def = defMethod?.Invoke(null, args) as RotationModuleDefinition;
             if (def == null)
             {
                 Service.Log($"Rotation module {t.FullName} does not register itself properly: it should have a static Definition() method that returns a valid RotationModuleDefinition object");
@@ -34,7 +37,7 @@ public static class RotationModuleRegistry
         return modified;
     }
 
-    private static bool UnloadFrom(Assembly assembly)
+    private bool UnloadFrom(Assembly assembly)
     {
         var modified = false;
 
@@ -44,7 +47,7 @@ public static class RotationModuleRegistry
         return modified;
     }
 
-    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
     {
         var modified = false;
 

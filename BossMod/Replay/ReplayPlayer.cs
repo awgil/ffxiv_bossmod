@@ -1,11 +1,21 @@
-﻿namespace BossMod;
+﻿using Autofac;
+using BossMod.Autorotation;
+
+namespace BossMod;
 
 // utility for applying replay operations to world state, accurate scrolling, etc.
-public class ReplayPlayer(Replay r)
+public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, RotationModuleManager rmm, BossModuleManager bmm, ZoneModuleManager zmm, AIHintsBuilder hintsBuilder, AIHints hints)
 {
     public Replay Replay = r;
-    public WorldState WorldState = new(r.QPF, r.GameVersion);
     private int _nextOp; // first unexecuted operation; note that it corresponds to first operation with timestamp > that worldstate's current
+
+    public WorldState WorldState { get; private set; } = ws;
+    public RotationDatabase RotationDB { get; } = rotationDB;
+    public RotationModuleManager Rmm { get; } = rmm;
+    public BossModuleManager Bmm { get; } = bmm;
+    public ZoneModuleManager Zmm { get; } = zmm;
+    public AIHintsBuilder HintsBuilder { get; } = hintsBuilder;
+    public AIHints Hints { get; } = hints;
 
     // reset to empty state; note that world state is recreated
     public void Reset()
@@ -46,5 +56,16 @@ public class ReplayPlayer(Replay r)
             if (Replay.Ops[i].Timestamp < curr)
                 return Replay.Ops[i].Timestamp;
         return default;
+    }
+
+    public static (ILifetimeScope Scope, ReplayPlayer Player) CreateOwned(Replay data, ILifetimeScope parent)
+    {
+        var scope = parent.BeginLifetimeScope(ctx =>
+        {
+            ctx.Register(_ => data).SingleInstance();
+            ctx.Register(_ => new WorldState(data.QPF, data.GameVersion)).SingleInstance();
+            ctx.RegisterType<ReplayPlayer>();
+        });
+        return (scope, scope.Resolve<ReplayPlayer>());
     }
 }

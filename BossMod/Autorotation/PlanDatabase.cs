@@ -27,14 +27,17 @@ public sealed class PlanDatabase : IHostedService
 
     private readonly Queue<string> _pendingFiles = [];
 
+    public BossModuleRegistry BossModuleRegistry { get; }
+
     public PlanDatabase(
         [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
-        [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore
+        [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
+        BossModuleRegistry bossModuleRegistry
     )
     {
         _manifestPath = manifestPath;
         _planStore = planStore;
-
+        BossModuleRegistry = bossModuleRegistry;
         _watcher = new(planStore.FullName, filter: "*.json", includeSubdirectories: true);
         _subscriptions = new(
             _watcher.Changed.Subscribe(OnPlanFileChanged),

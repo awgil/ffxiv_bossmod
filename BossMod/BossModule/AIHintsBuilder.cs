@@ -9,8 +9,8 @@ public sealed class AIHintsBuilder : IDisposable
     public const float RaidwideSize = 30;
     public const float MaxError = 2000f / 65535f; // TODO: this should really be handled by the rasterization itself...
 
-    private readonly SmartRotationConfig _gazeConfig = Service.Config.Get<SmartRotationConfig>();
-    private readonly AIHintsConfig _hintConfig = Service.Config.Get<AIHintsConfig>();
+    private readonly SmartRotationConfig _gazeConfig;
+    private readonly AIHintsConfig _hintConfig;
 
     public readonly Pathfinding.ObstacleMapManager Obstacles;
     private readonly WorldState _ws;
@@ -61,11 +61,13 @@ public sealed class AIHintsBuilder : IDisposable
         4175
     ];
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, SmartRotationConfig smartRotationConfig, AIHintsConfig hintsConfig)
     {
         _ws = ws;
         _bmm = bmm;
         _zmm = zmm;
+        _gazeConfig = smartRotationConfig;
+        _hintConfig = hintsConfig;
         Obstacles = new(ws);
         _subscriptions = new
         (

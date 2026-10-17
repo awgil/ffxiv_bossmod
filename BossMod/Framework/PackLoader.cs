@@ -50,10 +50,14 @@ public sealed class PackLoader : IHostedService
     // fired after all the registries have processed a file change event
     public readonly Event Modified = new();
     private readonly ConfigRoot configRoot;
+    private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly RotationModuleRegistry rotationModuleRegistry;
 
-    public PackLoader(IDalamudPluginInterface dalamud, ConfigRoot configRoot)
+    public PackLoader(IDalamudPluginInterface dalamud, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry)
     {
         this.configRoot = configRoot;
+        this.bossModuleRegistry = bossModuleRegistry;
+        this.rotationModuleRegistry = rotationModuleRegistry;
         ModuleDir = Path.Join(Plugin.GetStorageDir(), dalamud.IsDev ? "modules-dev" : "modules");
 
         _modified = new(
@@ -117,8 +121,8 @@ public sealed class PackLoader : IHostedService
         }
 
         configRoot.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        BossModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        RotationModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
+        bossModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
+        rotationModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
         ZoneModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
         AnalyzerRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
 
@@ -135,8 +139,8 @@ public sealed class PackLoader : IHostedService
         if (_loadContexts.Remove(fullPath, out var ctx))
         {
             configRoot.Reload(ctx.Assemblies, []);
-            BossModuleRegistry.Reload(ctx.Assemblies, []);
-            RotationModuleRegistry.Reload(ctx.Assemblies, []);
+            bossModuleRegistry.Reload(ctx.Assemblies, []);
+            rotationModuleRegistry.Reload(ctx.Assemblies, []);
             ZoneModuleRegistry.Reload(ctx.Assemblies, []);
             AnalyzerRegistry.Reload(ctx.Assemblies, []);
 

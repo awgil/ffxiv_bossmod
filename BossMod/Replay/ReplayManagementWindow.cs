@@ -1,4 +1,4 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -33,12 +33,12 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, BossModuleManager bmm, RotationDatabase rotationDB, DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, BossModuleRegistry registry, BossModuleManager bmm, DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
     {
         _ws = ws;
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
-        _manager = new(rotationDB, logDir.FullName);
+        _manager = new(registry, logDir.FullName, scope);
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),

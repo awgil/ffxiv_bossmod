@@ -139,8 +139,9 @@ class ClassDefinitions
         }
 
         // mark bozja holster actions
-        for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
-            _actionData[BozjaActionID.GetNormal(i)].IsBozjaHolster = true;
+        // FIXME
+        //for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
+        //    _actionData[BozjaActionID.GetNormal(i)].IsBozjaHolster = true;
 
         foreach (var id in typeof(PhantomID).GetEnumValues())
             if ((uint)id > 0)

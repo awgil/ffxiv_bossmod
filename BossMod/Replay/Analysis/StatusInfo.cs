@@ -18,14 +18,13 @@ class StatusInfo : CommonEnumInfo
     private readonly Type? _sidType;
     private readonly Dictionary<uint, StatusData> _data = [];
 
-    public StatusInfo(List<Replay> replays, uint oid)
+    public StatusInfo(List<Replay> replays, BossModuleRegistry.Info info)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
-        _oidType = moduleInfo?.ObjectIDType;
-        _sidType = moduleInfo?.StatusIDType;
+        _oidType = info.ObjectIDType;
+        _sidType = info.StatusIDType;
         foreach (var replay in replays)
         {
-            foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
+            foreach (var enc in replay.Encounters.Where(enc => enc.OID == info.PrimaryActorOID))
             {
                 foreach (var status in replay.EncounterStatuses(enc).Where(s => !(s.Source?.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.DutySupport) && !(s.Target.Type is ActorType.Pet or ActorType.Chocobo)))
                 {

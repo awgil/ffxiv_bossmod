@@ -68,16 +68,18 @@ public sealed class ConfigRoot : IDisposable
     private readonly JsonDocument _document;
     private readonly JsonElement _payload;
     private readonly JsonSerializerOptions _opts;
+    private readonly BossModuleRegistry bossModuleRegistry;
 
-    public ConfigRoot(FileInfo file)
+    public ConfigRoot(FileInfo file, BossModuleRegistry bossModuleRegistry)
     {
         _opts = Serialization.BuildSerializationOptions();
+        this.bossModuleRegistry = bossModuleRegistry;
 
         if (file.Exists)
         {
             try
             {
-                (_document, _payload) = ConfigConverter.Schema.Load(file);
+                (_document, _payload) = ConfigConverter.BuildSchema(bossModuleRegistry).Load(file);
                 AssemblyVersion = _document.RootElement.TryGetProperty(nameof(AssemblyVersion), out var jver) ? new(jver.GetString() ?? "") : new();
                 return;
             }
@@ -101,7 +103,7 @@ public sealed class ConfigRoot : IDisposable
             // preserve extra properties, as the corresponding nodes temporarily vanish during hotreload
             var extraProperties = _payload.EnumerateObject().ToDictionary(t => t.Name, t => t.Value);
 
-            ConfigConverter.Schema.Save(tmp, jwriter =>
+            ConfigConverter.BuildSchema(bossModuleRegistry).Save(tmp, jwriter =>
             {
                 jwriter.WriteStartObject();
                 var ser = Serialization.BuildSerializationOptions();

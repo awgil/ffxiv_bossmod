@@ -29,12 +29,12 @@ public sealed class UIPlanDatabaseEditor
 
     public static void StartPlanEditor(PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(db, plan, sm);
+        _ = new UIPlanEditorWindow(db.BossModuleRegistry, db, plan, sm);
     }
 
     public static void StartPlanEditor(PlanDatabase db, Plan plan)
     {
-        var m = BossModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
+        var m = db.BossModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
         if (m != null)
             StartPlanEditor(db, plan, m.StateMachine);
     }

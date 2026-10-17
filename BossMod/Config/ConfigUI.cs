@@ -38,19 +38,21 @@ public sealed class ConfigUI : IDisposable
     private readonly ModuleViewer _mv;
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
+    private readonly BossModuleRegistry bossModuleRegistry;
     private readonly UIPresetDatabaseEditor? _presets;
     private readonly RotationDatabase? _rotationDB;
 
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
+        this.bossModuleRegistry = bossModuleRegistry;
         _about = new(replayDir);
-        _mv = new(rotationDB?.Plans, ws);
-        _presets = rotationDB != null ? new(rotationDB) : null;
+        _mv = new(rotationDB?.Plans, ws, bossModuleRegistry);
+        _presets = rotationDB != null ? new(rotationDB, rotationModuleRegistry) : null;
         _rotationDB = rotationDB;
 
         _tabs.Add("About", _about.Draw);
@@ -58,7 +60,7 @@ public sealed class ConfigUI : IDisposable
         _tabs.Add("Supported Bosses", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Autorotation Presets", () => _presets?.Draw());
 
-        _subscriptions = new(BossModuleRegistry.Modified.ExecuteAndSubscribe(RebuildTree));
+        _subscriptions = new(bossModuleRegistry.Modified.ExecuteAndSubscribe(RebuildTree));
     }
 
     private void RebuildTree()
@@ -519,7 +521,7 @@ public sealed class ConfigUI : IDisposable
             return;
         node.DisplayName = node.Name;
         var type = node.Node.GetType();
-        if (type.GetCustomAttribute<ConfigDisplayAttribute>()?.Name != null || BossModuleRegistry.RegisteredModules.Values.FirstOrDefault(i => i.ConfigType == type) is not { } info)
+        if (type.GetCustomAttribute<ConfigDisplayAttribute>()?.Name != null || bossModuleRegistry.RegisteredModules.Values.FirstOrDefault(i => i.ConfigType == type) is not { } info)
             return;
         node.Category = info.Category;
         try

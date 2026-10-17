@@ -9,13 +9,13 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
 
     public static readonly ActionID IDLimitBreak3 = ActionID.MakeSpell(WHM.AID.PulseOfLife);
 
-    public static RotationModuleDefinition Definition()
+    public static RotationModuleDefinition Definition(ActionDefinitions adefs)
     {
         var res = new RotationModuleDefinition("Utility: WHM", "Cooldown Planner support for Utility Actions.\nNOTE: This is NOT a rotation preset! All Utility modules are STRICTLY for cooldown-planning usage.", "Utility for planner", "TrueP", RotationModuleQuality.WIP, BitMask.Build((int)Class.WHM), 100);
-        DefineShared(res, IDLimitBreak3);
+        DefineShared(res, adefs, IDLimitBreak3);
 
-        DefineSimpleConfig(res, Track.PresenceOfMind, "PresenceOfMind", "PoM", 220, WHM.AID.PresenceOfMind, 15);
-        DefineSimpleConfig(res, Track.Regen, "Regen", "", 110, WHM.AID.Regen, 18, ActionQueue.Priority.VeryHigh);
+        DefineSimpleConfig(res, adefs, Track.PresenceOfMind, "PresenceOfMind", "PoM", 220, WHM.AID.PresenceOfMind, 15);
+        DefineSimpleConfig(res, adefs, Track.Regen, "Regen", "", 110, WHM.AID.Regen, 18, ActionQueue.Priority.VeryHigh);
 
         res.Define(Track.Cure).As<CureOption>("Cure", "", 100)
             .AddOption(CureOption.None, "Do not use automatically")
@@ -30,21 +30,21 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
             .AddOption(MedicaOption.MedicaIII, "Use Medica III", 2.5f, 15, ActionTargets.Self, 96, defaultPriority: ActionQueue.Priority.VeryHigh)
             .AddAssociatedActions(WHM.AID.MedicaII, WHM.AID.MedicaIII);
 
-        DefineSimpleConfig(res, Track.AfflatusSolace, "AfflatusSolace", "Solace", 105, WHM.AID.AfflatusSolace, defaultPriority: ActionQueue.Priority.VeryHigh);
-        DefineSimpleConfig(res, Track.AfflatusRapture, "AfflatusRapture", "Rapture", 125, WHM.AID.AfflatusRapture, defaultPriority: ActionQueue.Priority.VeryHigh);
-        DefineSimpleConfig(res, Track.Benediction, "Benediction", "Bene", 300, WHM.AID.Benediction);
+        DefineSimpleConfig(res, adefs, Track.AfflatusSolace, "AfflatusSolace", "Solace", 105, WHM.AID.AfflatusSolace, defaultPriority: ActionQueue.Priority.VeryHigh);
+        DefineSimpleConfig(res, adefs, Track.AfflatusRapture, "AfflatusRapture", "Rapture", 125, WHM.AID.AfflatusRapture, defaultPriority: ActionQueue.Priority.VeryHigh);
+        DefineSimpleConfig(res, adefs, Track.Benediction, "Benediction", "Bene", 300, WHM.AID.Benediction);
 
         res.Define(Track.Asylum).As<SimpleOption>("Asylum", "", 230)
             .AddOption(SimpleOption.None, "Do not use automatically")
             .AddOption(SimpleOption.Use, "Use Asylum", 90, 24, ActionTargets.Area, 52)
             .AddAssociatedActions(WHM.AID.Asylum);
 
-        DefineSimpleConfig(res, Track.ThinAir, "ThinAir", "", 200, WHM.AID.ThinAir, 10);
-        DefineSimpleConfig(res, Track.Tetragrammaton, "Tetragrammaton", "Tetra", 150, WHM.AID.Tetragrammaton);
-        DefineSimpleConfig(res, Track.DivineBenison, "DivineBenison", "Benison", 140, WHM.AID.DivineBenison, 15);
-        DefineSimpleConfig(res, Track.PlenaryIndulgence, "PlenaryIndulgence", "Plenary", 160, WHM.AID.PlenaryIndulgence, 10);
-        DefineSimpleConfig(res, Track.Temperance, "Temperance", "", 290, WHM.AID.Temperance, 20);
-        DefineSimpleConfig(res, Track.Aquaveil, "Aquaveil", "", 170, WHM.AID.Aquaveil, 8);
+        DefineSimpleConfig(res, adefs, Track.ThinAir, "ThinAir", "", 200, WHM.AID.ThinAir, 10);
+        DefineSimpleConfig(res, adefs, Track.Tetragrammaton, "Tetragrammaton", "Tetra", 150, WHM.AID.Tetragrammaton);
+        DefineSimpleConfig(res, adefs, Track.DivineBenison, "DivineBenison", "Benison", 140, WHM.AID.DivineBenison, 15);
+        DefineSimpleConfig(res, adefs, Track.PlenaryIndulgence, "PlenaryIndulgence", "Plenary", 160, WHM.AID.PlenaryIndulgence, 10);
+        DefineSimpleConfig(res, adefs, Track.Temperance, "Temperance", "", 290, WHM.AID.Temperance, 20);
+        DefineSimpleConfig(res, adefs, Track.Aquaveil, "Aquaveil", "", 170, WHM.AID.Aquaveil, 8);
 
         res.Define(Track.LiturgyOfTheBell).As<LiturgyOption>("LiturgyOfTheBell", "Liturgy", 310)
             .AddOption(LiturgyOption.None, "Do not use automatically")
@@ -52,8 +52,8 @@ public sealed class ClassWHMUtility(RotationModuleManager manager, Actor player)
             .AddOption(LiturgyOption.End, "Use Liturgy of the Bell End", 0, 1, ActionTargets.Self, 90)
             .AddAssociatedActions(WHM.AID.LiturgyOfTheBell, WHM.AID.LiturgyOfTheBellEnd);
 
-        DefineSimpleConfig(res, Track.DivineCaress, "DivineCaress", "Caress", 280, WHM.AID.DivineCaress, 10);
-        DefineSimpleConfig(res, Track.AetherialShift, "AetherialShift", "Dash", 20, WHM.AID.AetherialShift);
+        DefineSimpleConfig(res, adefs, Track.DivineCaress, "DivineCaress", "Caress", 280, WHM.AID.DivineCaress, 10);
+        DefineSimpleConfig(res, adefs, Track.AetherialShift, "AetherialShift", "Dash", 20, WHM.AID.AetherialShift);
 
         return res;
     }

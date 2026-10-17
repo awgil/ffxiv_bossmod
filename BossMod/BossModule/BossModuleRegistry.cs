@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using Dalamud.Plugin.Services;
+using System.Reflection;
 
 namespace BossMod;
 
-public static class BossModuleRegistry
+public class BossModuleRegistry(Lazy<BossModuleConfig> config, IPluginLog logger)
 {
-    public static readonly Event Modified = new();
+    public readonly Event Modified = new();
 
     public class Info
     {
@@ -30,7 +31,7 @@ public static class BossModuleRegistry
         public bool Incomplete;
         public bool BitmapEnabled;
 
-        public static Info? Build(Type module)
+        public static Info? Build(Type module, IPluginLog logger)
         {
             var infoAttr = module.GetCustomAttribute<ModuleInfoAttribute>();
             var statesType = infoAttr?.StatesType ?? module.Module.GetType($"{module.FullName}States");
@@ -43,43 +44,43 @@ public static class BossModuleRegistry
 
             if (statesType == null || !statesType.IsSubclassOf(typeof(StateMachineBuilder)) || statesType.GetConstructor([module]) == null)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated states type: it should be derived from StateMachineBuilder and have a constructor accepting module");
+                logger.Debug($"[ModuleRegistry] Module {module.FullName} has incorrect associated states type: it should be derived from StateMachineBuilder and have a constructor accepting module");
                 return null;
             }
 
             if (configType != null && !configType.IsSubclassOf(typeof(ConfigNode)))
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated config type: it should be derived from ConfigNode");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has incorrect associated config type: it should be derived from ConfigNode");
                 configType = null;
             }
 
             if (oidType != null && !oidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated object ID type: it should be an enum");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has incorrect associated object ID type: it should be an enum");
                 oidType = null;
             }
 
             if (aidType != null && !aidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated action ID type: it should be an enum");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has incorrect associated action ID type: it should be an enum");
                 aidType = null;
             }
 
             if (sidType != null && !sidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated status ID type: it should be an enum");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has incorrect associated status ID type: it should be an enum");
                 sidType = null;
             }
 
             if (tidType != null && !tidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated tether ID type: it should be an enum");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has incorrect associated tether ID type: it should be an enum");
                 tidType = null;
             }
 
             if (iidType != null && !iidType.IsEnum)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has incorrect associated icon ID type: it should be an enum");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has incorrect associated icon ID type: it should be an enum");
                 iidType = null;
             }
 
@@ -91,7 +92,7 @@ public static class BossModuleRegistry
             }
             if (primaryOID == 0)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} has no associated primary actor OID: either specify one explicitly or ensure OID enum has Boss entry");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} has no associated primary actor OID: either specify one explicitly or ensure OID enum has Boss entry");
                 return null;
             }
 
@@ -104,7 +105,7 @@ public static class BossModuleRegistry
             }
             if (expansion == BossModuleInfo.Expansion.Count)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} does not have valid expansion assigned; consider fixing namespace or specifying value manually");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} does not have valid expansion assigned; consider fixing namespace or specifying value manually");
                 expansion = BossModuleInfo.Expansion.Global;
             }
 
@@ -115,7 +116,7 @@ public static class BossModuleRegistry
             }
             if (category == BossModuleInfo.Category.Count)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} does not have valid category assigned; consider fixing namespace or specifying value manually");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} does not have valid category assigned; consider fixing namespace or specifying value manually");
                 category = BossModuleInfo.Category.Uncategorized;
             }
 
@@ -124,7 +125,7 @@ public static class BossModuleRegistry
             var nameID = infoAttr?.NameID ?? 0;
             if (groupType == BossModuleInfo.GroupType.None && groupID == 0)
             {
-                Service.Log($"[ModuleRegistry] Module {module.FullName} does not have group type/id assignments.");
+                logger.Warning($"[ModuleRegistry] Module {module.FullName} does not have group type/id assignments.");
             }
 
             var sortOrder = infoAttr?.SortOrder ?? 0;
@@ -178,16 +179,17 @@ public static class BossModuleRegistry
         }
     }
 
-    private static readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
-    private static readonly Dictionary<string, Info> _modulesByType = []; // [type fullname] = module info
+    private readonly Dictionary<uint, Info> _modulesByOID = []; // [primary-actor-oid] = module info
+    private readonly Dictionary<string, Info> _modulesByType = []; // [type fullname] = module info
+    private readonly IPluginLog logger = logger;
 
-    private static bool ScanAssembly(Assembly assembly)
+    private bool ScanAssembly(Assembly assembly)
     {
         var modified = false;
 
         foreach (var t in Utils.GetDerivedTypes<BossModule>(assembly).Where(t => !t.IsAbstract && t != typeof(DemoModule)))
         {
-            var info = Info.Build(t);
+            var info = Info.Build(t, logger);
             if (info == null)
                 continue;
             if (t.FullName == null)
@@ -195,13 +197,13 @@ public static class BossModuleRegistry
             modified = true;
             _modulesByType[t.FullName] = info;
             if (!_modulesByOID.TryAdd(info.PrimaryActorOID, info))
-                Service.Log($"[ModuleRegistry] Two boss modules have same primary actor OID: {t.FullName} and {_modulesByOID[info.PrimaryActorOID].ModuleType.FullName}");
+                logger.Warning($"[ModuleRegistry] Two boss modules have same primary actor OID: {t.FullName} and {_modulesByOID[info.PrimaryActorOID].ModuleType.FullName}");
         }
 
         return modified;
     }
 
-    private static bool UnloadFrom(Assembly assembly)
+    private bool UnloadFrom(Assembly assembly)
     {
         var modified = false;
 
@@ -214,7 +216,7 @@ public static class BossModuleRegistry
         return modified;
     }
 
-    public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
     {
         var modified = false;
 
@@ -231,25 +233,23 @@ public static class BossModuleRegistry
             Modified.Fire();
     }
 
-    private static readonly BossModuleConfig _config = Service.Config.Get<BossModuleConfig>();
+    public IReadOnlyDictionary<uint, Info> RegisteredModules => _modulesByOID;
 
-    public static IReadOnlyDictionary<uint, Info> RegisteredModules => _modulesByOID;
-
-    public static Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
-    public static Info? FindByName(string typeName) => _modulesByType.GetValueOrDefault(typeName);
-    public static Info? FindByType(Type t) => t.FullName == null ? null : FindByName(t.FullName);
+    public Info? FindByOID(uint oid) => _modulesByOID.GetValueOrDefault(oid);
+    public Info? FindByName(string typeName) => _modulesByType.GetValueOrDefault(typeName);
+    public Info? FindByType(Type t) => t.FullName == null ? null : FindByName(t.FullName);
 
     public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(new(ws, primary, info));
 
-    public static BossModule? CreateModuleForActor(WorldState ws, Actor primary, bool allowIncomplete, bool allowStrikingDummy)
+    public BossModule? CreateModuleForActor(WorldState ws, Actor primary, bool allowIncomplete, bool allowStrikingDummy)
     {
         var info = primary.Type is ActorType.Enemy or ActorType.EventObj ? FindByOID(primary.OID) : null;
         if (info is not { } inf)
             return null;
 
-        if (_config.DisabledModules.Contains(inf.ModuleType.ToString()))
+        if (config.Value.DisabledModules.Contains(inf.ModuleType.ToString()))
             return null;
-        if (_config.DisabledCategories.Contains(inf.Category))
+        if (config.Value.DisabledCategories.Contains(inf.Category))
             return null;
 
         if (inf.Incomplete && !allowIncomplete)
@@ -262,12 +262,12 @@ public static class BossModuleRegistry
     }
 
     // TODO: this is a hack...
-    public static BossModule? CreateModuleForConfigPlanning(Type module)
+    public BossModule? CreateModuleForConfigPlanning(Type module)
     {
         var info = FindByType(module);
         return info != null ? CreateModule(info, new(TimeSpan.TicksPerSecond, "fake"), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new())) : null;
     }
 
     // TODO: this is a hack...
-    public static BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
+    public BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
 }

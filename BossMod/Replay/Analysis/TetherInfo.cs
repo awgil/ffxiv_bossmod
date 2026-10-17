@@ -59,14 +59,13 @@ class TetherInfo : CommonEnumInfo
     private readonly Type? _tidType;
     private readonly Dictionary<uint, TetherData> _data = [];
 
-    public TetherInfo(List<Replay> replays, uint oid)
+    public TetherInfo(List<Replay> replays, BossModuleRegistry.Info info)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
-        _oidType = moduleInfo?.ObjectIDType;
-        _tidType = moduleInfo?.TetherIDType;
+        _oidType = info.ObjectIDType;
+        _tidType = info.TetherIDType;
         foreach (var replay in replays)
         {
-            foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
+            foreach (var enc in replay.Encounters.Where(enc => enc.OID == info.PrimaryActorOID))
             {
                 foreach (var tether in replay.EncounterTethers(enc))
                 {

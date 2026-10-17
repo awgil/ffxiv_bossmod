@@ -55,6 +55,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly WorldState _ws;
     private readonly AIHints _hints;
     private readonly MovementOverride _movement;
+    private readonly BozjaActionID bozjaActions;
     private readonly ManualActionQueueTweak _manualQueue;
     private readonly AnimationLockTweak _animLockTweak = new();
     private readonly CooldownDelayTweak _cooldownTweak = new();
@@ -80,11 +81,12 @@ public sealed unsafe class ActionManagerEx : IAmex
 
     private readonly delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement)
+    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions)
     {
         _ws = ws;
         _hints = hints;
         _movement = movement;
+        this.bozjaActions = bozjaActions;
         _manualQueue = new(ws, hints);
         _cancelCastTweak = new(ws, hints);
         _dismountTweak = new(ws);
@@ -253,7 +255,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     public uint GetActionStatus(ActionID action, ulong target, bool checkRecastActive = true, bool checkCastingActive = true, uint* outOptExtraInfo = null)
     {
         if (action.Type is ActionType.BozjaHolsterSlot0 or ActionType.BozjaHolsterSlot1)
-            action = BozjaActionID.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
+            action = bozjaActions.GetHolster(action.As<BozjaHolsterID>()); // see BozjaContentDirector.useFromHolster
 
         // the spell that corresponds with pomanders/magicite can't directly be used by players, so actionstatus will always be 579
         if (action.Type is ActionType.Pomander or ActionType.Magicite)

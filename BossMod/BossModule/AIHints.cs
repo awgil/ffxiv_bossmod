@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace BossMod;
 
 // information relevant for AI decision making process for a specific player
-public sealed class AIHints
+public sealed class AIHints(ActionQueue queue)
 {
     public class Enemy
     {
@@ -180,7 +180,7 @@ public sealed class AIHints
     public bool ForceCancelCast;
 
     // actions that we want to be executed, gathered from various sources (manual input, autorotation, planner, ai, modules, etc.)
-    public ActionQueue ActionsToExecute = new();
+    public ActionQueue ActionsToExecute = queue;
 
     // buffs to be canceled asap
     public List<(uint statusId, ulong sourceId)> StatusesToCancel = [];
@@ -524,4 +524,16 @@ public sealed class AIHints
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
         return p => sh(p) >= 0 ? 10 : 0;
     }
+
+    public AIHints Clone() => new(ActionsToExecute)
+    {
+        PathfindMapBounds = PathfindMapBounds,
+        PathfindMapCenter = PathfindMapCenter,
+        PathfindMapObstacles = PathfindMapObstacles,
+        TemporaryObstacles = TemporaryObstacles,
+        Portals = [.. Portals],
+        ForbiddenZones = [.. ForbiddenZones],
+        GoalZones = [.. GoalZones],
+        GoalZonesEnabled = GoalZonesEnabled
+    };
 }

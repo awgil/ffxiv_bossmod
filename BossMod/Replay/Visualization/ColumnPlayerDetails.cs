@@ -7,6 +7,7 @@ namespace BossMod.ReplayVisualization;
 // TODO: currently it assumes that there's only one instance that can edit db, it won't refresh if plan is edited and saved in a different instance...
 public class ColumnPlayerDetails : Timeline.ColumnGroup
 {
+    private readonly BossModuleRegistry bossModuleRegistry;
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBraches;
     private readonly Replay _replay;
@@ -29,9 +30,10 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public bool PlanModified => _planner?.Modified ?? false;
 
-    public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public ColumnPlayerDetails(BossModuleRegistry bossModuleRegistry, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
         : base(timeline)
     {
+        this.bossModuleRegistry = bossModuleRegistry;
         _tree = tree;
         _phaseBraches = phaseBranches;
         _replay = replay;
@@ -39,7 +41,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _player = player;
         _playerClass = playerClass;
         _planDatabase = planDB;
-        _moduleInfo = BossModuleRegistry.FindByOID(enc.OID);
+        _moduleInfo = bossModuleRegistry.FindByOID(enc.OID);
 
         _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
         _actions.Name = player.NameHistory.FirstOrDefault().Value.name;
@@ -189,7 +191,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _selectedPlan = newSelection;
         if (_selectedPlan >= 0)
         {
-            _planner = AddBefore(new CooldownPlannerColumns(list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
+            _planner = AddBefore(new CooldownPlannerColumns(bossModuleRegistry, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
         }
     }
 

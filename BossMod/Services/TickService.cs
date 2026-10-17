@@ -1,4 +1,5 @@
-﻿using BossMod.AI;
+﻿using Autofac;
+using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
@@ -71,6 +72,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly CancellationTokenSource _saveCts = new();
 
     public unsafe TickService(
+        ILifetimeScope scope,
         MediatorService mediator,
         ILogger<DisposableMediatorSubscriberBase> mLogger,
         IDalamudPluginInterface dalamud,
@@ -88,7 +90,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         RotationDatabase db,
         IAmex amex,
         WorldState wsGlobal,
-        BossModuleManager bmm
+        AIHints hintsGlobal,
+        BossModuleRegistry bossModuleRegistry,
+        BossModuleManager bmm,
+        RotationModuleRegistry rotationModuleRegistry,
+        RotationModuleManager rmm,
+        ZoneModuleManager zmm,
+        AIHintsBuilder builder,
+        ActionDefinitions definitions
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -127,7 +136,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _packs = packs;
         this.configRoot = configRoot;
 
-        _hints = new();
+        _hints = hintsGlobal;
         _ping = new(logger);
 
         if (!Service.IsMock)
@@ -162,21 +171,21 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
 
         _bossmod = bmm;
-        _zonemod = new(_ws);
-        _hintsBuilder = new(_ws, _bossmod, _zonemod);
-        _rotation = new(_rotationDB, _bossmod, _hints);
-        _ipc = new(_rotation, _hintsBuilder.Obstacles);
+        _zonemod = zmm;
+        _hintsBuilder = builder;
+        _rotation = rmm;
+        _ipc = new(bossModuleRegistry, _rotation, rotationModuleRegistry, _hintsBuilder.Obstacles);
         _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
 
-        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB));
+        _wndConfig = new(new(Service.Config, _ws, bossModuleRegistry, rotationModuleRegistry, replayDir, _rotationDB));
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
-        _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
+        _wndReplay = new ReplayManagementWindow(_ws, scope, bossModuleRegistry, _bossmod, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex);
         _wndAI = new AIWindow(_rotation);
         _wndChangelog = new();
@@ -203,9 +212,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _hintsBuilder.Obstacles.ClearGenerated();
         }
 
-        //configRoot.Reload([], [Assembly.GetExecutingAssembly()]);
-        BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
 

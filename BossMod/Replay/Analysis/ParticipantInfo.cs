@@ -21,13 +21,12 @@ class ParticipantInfo : CommonEnumInfo
 
     private readonly Dictionary<uint, ParticipantData> _data = [];
 
-    public ParticipantInfo(List<Replay> replays, uint oid)
+    public ParticipantInfo(List<Replay> replays, BossModuleRegistry.Info info)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
-        _oidType = moduleInfo?.ObjectIDType;
+        _oidType = info.ObjectIDType;
         foreach (var replay in replays)
         {
-            foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
+            foreach (var enc in replay.Encounters.Where(enc => enc.OID == info.PrimaryActorOID))
             {
                 var minExistence = enc.Time.End.AddSeconds(-1); // we don't want to add actors that spawned right before wipe, they could belong to reset
                 foreach (var (commonOID, participants) in enc.ParticipantsByOID)

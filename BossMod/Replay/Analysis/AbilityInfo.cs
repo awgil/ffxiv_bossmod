@@ -360,14 +360,13 @@ class AbilityInfo : CommonEnumInfo
     private readonly Type? _aidType;
     private readonly Dictionary<ActionID, ActionData> _data = [];
 
-    public AbilityInfo(List<Replay> replays, uint oid)
+    public AbilityInfo(List<Replay> replays, BossModuleRegistry.Info info)
     {
-        var moduleInfo = BossModuleRegistry.FindByOID(oid);
-        _oidType = moduleInfo?.ObjectIDType;
-        _aidType = moduleInfo?.ActionIDType;
+        _oidType = info.ObjectIDType;
+        _aidType = info.ActionIDType;
         foreach (var replay in replays)
         {
-            foreach (var enc in replay.Encounters.Where(enc => enc.OID == oid))
+            foreach (var enc in replay.Encounters.Where(enc => enc.OID == info.PrimaryActorOID))
             {
                 foreach (var action in replay.EncounterActions(enc))
                     AddActionData(replay, enc, action);

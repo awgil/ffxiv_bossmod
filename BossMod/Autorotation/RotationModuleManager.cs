@@ -21,6 +21,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
+    public readonly ActionDefinitions ActionDefinitions;
     public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
@@ -78,12 +79,13 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, BossModuleManager bmm, AIHints hints, int playerSlot = PartyState.PlayerSlot)
+    public RotationModuleManager(RotationDatabase db, RotationModuleRegistry rmr, BossModuleManager bmm, ActionDefinitions defs, AIHints hints, int playerSlot = PartyState.PlayerSlot)
     {
         Database = db;
         Bossmods = bmm;
         PlayerSlot = playerSlot;
         Hints = hints;
+        ActionDefinitions = defs;
         _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
@@ -100,7 +102,7 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Client.ActionFailedLoS.Subscribe(OnLoSFailed),
             Database.Presets.PresetModified.Subscribe(OnPresetModified),
             WorldState.IsPvPAreaChanged.Subscribe(a => DirtyActiveModules(true)),
-            RotationModuleRegistry.Modified.Subscribe(() => DirtyActiveModules(true)),
+            rmr.Modified.Subscribe(() => DirtyActiveModules(true)),
             _aiConfig.Modified.Subscribe(() => DirtyActiveModules(true))
         );
     }

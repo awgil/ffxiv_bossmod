@@ -6,6 +6,7 @@ public sealed class BossModuleManager : IDisposable
     public readonly WorldState WorldState;
     public readonly RaidCooldowns RaidCooldowns;
     public readonly BossModuleConfig Config;
+    private readonly BossModuleRegistry bossModuleRegistry;
     private readonly EventSubscriptions _subscriptions;
 
     public List<BossModule> LoadedModules { get; } = [];
@@ -30,9 +31,10 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager(WorldState ws, BossModuleConfig cfg)
+    public BossModuleManager(WorldState ws, BossModuleConfig cfg, BossModuleRegistry bossModuleRegistry)
     {
         Config = cfg;
+        this.bossModuleRegistry = bossModuleRegistry;
         WorldState = ws;
         RaidCooldowns = new(ws);
         _subscriptions = new
@@ -40,7 +42,7 @@ public sealed class BossModuleManager : IDisposable
             WorldState.Actors.Added.Subscribe(ActorAdded),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
             WorldState.CurrentZoneChanged.Subscribe(OnZoneChange),
-            BossModuleRegistry.Modified.Subscribe(() =>
+            bossModuleRegistry.Modified.Subscribe(() =>
             {
                 ForceUnload("registry-update");
                 foreach (var a in WorldState.Actors)
@@ -183,7 +185,7 @@ public sealed class BossModuleManager : IDisposable
 
     private void ActorAdded(Actor actor)
     {
-        var m = BossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.AllowIncompleteModules, Config.EnableDummyModule);
+        var m = bossModuleRegistry.CreateModuleForActor(WorldState, actor, Config.AllowIncompleteModules, Config.EnableDummyModule);
         if (m != null)
         {
             LoadModule(m);
