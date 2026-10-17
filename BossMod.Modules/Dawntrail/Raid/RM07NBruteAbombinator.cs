@@ -113,7 +113,7 @@ class ElectrogeneticForce(BossModule module) : Components.SpreadFromCastTargets(
 class AbominableBlink(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(24), (uint)IconID.AbominableBlink, AID.AbominableBlinkAOE, 6.4f, true);
 class Sporesplosion(BossModule module) : Components.StandardAOEs(module, AID.SporesplosionAOE, new AOEShapeCircle(8), 12, highlightImminent: true);
 class LashingLariat(BossModule module) : Components.GroupedAOEs(module, [AID.LashingLariatAOE1, AID.LashingLariatAOE2], new AOEShapeRect(70, 16));
-class Slaminator(BossModule module) : Components.CastTowers(module, AID.SlaminatorAOE, 8, maxSoakers: 8);
+class Slaminator(BossModule module) : Components.CastTowers(module, AID.SlaminatorAOE, 8, minSoakers: 8, maxSoakers: 8);
 
 class Explosion(BossModule module) : Components.StandardAOEs(module, AID.Explosion, new AOEShapeCircle(22), 2)
 {
@@ -243,7 +243,7 @@ class NeoBombarianSpecialKnockback(BossModule module) : Components.KnockbackFrom
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
         var inSquare = Math.Abs(pos.X - 100) < 19.5f && Math.Abs(pos.Z - 100) < 19.5f;
-        var inCorridor = Math.Abs(pos.X - 100) < 12 && pos.Z is > -19.5f and < 30;
+        var inCorridor = Math.Abs(pos.X - 100) < 10 && pos.Z is > -19.5f and < 25;
         return !inSquare && !inCorridor;
     }
 
@@ -257,6 +257,14 @@ class NeoBombarianSpecialKnockback(BossModule module) : Components.KnockbackFrom
 
 class ArenaChanges(BossModule module) : BossComponent(module)
 {
+    private bool _corridor;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_corridor)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, new WDir(0, 1), 24, 24, 11.5f));
+    }
+
     public override void OnMapEffect(byte index, uint state)
     {
         if (state != 0x00020001)
@@ -265,10 +273,12 @@ class ArenaChanges(BossModule module) : BossComponent(module)
         {
             Arena.Center = new(100, 5);
             Arena.Bounds = new ArenaBoundsRect(12.5f, 25);
+            _corridor = true;
         }
         else if (index == 0x01)
         {
             Arena.Bounds = new ArenaBoundsSquare(20);
+            _corridor = false;
         }
     }
 }
@@ -455,8 +465,9 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
 
     private void Slaminator(uint id, float delay)
     {
-        Cast(id, AID.Slaminator, delay, 4)
+        CastStart(id, AID.Slaminator, delay)
             .ActivateOnEnter<Slaminator>();
+        CastEnd(id + 1, 4);
         ComponentCondition<Slaminator>(id + 0x10, 1, c => c.NumCasts > 0, "Tower")
             .DeactivateOnExit<Slaminator>();
     }

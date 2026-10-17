@@ -288,6 +288,7 @@ class River(BossModule module) : BossComponent(module)
     }
 }
 
+// TODO: storm cloud never seen in a replay (both kills end before it)
 class TempestPiece(BossModule module) : Components.GenericAOEs(module, AID.Highlightning)
 {
     private Actor? _cloud;
@@ -350,11 +351,11 @@ class RM06NSugarRiotStates : StateMachineBuilder
     private void SinglePhase(uint id)
     {
         MousseMural(id, 6.1f);
-        Style(id + 0x10000, AID.SingleStyle1, 12.6f, 7, 1, 4.6f);
-        Style(id + 0x20000, AID.SingleStyle2, 5.3f, 7, 2, 4.7f);
-        Style(id + 0x30000, AID.SingleStyle3, 1.5f, 9, 3, 4.7f);
+        Style(id + 0x10000, [AID.SingleStyle1], 12.6f, 7, 1, 4.6f);
+        Style(id + 0x20000, [AID.SingleStyle2], 5.3f, 7, 2, 4.7f);
+        Style(id + 0x30000, [AID.SingleStyle3], 1.5f, 9, 3, 4.7f);
         Cast(id + 0x40000, AID.SingleStyle4, 1.5f, 5);
-        Style(id + 0x50000, AID.SingleStyle3, 5.1f, 9, 4, 5.7f);
+        Style(id + 0x50000, [AID.SingleStyle3], 5.1f, 9, 4, 5.7f);
         PuddingParty(id + 0x60000, 0.5f, false);
         ColorRiot(id + 0x70000, 2.9f);
         Cast(id + 0x80000, AID.Sugarscape1, 10.4f, 1, "Desert");
@@ -365,8 +366,8 @@ class RM06NSugarRiotStates : StateMachineBuilder
         MousseTouchUp(id + 0xC0000, 23.2f);
         MousseMural(id + 0xD0000, 1.2f);
         ColorRiot(id + 0xE0000, 4.2f);
-        Style(id + 0xF0000, AID.DoubleStyle3, 9.6f, 8, 5, 4.6f);
-        Style(id + 0x100000, AID.DoubleStyle2, 2.6f, 8, 6, 4.6f);
+        Style(id + 0xF0000, DoubleStyles, 9.6f, 8, 5, 4.6f);
+        Style(id + 0x100000, DoubleStyles, 2.6f, 8, 6, 4.6f);
         PuddingParty(id + 0x110000, 3.6f, true);
         Cast(id + 0x120000, AID.Sugarscape2, 9, 1, "River");
         TasteOfThunderFire(id + 0x130000, 14.2f);
@@ -393,9 +394,11 @@ class RM06NSugarRiotStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
     }
 
-    private void Style(uint id, AID aid, float delay, float castTime, int count, float resolveDelay)
+    private static readonly AID[] DoubleStyles = [AID.DoubleStyle1, AID.DoubleStyle2, AID.DoubleStyle3, AID.DoubleStyle4];
+
+    private void Style(uint id, AID[] aids, float delay, float castTime, int count, float resolveDelay)
     {
-        Cast(id, aid, delay, castTime);
+        CastMulti(id, aids, delay, castTime);
         ComponentCondition<SingleDoubleStyle>(id + 0x10, resolveDelay, c => c.NumCasts >= count, "Adds");
     }
 
@@ -437,16 +440,18 @@ class RM06NSugarRiotStates : StateMachineBuilder
 
     private void TasteOfThunderFire(uint id, float delay)
     {
-        Cast(id, AID.TasteOfThunder, delay, 8)
-            .ActivateOnEnter<TasteOfThunder>();
-        ComponentCondition<TasteOfThunder>(id + 0x10, 1.1f, c => c.NumFinishedSpreads > 0, "Spreads")
-            .DeactivateOnExit<TasteOfThunder>();
-        Cast(id + 0x20, AID.TasteOfFire, 4, 8)
+        CastMulti(id, [AID.TasteOfThunder, AID.TasteOfFire], delay, 8)
+            .ActivateOnEnter<TasteOfThunder>()
             .ActivateOnEnter<TasteOfFire>();
-        ComponentCondition<TasteOfFire>(id + 0x30, 1.2f, c => c.NumFinishedStacks > 0, "Stacks")
+        Condition(id + 0x10, 1.2f, () => TasteResolved() >= 1, "Spreads / stacks");
+        CastMulti(id + 0x20, [AID.TasteOfThunder, AID.TasteOfFire], 4, 8);
+        Condition(id + 0x30, 1.2f, () => TasteResolved() >= 2, "Stacks / spreads")
+            .DeactivateOnExit<TasteOfThunder>()
             .DeactivateOnExit<TasteOfFire>();
     }
+
+    private int TasteResolved() => (Module.FindComponent<TasteOfThunder>()?.NumFinishedSpreads > 0 ? 1 : 0) + (Module.FindComponent<TasteOfFire>()?.NumFinishedStacks > 0 ? 1 : 0);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1021, NameID = 13822, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1021, NameID = 13822)]
 public class RM06NSugarRiot(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

@@ -95,6 +95,7 @@ class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, new 
 class WickedHypercannon1(BossModule module) : Components.RaidwideCastDelay(module, AID.WickedHypercannon1, AID.WickedHypercannonAOE, 0.6f, "Raidwide x10");
 class WickedHypercannon2(BossModule module) : Components.RaidwideCastDelay(module, AID.WickedHypercannon2, AID.WickedHypercannonAOE, 0.6f, "Raidwide x10");
 
+// TODO: never cast in a replay so far
 class WitchHunt(BossModule module) : Components.GenericAOEs(module, AID.WitchHuntAOE)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -319,11 +320,46 @@ class RM04NWickedThunderStates : StateMachineBuilder
         ShadowsSabbath2(id + 0xA0000, 8.5f);
         WrathOfZeus(id + 0xB0000, 4.1f);
         WickedJolt(id + 0xC0000, 3.4f);
-        StampedingThunder(id + 0xD0000, 14.2f, 3);
-        Hypercannon1(id + 0xE0000, 4.1f);
-        Hypercannon2(id + 0xF0000, 10);
+        StampedingThunder(id + 0xD0000, 18.2f, 3);
 
-        SimpleState(id + 0x100000, 120, "Until enrage")
+        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
+        {
+            [AID.FivefoldBlast1] = ((id >> 24) + 1, ForkCannons),
+            [AID.FivefoldBlast2] = ((id >> 24) + 2, ForkCannons),
+            [AID.WickedHypercannon1] = ((id >> 24) + 3, ForkHypercannon)
+        };
+        CastStartFork(id + 0xE0000, fork, 4.1f, "Cannons -or- Hypercannon");
+    }
+
+    private void ForkCannons(uint id)
+    {
+        Cannons(id, [AID.FivefoldBlast1, AID.FivefoldBlast2], 0, 16, 5);
+        Thunderstorm(id + 0x10000, 8.9f);
+        WickedBolt(id + 0x20000, 2.3f);
+        StampedingThunder(id + 0x30000, 16.1f, 5);
+        Hypercannon1(id + 0x40000, 4.1f);
+        Hypercannon2(id + 0x50000, 10);
+        Enrage(id + 0x60000);
+    }
+
+    private void ForkHypercannon(uint id)
+    {
+        Hypercannon1(id, 0);
+        Hypercannon2(id + 0x10000, 10);
+        Enrage(id + 0x20000);
+    }
+
+    private void Thunderstorm(uint id, float delay)
+    {
+        ComponentCondition<Thunderstorm>(id, delay, c => c.Spreads.Count == 0 && c.NumFinishedSpreads > 0, "Spreads")
+            .ActivateOnEnter<Thunderstorm>()
+            .DeactivateOnExit<Thunderstorm>();
+    }
+
+    // TODO: kills so far end during the second hypercannon; the enrage is unseen
+    private void Enrage(uint id)
+    {
+        SimpleState(id, 120, "Until enrage")
             .ActivateOnEnter<WrathOfZeus>()
             .ActivateOnEnter<WickedJolt>()
             .ActivateOnEnter<SidewiseSpark>()
@@ -400,7 +436,7 @@ class RM04NWickedThunderStates : StateMachineBuilder
         CastMulti(id, aids, delay, castTime)
             .ActivateOnEnter<WickedCannon>();
         ComponentCondition<WickedCannon>(id + 0x10, 0.5f, c => c.NumCasts >= 1, "Cannon 1");
-        ComponentCondition<WickedCannon>(id + 0x20, count == 3 ? 3.2f : 5.1f, c => c.NumCasts >= count, $"Cannon {count}")
+        ComponentCondition<WickedCannon>(id + 0x20, count switch { 3 => 3.2f, 4 => 5.1f, _ => 7 }, c => c.NumCasts >= count, $"Cannon {count}")
             .DeactivateOnExit<WickedCannon>();
     }
 
@@ -449,5 +485,5 @@ class RM04NWickedThunderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 991, NameID = 13057, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 991, NameID = 13057)]
 public class RM04NWickedThunder(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));

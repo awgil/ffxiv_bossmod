@@ -301,6 +301,7 @@ class RM03NBruteBomberStates : StateMachineBuilder
         LariatCombo(id + 0xE0000, 4.0f);
         InfernalSpin(id + 0xF0000, 12.4f);
         LariatCombo(id + 0x100000, 0.7f);
+        // TODO: kills so far end during the lariat combo above; timings below and the enrage are unseen
         BrutalBurn(id + 0x110000, 4.6f);
         BrutalImpact(id + 0x120000, 1.6f, 5);
 
@@ -416,5 +417,5 @@ class RM03NBruteBomberStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 989, NameID = 13356, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 989, NameID = 13356)]
 public class RM03NBruteBomber(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(15));

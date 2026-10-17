@@ -58,14 +58,15 @@ class Seasplitter(BossModule module) : Components.GenericAOEs(module, AID.Seaspl
 {
     private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShapeRect _shape = new(21.5f, 20);
+    private const float SafeStrip = 0.6f;
+    private static readonly AOEShapeRect _shape = new(21.5f - SafeStrip, 20);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+            _aoes.Add(new(_shape, caster.Position + SafeStrip * spell.Rotation.ToDirection(), spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
