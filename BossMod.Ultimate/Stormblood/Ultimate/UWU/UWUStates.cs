@@ -8,22 +8,24 @@ class UWUStates : StateMachineBuilder
     {
         _module = module;
         SimplePhase(0, Phase1Garuda, "P1: Garuda")
+            .ActivateOnEnter<P1Positioning>()
             .ActivateOnEnter<P1Plumes>()
             .ActivateOnEnter<P1Gigastorm>()
+            .ActivateOnEnter<P1SpinyShield>()
             .ActivateOnEnter<P1GreatWhirlwind>() // TODO: not sure about this...
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || Module.PrimaryActor.HPMP.CurHP <= 1 && !Module.PrimaryActor.IsTargetable;
+            .Raw.Update = () => Module.PrimaryActor is { HPMP.CurHP: <= 1, IsTargetable: false };
         SimplePhase(1, Phase2Ifrit, "P2: Ifrit")
             .ActivateOnEnter<P2Nails>()
             .ActivateOnEnter<P2InfernalFetters>()
             .ActivateOnEnter<P2SearingWind>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (_module.Ifrit()?.HPMP.CurHP <= 1 && !(_module.Ifrit()?.IsTargetable ?? true));
+            .Raw.Update = () => (_module.Ifrit()?.HPMP.CurHP <= 1 && !(_module.Ifrit()?.IsTargetable ?? true));
         SimplePhase(2, Phase3Titan, "P3: Titan")
             .ActivateOnEnter<P3Geocrush2>()
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (_module.Titan()?.HPMP.CurHP <= 1 && !(_module.Titan()?.IsTargetable ?? true));
+            .Raw.Update = () => (_module.Titan()?.HPMP.CurHP <= 1 && !(_module.Titan()?.IsTargetable ?? true));
         SimplePhase(3, Phase4LahabreaUltima, "P4: Lahabrea + Ultima")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (_module.Ultima()?.CastInfo?.IsSpell(AID.UltimateSuppression) ?? false);
+            .Raw.Update = () => (_module.Ultima()?.CastInfo?.IsSpell(AID.UltimateSuppression) ?? false);
         SimplePhase(4, Phase5Ultima, "P4: Ultima - suppression to enrage")
-            .Raw.Update = () => Module.PrimaryActor.IsDestroyed || (_module.Ultima()?.IsDead ?? false);
+            .Raw.Update = () => (_module.Ultima()?.IsDead ?? false);
     }
 
     private void Phase1Garuda(uint id)
@@ -58,7 +60,11 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P1Slipstream>()
             .DeactivateOnExit<P1Slipstream>();
         ComponentCondition<P1MistralSongBoss>(id + 0x10, 2.7f, comp => comp.NumCasts > 0, "Mistral song")
-            .DeactivateOnExit<P1MistralSongBoss>();
+            .DeactivateOnExit<P1MistralSongBoss>()
+            .ExecOnExit<P1Positioning>(p =>
+            {
+                p.DesiredPosition = new(93.3f, 100);
+            });
         // note: mistral song leaves a puddle which explodes 3 times, with 3.1s delay between casts and 3s cast time; it overlaps with logically-next mechanic
         //ComponentCondition<P1GreatWhirlwind>(id + 0x20, 3.1f, comp => comp.Casters.Count > 0)
         //    .ActivateOnEnter<P1GreatWhirlwind>();
@@ -72,7 +78,9 @@ class UWUStates : StateMachineBuilder
         P1Slipstream(id + 0x10, 1.8f);
         ComponentCondition<P1Downburst>(id + 0x20, 3.5f, comp => comp.NumCasts > 0, "Cleave + Cyclone 1") // note: cyclone happens ~0.1s after cleave
             .ActivateOnEnter<P1Downburst>()
-            .DeactivateOnExit<P1Downburst>();
+            .ExecOnEnter<P1Downburst>(p => p.NextExpected = p.Module.WorldState.FutureTime(3.5f))
+            .DeactivateOnExit<P1Downburst>()
+            .ExecOnExit<P1Positioning>(p => p.DesiredPosition = p.Module.Center);
         // great whirlwind disappears somewhere here...
 
         P1GarudaFeatherRainRaidwide(id + 0x1000, 7.3f, AID.MistralShriek, "Cyclone 2 + Feathers"); // note: cyclone happens ~0.6s before feathers
@@ -80,8 +88,11 @@ class UWUStates : StateMachineBuilder
 
     private void P1Frictions(uint id, float delay)
     {
-        ActorCast(id, _module.Garuda, AID.Friction, delay, 2, true, "Friction 1");
-        ActorCast(id + 0x10, _module.Garuda, AID.Friction, 4.2f, 2, true, "Friction 2");
+        ActorCastStart(id, _module.Garuda, AID.Friction, delay, true)
+            .ActivateOnEnter<P1Friction>();
+        ActorCastEnd(id + 1, _module.Garuda, 2, true, "Friction 1");
+        ActorCast(id + 0x10, _module.Garuda, AID.Friction, 4.2f, 2, true, "Friction 2")
+            .DeactivateOnExit<P1Friction>();
     }
 
     private void P1GarudaFeatherRainRaidwide(uint id, float delay, AID raidwide, string name = "Feathers")

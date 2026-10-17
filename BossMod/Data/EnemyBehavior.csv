@@ -2,6 +2,9 @@ OID,Name,TankDistance,CanMove
 0x1FDF,Twintania,0,true
 0x1FE1,Nael Deus Darnus,0,true
 0x1FE8,Bahamut Prime,0,true
+0x2212,Garuda,0,true
+0x2215,Satin Plume,0,true
+0x2216,Spiny Plume,0,true
 0x4B8E,Wisp Piece,0,false
 0x4C63,Devilet Piece,0,false
 0x4C90,Bone Bishop,5,true
