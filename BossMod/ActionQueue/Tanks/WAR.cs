@@ -122,10 +122,8 @@ public enum SID : uint
     Reprisal = ClassShared.SID.Reprisal, // applied by Reprisal to target
 }
 
-public sealed class Definitions : Defs
+sealed class Definitions(WARConfig config) : Defs
 {
-    private readonly WARConfig _config = Service.Config.Get<WARConfig>();
-
     public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.LandWaker, instantAnimLock: 3.86f);
@@ -171,7 +169,7 @@ public sealed class Definitions : Defs
         // hardcoded mechanics
         d.RegisterChargeIncreaseTrait(AID.Onslaught, TraitID.EnhancedOnslaught);
 
-        d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => _config.HolmgangSelf ? player : target;
+        d.Spell(AID.Holmgang)!.SmartTarget = (_, player, target, _) => config.HolmgangSelf ? player : target;
         d.Spell(AID.Equilibrium)!.AllowExecute = (_, player, _, _) => player.HPRatio < 1; // don't use equilibrium at full hp
         d.Spell(AID.NascentFlash)!.SmartTarget = ActionDefinitions.SmartTargetCoTank;
 

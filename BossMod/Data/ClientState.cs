@@ -83,8 +83,9 @@ public sealed class ClientState
     public ClientState()
     {
         Inventory = [];
-        foreach (var it in ActionDefinitions.Instance.SupportedItems)
-            Inventory[it] = 0;
+        // FIXME
+        //foreach (var it in ActionDefinitions.Instance.SupportedItems)
+        //    Inventory[it] = 0;
     }
 
     // if an action has SecondaryCostType between 1 and 4, it's considered usable as long as the corresponding timer in this array is >0; the timer is set to 5 when certain ActionEffects are received and ticks down each frame

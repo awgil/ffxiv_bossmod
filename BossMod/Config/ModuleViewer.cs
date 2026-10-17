@@ -20,7 +20,6 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
-
     private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
 
     private BitMask _filterExpansions;

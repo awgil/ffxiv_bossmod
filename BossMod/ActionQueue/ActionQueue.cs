@@ -8,7 +8,7 @@
 // - repeat the process until no more actions can be found
 public sealed class ActionQueue
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _config = new(); // Service.Config.Get<ActionTweaksConfig>();
 
     public readonly record struct Entry(ActionID Action, Actor? Target, float Priority, float Expire, float Delay, float CastTime, Vector3 TargetPos, Angle? FacingAngle, bool Manual, bool Force);
 

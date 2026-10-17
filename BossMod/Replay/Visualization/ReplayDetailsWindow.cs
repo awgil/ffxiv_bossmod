@@ -49,7 +49,7 @@ class ReplayDetailsWindow : UIWindow
         Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
         _player = new(data);
         _rotationDB = rotationDB;
-        _mgr = new(_player.WorldState);
+        _mgr = null!; // new(_player.WorldState);
         _zmm = new(_player.WorldState);
         _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
         _rmm = new(rotationDB, _mgr, _hints);
@@ -579,7 +579,7 @@ class ReplayDetailsWindow : UIWindow
             _zmm.Dispose();
             _mgr.Dispose();
             _player.Reset();
-            _mgr = new(_player.WorldState);
+            _mgr = null!; // new(_player.WorldState);
             _zmm = new(_player.WorldState);
             _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
             _rmm = new(_rotationDB, _mgr, _hints);

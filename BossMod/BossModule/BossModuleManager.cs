@@ -5,7 +5,7 @@ public sealed class BossModuleManager : IDisposable
 {
     public readonly WorldState WorldState;
     public readonly RaidCooldowns RaidCooldowns;
-    public readonly BossModuleConfig Config = Service.Config.Get<BossModuleConfig>();
+    public readonly BossModuleConfig Config;
     private readonly EventSubscriptions _subscriptions;
 
     public List<BossModule> LoadedModules { get; } = [];
@@ -30,8 +30,9 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager(WorldState ws)
+    public BossModuleManager(WorldState ws, BossModuleConfig cfg)
     {
+        Config = cfg;
         WorldState = ws;
         RaidCooldowns = new(ws);
         _subscriptions = new

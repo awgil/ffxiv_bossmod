@@ -40,12 +40,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IAmex _amex;
     readonly IWorldStateGameSync _wsSync;
     readonly RotationModuleManager _rotation;
-    readonly IPCProvider _ipc;
+    readonly IpcProvider _ipc;
     readonly DtrProvider _dtr;
     readonly SlashCommandProvider _slashCmd;
     readonly MultiboxManager _mbox;
     TimeSpan _prevUpdateTime;
     readonly PackLoader _packs;
+    private readonly ConfigRoot configRoot;
     readonly PingTracker _ping;
     private readonly IDalamudPluginInterface dalamud;
     private readonly IUiBuilder uiBuilder;
@@ -81,7 +82,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IFileDialogManager dialog,
         IChatGui chat,
         IClientState clientState,
-        IWindowSystemFactory windowSystemFactory
+        IWindowSystemFactory windowSystemFactory,
+        PackLoader packs,
+        ConfigRoot configRoot,
+        RotationDatabase db,
+        IAmex amex,
+        WorldState wsGlobal,
+        BossModuleManager bmm
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -102,17 +109,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
-        Service.Config = new(dalamud.ConfigFile);
-
-        Service.Config.PreviousAssemblyVersion = Service.Config.AssemblyVersion;
-        Service.Config.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
-
-        Service.Config.Reload([], [Assembly.GetExecutingAssembly()]);
-        BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-
         var configDir = dalamud.ConfigDirectory.FullName;
         if (Service.IsMock)
         {
@@ -128,10 +124,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             MultiboxUnlock.Exec();
         }
 
-        MigratePlans(configDir);
-        CopyLibraries(dalamud.AssemblyLocation);
+        _packs = packs;
+        this.configRoot = configRoot;
 
-        _packs = new();
         _hints = new();
         _ping = new(logger);
 
@@ -141,13 +136,15 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
         }
 
-        _rotationDB = new(new(Path.Join(Plugin.GetStorageDir(), "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"), _packs);
+        _rotationDB = db;
+
+        _amex = amex;
+        _ws = wsGlobal;
 
         if (Service.IsMock)
         {
-            _ws = new(0, "unknown");
             _movementOverride = new MockMovementOverride();
-            _amex = new MockAmex();
+            //_amex = new MockAmex();
             _wsSync = new MockWorldStateGameSync();
             _hintExecutor = new MockHintExecutor();
 
@@ -156,16 +153,15 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         else
         {
             _ping.Run();
-            _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
             _movementOverride = new MovementOverride(dalamud);
-            _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
+            //_amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
             _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
             _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
         }
 
-        _bossmod = new(_ws);
+        _bossmod = bmm;
         _zonemod = new(_ws);
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _rotation = new(_rotationDB, _bossmod, _hints);
@@ -206,6 +202,15 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
             _hintsBuilder.Obstacles.ClearGenerated();
         }
+
+        //configRoot.Reload([], [Assembly.GetExecutingAssembly()]);
+        BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+        AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
+
+        MigratePlans(dalamud.ConfigDirectory.FullName);
+        CopyLibraries(dalamud.AssemblyLocation);
 
         // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
@@ -706,9 +711,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.Log($"[Migrator] Done.");
     }
 
-    private static void CopyLibraries(FileInfo assemblyLocation)
+    private void CopyLibraries(FileInfo assemblyLocation)
     {
-        var modulesDir = PackLoader.ModuleDir;
+        var modulesDir = _packs.ModuleDir;
         var assemblyDir = assemblyLocation.DirectoryName;
 
         Directory.CreateDirectory(modulesDir);
@@ -774,6 +779,5 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder.Dispose();
         _zonemod.Dispose();
         _bossmod.Dispose();
-        _packs.Dispose();
     }
 }

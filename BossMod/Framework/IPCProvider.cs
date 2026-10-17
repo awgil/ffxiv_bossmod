@@ -6,11 +6,11 @@ using System.Text.Json.Nodes;
 
 namespace BossMod;
 
-sealed class IPCProvider : IDisposable
+sealed class IpcProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IPCProvider(RotationModuleManager autorotation, ObstacleMapManager obstacles)
+    public IpcProvider(RotationModuleManager autorotation, ObstacleMapManager obstacles)
     {
         Register("HasModuleByDataId", (uint dataId) => BossModuleRegistry.FindByOID(dataId) != null);
         // 'save' argument is deprecated

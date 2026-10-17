@@ -15,15 +15,15 @@ internal sealed class AIWindow : UIWindow
 
     int _masterSlot = -1;
 
-    readonly Preset _pMultibox;
+    readonly Preset? _pMultibox;
 
     public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
-        _pMultibox = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
+        _pMultibox = mgr.Database.Presets.DefaultPresets.FirstOrDefault(p => p.Name == "VBM Multibox");
         _subscriptions = new
         (
-            _config.Modified.ExecuteAndSubscribe(() =>
+            _config.Modified.Subscribe(() =>
             {
                 IsOpen = _config.DrawUI;
                 ToggleMove();

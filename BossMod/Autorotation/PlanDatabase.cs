@@ -1,10 +1,14 @@
-﻿using System.IO;
+﻿using Autofac.Features.AttributeFilters;
+using Microsoft.Extensions.Hosting;
+using System.IO;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod.Autorotation;
 
 // note: plans in the database are immutable (otherwise eg. manager won't see the changes in active plan)
-public sealed class PlanDatabase : IDisposable
+public sealed class PlanDatabase : IHostedService
 {
     public record class PlanList
     {
@@ -18,26 +22,39 @@ public sealed class PlanDatabase : IDisposable
 
     private readonly FileInfo _manifestPath;
     private readonly DirectoryInfo _planStore;
-
     private readonly SensibleFileWatcher _watcher;
     private readonly EventSubscriptions _subscriptions;
 
     private readonly Queue<string> _pendingFiles = [];
 
-    public PlanDatabase(string rootPath)
+    public PlanDatabase(
+        [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
+        [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore
+    )
     {
-        _manifestPath = new(rootPath + ".manifest.json");
-        _planStore = new(rootPath);
+        _manifestPath = manifestPath;
+        _planStore = planStore;
+
+        _watcher = new(planStore.FullName, filter: "*.json", includeSubdirectories: true);
+        _subscriptions = new(
+            _watcher.Changed.Subscribe(OnPlanFileChanged),
+            _watcher.Deleted.Subscribe(OnPlanFileDeleted)
+        );
+    }
+
+    async Task IHostedService.StartAsync(CancellationToken cancellationToken)
+    {
         if (!_planStore.Exists)
             _planStore.Create();
 
-        _watcher = new(rootPath, filter: "*.json", includeSubdirectories: true)
-        {
-            EnableRaisingEvents = true
-        };
-        _subscriptions = new(_watcher.Changed.Subscribe(OnPlanFileChanged), _watcher.Deleted.Subscribe(OnPlanFileDeleted));
-
         Load();
+
+        _watcher.EnableRaisingEvents = true;
+    }
+    Task IHostedService.StopAsync(CancellationToken cancellationToken)
+    {
+        _watcher.EnableRaisingEvents = false;
+        return Task.CompletedTask;
     }
 
     public void Load()

@@ -144,7 +144,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ActorState.OpEffectResult => false,
             PartyState.OpLimitBreakChange => false,
             PartyState.OpAllianceChange => false,
-            ClientState.OpActionRequest => false,
+            //ClientState.OpActionRequest => false,
             ClientState.OpForcedMovementDirectionChange => false,
             ClientState.OpActiveCompanionChange => false,
             //ClientState.OpActionReject => false,

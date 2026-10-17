@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // allowed categories of targets for an action
 [Flags]
@@ -209,14 +207,14 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    public static readonly ActionDefinitions Instance = new();
+    public static ActionDefinitions Instance = null!;
 
     public Func<uint, bool>? UnlockCheck;
 
-    private ActionDefinitions()
+    public ActionDefinitions(IEnumerable<Defs> definitions)
     {
-        foreach (var d in Utils.GetDerivedTypes<Defs>(Assembly.GetExecutingAssembly()))
-            ((Defs)Activator.CreateInstance(d)!).Define(this);
+        foreach (var d in definitions)
+            d.Define(this);
 
         // items (TODO: more generic approach is needed...)
         RegisterItem(IDPotionStr);

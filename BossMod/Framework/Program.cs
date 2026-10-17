@@ -1,5 +1,7 @@
 ﻿#if DEBUG
+using Autofac;
 using BossMod;
+using BossMod.Services;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
 using DalaMock.Shared.Interfaces;
@@ -20,6 +22,12 @@ static class Program
     private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, IDataManager dataManager) : Plugin(dalamud, null!, dataManager)
     {
         public override IReplacementContainer ReplacementContainer { get; } = mrc;
+
+        public override void ConfigureExtra(ContainerBuilder containerBuilder)
+        {
+            containerBuilder.RegisterType<MockAmex>().As<IAmex>().SingleInstance();
+            containerBuilder.Register(ctx => new WorldState(0, "unknown")).InstancePerLifetimeScope();
+        }
     }
 
     static readonly string[] SupportedLibs = [

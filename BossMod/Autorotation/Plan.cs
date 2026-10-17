@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 namespace BossMod.Autorotation;
 
 // preset is a list of rotation states tied to encounter timeline
-[JsonConverter(typeof(JsonPlanConverter))]
 public sealed record class Plan(string Name, Type Encounter)
 {
     public record struct Entry(StrategyValue Value)
@@ -55,7 +54,7 @@ public sealed record class Plan(string Name, Type Encounter)
 }
 
 // we want to serialize track/option indices as internal names, to simplify making changes
-public class JsonPlanConverter : JsonConverter<Plan>
+public class JsonPlanConverter() : JsonConverter<Plan>
 {
     public override Plan? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

@@ -16,9 +16,9 @@ public interface IAmex : IDisposable
     ActionID AdjustAction(ActionID action);
 }
 
-internal sealed class MockAmex : IAmex
+internal sealed class MockAmex(ActionTweaksConfig config) : IAmex
 {
-    public ActionTweaksConfig Config { get; } = Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config => config;
 
     public float EffectiveAnimationLock => 0;
     public float AnimationLockDelayEstimate => 0.02f;

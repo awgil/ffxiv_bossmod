@@ -28,7 +28,7 @@ public sealed class ReplayBuilder : IDisposable
     {
         _res = new() { Path = path };
         _ws = new(TimeSpan.TicksPerSecond, "pending");
-        _mgr = new(_ws);
+        _mgr = null!; // new(_ws);
         _subscribers = new
         (
             _ws.Actors.Added.Subscribe(ActorAdded),

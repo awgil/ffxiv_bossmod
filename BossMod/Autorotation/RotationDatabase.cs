@@ -1,14 +1,17 @@
-﻿using System.IO;
+﻿namespace BossMod.Autorotation;
 
-namespace BossMod.Autorotation;
-
-public sealed class RotationDatabase : IDisposable
+public sealed class RotationDatabase(PresetDatabase presets, PlanDatabase plans, PackLoader loader) : IDisposable
 {
-    public readonly PresetDatabase Presets;
-    public readonly PlanDatabase Plans;
+    public readonly PresetDatabase Presets = presets;
+    public readonly PlanDatabase Plans = plans;
 
-    private readonly EventSubscriptions _subscriptions;
+    private readonly EventSubscriptions _subscriptions = new(loader.Modified.Subscribe(() =>
+    {
+        presets.Load();
+        plans.Load();
+    }));
 
+    /*
     public RotationDatabase(DirectoryInfo rootPath, FileInfo defaultPresets, PackLoader loader)
     {
         if (!rootPath.Exists)
@@ -24,10 +27,10 @@ public sealed class RotationDatabase : IDisposable
             })
         );
     }
+    */
 
     public void Dispose()
     {
         _subscriptions.Dispose();
-        Plans.Dispose();
     }
 }

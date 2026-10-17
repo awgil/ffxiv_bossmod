@@ -513,7 +513,7 @@ public sealed class ConfigUI : IDisposable
         }
     }
 
-    private static void ResolveModule(UINode node)
+    private void ResolveModule(UINode node)
     {
         if (node.DisplayName != null)
             return;
