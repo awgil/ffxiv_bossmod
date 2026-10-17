@@ -78,7 +78,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
                     if (farthest != null)
                     {
                         var stack = GetAOEForTarget(Source.Position, farthest.Position);
-                        hints.AddForbiddenZone(ShapeDistance.InvertedCone(stack.origin, 100, stack.dir.ToAngle(), Angle.Asin(HalfWidth / (Source.Position - farthest.Position).Length())), Activation);
+                        hints.AddForbiddenZone(ShapeDistance.InvertedCone(stack.origin, 100, stack.dir.ToAngle(), MathF.Atan2(HalfWidth, (Source.Position - farthest.Position).Length()).Radians()), Activation);
                     }
                 }
                 break;
