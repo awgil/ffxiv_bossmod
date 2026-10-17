@@ -88,9 +88,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
-    // received when interacting with retainers, maybe also with merchants?
-    private unsafe delegate void InventoryAckDelegate(InventoryManager* mgr, uint a1, void* a2);
-    private readonly Hook<InventoryAckDelegate> _inventoryAckHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket> _inventoryUpdateHook;
 
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
@@ -179,9 +177,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _processLegacyMapEffectHook.Enable();
         Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
 
-        _inventoryAckHook = Service.Hook.HookFromSignature<InventoryAckDelegate>("48 89 5C 24 ?? 57 48 83 EC 30 48 8B 05 ?? ?? ?? ?? 48 8B D9 41 0F B6 50 ??", InventoryAckDetour);
-        _inventoryAckHook.Enable();
-        Service.Log($"[WSG] InventoryAck address = {_inventoryAckHook.Address:X}");
+        _inventoryUpdateHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket>(PacketDispatcher.Addresses.HandleInventoryItemUpdatePacket.Value, InventoryItemUpdateDetour);
+        _inventoryUpdateHook.Enable();
+        Service.Log($"[WSG] InventoryItemUpdate address = {_inventoryUpdateHook.Address:X}");
 
         _processPlayActionTimelineSyncHook = Service.Hook.HookFromSignature<ProcessPacketPlayActionTimelineSync>("48 8B D1 48 8D 0D ?? ?? ?? ?? E9 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 53 56", ProcessPlayActionTimelineSyncDetour);
         _processPlayActionTimelineSyncHook.Enable();
@@ -195,7 +193,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     public void Dispose()
     {
         _processPlayActionTimelineSyncHook.Dispose();
-        _inventoryAckHook.Dispose();
+        _inventoryUpdateHook.Dispose();
         _processLegacyMapEffectHook.Dispose();
         _processMapEffect1Hook.Dispose();
         _processMapEffect2Hook.Dispose();
@@ -1232,9 +1230,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _globalOps.Add(new WorldState.OpLegacyMapEffect(seq, unk, new Span<byte>(data, (int)length).ToArray()));
     }
 
-    private unsafe void InventoryAckDetour(InventoryManager* mgr, uint a1, void* a2)
+    private unsafe void InventoryItemUpdateDetour(uint targetId, InventoryItemPacket* packet)
     {
-        _inventoryAckHook.Original(mgr, a1, a2);
+        _inventoryUpdateHook.Original(targetId, packet);
         _needInventoryUpdate = true;
     }
 
