@@ -24,7 +24,7 @@ class P1FeatherRain(BossModule module) : Components.GenericAOEs(module, AID.Feat
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (_casters.Count > 0)
+        if (_predicted.Count + _casters.Count > 0)
             hints.GoalZonesEnabled = false;
     }
 
