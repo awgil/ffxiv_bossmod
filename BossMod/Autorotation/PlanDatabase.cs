@@ -22,6 +22,7 @@ public sealed class PlanDatabase : IHostedService
 
     private readonly FileInfo _manifestPath;
     private readonly DirectoryInfo _planStore;
+    public readonly JsonSerializerOptions SerializerOptions;
     private readonly SensibleFileWatcher _watcher;
     private readonly EventSubscriptions _subscriptions;
 
@@ -32,12 +33,14 @@ public sealed class PlanDatabase : IHostedService
     public PlanDatabase(
         [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
         [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
-        BossModuleRegistry bossModuleRegistry
+        BossModuleRegistry bossModuleRegistry,
+        JsonSerializerOptions jsonSerializerOptions
     )
     {
         _manifestPath = manifestPath;
         _planStore = planStore;
         BossModuleRegistry = bossModuleRegistry;
+        SerializerOptions = jsonSerializerOptions;
         _watcher = new(planStore.FullName, filter: "*.json", includeSubdirectories: true);
         _subscriptions = new(
             _watcher.Changed.Subscribe(OnPlanFileChanged),
@@ -49,8 +52,6 @@ public sealed class PlanDatabase : IHostedService
     {
         if (!_planStore.Exists)
             _planStore.Create();
-
-        Load();
 
         _watcher.EnableRaisingEvents = true;
     }
@@ -66,14 +67,13 @@ public sealed class PlanDatabase : IHostedService
 
         // first load all actually available plans
         Dictionary<string, Plan> foundPlans = [];
-        var serOptions = Serialization.BuildSerializationOptions();
         foreach (var f in _planStore.EnumerateFiles("*.json"))
         {
             try
             {
                 var data = PlanPresetConverter.PlanSchema.Load(f);
                 using var json = data.document;
-                var plan = data.payload.Deserialize<Plan>(serOptions);
+                var plan = data.payload.Deserialize<Plan>(SerializerOptions);
                 if (plan != null)
                 {
                     plan.Guid = f.Name[..^5];
@@ -243,7 +243,7 @@ public sealed class PlanDatabase : IHostedService
         try
         {
             _pendingFiles.Enqueue(plan.Guid);
-            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions()));
+            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, SerializerOptions));
             Service.Log($"Plan saved successfully to '{filename}'");
         }
         catch (Exception ex)
@@ -290,7 +290,7 @@ public sealed class PlanDatabase : IHostedService
         {
             var data = PlanPresetConverter.PlanSchema.Load(new(args.FullPath));
             using var json = data.document;
-            var newPlan = data.payload.Deserialize<Plan>(Serialization.BuildSerializationOptions());
+            var newPlan = data.payload.Deserialize<Plan>(SerializerOptions);
             if (newPlan != null)
             {
                 newPlan.Guid = guid;

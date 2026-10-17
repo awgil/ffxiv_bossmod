@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -245,7 +245,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
     {
         if (_selectedPreset != null)
         {
-            ImGui.SetClipboardText(JsonSerializer.Serialize(_selectedPreset.Preset, Serialization.BuildSerializationOptions()));
+            ImGui.SetClipboardText(JsonSerializer.Serialize(_selectedPreset.Preset, serOptions));
         }
         else
         {
@@ -270,7 +270,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
                 foreach (var conv in PlanPresetConverter.PlanSchema.Converters)
                     json = conv(json, 0, finfo);
 
-                var plan = JsonSerializer.Deserialize<Plan>(json, Serialization.BuildSerializationOptions())!;
+                var plan = JsonSerializer.Deserialize<Plan>(json, serOptions)!;
                 plan.Guid = Guid.NewGuid().ToString();
 
                 rotationDB.Plans.ModifyPlan(null, plan);
@@ -284,7 +284,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
             foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
                 json = conv(json, 0, finfo);
 
-            var preset = JsonSerializer.Deserialize<Preset>(json.AsArray()[0], Serialization.BuildSerializationOptions())!;
+            var preset = JsonSerializer.Deserialize<Preset>(json.AsArray()[0], serOptions)!;
             _selectedPresetIndex = -1;
             _selectedPresetDefault = false;
             _selectedPreset = new(PresetDB, rmr, preset, _selectedModuleType);

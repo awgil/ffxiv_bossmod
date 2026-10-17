@@ -91,7 +91,7 @@ public sealed class PackLoader : IHostedService
         var dir = new DirectoryInfo(packDirectory);
         foreach (var file in dir.EnumerateFiles())
             if (file.Extension == ".dll")
-                OnFileChanged(file.FullName);
+                OnFileChanged(file.FullName, true);
 
         Modified.Fire();
     }
@@ -102,7 +102,7 @@ public sealed class PackLoader : IHostedService
             _loadContexts[e.FullPath] = ctx;
     }
 
-    private void OnFileChanged(string fullPath)
+    private void OnFileChanged(string fullPath, bool suppress = false)
     {
         var ctxOld = _loadContexts.Remove(fullPath, out var ctx) ? ctx : null;
         var ctxNew = _loadContexts[fullPath] = new LoadContext();
@@ -128,10 +128,11 @@ public sealed class PackLoader : IHostedService
 
         ctxOld?.Unload();
 
-        Modified.Fire();
-
-        if (_watcher.EnableRaisingEvents)
+        if (!suppress)
+        {
+            Modified.Fire();
             Service.ShowNotification($"Loaded {Path.GetFileName(fullPath)}");
+        }
     }
 
     private void OnFileDeleted(string fullPath)

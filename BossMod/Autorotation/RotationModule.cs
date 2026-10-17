@@ -216,7 +216,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public virtual string DescribeState() => "";
 
     // utility to check action/trait unlocks
-    public bool ActionUnlocked(ActionID action) => ActionDefinitions.Instance[action]?.IsUnlocked(World, Player) ?? false;
+    public bool ActionUnlocked(ActionID action) => Manager.ActionDefinitions[action]?.IsUnlocked(World, Player) ?? false;
 
     public bool ActionUnlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
 
@@ -231,7 +231,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public float MaxChargesIn(ActionID action)
     {
-        if (ActionDefinitions.Instance[action] is not { } def || !def.IsUnlocked(World, Player))
+        if (Manager.ActionDefinitions[action] is not { } def || !def.IsUnlocked(World, Player))
             return float.MaxValue;
 
         return def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level);

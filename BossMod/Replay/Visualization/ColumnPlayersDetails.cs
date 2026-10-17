@@ -1,11 +1,13 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
 public class ColumnPlayersDetails : Timeline.ColumnGroup
 {
     private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly JsonSerializerOptions serOptions;
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
     private readonly Replay _replay;
@@ -15,10 +17,11 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
 
     public bool AnyPlanModified => _columns.Any(c => c?.PlanModified ?? false);
 
-    public ColumnPlayersDetails(BossModuleRegistry bossModuleRegistry, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB)
+    public ColumnPlayersDetails(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB)
         : base(timeline)
     {
         this.bossModuleRegistry = bossModuleRegistry;
+        this.serOptions = serOptions;
         _tree = tree;
         _phaseBranches = phaseBranches;
         _replay = replay;
@@ -28,7 +31,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
         foreach (var i in showPlayers.SetBits())
         {
             var (p, c, _) = enc.PartyMembers[i];
-            _columns[i] = Add(new ColumnPlayerDetails(bossModuleRegistry, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, planDB));
+            _columns[i] = Add(new ColumnPlayerDetails(bossModuleRegistry, serOptions, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, planDB));
         }
     }
 
@@ -43,7 +46,7 @@ public class ColumnPlayersDetails : Timeline.ColumnGroup
                 if (col != null)
                     col.DrawConfig(tree);
                 else if (ImGui.Button("Show details..."))
-                    _columns[i] = Add(new ColumnPlayerDetails(bossModuleRegistry, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, _planDB));
+                    _columns[i] = Add(new ColumnPlayerDetails(bossModuleRegistry, serOptions, Timeline, _tree, _phaseBranches, _replay, _encounter, p, c, _planDB));
             }
         }
     }

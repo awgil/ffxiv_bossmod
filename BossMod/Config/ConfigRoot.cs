@@ -70,9 +70,9 @@ public sealed class ConfigRoot : IDisposable
     private readonly JsonSerializerOptions _opts;
     private readonly BossModuleRegistry bossModuleRegistry;
 
-    public ConfigRoot(FileInfo file, BossModuleRegistry bossModuleRegistry)
+    public ConfigRoot(FileInfo file, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions opts)
     {
-        _opts = Serialization.BuildSerializationOptions();
+        _opts = opts;
         this.bossModuleRegistry = bossModuleRegistry;
 
         if (file.Exists)
@@ -106,12 +106,11 @@ public sealed class ConfigRoot : IDisposable
             ConfigConverter.BuildSchema(bossModuleRegistry).Save(tmp, jwriter =>
             {
                 jwriter.WriteStartObject();
-                var ser = Serialization.BuildSerializationOptions();
                 foreach (var t in _nodes.Keys)
                 {
                     extraProperties.Remove(t.FullName!);
                     jwriter.WritePropertyName(t.FullName!);
-                    Get<ConfigNode>(t).Serialize(jwriter, ser);
+                    Get<ConfigNode>(t).Serialize(jwriter, _opts);
                 }
                 foreach (var (kExtra, vExtra) in extraProperties)
                 {

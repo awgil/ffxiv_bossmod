@@ -5,6 +5,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
+using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
@@ -56,8 +57,8 @@ class ReplayDetailsWindow : UIWindow
         _curTime = initialTime ?? _first;
         (_playerScope, _player) = ReplayPlayer.CreateOwned(data, _parentScope);
         _player.AdvanceTo(_curTime, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), null, null);
-        _events = new(scope.Resolve<BossModuleRegistry>(), data, MoveTo, _rotationDB.Plans, this);
+        _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), null, null);
+        _events = new(scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), data, MoveTo, _rotationDB.Plans, this);
         _analysis = new([data], scope.Resolve<BossModuleRegistry>());
     }
 
@@ -197,7 +198,7 @@ class ReplayDetailsWindow : UIWindow
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_parentScope.Resolve<BossModuleRegistry>(), _player.Replay, enc, BitMask.Build(_povSlot), _rotationDB.Plans, this);
+                        _ = new ReplayTimelineWindow(_parentScope.Resolve<BossModuleRegistry>(), _parentScope.Resolve<JsonSerializerOptions>(), _player.Replay, enc, BitMask.Build(_povSlot), _rotationDB.Plans, this);
                     }
                 }
             }
@@ -574,6 +575,9 @@ class ReplayDetailsWindow : UIWindow
         if (t < _player.WorldState.CurrentTime)
         {
             _playerScope.Dispose();
+            if (_modulePopout is { IsOpen: true })
+                _modulePopout.Dispose();
+            _modulePopout = null;
             (_playerScope, _player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
         }
         _player.AdvanceTo(t, _mgr.Update);

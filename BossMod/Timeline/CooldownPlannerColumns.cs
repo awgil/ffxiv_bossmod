@@ -12,6 +12,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 {
     public bool Modified;
     private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly JsonSerializerOptions serOptions;
     public Plan Plan; // note: this is a copy of the plan stored in database
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
@@ -25,10 +26,11 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     public Class PlanClass => Plan.Class;
 
-    public CooldownPlannerColumns(BossModuleRegistry bossModuleRegistry, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
+    public CooldownPlannerColumns(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
         : base(timeline)
     {
         this.bossModuleRegistry = bossModuleRegistry;
+        this.serOptions = serOptions;
         Plan = plan;
         _tree = tree;
         _phaseBranches = phaseBranches;
@@ -176,13 +178,13 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
         return selectedPhase;
     }
 
-    public void ExportToClipboard() => ImGui.SetClipboardText(JsonSerializer.Serialize(Plan, Serialization.BuildSerializationOptions()));
+    public void ExportToClipboard() => ImGui.SetClipboardText(JsonSerializer.Serialize(Plan, serOptions));
 
     public void ImportFromClipboard()
     {
         try
         {
-            var plan = JsonSerializer.Deserialize<Plan>(ImGui.GetClipboardText(), Serialization.BuildSerializationOptions())!;
+            var plan = JsonSerializer.Deserialize<Plan>(ImGui.GetClipboardText(), serOptions)!;
             if (plan.Class != Plan.Class || plan.Encounter != Plan.Encounter)
             {
                 Service.Log($"Failed to import: plan belongs to {plan.Class} {plan.Encounter} instead of {Plan.Class} {Plan.Encounter}");

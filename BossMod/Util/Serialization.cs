@@ -14,14 +14,6 @@ public static class Serialization
         public override void WriteAsPropertyName(Utf8JsonWriter writer, Type value, JsonSerializerOptions options) => writer.WritePropertyName(value.FullName!);
     }
 
-    public static JsonSerializerOptions BuildSerializationOptions() => new()
-    {
-        IncludeFields = true,
-        WriteIndented = true,
-        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-        Converters = { new JsonStringEnumConverter(), new JsonTypeConverter() }
-    };
-
     public static JsonDocument ReadJson(string path)
     {
         using var fstream = File.OpenRead(path);

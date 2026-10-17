@@ -11,9 +11,9 @@ public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, 
 
     public WorldState WorldState { get; private set; } = ws;
     public RotationDatabase RotationDB { get; } = rotationDB;
-    public RotationModuleManager Rmm { get; } = rmm;
-    public BossModuleManager Bmm { get; } = bmm;
-    public ZoneModuleManager Zmm { get; } = zmm;
+    public RotationModuleManager Rmm { get; private set; } = rmm;
+    public BossModuleManager Bmm { get; private set; } = bmm;
+    public ZoneModuleManager Zmm { get; private set; } = zmm;
     public AIHintsBuilder HintsBuilder { get; } = hintsBuilder;
     public AIHints Hints { get; } = hints;
 
@@ -22,6 +22,13 @@ public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, 
     {
         WorldState = new(Replay.QPF, Replay.GameVersion);
         _nextOp = 0;
+    }
+
+    public void Explode()
+    {
+        Bmm = null!;
+        Zmm = null!;
+        Rmm = null!;
     }
 
     // execute next group of operations that share timestamp; returns false if we've reached the end

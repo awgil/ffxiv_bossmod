@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
@@ -8,6 +9,7 @@ namespace BossMod.ReplayVisualization;
 public class ColumnPlayerDetails : Timeline.ColumnGroup
 {
     private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly JsonSerializerOptions serOptions;
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBraches;
     private readonly Replay _replay;
@@ -30,10 +32,11 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public bool PlanModified => _planner?.Modified ?? false;
 
-    public ColumnPlayerDetails(BossModuleRegistry bossModuleRegistry, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public ColumnPlayerDetails(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
         : base(timeline)
     {
         this.bossModuleRegistry = bossModuleRegistry;
+        this.serOptions = serOptions;
         _tree = tree;
         _phaseBraches = phaseBranches;
         _replay = replay;
@@ -191,7 +194,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _selectedPlan = newSelection;
         if (_selectedPlan >= 0)
         {
-            _planner = AddBefore(new CooldownPlannerColumns(bossModuleRegistry, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
+            _planner = AddBefore(new CooldownPlannerColumns(bossModuleRegistry, serOptions, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
         }
     }
 

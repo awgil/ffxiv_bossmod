@@ -11,7 +11,8 @@ namespace BossMod.Autorotation;
 public sealed class PresetDatabase(
     [KeyFilter(Keys.DefaultPresetsFile)] FileInfo defaultPresets,
     [KeyFilter(Keys.PresetDatabase)] FileInfo dbPath,
-    AutorotationConfig config
+    AutorotationConfig config,
+    JsonSerializerOptions serOptions
 ) : IHostedService
 {
     public readonly List<Preset> DefaultPresets = []; // default presets, distributed as part of the plugin
@@ -45,7 +46,7 @@ public sealed class PresetDatabase(
         {
             var data = PlanPresetConverter.PresetSchema.Load(file);
             using var json = data.document;
-            return data.payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
+            return data.payload.Deserialize<List<Preset>>(serOptions) ?? [];
         }
         catch (Exception ex)
         {
@@ -77,7 +78,7 @@ public sealed class PresetDatabase(
     {
         try
         {
-            PlanPresetConverter.PresetSchema.Save(dbPath, jwriter => JsonSerializer.Serialize(jwriter, UserPresets, Serialization.BuildSerializationOptions()));
+            PlanPresetConverter.PresetSchema.Save(dbPath, jwriter => JsonSerializer.Serialize(jwriter, UserPresets, serOptions));
             Service.Log($"Database saved successfully to '{dbPath.FullName}'");
         }
         catch (Exception ex)

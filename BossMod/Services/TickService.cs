@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -97,7 +98,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         RotationModuleManager rmm,
         ZoneModuleManager zmm,
         AIHintsBuilder builder,
-        ActionDefinitions definitions
+        ActionDefinitions definitions,
+        JsonSerializerOptions serOptions
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -174,14 +176,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _zonemod = zmm;
         _hintsBuilder = builder;
         _rotation = rmm;
-        _ipc = new(bossModuleRegistry, _rotation, rotationModuleRegistry, _hintsBuilder.Obstacles);
+        _ipc = new(bossModuleRegistry, _rotation, rotationModuleRegistry, _hintsBuilder.Obstacles, serOptions);
         _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
 
-        _wndConfig = new(new(Service.Config, _ws, bossModuleRegistry, rotationModuleRegistry, replayDir, _rotationDB));
+        _wndConfig = new(new(Service.Config, _ws, bossModuleRegistry, rotationModuleRegistry, serOptions, replayDir, _rotationDB));
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod, _rotation);

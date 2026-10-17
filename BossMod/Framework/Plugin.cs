@@ -11,6 +11,8 @@ using Lumina.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BossMod;
 
@@ -58,7 +60,7 @@ public class Plugin : HostedPlugin
 
         containerBuilder.Register((ctx) =>
         {
-            var root = new ConfigRoot(ctx.Resolve<IDalamudPluginInterface>().ConfigFile, ctx.Resolve<BossModuleRegistry>());
+            var root = new ConfigRoot(ctx.Resolve<IDalamudPluginInterface>().ConfigFile, ctx.Resolve<BossModuleRegistry>(), ctx.Resolve<JsonSerializerOptions>());
             root.PreviousAssemblyVersion = root.AssemblyVersion;
             root.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
 
@@ -76,12 +78,31 @@ public class Plugin : HostedPlugin
             }).As(node).SingleInstance();
         }
 
+        containerBuilder.Register(ctx =>
+        {
+            var bmr = ctx.Resolve<Lazy<BossModuleRegistry>>();
+            var rmr = ctx.Resolve<Lazy<RotationModuleRegistry>>();
+
+            return new JsonSerializerOptions()
+            {
+                IncludeFields = true,
+                WriteIndented = true,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                Converters = {
+                    new JsonStringEnumConverter(),
+                    new Serialization.JsonTypeConverter(),
+                    new JsonPresetConverter(rmr),
+                    new JsonPlanConverter(bmr, rmr)
+                }
+            };
+        }).SingleInstance();
+
         containerBuilder.RegisterType<ActionQueue>();
 
         containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
 
-        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(Defs))).SingleInstance();
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(Defs))).As<Defs>().SingleInstance();
 
         containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
 

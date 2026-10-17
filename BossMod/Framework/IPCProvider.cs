@@ -10,7 +10,7 @@ sealed class IpcProvider : IDisposable
 {
     private Action? _disposeActions;
 
-    public IpcProvider(BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles)
+    public IpcProvider(BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles, JsonSerializerOptions serOptions)
     {
         Register("HasModuleByDataId", (uint dataId) => bmr.FindByOID(dataId) != null);
         // 'save' argument is deprecated
@@ -41,7 +41,7 @@ sealed class IpcProvider : IDisposable
         Register("Presets.Get", (string name) =>
         {
             var preset = autorotation.Database.Presets.FindPresetByName(name);
-            return preset != null ? JsonSerializer.Serialize(preset, Serialization.BuildSerializationOptions()) : null;
+            return preset != null ? JsonSerializer.Serialize(preset, serOptions) : null;
         });
         Register("Presets.Create", (string presetSerialized, bool overwrite) =>
         {
@@ -58,7 +58,7 @@ sealed class IpcProvider : IDisposable
             foreach (var conv in PlanPresetConverter.PresetSchema.Converters)
                 node = conv(node, version, finfo);
 
-            var p = node.AsArray()[0].Deserialize<Preset>(Serialization.BuildSerializationOptions());
+            var p = node.AsArray()[0].Deserialize<Preset>(serOptions);
             if (p == null)
                 return false;
             var index = autorotation.Database.Presets.UserPresets.FindIndex(x => x.Name == p.Name);

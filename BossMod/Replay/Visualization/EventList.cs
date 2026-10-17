@@ -1,10 +1,11 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
-class EventList(BossModuleRegistry bossModuleRegistry, Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
+class EventList(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Replay r, Action<DateTime> scrollTo, PlanDatabase planDB, ReplayDetailsWindow timelineSync)
 {
     record struct Lists(OpList? Ops, IPCList? IPCs);
 
@@ -270,7 +271,7 @@ class EventList(BossModuleRegistry bossModuleRegistry, Replay r, Action<DateTime
 
     private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
     {
-        _ = new ReplayTimelineWindow(bossModuleRegistry, r, enc, showPlayers, planDB, timelineSync);
+        _ = new ReplayTimelineWindow(bossModuleRegistry, serOptions, r, enc, showPlayers, planDB, timelineSync);
     }
 
     private void DrawTimelines(Replay.Encounter enc)

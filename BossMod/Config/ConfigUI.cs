@@ -5,6 +5,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 
 namespace BossMod;
 
@@ -45,14 +46,14 @@ public sealed class ConfigUI : IDisposable
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, JsonSerializerOptions serOptions, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
         _root = config;
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
         _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws, bossModuleRegistry);
-        _presets = rotationDB != null ? new(rotationDB, rotationModuleRegistry) : null;
+        _presets = rotationDB != null ? new(rotationDB, rotationModuleRegistry, serOptions) : null;
         _rotationDB = rotationDB;
 
         _tabs.Add("About", _about.Draw);

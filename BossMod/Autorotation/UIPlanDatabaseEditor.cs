@@ -29,7 +29,7 @@ public sealed class UIPlanDatabaseEditor
 
     public static void StartPlanEditor(PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(db.BossModuleRegistry, db, plan, sm);
+        _ = new UIPlanEditorWindow(db.BossModuleRegistry, db.SerializerOptions, db, plan, sm);
     }
 
     public static void StartPlanEditor(PlanDatabase db, Plan plan)

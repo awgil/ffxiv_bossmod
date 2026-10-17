@@ -54,14 +54,14 @@ public sealed record class Plan(string Name, Type Encounter)
 }
 
 // we want to serialize track/option indices as internal names, to simplify making changes
-public class JsonPlanConverter(BossModuleRegistry bmr, RotationModuleRegistry rmr) : JsonConverter<Plan>
+public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModuleRegistry> rmr) : JsonConverter<Plan>
 {
     public override Plan? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         using var jdoc = JsonDocument.ParseValue(ref reader);
         var name = jdoc.RootElement.GetProperty(nameof(Plan.Name)).GetString() ?? "";
         var encName = jdoc.RootElement.GetProperty(nameof(Plan.Encounter)).GetString() ?? "";
-        if (bmr.FindByName(encName) is not { } encInfo)
+        if (bmr.Value.FindByName(encName) is not { } encInfo)
         {
             Service.Log($"Error while deserializing plan {name}: failed to find encounter {encName}");
             return null;
@@ -78,7 +78,7 @@ public class JsonPlanConverter(BossModuleRegistry bmr, RotationModuleRegistry rm
         }
         foreach (var jm in jdoc.RootElement.GetProperty(nameof(Plan.Modules)).EnumerateObject())
         {
-            if (!rmr.Modules.TryGetValue(jm.Name, out var md))
+            if (!rmr.Value.Modules.TryGetValue(jm.Name, out var md))
             {
                 Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find module {jm.Name}");
                 continue;
