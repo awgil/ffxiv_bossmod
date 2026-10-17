@@ -11,13 +11,13 @@ public sealed record class ReplayFileMeta(FileInfo File, string DutyKey, TimeSpa
     private static readonly Regex JobLevel = BuildJobLevelRegex();
     private static readonly string[] FlagSuffixes = ["_U", "_LS", "_MI", "_NE"];
 
-    public static List<ReplayFileMeta> Scan(DirectoryInfo dir)
+    public static List<ReplayFileMeta> Scan(DirectoryInfo dir, bool includeSubfolders = false)
     {
         var result = new List<ReplayFileMeta>();
         if (!dir.Exists)
             return result;
 
-        foreach (var fi in dir.EnumerateFiles("*.log"))
+        foreach (var fi in dir.EnumerateFiles("*.log", includeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
         {
             if (TryParse(fi, out var meta))
                 result.Add(meta);

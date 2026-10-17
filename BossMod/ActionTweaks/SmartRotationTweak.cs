@@ -9,8 +9,8 @@ class SmartRotationConfig : ConfigNode
     [PropertyDisplay("Automatically avoid gazes", depends: nameof(Enabled2))]
     public bool AvoidGazes = true;
 
-    [PropertyDisplay("Time before gaze activation to start avoiding", depends: nameof(Enabled2))]
-    [PropertySlider(0, 10, Speed = 0.01f)]
+    [PropertyDisplay("Anticipation window (seconds)", depends: nameof(Enabled2))]
+    [PropertySlider(0, 10)]
     public float MinTimeToAvoid = 0.5f;
 }
 

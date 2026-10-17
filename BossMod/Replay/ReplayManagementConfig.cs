@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Replays", Order = 0)]
+[ConfigDisplay(Name = "Replays", Order = 0, Group = "General")]
 public class ReplayManagementConfig : ConfigNode
 {
     [PropertyDisplay("Show replay management UI")]
@@ -12,7 +12,7 @@ public class ReplayManagementConfig : ConfigNode
     [PropertyDisplay("Auto record in Duty Recorder replays", depends: nameof(AutoRecord))]
     public bool AutoARR = true;
 
-    [PropertyDisplay("Anonymize replays", tooltip: "If this option is disabled, replays will contain personally identifying information for your character and any other player you see during the recording - specifically, names and content IDs.", since: "7.5.5.4")]
+    [PropertyDisplay("Anonymize replays", tooltip: "If this option is disabled, replays will contain your player's name, as well as the names of any other players you encounter. They will also contain the content IDs of you and your party members.", since: "7.5.5.4")]
     public bool Anonymize = true;
 
     [PropertyDisplay("Max replays to keep before removal")]

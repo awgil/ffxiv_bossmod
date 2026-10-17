@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Generic solver settings", Order = 8)]
+[ConfigDisplay(Name = "Generic solver settings", Order = 8, Group = "Radar & Modules")]
 public sealed class AIHintsConfig : ConfigNode
 {
     public enum DonutFallbackBehavior
@@ -15,7 +15,7 @@ public sealed class AIHintsConfig : ConfigNode
     public DonutFallbackBehavior DonutFallback = DonutFallbackBehavior.AssumeCircle;
 
     [PropertyDisplay("Guessed angle for unknown cone AOEs", since: "0.3.0.0", tooltip: "This setting only applies when no module is active.")]
-    [PropertySlider(1, 180, Speed = 5)]
+    [PropertySlider(1, 180)]
     public float ConeFallbackAngle = 180;
 
     public enum OmenBehavior

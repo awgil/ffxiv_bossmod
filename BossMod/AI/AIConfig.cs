@@ -1,6 +1,6 @@
 ﻿namespace BossMod.AI;
 
-[ConfigDisplay(Name = "AI Configuration", Order = 9)]
+[ConfigDisplay(Name = "AI Configuration", Order = 9, Group = "AI & Automation")]
 public sealed class AIConfig : ConfigNode
 {
     [PropertyDisplay("Enable")]
@@ -14,7 +14,7 @@ public sealed class AIConfig : ConfigNode
     public bool FocusTargetMaster = false;
 
     [PropertyDisplay("Distance to master")]
-    [PropertySlider(3, 25, Speed = 0.1f)]
+    [PropertySlider(3, 25)]
     public float DistanceToMaster = 25f;
 
     [PropertyDisplay("Follow master even if a boss module is active")]

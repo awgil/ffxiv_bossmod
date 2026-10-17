@@ -7,7 +7,7 @@ namespace BossMod;
 public sealed class ReplayState
 {
     public readonly List<Preset> ActivePresets = [];
-    public Preset.Modifier ModifierKeys = default;
+    public Preset.Modifier ModifierKeys;
     public PartyRolesConfig.Assignment[] RoleAssignments = Utils.MakeArray(PartyState.MaxPartySize, PartyRolesConfig.Assignment.Unassigned);
     public WDir MoveInput;
     public readonly List<SimpleEntry> ManualActions = [];
@@ -61,11 +61,12 @@ public sealed class ReplayState
     }
 
     public Event<OpRoleAssignmentsChange> RoleAssignmentsChanged = new();
-    public sealed record class OpRoleAssignmentsChange(PartyRolesConfig.Assignment[] Assignments) : WorldState.Operation
+    public sealed record class OpRoleAssignmentsChange(IReadOnlyList<PartyRolesConfig.Assignment> Assignments) : WorldState.Operation
     {
         protected override void Exec(WorldState ws)
         {
-            Assignments.CopyTo(ws.ReplayState.RoleAssignments);
+            for (var i = 0; i < Assignments.Count; ++i)
+                ws.ReplayState.RoleAssignments[i] = Assignments[i];
             ws.ReplayState.RoleAssignmentsChanged.Fire(this);
         }
 

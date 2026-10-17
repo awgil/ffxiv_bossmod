@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 class P1Slipstream(BossModule module) : Components.StandardAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
-class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 45.Degrees()));
+class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 60.Degrees()));
 class P1EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
 class P1Gigastorm(BossModule module) : Components.StandardAOEs(module, AID.Gigastorm, new AOEShapeCircle(6.5f));
 class P2RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlumeAOE, 8);
@@ -21,6 +21,21 @@ class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(mo
 class P5LightPillar(BossModule module) : Components.StandardAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
 class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AethericBoom, 10);
 
+class P1Positioning(BossModule module) : BossComponent(module)
+{
+    public WPos? DesiredPosition = module.Arena.Center;
+    public Angle? DesiredRotation = 180.Degrees();
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (hints.FindEnemy(Module.PrimaryActor) is { } garuda)
+        {
+            garuda.DesiredPosition = DesiredPosition;
+            garuda.DesiredRotation = DesiredRotation;
+        }
+    }
+}
+
 [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539, PlanLevel = 70)]
 public class UWU : BossModule
 {
@@ -37,7 +52,7 @@ public class UWU : BossModule
     public Actor? Lahabrea() => _lahabrea.FirstOrDefault();
     public Actor? Ultima() => _ultima.FirstOrDefault();
 
-    public UWU(ModuleInit init) : base(init, new(100, 100), new ArenaBoundsCircle(20))
+    public UWU(ModuleInit init) : base(init, new(100, 100), new ArenaBoundsCircle(19.5f))
     {
         Ifrits = Enemies(OID.Ifrit);
         _titan = Enemies(OID.Titan);

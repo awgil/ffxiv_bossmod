@@ -11,8 +11,21 @@ class P1MistralSongBoss(BossModule module) : Components.GenericWildCharge(module
             Source = Module.PrimaryActor;
             Activation = WorldState.FutureTime(5.2f);
             foreach (var (i, p) in Raid.WithSlot(true))
-                PlayerRoles[i] = p == actor ? PlayerRole.TargetNotFirst : p.Role == Role.Tank && Module.PrimaryActor.TargetID != p.InstanceID ? PlayerRole.Share : PlayerRole.ShareNotFirst;
+                PlayerRoles[i] = p == actor ? PlayerRole.TargetNotFirst : p.Role == Role.Tank && Module.PrimaryActor.TargetID != p.InstanceID ? PlayerRole.Share : PlayerRole.Avoid;
         }
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Source == null)
+            return;
+
+        if (PlayerRoles[slot] == PlayerRole.TargetNotFirst)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(new(107.2f, 100), new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f), Activation);
+        else if (PlayerRoles[slot] == PlayerRole.Share)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(new(106.2f, 100), new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f), Activation);
+        else
+            hints.AddForbiddenZone(ShapeDistance.Rect(Source.Position, new WDir(1, 0), 100, 0, HalfWidth), Activation);
     }
 }
 

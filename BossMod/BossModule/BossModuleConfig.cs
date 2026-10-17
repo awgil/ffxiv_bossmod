@@ -2,7 +2,7 @@
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Boss Modules and Radar", Order = 1)]
+[ConfigDisplay(Name = "Boss Modules and Radar", Order = 1, Group = "Radar & Modules")]
 public class BossModuleConfig : ConfigNode
 {
     public enum RadarCloseBehavior
@@ -34,7 +34,7 @@ public class BossModuleConfig : ConfigNode
     public bool EnableDummyModule = false;
 
     // radar window settings
-    [SectionStart]
+    [PageStart("Radar window")]
     [PropertyDisplay("Enable radar")]
     public bool Enable = true;
 
@@ -54,20 +54,20 @@ public class BossModuleConfig : ConfigNode
     public bool ShowOutlinesAndShadows = false;
 
     [PropertyDisplay("Radar arena scale factor", tooltip: "Scale of the arena inside of the radar window")]
-    [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
+    [PropertySlider(0.1f, 10, Logarithmic = true)]
     public float ArenaScale = 1;
 
     public float EffectiveArenaScale => ImGuiHelpers.GlobalScale * ArenaScale;
 
     [PropertyDisplay("Radar element thickness scale factor", tooltip: "Globally scales the outline thickness of radar elements")]
-    [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
+    [PropertySlider(0.1f, 10, Logarithmic = true)]
     public float ThicknessScale = 1;
 
     [PropertyDisplay("Actor indicator size scales with arena size", tooltip: "If disabled, actor triangles (indicating players and enemies) will be drawn at the same size regardless of the size of the arena.\r\nIndicator size is always affected by the global arena scale factor.", since: "7.5.5.4")]
     public bool ActorDynamicScale = true;
 
     [PropertyDisplay("Actor indicator scale factor", since: "7.5.5.4")]
-    [PropertySlider(0.1f, 10, Speed = 0.1f, Logarithmic = true)]
+    [PropertySlider(0.1f, 10, Logarithmic = true)]
     public float ActorScale = 1;
 
     [PropertyDisplay("Rotate radar to match camera orientation")]
@@ -76,6 +76,7 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Give radar extra space for rotations", tooltip: "If you are using the above setting, this gives the radar extra space on the sides before the edges are clipped in order to account for rotating your camera during an encounter")]
     public bool AddSlackForRotations = true;
 
+    [PageStart("Radar contents")]
     [PropertyDisplay("Show arena border in radar")]
     public bool ShowBorder = true;
 
@@ -89,7 +90,7 @@ public class BossModuleConfig : ConfigNode
     public bool HighlightN = false;
 
     [PropertyDisplay("Cardinal direction font size")]
-    [PropertySlider(0.1f, 100, Speed = 1)]
+    [PropertySlider(0.1f, 100)]
     public float CardinalsFontSize = 17;
 
     [PropertyDisplay("Show waymarks on radar")]
@@ -119,8 +120,11 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Always show focus targeted party member")]
     public bool ShowFocusTargetPlayer = false;
 
+    [PropertyDisplay("Show predicted mob movements (based on aggro and pull distance)")]
+    public bool ShowPullDebug = false;
+
     // hint window settings
-    [SectionStart]
+    [PageStart("Text hints")]
     [PropertyDisplay("Show text hints in separate window", tooltip: "Separates the radar window from the hints window, allowing you to reposition the hints window")]
     public bool HintsInSeparateWindow = false;
 
@@ -140,11 +144,9 @@ public class BossModuleConfig : ConfigNode
     public bool ShowPlayerHints = true;
 
     // misc. settings
-    [SectionStart]
+    [PageStart("In-world hints")]
     [PropertyDisplay("Show movement hints in world")]
     public bool ShowWorldArrows = false;
-    [PropertyDisplay("Show predicted mob movements (based on aggro and pull distance)")]
-    public bool ShowPullDebug = false;
 
     public List<string> DisabledModules = [];
     public List<BossModuleInfo.Category> DisabledCategories = [];

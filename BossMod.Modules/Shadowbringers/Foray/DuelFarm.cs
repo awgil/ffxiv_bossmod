@@ -11,7 +11,7 @@ public sealed class DuelAttribute(uint nameID, uint prepNameID, uint fateID = 0)
     public uint PrepNameID => prepNameID;
     public uint FateID => fateID;
 
-    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID)})";
+    public string Label => $"{ModuleViewer.BNpcName(nameID)} ({ModuleViewer.BNpcName(prepNameID).Replace("4T", "4t")})";
 }
 
 [ConfigDisplay(Name = "Bozja duel farming", Parent = typeof(ShadowbringersConfig))]
@@ -21,11 +21,11 @@ public class DuelFarmConfig : ConfigNode
     public bool Enabled = true;
 
     [PropertyDisplay("Max range to look for new mobs to pull")]
-    [PropertySlider(20, 100, Speed = 0.1f)]
-    public float MaxPullDistance = 30f;
+    [PropertySlider(20, 120)]
+    public float MaxPullDistance = 30;
 
     [PropertyDisplay("Max number of mobs to pull at once (0 for no limit)")]
-    [PropertySlider(0, 30, Speed = 0.1f)]
+    [PropertySlider(0, 30)]
     public int MaxPullCount = 10;
 
     public bool AssistMode;

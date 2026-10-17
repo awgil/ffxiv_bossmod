@@ -708,8 +708,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private static void CopyLibraries(FileInfo assemblyLocation)
     {
-        var modulesDir = Path.Join(Plugin.GetStorageDir(), "modules");
-        var assemblyDir = assemblyLocation.DirectoryName!;
+        var modulesDir = PackLoader.ModuleDir;
+        var assemblyDir = assemblyLocation.DirectoryName;
 
         Directory.CreateDirectory(modulesDir);
 

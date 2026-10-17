@@ -86,7 +86,7 @@ public abstract partial class AutoClear : ZoneModule
 
     private readonly PlayerImmuneState[] _playerImmunes = new PlayerImmuneState[4];
 
-    private ObstacleMapManager _obstacles;
+    private readonly ObstacleMapManager _obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 

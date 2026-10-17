@@ -6,7 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Server info bar", Order = 6)]
+[ConfigDisplay(Name = "Server info bar", Order = 6, Group = "General")]
 public sealed class DtrConfig : ConfigNode
 {
     public enum DtrStatus
@@ -19,8 +19,8 @@ public sealed class DtrConfig : ConfigNode
         Icon
     }
 
-    [PropertyDisplay("Show autorotation status")]
-    [PropertyRadio]
+    [PropertyDisplay("Autorotation status indicator")]
+    [PropertyRadio(inline: true)]
     public DtrStatus ShowAutorot = Service.Config.Get<AutorotationConfig>().ShowDTR;
 
     [PropertyDisplay("Show legacy AI status")]

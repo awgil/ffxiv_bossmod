@@ -20,13 +20,21 @@ class P1FeatherRain(BossModule module) : Components.GenericAOEs(module, AID.Feat
             yield return new(_shape, c.CastInfo!.LocXZ, new(), Module.CastFinishAt(c.CastInfo!));
     }
 
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (_casters.Count > 0)
+            hints.GoalZonesEnabled = false;
+    }
+
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id == 0x1E3A && (OID)actor.OID is OID.Garuda or OID.GarudaSister)
         {
             _predicted.Clear();
             _predicted.AddRange(Raid.WithoutSlot().Select(p => p.Position));
-            _activation = WorldState.FutureTime(2.5f);
+            _activation = default;
         }
     }
 
