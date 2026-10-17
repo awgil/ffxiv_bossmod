@@ -14,12 +14,12 @@ class ReplayDetailsWindow : UIWindow
     private ReplayPlayer _player;
     private readonly ILifetimeScope _parentScope;
     private ILifetimeScope _playerScope;
-    private RotationDatabase _rotationDB => _player.RotationDB;
-    private AIHints _hints => _player.Hints;
-    private BossModuleManager _mgr => _player.Bmm;
-    private ZoneModuleManager _zmm => _player.Zmm;
-    private AIHintsBuilder _hintsBuilder => _player.HintsBuilder;
-    private RotationModuleManager _rmm => _player.Rmm;
+    private RotationDatabase RotationDB => _player.RotationDB;
+    private AIHints Hints => _player.Hints;
+    private BossModuleManager Bossmods => _player.Bmm;
+    private ZoneModuleManager Zonemods => _player.Zmm;
+    private AIHintsBuilder HintsBuilder => _player.HintsBuilder;
+    private RotationModuleManager Rmm => _player.Rmm;
     private readonly DateTime _first;
     private readonly DateTime _last;
     private DateTime _curTime; // note that is could fall between frames
@@ -56,9 +56,9 @@ class ReplayDetailsWindow : UIWindow
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
         (_playerScope, _player) = ReplayPlayer.CreateOwned(data, _parentScope);
-        _player.AdvanceTo(_curTime, _mgr.Update);
+        _player.AdvanceTo(_curTime, Bossmods.Update);
         _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), null, null);
-        _events = new(scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), data, MoveTo, _rotationDB.Plans, this);
+        _events = _playerScope.Resolve<EventList.Factory>().Invoke(MoveTo, this);
         _analysis = new([data], scope.Resolve<BossModuleRegistry>());
     }
 
@@ -67,10 +67,7 @@ class ReplayDetailsWindow : UIWindow
         _modulePopout?.Dispose();
         _analysis.Dispose();
         _config.Dispose();
-        _rmm.Dispose();
-        _hintsBuilder.Dispose();
-        _zmm.Dispose();
-        _mgr.Dispose();
+        _playerScope.Dispose();
         base.Dispose(disposing);
     }
 
@@ -85,8 +82,8 @@ class ReplayDetailsWindow : UIWindow
 
         DrawControlRow();
         DrawTimelineRow();
-        ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}, zone module: {_zmm.ActiveModule?.GetType()}");
-        if (_zmm.ActiveModule is { } zm)
+        ImGui.TextUnformatted($"Num loaded modules: {Bossmods.LoadedModules.Count}, num active modules: {Bossmods.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {Bossmods.ActiveModule?.GetType()}, zone module: {Zonemods.ActiveModule?.GetType()}");
+        if (Zonemods.ActiveModule is { } zm)
         {
             if (zm.WantDrawHints())
                 zm.DrawGlobalHints();
@@ -95,70 +92,71 @@ class ReplayDetailsWindow : UIWindow
             {
                 if (_modulePopout == null)
                 {
-                    _modulePopout = new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(_rmm), true, new(600, 400), desc.Flags);
+                    _modulePopout = new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(Rmm), true, new(600, 400), desc.Flags);
                     _modulePopout.OpenAndBringToFront();
                 }
             }
             else
             {
-                _modulePopout?.IsOpen = false;
+                if (_modulePopout is { IsOpen: true })
+                    _modulePopout.Dispose();
                 _modulePopout = null;
             }
         }
         if (!_azimuthOverride)
-            _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
+            _azimuth = Bossmods.WorldState.Client.CameraAzimuth.Deg;
         ImGui.SetNextItemWidth(150);
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, 180);
         ImGui.SameLine();
         ImGui.Checkbox("Override", ref _azimuthOverride);
-        _hintsBuilder.Update(_hints, _povSlot, false);
-        _rmm.Update(0, false, false);
+        HintsBuilder.Update(Hints, _povSlot, false);
+        Rmm.Update(0, false, false);
         var drawnGauge = false;
 
-        var pov = _mgr.WorldState.Party[_povSlot];
+        var pov = Bossmods.WorldState.Party[_povSlot];
 
-        if (_mgr.ActiveModule != null)
+        if (Bossmods.ActiveModule != null)
         {
             if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
-                _mgr.ActiveModule.DebugOpts = _moduleDebug;
+                Bossmods.ActiveModule.DebugOpts = _moduleDebug;
 
-            if (_mgr.WorldState.Client.CountdownRemaining != null)
+            if (Bossmods.WorldState.Client.CountdownRemaining != null)
             {
                 ImGui.SameLine();
-                ImGui.Text($"Countdown: {_mgr.WorldState.Client.CountdownRemaining.Value:f3}");
+                ImGui.Text($"Countdown: {Bossmods.WorldState.Client.CountdownRemaining.Value:f3}");
             }
 
             var drawTimerPre = DateTime.Now;
-            _mgr.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : _mgr.WorldState.Client.CameraAzimuth, _povSlot, true, true, _hints);
+            Bossmods.ActiveModule.Draw(_azimuthOverride ? _azimuth.Degrees() : Bossmods.WorldState.Client.CameraAzimuth, _povSlot, true, true, Hints);
             var drawTimerPost = DateTime.Now;
 
-            if (_showDebug && _mgr.ActiveModule.Raid[_povSlot] is var pc && pc != null)
+            if (_showDebug && Bossmods.ActiveModule.Raid[_povSlot] is var pc && pc != null)
             {
-                if (_hints.ForcedMovement != null)
+                if (Hints.ForcedMovement != null)
                 {
-                    var movementDest = pc.Position + new WDir(_hints.ForcedMovement.Value.XZ());
-                    _mgr.ActiveModule.Arena.AddLine(pc.Position, movementDest, 0x80ff00ff);
-                    _mgr.ActiveModule.Arena.AddCircle(movementDest, 0.5f, 0x80ff00ff);
+                    var movementDest = pc.Position + new WDir(Hints.ForcedMovement.Value.XZ());
+                    Bossmods.ActiveModule.Arena.AddLine(pc.Position, movementDest, 0x80ff00ff);
+                    Bossmods.ActiveModule.Arena.AddCircle(movementDest, 0.5f, 0x80ff00ff);
                 }
 
-                var movement = _mgr.ActiveModule.CalculateMovementHintsForRaidMember(_povSlot, pc);
+                var movement = Bossmods.ActiveModule.CalculateMovementHintsForRaidMember(_povSlot, pc);
                 foreach (var (from, to, col) in movement)
                 {
-                    _mgr.ActiveModule.Arena.AddLine(from, to, (col & 0xffffff) | 0x80000000);
-                    _mgr.ActiveModule.Arena.AddCircle(to, 0.5f, (col & 0xffffff) | 0x80000000);
+                    Bossmods.ActiveModule.Arena.AddLine(from, to, (col & 0xffffff) | 0x80000000);
+                    Bossmods.ActiveModule.Arena.AddCircle(to, 0.5f, (col & 0xffffff) | 0x80000000);
                 }
             }
 
             drawnGauge = DrawGauge(true);
 
-            var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));
+            var compList = string.Join(", ", Bossmods.ActiveModule.Components.Select(c => c.GetType().Name));
             var povOffsetString = "";
             if (pov != null)
             {
-                var povOffset = pov.Position - _mgr.ActiveModule.Center;
+                var povOffset = pov.Position - Bossmods.ActiveModule.Center;
                 povOffsetString = $"{povOffset} [R={povOffset.Length():f3}, dir={Angle.FromDirection(povOffset)}]";
             }
-            ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {povOffsetString}, Draw cache: {_mgr.ActiveModule.Arena.DrawCacheStats()}");
+            ImGui.TextUnformatted($"Current state: {Bossmods.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {Bossmods.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {povOffsetString}, Draw cache: {Bossmods.ActiveModule.Arena.DrawCacheStats()}");
         }
 
         if (!drawnGauge)
@@ -166,22 +164,22 @@ class ReplayDetailsWindow : UIWindow
 
         if (ImGui.CollapsingHeader("Plan execution"))
         {
-            resetPF |= UIRotationWindow.DrawRotationSelector(_rmm);
+            resetPF |= UIRotationWindow.DrawRotationSelector(Rmm);
 
-            if (_mgr.ActiveModule != null && ImGui.Button("Timeline"))
+            if (Bossmods.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                _ = new StateMachineWindow(_mgr.ActiveModule);
+                _ = new StateMachineWindow(Bossmods.ActiveModule);
             }
 
-            if (_mgr.ActiveModule?.Info?.PlanLevel > 0)
+            if (Bossmods.ActiveModule?.Info?.PlanLevel > 0)
             {
                 ImGui.SameLine();
-                var plans = _rotationDB.Plans.GetPlans(_mgr.ActiveModule.GetType(), pov?.Class ?? Class.None);
+                var plans = RotationDB.Plans.GetPlans(Bossmods.ActiveModule.GetType(), pov?.Class ?? Class.None);
                 var newSel = UIPlanDatabaseEditor.DrawPlanCombo(plans, plans.SelectedIndex, "Plan");
                 if (newSel != plans.SelectedIndex)
                 {
                     plans.SelectedIndex = newSel;
-                    _rotationDB.Plans.ModifyManifest(_mgr.ActiveModule.GetType(), pov?.Class ?? Class.None);
+                    RotationDB.Plans.ModifyManifest(Bossmods.ActiveModule.GetType(), pov?.Class ?? Class.None);
                     resetPF = true;
                 }
 
@@ -190,28 +188,28 @@ class ReplayDetailsWindow : UIWindow
                 {
                     if (plans.SelectedIndex < 0)
                     {
-                        var plan = new Plan($"New {plans.Plans.Count + 1}", _mgr.ActiveModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = pov?.Class ?? Class.None, Level = _mgr.ActiveModule.Info.PlanLevel };
+                        var plan = new Plan($"New {plans.Plans.Count + 1}", Bossmods.ActiveModule.GetType()) { Guid = Guid.NewGuid().ToString(), Class = pov?.Class ?? Class.None, Level = Bossmods.ActiveModule.Info.PlanLevel };
                         plans.SelectedIndex = plans.Plans.Count;
-                        _rotationDB.Plans.ModifyPlan(null, plan);
+                        RotationDB.Plans.ModifyPlan(null, plan);
                     }
 
-                    var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == _mgr.ActiveModule.PrimaryActor.InstanceID);
+                    var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == Bossmods.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_parentScope.Resolve<BossModuleRegistry>(), _parentScope.Resolve<JsonSerializerOptions>(), _player.Replay, enc, BitMask.Build(_povSlot), _rotationDB.Plans, this);
+                        _ = new ReplayTimelineWindow(_parentScope.Resolve<BossModuleRegistry>(), _parentScope.Resolve<JsonSerializerOptions>(), _player.Replay, enc, BitMask.Build(_povSlot), RotationDB.Plans, this);
                     }
                 }
             }
 
             // TODO: more fancy action history/queue...
-            ImGui.TextUnformatted($"Modules: {_rmm}");
-            ImGui.TextUnformatted($"GCD={_mgr.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={_mgr.WorldState.Client.AnimationLock:f3}, Combo={_mgr.WorldState.Client.ComboState.Remaining:f3}, RBIn={_mgr.RaidCooldowns.NextDamageBuffIn():f3}");
+            ImGui.TextUnformatted($"Modules: {Rmm}");
+            ImGui.TextUnformatted($"GCD={Bossmods.WorldState.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining:f3}, AnimLock={Bossmods.WorldState.Client.AnimationLock:f3}, Combo={Bossmods.WorldState.Client.ComboState.Remaining:f3}, RBIn={Bossmods.RaidCooldowns.NextDamageBuffIn():f3}");
             if (pov != null)
             {
-                var best = _hints.ActionsToExecute.FindBest(_mgr.WorldState, pov, _mgr.WorldState.Client.Cooldowns, _mgr.WorldState.Client.AnimationLock, _hints, 0.02f, false);
+                var best = Hints.ActionsToExecute.FindBest(Bossmods.WorldState, pov, Bossmods.WorldState.Client.Cooldowns, Bossmods.WorldState.Client.AnimationLock, Hints, 0.02f, false);
                 ImGui.TextUnformatted($"! {best.Action} ({best.Priority:f2}) in {best.Delay:f3} @ {best.Target}");
             }
-            foreach (var a in _hints.ActionsToExecute.Entries)
+            foreach (var a in Hints.ActionsToExecute.Entries)
             {
                 ImGui.TextUnformatted($"> {a.Action} ({a.Priority:f2}) in {a.Delay:f3} @ {a.Target}");
             }
@@ -233,12 +231,12 @@ class ReplayDetailsWindow : UIWindow
 
     private bool DrawGauge(bool inline)
     {
-        if (_showDebug && _povSlot == 0 && _mgr.WorldState.Party[0] is { } player)
+        if (_showDebug && _povSlot == 0 && Bossmods.WorldState.Party[0] is { } player)
         {
             var cursor = ImGui.GetCursorPos();
             if (inline)
                 ImGui.SameLine();
-            GaugeVisualizer.Instance().Draw(player, _mgr.WorldState.Client);
+            GaugeVisualizer.Instance().Draw(player, Bossmods.WorldState.Client);
             if (inline)
                 ImGui.SetCursorPos(cursor);
             return true;
@@ -340,7 +338,7 @@ class ReplayDetailsWindow : UIWindow
     // x, z, rot, hp, name, target, cast, statuses
     private void DrawCommonColumns(Actor actor)
     {
-        (WPos center, float radius) bounds = _mgr.ActiveModule == null ? (new(100, 100), 20) : (_mgr.ActiveModule.Center, _mgr.ActiveModule.Bounds.Radius);
+        (WPos center, float radius) bounds = Bossmods.ActiveModule == null ? (new(100, 100), 20) : (Bossmods.ActiveModule.Center, Bossmods.ActiveModule.Bounds.Radius);
         var minx = bounds.center.X - bounds.radius;
         var maxx = bounds.center.X + bounds.radius;
         var minz = bounds.center.Z - bounds.radius;
@@ -450,7 +448,7 @@ class ReplayDetailsWindow : UIWindow
             if (ImGui.Checkbox("###POV", ref isPOV) && isPOV)
             {
                 _povSlot = slot;
-                _rmm.PlayerSlot = slot;
+                Rmm.PlayerSlot = slot;
                 resetPF = true;
             }
 
@@ -465,9 +463,9 @@ class ReplayDetailsWindow : UIWindow
             DrawCommonColumns(player);
 
             ImGui.TableNextColumn();
-            if (_mgr.ActiveModule != null)
+            if (Bossmods.ActiveModule != null)
             {
-                var hints = _mgr.ActiveModule.CalculateHintsForRaidMember(slot, player);
+                var hints = Bossmods.ActiveModule.CalculateHintsForRaidMember(slot, player);
                 foreach ((var hint, var risk) in hints)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, risk ? 0xff00ffff : 0xff00ff00);
@@ -485,13 +483,13 @@ class ReplayDetailsWindow : UIWindow
 
     private void DrawEnemyTables()
     {
-        if (_mgr.ActiveModule == null)
+        if (Bossmods.ActiveModule == null)
             return;
 
-        DrawEnemyTable(_mgr.ActiveModule.PrimaryActor.OID, _mgr.ActiveModule.RelevantEnemies.GetValueOrDefault(_mgr.ActiveModule.PrimaryActor.OID) ?? [_mgr.ActiveModule.PrimaryActor]);
-        foreach ((var oid, var list) in _mgr.ActiveModule.RelevantEnemies)
+        DrawEnemyTable(Bossmods.ActiveModule.PrimaryActor.OID, Bossmods.ActiveModule.RelevantEnemies.GetValueOrDefault(Bossmods.ActiveModule.PrimaryActor.OID) ?? [Bossmods.ActiveModule.PrimaryActor]);
+        foreach ((var oid, var list) in Bossmods.ActiveModule.RelevantEnemies)
         {
-            if (oid != _mgr.ActiveModule.PrimaryActor.OID)
+            if (oid != Bossmods.ActiveModule.PrimaryActor.OID)
             {
                 DrawEnemyTable(oid, list);
             }
@@ -500,7 +498,7 @@ class ReplayDetailsWindow : UIWindow
 
     private void DrawEnemyTable(uint oid, List<Actor> actors)
     {
-        var moduleInfo = _mgr.ActiveModule != null ? _parentScope.Resolve<BossModuleRegistry>().FindByOID(_mgr.ActiveModule.PrimaryActor.OID) : null;
+        var moduleInfo = Bossmods.ActiveModule != null ? _parentScope.Resolve<BossModuleRegistry>().FindByOID(Bossmods.ActiveModule.PrimaryActor.OID) : null;
         var oidName = moduleInfo?.ObjectIDType?.GetEnumName(oid);
         if (!ImGui.CollapsingHeader($"Enemy {oid:X} {oidName ?? ""}") || actors.Count == 0)
             return;
@@ -558,7 +556,7 @@ class ReplayDetailsWindow : UIWindow
         if (player == null)
             return;
 
-        _pfVisu ??= new(_hints, _mgr.WorldState, player, _pfCushion);
+        _pfVisu ??= new(Hints, Bossmods.WorldState, player, _pfCushion);
         _pfVisu.Draw(_pfTree);
 
         var rebuild = false;
@@ -580,8 +578,8 @@ class ReplayDetailsWindow : UIWindow
             _modulePopout = null;
             (_playerScope, _player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
         }
-        _player.AdvanceTo(t, _mgr.Update);
-        _mgr.ActiveModule?.DebugOpts = _moduleDebug;
+        _player.AdvanceTo(t, Bossmods.Update);
+        Bossmods.ActiveModule?.DebugOpts = _moduleDebug;
         _curTime = t;
         ResetPF();
     }

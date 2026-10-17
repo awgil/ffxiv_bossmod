@@ -106,8 +106,6 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
 
-        containerBuilder.RegisterType<ReplayPlayer>();
-
         var autorotRoot = Path.Join(GetStorageDir(), "autorot");
 
         containerBuilder.Register(ctx => new FileInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().AssemblyLocation.DirectoryName, "DefaultRotationPresets.json")))

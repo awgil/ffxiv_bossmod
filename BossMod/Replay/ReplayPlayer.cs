@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
+using BossMod.ReplayVisualization;
 
 namespace BossMod;
 
@@ -11,25 +12,11 @@ public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, 
 
     public WorldState WorldState { get; private set; } = ws;
     public RotationDatabase RotationDB { get; } = rotationDB;
-    public RotationModuleManager Rmm { get; private set; } = rmm;
-    public BossModuleManager Bmm { get; private set; } = bmm;
-    public ZoneModuleManager Zmm { get; private set; } = zmm;
+    public RotationModuleManager Rmm { get; } = rmm;
+    public BossModuleManager Bmm { get; } = bmm;
+    public ZoneModuleManager Zmm { get; } = zmm;
     public AIHintsBuilder HintsBuilder { get; } = hintsBuilder;
     public AIHints Hints { get; } = hints;
-
-    // reset to empty state; note that world state is recreated
-    public void Reset()
-    {
-        WorldState = new(Replay.QPF, Replay.GameVersion);
-        _nextOp = 0;
-    }
-
-    public void Explode()
-    {
-        Bmm = null!;
-        Zmm = null!;
-        Rmm = null!;
-    }
 
     // execute next group of operations that share timestamp; returns false if we've reached the end
     public bool TickForward()
@@ -71,7 +58,8 @@ public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, 
         {
             ctx.Register(_ => data).SingleInstance();
             ctx.Register(_ => new WorldState(data.QPF, data.GameVersion)).SingleInstance();
-            ctx.RegisterType<ReplayPlayer>();
+            ctx.RegisterType<ReplayPlayer>().SingleInstance();
+            ctx.RegisterType<EventList>().SingleInstance();
         });
         return (scope, scope.Resolve<ReplayPlayer>());
     }
