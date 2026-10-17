@@ -159,6 +159,9 @@ public struct NavigationDecision
                 }
 
                 var distance = sdf.Distance(point);
+                if (!float.IsFinite(distance))
+                    throw new InvalidOperationException("Misbehaving distance function");
+
                 var toRowEnd = map.Width - x;
 
                 int distPixels;
@@ -195,6 +198,8 @@ public struct NavigationDecision
                     Math.Min(gScratch[iG], gScratch[iG + 1]),
                     Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
                 );
+                //if (cellG == float.MinValue)
+                //    throw new InvalidOperationException($"grid was not filled at {x}x{y}");
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iM] = float.MinValue;
 
