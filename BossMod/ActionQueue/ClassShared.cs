@@ -71,6 +71,7 @@ public enum AID : uint
     DeflectVeryEasy = 18863,
     MegaPotion = 10229,
     Vril = 9345, // Lakshmi
+    AntiGravityGimbal = 9483, // O2N Catastrophe
 
     // Variant actions
     VariantCure1 = 29729, // available in sil'dih
@@ -248,6 +249,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.DeflectVeryEasy);
         d.RegisterSpell(AID.MegaPotion);
         d.RegisterSpell(AID.Vril);
+        d.RegisterSpell(AID.AntiGravityGimbal);
 
         // variant actions
         d.RegisterSpell(AID.VariantCure1);
