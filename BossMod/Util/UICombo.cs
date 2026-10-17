@@ -67,7 +67,7 @@ public static class UICombo
         if (!label.StartsWith('#'))
         {
             ImGui.SameLine();
-            ImGui.TextWrapped(label);
+            ImGui.Text(label);
         }
         return res;
     }

@@ -1,4 +1,5 @@
-﻿using DalaMock.Shared.Interfaces;
+﻿using DalaMock.Host.Mediator;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -58,6 +59,8 @@ public sealed class Service
     public static ImFontPtr MonoFont = ImFontPtr.Null;
     public static IFontAtlas FontAtlas = null!;
     public static ConfigRoot Config = null!;
+
+    public static MediatorService Mediator = null!;
 #pragma warning restore CA2211
 
     //public static SharpDX.Direct3D11.Device? Device = null;

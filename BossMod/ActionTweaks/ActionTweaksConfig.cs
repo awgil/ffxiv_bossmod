@@ -1,50 +1,59 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Action Tweaks", Order = 4)]
+[ConfigDisplay(Name = "Action Tweaks", Order = 4, Group = "Autorotation")]
 public sealed class ActionTweaksConfig : ConfigNode
 {
     // TODO: consider exposing max-delay to config; 0 would mean 'remove all delay', max-value would mean 'disable'
+    [PageStart("Animation lock")]
     [PropertyDisplay("Remove extra lag-induced animation lock delay from instant casts (read tooltip!)", tooltip: "Do NOT use with XivAlexander or NoClippy - this should automatically disable itself if they are detected, but double check first!")]
     public bool RemoveAnimationLockDelay = false;
 
     [PropertyDisplay("Animation lock max. simulated delay (read tooltip!)", tooltip: "Configures the maximum simulated delay in milliseconds when using animation lock removal - this is required and cannot be reduced to zero. Setting this to 20ms will enable triple-weaving when using autorotation. The minimum setting to remove triple-weaving is 26ms. The minimum of 20ms has been accepted by FFLogs and should not cause issues with your logs.")]
-    [PropertySlider(20, 50, Speed = 0.1f)]
+    [PropertySlider(20, 50)]
     public int AnimationLockDelayMax = 26;
 
     [PropertyDisplay("Remove extra framerate-induced cooldown delay", tooltip: "Dynamically adjusts cooldown and animation locks to ensure queued actions resolve immediately regardless of framerate limitations")]
     public bool RemoveCooldownDelay = false;
 
+    [PageStart("Movement & casting")]
     [PropertyDisplay("Prevent movement while casting", tags: ["slidecast"])]
     public bool PreventMovingWhileCasting = false;
 
     public enum ModifierKey
     {
-        [PropertyDisplay("None")]
+        [PropertyDisplay("Nothing")]
         None,
-        [PropertyDisplay("Control")]
+        [PropertyDisplay("CTRL")]
         Ctrl,
-        [PropertyDisplay("Alt")]
+        [PropertyDisplay("ALT")]
         Alt,
-        [PropertyDisplay("Shift")]
+        [PropertyDisplay("SHIFT")]
         Shift,
         [PropertyDisplay("LMB + RMB")]
         M12
     }
 
-    [PropertyDisplay("Hold to allow movement while casting", depends: nameof(PreventMovingWhileCasting), tags: ["slidecast"])]
+    [PropertyDisplay("Hold to disable", depends: nameof(PreventMovingWhileCasting), tags: ["slidecast"])]
     public ModifierKey MoveEscapeHatch = ModifierKey.None;
 
-    [PropertyDisplay("Automatically cancel a cast when target is dead")]
+    [PropertyDisplay("Automatically cancel cast if target dies")]
     public bool CancelCastOnDeadTarget = false;
 
-    [PropertyDisplay("Prevent movement and action execution when pyretic-like mechanics are imminent (set to 0 to disable, otherwise increase threshold depending on your ping).")]
-    [PropertySlider(0, 10, Speed = 0.01f)]
+    [PropertyDisplay("Prevent movement and actions during pyretic/stillness")]
+    public bool AutoPyretic = true;
+
+    [PropertyDisplay("Anticipation window (seconds)", depends: nameof(AutoPyretic))]
+    [PropertySlider(0, 10)]
     public float PyreticThreshold = 1.0f;
 
-    [PropertyDisplay("Auto misdirection: prevent movement under misdirection if angle between normal movement and misdirected is greater than this threshold (set to 180 to disable).")]
+    [PropertyDisplay("Prevent undesired movement during Temporary Misdirection")]
+    public bool AutoMisdirection = false;
+
+    [PropertyDisplay("Maximum facing deviation (degrees)", depends: nameof(AutoMisdirection))]
     [PropertySlider(0, 180)]
     public float MisdirectionThreshold = 180;
 
+    [PageStart("Targeting & queueing")]
     [PropertyDisplay("Use actions on mouseover target")]
     public bool PreferMouseover = false;
 
@@ -80,6 +89,6 @@ public sealed class ActionTweaksConfig : ConfigNode
         [PropertyDisplay("Cast at selected target's position")]
         AtTarget
     }
-    [PropertyDisplay("Automatic target selection for ground-targeted abilities")]
+    [PropertyDisplay("Automatic target selection for ground-targeted abilities:")]
     public GroundTargetingMode GTMode = GroundTargetingMode.Manual;
 }

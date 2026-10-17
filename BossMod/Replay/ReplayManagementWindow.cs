@@ -1,5 +1,7 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
@@ -20,6 +22,8 @@ public class ReplayManagementWindow : UIWindow
     private bool _recordingDuty; // recording was started automatically because we've entered duty
     private int _recordingActiveModules; // recording was started automatically, because we've activated N modules
     private string _lastErrorMessage = "";
+    private DateTime _recordingStart;
+    private string _recordingName = "";
 
     private bool _showCull;
     private List<ReplayFileMeta>? _cullFiles;
@@ -73,7 +77,9 @@ public class ReplayManagementWindow : UIWindow
 
     public override void Draw()
     {
-        if (ImGui.Button(!IsRecording() ? "Start recording" : "Stop recording"))
+        DrawRecordingStatus();
+
+        if (UIMisc.ToggleButton(!IsRecording() ? "Start recording###rec" : "Stop recording###rec", IsRecording(), 0xff000080))
         {
             if (!IsRecording())
             {
@@ -86,9 +92,17 @@ public class ReplayManagementWindow : UIWindow
             }
         }
 
+        UIMisc.SameLineOrWrap(UIMisc.ButtonWidth("Open Replay Folder"));
+        if (ImGui.Button("Open Replay Folder") && _logDir != null)
+            _lastErrorMessage = OpenDirectory(_logDir);
+
+        if (_lastErrorMessage.Length > 0)
+            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, _lastErrorMessage, UIMisc.ColorDanger);
+
         if (_recorder != null)
         {
-            ImGui.InputText("###msg", ref _message, 1024);
+            ImGui.SetNextItemWidth(MathF.Max(ImGui.GetContentRegionAvail().X - UIMisc.ButtonWidth("Add log marker") - ImGui.GetStyle().ItemSpacing.X, 100));
+            ImGui.InputTextWithHint("###msg", "Log marker text, e.g. 'wipe here'", ref _message, 1024);
             ImGui.SameLine();
             if (ImGui.Button("Add log marker") && _message.Length > 0)
             {
@@ -97,41 +111,49 @@ public class ReplayManagementWindow : UIWindow
             }
         }
 
-        ImGui.SameLine();
-        if (ImGui.Button("Open Replay Folder") && _logDir != null)
-            _lastErrorMessage = OpenDirectory(_logDir);
-
-        ImGui.SameLine();
-        if (ImGui.Button("Cull Options"))
-            _showCull ^= true;
-
-        if (_lastErrorMessage.Length > 0)
-        {
-            ImGui.SameLine();
-            using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff0000ff);
-            ImGui.TextUnformatted(_lastErrorMessage);
-        }
-
+        ImGui.SetNextItemOpen(_showCull);
+        _showCull = ImGui.CollapsingHeader("Cull old replays");
         if (_showCull)
-        {
-            ImGui.Separator();
             DrawCull();
-        }
 
         ImGui.Separator();
         _manager.Draw();
     }
 
+    private void DrawRecordingStatus()
+    {
+        if (_recorder == null)
+        {
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled)))
+                UIMisc.IconText(FontAwesomeIcon.Circle);
+            ImGui.SameLine();
+            ImGui.TextDisabled(_config.AutoRecord ? "Not recording (auto-record is on)" : "Not recording");
+            return;
+        }
+
+        using (ImRaii.PushColor(ImGuiCol.Text, UIMisc.ColorDanger))
+            UIMisc.IconText(FontAwesomeIcon.Circle);
+        ImGui.SameLine();
+        var elapsed = DateTime.Now - _recordingStart;
+        var reason = _recordingManual ? "manual" : _recordingDuty ? "duty" : _recordingActiveModules > 0 ? "boss module" : "auto";
+        ImGui.TextUnformatted($"Recording {(int)elapsed.TotalMinutes}:{elapsed.Seconds:D2} ({reason})");
+        if (_recordingName.Length > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextDisabled(_recordingName);
+        }
+    }
+
     private void DrawCull()
     {
-        _cullFiles ??= ReplayFileMeta.Scan(_logDir);
+        _cullFiles ??= ReplayFileMeta.Scan(_logDir, _config.ZoneSubfolders);
         var matching = MatchingCullFiles(_cullFiles);
         var totalBytes = _cullFiles.Sum(f => f.File.Exists ? f.File.Length : 0);
         var hasFilter = _cullMaxDurationSec > 0 || _cullDutyKey.Length > 0;
 
         if (ImGui.Button("Refresh"))
         {
-            _cullFiles = ReplayFileMeta.Scan(_logDir);
+            _cullFiles = ReplayFileMeta.Scan(_logDir, _config.ZoneSubfolders);
             _cullStatus = "";
         }
         ImGui.SameLine();
@@ -145,8 +167,9 @@ public class ReplayManagementWindow : UIWindow
 
         ImGui.Text($"Replays: {_cullFiles.Count} files, {totalBytes / (1024.0 * 1024.0):f1} MiB | Matched: {matching.Count}");
 
-        ImGui.SetNextItemWidth(100);
-        ImGui.InputFloat("Shorter than (seconds)", ref _cullMaxDurationSec);
+        ImGui.TextUnformatted("Shorter than (seconds)");
+        ImGui.SetNextItemWidth(100 * ImGuiHelpers.GlobalScale);
+        ImGui.InputFloat("###cullDuration", ref _cullMaxDurationSec);
         if (_cullMaxDurationSec < 0)
             _cullMaxDurationSec = 0;
 
@@ -155,8 +178,9 @@ public class ReplayManagementWindow : UIWindow
             _cullDutyKey = "";
 
         var dutyPreview = _cullDutyKey.Length == 0 ? "(any duty)" : $"{_cullDutyKey} ({dutyKeys.First(d => d.Key == _cullDutyKey).Count})";
-        ImGui.SetNextItemWidth(250);
-        using (var combo = ImRaii.Combo("Duty", dutyPreview))
+        ImGui.TextUnformatted("Duty");
+        ImGui.SetNextItemWidth(250 * ImGuiHelpers.GlobalScale);
+        using (var combo = ImRaii.Combo("###cullDuty", dutyPreview))
         {
             if (combo)
             {
@@ -200,7 +224,7 @@ public class ReplayManagementWindow : UIWindow
         }
 
         _manager.UnloadPaths(deleted);
-        _cullFiles = ReplayFileMeta.Scan(_logDir);
+        _cullFiles = ReplayFileMeta.Scan(_logDir, _config.ZoneSubfolders);
         _cullStatus = failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.";
     }
 
@@ -287,6 +311,8 @@ public class ReplayManagementWindow : UIWindow
         try
         {
             _recorder = new(_ws, _config.WorldLogFormat, true, parentDir, prefix + p, _config.Anonymize);
+            _recordingStart = DateTime.Now;
+            _recordingName = prefix + p;
         }
         catch (Exception ex)
         {

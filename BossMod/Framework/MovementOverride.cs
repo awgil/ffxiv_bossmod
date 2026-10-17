@@ -168,7 +168,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
         // misdirection override logic
         if (misdirectionMode)
         {
-            var thresholdDeg = UserMove != default ? _tweaksConfig.MisdirectionThreshold : MisdirectionThreshold.Deg;
+            var thresholdDeg = UserMove != default && _tweaksConfig.AutoMisdirection ? _tweaksConfig.MisdirectionThreshold : MisdirectionThreshold.Deg;
             if (thresholdDeg < 180)
             {
                 // note: if we are already moving, it doesn't matter what we do here, only whether 'is input active' function returns true or false

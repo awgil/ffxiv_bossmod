@@ -1,28 +1,33 @@
-﻿using Dalamud.Utility;
+﻿using BossMod.Autorotation;
+using Dalamud.Utility;
 
 namespace BossMod;
 
 public class ZoneModuleWindow : UIWindow
 {
     private readonly ZoneModuleManager _zmm;
+    private readonly RotationModuleManager _rmm;
     private bool _wasOpen;
 
-    public ZoneModuleWindow(ZoneModuleManager zmm) : base("Zone module###Zone module", false, new(400, 400))
+    public ZoneModuleWindow(ZoneModuleManager zmm, RotationModuleManager rmm) : base("Zone module###Zone module", false, new(400, 400))
     {
         _zmm = zmm;
+        _rmm = rmm;
         RespectCloseHotkey = false;
     }
 
     public override void PreOpenCheck()
     {
-        IsOpen = _zmm.ActiveModule?.WantDrawExtra() ?? false;
+        var desc = _zmm.ActiveModule?.GetWindowDescription();
+        IsOpen = desc != null;
         _wasOpen = IsOpen;
-        if (IsOpen)
+        if (desc is { } d)
         {
-            var title = _zmm.ActiveModule!.WindowName();
+            var title = d.Name;
             if (title.IsNullOrEmpty())
                 title = "Zone module###Zone module";
             WindowName = title;
+            Flags = d.Flags;
         }
     }
 
@@ -35,6 +40,6 @@ public class ZoneModuleWindow : UIWindow
 
     public override void Draw()
     {
-        _zmm.ActiveModule?.DrawExtra();
+        _zmm.ActiveModule?.DrawWindow(_rmm);
     }
 }

@@ -12,6 +12,8 @@ public interface IAmex : IDisposable
 
     void QueueManualActions();
     void FinishActionGather();
+
+    ActionID AdjustAction(ActionID action);
 }
 
 internal sealed class MockAmex : IAmex
@@ -26,6 +28,7 @@ internal sealed class MockAmex : IAmex
 
     public void QueueManualActions() { }
     public void FinishActionGather() { }
+    public ActionID AdjustAction(ActionID action) => action;
 
     public void Dispose() { }
 }

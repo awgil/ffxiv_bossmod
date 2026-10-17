@@ -30,7 +30,7 @@ public class KeepingTheFlameAlive(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Destroy generator")
-            .WithConnection(V3(163.35f, 6.26f, -65.16f))
+            .WithConnection(new Vector3(163.35f, 6.26f, -65.16f))
             .Hints((player, hints) =>
             {
                 if (player.PosRot.Y >= 6)
@@ -40,7 +40,7 @@ public class KeepingTheFlameAlive(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Find key")
-            .WithConnection(V3(117.31f, -3.71f, 36.29f))
+            .WithConnection(new Vector3(117.31f, -3.71f, 36.29f))
             .Hints(FindkeyHints)
             .CompleteOnDestroyed((uint)OID.IdentificationKey),
 

@@ -1,6 +1,5 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
-using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
@@ -9,7 +8,7 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-internal sealed class DtrProvider : IMediatorSubscriber
+internal sealed class DtrProvider : IDisposable
 {
     private readonly RotationModuleManager _mgr;
     private readonly List<(string, IDtrBarEntry)> _autorotEntries = [];
@@ -21,12 +20,9 @@ internal sealed class DtrProvider : IMediatorSubscriber
     private bool _wantOpenPopup;
     private string? _popupFor;
 
-    public MediatorService MediatorService { get; }
-
-    public DtrProvider(RotationModuleManager manager, MediatorService mediator)
+    public DtrProvider(RotationModuleManager manager)
     {
         _mgr = manager;
-        MediatorService = mediator;
 
         _aiEntry.Tooltip = "Left click: toggle AI - Right click: toggle window";
         _aiEntry.OnClick = ev =>
@@ -133,7 +129,7 @@ internal sealed class DtrProvider : IMediatorSubscriber
     {
         if (_popupFor == null)
         {
-            UIRotationWindow.DrawRotationSelector(_mgr, MediatorService);
+            UIRotationWindow.DrawRotationSelector(_mgr);
             ImGui.Separator();
             if (ImGui.MenuItem("Remove from info bar"))
             {
@@ -149,7 +145,7 @@ internal sealed class DtrProvider : IMediatorSubscriber
         ImGui.Separator();
 
         if (ImGui.MenuItem("Open in preset editor"))
-            MediatorService.Publish(new OpenPresetEditorMessage(_popupFor));
+            Service.Mediator.Publish(new OpenPresetEditorMessage(_popupFor));
 
         if (ImGui.MenuItem("Remove from info bar"))
         {

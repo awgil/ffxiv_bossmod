@@ -1,10 +1,13 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
 public abstract class ZoneModule(WorldState ws) : IDisposable
 {
+    public record struct WindowDescription(string Name, ImGuiWindowFlags Flags = ImGuiWindowFlags.None);
+
     public readonly WorldState World = ws;
 
     public void Dispose()
@@ -21,10 +24,9 @@ public abstract class ZoneModule(WorldState ws) : IDisposable
     public virtual bool WantDrawHints() => false; // return true if it wants to draw hints (higher priority than inactive boss modules, but lower priority than active)
     public virtual List<string> CalculateGlobalHints() => [];
     public virtual void CalculateAIHints(int playerSlot, Actor player, AIHints hints) { } // note: this is called after framework automatically fills auto-detected hints
-    public virtual bool WantDrawExtra() => false; // return true if it wants to draw something in a separate window
-    public virtual void DrawExtra() { }
-    public virtual string WindowName() => "";
 
+    public virtual WindowDescription? GetWindowDescription() => null;
+    public virtual void DrawWindow(RotationModuleManager rmm) { }
     public virtual void OnWindowClose() { }
 
     public void DrawGlobalHints()

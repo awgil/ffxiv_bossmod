@@ -376,23 +376,31 @@ public abstract class BossModule : IDisposable
     private void DrawGlobalHints(BossComponent.GlobalHints hints)
     {
         using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
+        var first = true;
         foreach (var hint in hints)
         {
+            if (!first)
+                UIMisc.SameLineOrWrap(ImGui.CalcTextSize(hint).X);
+            first = false;
             Utils.TextOutlined(hint, ActualShadowColor);
-            ImGui.SameLine();
         }
-        ImGui.NewLine();
+        if (first)
+            ImGui.NewLine();
     }
 
     private void DrawPlayerHints(BossComponent.TextHints hints)
     {
+        var first = true;
         foreach ((var hint, var risk) in hints)
         {
+            if (!first)
+                UIMisc.SameLineOrWrap(ImGui.CalcTextSize(hint).X);
+            first = false;
             using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
             Utils.TextOutlined(hint, ActualShadowColor);
-            ImGui.SameLine();
         }
-        ImGui.NewLine();
+        if (first)
+            ImGui.NewLine();
     }
 
     private void DrawWaymarks()

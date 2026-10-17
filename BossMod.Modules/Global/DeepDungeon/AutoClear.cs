@@ -1,6 +1,5 @@
 ﻿using BossMod.Pathfinding;
-using System.Data.SQLite;
-using System.IO;
+using Dalamud.Plugin.Ipc;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
@@ -87,9 +86,11 @@ public abstract partial class AutoClear : ZoneModule
 
     private readonly PlayerImmuneState[] _playerImmunes = new PlayerImmuneState[4];
 
-    private ObstacleMapManager _obstacles;
+    private readonly ObstacleMapManager _obstacles;
 
     protected DeepDungeonState Palace => World.DeepDungeon;
+
+    private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
 
     protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
@@ -292,10 +293,6 @@ public abstract partial class AutoClear : ZoneModule
 
     private bool OpenBronze => _config.BronzeCoffer;
 
-    public override bool WantDrawExtra() => _config.EnableMinimap && !Palace.IsBossFloor;
-
-    public sealed override string WindowName() => "VBM DD minimap###VBMDD";
-
     private bool CanAutoUse(PomanderID p, Actor player)
     {
         if (Palace.Party.Count(p => p.EntityId > 0) > 1)
@@ -310,7 +307,7 @@ public abstract partial class AutoClear : ZoneModule
         return true;
     }
 
-    private void IterAndExpire<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
+    private void ProcessAll<T>(List<T> items, Func<T, bool> expire, Action<T> action, Action<T>? onRemove = null)
     {
         for (var i = items.Count - 1; i >= 0; i--)
         {
@@ -516,23 +513,23 @@ public abstract partial class AutoClear : ZoneModule
 
     private void DrawAOEs(int playerSlot, Actor player, AIHints hints)
     {
-        IterAndExpire(HintDisabled, g => g.CastInfo == null, g =>
+        ProcessAll(HintDisabled, g => g.CastInfo == null, g =>
         {
             hints.ForbiddenZones.RemoveAll(z => z.tag == g.InstanceID);
         });
 
-        IterAndExpire(Gazes, g => g.Source.CastInfo == null, d =>
+        ProcessAll(Gazes, g => g.Source.CastInfo == null, d =>
         {
             if (d.Shape.Check(player.Position, d.Source))
                 hints.ForbiddenDirections.Add((player.AngleTo(d.Source), 45.Degrees(), CastFinishAt(d.Source)));
         });
 
-        IterAndExpire(Donuts, d => d.Source.CastInfo == null, d =>
+        ProcessAll(Donuts, d => d.Source.CastInfo == null, d =>
         {
             hints.AddForbiddenZone(new AOEShapeDonutSector(d.Inner, d.Outer, d.HalfAngle), d.Source.Position, d.Source.CastInfo!.Rotation, CastFinishAt(d.Source));
         });
 
-        IterAndExpire(Circles, d => d.Source.CastInfo == null, d =>
+        ProcessAll(Circles, d => d.Source.CastInfo == null, d =>
         {
             hints.AddForbiddenZone(new AOEShapeCircle(d.Radius), d.Source.Position, default, CastFinishAt(d.Source));
 
@@ -553,19 +550,19 @@ public abstract partial class AutoClear : ZoneModule
             }
         });
 
-        IterAndExpire(Interrupts, d => d.CastInfo == null, d =>
+        ProcessAll(Interrupts, d => d.CastInfo == null, d =>
         {
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeInterrupted = true;
         });
 
-        IterAndExpire(Stuns, d => d.CastInfo == null, d =>
+        ProcessAll(Stuns, d => d.CastInfo == null, d =>
         {
             if (hints.FindEnemy(d) is { } e)
                 e.ShouldBeStunned = true;
         });
 
-        IterAndExpire(LOS, d => d.CastInfo == null, caster =>
+        ProcessAll(LOS, d => d.CastInfo == null, caster =>
         {
             if (!_losCache.TryGetValue(caster.InstanceID, out var dangermap))
                 return;
@@ -580,12 +577,12 @@ public abstract partial class AutoClear : ZoneModule
             }), CastFinishAt(caster));
         }, d => _losCache.Remove(d.InstanceID));
 
-        IterAndExpire(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>
+        ProcessAll(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>
         {
             hints.AddForbiddenZone(d.Zone, d.Source.Position, d.Source.Rotation, d.Activation);
         });
 
-        IterAndExpire(KnockbackZones, d => d.Source.CastInfo == null, kb =>
+        ProcessAll(KnockbackZones, d => d.Source.CastInfo == null, kb =>
         {
             var castFinish = CastFinishAt(kb.Source);
             if (_playerImmunes[playerSlot].ImmuneAt(castFinish))
@@ -594,7 +591,7 @@ public abstract partial class AutoClear : ZoneModule
             hints.AddForbiddenZone(new AOEShapeCircle(kb.Radius), kb.Source.Position, default, castFinish);
         });
 
-        IterAndExpire(Spikes, t => t.Timeout <= World.CurrentTime, t =>
+        ProcessAll(Spikes, t => t.Timeout <= World.CurrentTime, t =>
         {
             if (hints.FindEnemy(t.Actor) is { } enemy)
                 enemy.Spikes = true;
@@ -658,47 +655,5 @@ public abstract partial class AutoClear : ZoneModule
         }
 
         return false;
-    }
-}
-
-static class PalacePalInterop
-{
-    // TODO make an IPC for this? wouldn't work in uidev
-    private static readonly string PalacePalDbFile = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher", "pluginConfigs", "PalacePal", "palace-pal.data.sqlite3");
-
-    public static List<Vector3> GetTrapLocationsForZone(uint zone)
-    {
-        List<Vector3> locations = [];
-
-        try
-        {
-            using (var connection = new SQLiteConnection($"Data Source={PalacePalDbFile}"))
-            {
-                connection.Open();
-
-                var command = connection.CreateCommand();
-                command.CommandText = @"
-                select X,Y,Z from Locations where Type = 1 and TerritoryType = $tt
-            ";
-                command.Parameters.AddWithValue("$tt", zone);
-
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    var x = reader.GetFloat(0);
-                    var y = reader.GetFloat(1);
-                    var z = reader.GetFloat(2);
-                    locations.Add(new(x, y, z));
-                }
-            }
-
-            Service.Log($"loaded {locations.Count} traps for zone {zone}");
-            return locations;
-        }
-        catch (SQLiteException e)
-        {
-            Service.Log($"unable to load traps for zone {zone}: {e}");
-            return [];
-        }
     }
 }

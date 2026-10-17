@@ -8,20 +8,25 @@ public sealed class ConfigWindow : UIWindow, IMediatorSubscriber
 
     public MediatorService MediatorService { get; }
 
-    public ConfigWindow(ConfigUI root, MediatorService mediator) : base("Boss Mod Settings", false, new(300, 300))
+    public ConfigWindow(ConfigUI root) : base("Boss Mod Settings", false, new(300, 300))
     {
         this.root = root;
-        MediatorService = mediator;
+        MediatorService = Service.Mediator;
 
-        MediatorService.Subscribe<OpenConfigMessage>(this, c =>
+        MediatorService.Subscribe<OpenSettingsWindowMessage>(this, c =>
         {
             root.ShowTab(c.Tab);
-            IsOpen = true;
+            OpenAndBringToFront();
         });
         MediatorService.Subscribe<OpenPresetEditorMessage>(this, c =>
         {
             root.ShowPreset(c.Name);
-            IsOpen = true;
+            OpenAndBringToFront();
+        });
+        MediatorService.Subscribe<ShowConfigNodeMessage>(this, c =>
+        {
+            root.OpenConfigNode(c.NodeType);
+            OpenAndBringToFront();
         });
     }
 

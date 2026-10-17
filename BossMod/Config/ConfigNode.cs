@@ -14,6 +14,7 @@ public sealed class ConfigDisplayAttribute : Attribute
     public Type? Parent { get; set; }
     public string? Since { get; set; }
     public string[]? Tags { get; set; }
+    public string? Group { get; set; }
 }
 
 [AttributeUsage(AttributeTargets.Field)]
@@ -21,6 +22,13 @@ public sealed class SectionStartAttribute(string label = "", bool separator = tr
 {
     public string Label { get; } = label;
     public bool Separator { get; } = separator;
+}
+
+// attribute that starts a new page of a config node, drawn as a section header outside the settings window
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class PageStartAttribute(string name) : Attribute
+{
+    public string Name { get; } = name;
 }
 
 // attribute that specifies how config node field or enumeration value is shown in the UI
@@ -48,13 +56,15 @@ public sealed class PropertyComboAttribute(string[] values) : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public sealed class PropertyRadioAttribute : Attribute;
+public sealed class PropertyRadioAttribute(bool inline = false) : Attribute
+{
+    public bool Inline { get; } = inline;
+}
 
 // attribute that specifies slider should be used for displaying float/int property
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class PropertySliderAttribute(float min, float max) : Attribute
 {
-    public float Speed { get; set; } = 1;
     public float Min { get; } = min;
     public float Max { get; } = max;
     public bool Logarithmic { get; set; }
