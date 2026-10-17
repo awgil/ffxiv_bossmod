@@ -81,11 +81,51 @@ public static class RaidBuffs
         }
 
         var left = bossmods.RaidCooldowns.DamageBuffLeft(player, target);
-        if (bossmods.RaidCooldowns.NextDamageBuffIn2() is { } next)
-            return (left, left == 0 && next < -OverdueGrace && uptime > OverdueGrace ? float.MaxValue : MathF.Max(0, next));
+        if (left > 0 && WaitForMoreBuffs(world, bossmods.RaidCooldowns) is var wait && wait > 0)
+            return (0, wait);
+        var cooldowns = bossmods.RaidCooldowns.DamageCooldowns;
+        if (cooldowns.Count > 0)
+        {
+            if (left == 0 && cooldowns.Any(e => AvailableIn(world, e.AvailableAt) > CooldownLength - 2))
+                return (0, BuffSpread); // a buff was just pressed, its status lands a moment later
+            // one job skipping or drifting its buff shouldn't make the others' look like they're never coming
+            var next = cooldowns.Select(e => AvailableIn(world, e.AvailableAt)).Where(t => t > -OverdueGrace || uptime <= OverdueGrace).DefaultIfEmpty(float.MaxValue).Min();
+            return (left, next == float.MaxValue && left > 0 ? 0 : MathF.Max(0, next));
+        }
         if (combatTime > OpenerBuffs + OverdueGrace || !world.Party.WithoutSlot(includeDead: true, excludeAlliance: true, excludeNPCs: true).Any(p => p != player && HasPartyBuff(p)))
             return (left, float.MaxValue);
         return (left, MathF.Max(0, OpenerBuffs - combatTime));
+    }
+
+    // buffs come in over several seconds (Chain Stratagem often 7-8s before Technical / Searing Light); don't count the window as open until the other buff jobs pressed theirs
+    // press times come from the cooldowns, a second PCT's Starry Muse replaces the first one's status
+    private const float BuffSpread = 9;
+    private const float BuffDuration = 20;
+    private const float CooldownLength = 120;
+
+    private static float AvailableIn(WorldState world, DateTime at) => (float)(at - world.CurrentTime).TotalSeconds;
+
+    private static float WaitForMoreBuffs(WorldState world, RaidCooldowns cooldowns)
+    {
+        float? sinceFirst = null;
+        List<float?> notPressed = [];
+        foreach (var (slot, p) in world.Party.WithSlot(excludeAlliance: true))
+        {
+            if (slot >= PartyState.MaxPartySize || !HasPartyBuff(p))
+                continue;
+            float? availableIn = null;
+            foreach (var e in cooldowns.DamageCooldowns.Where(e => e.Slot == slot))
+                availableIn = MathF.Min(availableIn ?? float.MaxValue, AvailableIn(world, e.AvailableAt));
+            if (availableIn > CooldownLength - BuffDuration)
+                sinceFirst = MathF.Max(sinceFirst ?? 0, CooldownLength - availableIn.Value);
+            else
+                notPressed.Add(availableIn);
+        }
+        if (sinceFirst is not { } since || since >= BuffSpread)
+            return 0;
+        // only wait for buffs that can still come off cooldown inside the spread, so an open window doesn't close again
+        var waitLeft = BuffSpread - since;
+        return notPressed.Any(t => t is not { } a || a > -OverdueGrace && a < waitLeft) ? waitLeft : 0;
     }
 
     private static bool HasPartyBuff(Actor p) => p.Class switch

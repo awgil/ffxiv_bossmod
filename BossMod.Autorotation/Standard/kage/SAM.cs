@@ -630,12 +630,13 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     {
         if (strategy.Yaten.Value == YatenStrategy.Delay || !InMelee || Kenki < 10 || !CanWeave(AID.HissatsuYaten))
             return;
-        var soon = World.FutureTime(2.5f);
+        // forbidden zones also cover spreads, stacks and line of sight: only jump when the hit is too close to walk out of
+        var soon = World.FutureTime(1.2f);
         if (!Hints.ForbiddenZones.Any(z => z.activation <= soon && z.shape.Check(Player.Position)))
             return;
         var away = (Player.Position - target.Actor.Position).Normalized();
         var landing = Player.Position + away * 10;
-        if (!Hints.PathfindMapBounds.Contains(landing - Hints.PathfindMapCenter) || Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(5) && z.shape.Check(landing)))
+        if (!Hints.PathfindMapBounds.Contains(landing + away * 2 - Hints.PathfindMapCenter) || Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(5) && z.shape.Check(landing)))
             return;
         PushOGCD(AID.HissatsuYaten, target.Actor, 75);
     }

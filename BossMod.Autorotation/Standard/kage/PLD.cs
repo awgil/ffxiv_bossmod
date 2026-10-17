@@ -79,7 +79,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage PLD", "Paladin", "Standard rotation (Kage)|Tank", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.PLD, Class.GLA), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage PLD", "Paladin", "Standard rotation (Kage)|Tank", "Kagekazu", RotationModuleQuality.Good, BitMask.Build(Class.PLD, Class.GLA), 100).WithStrategies<Strategy>();
     }
 
     private const int HolySpiritMP = 1000;
@@ -103,6 +103,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
     private int NumAOETargets;
     private bool AOEMode;
     private bool InMelee;
+    private bool IsMoving;
+    private List<Actor> Loose = [];
 
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private int AoEMinTargets => Player.Level >= 94 ? 3 : 2;
@@ -141,8 +143,13 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         NumAOETargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         if (strategy.AOE.Value == AOEStrategy.ForceST)
             NumAOETargets = NumAOETargets > 0 && target != null && TargetInAOECircle(target.Actor, Player.Position, 5) ? 1 : 0;
-        AOEMode = Unlocked(AID.TotalEclipse) && UseAOE(strategy.AOE.Value, NumAOETargets, AoEMinTargets);
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
+        IsMoving = isMoving;
+        Loose = Player.InCombat && !InBossFight && strategy.AOE.Value != AOEStrategy.ForceST
+            ? [.. Hints.PriorityTargets.Select(e => e.Actor).Where(a => a.InCombat && a.TargetID != Player.InstanceID && World.Party.FindSlot(a.TargetID) >= 0)]
+            : [];
+        AOEMode = Unlocked(AID.TotalEclipse) && (UseAOE(strategy.AOE.Value, NumAOETargets, AoEMinTargets)
+            || strategy.AOE.Value == AOEStrategy.AOE && NumAOETargets >= 2 && Loose.Any(a => TargetInAOECircle(a, Player.Position, 5)));
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
         BestMeleeSplashTarget = BestAOETarget(target, 3, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
@@ -166,6 +173,11 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3);
         Hints.GoalZones.Add(allowAoE && Unlocked(AID.TotalEclipse) ? GoalCombined(goal, Hints.GoalAOECircle(5), AoEMinTargets) : goal);
+        if (Loose.Count > 0)
+        {
+            var loose = Loose;
+            Hints.GoalZones.Add(p => loose.Count(a => p.InCircle(a.Position, 5 + a.HitboxRadius)));
+        }
 
         GCDs(strategy, target);
         if (Player.InCombat)
@@ -205,6 +217,14 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         if (canHoly && DivineMightLeft > GCD && (FoFLeft > GCD || !InMelee || ComboLastMove == (AOEMode ? AID.TotalEclipse : AID.RiotBlade) || DivineMightLeft < 6))
             PushGCD(holyAction, holyTarget, DivineMightLeft < 6 || FoFLeft <= GCD ? 46 : 44);
 
+        // grab trash that's hitting someone else before continuing the combo; the primary target is usually already on us
+        if (Loose.Where(a => !TargetInAOECircle(a, Player.Position, 5) && Player.DistanceToHitbox(a) <= 20).MinBy(Player.DistanceToHitbox) is { } stray)
+        {
+            if (canHoly && DivineMightLeft > GCD)
+                PushGCD(AID.HolySpirit, stray, 55);
+            PushGCD(AID.ShieldLob, stray, 54);
+        }
+
         if (AOEMode)
         {
             if (Unlocked(AID.Prominence) && ComboLastMove == AID.TotalEclipse && ComboLeft > GCD)
@@ -215,7 +235,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         {
             if (!InMelee)
             {
-                if (canHoly)
+                // a hardcast stops the tank while it's still gathering a trash pack
+                if (canHoly && (DivineMightLeft > GCD || InBossFight && !IsMoving))
                     PushGCD(AID.HolySpirit, target.Actor, 20);
                 PushGCD(AID.ShieldLob, target.Actor, 19);
             }

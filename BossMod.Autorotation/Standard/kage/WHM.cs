@@ -236,7 +236,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
         if (AssizeStrat != OffensiveStrategy.Delay && CanWeave(AID.Assize)
-            && (AssizeStrat == OffensiveStrategy.Force || AssizeHits(target)))
+            && (AssizeStrat == OffensiveStrategy.Force || AssizeHits(target) && !(CombatTime < 30 && HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn < 12)))
             PushOGCD(AID.Assize, Player, 40);
 
         if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 9000)
