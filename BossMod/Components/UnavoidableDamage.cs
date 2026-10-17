@@ -51,8 +51,7 @@ public class RaidwideCastDelay(BossModule module, Enum actionVisual, Enum action
     }
 }
 
-// generic unavoidable multi-hit raidwide: a cast followed by a number of hits at a regular interval
-// only the next hit is predicted, carrying the number of hits left and the end of the sequence
+// generic unavoidable multi-hit raidwide: a cast followed by a number of hits at a regular interval; predicted as one entry for the next hit
 public class RaidwideMultiHit(BossModule module, Enum startAction, Enum[] hitActions, float firstDelay, float interval, int hits, string hint = "Raidwide") : CastCounter(module, startAction)
 {
     public readonly ActionID[] HitActions = [.. hitActions.Select(a => ActionID.MakeSpell(a))];

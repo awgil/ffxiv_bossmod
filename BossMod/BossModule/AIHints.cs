@@ -92,7 +92,7 @@ public sealed class AIHints
         Disable // unsync from fate
     }
 
-    // multi-hit sequences are a single entry for the next hit: Hits = hits left (including the next one), LastHit = when the sequence ends
+    // a multi-hit sequence is one entry for its next hit: Hits = hits left including that one, LastHit = end of the sequence
     public record struct DamagePrediction(BitMask Players, DateTime Activation, PredictedDamageType Type = PredictedDamageType.None, int Hits = 1, DateTime LastHit = default)
     {
         public readonly BitMask Players = Players;

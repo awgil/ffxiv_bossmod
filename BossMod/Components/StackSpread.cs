@@ -12,7 +12,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         public int MaxSize = maxSize;
         public DateTime Activation = activation;
         public BitMask ForbiddenPlayers = forbiddenPlayers; // raid members that aren't allowed to participate in the stack
-        public int Hits = hits; // number of hits for multi-hit stacks
+        public int Hits = hits;
     }
 
     public record struct Spread(

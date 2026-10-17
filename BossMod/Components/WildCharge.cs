@@ -14,7 +14,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
     }
 
     public float HalfWidth = halfWidth;
-    public int Hits = 1; // number of hits for multi-hit line stacks
+    public int Hits = 1;
     public float FixedLength = fixedLength; // if == 0, length is up to target
     public Actor? Source; // if null, mechanic is not active
     public DateTime Activation;

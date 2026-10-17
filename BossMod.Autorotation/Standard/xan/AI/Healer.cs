@@ -88,7 +88,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
-    // per-frame state, set at the start of Execute
     private bool AutoMit;
     private float RaidwideIn; // raidwides and shared hits
     private float FullRaidwideIn; // raidwides only (GCD shields are wasted on stacks)
@@ -105,13 +104,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         MultiHitIn = SecondsUntilNext(multiHit.Select(d => d.Activation));
         MultiHitLong = multiHit.Any(d => d.Hits >= 8 || (d.LastHit - d.Activation).TotalSeconds >= 10);
 
-        // goal zones are summed: skip this when the module has its own (towers, stacks, baits) and keep it at most 1
+        // goal zones are summed: stay out of the way of module goals
         if (strategy.StayNearParty.IsEnabled() && Player.InCombat && Hints.GoalZones.Count == 0)
         {
             List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
             var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
             var scale = 1f / Math.Max(1, allies.Count);
-            // require a margin to improve coverage, so allies moving near the edge don't make us shuffle
             Hints.GoalZones.Add(p => scale * Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
         }
 
@@ -139,8 +137,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 break;
         }
     }
-
-    // each job: prepare for predicted damage, single target heals, dungeon trash pulls, party heals
 
     private void AutoWHM(in Strategy strategy)
     {
@@ -282,10 +278,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 if (!horoscope)
                     PushMitOGCD(ref budget, BossMod.AST.AID.Horoscope, Player, 7);
             }
-            // sun sign comes from neutral sect: use it before the hit, or before it runs out
             if (StatusDetails(Player, BossMod.AST.SID.Suntouched, Player.InstanceID).Left is > 0 and var suntouched && (RaidwideIn < 5 || suntouched < 2))
                 UseOGCD(BossMod.AST.AID.SunSign, Player, 19);
-            // the star matures after 10s: place it 10-20s before a raidwide, on cooldown when none is predicted
             if (Player.InCombat && !starPlaced && (RaidwideIn is > 8 and < 20 || RaidwideIn > 30))
                 UseOGCDAt(BossMod.AST.AID.EarthlyStar, GetBestPartyCoverage(EarthlyStarRadius), 5);
 
@@ -299,7 +293,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             }
         }
 
-        // neutral sect (shield) and horoscope (bigger heal) are both upgraded by the next helios
+        // neutral sect and horoscope are both upgraded by the next helios
         if (strategy.Heal == HealMode.Enabled && FullRaidwideIn < GCD + 2.5f && Unlocked(BossMod.AST.AID.AspectedHelios)
             && (Player.FindStatus(BossMod.AST.SID.NeutralSect) != null && Player.FindStatus(BossMod.AST.SID.NeutralSectShield, Player.InstanceID) == null || Player.FindStatus(BossMod.AST.SID.Horoscope) != null))
             UseGCD(BossMod.AST.AID.AspectedHelios, Player, 5);
@@ -335,7 +329,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             var ogcdCovers = ReadySoon(BossMod.AST.AID.EssentialDignity) || ReadySoon(BossMod.AST.AID.CelestialIntersection);
             if (ratio <= 0.3f || ratio <= 0.5f && !ogcdCovers)
             {
-                // synastry copies part of single target heals on someone else to a hurt tank
                 if (!tank && Player.FindStatus(BossMod.AST.SID.SelfSynastry) == null && LightParty.FirstOrDefault(p => p.Role == Role.Tank && PredictedRatio(p) < 0.7f) is { } hurtTank)
                     UseOGCD(BossMod.AST.AID.Synastry, hurtTank, 8);
                 UseGCD(BestActionUnlocked(BossMod.AST.AID.BeneficII, BossMod.AST.AID.Benefic), target, 1);
@@ -365,7 +358,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (PartyLow(strategy, 20, 0.6f) && !canApplyHeliosHoT)
             UseGCD(BossMod.AST.AID.Helios, Player, 2);
 
-        // the next astral / umbral draw overwrites the support cards: play them instead of losing them
+        // the next draw overwrites unplayed support cards
         if (strategy.Heal == HealMode.Enabled && Player.InCombat && Unlocked(BossMod.AST.AID.AstralDraw) && NextChargeIn(BossMod.AST.AID.AstralDraw) < 2.5f)
         {
             if (LightParty.Where(p => p.Role == Role.Tank).MinBy(PredictedRatio) is { } cardTank)
@@ -380,13 +373,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             }
         }
 
-        // release macrocosmos once the multi-hit sequence is over, or early if the party is low
         if (LightParty.Any(p => p.FindStatus(BossMod.AST.SID.Macrocosmos, Player.InstanceID) != null) && (MultiHitIn == float.MaxValue || PartyLow(strategy, 20, 0.5f)))
             UseOGCD(BossMod.AST.AID.MicrocosmosEnd, Player, 17);
-        // after the raidwide: horoscope heals when it ends anyway, end it early if the party is low
         if (horoscope && RaidwideIn > 3 && PartyLow(strategy, 20, 0.75f))
             UseOGCD(BossMod.AST.AID.HoroscopeEnd, Player, 14);
-        // detonate the star for healing, or before the boss goes untargetable so its damage isn't lost
         if (starPlaced && (downtimeIn < 1.5f || PartyLow(strategy, 20, starMatured ? 0.8f : 0.55f)))
             UseOGCD(BossMod.AST.AID.StellarDetonation, Player, 13);
     }
@@ -409,15 +399,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             if (WantMultiHitTool && !haveSeraph && ReadySoon(BossMod.SCH.AID.Seraphism))
                 UseOGCD(BossMod.SCH.AID.Seraphism, Player, 21);
 
-            // big party shield: recitation crit adloquium on us, spread with deployment tactics; holds its budget slot over the few GCDs it takes
-            // the sequence takes ~4s (recitation, 2s adlo cast, weave); starting it later wastes recitation, but once started it is finished
             var ownGalvanize = Player.FindStatus(BossMod.SCH.SID.Galvanize, Player.InstanceID) != null || Player.PendingStatuses.Any(s => s.StatusId == (uint)BossMod.SCH.SID.Galvanize);
             var started = ownGalvanize || Player.FindStatus(BossMod.SCH.SID.Recitation) != null;
             deploying = budget > 0 && FullRaidwideIn < 8 && (started || FullRaidwideIn >= 4.5f) && ReadySoon(BossMod.SCH.AID.DeploymentTactics) && UnshieldedShare(30) >= 0.5f;
             if (deploying)
             {
                 --budget;
-                // the shield lands close to the hit: take the next weave slot ahead of rotation ogcds
+                // must outrank rotation ogcds, the shield lands close to the hit
                 if (ownGalvanize)
                     Hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.SCH.AID.DeploymentTactics), Player, ActionQueue.Priority.High + 22);
                 else if (Player.FindStatus(BossMod.SCH.SID.Recitation) == null && ReadySoon(BossMod.SCH.AID.Recitation))
@@ -434,7 +422,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     PushMitOGCD(ref budget, BossMod.SCH.AID.FeyIllumination, Player, 19);
             }
 
-            // protraction lasts 10s: start early so both ogcds fit around the 2s adloquium casts
             if (BusterTanks(8) is [var (first, _), ..] schBusters)
             {
                 var second = schBusters[^1].tank;
@@ -467,7 +454,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.SCH.AID.Aetherpact, target, 11);
             if (AutoMit && tank && ratio <= 0.5f)
                 UseOGCD(BossMod.SCH.AID.Protraction, target, 10);
-            // aetherflow is too valuable to spend on lustrate unless it's an emergency
             if (ratio <= 0.25f && aetherflow)
                 UseOGCD(BossMod.SCH.AID.Lustrate, target, 9);
 
@@ -476,7 +462,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseGCD(BestActionUnlocked(BossMod.SCH.AID.Adloquium, BossMod.SCH.AID.Physick), target, 3);
         });
 
-        // stop draining the fairy gauge once the union target is healthy again; only our own union can be dissolved
+        // only our own union can be dissolved
         if (pet != null && LightParty.FirstOrDefault(p => p.FindStatus(BossMod.SCH.SID.FeyUnion, pet.InstanceID) != null || p.FindStatus(BossMod.SCH.SID.FeyUnion, Player.InstanceID) != null) is { } unionTarget && PredictedRatio(unionTarget) >= 0.95f)
             UseOGCD(BossMod.SCH.AID.DissolveUnion, Player, 5);
 
@@ -525,7 +511,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         var physis = Unlocked(BossMod.SGE.AID.PhysisII) ? BossMod.SGE.AID.PhysisII : BossMod.SGE.AID.Physis;
         var keracholeRegen = Player.Level >= 78; // enhanced kerachole trait
 
-        // never toggle eukrasia for a target out of range or line of sight: the dps rotation would burn it on a dosis and we'd toggle it again every gcd
+        // don't toggle eukrasia for an unreachable target, the dps rotation would burn it on dosis every gcd
         void UseEukrasian(BossMod.SGE.AID heal, Actor target, int prio)
         {
             if (eukrasia)
@@ -646,7 +632,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         _ => World.Party.FindSlot(Manager.ResolveTargetOverride(strategy.Heal.TrackRaw.Target, strategy.Heal.TrackRaw.TargetParam)?.InstanceID ?? 0)
     };
 
-    // calls healFun with the lowest party member (or the babysit target) and its hp ratio, shifted by how soon damage is coming
     private void HealLowest(in Strategy strategy, Action<Actor, float> healFun)
     {
         switch (strategy.Heal.Value)
@@ -687,11 +672,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             healFun(target, bestRatio - ThresholdShift(target, best));
     }
 
-    // predicted hp without the flat 30% per upcoming hit: a heal before the hit can't go above max hp
+    // without the flat 30% per predicted hit: a heal can't overheal past max hp
     private float HealRatio(int slot) => Health.PartyMemberStates[slot].PredictedHPRatio + 0.3f * Hints.PredictedDamage.Count(d => d.Players[slot]);
     private float PredictedRatio(Actor a) => World.Party.FindSlot(a.InstanceID) is var slot && slot >= 0 ? HealRatio(slot) : a.HPRatio;
 
-    // heal earlier before predicted damage, later when nothing is coming
     private float ThresholdShift(Actor target, int slot)
     {
         if (Bossmods.ActiveModule == null)
@@ -723,7 +707,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private bool PartyLow(in Strategy strategy, float radius, float ratio) => ShouldHealInAreaNow(strategy, Player.Position, radius, ratio + AreaShift());
     private bool ShouldHealInAreaNow(in Strategy strategy, WPos pos, float radius, float ratio) => strategy.Heal.Value == HealMode.Enabled && Health.ShouldHealInArea(pos, radius, ratio);
 
-    // nothing is coming for a while: top up a chipped target with a regen instead of a direct heal
     private bool QuietPeriod => Bossmods.ActiveModule != null && NextDamageIn(-1) >= 15;
     private bool PreferRegen(Actor target) => QuietPeriod && PredictedRatio(target) is > 0.55f and < 0.85f && !HasHealOverTime(target);
     private int MissingWithoutRegen(float radius, float below = 0.85f) => MissingWithoutRegen(Player.Position, radius, below);
@@ -752,17 +735,15 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         return inRange.Count == 0 ? 0 : (float)inRange.Count(p => !HasGCDShield(p)) / inRange.Count;
     }
 
-    // includes pending statuses, so we don't reapply something that was just cast
+    // includes pending statuses
     private static bool HasAnyStatus(Actor a, uint[] ids) => a.Statuses.Any(s => ids.Contains(s.ID)) || a.PendingStatuses.Any(s => ids.Contains(s.StatusId));
 
     private float SecondsUntilNext(IEnumerable<DateTime> times)
         => times.Where(t => t >= World.CurrentTime).Select(t => (float)(t - World.CurrentTime).TotalSeconds).DefaultIfEmpty(float.MaxValue).Min();
 
-    // slot < 0: any party member
     private float NextDamageIn(int slot)
         => SecondsUntilNext(Raidwides.Concat(Tankbusters.Where(t => slot < 0 || World.Party.FindSlot(t.Item1.InstanceID) == slot).Select(t => t.Item2)));
 
-    // lowest tank first; with one tank first == last, with two the single-target tools are split instead of all landing on one tank
     private List<(Actor tank, float busterIn)> BusterTanks(float seconds) => [.. TankbustersWithin(seconds).GroupBy(t => t.tank).Select(g => (g.Key, g.Min(t => t.busterIn))).OrderBy(t => t.Key.HPRatio)];
 
     private IEnumerable<(Actor tank, float busterIn)> TankbustersWithin(float seconds)
@@ -775,13 +756,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         }
     }
 
-    // party mitigation from any healer; on half the light party or more means the hit is already partly covered
     private static readonly uint[] PartyMitStatuses = [
         (uint)BossMod.SGE.SID.Kerachole, (uint)BossMod.SGE.SID.Panhaima, (uint)BossMod.SGE.SID.Holosakos, (uint)BossMod.AST.SID.Macrocosmos,
         (uint)BossMod.SCH.SID.SacredSoil, (uint)BossMod.SCH.SID.DesperateMeasures, (uint)BossMod.AST.SID.CollectiveUnconscious,
         (uint)BossMod.WHM.SID.TemperanceParty, (uint)BossMod.AST.SID.SunSign,
     ];
-    // multi-hit tools are on the party (panhaima, macrocosmos, seraphism regen) or on the caster (bell, seraphism)
     private static readonly uint[] MultiHitPartyStatuses = [(uint)BossMod.SGE.SID.Panhaima, (uint)BossMod.AST.SID.Macrocosmos, (uint)BossMod.SCH.SID.SeraphismRegen];
     private static readonly uint[] MultiHitSelfStatuses = [(uint)BossMod.WHM.SID.LiturgyOfTheBell, (uint)BossMod.SCH.SID.Seraphism];
 
@@ -794,7 +773,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private bool OtherMultiHitToolUp => CoveredByOthers(MultiHitPartyStatuses) || LightParty.Any(p => p != Player && p.Statuses.Any(s => MultiHitSelfStatuses.Contains(s.ID)));
     private bool WantMultiHitTool => AutoMit && MultiHitIn < 5 && !OtherMultiHitToolUp;
 
-    // big party oGCDs per raidwide or multi-hit sequence: 2, -1 if the co-healer already covers it, +1 for a long sequence, minus the ones we just used
     private int RaidwideBudget<AID>(params AID[] tools) where AID : Enum
         => 2 - (CoveredByOthers(PartyMitStatuses) ? 1 : 0) + (MultiHitLong ? 1 : 0) - tools.Count(t => UsedWithin(ActionID.MakeSpell(t), 10));
 
@@ -872,7 +850,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             tankFun(World.Party[tankSlot]!, Health.PartyMemberStates[tankSlot]!);
     }
 
-    // dungeon trash pulls: no boss module, exactly one tank, holding at least 2 enemies
     private void RunForTrashPull(in Strategy strategy, Action<Actor, PartyMemberState, int> pullFun)
     {
         if (strategy.Heal != HealMode.Enabled || Bossmods.ActiveModule != null)
@@ -885,14 +862,12 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         });
     }
 
-    // big pull and the tank stopped moving: worth placing a ground heal on them
     private static bool StationaryBigPull(PartyMemberState tankState, int pulled) => pulled >= 3 && tankState.MoveDelta < 0.75f;
 
     private bool ReadySoon<AID>(AID aid) where AID : Enum => Unlocked(aid) && NextChargeIn(aid) < 0.6f;
 
     private bool IsCasting<AID>(params AID[] aids) where AID : Enum => Player.CastInfo?.Action is { } cast && aids.Any(a => cast == ActionID.MakeSpell(a));
 
-    // party regen on ourselves is (nearly) gone, including pending statuses, and we aren't already casting it
     private bool CanApplyPartyRegen<SID, AID>(SID regen, params AID[] casts) where SID : Enum where AID : Enum
         => StatusDetails(Player, regen, Player.InstanceID).Left < 3 && !IsCasting(casts);
 
