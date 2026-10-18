@@ -95,24 +95,24 @@ public sealed record class ActionDefinition(ActionID ID)
 
     // note: this does *not* include quest-locked overrides
     // the way game works is - when you use first charge, total is set to cd*max-at-cap, and elapsed is set to cd*(max-at-level - 1)
-    public int MaxChargesAtCap()
+    public int MaxChargesAtCap(IUnlockState unlockState)
     {
         foreach (ref var o in MaxChargesOverride.AsSpan())
-            if (LinkUnlocked(o.UnlockLink))
+            if (unlockState.IsUnlockLinkUnlocked(o.UnlockLink))
                 return o.Charges;
         return MaxChargesBase;
     }
 
-    public int MaxChargesAtLevel(int level)
+    public int MaxChargesAtLevel(int level, IUnlockState unlockState)
     {
         foreach (ref var o in MaxChargesOverride.AsSpan())
-            if (level >= o.Level && LinkUnlocked(o.UnlockLink))
+            if (level >= o.Level && unlockState.IsUnlockLinkUnlocked(o.UnlockLink))
                 return o.Charges;
         return MaxChargesBase;
     }
 
-    public bool IsMultiCharge => MaxChargesAtCap() > 1;
-    public float CooldownAtFirstCharge => (MaxChargesAtCap() - 1) * Cooldown;
+    public bool IsMultiCharge(IUnlockState unlockState) => MaxChargesAtCap(unlockState) > 1;
+    public float CooldownAtFirstCharge(IUnlockState unlockState) => (MaxChargesAtCap(unlockState) - 1) * Cooldown;
     public bool IsGCD => MainCooldownGroup == ActionDefinitions.GCDGroup || ExtraCooldownGroup == ActionDefinitions.GCDGroup;
 
     // for duty actions, the action definition always stores cooldown group 80, but in reality a different one might be used
@@ -125,33 +125,31 @@ public sealed record class ActionDefinition(ActionID ID)
     // for multi-charge abilities, action is ready when elapsed >= single-charge cd; assume that if any multi-charge actions share cooldown group, they have same cooldown - otherwise dunno how it should work
     // note: GCDs with multiple charges can be affected OR unaffected by haste depending on how many charges the user currently has access to
     // the only separate-cooldown GCD that increases to >1 charge via trait is currently MCH Drill; others have multiple charges at unlock - SGE Phlegma, RPR Soul Slice, BLU Surpanakha
-    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions)
+    public float MainReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions, IUnlockState unlockState)
     {
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return cdg.Total > 0 ? Math.Max(0, cdg.Total / MaxChargesAtCap() - cdg.Elapsed) : 0;
+        return cdg.Total > 0 ? Math.Max(0, cdg.Total / MaxChargesAtCap(unlockState) - cdg.Elapsed) : 0;
     }
 
     public float ExtraReadyIn(ReadOnlySpan<Cooldown> cooldowns) => ExtraCooldownGroup >= 0 ? cooldowns[ExtraCooldownGroup].Remaining : 0;
-    public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions) => Math.Max(MainReadyIn(cooldowns, dutyActions), ExtraReadyIn(cooldowns));
+    public float ReadyIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions, IUnlockState unlockState) => Math.Max(MainReadyIn(cooldowns, dutyActions, unlockState), ExtraReadyIn(cooldowns));
 
     // return time until charges are capped (for multi-charge abilities; for single-charge this is equivalent to remaining cooldown)
-    public float ChargeCapIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions, int level)
+    public float ChargeCapIn(ReadOnlySpan<Cooldown> cooldowns, ReadOnlySpan<ClientState.DutyAction> dutyActions, int level, IUnlockState unlockState)
     {
         if (MainCooldownGroup < 0)
             return 0;
         var cdg = cooldowns[ActualMainCooldownGroup(dutyActions)];
-        return cdg.Total > 0 ? Math.Max(0, MaxChargesAtLevel(level) * cdg.Total / MaxChargesAtCap() - cdg.Elapsed) : 0;
+        return cdg.Total > 0 ? Math.Max(0, MaxChargesAtLevel(level, unlockState) * cdg.Total / MaxChargesAtCap(unlockState) - cdg.Elapsed) : 0;
     }
 
-    public bool IsUnlocked(WorldState ws, Actor player)
+    public bool IsUnlocked(WorldState ws, Actor player, IUnlockState unlockState)
     {
         var checkLevel = IsRoleAction ? ws.Client.ClassJobLevel(player.Class) : player.Level;
-        return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && LinkUnlocked(UnlockLink);
+        return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && unlockState.IsUnlockLinkUnlocked(UnlockLink);
     }
-
-    private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
 }
 
 // database of all supported player-initiated actions

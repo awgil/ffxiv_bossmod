@@ -10,7 +10,7 @@ using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
-class ReplayDetailsWindow : UIWindow
+public class ReplayDetailsWindow : UIWindow
 {
     private ReplayPlayer _player;
     private readonly ILifetimeScope _parentScope;
@@ -60,7 +60,7 @@ class ReplayDetailsWindow : UIWindow
         _player.AdvanceTo(_curTime, Bossmods.Update);
         _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), null, null);
         _events = _playerScope.Resolve<EventList.Factory>().Invoke(MoveTo, this);
-        _analysis = _playerScope.Resolve<AnalysisManager.Factory>().Invoke([data]);
+        _analysis = scope.Resolve<AnalysisManager.Factory>().Invoke([data]);
     }
 
     protected override void Dispose(bool disposing)

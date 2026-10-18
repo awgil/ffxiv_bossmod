@@ -46,15 +46,15 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
     protected float AttackGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float SpellGCDLength => ActionSpeed.GCDRounded(World.Client.PlayerStats.SpellSpeed, World.Client.PlayerStats.Haste, Player.Level);
 
-    protected float ReadyIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
-    protected float MaxChargesIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) : float.MaxValue;
+    protected float ReadyIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) : float.MaxValue;
+    protected float MaxChargesIn(AID action) => Unlocked(action) ? ActionDefinitions.Instance.Spell(action)!.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level, Manager.UnlockState) : float.MaxValue;
 
     protected float DutyActionReadyIn<ID>(ID aid) where ID : Enum => DutyActionReadyIn(ActionID.MakeSpell(aid));
 
     protected float DutyActionReadyIn(ActionID aid)
     {
         if (World.Client.DutyActions.Any(d => d.Action == aid))
-            return ActionDefinitions.Instance[aid]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+            return ActionDefinitions.Instance[aid]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState);
         return float.MaxValue;
     }
 
@@ -193,8 +193,8 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
         if (!CanUse(aid))
             return false;
 
-        var def = ActionDefinitions.Instance.Spell(aid);
-        if (def == null || !def.IsUnlocked(World, Player))
+        var def = Manager.ActionDefinitions.Spell(aid);
+        if (def == null || !def.IsUnlocked(World, Player, Manager.UnlockState))
             return false;
 
         if (def.Range != 0 && target == null)

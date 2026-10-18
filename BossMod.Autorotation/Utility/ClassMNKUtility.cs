@@ -35,7 +35,7 @@ public sealed class ClassMNKUtility(RotationModuleManager manager, Actor player)
         var dashStrategy = strategy.Option(Track.Thunderclap).As<DashStrategy>();
         var dashTarget = ResolveTarget(dash.Value) ?? primaryTarget; //Smart-Targeting
         var distance = Player.DistanceToHitbox(dashTarget);
-        var cd = World.Client.Cooldowns[ActionDefinitions.Instance.Spell(MNK.AID.Thunderclap)!.MainCooldownGroup].Remaining;
+        var cd = World.Client.Cooldowns[Manager.ActionDefinitions.Spell(MNK.AID.Thunderclap)!.MainCooldownGroup].Remaining;
         var shouldDash = dashStrategy switch
         {
             DashStrategy.None => false,

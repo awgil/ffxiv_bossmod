@@ -27,6 +27,8 @@ static class Program
         {
             containerBuilder.RegisterType<MockAmex>().As<IAmex>().SingleInstance();
             containerBuilder.Register(ctx => new WorldState(0, "unknown")).InstancePerLifetimeScope();
+
+            containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName, "BossMod"))).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
         }
     }
 

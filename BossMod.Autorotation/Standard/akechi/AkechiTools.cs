@@ -133,7 +133,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool IsFirstGCD => !Player.InCombat || CombatTimer < 0.1f;
     protected bool InOddWindow(AID aid) => Cooldown(aid) is < 90 and > 30;
     protected bool InCombat(Actor? target) => Player.InCombat && target != null;
-    protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions);
+    protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState);
     protected float Cooldown(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
     protected bool ActionReady(AID aid) => Unlocked(aid) && Cooldown(aid) <= 0.5f;
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);

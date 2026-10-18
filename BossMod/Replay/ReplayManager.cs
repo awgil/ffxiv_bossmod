@@ -2,6 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +10,7 @@ namespace BossMod;
 
 public sealed class ReplayManager : IDisposable
 {
-    private sealed class ReplayEntry : IDisposable
+    public sealed class ReplayEntry : IDisposable
     {
         public string Path;
         public float Progress;
@@ -29,7 +30,7 @@ public sealed class ReplayManager : IDisposable
             AutoShowWindow = autoShow;
             this.scope = scope;
             InitialTime = initialTime;
-            Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), ref Progress, Cancel.Token));
+            Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), ref Progress, Cancel.Token));
         }
 
         public void Dispose()
@@ -51,7 +52,7 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays, ReplayAnalysis.AnalysisManager.Factory AnalysisFactory) : IDisposable
+    public sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays, ReplayAnalysis.AnalysisManager.Factory AnalysisFactory) : IDisposable
     {
         public delegate AnalysisEntry Factory(string Identifier, List<ReplayEntry> Replays);
 

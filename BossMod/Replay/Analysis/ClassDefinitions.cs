@@ -1,5 +1,6 @@
 ﻿using BossMod.Data;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Plugin.Services;
 using System.Text;
 
 namespace BossMod.ReplayAnalysis;
@@ -519,7 +520,7 @@ class ClassDefinitions
         {
             // assume if definition is present, we know what we're doing...
             var min = ActionDefinitions.Instance.ActionBaseMaxCharges(action.ID);
-            var max = action.Definition?.MaxChargesAtCap() ?? 0;
+            var max = action.Definition?.MaxChargesAtCap(Utils.Landmine<IUnlockState>()) ?? 0;
             return min == 1 && max <= 1 ? "" // simple
                 : min == max ? $" ({min} charges)"
                 : max == 0 ? $" ({min}? charges)"

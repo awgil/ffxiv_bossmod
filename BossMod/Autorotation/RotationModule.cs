@@ -216,7 +216,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public virtual string DescribeState() => "";
 
     // utility to check action/trait unlocks
-    public bool ActionUnlocked(ActionID action) => Manager.ActionDefinitions[action]?.IsUnlocked(World, Player) ?? false;
+    public bool ActionUnlocked(ActionID action) => Manager.ActionDefinitions[action]?.IsUnlocked(World, Player, Manager.UnlockState) ?? false;
 
     public bool ActionUnlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
 
@@ -231,10 +231,10 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
 
     public float MaxChargesIn(ActionID action)
     {
-        if (Manager.ActionDefinitions[action] is not { } def || !def.IsUnlocked(World, Player))
+        if (Manager.ActionDefinitions[action] is not { } def || !def.IsUnlocked(World, Player, Manager.UnlockState))
             return float.MaxValue;
 
-        return def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level);
+        return def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level, Manager.UnlockState);
     }
 
     public float MaxChargesIn<AID>(AID aid) where AID : Enum => MaxChargesIn(ActionID.MakeSpell(aid));
@@ -287,7 +287,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public int FindDutyActionSlot<AID>(AID aid) where AID : Enum => FindDutyActionSlot(ActionID.MakeSpell(aid));
 
     public float DutyActionCD(int slot) => slot is >= 0 and < 7
-        ? (ActionDefinitions.Instance[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) ?? float.MaxValue)
+        ? (ActionDefinitions.Instance[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) ?? float.MaxValue)
         : float.MaxValue;
     public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 

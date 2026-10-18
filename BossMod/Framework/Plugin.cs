@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
+using BossMod.ReplayAnalysis;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
@@ -21,7 +22,9 @@ public enum Keys
     PresetDatabase,
     DefaultPresetsFile,
     PlanDatabase,
-    PlanManifest
+    PlanManifest,
+    ConfigDirectory,
+    ReplayDirectory
 }
 
 public class Plugin : HostedPlugin
@@ -116,6 +119,8 @@ public class Plugin : HostedPlugin
             .Keyed<DirectoryInfo>(Keys.PlanDatabase);
         containerBuilder.Register(ctx => new FileInfo(Path.Join(autorotRoot, "plans.manifest.json")))
             .Keyed<FileInfo>(Keys.PlanManifest);
+        containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.ResolveKeyed<DirectoryInfo>(Keys.ConfigDirectory).FullName, "replays")))
+            .Keyed<DirectoryInfo>(Keys.ReplayDirectory);
 
         containerBuilder.RegisterGeneric((ctx, prms) =>
         {
@@ -125,6 +130,10 @@ public class Plugin : HostedPlugin
         }).As(typeof(ExcelSheet<>));
 
         containerBuilder.RegisterSingletonSelf<BozjaActionID>();
+
+        containerBuilder.RegisterType<AnalysisManager>();
+        containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
+        containerBuilder.RegisterSingletonSelf<ReplayManagementWindow>().WithAttributeFiltering();
 
         ConfigureExtra(containerBuilder);
 
@@ -150,6 +159,8 @@ public class Plugin : HostedPlugin
                 return new WorldState((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
             }
         }).InstancePerLifetimeScope();
+
+        containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
     }
 
     public static string GetStorageDir() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm");

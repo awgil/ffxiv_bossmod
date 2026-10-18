@@ -26,11 +26,11 @@ public abstract class UIWindow : Window, IDisposable
         {
             TitleBarButtons = titleBarButtons;
         }
-        var existingWindow = Service.WindowSystem!.Windows.FirstOrDefault(w => w.WindowName == WindowName);
+        var existingWindow = Utils.Landmine<IWindowSystem>().Windows.FirstOrDefault(w => w.WindowName == WindowName);
         if (existingWindow == null)
         {
             // standard case - just register window in window system
-            Service.WindowSystem.AddWindow(this);
+            Utils.Landmine<IWindowSystem>().AddWindow(this);
             IsOpen = detached;
         }
         else if (detached)

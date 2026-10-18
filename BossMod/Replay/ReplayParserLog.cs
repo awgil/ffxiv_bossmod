@@ -222,7 +222,7 @@ public sealed class ReplayParserLog : IDisposable
         public override ulong ReadActorID() => _input.ReadUInt64();
     }
 
-    public static Replay Parse(string path, BossModuleConfig config, BossModuleRegistry registry, ref float progress, CancellationToken cancel)
+    public static Replay Parse(string path, BossModuleConfig config, BossModuleRegistry registry, JsonSerializerOptions serOptions, ref float progress, CancellationToken cancel)
     {
         try
         {
@@ -251,7 +251,7 @@ public sealed class ReplayParserLog : IDisposable
             var streamInvLength = 1.0f / rawStream.Length;
             var curOp = 0;
             using ReplayBuilder builder = new(path, config, registry);
-            using ReplayParserLog parser = new(input, builder);
+            using ReplayParserLog parser = new(input, builder, serOptions);
             while (parser.ParseLine())
             {
                 if ((++curOp & 0x3ff) == 0)
@@ -272,6 +272,7 @@ public sealed class ReplayParserLog : IDisposable
 
     private readonly Input _input;
     private readonly ReplayBuilder _builder;
+    private readonly JsonSerializerOptions serOptions;
     private readonly Dictionary<FourCC, Func<WorldState.Operation?>> _dispatch;
     private int _version;
     private DateTime _tsStart;
@@ -280,10 +281,11 @@ public sealed class ReplayParserLog : IDisposable
     private DateTime _legacyPrevTS;
     private double _invQPF = 1.0 / TimeSpan.TicksPerSecond;
 
-    private ReplayParserLog(Input input, ReplayBuilder builder)
+    private ReplayParserLog(Input input, ReplayBuilder builder, JsonSerializerOptions serOptions)
     {
         _input = input;
         _builder = builder;
+        this.serOptions = serOptions;
         _dispatch = new()
         {
             [new("VER "u8)] = ParseVersion,
@@ -884,7 +886,7 @@ public sealed class ReplayParserLog : IDisposable
     private ReplayState.OpActivePresetsChange ParseReplayPresets()
     {
         var stream = new MemoryStream(_input.ReadBytes());
-        if (JsonSerializer.Deserialize<List<Preset>>(stream) is { } ps)
+        if (JsonSerializer.Deserialize<List<Preset>>(stream, serOptions) is { } ps)
             return new(ps);
 
         Service.PluginLog.Warning("unable to parse preset JSON");

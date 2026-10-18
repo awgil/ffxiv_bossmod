@@ -1,4 +1,5 @@
 using BossMod.AI;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 
 namespace BossMod.Autorotation;
@@ -22,6 +23,7 @@ public sealed class RotationModuleManager : IDisposable
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
     public readonly ActionDefinitions ActionDefinitions;
+    public readonly IUnlockState UnlockState;
     public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
@@ -79,13 +81,14 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, RotationModuleRegistry rmr, BossModuleManager bmm, ActionDefinitions defs, AIHints hints, int playerSlot = PartyState.PlayerSlot)
+    public RotationModuleManager(RotationDatabase db, RotationModuleRegistry rmr, BossModuleManager bmm, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, int playerSlot = PartyState.PlayerSlot)
     {
         Database = db;
         Bossmods = bmm;
         PlayerSlot = playerSlot;
         Hints = hints;
         ActionDefinitions = defs;
+        UnlockState = unlockState;
         _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),

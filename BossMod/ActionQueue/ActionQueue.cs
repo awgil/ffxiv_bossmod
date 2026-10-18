@@ -8,7 +8,7 @@ namespace BossMod;
 // - select highest priority action
 // - if it is still on cooldown, look for the next-best action that can fit without delaying previously selected action
 // - repeat the process until no more actions can be found
-public sealed class ActionQueue(ActionTweaksConfig config, ActionDefinitions defs, IPluginLog pluginLog)
+public sealed class ActionQueue(ActionTweaksConfig config, ActionDefinitions defs, IPluginLog pluginLog, IUnlockState unlockState)
 {
     private readonly ActionTweaksConfig _config = config;
 
@@ -60,13 +60,13 @@ public sealed class ActionQueue(ActionTweaksConfig config, ActionDefinitions def
                 pluginLog.Warning($"[ActionQueue] unregistered action {candidate.Action} queued and will be discarded, this is a bug");
                 continue;
             }
-            if (!def.IsUnlocked(ws, player))
+            if (!def.IsUnlocked(ws, player, unlockState))
                 continue;
 
             if (candidate.CastTime > hints.MaxCastTime)
                 continue; // this cast can't be finished in time, look for something else
 
-            var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns, ws.Client.DutyActions));
+            var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns, ws.Client.DutyActions, unlockState));
 
             // TODO: adjusted cast time!
             var duration = def.TotalDuration + instantAnimLockDelay;

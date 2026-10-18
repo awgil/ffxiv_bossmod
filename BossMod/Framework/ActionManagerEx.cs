@@ -1,5 +1,6 @@
 ﻿using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -81,13 +82,13 @@ public sealed unsafe class ActionManagerEx : IAmex
 
     private readonly delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions)
+    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions, IUnlockState unlockState)
     {
         _ws = ws;
         _hints = hints;
         _movement = movement;
         this.bozjaActions = bozjaActions;
-        _manualQueue = new(ws, hints);
+        _manualQueue = new(ws, hints, unlockState);
         _cancelCastTweak = new(ws, hints);
         _dismountTweak = new(ws);
         _smartRotationTweak = new(ws, hints);

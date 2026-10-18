@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Features.AttributeFilters;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -33,7 +34,7 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, BossModuleManager bmm, DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, BossModuleManager bmm, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
     {
         _ws = ws;
         _logDir = logDir;

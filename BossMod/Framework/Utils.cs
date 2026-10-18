@@ -479,4 +479,9 @@ public static partial class Utils
             CopyRecursive(subsource, subtarget);
         }
     }
+
+    public static T Landmine<T>()
+    {
+        throw new NotImplementedException($"Landmine: {typeof(T)}");
+    }
 }

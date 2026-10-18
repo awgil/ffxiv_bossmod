@@ -497,8 +497,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         if (!Unlocked(aid))
             return 0;
         var def = ActionDefinitions.Instance.Spell(aid)!;
-        var max = def.MaxChargesAtLevel(Player.Level);
-        var capIn = def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level);
+        var max = def.MaxChargesAtLevel(Player.Level, Manager.UnlockState);
+        var capIn = def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level, Manager.UnlockState);
         return max - (int)MathF.Ceiling(capIn / def.Cooldown);
     }
 

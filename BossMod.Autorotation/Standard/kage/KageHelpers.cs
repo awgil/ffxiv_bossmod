@@ -204,7 +204,7 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
 
     protected bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     protected float ReadyIn<AID>(AID aid) where AID : Enum => ReadyIn(ActionID.MakeSpell(aid));
-    protected float ReadyIn(ActionID action) => ActionUnlocked(action) && ActionDefinitions.Instance[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions) : float.MaxValue;
+    protected float ReadyIn(ActionID action) => ActionUnlocked(action) && ActionDefinitions.Instance[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) : float.MaxValue;
     protected bool GCDReady<AID>(AID aid) where AID : Enum => ReadyIn(aid) < GCD + 0.05f;
 
     protected bool CanWeave<AID>(AID aid) where AID : Enum => CanWeave(ActionID.MakeSpell(aid));
@@ -212,7 +212,7 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     {
         if (!ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def)
             return false;
-        return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
+        return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
     }
 
     protected float ScaledCastTime<AID>(AID aid) where AID : Enum => ActionDefinitions.Instance.Spell(aid) is { CastTime: > 0 } def ? def.CastTime * GCDLength / 2.5f : 0;
