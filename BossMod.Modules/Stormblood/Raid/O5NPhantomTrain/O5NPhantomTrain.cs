@@ -502,8 +502,17 @@ public class O5NPhantomTrain(ModuleInit init) : BossModule(init, MainCenter, Mai
     public static readonly WPos MainCenter = new(0, 4);
     public static readonly ArenaBoundsRect MainBounds = new(10, 20, MapResolution: 0.1f); // this is needed because the space between the wroths in miniscule
     public static readonly ArenaBoundsRect CarBounds = new(7, 7);
-    private static readonly ArenaBoundsRect RoofBounds = new(8, 64, MapResolution: 0.25f);
-    private static readonly WPos RoofCenter = new(-30.5f, 62);
+    private static readonly WPos RoofCenter = new(-30.6f, 51);
+    private static readonly ArenaBoundsCustom RoofBounds = BuildRoofArena();
+
+    // two cars at (-30.6, 1) and (-30.6, 90), conencted via jump pad
+    private static ArenaBoundsCustom BuildRoofArena()
+    {
+        var forward = new WDir(0, 1);
+        var lower = new PolygonClipper.Operand(CurveApprox.Rect(new WDir(0, 1 - RoofCenter.Z), forward, 7, 24));
+        var upper = new PolygonClipper.Operand(CurveApprox.Rect(new WDir(0, 90 - RoofCenter.Z), forward, 7, 35));
+        return new(76, new PolygonClipper().Union(lower, upper));
+    }
 
     private bool _occupied;
 
