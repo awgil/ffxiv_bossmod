@@ -3,6 +3,7 @@ using Autofac.Features.AttributeFilters;
 using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Dev;
+using BossMod.Pathfinding;
 using BossMod.ReplayAnalysis;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
@@ -69,7 +70,7 @@ public class Plugin : HostedPlugin
             root.PreviousAssemblyVersion = root.AssemblyVersion;
             root.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
 
-            Service.Config = root;
+            //Service.Config = root;
 
             return root;
         }).SingleInstance();
@@ -104,6 +105,8 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterType<ActionQueue>();
 
+        containerBuilder.RegisterSingletonSelf<ObstacleMapDatabase>();
+        containerBuilder.RegisterType<ObstacleMapManager>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
 
@@ -146,12 +149,22 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<ConfigWindow>().As<WindowBase>();
         containerBuilder.RegisterSingletonSelf<ReplayManagementWindow>().As<WindowBase>().WithAttributeFiltering();
         containerBuilder.RegisterSingletonSelf<UIRotationWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<UIPresetDatabaseEditor>();
         containerBuilder.RegisterSingletonSelf<AIWindow>().As<WindowBase>();
 
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(t => t.IsSubclassOf(typeof(TestWindow)))
             .As<TestWindow>()
             .WithAttributeFiltering();
+
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.IsSubclassOf(typeof(ChangelogNotice)))
+            .As<ChangelogNotice>()
+            .SingleInstance()
+            .WithAttributeFiltering();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
 
         ConfigureExtra(containerBuilder);
 

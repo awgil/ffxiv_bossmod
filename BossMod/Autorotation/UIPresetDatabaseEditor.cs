@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions, AutorotationConfig cfg)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -18,8 +18,6 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
     private bool _pendingSelectPresetDefault;
     private Type? _selectedModuleType; // we want module selection to be persistent when changing presets
     private UIPresetEditor? _selectedPreset;
-
-    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
 
     private bool HaveUnsavedModifications => _selectedPreset?.Modified ?? false;
 
@@ -101,7 +99,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
         {
             if (combo)
             {
-                if (!_cfg.HideDefaultPreset)
+                if (!cfg.HideDefaultPreset)
                     DrawPresetListElements(true);
                 DrawPresetListElements(false);
             }
@@ -135,7 +133,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
 
     public void SelectPresetByName(string name)
     {
-        var defaultPresets = !_cfg.HideDefaultPreset;
+        var defaultPresets = !cfg.HideDefaultPreset;
         var presets = defaultPresets ? PresetDB.DefaultPresets : PresetDB.UserPresets;
         var ix = presets.FindIndex(p => p.Name == name);
         if (ix >= 0)

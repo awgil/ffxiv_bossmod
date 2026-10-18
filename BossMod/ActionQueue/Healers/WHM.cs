@@ -163,9 +163,8 @@ public enum SID : uint
     #endregion
 }
 
-public sealed class Definitions : Defs
+public sealed class Definitions(WHMConfig _config) : Defs
 {
-    private readonly WHMConfig _config = Service.Config.Get<WHMConfig>();
     public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?

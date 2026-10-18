@@ -98,10 +98,8 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : Defs
+public sealed class Definitions(DRGConfig _config) : Defs
 {
-    private readonly DRGConfig _config = Service.Config.Get<DRGConfig>();
-
     public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f); // animLock=3.700s?

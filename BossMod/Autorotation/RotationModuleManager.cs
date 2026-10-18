@@ -19,7 +19,7 @@ public sealed class RotationModuleManager : IDisposable
 
     public readonly List<Preset> Presets = [];
 
-    public readonly AutorotationConfig Config = Service.Config.Get<AutorotationConfig>();
+    public readonly AutorotationConfig Config;
     public readonly RotationDatabase Database;
     public readonly BossModuleManager Bossmods;
     public readonly ActionDefinitions ActionDefinitions;
@@ -27,7 +27,7 @@ public sealed class RotationModuleManager : IDisposable
     public int PlayerSlot; // TODO: reconsider, we rely on too many things in clientstate...
     public readonly AIHints Hints;
     public PlanExecution? Planner { get; private set; }
-    private readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
+    private readonly PartyRolesConfig _prc;
     private readonly EventSubscriptions _subscriptions;
     private List<(int index, ActiveModule module)>? _activeModules;
     public IEnumerable<ActiveModule> ActiveModulesFlat => _activeModules?.Select(m => m.module) ?? [];
@@ -35,7 +35,7 @@ public sealed class RotationModuleManager : IDisposable
 
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled
 
-    private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
+    private readonly AIConfig _aiConfig;
 
     public bool IsForceDisabled => Presets.Count == 1 && Presets[0] == ForceDisable;
 
@@ -81,8 +81,11 @@ public sealed class RotationModuleManager : IDisposable
 
     public static bool IsTransformStatus(ActorStatus st) => TransformationStatuses.Contains(st.ID);
 
-    public RotationModuleManager(RotationDatabase db, RotationModuleRegistry rmr, BossModuleManager bmm, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, int playerSlot = PartyState.PlayerSlot)
+    public RotationModuleManager(RotationDatabase db, RotationModuleRegistry rmr, BossModuleManager bmm, ActionDefinitions defs, IUnlockState unlockState, AIHints hints, AutorotationConfig config, PartyRolesConfig prc, AIConfig aic, int playerSlot = PartyState.PlayerSlot)
     {
+        Config = config;
+        _prc = prc;
+        _aiConfig = aic;
         Database = db;
         Bossmods = bmm;
         PlayerSlot = playerSlot;

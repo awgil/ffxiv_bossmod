@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 [ConfigDisplay(Parent = typeof(ActionTweaksConfig), Group = "Job-specific")]
-class DRGConfig : ConfigNode
+public class DRGConfig : ConfigNode
 {
     // TODO: generalize to common utility
     public enum ElusiveJumpBehavior : uint

@@ -21,7 +21,6 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,8 +40,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IAmex _amex;
     readonly IWorldStateGameSync _wsSync;
     readonly RotationModuleManager _rotation;
-    readonly IpcProvider _ipc;
-    readonly DtrProvider _dtr;
     readonly SlashCommandProvider _slashCmd;
     readonly MultiboxManager _mbox;
     TimeSpan _prevUpdateTime;
@@ -61,7 +58,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private readonly CancellationTokenSource _saveCts = new();
 
-    public unsafe TickService(
+    public TickService(
         MediatorService mediator,
         ILogger<DisposableMediatorSubscriberBase> mLogger,
         IDalamudPluginInterface dalamud,
@@ -73,20 +70,17 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IFileDialogManager dialog,
         IClientState clientState,
         IWindowSystemFactory windowSystemFactory,
+        IEnumerable<WindowBase> windows,
         PackLoader packs,
         ConfigRoot configRoot,
         RotationDatabase db,
         IAmex amex,
         WorldState wsGlobal,
         AIHints hintsGlobal,
-        BossModuleRegistry bossModuleRegistry,
         BossModuleManager bmm,
-        RotationModuleRegistry rotationModuleRegistry,
         RotationModuleManager rmm,
         ZoneModuleManager zmm,
-        AIHintsBuilder builder,
-        JsonSerializerOptions serOptions,
-        IEnumerable<WindowBase> windows
+        AIHintsBuilder builder
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -166,8 +160,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _zonemod = zmm;
         _hintsBuilder = builder;
         _rotation = rmm;
-        _ipc = new(bossModuleRegistry, _rotation, rotationModuleRegistry, _hintsBuilder.Obstacles, serOptions);
-        _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
@@ -189,7 +181,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         MigratePlans(dalamud.ConfigDirectory.FullName);
         CopyLibraries(dalamud.AssemblyLocation);
 
-        // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
         clientState.ZoneInit += OnZoneInit;
 
@@ -246,7 +237,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var tsStart = DateTime.Now;
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
 
-        _dtr.Update();
         Camera.Instance()?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
@@ -763,8 +753,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
-        _dtr.Dispose();
-        _ipc.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();

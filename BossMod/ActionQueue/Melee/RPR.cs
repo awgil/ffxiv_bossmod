@@ -108,10 +108,8 @@ public enum SID : uint
     TrueNorth = ClassShared.SID.TrueNorth, // applied by True North to self
 }
 
-public sealed class Definitions : Defs
+public sealed class Definitions(RPRConfig _config) : Defs
 {
-    private readonly RPRConfig _config = Service.Config.Get<RPRConfig>();
-
     public override void Define(ActionDefinitions d)
     {
         d.RegisterSpell(AID.TheEnd, castAnimLock: 3.70f); // animLock=3.700s?

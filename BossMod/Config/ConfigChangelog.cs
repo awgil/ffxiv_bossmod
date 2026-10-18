@@ -10,7 +10,7 @@ public sealed record class VersionedField(ConfigNode Node, FieldInfo FieldInfo, 
     public string FieldKey => $"{Node}.{FieldInfo.Name}";
 }
 
-abstract class ChangelogNotice
+public abstract class ChangelogNotice
 {
     public abstract Version Since { get; }
     public abstract void Draw();
@@ -107,11 +107,10 @@ class SmartRotationNotice : ChangelogNotice
     }
 }
 
-class ArenaScaleNotice : ChangelogNotice
+class ArenaScaleNotice(BossModuleConfig bossModuleConfig) : ChangelogNotice
 {
     public override Version Since => new(7, 5, 1, 10);
 
-    readonly BossModuleConfig _bmc = Service.Config.Get<BossModuleConfig>();
     bool _adjusted;
 
     public override void Draw()
@@ -128,12 +127,12 @@ class ArenaScaleNotice : ChangelogNotice
         }
         else
         {
-            ImGui.TextUnformatted($"Your saved radar scale was {_bmc.ArenaScale:f2}, which is now {_bmc.ArenaScale * scale:f2} when global scaling is applied.");
-            ImGui.TextUnformatted($"For the radar to be the same size as it was before this update, you should set it to {_bmc.ArenaScale / scale:f2}.");
+            ImGui.TextUnformatted($"Your saved radar scale was {bossModuleConfig.ArenaScale:f2}, which is now {bossModuleConfig.ArenaScale * scale:f2} when global scaling is applied.");
+            ImGui.TextUnformatted($"For the radar to be the same size as it was before this update, you should set it to {bossModuleConfig.ArenaScale / scale:f2}.");
             if (ImGui.Button("Set it for me"))
             {
-                _bmc.ArenaScale /= scale;
-                _bmc.Modified.Fire();
+                bossModuleConfig.ArenaScale /= scale;
+                bossModuleConfig.Modified.Fire();
                 _adjusted = true;
             }
         }
@@ -180,14 +179,18 @@ public class ConfigChangelogWindow : WindowBase
     }
     private readonly List<VersionedField> Fields = [];
     private readonly List<ChangelogNotice> Notices = [];
+    private readonly ConfigRoot configRoot;
+    private readonly List<ChangelogNotice> allNotices;
 
     private int StuffCount => Fields.Count + Notices.Count;
 
     string _versionText = "";
     string _versionErr = "";
 
-    public ConfigChangelogWindow(ConfigRoot configRoot) : base("VBM Changelog", new(400, 300))
+    public ConfigChangelogWindow(ConfigRoot configRoot, IEnumerable<ChangelogNotice> notices) : base("VBM Changelog", new(400, 300))
     {
+        this.configRoot = configRoot;
+        allNotices = [.. notices];
         PreviousVersion = configRoot.PreviousAssemblyVersion;
         IsOpen = StuffCount > 0;
     }
@@ -197,7 +200,7 @@ public class ConfigChangelogWindow : WindowBase
         Fields.Clear();
         Notices.Clear();
         Fields.AddRange(GetAllFields().Where(f => f.AddedVersion > PreviousVersion));
-        Notices.AddRange(GetNotices().Where(f => f.Since > PreviousVersion));
+        Notices.AddRange(allNotices.Where(f => f.Since > PreviousVersion));
     }
 
     public override void Draw()
@@ -284,9 +287,9 @@ public class ConfigChangelogWindow : WindowBase
             IsOpen = false;
     }
 
-    private static IEnumerable<VersionedField> GetAllFields()
+    private IEnumerable<VersionedField> GetAllFields()
     {
-        foreach (var n in Service.Config.Nodes)
+        foreach (var n in configRoot.Nodes)
         {
             var sinceNode = n.GetCustomAttribute<ConfigDisplayAttribute>()?.Since;
 
@@ -297,20 +300,10 @@ public class ConfigChangelogWindow : WindowBase
                     continue;
 
                 if (sinceNode != null)
-                    yield return new(Service.Config.Get<ConfigNode>(n), f, Version.Parse(sinceNode));
+                    yield return new(configRoot.Get<ConfigNode>(n), f, Version.Parse(sinceNode));
                 else if (f.GetCustomAttribute<PropertyDisplayAttribute>()?.Since is string sinceVersion)
-                    yield return new(Service.Config.Get<ConfigNode>(n), f, Version.Parse(sinceVersion));
+                    yield return new(configRoot.Get<ConfigNode>(n), f, Version.Parse(sinceVersion));
             }
-        }
-    }
-
-    private static IEnumerable<ChangelogNotice> GetNotices()
-    {
-        foreach (var t in Utils.GetDerivedTypes<ChangelogNotice>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract))
-        {
-            var inst = Activator.CreateInstance(t);
-            if (inst != null)
-                yield return (ChangelogNotice)inst;
         }
     }
 }

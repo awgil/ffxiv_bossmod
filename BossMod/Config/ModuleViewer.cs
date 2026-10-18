@@ -26,7 +26,7 @@ public sealed class ModuleViewer : IDisposable
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly JsonSerializerOptions serOptions;
     private readonly ExcelSheet<BNpcName> bNpcName;
-    private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
+    private readonly BossModuleConfig _bmConfig;
 
     private BitMask _filterExpansions;
     private BitMask _filterCategories;
@@ -42,10 +42,11 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
+    public ModuleViewer(PlanDatabase planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
     {
         _planDB = planDB;
         _ws = ws;
+        _bmConfig = bmc;
         this.bossModuleRegistry = bossModuleRegistry;
         this.serOptions = serOptions;
         this.bNpcName = bNpcName;

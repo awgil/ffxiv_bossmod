@@ -182,10 +182,8 @@ public enum SID : uint
     DiabrosisEquippedPvP = 4497,
 }
 
-public sealed class Definitions : Defs
+public sealed class Definitions(SharedActionsConfig config) : Defs
 {
-    private readonly SharedActionsConfig _config = Service.Config.Get<SharedActionsConfig>();
-
     public override void Define(ActionDefinitions d)
     {
         #region PvE
@@ -339,10 +337,10 @@ public sealed class Definitions : Defs
         };
 
         d.Spell(PhantomID.OccultFeatherfoot)!.AllowExecute = ActionPredicate.AllowDashFixed(15);
-        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
+        d.Spell(PhantomID.OccultFeatherfoot)!.TransformAngle = (ws, _, _) => config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
 
         d.Spell(PhantomID.StepForth)!.AllowExecute = ActionPredicate.AllowDashToPosition;
-        d.Spell(PhantomID.StepForth)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
+        d.Spell(PhantomID.StepForth)!.TransformAngle = (ws, _, _) => config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
 
         // Occult Jump has a ridiculous position lock of almost 2.5s
         d.Spell(PhantomID.OccultJump)!.AllowExecute = (_, player, _, hints) => !hints.ForbiddenZones.Any(z => z.shape.Check(player.Position));

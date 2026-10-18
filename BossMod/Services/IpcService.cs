@@ -1,16 +1,20 @@
 using BossMod.Autorotation;
 using BossMod.Pathfinding;
+using Dalamud.Plugin;
+using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace BossMod;
+namespace BossMod.Services;
 
-sealed class IpcProvider : IDisposable
+sealed class IpcService(IDalamudPluginInterface dalamud, BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
 {
-    private Action? _disposeActions;
+    private Action _stopActions = () => { };
 
-    public IpcProvider(BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles, JsonSerializerOptions serOptions)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         Register("HasModuleByDataId", (uint dataId) => bmr.FindByOID(dataId) != null);
         // 'save' argument is deprecated
@@ -226,48 +230,52 @@ sealed class IpcProvider : IDisposable
         Register("ObstacleMap.EvaluateTempMapQuality", obstacles.EvaluateTempMapQuality);
     }
 
-    public void Dispose() => _disposeActions?.Invoke();
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _stopActions.Invoke();
+        return Task.CompletedTask;
+    }
 
     private void Register<TRet>(string name, Func<TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<TRet>("BossMod." + name);
+        var p = dalamud.GetIpcProvider<TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions += p.UnregisterFunc;
+        _stopActions += p.UnregisterFunc;
     }
 
     private void Register<T1, TRet>(string name, Func<T1, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, TRet>("BossMod." + name);
+        var p = dalamud.GetIpcProvider<T1, TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions += p.UnregisterFunc;
+        _stopActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, TRet>(string name, Func<T1, T2, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, TRet>("BossMod." + name);
+        var p = dalamud.GetIpcProvider<T1, T2, TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions += p.UnregisterFunc;
+        _stopActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, T3, TRet>(string name, Func<T1, T2, T3, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, T3, TRet>("BossMod." + name);
+        var p = dalamud.GetIpcProvider<T1, T2, T3, TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions += p.UnregisterFunc;
+        _stopActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, T3, T4, TRet>(string name, Func<T1, T2, T3, T4, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, T3, T4, TRet>("BossMod." + name);
+        var p = dalamud.GetIpcProvider<T1, T2, T3, T4, TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions += p.UnregisterFunc;
+        _stopActions += p.UnregisterFunc;
     }
 
     private void Register<T1, T2, T3, T4, T5, TRet>(string name, Func<T1, T2, T3, T4, T5, TRet> func)
     {
-        var p = Service.PluginInterface.GetIpcProvider<T1, T2, T3, T4, T5, TRet>("BossMod." + name);
+        var p = dalamud.GetIpcProvider<T1, T2, T3, T4, T5, TRet>("BossMod." + name);
         p.RegisterFunc(func);
-        _disposeActions += p.UnregisterFunc;
+        _stopActions += p.UnregisterFunc;
     }
 
     //private void Register(string name, Action func)
