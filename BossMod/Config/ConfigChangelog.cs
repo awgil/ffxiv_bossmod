@@ -166,7 +166,7 @@ class DtrNotice : ChangelogNotice
     }
 }
 
-public class ConfigChangelogWindow : UIWindow
+public class ConfigChangelogWindow : WindowBase
 {
     public Version PreviousVersion
     {
@@ -186,9 +186,9 @@ public class ConfigChangelogWindow : UIWindow
     string _versionText = "";
     string _versionErr = "";
 
-    public ConfigChangelogWindow() : base("VBM Changelog", false, new(400, 300))
+    public ConfigChangelogWindow(ConfigRoot configRoot) : base("VBM Changelog", new(400, 300))
     {
-        PreviousVersion = Service.Config.PreviousAssemblyVersion;
+        PreviousVersion = configRoot.PreviousAssemblyVersion;
         IsOpen = StuffCount > 0;
     }
 

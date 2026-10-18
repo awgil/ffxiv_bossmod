@@ -93,3 +93,16 @@ public abstract class WindowBase : Window
         BringToFront();
     }
 }
+
+public abstract class DetachedWindow : Window
+{
+    public DetachedWindow(string name, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
+    {
+        Size = initialSize;
+        SizeCondition = ImGuiCond.FirstUseEver;
+        if (titleBarButtons != null)
+            TitleBarButtons = titleBarButtons;
+
+        IsOpen = true;
+    }
+}

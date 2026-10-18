@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using BossMod.AI;
 using BossMod.Autorotation;
-using BossMod.Dev;
 using BossMod.Interfaces;
 using BossMod.Network;
 using BossMod.ReplayAnalysis;
@@ -57,17 +56,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly IClientState clientState;
     private readonly IHintExecutor _hintExecutor;
 
-    private readonly AIWindow _wndAI;
-    private readonly MainDebugWindow? _wndDebug;
-    private readonly ConfigChangelogWindow _wndChangelog;
-
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
 
     private readonly CancellationTokenSource _saveCts = new();
 
     public unsafe TickService(
-        ILifetimeScope scope,
         MediatorService mediator,
         ILogger<DisposableMediatorSubscriberBase> mLogger,
         IDalamudPluginInterface dalamud,
@@ -77,7 +71,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         ICondition condition,
         IPluginLog logger,
         IFileDialogManager dialog,
-        IChatGui chat,
         IClientState clientState,
         IWindowSystemFactory windowSystemFactory,
         PackLoader packs,
@@ -178,21 +171,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
-        var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
-
-        _wndAI = new AIWindow(_rotation);
-        _wndChangelog = new();
-
-        if (Service.IsMock)
-        {
-            //Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
-            _ = new MainDevWindow(dalamud, _packs) { IsOpen = true };
-        }
-        else
-        {
-            _wndDebug = new MainDebugWindow(_ws, _rotation, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
-        }
-
         RegisterSlashCommands();
     }
 
@@ -229,14 +207,16 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
         }
 
-        MediatorService.Subscribe<OpenWindowMessage>(this, o =>
+        MediatorService.Subscribe(this, (OpenWindow o) =>
         {
             windowSystem.Windows.FirstOrDefault(w => w.GetType() == o.WindowType)?.IsOpen = true;
         });
-        MediatorService.Subscribe<ToggleWindowMessage>(this, t =>
+        MediatorService.Subscribe(this, (ToggleWindow t) =>
         {
             windowSystem.Windows.FirstOrDefault(w => w.GetType() == t.WindowType)?.IsOpen ^= true;
         });
+        MediatorService.Subscribe(this, (CreateWindow w) => windowSystem.AddWindow(w.Window));
+        MediatorService.Subscribe(this, (DestroyWindow w) => windowSystem.RemoveWindow(w.Window));
 
         if (Service.IsMock)
         {
@@ -291,6 +271,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         if (_vnavIsReady != null && _vnavIsOnMesh != null)
             CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
+
+        var detached = windowSystem.Windows.Where(w => w is DetachedWindow && !w.IsOpen).ToList();
+        foreach (var d in detached)
+        {
+            windowSystem.RemoveWindow(d);
+            if (d is IDisposable id)
+                id.Dispose();
+        }
 
         Camera.Instance()?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
@@ -397,7 +385,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OpenConfigUI(string tab = "")
     {
-        MediatorService.Publish(new OpenSettingsWindowMessage(tab));
+        MediatorService.Publish(new OpenSettingsWindow(tab));
     }
 
     void OpenUi() => OpenConfigUI();
@@ -405,7 +393,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     void RegisterSlashCommands()
     {
         _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
-        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => MediatorService.Publish(new ToggleWindowMessage(typeof(ReplayManagementWindow))));
+        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => MediatorService.Publish(new ToggleWindow(typeof(ReplayManagementWindow))));
         RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
         RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
         _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
@@ -415,8 +403,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 Service.ChatGui.Print(msg);
             return true;
         });
-        if (_wndDebug != null)
-            _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", _wndDebug.OpenAndBringToFront);
+        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => MediatorService.Publish(new OpenWindow(typeof(MainDebugWindow))));
         _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
         {
             GC.Collect();
@@ -491,7 +478,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 Service.ChatError($"Failed to find preset '{presetName}'");
         }
 
-        cmd.SetSimpleHandler("toggle autorotation ui", () => MediatorService.Publish(new ToggleWindowMessage(typeof(UIRotationWindow))));
+        cmd.SetSimpleHandler("toggle autorotation ui", () => MediatorService.Publish(new ToggleWindow(typeof(UIRotationWindow))));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
             Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
@@ -569,7 +556,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : Array.FindIndex(_ws.Party.Members, m => _ws.Actors.Find(m.InstanceId)?.Name == ms);
             if (_ws.Party[masterSlot] != null)
             {
-                _wndAI.SetSlot(masterSlot);
+                windowSystem.Windows.OfType<AIWindow>().FirstOrDefault()?.SetSlot(masterSlot);
                 if (aiConfig.ChatConfirmation)
                     Service.ChatMessage($"AI follow slot = {masterSlot}");
             }
@@ -761,9 +748,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             Service.Config.SaveToFile(dalamud.ConfigFile);
 
         GaugeVisualizer.Dispose();
-        _wndDebug?.Dispose();
-        _wndChangelog.Dispose();
-        _wndAI.Dispose();
         _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();

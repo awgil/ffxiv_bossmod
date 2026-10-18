@@ -5,7 +5,7 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
 
-internal sealed class AIWindow : UIWindow
+internal sealed class AIWindow : WindowBase, IDisposable
 {
     private const string _windowID = "Multibox settings###AI";
 
@@ -17,7 +17,7 @@ internal sealed class AIWindow : UIWindow
 
     readonly Preset? _pMultibox;
 
-    public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+    public AIWindow(RotationModuleManager mgr) : base(_windowID, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
         _pMultibox = mgr.Database.Presets.DefaultPresets.FirstOrDefault(p => p.Name == "VBM Multibox");
@@ -33,10 +33,9 @@ internal sealed class AIWindow : UIWindow
         RespectCloseHotkey = false;
     }
 
-    protected override void Dispose(bool disposing)
+    void IDisposable.Dispose()
     {
         _subscriptions.Dispose();
-        base.Dispose(disposing);
     }
 
     public override bool DrawConditions() => _manager.WorldState.Party.Player() != null;

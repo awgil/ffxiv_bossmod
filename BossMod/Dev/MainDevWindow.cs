@@ -1,11 +1,11 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
-using System.Reflection;
 
 namespace BossMod.Dev;
 
-class MainDevWindow : UIWindow
+class MainDevWindow : WindowBase, IDisposable
 {
     bool ConfigModified
     {
@@ -16,21 +16,23 @@ class MainDevWindow : UIWindow
     readonly EventSubscription _configChange;
     private readonly IDalamudPluginInterface dalamud;
     private readonly PackLoader packs;
-    readonly List<Type> _devWindows;
+    private readonly IEnumerable<TestWindow> testWindows;
+    private readonly MediatorService mediator;
 
-    public MainDevWindow(IDalamudPluginInterface dalamud, PackLoader packs) : base("Dev tools", false, new(600, 600))
+    public MainDevWindow(IDalamudPluginInterface dalamud, PackLoader packs, IEnumerable<TestWindow> testWindows, MediatorService mediator) : base("Dev tools", new(600, 600))
     {
         _configChange = Service.Config.Modified.Subscribe(() => ConfigModified = true);
         this.dalamud = dalamud;
         this.packs = packs;
-        _devWindows = [.. Utils.GetDerivedTypes<TestWindow>(Assembly.GetExecutingAssembly()).Where(t => !t.IsAbstract)];
+        this.testWindows = testWindows;
+        this.mediator = mediator;
+
+        IsOpen = true;
     }
 
-    protected override void Dispose(bool disposing)
+    void IDisposable.Dispose()
     {
-        if (disposing)
-            _configChange.Dispose();
-        base.Dispose(disposing);
+        _configChange.Dispose();
     }
 
     public override void Draw()
@@ -47,8 +49,8 @@ class MainDevWindow : UIWindow
 
         ImGui.Separator();
 
-        foreach (var t in _devWindows)
-            if (ImGui.Button($"Show {t}"))
-                Activator.CreateInstance(t);
+        foreach (var t in testWindows)
+            if (ImGui.Button($"Show {t.GetType()}"))
+                mediator.Publish(new CreateWindow(t));
     }
 }

@@ -10,7 +10,7 @@ using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
-public class ReplayDetailsWindow : UIWindow
+public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 {
     private ReplayPlayer _player;
     private readonly ILifetimeScope _parentScope;
@@ -34,7 +34,7 @@ public class ReplayDetailsWindow : UIWindow
     private bool _showConfig;
     private bool _showDebug = true;
     private readonly EventList _events;
-    private readonly ReplayAnalysis.AnalysisManager _analysis;
+    private readonly AnalysisManager _analysis;
     private BossModule.DebugOptions _moduleDebug = new();
     private UIWindow? _modulePopout;
 
@@ -49,7 +49,7 @@ public class ReplayDetailsWindow : UIWindow
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, DateTime? initialTime, ILifetimeScope scope) : base($"Replay: {data.Path}", false, default)
+    public ReplayDetailsWindow(Replay data, DateTime? initialTime, ILifetimeScope scope) : base($"Replay: {data.Path}", default)
     {
         Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
         _parentScope = scope;
@@ -63,13 +63,11 @@ public class ReplayDetailsWindow : UIWindow
         _analysis = scope.Resolve<AnalysisManager.Factory>().Invoke([data]);
     }
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
         _modulePopout?.Dispose();
         _analysis.Dispose();
-        _config.Dispose();
         _playerScope.Dispose();
-        base.Dispose(disposing);
     }
 
     public override void Draw()

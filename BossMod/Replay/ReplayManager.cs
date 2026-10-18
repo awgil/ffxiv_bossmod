@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
@@ -19,16 +20,18 @@ public sealed class ReplayManager : IDisposable
         public ReplayVisualization.ReplayDetailsWindow? Window;
         public bool AutoShowWindow;
         private readonly ILifetimeScope scope;
+        private readonly MediatorService mediator;
         public bool Selected;
         public bool Disposed;
         public bool Disposing;
         public DateTime? InitialTime;
 
-        public ReplayEntry(string path, bool autoShow, ILifetimeScope scope, DateTime? initialTime = null)
+        public ReplayEntry(string path, bool autoShow, ILifetimeScope scope, MediatorService mediator, DateTime? initialTime = null)
         {
             Path = path;
             AutoShowWindow = autoShow;
             this.scope = scope;
+            this.mediator = mediator;
             InitialTime = initialTime;
             Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), ref Progress, Cancel.Token));
         }
@@ -36,7 +39,8 @@ public sealed class ReplayManager : IDisposable
         public void Dispose()
         {
             Disposing = true;
-            Window?.Dispose();
+            if (Window != null)
+                mediator.Publish(new DestroyWindow(Window));
             Cancel.Cancel();
             Replay.Wait();
             Replay.Dispose();
@@ -46,13 +50,17 @@ public sealed class ReplayManager : IDisposable
 
         public void Show()
         {
-            Window ??= new(Replay.Result, InitialTime, scope);
+            if (Window == null)
+            {
+                Window = new(Replay.Result, InitialTime, scope);
+                mediator.Publish(new CreateWindow(Window));
+            }
             Window.IsOpen = true;
             Window.BringToFront();
         }
     }
 
-    public sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays, ReplayAnalysis.AnalysisManager.Factory AnalysisFactory) : IDisposable
+    public sealed record class AnalysisEntry(string Identifier, List<ReplayEntry> Replays, ReplayAnalysis.AnalysisManager.Factory AnalysisFactory, MediatorService Mediator) : IDisposable
     {
         public delegate AnalysisEntry Factory(string Identifier, List<ReplayEntry> Replays);
 
@@ -62,7 +70,8 @@ public sealed class ReplayManager : IDisposable
 
         public void Dispose()
         {
-            Window?.Dispose();
+            if (Window != null)
+                Mediator.Publish(new DestroyWindow(Window));
             Analysis?.Dispose();
             Disposed = true;
         }
@@ -70,7 +79,11 @@ public sealed class ReplayManager : IDisposable
         public void Show()
         {
             Analysis ??= AnalysisFactory.Invoke([.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)]);
-            Window ??= new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800));
+            if (Window == null)
+            {
+                Window = new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800));
+                Mediator.Publish(new CreateWindow(Window));
+            }
             Window.IsOpen = true;
         }
     }
@@ -83,13 +96,15 @@ public sealed class ReplayManager : IDisposable
     private string _path = "";
     private string _fileDialogStartPath;
     private readonly ILifetimeScope container;
+    private readonly MediatorService mediator;
     private bool _convertAnonymize;
 
-    public ReplayManager(string fileDialogStartPath, ILifetimeScope container)
+    public ReplayManager(string fileDialogStartPath, ILifetimeScope container, MediatorService mediator)
     {
         _fileDialogStartPath = fileDialogStartPath;
         _afac = container.Resolve<AnalysisEntry.Factory>();
         this.container = container;
+        this.mediator = mediator;
         _replayHistory = ReplayHistory.Load();
         RestoreHistory();
     }
@@ -288,7 +303,7 @@ public sealed class ReplayManager : IDisposable
             if (ImGui.Button("Open"))
             {
                 CleanPath();
-                _replayEntries.Add(new(_path, true, container.BeginLifetimeScope()));
+                _replayEntries.Add(new(_path, true, container, mediator));
                 SaveHistory();
             }
         }
@@ -338,7 +353,7 @@ public sealed class ReplayManager : IDisposable
                 var r = _replayEntries.Find(e => e.Path == fi.FullName);
                 if (r == null)
                 {
-                    r = new ReplayEntry(fi.FullName, false, container.BeginLifetimeScope());
+                    r = new ReplayEntry(fi.FullName, false, container, mediator);
                     _replayEntries.Add(r);
                 }
                 res.Add(r);
@@ -383,6 +398,6 @@ public sealed class ReplayManager : IDisposable
             return;
 
         foreach (var rp in _replayHistory.History)
-            _replayEntries.Add(new(rp.Path, rp.IsOpen, container.BeginLifetimeScope(), rp.PlaybackPosition));
+            _replayEntries.Add(new(rp.Path, rp.IsOpen, container, mediator, rp.PlaybackPosition));
     }
 }

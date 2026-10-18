@@ -1,9 +1,11 @@
 ﻿#if DEBUG
 using Autofac;
 using BossMod;
+using BossMod.Dev;
 using BossMod.Services;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
+using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -29,6 +31,8 @@ static class Program
             containerBuilder.Register(ctx => new WorldState(0, "unknown")).InstancePerLifetimeScope();
 
             containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName, "BossMod"))).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
+
+            containerBuilder.RegisterSingletonSelf<MainDevWindow>().As<WindowBase>();
         }
     }
 

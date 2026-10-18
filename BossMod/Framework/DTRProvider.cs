@@ -145,7 +145,7 @@ internal sealed class DtrProvider : IDisposable
         ImGui.Separator();
 
         if (ImGui.MenuItem("Open in preset editor"))
-            Service.Mediator.Publish(new OpenPresetEditorMessage(_popupFor));
+            Service.Mediator.Publish(new OpenPresetEditor(_popupFor));
 
         if (ImGui.MenuItem("Remove from info bar"))
         {

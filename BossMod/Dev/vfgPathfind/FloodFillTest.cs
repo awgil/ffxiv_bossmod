@@ -2,22 +2,18 @@
 
 namespace BossMod.Dev.vfgPathfind;
 
-class FloodFillTest : TestWindow
+class FloodFillTest() : TestWindow("vfg floodfill test", new(400, 400), ImGuiWindowFlags.None)
 {
-    private FloodFillVisualizer _visu;
+    private FloodFillVisualizer? _visu;
     private float _spaceRes = 0.5f;
     private float _timeRes = 0.25f;
     private float _aoeLeeway = 0.5f;
     private int _maxDeltaZ = 500;
     private float _timeToBuild;
 
-    public FloodFillTest() : base("vfg floodfill test", new(400, 400), ImGuiWindowFlags.None)
-    {
-        _visu = RebuildMap();
-    }
-
     public override void Draw()
     {
+        _visu ??= RebuildMap();
         _visu.Draw();
 
         var rebuild = false;

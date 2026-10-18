@@ -1,7 +1,9 @@
 using Autofac;
 using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
+using BossMod.Dev;
 using BossMod.ReplayAnalysis;
+using BossMod.ReplayVisualization;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
@@ -137,7 +139,23 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterType<AnalysisManager>();
         containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
 
-        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(WindowBase))).As<WindowBase>().SingleInstance().WithAttributeFiltering();
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.IsSubclassOf(typeof(WindowBase)))
+            .Except<MainDevWindow>()
+            .Except<ReplayDetailsWindow>()
+            .As<WindowBase>()
+            .SingleInstance()
+            .WithAttributeFiltering();
+
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.IsSubclassOf(typeof(DetachedWindow)))
+            .As<DetachedWindow>()
+            .WithAttributeFiltering();
+
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.IsSubclassOf(typeof(TestWindow)))
+            .As<TestWindow>()
+            .WithAttributeFiltering();
 
         ConfigureExtra(containerBuilder);
 
@@ -165,6 +183,8 @@ public class Plugin : HostedPlugin
         }).InstancePerLifetimeScope();
 
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
+
+        containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
     }
 
     public static string GetStorageDir() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm");
