@@ -358,7 +358,7 @@ class Malefic(BossModule module) : BossComponent(module)
     private static void DrawSide(MiniArena arena, Actor actor, float deg, uint color = 0)
     {
         arena.PathArcTo(actor.Position, 1.5f, (deg - 35).Degrees().Rad, (deg + 35).Degrees().Rad);
-        arena.PathStroke(false, color == 0 ? ArenaColor.Enemy : color);
+        arena.PathStroke(false, color == 0 ? arena.ArenaColor.Enemy : color);
     }
 }
 

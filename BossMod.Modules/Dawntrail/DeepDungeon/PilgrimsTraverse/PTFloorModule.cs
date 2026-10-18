@@ -189,22 +189,22 @@ public abstract class PTFloorModule(ZoneModuleInit init) : AutoClear(init, 100)
 }
 
 [ZoneModuleInfo(1032)]
-public class PT10(WorldState ws) : PTFloorModule(ws);
+public class PT10(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1033)]
-public class PT20(WorldState ws) : PTFloorModule(ws);
+public class PT20(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1034)]
-public class PT30(WorldState ws) : PTFloorModule(ws);
+public class PT30(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1035)]
-public class PT40(WorldState ws) : PTFloorModule(ws);
+public class PT40(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1036)]
-public class PT50(WorldState ws) : PTFloorModule(ws);
+public class PT50(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1037)]
-public class PT60(WorldState ws) : PTFloorModule(ws);
+public class PT60(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1038)]
-public class PT70(WorldState ws) : PTFloorModule(ws);
+public class PT70(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1039)]
-public class PT80(WorldState ws) : PTFloorModule(ws);
+public class PT80(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1040)]
-public class PT90(WorldState ws) : PTFloorModule(ws);
+public class PT90(ZoneModuleInit init) : PTFloorModule(init);
 [ZoneModuleInfo(1041)]
-public class PT100(WorldState ws) : PTFloorModule(ws);
+public class PT100(ZoneModuleInit init) : PTFloorModule(init);

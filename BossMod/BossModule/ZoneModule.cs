@@ -4,7 +4,10 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot);
+public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot)
+{
+    public delegate ZoneModuleInit Factory(WorldState World);
+}
 
 public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
 {

@@ -100,7 +100,7 @@ class FamiliarCall1(BossModule module) : Components.GenericAOEs(module)
     public static readonly AOEShapeCone Bomb = new(20, 90.Degrees());
     public static readonly AOEShapeCone Bird = new(45, 30.Degrees());
 
-    public uint ColorImminent = ArenaColor.Danger;
+    public uint ColorImminent = module.ArenaColor.Danger;
     public int NumShown = 2;
 
     protected record struct Caster(Actor Source, AOEShape Shape, DateTime Activation);

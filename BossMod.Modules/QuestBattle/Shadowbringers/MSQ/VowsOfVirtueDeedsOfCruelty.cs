@@ -25,7 +25,7 @@ class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(702)]
 public class VowsOfVirtueDeedsOfCruelty(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoEstinien _ai = new(ws);
+    private readonly AutoEstinien _ai = new(init.World);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

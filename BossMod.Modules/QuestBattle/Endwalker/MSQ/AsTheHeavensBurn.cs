@@ -113,8 +113,8 @@ class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
 [ZoneModuleInfo(804)]
 internal class AsTheHeavensBurn(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AlphinaudAI _alphi = new(ws);
-    private readonly AlisaieAI _alisaie = new(ws);
+    private readonly AlphinaudAI _alphi = new(init.World);
+    private readonly AlisaieAI _alisaie = new(init.World);
 
     public static WPos P2Center = new(-260.28f, 80.75f);
 

@@ -46,7 +46,7 @@ public enum NotoriousMonster : uint
 }
 
 [ZoneModuleInfo(598)]
-public class Pyros(WorldState ws) : EurekaZone<NotoriousMonster>(ws, "Pyros")
+public class Pyros(ZoneModuleInit init) : EurekaZone<NotoriousMonster>(init, "Pyros")
 {
     private readonly PyrosConfig _config = Service.Config.Get<PyrosConfig>();
 

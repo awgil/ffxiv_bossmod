@@ -44,7 +44,7 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(793)]
 internal class InFromTheCold(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly ImperialAI _ai = new(ws);
+    private readonly ImperialAI _ai = new(init.World);
     private readonly Dictionary<ulong, (WPos Position, DateTime Time, WDir Velocity)> _motion = [];
     private bool _sneak;
 

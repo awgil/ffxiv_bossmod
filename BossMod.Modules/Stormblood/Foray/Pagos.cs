@@ -44,7 +44,7 @@ public enum NotoriousMonster : uint
 }
 
 [ZoneModuleInfo(581)]
-public class Pagos(WorldState ws) : EurekaZone<NotoriousMonster>(ws, "Pagos")
+public class Pagos(ZoneModuleInit init) : EurekaZone<NotoriousMonster>(init, "Pagos")
 {
     private readonly PagosConfig _config = Service.Config.Get<PagosConfig>();
 

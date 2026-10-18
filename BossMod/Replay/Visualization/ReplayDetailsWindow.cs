@@ -30,7 +30,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
     private bool _azimuthOverride = true;
     private int _povSlot = PartyState.PlayerSlot;
     private readonly ConfigUI _config;
-    private readonly PartyRolesConfig _roles = Service.Config.Get<PartyRolesConfig>();
+    private readonly PartyRolesConfig _roles;
     private bool _showConfig;
     private bool _showDebug = true;
     private readonly EventList _events;
@@ -61,6 +61,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
         _config = _playerScope.Resolve<ConfigUI>();
         _events = _playerScope.Resolve<EventList.Factory>().Invoke(MoveTo, this);
         _analysis = scope.Resolve<AnalysisManager.Factory>().Invoke([data]);
+        _roles = _playerScope.Resolve<PartyRolesConfig>();
     }
 
     public void Dispose()

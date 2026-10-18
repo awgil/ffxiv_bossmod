@@ -110,7 +110,7 @@ class FamiliarCall(BossModule module) : Components.GenericAOEs(module)
 {
     public static readonly AOEShapeRect Rect = new(40, 4);
 
-    public uint ColorImminent = ArenaColor.Danger;
+    public uint ColorImminent = module.ArenaColor.Danger;
     public int NumShown = 2;
 
     protected record struct Caster(Actor Source, AOEShape Shape, DateTime Activation);

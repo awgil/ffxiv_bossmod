@@ -33,7 +33,7 @@ class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(812)]
 internal class AFrostyReception(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoThancred _ai = new(ws);
+    private readonly AutoThancred _ai = new(init.World);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

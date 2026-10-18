@@ -52,7 +52,7 @@ public enum NotoriousMonster : uint
 }
 
 [ZoneModuleInfo(283)]
-public class Anemos(WorldState ws) : EurekaZone<NotoriousMonster>(ws, "Anemos")
+public class Anemos(ZoneModuleInit init) : EurekaZone<NotoriousMonster>(init, "Anemos")
 {
     private readonly AnemosConfig _config = Service.Config.Get<AnemosConfig>();
 

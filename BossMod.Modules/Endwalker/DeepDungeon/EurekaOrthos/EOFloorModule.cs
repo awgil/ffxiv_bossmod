@@ -226,22 +226,22 @@ public abstract class EOFloorModule(ZoneModuleInit init) : AutoClear(init, 90)
 }
 
 [ZoneModuleInfo(897)]
-public class EO10(WorldState ws) : EOFloorModule(ws);
+public class EO10(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(898)]
-public class EO20(WorldState ws) : EOFloorModule(ws);
+public class EO20(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(899)]
-public class EO30(WorldState ws) : EOFloorModule(ws);
+public class EO30(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(900)]
-public class EO40(WorldState ws) : EOFloorModule(ws);
+public class EO40(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(901)]
-public class EO50(WorldState ws) : EOFloorModule(ws);
+public class EO50(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(902)]
-public class EO60(WorldState ws) : EOFloorModule(ws);
+public class EO60(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(903)]
-public class EO70(WorldState ws) : EOFloorModule(ws);
+public class EO70(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(904)]
-public class EO80(WorldState ws) : EOFloorModule(ws);
+public class EO80(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(905)]
-public class EO90(WorldState ws) : EOFloorModule(ws);
+public class EO90(ZoneModuleInit init) : EOFloorModule(init);
 [ZoneModuleInfo(906)]
-public class EO100(WorldState ws) : EOFloorModule(ws);
+public class EO100(ZoneModuleInit init) : EOFloorModule(init);

@@ -39,7 +39,7 @@ public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
 [ZoneModuleInfo(686)]
 public class NyelbertsLament(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoNyelbert _ai = new(ws);
+    private readonly AutoNyelbert _ai = new(init.World);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

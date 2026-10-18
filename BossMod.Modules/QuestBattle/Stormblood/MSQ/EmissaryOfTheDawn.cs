@@ -17,7 +17,7 @@ public class AutoAlphi(WorldState ws) : UnmanagedRotation(ws, 25)
 [ZoneModuleInfo(582)]
 public class EmissaryOfTheDawn(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoAlphi _ai = new(ws);
+    private readonly AutoAlphi _ai = new(init.World);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)
