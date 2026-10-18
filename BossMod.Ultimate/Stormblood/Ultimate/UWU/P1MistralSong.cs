@@ -1,8 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 // TODO: this assumes everyone shares the cleave, OT is front; other strategies have people avoid it
-// TODO: verify width
-class P1MistralSongBoss(BossModule module) : Components.GenericWildCharge(module, 5, AID.MistralSongBoss, 40)
+class P1MistralSongBoss(BossModule module) : Components.GenericWildCharge(module, 50, AID.MistralSongBoss, 40)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -34,10 +33,11 @@ class P1MistralSongBoss(BossModule module) : Components.GenericWildCharge(module
 // TODO: verify width
 class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, AID.MistralSongAdds)
 {
-    private readonly IReadOnlyList<Actor> _sisters = module.Enemies(OID.GarudaSister);
+    private readonly DateTime _activation = module.WorldState.FutureTime(2.5f);
+    private readonly List<Actor> _sisters = [.. module.Enemies(OID.GarudaSister).OrderByDescending(s => (s.Position - module.Arena.Center).ToAngle().Rad)];
     private readonly List<Actor> _targets = [];
 
-    private static readonly AOEShapeRect _shape = new(40, 5);
+    private static readonly AOEShapeRect _shape = new(40, 50);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -55,11 +55,11 @@ class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, AID.
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor)
         => _targets.Contains(player) ? PlayerPriority.Interesting : PlayerPriority.Irrelevant;
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        foreach (var aoe in ActiveAOEs())
-            _shape.Draw(Arena, aoe.origin, aoe.rotation, ArenaColor.SafeFromAOE);
-    }
+    //public override void DrawArenaBackground(int pcSlot, Actor pc)
+    //{
+    //    foreach (var aoe in ActiveAOEs())
+    //        _shape.Draw(Arena, aoe.origin, aoe.rotation, ArenaColor.SafeFromAOE);
+    //}
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -71,6 +71,7 @@ class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, AID.
         if (iconID == (uint)IconID.MistralSong)
         {
             _targets.Add(actor);
+            _targets.SortBy(t => t.InstanceID);
         }
     }
 

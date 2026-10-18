@@ -79,8 +79,7 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P1Downburst>(id + 0x20, 3.5f, comp => comp.NumCasts > 0, "Cleave + Cyclone 1") // note: cyclone happens ~0.1s after cleave
             .ActivateOnEnter<P1Downburst>()
             .ExecOnEnter<P1Downburst>(p => p.NextExpected = p.Module.WorldState.FutureTime(3.5f))
-            .DeactivateOnExit<P1Downburst>()
-            .ExecOnExit<P1Positioning>(p => p.DesiredPosition = p.Module.Center);
+            .DeactivateOnExit<P1Downburst>();
         // great whirlwind disappears somewhere here...
 
         P1GarudaFeatherRainRaidwide(id + 0x1000, 7.3f, AID.MistralShriek, "Cyclone 2 + Feathers"); // note: cyclone happens ~0.6s before feathers
@@ -89,8 +88,10 @@ class UWUStates : StateMachineBuilder
     private void P1Frictions(uint id, float delay)
     {
         ActorCastStart(id, _module.Garuda, AID.Friction, delay, true)
-            .ActivateOnEnter<P1Friction>();
-        ActorCastEnd(id + 1, _module.Garuda, 2, true, "Friction 1");
+            .ActivateOnEnter<P1Friction>()
+            .ExecOnEnter<P1SpinyShield>(p => p.Deadline = Module.WorldState.FutureTime(delay + 2));
+        ActorCastEnd(id + 1, _module.Garuda, 2, true, "Friction 1")
+            .ExecOnExit<P1SpinyShield>(p => p.Deadline = Module.WorldState.FutureTime(6.2f));
         ActorCast(id + 0x10, _module.Garuda, AID.Friction, 4.2f, 2, true, "Friction 2")
             .DeactivateOnExit<P1Friction>();
     }
@@ -102,7 +103,8 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P1FeatherRain>();
         ComponentCondition<P1FeatherRain>(id + 2, 1, comp => !comp.CastsActive, name)
             .DeactivateOnExit<P1FeatherRain>();
-        ActorTargetable(id + 3, _module.Garuda, true, 1.7f, "Reappear");
+        ActorTargetable(id + 3, _module.Garuda, true, 1.7f, "Reappear")
+            .ExecOnEnter<P1Positioning>(p => p.DesiredPosition = Module.Arena.Center);
 
         ActorCast(id + 0x10, _module.Garuda, raidwide, 0.1f, 3, true, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
