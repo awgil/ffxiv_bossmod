@@ -168,7 +168,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             if (configRoot.PreviousAssemblyVersion < migration.Since && configRoot.AssemblyVersion >= migration.Since)
                 migration.Execute();
 
-        ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
 
         MigratePlans(dalamud.ConfigDirectory.FullName);
@@ -256,9 +255,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_vnavIsReady != null && _vnavIsOnMesh != null)
             CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
 
-        var detached = windowSystem.Windows.OfType<WindowBase>().Where(w => w.IsDestroyed || w is DetachedWindow { IsOpen: false }).ToList();
-        foreach (var d in detached)
+        var destroyed = windowSystem.Windows.OfType<WindowBase>().Where(w => w.IsDestroyed).ToList();
+        foreach (var d in destroyed)
         {
+            Service.PluginLog.Verbose($"Removing from WindowSystem: {d.WindowName}");
             windowSystem.RemoveWindow(d);
             if (d is IDisposable id)
                 id.Dispose();

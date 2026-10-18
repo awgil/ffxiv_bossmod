@@ -102,4 +102,17 @@ public abstract class DetachedWindow : WindowBase
     {
         IsOpen = true;
     }
+
+    public sealed override void OnClose()
+    {
+        IsDestroyed = true;
+    }
+}
+
+public class SimpleDetachedWindow(string name, Action draw, Vector2 size, ImGuiWindowFlags flags, List<TitleBarButton>? titleBarButtons = null) : DetachedWindow(name, size, flags, titleBarButtons)
+{
+    public override void Draw()
+    {
+        draw.Invoke();
+    }
 }

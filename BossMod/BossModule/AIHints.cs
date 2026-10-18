@@ -47,12 +47,12 @@ public sealed class AIHints(ActionQueue queue)
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
         public bool Spikes; // if set, autoattacks will be prevented
 
-        public Enemy(Actor actor, int priority, bool shouldBeTanked, string prioReason)
+        public Enemy(Actor actor, int priority, bool shouldBeTanked, bool tracePrio, string prioReason)
         {
             Actor = actor;
             _priority = priority;
             PrioHistory = [];
-            if (Service.Config.Get<AIHintsConfig>().PriorityTracing)
+            if (tracePrio)
                 PrioHistory.Add((priority, $"{prioReason} at {new StackFrame(1, true)}"));
             ShouldBeTanked = shouldBeTanked;
         }

@@ -1,4 +1,5 @@
 using Autofac;
+using Autofac.Diagnostics;
 using Autofac.Features.AttributeFilters;
 using BossMod.AI;
 using BossMod.Autorotation;
@@ -60,9 +61,11 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
         containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<ModuleInit>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ModuleInit>().InstancePerDependency();
 
+        containerBuilder.RegisterSingletonSelf<ZoneModuleRegistry>();
         containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ZoneModuleInit>().InstancePerDependency();
 
         containerBuilder.Register((ctx) =>
         {
@@ -178,6 +181,18 @@ public class Plugin : HostedPlugin
             scope.Resolve<ConfigRoot>().Reload([], [self]);
             scope.Resolve<BossModuleRegistry>().Reload([], [self]);
             scope.Resolve<RotationModuleRegistry>().Reload([], [self]);
+            scope.Resolve<ZoneModuleRegistry>().Reload([], [self]);
+        });
+
+        var tracer = new DefaultDiagnosticTracer();
+        tracer.OperationCompleted += (sender, args) =>
+        {
+            Console.WriteLine(args.TraceContent);
+        };
+
+        containerBuilder.RegisterBuildCallback(c =>
+        {
+            //(c as IContainer)!.SubscribeToDiagnostics(tracer);
         });
     }
 

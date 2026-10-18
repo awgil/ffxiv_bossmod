@@ -133,7 +133,7 @@ public sealed class AIHintsBuilder : IDisposable
                 : actor.InCombat && _ws.Party.FindSlot(actor.TargetID) >= 0 ? (0, "attacking party") // we generally want to assist our party members (note that it includes allied npcs in duties)
                 : (priorityPassive, "passive"); // this enemy is either not pulled yet or fighting someone we don't care about - try not to aggro it by default
 
-            var enemy = hints.Enemies[index] = new(actor, priority, playerIsDefaultTank, reason);
+            var enemy = hints.Enemies[index] = new(actor, priority, playerIsDefaultTank, _hintConfig.PriorityTracing, reason);
 
             // maybe unnecessary?
             if (actor.FateID > 0 && actor.FateID == allowedFateID && !Utils.IsBossFate(actor.FateID))

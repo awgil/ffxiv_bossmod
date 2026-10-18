@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
 using BossMod.ReplayAnalysis;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -14,6 +15,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 {
     private ReplayPlayer _player;
     private readonly ILifetimeScope _parentScope;
+    private readonly MediatorService mediator;
     private ILifetimeScope _playerScope;
     private RotationDatabase RotationDB => _player.RotationDB;
     private AIHints Hints => _player.Hints;
@@ -36,7 +38,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
     private readonly EventList _events;
     private readonly AnalysisManager _analysis;
     private BossModule.DebugOptions _moduleDebug = new();
-    private UIWindow? _modulePopout;
+    private SimpleDetachedWindow? _modulePopout;
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -49,10 +51,11 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
         set => MoveTo(value);
     }
 
-    public ReplayDetailsWindow(Replay data, DateTime? initialTime, ILifetimeScope scope) : base($"Replay: {data.Path}", default)
+    public ReplayDetailsWindow(Replay data, DateTime? initialTime, ILifetimeScope scope, MediatorService mediator) : base($"Replay: {data.Path}", default)
     {
         Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
         _parentScope = scope;
+        this.mediator = mediator;
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
@@ -66,7 +69,8 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
     public void Dispose()
     {
-        _modulePopout?.Dispose();
+        if (_modulePopout != null)
+            mediator.Publish(new DestroyWindow(_modulePopout));
         _analysis.Dispose();
         _playerScope.Dispose();
     }
@@ -92,14 +96,14 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
             {
                 if (_modulePopout == null)
                 {
-                    _modulePopout = new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(Rmm), true, new(600, 400), desc.Flags);
+                    _modulePopout = mediator.CreateWindow(new SimpleDetachedWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(Rmm), new(600, 400), desc.Flags));
                     _modulePopout.OpenAndBringToFront();
                 }
             }
             else
             {
-                if (_modulePopout is { IsOpen: true })
-                    _modulePopout.Dispose();
+                if (_modulePopout != null)
+                    mediator.Publish(new DestroyWindow(_modulePopout));
                 _modulePopout = null;
             }
         }
@@ -573,8 +577,8 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
         if (t < _player.WorldState.CurrentTime)
         {
             _playerScope.Dispose();
-            if (_modulePopout is { IsOpen: true })
-                _modulePopout.Dispose();
+            if (_modulePopout != null)
+                mediator.Publish(new DestroyWindow(_modulePopout));
             _modulePopout = null;
             (_playerScope, _player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
         }

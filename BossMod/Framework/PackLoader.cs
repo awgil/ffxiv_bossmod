@@ -52,12 +52,14 @@ public sealed class PackLoader : IHostedService
     private readonly ConfigRoot configRoot;
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly RotationModuleRegistry rotationModuleRegistry;
+    private readonly ZoneModuleRegistry zoneModuleRegistry;
 
-    public PackLoader(IDalamudPluginInterface dalamud, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry)
+    public PackLoader(IDalamudPluginInterface dalamud, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, ZoneModuleRegistry zoneModuleRegistry)
     {
         this.configRoot = configRoot;
         this.bossModuleRegistry = bossModuleRegistry;
         this.rotationModuleRegistry = rotationModuleRegistry;
+        this.zoneModuleRegistry = zoneModuleRegistry;
         ModuleDir = Path.Join(Plugin.GetStorageDir(), dalamud.IsDev ? "modules-dev" : "modules");
 
         _modified = new(
@@ -123,7 +125,7 @@ public sealed class PackLoader : IHostedService
         configRoot.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
         bossModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
         rotationModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        ZoneModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
+        zoneModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
         AnalyzerRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
 
         ctxOld?.Unload();
@@ -142,7 +144,7 @@ public sealed class PackLoader : IHostedService
             configRoot.Reload(ctx.Assemblies, []);
             bossModuleRegistry.Reload(ctx.Assemblies, []);
             rotationModuleRegistry.Reload(ctx.Assemblies, []);
-            ZoneModuleRegistry.Reload(ctx.Assemblies, []);
+            zoneModuleRegistry.Reload(ctx.Assemblies, []);
             AnalyzerRegistry.Reload(ctx.Assemblies, []);
 
             ctx.Unload();

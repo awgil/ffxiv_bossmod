@@ -49,7 +49,7 @@ public sealed class ReplayManager : IDisposable
 
         public void Show()
         {
-            Window ??= mediator.CreateWindow<ReplayVisualization.ReplayDetailsWindow>(new(Replay.Result, InitialTime, scope));
+            Window ??= mediator.CreateWindow<ReplayVisualization.ReplayDetailsWindow>(new(Replay.Result, InitialTime, scope, mediator));
             Window.IsOpen = true;
             Window.BringToFront();
         }

@@ -4,15 +4,17 @@ public sealed class ZoneModuleManager : IDisposable
 {
     public readonly WorldState WorldState;
     public readonly ZoneModuleConfig Config;
+    private readonly ZoneModuleRegistry registry;
     private readonly EventSubscriptions _subscriptions;
 
     public ZoneModule? ActiveModule;
     public Event<ZoneModule> ModuleLoaded = new();
     public Event<ZoneModule> ModuleUnloaded = new();
 
-    public ZoneModuleManager(WorldState ws, ZoneModuleConfig config)
+    public ZoneModuleManager(WorldState ws, ZoneModuleConfig config, ZoneModuleRegistry registry)
     {
         Config = config;
+        this.registry = registry;
         WorldState = ws;
         _subscriptions = new
         (
@@ -37,7 +39,7 @@ public sealed class ZoneModuleManager : IDisposable
             ActiveModule = null;
         }
 
-        var m = ZoneModuleRegistry.CreateModule(WorldState, cfcid);
+        var m = registry.CreateModule(WorldState, cfcid);
         if (m != null)
         {
             Service.Log($"[ZMM] Loading module '{m.GetType()}' for zone {cfcid}");
