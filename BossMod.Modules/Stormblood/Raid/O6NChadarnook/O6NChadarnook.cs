@@ -42,7 +42,6 @@ public enum AID : uint
     HauntVisual = 11068, // Haunt->self, no cast, single-target
     Materialize = 10285, // Boss->self, 5.0s cast, single-target
     HauntWeaponskill = 10939, // Haunt->self, no cast, single-target
-
 }
 
 public enum IconID : uint
@@ -321,8 +320,8 @@ class Paintings(BossModule module) : BossComponent(module)
 class BoulderShadow(BossModule module) : Components.GenericLineOfSightAOE(module, AID.DemonicWave, 60, true)
 {
     private static readonly WPos Painting = new(-16, -8.5f);
-    private static readonly WPos Boulder = new(-11.4f, -3.7f);
-    private const float Radius = 2.5f;
+    private static readonly WPos Boulder = new(-11.37f, -3.68f);
+    private const float Radius = 1.0f;
     private bool _water;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
