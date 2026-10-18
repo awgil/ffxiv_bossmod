@@ -3,7 +3,7 @@
 namespace BossMod.QuestBattle.Stormblood.SideQuests;
 
 [ZoneModuleInfo(471)]
-internal class ReturnToTheRift(WorldState ws) : QuestBattle(ws)
+internal class ReturnToTheRift(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

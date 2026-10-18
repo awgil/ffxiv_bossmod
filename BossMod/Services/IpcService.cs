@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-sealed class IpcService(IDalamudPluginInterface dalamud, BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
+sealed class IpcService(IDalamudPluginInterface dalamud, BossModuleRegistry bmr, RotationModuleManager autorotation, RotationModuleRegistry rmr, ObstacleMapManager obstacles, JsonSerializerOptions serOptions, ConfigRoot config) : IHostedService
 {
     private Action _stopActions = () => { };
 
@@ -18,15 +18,15 @@ sealed class IpcService(IDalamudPluginInterface dalamud, BossModuleRegistry bmr,
     {
         Register("HasModuleByDataId", (uint dataId) => bmr.FindByOID(dataId) != null);
         // 'save' argument is deprecated
-        Register("Configuration", (IReadOnlyList<string> args, bool save) => Service.Config.ConsoleCommand(string.Join(' ', args)));
+        Register("Configuration", (IReadOnlyList<string> args, bool save) => config.ConsoleCommand(string.Join(' ', args)));
 
         var lastModified = DateTime.Now;
-        Service.Config.Modified.Subscribe(() => lastModified = DateTime.Now);
+        config.Modified.Subscribe(() => lastModified = DateTime.Now);
         Register("Configuration.LastModified", () => lastModified);
 
         Register("Configuration.DisableModule", (string name, bool disable) =>
         {
-            var disabledModules = Service.Config.Get<BossModuleConfig>().DisabledModules;
+            var disabledModules = config.Get<BossModuleConfig>().DisabledModules;
 
             if (!disable)
                 return disabledModules.Remove(name);

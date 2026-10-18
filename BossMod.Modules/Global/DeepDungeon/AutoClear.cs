@@ -92,10 +92,11 @@ public abstract partial class AutoClear : ZoneModule
 
     private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
 
-    protected AutoClear(WorldState ws, int LevelCap) : base(ws)
+    protected AutoClear(ZoneModuleInit init, int LevelCap) : base(init)
     {
         this.LevelCap = LevelCap;
-        _obstacles = new(ws);
+        var ws = init.World;
+        _obstacles = new(ws, Service.Config.Get<DeveloperConfig>());
 
         _subscriptions = new(
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),

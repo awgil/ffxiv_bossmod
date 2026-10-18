@@ -61,7 +61,7 @@ public enum SID : uint
     IceSpikes = 198,
 }
 
-public abstract class EOFloorModule(WorldState ws) : AutoClear(ws, 90)
+public abstract class EOFloorModule(ZoneModuleInit init) : AutoClear(init, 90)
 {
     protected override void OnCastStarted(Actor actor)
     {

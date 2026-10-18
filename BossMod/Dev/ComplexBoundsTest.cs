@@ -16,8 +16,13 @@ class ComplexBoundsTest : TestWindow
     private float _aoeRotDeg;
     private bool _evenOdd;
     private bool _fillBG;
+    private readonly ColorConfig colors;
 
-    public ComplexBoundsTest() : base("Complex bounds test", new(800, 800), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse) => _arena = RebuildArena();
+    public ComplexBoundsTest(ColorConfig colors) : base("Complex bounds test", new(800, 800), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+    {
+        _arena = RebuildArena();
+        this.colors = colors;
+    }
 
     public override void Draw()
     {
@@ -27,10 +32,10 @@ class ComplexBoundsTest : TestWindow
         _arena.Begin(_azimuth.Degrees());
         if (_fillBG)
             _arena.Zone(_arena.Bounds.ShapeTriangulation, 0xff402010);
-        _arena.Border(ArenaColor.Border);
+        _arena.Border(_arena.ArenaColor.Border);
 
         var t1 = DateTime.Now;
-        _arena.ZoneCircle(_arena.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, ArenaColor.AOE);
+        _arena.ZoneCircle(_arena.Center + _aoeOffset * _aoeRotDeg.Degrees().ToDirection(), _aoeRadius, _arena.ArenaColor.AOE);
         var dt = DateTime.Now - t1;
 
         _arena.End();
@@ -63,7 +68,7 @@ class ComplexBoundsTest : TestWindow
         AddPlatform(shape, _platformCenterOffset * 120.Degrees().ToDirection());
         AddPlatform(shape, _platformCenterOffset * 240.Degrees().ToDirection());
         var bounds = new PolygonClipper().Simplify(shape, _evenOdd ? Clipper2Lib.FillRule.EvenOdd : Clipper2Lib.FillRule.NonZero);
-        return new(new(), new(100, 100), new ArenaBoundsCustom(40, bounds));
+        return new(new(), new(100, 100), new ArenaBoundsCustom(40, bounds), colors);
     }
 
     private void AddPlatform(PolygonClipper.Operand poly, WDir centerOffset)

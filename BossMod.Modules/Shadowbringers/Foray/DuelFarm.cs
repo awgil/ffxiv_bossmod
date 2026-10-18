@@ -45,7 +45,7 @@ public abstract class DuelFarm<Duel> : ZoneModule where Duel : struct, Enum
 
     protected abstract Duel FarmTarget { get; set; }
 
-    protected DuelFarm(WorldState ws, string zone) : base(ws)
+    protected DuelFarm(WorldState ws, string zone) : base(TODO)
     {
         _subscriptions = new(ws.Client.FateInfo.Subscribe(OnFateSpawn));
         Zone = zone;

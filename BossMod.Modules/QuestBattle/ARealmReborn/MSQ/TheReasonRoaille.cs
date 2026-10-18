@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
 [ZoneModuleInfo(387)]
-internal class TheReasonRoaille(WorldState ws) : QuestBattle(ws)
+internal class TheReasonRoaille(ZoneModuleInit init) : QuestBattle(init)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

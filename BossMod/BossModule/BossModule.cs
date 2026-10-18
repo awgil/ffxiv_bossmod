@@ -1,10 +1,20 @@
 ﻿using BossMod.Pathfinding;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public record struct ModuleInit(WorldState World, Actor Primary, BossModuleRegistry.Info? Info);
+public record ModuleInit(
+    WorldState World,
+    Actor Primary,
+    BossModuleRegistry.Info? Info,
+    ConfigRoot ConfigRoot,
+    ITextureProvider Texture
+)
+{
+    public delegate ModuleInit Factory(WorldState World, Actor Primary, BossModuleRegistry.Info? Info);
+}
 
 // base for boss modules - provides all the common features, so that look is standardized
 // by default, module activates (transitions to phase 0) whenever "primary" actor becomes both targetable and in combat (this is how we detect 'pull') - though this can be overridden if needed
@@ -12,8 +22,9 @@ public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
     public Actor PrimaryActor { get; private set; }
-    public readonly BossModuleConfig WindowConfig = Service.Config.Get<BossModuleConfig>();
-    public readonly ColorConfig ColorConfig = Service.Config.Get<ColorConfig>();
+    public readonly BossModuleConfig WindowConfig;
+    public readonly ColorConfig ColorConfig;
+    public ArenaColor ArenaColor => Arena.ArenaColor;
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
     public readonly StateMachine StateMachine;
@@ -102,7 +113,9 @@ public abstract class BossModule : IDisposable
         WorldState = init.World;
         PrimaryActor = init.Primary;
         Info = init.Info;
-        Arena = new(WindowConfig, center, bounds);
+        WindowConfig = init.ConfigRoot.Get<BossModuleConfig>();
+        ColorConfig = init.ConfigRoot.Get<ColorConfig>();
+        Arena = new(WindowConfig, center, bounds, ColorConfig);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new

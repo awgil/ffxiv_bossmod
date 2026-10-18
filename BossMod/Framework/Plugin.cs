@@ -49,7 +49,6 @@ public class Plugin : HostedPlugin
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
-        containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PackLoader>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
@@ -61,6 +60,7 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
         containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ModuleInit>().InstancePerLifetimeScope();
 
         containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
 
@@ -83,6 +83,8 @@ public class Plugin : HostedPlugin
                 return method.Invoke(root, [])!;
             }).As(node).SingleInstance();
         }
+
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(ConfigMigration))).As<ConfigMigration>().SingleInstance();
 
         containerBuilder.Register(ctx =>
         {
@@ -163,8 +165,10 @@ public class Plugin : HostedPlugin
             .SingleInstance()
             .WithAttributeFiltering();
 
-        containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
 
         ConfigureExtra(containerBuilder);
 
@@ -194,6 +198,8 @@ public class Plugin : HostedPlugin
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
         containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
     }
 
     public static string GetStorageDir() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm");

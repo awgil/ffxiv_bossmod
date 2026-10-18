@@ -19,9 +19,9 @@ class MainDevWindow : WindowBase, IDisposable
     private readonly IEnumerable<TestWindow> testWindows;
     private readonly MediatorService mediator;
 
-    public MainDevWindow(IDalamudPluginInterface dalamud, PackLoader packs, IEnumerable<TestWindow> testWindows, MediatorService mediator) : base("Dev tools", new(600, 600))
+    public MainDevWindow(IDalamudPluginInterface dalamud, PackLoader packs, IEnumerable<TestWindow> testWindows, MediatorService mediator, ConfigRoot config) : base("Dev tools", new(600, 600))
     {
-        _configChange = Service.Config.Modified.Subscribe(() => ConfigModified = true);
+        _configChange = config.Modified.Subscribe(() => ConfigModified = true);
         this.dalamud = dalamud;
         this.packs = packs;
         this.testWindows = testWindows;

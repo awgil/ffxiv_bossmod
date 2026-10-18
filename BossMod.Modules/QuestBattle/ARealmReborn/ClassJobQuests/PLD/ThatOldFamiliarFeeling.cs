@@ -1,7 +1,7 @@
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.PLD;
 
 [ZoneModuleInfo(315, 254)]
-internal class ThatOldFamiliarFeeling(WorldState ws) : QuestBattle(ws)
+internal class ThatOldFamiliarFeeling(ZoneModuleInit init) : QuestBattle(init)
 {
     private const uint StoutAttacker = 0x277;
     private const uint NamelessAttacker1 = 0x276; // L20 Nameless Attacker, Archer

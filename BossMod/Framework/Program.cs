@@ -27,12 +27,15 @@ static class Program
 
         public override void ConfigureExtra(ContainerBuilder containerBuilder)
         {
-            containerBuilder.RegisterType<MockAmex>().As<IAmex>().SingleInstance();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateGameSync>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockAmex>();
+
             containerBuilder.Register(ctx => new WorldState(0, "unknown")).InstancePerLifetimeScope();
 
             containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName, "BossMod"))).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
             containerBuilder.RegisterSingletonSelf<MainDevWindow>().As<WindowBase>();
+
         }
     }
 

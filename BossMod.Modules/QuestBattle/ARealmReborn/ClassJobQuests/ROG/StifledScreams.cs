@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.ROG;
 
 [ZoneModuleInfo(382)]
-internal class StifledScreams(WorldState ws) : QuestBattle(ws)
+internal class StifledScreams(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

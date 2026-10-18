@@ -222,7 +222,7 @@ public sealed class ReplayParserLog : IDisposable
         public override ulong ReadActorID() => _input.ReadUInt64();
     }
 
-    public static Replay Parse(string path, BossModuleConfig config, BossModuleRegistry registry, JsonSerializerOptions serOptions, ref float progress, CancellationToken cancel)
+    public static Replay Parse(string path, BossModuleConfig config, BossModuleRegistry registry, JsonSerializerOptions serOptions, ModuleInit.Factory mfac, ref float progress, CancellationToken cancel)
     {
         try
         {
@@ -250,7 +250,7 @@ public sealed class ReplayParserLog : IDisposable
 
             var streamInvLength = 1.0f / rawStream.Length;
             var curOp = 0;
-            using ReplayBuilder builder = new(path, config, registry);
+            using ReplayBuilder builder = new(path, config, registry, mfac);
             using ReplayParserLog parser = new(input, builder, serOptions);
             while (parser.ParseLine())
             {

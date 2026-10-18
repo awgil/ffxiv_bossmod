@@ -111,7 +111,7 @@ class AlisaieAI(WorldState ws) : UnmanagedRotation(ws, 25)
 }
 
 [ZoneModuleInfo(804)]
-internal class AsTheHeavensBurn(WorldState ws) : QuestBattle(ws)
+internal class AsTheHeavensBurn(ZoneModuleInit init) : QuestBattle(init)
 {
     private readonly AlphinaudAI _alphi = new(ws);
     private readonly AlisaieAI _alisaie = new(ws);

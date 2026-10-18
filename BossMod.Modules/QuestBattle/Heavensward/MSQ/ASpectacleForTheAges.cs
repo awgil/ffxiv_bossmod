@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.MSQ;
 
 [ZoneModuleInfo(167)]
-public sealed class ASpectacleForTheAges(WorldState ws) : QuestBattle(ws)
+public sealed class ASpectacleForTheAges(ZoneModuleInit init) : QuestBattle(init)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

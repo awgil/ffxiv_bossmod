@@ -5,21 +5,22 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
 
-internal sealed class AIWindow : WindowBase, IDisposable
+public sealed class AIWindow : WindowBase, IDisposable
 {
     private const string _windowID = "Multibox settings###AI";
 
     readonly RotationModuleManager _manager;
     readonly EventSubscriptions _subscriptions;
-    readonly AIConfig _config = Service.Config.Get<AIConfig>();
+    readonly AIConfig _config;
 
     int _masterSlot = -1;
 
     readonly Preset? _pMultibox;
 
-    public AIWindow(RotationModuleManager mgr) : base(_windowID, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+    public AIWindow(RotationModuleManager mgr, AIConfig config) : base(_windowID, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _manager = mgr;
+        _config = config;
         _pMultibox = mgr.Database.Presets.DefaultPresets.FirstOrDefault(p => p.Name == "VBM Multibox");
         _subscriptions = new
         (
@@ -114,6 +115,9 @@ internal sealed class AIWindow : WindowBase, IDisposable
 
     void ToggleMove()
     {
+        if (_pMultibox == null)
+            return;
+
         var normalMove = _pMultibox.Modules[^1];
         normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
         if (_config.ForbidMovement)
@@ -122,6 +126,9 @@ internal sealed class AIWindow : WindowBase, IDisposable
 
     void ToggleTarget()
     {
+        if (_pMultibox == null)
+            return;
+
         var autoT = _pMultibox.Modules[0];
         autoT.TransientSettings.RemoveAll(s => s.Track == 0);
         if (_config.ForbidActions)
@@ -130,6 +137,9 @@ internal sealed class AIWindow : WindowBase, IDisposable
 
     public void SetSlot(int slot)
     {
+        if (_pMultibox == null)
+            return;
+
         _masterSlot = slot;
         var mbox = _pMultibox.Modules[1];
         mbox.TransientSettings.RemoveAll(s => s.Track == 0);

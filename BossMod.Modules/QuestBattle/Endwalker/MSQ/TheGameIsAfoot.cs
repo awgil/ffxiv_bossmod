@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
 [ZoneModuleInfo(960)]
-internal class TheGameIsAfoot(WorldState ws) : QuestBattle(ws)
+internal class TheGameIsAfoot(ZoneModuleInit init) : QuestBattle(init)
 {
     private QuestObjective AutoSkip() => new QuestObjective(World)
         .With(obj => obj.Update += () => obj.CompleteIf(World.Party.Player()?.Position.Z < -400));

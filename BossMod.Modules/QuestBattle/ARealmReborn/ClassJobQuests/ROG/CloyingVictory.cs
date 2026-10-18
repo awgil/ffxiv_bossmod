@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.ROG;
 
 [ZoneModuleInfo(386)]
-internal class CloyingVictory(WorldState ws) : QuestBattle(ws)
+internal class CloyingVictory(ZoneModuleInit init) : QuestBattle(init)
 {
     private static QuestObjective GoKill(WorldState ws, Vector3 position, uint OID)
         => new QuestObjective(ws)

@@ -2,7 +2,7 @@
 
 namespace BossMod.Dev;
 
-class IntersectionTest : TestWindow
+class IntersectionTest(ColorConfig colors) : TestWindow("Intersection test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
 {
     private float _circleOffset = 5.5f;
     private float _circleDir;
@@ -12,11 +12,7 @@ class IntersectionTest : TestWindow
     private float _shapeDirDeg = 90;
     private float _coneInner;
     private bool _shapeIsRect;
-    private readonly MiniArena _arena = new(new(), default, new ArenaBoundsSquare(10));
-
-    public IntersectionTest() : base("Intersection test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
-    {
-    }
+    private readonly MiniArena _arena = new(new(), default, new ArenaBoundsSquare(10), colors);
 
     public override void Draw()
     {
@@ -45,10 +41,10 @@ class IntersectionTest : TestWindow
 
         _arena.Begin(default);
         if (_shapeIsRect)
-            _arena.AddRect(default, _shapeDirDeg.Degrees().ToDirection(), _shapeExtentPrimary, _shapeExtentPrimary, _shapeExtentSecondary, ArenaColor.Safe);
+            _arena.AddRect(default, _shapeDirDeg.Degrees().ToDirection(), _shapeExtentPrimary, _shapeExtentPrimary, _shapeExtentSecondary, _arena.ArenaColor.Safe);
         else
-            _arena.AddDonutCone(default, _coneInner, _shapeExtentPrimary, _shapeDirDeg.Degrees(), _shapeExtentSecondary.Degrees(), ArenaColor.Safe);
-        _arena.AddCircle(circleCenter.ToWPos(), _circleRadius, ArenaColor.Danger);
+            _arena.AddDonutCone(default, _coneInner, _shapeExtentPrimary, _shapeDirDeg.Degrees(), _shapeExtentSecondary.Degrees(), _arena.ArenaColor.Safe);
+        _arena.AddCircle(circleCenter.ToWPos(), _circleRadius, _arena.ArenaColor.Danger);
         _arena.End();
     }
 }

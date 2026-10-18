@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
 [ZoneModuleInfo(296)]
-internal class ChasingShadows(WorldState ws) : QuestBattle(ws)
+internal class ChasingShadows(ZoneModuleInit init) : QuestBattle(init)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

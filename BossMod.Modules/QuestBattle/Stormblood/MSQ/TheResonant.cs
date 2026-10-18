@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
 [ZoneModuleInfo(269)]
-public class TheResonant(WorldState ws) : QuestBattle(ws)
+public class TheResonant(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

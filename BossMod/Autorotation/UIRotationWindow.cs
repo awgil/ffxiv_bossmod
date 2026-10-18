@@ -11,13 +11,15 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
     private readonly AutorotationConfig _config;
+    private readonly DtrConfig dtrConfig;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, AutorotationConfig config) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, AutorotationConfig config, DtrConfig dtrConfig) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
         _config = config;
+        this.dtrConfig = dtrConfig;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
@@ -53,7 +55,7 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
         if (player == null)
             return;
 
-        DrawRotationSelector(_mgr, true);
+        DrawRotationSelector(_mgr, dtrConfig, true);
 
         if (_mgr.IsForceDisabled)
             UIMisc.Banner(FontAwesomeIcon.Ban, "Autorotation is disabled. Click Disabled again or pick a preset to re-enable it.", UIMisc.ColorDanger);
@@ -245,10 +247,8 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
 
     public override void OnClose() => SetVisible(false);
 
-    public static bool DrawRotationSelector(RotationModuleManager mgr, bool wrap = false)
+    public static bool DrawRotationSelector(RotationModuleManager mgr, DtrConfig dtrConfig, bool wrap = false)
     {
-        var dtrConfig = Service.Config.Get<DtrConfig>();
-
         var modified = false;
         if (mgr.Player == null)
             return modified;

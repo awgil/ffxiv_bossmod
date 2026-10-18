@@ -2,9 +2,9 @@
 
 namespace BossMod.Dev;
 
-class MiniArenaTest : TestWindow
+class MiniArenaTest(ColorConfig colors) : TestWindow("Arena test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
 {
-    private readonly MiniArena _arena = new(new(), new(100, 100), new ArenaBoundsSquare(20));
+    private readonly MiniArena _arena = new(new(), new(100, 100), new ArenaBoundsSquare(20), colors);
     private bool _arenaIsCircle;
     private float _azimuth = -72;
     private float _altitude = 90;
@@ -20,8 +20,6 @@ class MiniArenaTest : TestWindow
     private Vector2 _kbCenter = new(110, 100);
     private float _kbDistance = 5;
 
-    public MiniArenaTest() : base("Arena test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse) { }
-
     public override void Draw()
     {
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, +180);
@@ -33,8 +31,8 @@ class MiniArenaTest : TestWindow
 
         _arena.Begin(_azimuth.Degrees());
         if (_coneEnabled)
-            _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), ArenaColor.Safe);
-        _arena.Border(ArenaColor.Border);
+            _arena.ZoneCone(new(_conePos), _coneRadius.X, _coneRadius.Y, _coneAngles.X.Degrees(), _coneAngles.Y.Degrees(), _arena.ArenaColor.Safe);
+        _arena.Border(_arena.ArenaColor.Border);
         if (_lineEnabled)
             _arena.AddLine(new(_lineEnds.X, _lineEnds.Y), new(_lineEnds.Z, _lineEnds.W), 0xffff0000);
         if (_kbContourEnabled)

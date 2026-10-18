@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.MCH;
 
 [ZoneModuleInfo(426)]
-internal class RiseOfTheMachinists(WorldState ws) : QuestBattle(ws)
+internal class RiseOfTheMachinists(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

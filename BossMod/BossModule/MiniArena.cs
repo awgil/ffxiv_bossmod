@@ -8,9 +8,10 @@ namespace BossMod;
 //                       rotation 0 corresponds to South, and increases counterclockwise (so East is +pi/2, North is pi, West is -pi/2)
 // - camera azimuth 0 correpsonds to camera looking North and increases counterclockwise
 // - screen coordinates - X points left to right, Y points top to bottom
-public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds bounds)
+public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds bounds, ColorConfig colors)
 {
     public readonly BossModuleConfig Config = config;
+    public readonly ArenaColor ArenaColor = new(colors);
     private WPos _center = center;
     private readonly TriangulationCache _triCache = new();
 

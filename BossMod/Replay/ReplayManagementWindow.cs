@@ -37,12 +37,12 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, ICondition condition, BossModuleManager bmm, MediatorService mediator, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : base(_windowID, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, ICondition condition, BossModuleManager bmm, MediatorService mediator, ReplayManagementConfig config, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : base(_windowID, new(400, 500))
     {
         _ws = ws;
         this.condition = condition;
         _logDir = logDir;
-        _config = Service.Config.Get<ReplayManagementConfig>();
+        _config = config;
         _manager = new(logDir.FullName, scope, mediator);
         _subscriptions = new
         (

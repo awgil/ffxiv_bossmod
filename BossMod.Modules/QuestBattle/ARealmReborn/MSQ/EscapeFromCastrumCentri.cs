@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.MSQ;
 
 [ZoneModuleInfo(352)]
-internal class EscapeFromCastrumCentri(WorldState ws) : QuestBattle(ws)
+internal class EscapeFromCastrumCentri(ZoneModuleInit init) : QuestBattle(init)
 {
     private static QuestObjective Generator(WorldState ws, Vector3 position) => GoKill(ws, position, 0x883);
 

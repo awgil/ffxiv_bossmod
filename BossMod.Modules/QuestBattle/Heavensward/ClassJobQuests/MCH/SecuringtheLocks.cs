@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.MCH;
 
 [ZoneModuleInfo(424)]
-internal class SecuringTheLocks(WorldState ws) : QuestBattle(ws)
+internal class SecuringTheLocks(ZoneModuleInit init) : QuestBattle(init)
 {
     private static readonly WPos Center = new(231.29f, 124.36f);
 

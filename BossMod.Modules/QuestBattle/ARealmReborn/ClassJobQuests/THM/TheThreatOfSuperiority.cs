@@ -1,7 +1,7 @@
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.THM;
 
 [ZoneModuleInfo(324)]
-internal class TheThreatOfSuperiority(WorldState ws) : QuestBattle(ws)
+internal class TheThreatOfSuperiority(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

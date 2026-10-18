@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
 [ZoneModuleInfo(662)]
-internal class TheOracleOfLight(WorldState ws) : QuestBattle(ws)
+internal class TheOracleOfLight(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.AST;
 
 [ZoneModuleInfo(411)]
-internal class FortuneFavorsTheBole(WorldState ws) : QuestBattle(ws)
+internal class FortuneFavorsTheBole(ZoneModuleInit init) : QuestBattle(init)
 {
     private QuestObjective Card(WorldState ws, Vector3 pos, uint oid)
         => new QuestObjective(ws).WithConnection(pos).WithInteract(oid).CompleteOnState7(oid);

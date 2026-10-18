@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
 [ZoneModuleInfo(467)]
-public sealed class TheKeyToVictory(WorldState ws) : QuestBattle(ws)
+public sealed class TheKeyToVictory(ZoneModuleInit init) : QuestBattle(init)
 {
     enum OID : uint
     {

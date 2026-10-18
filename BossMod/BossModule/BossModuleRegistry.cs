@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class BossModuleRegistry(Lazy<BossModuleConfig> config, IPluginLog logger)
+public class BossModuleRegistry(Lazy<BossModuleConfig> config, ModuleInit.Factory moduleInitMaker, IPluginLog logger)
 {
     public readonly Event Modified = new();
 
@@ -239,7 +239,7 @@ public class BossModuleRegistry(Lazy<BossModuleConfig> config, IPluginLog logger
     public Info? FindByName(string typeName) => _modulesByType.GetValueOrDefault(typeName);
     public Info? FindByType(Type t) => t.FullName == null ? null : FindByName(t.FullName);
 
-    public static BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(new(ws, primary, info));
+    public BossModule? CreateModule(Info? info, WorldState ws, Actor primary) => info?.ModuleFactory(moduleInitMaker.Invoke(ws, primary, info));
 
     public BossModule? CreateModuleForActor(WorldState ws, Actor primary, bool allowIncomplete, bool allowStrikingDummy)
     {

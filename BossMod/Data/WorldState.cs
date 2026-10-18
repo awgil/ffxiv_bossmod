@@ -21,6 +21,8 @@ public sealed class WorldState
     public readonly NetworkState Network = new();
     public readonly ReplayState ReplayState = new();
 
+    public bool IsFrozen;
+
     public DateTime CurrentTime => Frame.Timestamp;
     public DateTime FutureTime(float deltaSeconds) => Frame.Timestamp.AddSeconds(deltaSeconds);
 
@@ -49,6 +51,9 @@ public sealed class WorldState
 
     public void Execute(Operation op)
     {
+        if (IsFrozen)
+            throw new InvalidOperationException("Operation attempted on frozen WorldState");
+
         op.Execute(this);
         Modified.Fire(op);
     }

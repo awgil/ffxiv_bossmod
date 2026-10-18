@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.SCH;
 
 [ZoneModuleInfo(453)]
-internal class InLovingMemory(WorldState ws) : QuestBattle(ws)
+internal class InLovingMemory(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

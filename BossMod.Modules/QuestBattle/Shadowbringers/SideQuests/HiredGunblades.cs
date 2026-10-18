@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.SideQuests;
 
 [ZoneModuleInfo(668)]
-internal class HiredGunblades(WorldState ws) : QuestBattle(ws)
+internal class HiredGunblades(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

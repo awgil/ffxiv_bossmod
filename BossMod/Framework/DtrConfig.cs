@@ -1,5 +1,4 @@
-﻿using BossMod.AI;
-using BossMod.Autorotation;
+﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -21,13 +20,13 @@ public sealed class DtrConfig : ConfigNode
 
     [PropertyDisplay("Autorotation status indicator")]
     [PropertyRadio(inline: true)]
-    public DtrStatus ShowAutorot = Service.Config.Get<AutorotationConfig>().ShowDTR;
+    public DtrStatus ShowAutorot = DtrStatus.None;
 
     [PropertyDisplay("Show legacy AI status")]
-    public bool ShowAI = Service.Config.Get<AIConfig>().ShowDTR;
+    public bool ShowAI = true;
 
     [PropertyDisplay("Show performance stats")]
-    public bool ShowStats = Service.Config.Get<AutorotationConfig>().ShowStatsDTR;
+    public bool ShowStats = false;
 
     public List<string> ShowPresets = ["VBM Default", "VBM AI"];
 

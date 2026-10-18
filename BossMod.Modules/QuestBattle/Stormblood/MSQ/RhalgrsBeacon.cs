@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
 [ZoneModuleInfo(466)]
-internal class RhalgrsBeacon(WorldState ws) : QuestBattle(ws)
+internal class RhalgrsBeacon(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

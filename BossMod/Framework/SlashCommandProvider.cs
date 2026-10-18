@@ -64,11 +64,11 @@ public class SlashCommandHandler
     }
 }
 
-public sealed class SlashCommandProvider(ICommandManager commandManager, string rootCommand) : SlashCommandHandler, IDisposable
+public sealed class SlashCommandProvider(ICommandManager commandManager, string rootCommand) : SlashCommandHandler
 {
     private readonly List<string> _aliases = [];
 
-    public void Dispose()
+    public void Unregister()
     {
         commandManager.RemoveHandler(rootCommand);
         foreach (var alias in _aliases)

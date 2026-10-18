@@ -12,7 +12,7 @@ public enum OID : uint
 }
 
 [ZoneModuleInfo(4)]
-public class D01Sastasha(WorldState ws) : ZoneModule(ws)
+public class D01Sastasha(WorldState ws) : ZoneModule(TODO)
 {
     public enum Switch { Unknown, Blue, Red, Green, Resolved }
 

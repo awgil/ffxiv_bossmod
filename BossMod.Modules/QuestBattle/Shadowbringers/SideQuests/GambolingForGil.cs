@@ -3,7 +3,7 @@
 namespace BossMod.QuestBattle.Shadowbringers.SideQuests;
 
 [ZoneModuleInfo(670)]
-internal class GambolingForGil(WorldState ws) : QuestBattle(ws)
+internal class GambolingForGil(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

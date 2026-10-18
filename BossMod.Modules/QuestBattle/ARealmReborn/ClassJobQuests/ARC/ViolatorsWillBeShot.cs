@@ -1,7 +1,7 @@
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.ARC;
 
 [ZoneModuleInfo(302)]
-internal class ViolatorsWillBeShot(WorldState ws) : QuestBattle(ws)
+internal class ViolatorsWillBeShot(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

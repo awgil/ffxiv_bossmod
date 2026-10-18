@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Interfaces;
 using BossMod.Network;
@@ -7,7 +6,6 @@ using BossMod.ReplayAnalysis;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
-using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
@@ -15,12 +13,10 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,8 +35,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IMovementOverride _movementOverride;
     readonly IAmex _amex;
     readonly IWorldStateGameSync _wsSync;
+    private readonly IEnumerable<ConfigMigration> migrations;
     readonly RotationModuleManager _rotation;
-    readonly SlashCommandProvider _slashCmd;
     readonly MultiboxManager _mbox;
     TimeSpan _prevUpdateTime;
     readonly PackLoader _packs;
@@ -80,7 +76,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         BossModuleManager bmm,
         RotationModuleManager rmm,
         ZoneModuleManager zmm,
-        AIHintsBuilder builder
+        AIHintsBuilder builder,
+        IWorldStateGameSync wsSync,
+        IEnumerable<ConfigMigration> migrations
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -135,12 +133,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _amex = amex;
         _ws = wsGlobal;
-
+        _wsSync = wsSync;
+        this.migrations = migrations;
         if (Service.IsMock)
         {
             _movementOverride = new MockMovementOverride();
             //_amex = new MockAmex();
-            _wsSync = new MockWorldStateGameSync();
+            //_wsSync = new MockWorldStateGameSync();
             _hintExecutor = new MockHintExecutor();
 
             Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
@@ -150,7 +149,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _ping.Run();
             _movementOverride = new MovementOverride(dalamud);
             //_amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
+            //_wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
             _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
@@ -160,20 +159,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _zonemod = zmm;
         _hintsBuilder = builder;
         _rotation = rmm;
-        _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
-
-        RegisterSlashCommands();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Version cutoff = new(7, 5, 1, 13);
-        if (Service.Config.PreviousAssemblyVersion < cutoff && Service.Config.AssemblyVersion >= cutoff)
-        {
-            Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
-            _hintsBuilder.Obstacles.ClearGenerated();
-        }
+        foreach (var migration in migrations)
+            if (configRoot.PreviousAssemblyVersion < migration.Since && configRoot.AssemblyVersion >= migration.Since)
+                migration.Execute();
 
         ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
         AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
@@ -196,6 +189,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
             _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
             //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
+            _ws.IsFrozen = true;
         }
 
         MediatorService.Subscribe(this, (OpenWindow o) =>
@@ -380,292 +374,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OpenUi() => OpenConfigUI();
 
-    void RegisterSlashCommands()
-    {
-        _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
-        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => MediatorService.Publish(new ToggleWindow(typeof(ReplayManagementWindow))));
-        RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
-        RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
-        _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
-        {
-            var output = Service.Config.ConsoleCommand(args);
-            foreach (var msg in output)
-                Service.ChatGui.Print(msg);
-            return true;
-        });
-        _slashCmd.AddSubcommand("d").SetSimpleHandler("show debug UI", () => MediatorService.Publish(new OpenWindow(typeof(MainDebugWindow))));
-        _slashCmd.AddSubcommand("gc").SetSimpleHandler("execute C# garbage collector", () =>
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        });
-
-        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
-
-        _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
-        {
-            unsafe
-            {
-                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
-                    _amex.MacroCapture = true;
-                else
-                    Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
-            }
-        });
-        _slashCmd.AddSubcommand("macro-off").SetSimpleHandler("disables VBM action queue inside a macro, if it has been enabled previously", () =>
-        {
-            unsafe
-            {
-                if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
-                    _amex.MacroCapture = false;
-                else
-                    Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
-            }
-        });
-
-        _slashCmd.AddSubcommand("helpme").SetSimpleHandler("gather diagnostic information", HelpMe);
-
-        _slashCmd.Register();
-        _slashCmd.RegisterAlias("/vbmai", "ai"); // TODO: deprecated
-    }
-
-    private void RegisterAutorotationSlashCommands(SlashCommandHandler cmd)
-    {
-        void SetOrToggle(Preset preset, bool toggle, bool exclusive)
-        {
-            if (toggle)
-            {
-                var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
-                Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
-                _rotation.Toggle(preset, exclusive);
-            }
-            else
-            {
-                Service.Log($"Console: set activates preset '{preset.Name}'");
-                _rotation.Activate(preset, exclusive);
-            }
-        }
-
-        void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle, bool exclusive)
-        {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
-            if (preset != null)
-                SetOrToggle(preset, toggle, exclusive);
-            else
-                Service.ChatError($"Failed to find preset '{presetName}'");
-        }
-
-        void ClearByName(ReadOnlySpan<char> presetName)
-        {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
-            if (preset != null)
-            {
-                Service.Log($"Console: unset deactivates preset '{preset.Name}'");
-                _rotation.Deactivate(preset);
-            }
-            else
-                Service.ChatError($"Failed to find preset '{presetName}'");
-        }
-
-        cmd.SetSimpleHandler("toggle autorotation ui", () => MediatorService.Publish(new ToggleWindow(typeof(UIRotationWindow))));
-        cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
-        {
-            Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
-            _rotation.Clear();
-        });
-        cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
-        {
-            Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
-            _rotation.SetForceDisabled();
-        });
-        cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset, and deactivate others", preset =>
-        {
-            SetOrToggleByName(preset, false, true);
-            return true;
-        });
-        var toggle = cmd.AddSubcommand("toggle");
-        toggle.SetSimpleHandler("force disable autorotation if not already; otherwise clear overrides", () => SetOrToggle(RotationModuleManager.ForceDisable, true, true));
-        toggle.SetComplexHandler("<preset>", "start executing specified preset unless it's already active; clear otherwise", preset =>
-        {
-            SetOrToggleByName(preset, true, true);
-            return true;
-        });
-
-        cmd.AddSubcommand("activate").SetComplexHandler("<preset>", "add specified preset to active list", preset =>
-        {
-            SetOrToggleByName(preset, false, false);
-            return true;
-        });
-        cmd.AddSubcommand("deactivate").SetComplexHandler("<preset>", "remove specified preset from active list", preset =>
-        {
-            ClearByName(preset);
-            return true;
-        });
-        cmd.AddSubcommand("togglemulti").SetComplexHandler("<preset>", "if specified preset is in active list, disable it, otherwise enable it", preset =>
-        {
-            SetOrToggleByName(preset, true, false);
-            return true;
-        });
-    }
-
-    private void RegisterAISlashCommands(SlashCommandHandler cmd)
-    {
-        var aiConfig = Service.Config.Get<AIConfig>();
-        cmd.SetSimpleHandler("toggle multibox ui", () =>
-        {
-            aiConfig.DrawUI ^= true;
-            aiConfig.Modified.Fire();
-        });
-        cmd.AddSubcommand("on").SetSimpleHandler("enable AI mode", () =>
-        {
-            var was = aiConfig.Enabled;
-            aiConfig.Enabled = true;
-            aiConfig.Modified.Fire();
-            if (aiConfig.ChatConfirmation && !was)
-                Service.ChatMessage("AI enabled");
-        });
-        cmd.AddSubcommand("off").SetSimpleHandler("disable AI mode", () =>
-        {
-            var was = aiConfig.Enabled;
-            aiConfig.Enabled = false;
-            aiConfig.Modified.Fire();
-            if (aiConfig.ChatConfirmation && was)
-                Service.ChatMessage("AI disabled");
-        });
-        cmd.AddSubcommand("toggle").SetSimpleHandler("toggle AI mode", () =>
-        {
-            aiConfig.Enabled ^= true;
-            aiConfig.Modified.Fire();
-            if (aiConfig.ChatConfirmation)
-                Service.ChatMessage($"AI {(aiConfig.Enabled ? "enabled" : "disabled")}");
-        });
-        cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
-        {
-            var ms = masterString.ToString();
-            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : Array.FindIndex(_ws.Party.Members, m => _ws.Actors.Find(m.InstanceId)?.Name == ms);
-            if (_ws.Party[masterSlot] != null)
-            {
-                windowSystem.Windows.OfType<AIWindow>().FirstOrDefault()?.SetSlot(masterSlot);
-                if (aiConfig.ChatConfirmation)
-                    Service.ChatMessage($"AI follow slot = {masterSlot}");
-            }
-            else
-                Service.ChatError($"Error: can't find {masterString} in our party");
-            return true;
-        });
-
-        // TODO: this should really be removed, it's a weird synonym for /vbm cfg AIConfig ...
-        cmd.SetComplexHandler("", "", args =>
-        {
-            Service.Log($"vbmai args: {args}");
-            Span<Range> ranges = stackalloc Range[2];
-            var numRanges = args.Split(ranges, ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (numRanges == 1)
-            {
-                // toggle
-                var value = Service.Config.ConsoleCommand($"AIConfig {args}");
-                return bool.TryParse(value[0], out var boolValue) && Service.Config.ConsoleCommand($"AIConfig {args} {!boolValue}").Count == 0;
-            }
-            else if (numRanges == 2)
-            {
-                // set
-                var value = args[ranges[1]];
-                if (value.Equals("on", StringComparison.InvariantCultureIgnoreCase))
-                    value = "true";
-                else if (value.Equals("off", StringComparison.InvariantCultureIgnoreCase))
-                    value = "false";
-                return Service.Config.ConsoleCommand($"AIConfig {args[ranges[0]]} {value}").Count == 0;
-            }
-            return false;
-        });
-    }
-
-    private void HelpMe()
-    {
-        StringBuilder diag = new();
-
-        var i = 0;
-
-        diag.AppendLine($"VBM {typeof(TickService).Assembly.GetName().Version}");
-        diag.AppendLine($"current zone: {_ws.CurrentZone}/{_ws.CurrentCFCID}");
-
-        var player = _ws.Party.Player();
-
-        if (player != null)
-        {
-            diag.AppendLine();
-            diag.AppendLine("player:");
-            diag.AppendLine($"L{player.Level} {player.Class}, HP {player.HPMP.CurHP}/{player.HPMP.MaxHP}, MP {player.HPMP.CurMP}/{player.HPMP.MaxMP}");
-
-            diag.AppendLine();
-            diag.AppendLine("statuses:");
-            foreach (var sid in player.Statuses)
-            {
-                if (sid.ID == 0)
-                    continue;
-                var desc = Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid.ID);
-                diag.AppendLine($"status [{i++}]: {sid.ID} '{desc?.Name ?? "unknown"}' p=0x{sid.Extra:X} ({(sid.ExpireAt - _ws.CurrentTime).TotalSeconds:f1})");
-            }
-        }
-
-        diag.AppendLine();
-        diag.AppendLine("autorot:");
-        foreach (var m in _rotation.Presets)
-        {
-            diag.AppendLine($"{m.Name}");
-            foreach (var mod in m.Modules)
-            {
-                diag.AppendLine($"- {mod.Definition.DisplayName} ({mod.Type.FullName})");
-                foreach (var s in mod.TransientSettings)
-                {
-                    var track = mod.Definition.Configs[s.Track];
-                    diag.AppendLine($"  - {track.InternalName} = {track.ToDisplayString(s.Value)}");
-                }
-            }
-        }
-
-        diag.AppendLine();
-        diag.AppendLine("modules:");
-        foreach (var m in _bossmod.LoadedModules)
-        {
-            var s = m.StateMachine.ActiveState == null ? "inactive" : "active";
-            diag.AppendLine($"{m.GetType()} ({s}) (OID=0x{m.PrimaryActor.OID:X})");
-        }
-
-        if (player != null)
-        {
-            diag.AppendLine();
-            diag.AppendLine("bitmap:");
-
-            var (entry, _) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
-            if (entry != null)
-                diag.AppendLine(entry.ToString());
-
-            var (map, rect) = _hints.PathfindMapObstacles;
-            diag.AppendLine($"current bounds: {rect}");
-
-            if (map != null)
-            {
-                var offX = -rect.Left;
-                var offY = -rect.Top;
-                var r = rect.Clamped(map.FullRect).Clamped(new(0, 0, map.Width, map.Height), offX, offY);
-                var allPx = (r.Bottom - r.Top) * (r.Right - r.Left);
-                var filledPx = 0;
-                for (var y = r.Top; y < r.Bottom; ++y)
-                    for (var x = r.Left; x < r.Right; ++x)
-                        if (map[x, y])
-                            filledPx++;
-
-                diag.AppendLine($"map is {filledPx}/{allPx} filled ({filledPx / (float)allPx * 100:f2}%)");
-            }
-        }
-
-        ImGui.SetClipboardText($"```{diag.ToString()}```");
-
-        Service.ChatMessage("Diagnostic data has been copied to your clipboard.");
-    }
-
     private static void MigratePlans(string pluginConfigDir)
     {
         var source = Path.Join(pluginConfigDir, "autorot");
@@ -752,7 +460,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         GaugeVisualizer.Dispose();
         _rotationDB.Dispose();
         _mbox.Dispose();
-        _slashCmd.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();

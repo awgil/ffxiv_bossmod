@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
 [ZoneModuleInfo(743)]
-public class FadedMemories(WorldState ws) : QuestBattle(ws)
+public class FadedMemories(ZoneModuleInit init) : QuestBattle(init)
 {
     enum SID : uint
     {

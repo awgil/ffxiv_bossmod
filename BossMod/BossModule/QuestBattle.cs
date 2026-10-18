@@ -254,8 +254,9 @@ public abstract class QuestBattle : ZoneModule
 
     private static void Log(string msg) => Service.Log($"[QBD] {msg}");
 
-    protected QuestBattle(WorldState ws) : base(ws)
+    protected QuestBattle(ZoneModuleInit init) : base(init)
     {
+        var ws = init.World;
 #pragma warning disable CA2214 // TODO: this is kinda working rn, but still not good...
         Objectives = DefineObjectives(ws);
 #pragma warning restore CA2214
@@ -726,7 +727,7 @@ public abstract class QuestBattle : ZoneModule
             var module = $"namespace BossMod.QuestBattle.{expansion};\n" +
                         $"\n" +
                         $"[ZoneModuleInfo( {World.CurrentCFCID})]\n" +
-                        $"internal class {questname}(WorldState ws) : QuestBattle(ws)\n" +
+                        $"internal class {questname}(ZoneModuleInit init) : QuestBattle(init)\n" +
                         "{\n" +
                         "   public override List<QuestObjective> DefineObjectives(WorldState ws) => [\n" +
                         "       new QuestObjective(ws)\n" +

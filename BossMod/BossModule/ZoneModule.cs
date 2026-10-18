@@ -4,11 +4,14 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-public abstract class ZoneModule(WorldState ws) : IDisposable
+public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot);
+
+public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
 {
     public record struct WindowDescription(string Name, ImGuiWindowFlags Flags = ImGuiWindowFlags.None);
 
-    public readonly WorldState World = ws;
+    public readonly WorldState World = init.World;
+    public readonly ArenaColor ArenaColor = new(init.ConfigRoot.Get<ColorConfig>());
 
     public void Dispose()
     {

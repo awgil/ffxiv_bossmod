@@ -18,7 +18,7 @@ public sealed class ObstacleMapManager : IDisposable
 
     public readonly WorldState World;
     public readonly ObstacleMapDatabase Database = new();
-    private readonly DeveloperConfig _config = Service.Config.Get<DeveloperConfig>();
+    private readonly DeveloperConfig _config;
     private readonly EventSubscriptions _subscriptions;
     private readonly List<(ObstacleMapDatabase.Entry entry, Bitmap data)> _entries = [];
     private readonly Lock _tempMapLock = new();
@@ -31,8 +31,9 @@ public sealed class ObstacleMapManager : IDisposable
 
     public readonly string SourceRoot;
 
-    public ObstacleMapManager(WorldState ws)
+    public ObstacleMapManager(WorldState ws, DeveloperConfig config)
     {
+        _config = config;
         World = ws;
         _subscriptions = new(
             _config.Modified.Subscribe(ReloadDatabase),

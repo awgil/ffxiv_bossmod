@@ -47,7 +47,7 @@ public enum SID : uint
     BlazeSpikes = 4579,
 }
 
-public abstract class PTFloorModule(WorldState ws) : AutoClear(ws, 100)
+public abstract class PTFloorModule(ZoneModuleInit init) : AutoClear(init, 100)
 {
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {

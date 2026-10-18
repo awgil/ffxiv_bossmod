@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.SCH;
 
 [ZoneModuleInfo(376)]
-internal class ForgottenButNotGone(WorldState ws) : QuestBattle(ws)
+internal class ForgottenButNotGone(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

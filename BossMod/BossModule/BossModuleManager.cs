@@ -7,6 +7,7 @@ public sealed class BossModuleManager : IDisposable
     public readonly RaidCooldowns RaidCooldowns;
     public readonly BossModuleConfig Config;
     private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly ModuleInit.Factory moduleInitMaker;
     private readonly EventSubscriptions _subscriptions;
 
     public List<BossModule> LoadedModules { get; } = [];
@@ -31,10 +32,11 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager(WorldState ws, BossModuleConfig cfg, BossModuleRegistry bossModuleRegistry)
+    public BossModuleManager(WorldState ws, BossModuleConfig cfg, BossModuleRegistry bossModuleRegistry, ModuleInit.Factory moduleInitMaker)
     {
         Config = cfg;
         this.bossModuleRegistry = bossModuleRegistry;
+        this.moduleInitMaker = moduleInitMaker;
         WorldState = ws;
         RaidCooldowns = new(ws);
         _subscriptions = new
@@ -181,7 +183,7 @@ public sealed class BossModuleManager : IDisposable
         return 1;
     }
 
-    private DemoModule CreateDemoModule() => new(new(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null));
+    private DemoModule CreateDemoModule() => new(moduleInitMaker.Invoke(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null));
 
     private void ActorAdded(Actor actor)
     {

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.PLD;
 
 [ZoneModuleInfo(318)]
-internal class TheRematch(WorldState ws) : QuestBattle(ws)
+internal class TheRematch(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws) // Run to Bridge, Fight Until Gigirya Defeated

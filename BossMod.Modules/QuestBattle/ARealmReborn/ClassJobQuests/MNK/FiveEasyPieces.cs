@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.MNK;
 
 [ZoneModuleInfo(364)]
-internal class FiveEasyPieces(WorldState ws) : QuestBattle(ws)
+internal class FiveEasyPieces(ZoneModuleInit init) : QuestBattle(init)
 {
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {

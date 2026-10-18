@@ -37,7 +37,7 @@ public class AutoNyelbert(WorldState ws) : UnmanagedRotation(ws, 20)
 }
 
 [ZoneModuleInfo(686)]
-public class NyelbertsLament(WorldState ws) : QuestBattle(ws)
+public class NyelbertsLament(ZoneModuleInit init) : QuestBattle(init)
 {
     private readonly AutoNyelbert _ai = new(ws);
 

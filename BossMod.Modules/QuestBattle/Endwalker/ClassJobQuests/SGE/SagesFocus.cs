@@ -3,7 +3,7 @@
 namespace BossMod.QuestBattle.Endwalker.ClassJobQuests.SGE;
 
 [ZoneModuleInfo(813)]
-internal class SagesFocus(WorldState ws) : QuestBattle(ws)
+internal class SagesFocus(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

@@ -19,7 +19,7 @@ public enum AID : uint
     Northerlies = 12227, // 230C->self, 5.0s cast, range 40+R circle
 }
 
-public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
+public abstract class HoHFloorModule(ZoneModuleInit init) : AutoClear(init, 70)
 {
     protected override void OnCastStarted(Actor actor)
     {

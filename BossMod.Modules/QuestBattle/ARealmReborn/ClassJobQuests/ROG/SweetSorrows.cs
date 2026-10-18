@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.ROG;
 
 [ZoneModuleInfo(385)]
-internal class SweetSorrows(WorldState ws) : QuestBattle(ws)
+internal class SweetSorrows(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

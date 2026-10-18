@@ -57,7 +57,7 @@ class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
 }
 
 [ZoneModuleInfo(740)]
-internal class SleepNowInSapphire(WorldState ws) : QuestBattle(ws)
+internal class SleepNowInSapphire(ZoneModuleInit init) : QuestBattle(init)
 {
     private readonly SapphireWeapon _weapon = new(ws);
 

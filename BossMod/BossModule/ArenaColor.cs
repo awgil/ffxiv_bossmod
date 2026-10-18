@@ -2,23 +2,21 @@
 
 // common color constants (ABGR)
 // TODO: migrate away to direct use of ColorConfig
-public static class ArenaColor
+public class ArenaColor(ColorConfig colors)
 {
-    private static readonly ColorConfig Config = Service.Config.Get<ColorConfig>();
-
-    public static uint Background => Config.ArenaBackground.ABGR;
-    public static uint Border => Config.ArenaBorder.ABGR;
-    public static uint HighlightN => Config.ArenaHighlightN.ABGR;
-    public static uint AOE => Config.ArenaAOE.ABGR;
-    public static uint SafeFromAOE => Config.ArenaSafeFromAOE.ABGR;
-    public static uint Danger => Config.ArenaDanger.ABGR;
-    public static uint Safe => Config.ArenaSafe.ABGR;
-    public static uint Trap => 0x80000080; // TODO: reconsider?
-    public static uint PC => Config.ArenaPC.ABGR;
-    public static uint Enemy => Config.ArenaEnemy.ABGR;
-    public static uint Object => Config.ArenaObject.ABGR;
-    public static uint PlayerInteresting => Config.ArenaPlayerInteresting.ABGR;
-    public static uint PlayerGeneric => Config.ArenaPlayerGeneric.ABGR;
-    public static uint PlayerReallyGeneric => Config.ArenaPlayerReallyGeneric.ABGR;
-    public static uint Vulnerable => Config.ArenaPlayerVulnerable.ABGR;
+    public uint Background => colors.ArenaBackground.ABGR;
+    public uint Border => colors.ArenaBorder.ABGR;
+    public uint HighlightN => colors.ArenaHighlightN.ABGR;
+    public uint AOE => colors.ArenaAOE.ABGR;
+    public uint SafeFromAOE => colors.ArenaSafeFromAOE.ABGR;
+    public uint Danger => colors.ArenaDanger.ABGR;
+    public uint Safe => colors.ArenaSafe.ABGR;
+    public uint Trap => 0x80000080; // TODO: reconsider?
+    public uint PC => colors.ArenaPC.ABGR;
+    public uint Enemy => colors.ArenaEnemy.ABGR;
+    public uint Object => colors.ArenaObject.ABGR;
+    public uint PlayerInteresting => colors.ArenaPlayerInteresting.ABGR;
+    public uint PlayerGeneric => colors.ArenaPlayerGeneric.ABGR;
+    public uint PlayerReallyGeneric => colors.ArenaPlayerReallyGeneric.ABGR;
+    public uint Vulnerable => colors.ArenaPlayerVulnerable.ABGR;
 }

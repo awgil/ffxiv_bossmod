@@ -163,7 +163,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
         if (ImGui.CollapsingHeader("Plan execution"))
         {
-            resetPF |= UIRotationWindow.DrawRotationSelector(Rmm);
+            resetPF |= UIRotationWindow.DrawRotationSelector(Rmm, _playerScope.Resolve<DtrConfig>());
 
             if (Bossmods.ActiveModule != null && ImGui.Button("Timeline"))
             {

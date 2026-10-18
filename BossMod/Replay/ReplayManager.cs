@@ -33,7 +33,7 @@ public sealed class ReplayManager : IDisposable
             this.scope = scope;
             this.mediator = mediator;
             InitialTime = initialTime;
-            Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), ref Progress, Cancel.Token));
+            Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), scope.Resolve<ModuleInit.Factory>(), ref Progress, Cancel.Token));
         }
 
         public void Dispose()

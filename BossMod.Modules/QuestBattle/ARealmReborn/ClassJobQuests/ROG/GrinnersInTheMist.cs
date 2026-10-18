@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.ROG;
 
 [ZoneModuleInfo(384)]
-internal class GrinnersInTheMist(WorldState ws) : QuestBattle(ws)
+internal class GrinnersInTheMist(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

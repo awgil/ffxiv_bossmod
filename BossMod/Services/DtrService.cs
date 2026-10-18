@@ -4,7 +4,6 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
@@ -13,14 +12,12 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IUiBuilder uiBuilder) : IHostedService, IDisposable
+internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IFramework framework, AIConfig aiConfig, DtrConfig dtrConfig) : IHostedService, IDisposable
 {
     private readonly List<(string, IDtrBarEntry)> _autorotEntries = [];
     private readonly IDtrBarEntry _arEntry = dtrBar.Get("vbm-ar");
     private readonly IDtrBarEntry _aiEntry = dtrBar.Get("vbm-ai");
     private readonly IDtrBarEntry _statsEntry = dtrBar.Get("vbm-stats");
-    private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
-    private readonly DtrConfig _dtrConfig = Service.Config.Get<DtrConfig>();
     private bool _wantOpenPopup;
     private string? _popupFor;
 
@@ -30,22 +27,22 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
         _aiEntry.OnClick = ev =>
         {
             if (ev.ClickType == MouseClickType.Right)
-                _aiConfig.DrawUI ^= true;
+                aiConfig.DrawUI ^= true;
             else
-                _aiConfig.Enabled ^= true;
-            _aiConfig.Modified.Fire();
+                aiConfig.Enabled ^= true;
+            aiConfig.Modified.Fire();
         };
 
         _arEntry.Tooltip = "Left click: open preset selector; right click: disable all";
         _arEntry.OnClick = OnAutorotClick;
 
-        uiBuilder.Draw += Update;
+        framework.Update += Update;
 
         return Task.CompletedTask;
     }
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        uiBuilder.Draw -= Update;
+        framework.Update -= Update;
 
         return Task.CompletedTask;
     }
@@ -59,14 +56,14 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
         _statsEntry.Dispose();
     }
 
-    public void Update()
+    public void Update(IFramework _)
     {
-        if (_autorotEntries.Count != _dtrConfig.ShowPresets.Count)
+        if (_autorotEntries.Count != dtrConfig.ShowPresets.Count)
         {
             foreach (var (_, e) in _autorotEntries)
                 e.Dispose();
             _autorotEntries.Clear();
-            foreach (var p in _dtrConfig.ShowPresets)
+            foreach (var p in dtrConfig.ShowPresets)
             {
                 var newEntry = Service.DtrBar.Get($"vbm-ar-{p}");
                 newEntry.Shown = true;
@@ -80,15 +77,15 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
         foreach (var (p, e) in _autorotEntries)
             e.Text = $"{p}: {(manager.PresetNames.Contains(p, StringComparison.Ordinal) ? "On" : "Off")}";
 
-        _arEntry.Shown = _dtrConfig.ShowAutorot != DtrConfig.DtrStatus.None;
+        _arEntry.Shown = dtrConfig.ShowAutorot != DtrConfig.DtrStatus.None;
         var (icon, name) = manager.Presets.Count == 0 ? (BitmapFontIcon.SwordSheathed, "Idle") : manager.IsForceDisabled ? (BitmapFontIcon.SwordSheathed, "Disabled") : (BitmapFontIcon.SwordUnsheathed, $"{manager.Presets.Count} active");
-        Payload prefix = _dtrConfig.ShowAutorot == DtrConfig.DtrStatus.TextOnly ? new TextPayload("vbm: ") : new IconPayload(icon);
+        Payload prefix = dtrConfig.ShowAutorot == DtrConfig.DtrStatus.TextOnly ? new TextPayload("vbm: ") : new IconPayload(icon);
         _arEntry.Text = new SeString(prefix, new TextPayload(name));
 
-        _aiEntry.Shown = _dtrConfig.ShowAI;
-        _aiEntry.Text = "AI: " + (_aiConfig.Enabled ? "On" : "Off");
+        _aiEntry.Shown = dtrConfig.ShowAI;
+        _aiEntry.Text = "AI: " + (aiConfig.Enabled ? "On" : "Off");
 
-        _statsEntry.Shown = _dtrConfig.ShowStats;
+        _statsEntry.Shown = dtrConfig.ShowStats;
         _statsEntry.Text = manager.LastPathfindMs > 0
             ? $"Pathfind: {manager.LastRasterizeMs:f1}ms (r) {manager.LastPathfindMs:f1}ms (p)"
             : $"Pathfind: -";
@@ -141,12 +138,12 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
     {
         if (_popupFor == null)
         {
-            UIRotationWindow.DrawRotationSelector(manager);
+            UIRotationWindow.DrawRotationSelector(manager, dtrConfig);
             ImGui.Separator();
             if (ImGui.MenuItem("Remove from info bar"))
             {
-                _dtrConfig.ShowAutorot = DtrConfig.DtrStatus.None;
-                _dtrConfig.Modified.Fire();
+                dtrConfig.ShowAutorot = DtrConfig.DtrStatus.None;
+                dtrConfig.Modified.Fire();
             }
             return;
         }
@@ -161,8 +158,8 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
 
         if (ImGui.MenuItem("Remove from info bar"))
         {
-            _dtrConfig.ShowPresets.Remove(_popupFor);
-            _dtrConfig.Modified.Fire();
+            dtrConfig.ShowPresets.Remove(_popupFor);
+            dtrConfig.Modified.Fire();
         }
     }
 }

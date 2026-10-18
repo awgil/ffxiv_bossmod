@@ -1,7 +1,7 @@
 namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.LNC;
 
 [ZoneModuleInfo(307)]
-internal class ADangerousProposition(WorldState ws) : QuestBattle(ws)
+internal class ADangerousProposition(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

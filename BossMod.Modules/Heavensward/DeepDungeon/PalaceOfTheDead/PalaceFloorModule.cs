@@ -28,7 +28,7 @@ enum SID : uint
     IceSpikes = 198,
 }
 
-public abstract class PalaceFloorModule(WorldState ws) : AutoClear(ws, 60)
+public abstract class PalaceFloorModule(ZoneModuleInit init) : AutoClear(init, 60)
 {
     protected override void OnCastStarted(Actor actor)
     {

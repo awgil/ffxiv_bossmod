@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.ROG;
 
 [ZoneModuleInfo(381)]
-internal class StrayIntoTheShadows(WorldState ws) : QuestBattle(ws)
+internal class StrayIntoTheShadows(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

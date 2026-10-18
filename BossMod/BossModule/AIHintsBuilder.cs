@@ -13,6 +13,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly AIHintsConfig _hintConfig;
 
     public readonly Pathfinding.ObstacleMapManager Obstacles;
+    private readonly PartyRolesConfig rolesConfig;
     private readonly WorldState _ws;
     private readonly BossModuleManager _bmm;
     private readonly ZoneModuleManager _zmm;
@@ -61,14 +62,15 @@ public sealed class AIHintsBuilder : IDisposable
         4175
     ];
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, SmartRotationConfig smartRotationConfig, AIHintsConfig hintsConfig)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, SmartRotationConfig smartRotationConfig, AIHintsConfig hintsConfig, Pathfinding.ObstacleMapManager obManager, PartyRolesConfig rolesConfig)
     {
         _ws = ws;
         _bmm = bmm;
         _zmm = zmm;
         _gazeConfig = smartRotationConfig;
         _hintConfig = hintsConfig;
-        Obstacles = new(ws);
+        Obstacles = obManager;
+        this.rolesConfig = rolesConfig;
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -94,7 +96,7 @@ public sealed class AIHintsBuilder : IDisposable
             hints.MaxCastTime = 0;
         if (player != null)
         {
-            var playerAssignment = Service.Config.Get<PartyRolesConfig>()[_ws.Party.Members[playerSlot].ContentId];
+            var playerAssignment = rolesConfig[_ws.Party.Members[playerSlot].ContentId];
             var activeModule = _bmm.ActiveModule?.StateMachine.ActivePhase != null ? _bmm.ActiveModule : null;
             var outOfCombatPriority = activeModule?.ShouldPrioritizeAllEnemies == true ? 0 : AIHints.Enemy.PriorityUndesirable;
             FillEnemies(hints, playerAssignment == PartyRolesConfig.Assignment.MT || playerAssignment == PartyRolesConfig.Assignment.OT && !_ws.Party.WithoutSlot().Any(p => p != player && p.Role == Role.Tank), outOfCombatPriority);

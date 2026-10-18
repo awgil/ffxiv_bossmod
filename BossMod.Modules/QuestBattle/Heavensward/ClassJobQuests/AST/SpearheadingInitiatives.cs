@@ -1,7 +1,7 @@
 ﻿namespace BossMod.QuestBattle.Heavensward.ClassJobQuests.AST;
 
 [ZoneModuleInfo(413)]
-internal class SpearheadingInitiatives(WorldState ws) : QuestBattle(ws)
+internal class SpearheadingInitiatives(ZoneModuleInit init) : QuestBattle(init)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)
