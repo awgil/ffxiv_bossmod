@@ -1,3 +1,4 @@
+using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -46,14 +47,14 @@ public sealed class ConfigUI : IDisposable
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, JsonSerializerOptions serOptions, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, JsonSerializerOptions serOptions, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo replayDir, RotationDatabase rotationDB, ModuleViewer mv)
     {
         _root = config;
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
         _about = new(replayDir);
-        _mv = new(rotationDB?.Plans, ws, bossModuleRegistry, serOptions);
-        _presets = rotationDB != null ? new(rotationDB, rotationModuleRegistry, serOptions) : null;
+        _mv = mv;
+        _presets = new(rotationDB, rotationModuleRegistry, serOptions);
         _rotationDB = rotationDB;
 
         _tabs.Add("About", _about.Draw);

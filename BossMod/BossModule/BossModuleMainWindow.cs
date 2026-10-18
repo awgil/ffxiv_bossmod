@@ -4,7 +4,7 @@ using static BossMod.BossModuleConfig;
 
 namespace BossMod;
 
-public class BossModuleMainWindow : UIWindow
+public class BossModuleMainWindow : WindowBase
 {
     private readonly BossModuleManager _mgr;
     private readonly ZoneModuleManager _zmm;
@@ -12,7 +12,7 @@ public class BossModuleMainWindow : UIWindow
 
     private const string _windowID = "###Boss module";
 
-    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base(_windowID, false, new(400, 400))
+    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base(_windowID, new(400, 400))
     {
         _mgr = mgr;
         _zmm = zmm;

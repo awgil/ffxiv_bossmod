@@ -3,13 +3,13 @@ using Dalamud.Utility;
 
 namespace BossMod;
 
-public class ZoneModuleWindow : UIWindow
+public class ZoneModuleWindow : WindowBase
 {
     private readonly ZoneModuleManager _zmm;
     private readonly RotationModuleManager _rmm;
     private bool _wasOpen;
 
-    public ZoneModuleWindow(ZoneModuleManager zmm, RotationModuleManager rmm) : base("Zone module###Zone module", false, new(400, 400))
+    public ZoneModuleWindow(ZoneModuleManager zmm, RotationModuleManager rmm) : base("Zone module###Zone module", new(400, 400))
     {
         _zmm = zmm;
         _rmm = rmm;

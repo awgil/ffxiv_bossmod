@@ -5,6 +5,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 using System.Data;
@@ -24,6 +25,7 @@ public sealed class ModuleViewer : IDisposable
     private readonly WorldState _ws; // TODO: reconsider...
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly JsonSerializerOptions serOptions;
+    private readonly ExcelSheet<BNpcName> bNpcName;
     private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
 
     private BitMask _filterExpansions;
@@ -40,18 +42,18 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions)
+    public ModuleViewer(PlanDatabase planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
     {
         _planDB = planDB;
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
         this.serOptions = serOptions;
+        this.bNpcName = bNpcName;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
         _categories = [.. Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon))];
 
-        var exVersion = Service.LuminaSheet<ExVersion>()!;
         Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion.GetRow(0).Name);
         Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion.GetRow(1).Name);
         Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion.GetRow(2).Name);
@@ -60,7 +62,6 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
         Customize(BossModuleInfo.Expansion.Global, 61875, "Global");
 
-        var contentType = Service.LuminaSheet<ContentType>()!;
         Customize(BossModuleInfo.Category.Uncategorized, contentType.GetRow(1), "Uncategorized");
         Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
         Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4), "Normal Trials");
@@ -82,7 +83,6 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30), "Criterion Dungeons");
         Customize(BossModuleInfo.Category.HallOfTheNovice, contentType.GetRow(20), "Hall of the Novice");
 
-        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
         Customize(BossModuleInfo.Category.Crucible, playStyle.GetRow(35));
@@ -420,6 +420,8 @@ public sealed class ModuleViewer : IDisposable
     public static string FixCase(ReadOnlySeString str) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(str.ToString());
     public static string BNpcName(uint id) => FixCase(Service.LuminaRow<BNpcName>(id)!.Value.Singular);
 
+    public string BNpcName2(uint id) => FixCase(bNpcName.GetRow(id).Singular);
+
     private (ModuleGroupInfo, ModuleInfo) Classify(BossModuleRegistry.Info module)
     {
         var groupId = (uint)module.GroupType << 24;
@@ -429,7 +431,7 @@ public sealed class ModuleViewer : IDisposable
                 groupId |= module.GroupID;
                 var cfcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
                 var cfcSort = cfcRow.SortKey;
-                return (new(FixCase(cfcRow.Name), groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(FixCase(cfcRow.Name), groupId, cfcSort != 0 ? cfcSort : groupId), new(module, BNpcName2(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.MaskedCarnivale:
                 groupId |= module.GroupID;
                 var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
@@ -464,7 +466,7 @@ public sealed class ModuleViewer : IDisposable
             case BossModuleInfo.GroupType.GoldSaucer:
                 return (new("Gold Saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
-                return (new("Uncategorized", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new("Uncategorized", groupId, groupId), new(module, BNpcName2(module.NameID), module.SortOrder));
         }
     }
 

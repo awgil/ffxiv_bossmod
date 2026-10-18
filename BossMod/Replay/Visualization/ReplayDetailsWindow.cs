@@ -58,7 +58,7 @@ public class ReplayDetailsWindow : UIWindow
         _curTime = initialTime ?? _first;
         (_playerScope, _player) = ReplayPlayer.CreateOwned(data, _parentScope);
         _player.AdvanceTo(_curTime, Bossmods.Update);
-        _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), null, null);
+        _config = _playerScope.Resolve<ConfigUI>();
         _events = _playerScope.Resolve<EventList.Factory>().Invoke(MoveTo, this);
         _analysis = scope.Resolve<AnalysisManager.Factory>().Invoke([data]);
     }

@@ -105,6 +105,9 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
 
+        containerBuilder.RegisterType<ConfigUI>().InstancePerLifetimeScope().WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelf<ModuleViewer>();
+
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(Defs))).As<Defs>().SingleInstance();
 
         containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
@@ -133,7 +136,8 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterType<AnalysisManager>();
         containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
-        containerBuilder.RegisterSingletonSelf<ReplayManagementWindow>().WithAttributeFiltering();
+
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(WindowBase))).As<WindowBase>().SingleInstance().WithAttributeFiltering();
 
         ConfigureExtra(containerBuilder);
 

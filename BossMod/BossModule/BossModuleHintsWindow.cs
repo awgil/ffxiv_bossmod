@@ -2,13 +2,13 @@
 
 namespace BossMod;
 
-public class BossModuleHintsWindow : UIWindow
+public class BossModuleHintsWindow : WindowBase
 {
     private readonly BossModuleManager _mgr;
     private readonly ZoneModuleManager _zmm;
     private readonly AIHints _hints;
 
-    public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base("Boss module hints", false, new(400, 100))
+    public BossModuleHintsWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base("Boss module hints", new(400, 100))
     {
         _mgr = mgr;
         _zmm = zmm;

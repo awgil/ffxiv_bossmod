@@ -2,28 +2,28 @@
 
 namespace BossMod;
 
-public sealed class ConfigWindow : UIWindow, IMediatorSubscriber
+public sealed class ConfigWindow : WindowBase, IMediatorSubscriber, IDisposable
 {
     private readonly ConfigUI root;
 
     public MediatorService MediatorService { get; }
 
-    public ConfigWindow(ConfigUI root) : base("Boss Mod Settings", false, new(300, 300))
+    public ConfigWindow(ConfigUI root, MediatorService mediator) : base("Boss Mod Settings", new(300, 300))
     {
         this.root = root;
-        MediatorService = Service.Mediator;
+        MediatorService = mediator;
 
-        MediatorService.Subscribe<OpenSettingsWindowMessage>(this, c =>
+        mediator.Subscribe(this, (OpenSettingsWindowMessage c) =>
         {
             root.ShowTab(c.Tab);
             OpenAndBringToFront();
         });
-        MediatorService.Subscribe<OpenPresetEditorMessage>(this, c =>
+        mediator.Subscribe(this, (OpenPresetEditorMessage c) =>
         {
             root.ShowPreset(c.Name);
             OpenAndBringToFront();
         });
-        MediatorService.Subscribe<ShowConfigNodeMessage>(this, c =>
+        mediator.Subscribe(this, (ShowConfigNodeMessage c) =>
         {
             root.OpenConfigNode(c.NodeType);
             OpenAndBringToFront();
@@ -35,11 +35,8 @@ public sealed class ConfigWindow : UIWindow, IMediatorSubscriber
         root.Draw();
     }
 
-    protected override void Dispose(bool disposing)
+    void IDisposable.Dispose()
     {
-        if (disposing)
-            root.Dispose();
-
-        base.Dispose(disposing);
+        root.Dispose();
     }
 }

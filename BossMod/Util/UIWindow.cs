@@ -76,3 +76,20 @@ public class UISimpleWindow(string name, Action draw, bool detached, Vector2 ini
 
     public override void Draw() => _draw();
 }
+
+public abstract class WindowBase : Window
+{
+    public WindowBase(string name, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
+    {
+        Size = initialSize;
+        SizeCondition = ImGuiCond.FirstUseEver;
+        if (titleBarButtons != null)
+            TitleBarButtons = titleBarButtons;
+    }
+
+    public void OpenAndBringToFront()
+    {
+        IsOpen = true;
+        BringToFront();
+    }
+}

@@ -6,17 +6,18 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public sealed class UIRotationWindow : UIWindow
+public sealed class UIRotationWindow : WindowBase, IDisposable
 {
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
-    private readonly AutorotationConfig _config = Service.Config.Get<AutorotationConfig>();
+    private readonly AutorotationConfig _config;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex) : base("Autorotation", false, new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, AutorotationConfig config) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
+        _config = config;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
@@ -25,10 +26,9 @@ public sealed class UIRotationWindow : UIWindow
         TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => Service.Mediator.Publish(new OpenSettingsWindowMessage("Autorotation Presets")) });
     }
 
-    protected override void Dispose(bool disposing)
+    void IDisposable.Dispose()
     {
         _subscriptions.Dispose();
-        base.Dispose(disposing);
     }
 
     public void SetVisible(bool vis)

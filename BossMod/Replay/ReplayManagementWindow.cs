@@ -4,15 +4,17 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 using System.Diagnostics;
 using System.IO;
 
 namespace BossMod;
 
-public class ReplayManagementWindow : UIWindow
+public sealed class ReplayManagementWindow : WindowBase, IDisposable
 {
     private readonly WorldState _ws;
+    private readonly ICondition condition;
     private readonly DirectoryInfo _logDir;
     private readonly ReplayManagementConfig _config;
     private readonly ReplayManager _manager;
@@ -34,9 +36,10 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, BossModuleManager bmm, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, ICondition condition, BossModuleManager bmm, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : base(_windowID, new(400, 500))
     {
         _ws = ws;
+        this.condition = condition;
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
         _manager = new(logDir.FullName, scope);
@@ -54,12 +57,11 @@ public class ReplayManagementWindow : UIWindow
         RespectCloseHotkey = false;
     }
 
-    protected override void Dispose(bool disposing)
+    void IDisposable.Dispose()
     {
         _recorder?.Dispose();
         _subscriptions.Dispose();
         _manager.Dispose();
-        base.Dispose(disposing);
     }
 
     public void SetVisible(bool vis)
@@ -238,7 +240,7 @@ public class ReplayManagementWindow : UIWindow
 
     private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
 
-    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
+    public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
 
     private bool OnZoneChange(uint cfcId)
     {

@@ -57,14 +57,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly IClientState clientState;
     private readonly IHintExecutor _hintExecutor;
 
-    private readonly BossModuleMainWindow _wndBossmod;
-    private readonly BossModuleHintsWindow _wndBossmodHints;
-    private readonly ZoneModuleWindow _wndZone;
-    private readonly ReplayManagementWindow _wndReplay;
-    private readonly UIRotationWindow _wndRotation;
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
-    private readonly ConfigWindow _wndConfig;
     private readonly ConfigChangelogWindow _wndChangelog;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
@@ -99,7 +93,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         ZoneModuleManager zmm,
         AIHintsBuilder builder,
         JsonSerializerOptions serOptions,
-        ReplayManagementWindow replayManagementWindow
+        IEnumerable<WindowBase> windows
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -108,6 +102,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         this.logger = logger;
         this.clientState = clientState;
         windowSystem = windowSystemFactory.Create("vbm");
+
+        foreach (var window in windows)
+            windowSystem.AddWindow(window);
 
         dalamud.Create<Service>();
         Service.Mediator = mediator;
@@ -183,18 +180,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
 
-        _wndConfig = new(new(Service.Config, _ws, bossModuleRegistry, rotationModuleRegistry, serOptions, replayDir, _rotationDB));
-        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
-        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
-        _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
-        _wndReplay = replayManagementWindow;
-        _wndRotation = new UIRotationWindow(_rotation, _amex);
         _wndAI = new AIWindow(_rotation);
         _wndChangelog = new();
 
         if (Service.IsMock)
         {
-            Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
+            //Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
             _ = new MainDevWindow(dalamud, _packs) { IsOpen = true };
         }
         else
@@ -246,6 +237,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             windowSystem.Windows.FirstOrDefault(w => w.GetType() == t.WindowType)?.IsOpen ^= true;
         });
+
+        if (Service.IsMock)
+        {
+            windowSystem.Windows.FirstOrDefault(w => w.GetType() == typeof(ReplayManagementWindow))?.IsOpen = true;
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -409,7 +405,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     void RegisterSlashCommands()
     {
         _slashCmd.SetSimpleHandler("show boss mod settings UI", () => OpenConfigUI());
-        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => _wndReplay.SetVisible(!_wndReplay.IsOpen));
+        _slashCmd.AddSubcommand("r").SetSimpleHandler("show/hide replay management window", () => MediatorService.Publish(new ToggleWindowMessage(typeof(ReplayManagementWindow))));
         RegisterAutorotationSlashCommands(_slashCmd.AddSubcommand("ar"));
         RegisterAISlashCommands(_slashCmd.AddSubcommand("ai"));
         _slashCmd.AddSubcommand("cfg").SetComplexHandler("<config-type> <field> [<value>]", "query or modify configuration setting", args =>
@@ -495,7 +491,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 Service.ChatError($"Failed to find preset '{presetName}'");
         }
 
-        cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
+        cmd.SetSimpleHandler("toggle autorotation ui", () => MediatorService.Publish(new ToggleWindowMessage(typeof(UIRotationWindow))));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
             Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
@@ -768,12 +764,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndDebug?.Dispose();
         _wndChangelog.Dispose();
         _wndAI.Dispose();
-        _wndRotation.Dispose();
-        _wndReplay.Dispose();
-        _wndZone.Dispose();
-        _wndBossmodHints.Dispose();
-        _wndBossmod.Dispose();
-        _wndConfig.Dispose();
         _rotationDB.Dispose();
         _mbox.Dispose();
         _slashCmd.Dispose();
