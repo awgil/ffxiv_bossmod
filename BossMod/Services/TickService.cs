@@ -49,17 +49,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly IClientState clientState;
     private readonly IHintExecutor _hintExecutor;
 
-    private readonly ICallGateSubscriber<bool>? _vnavIsReady;
-    private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
-
-    private readonly CancellationTokenSource _saveCts = new();
-
     public TickService(
         MediatorService mediator,
         ILogger<DisposableMediatorSubscriberBase> mLogger,
         IDalamudPluginInterface dalamud,
         IDataManager dataManager,
-        ICommandManager commandManager,
         IUiBuilder uiBuilder,
         ICondition condition,
         IPluginLog logger,
@@ -111,8 +105,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            Task.Run(SavePeriodically);
-
             // requires windows/wine
             MultiboxUnlock.Exec();
         }
@@ -122,12 +114,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         _hints = hintsGlobal;
         _ping = new(logger);
-
-        if (!Service.IsMock)
-        {
-            _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
-            _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
-        }
 
         _rotationDB = db;
 
@@ -251,9 +237,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
 
         _hintExecutor.Execute();
-
-        if (_vnavIsReady != null && _vnavIsOnMesh != null)
-            CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
 
         var destroyed = windowSystem.Windows.OfType<WindowBase>().Where(w => w.IsDestroyed).ToList();
         foreach (var d in destroyed)
@@ -433,29 +416,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         copy("BossMod.Ultimate.dll");
     }
 
-    private async Task SavePeriodically()
-    {
-        var token = _saveCts.Token;
-
-        while (!token.IsCancellationRequested)
-        {
-            await Task.Delay(30_000, token).ConfigureAwait(true);
-
-            Service.Config.SaveToFile(dalamud.ConfigFile);
-        }
-    }
-
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
 
         if (!disposing)
             return;
-
-        _saveCts.Cancel();
-        _saveCts.Dispose();
-        if (!Service.IsMock)
-            Service.Config.SaveToFile(dalamud.ConfigFile);
 
         GaugeVisualizer.Dispose();
         _rotationDB.Dispose();

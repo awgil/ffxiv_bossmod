@@ -19,10 +19,10 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
     private ILifetimeScope _playerScope;
     private RotationDatabase RotationDB => _player.RotationDB;
     private AIHints Hints => _player.Hints;
-    private BossModuleManager Bossmods => _player.Bmm;
-    private ZoneModuleManager Zonemods => _player.Zmm;
+    private BossModuleManager Bossmods => _player.Bossmods;
+    private ZoneModuleManager Zonemods => _player.Zonemods;
     private AIHintsBuilder HintsBuilder => _player.HintsBuilder;
-    private RotationModuleManager Rmm => _player.Rmm;
+    private RotationModuleManager Rmm => _player.Rotations;
     private readonly DateTime _first;
     private readonly DateTime _last;
     private DateTime _curTime; // note that is could fall between frames
@@ -59,11 +59,11 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
-        (_playerScope, _player) = ReplayPlayer.CreateOwned(data, _parentScope);
+        _events = scope.Resolve<EventList.Factory>().Invoke(data, MoveTo, this);
+        _analysis = scope.Resolve<AnalysisManager.Factory>().Invoke([data]);
+        (_playerScope, _player) = ReplayPlayer.Create(data, _parentScope);
         _player.AdvanceTo(_curTime, Bossmods.Update);
         _config = _playerScope.Resolve<ConfigUI>();
-        _events = _playerScope.Resolve<EventList.Factory>().Invoke(MoveTo, this);
-        _analysis = scope.Resolve<AnalysisManager.Factory>().Invoke([data]);
         _roles = _playerScope.Resolve<PartyRolesConfig>();
     }
 
@@ -580,7 +580,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
             if (_modulePopout != null)
                 mediator.Publish(new DestroyWindow(_modulePopout));
             _modulePopout = null;
-            (_playerScope, _player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
+            (_playerScope, _player) = ReplayPlayer.Create(_player.Replay, _parentScope);
         }
         _player.AdvanceTo(t, Bossmods.Update);
         Bossmods.ActiveModule?.DebugOpts = _moduleDebug;
@@ -618,13 +618,15 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
         if (_player.Replay.Ops.Count == 0)
             return;
 
-        var (tmpScope, player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
-        using var _ = tmpScope;
-        player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp; // so that we get correct name etc.
-        using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, false, new FileInfo(_player.Replay.Path).Directory!, "Before", false))
-            player.AdvanceTo(_curTime, () => { });
-        using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, "After", false))
-            player.AdvanceTo(DateTime.MaxValue, () => { });
+        var (tmpScope, player) = ReplayPlayer.Create(_player.Replay, _parentScope);
+        using (tmpScope)
+        {
+            player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp; // so that we get correct name etc.
+            using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, false, new FileInfo(_player.Replay.Path).Directory!, "Before", false))
+                player.AdvanceTo(_curTime, () => { });
+            using (var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, "After", false))
+                player.AdvanceTo(DateTime.MaxValue, () => { });
+        }
     }
 
     private void IsolateEncounter()
@@ -638,12 +640,14 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
         var primaryActorName = enc.ParticipantsByOID.TryGetValue(enc.OID, out var primary) ? primary[0].NameAt(enc.Time.Start).name : null;
 
-        var (tmpScope, player) = ReplayPlayer.CreateOwned(_player.Replay, _parentScope);
-        using var _ = tmpScope;
-        player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp;
-        player.AdvanceTo(enc.Time.Start, () => { });
-        using var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, $"Encounter_{Utils.StringToIdentifier(primaryActorName ?? "unknown")}", false);
-        player.AdvanceTo(enc.Time.End, () => { });
+        var (tmpScope, player) = ReplayPlayer.Create(_player.Replay, _parentScope);
+        using (tmpScope)
+        {
+            player.WorldState.Frame.Timestamp = _player.Replay.Ops[0].Timestamp;
+            player.AdvanceTo(enc.Time.Start, () => { });
+            using var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, $"Encounter_{Utils.StringToIdentifier(primaryActorName ?? "unknown")}", false);
+            player.AdvanceTo(enc.Time.End, () => { });
+        }
     }
 
     public override void OnClose()

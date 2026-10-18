@@ -146,6 +146,7 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterType<AnalysisManager>();
         containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
+        containerBuilder.RegisterType<ReplayVisualization.EventList>();
 
         containerBuilder.RegisterSingletonSelf<BossModuleHintsWindow>().As<WindowBase>();
         containerBuilder.RegisterSingletonSelf<BossModuleMainWindow>().As<WindowBase>();
@@ -200,7 +201,6 @@ public class Plugin : HostedPlugin
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
     {
-        containerBuilder.RegisterType<ActionManagerEx>().As<IAmex>().SingleInstance();
         containerBuilder.Register(ctx =>
         {
             var dataManager = ctx.Resolve<IDataManager>();
@@ -208,13 +208,17 @@ public class Plugin : HostedPlugin
             {
                 return new WorldState((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
             }
-        }).InstancePerLifetimeScope();
+        }).SingleInstance();
 
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
         containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
 
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
     }
 
     public static string GetStorageDir() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm");

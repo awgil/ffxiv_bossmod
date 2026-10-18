@@ -9,7 +9,7 @@ class EventList(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions ser
 {
     record struct Lists(OpList? Ops, IPCList? IPCs);
 
-    public delegate EventList Factory(Action<DateTime> scrollTo, ReplayDetailsWindow timelineSync);
+    public delegate EventList Factory(Replay r, Action<DateTime> scrollTo, ReplayDetailsWindow timelineSync);
 
     private readonly UITree _tree = new();
     private Lists _listsRaw;

@@ -367,7 +367,7 @@ public sealed class ReplayManager : IDisposable
         if (r.Ops.Count == 0)
             return;
 
-        var (scope, player) = ReplayPlayer.CreateOwned(r, container);
+        var (scope, player) = ReplayPlayer.Create(r, container);
         using var _ = scope;
         player.WorldState.Frame.Timestamp = r.Ops[0].Timestamp; // so that we get correct name etc.
         using var relogger = new ReplayRecorder(player.WorldState, format, false, new FileInfo(r.Path).Directory!, format.ToString(), anonymize);

@@ -1,22 +1,12 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
-using BossMod.ReplayVisualization;
 
 namespace BossMod;
 
 // utility for applying replay operations to world state, accurate scrolling, etc.
-public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, RotationModuleManager rmm, BossModuleManager bmm, ZoneModuleManager zmm, AIHintsBuilder hintsBuilder, AIHints hints)
+public record ReplayPlayer(Replay Replay, WorldState WorldState, RotationDatabase RotationDB, RotationModuleManager Rotations, BossModuleManager Bossmods, ZoneModuleManager Zonemods, AIHintsBuilder HintsBuilder, AIHints Hints)
 {
-    public Replay Replay = r;
     private int _nextOp; // first unexecuted operation; note that it corresponds to first operation with timestamp > that worldstate's current
-
-    public WorldState WorldState { get; private set; } = ws;
-    public RotationDatabase RotationDB { get; } = rotationDB;
-    public RotationModuleManager Rmm { get; } = rmm;
-    public BossModuleManager Bmm { get; } = bmm;
-    public ZoneModuleManager Zmm { get; } = zmm;
-    public AIHintsBuilder HintsBuilder { get; } = hintsBuilder;
-    public AIHints Hints { get; } = hints;
 
     // execute next group of operations that share timestamp; returns false if we've reached the end
     public bool TickForward()
@@ -52,14 +42,13 @@ public class ReplayPlayer(Replay r, WorldState ws, RotationDatabase rotationDB, 
         return default;
     }
 
-    public static (ILifetimeScope Scope, ReplayPlayer Player) CreateOwned(Replay data, ILifetimeScope parent)
+    public static (ILifetimeScope Scope, ReplayPlayer Player) Create(Replay data, ILifetimeScope parent)
     {
         var scope = parent.BeginLifetimeScope(ctx =>
         {
             ctx.Register(_ => data).SingleInstance();
             ctx.Register(_ => new WorldState(data.QPF, data.GameVersion)).SingleInstance();
             ctx.RegisterType<ReplayPlayer>().SingleInstance();
-            ctx.RegisterType<EventList>().SingleInstance();
         });
         return (scope, scope.Resolve<ReplayPlayer>());
     }
