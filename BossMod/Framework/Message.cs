@@ -10,3 +10,15 @@ public sealed record ToggleWindow(Type WindowType) : MessageBase;
 public sealed record ShowConfigNode(Type NodeType) : MessageBase;
 public sealed record CreateWindow(Window Window) : MessageBase;
 public sealed record DestroyWindow(Window Window) : MessageBase;
+
+public static class MediatorExtensions
+{
+    extension(MediatorService mediator)
+    {
+        public T CreateWindow<T>(T w) where T : Window
+        {
+            mediator.Publish(new CreateWindow(w));
+            return w;
+        }
+    }
+}

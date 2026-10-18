@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Features.AttributeFilters;
+using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.ReplayAnalysis;
-using BossMod.ReplayVisualization;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
@@ -139,18 +139,14 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterType<AnalysisManager>();
         containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
 
-        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
-            .Where(t => t.IsSubclassOf(typeof(WindowBase)))
-            .Except<MainDevWindow>()
-            .Except<ReplayDetailsWindow>()
-            .As<WindowBase>()
-            .SingleInstance()
-            .WithAttributeFiltering();
-
-        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
-            .Where(t => t.IsSubclassOf(typeof(DetachedWindow)))
-            .As<DetachedWindow>()
-            .WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelf<BossModuleHintsWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<BossModuleMainWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<ZoneModuleWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<ConfigChangelogWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<ConfigWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<ReplayManagementWindow>().As<WindowBase>().WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelf<UIRotationWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<AIWindow>().As<WindowBase>();
 
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(t => t.IsSubclassOf(typeof(TestWindow)))

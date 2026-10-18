@@ -79,6 +79,8 @@ public class UISimpleWindow(string name, Action draw, bool detached, Vector2 ini
 
 public abstract class WindowBase : Window
 {
+    public bool IsDestroyed;
+
     public WindowBase(string name, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
     {
         Size = initialSize;
@@ -94,15 +96,10 @@ public abstract class WindowBase : Window
     }
 }
 
-public abstract class DetachedWindow : Window
+public abstract class DetachedWindow : WindowBase
 {
-    public DetachedWindow(string name, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, flags)
+    public DetachedWindow(string name, Vector2 initialSize, ImGuiWindowFlags flags = ImGuiWindowFlags.None, List<TitleBarButton>? titleBarButtons = null) : base(name, initialSize, flags, titleBarButtons)
     {
-        Size = initialSize;
-        SizeCondition = ImGuiCond.FirstUseEver;
-        if (titleBarButtons != null)
-            TitleBarButtons = titleBarButtons;
-
         IsOpen = true;
     }
 }

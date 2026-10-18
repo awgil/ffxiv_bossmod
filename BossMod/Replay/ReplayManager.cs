@@ -39,8 +39,7 @@ public sealed class ReplayManager : IDisposable
         public void Dispose()
         {
             Disposing = true;
-            if (Window != null)
-                mediator.Publish(new DestroyWindow(Window));
+            Window?.IsDestroyed = true;
             Cancel.Cancel();
             Replay.Wait();
             Replay.Dispose();
@@ -50,11 +49,7 @@ public sealed class ReplayManager : IDisposable
 
         public void Show()
         {
-            if (Window == null)
-            {
-                Window = new(Replay.Result, InitialTime, scope);
-                mediator.Publish(new CreateWindow(Window));
-            }
+            Window ??= mediator.CreateWindow<ReplayVisualization.ReplayDetailsWindow>(new(Replay.Result, InitialTime, scope));
             Window.IsOpen = true;
             Window.BringToFront();
         }

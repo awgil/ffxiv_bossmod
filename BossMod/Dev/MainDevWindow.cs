@@ -51,6 +51,9 @@ class MainDevWindow : WindowBase, IDisposable
 
         foreach (var t in testWindows)
             if (ImGui.Button($"Show {t.GetType()}"))
+            {
+                t.IsOpen = true;
                 mediator.Publish(new CreateWindow(t));
+            }
     }
 }

@@ -272,7 +272,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (_vnavIsReady != null && _vnavIsOnMesh != null)
             CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
 
-        var detached = windowSystem.Windows.Where(w => w is DetachedWindow && !w.IsOpen).ToList();
+        var detached = windowSystem.Windows.OfType<WindowBase>().Where(w => w.IsDestroyed || w is DetachedWindow { IsOpen: false }).ToList();
         foreach (var d in detached)
         {
             windowSystem.RemoveWindow(d);
