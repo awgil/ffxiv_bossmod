@@ -1,5 +1,19 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
+class P2Preposition(BossModule module) : BossComponent(module)
+{
+    public int Step = 1;
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Step == 1)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 1), DateTime.MaxValue);
+
+        if (Step == 2)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 5 + 3 + actor.HitboxRadius));
+    }
+}
+
 // crimson cyclone has multiple variations:
 // p2 first cast is a single charge along cardinal
 // p2 second cast is two charges along both cardinals
@@ -20,7 +34,7 @@ class CrimsonCyclone(BossModule module, float predictionDelay) : Components.Gene
     {
         if (_predicted.Count <= 2) // don't draw 4 predicted charges, it is pointless
             foreach (var p in _predicted)
-                yield return new(p.shape, p.pos, p.rot, p.activation);
+                yield return new(p.shape, p.pos, p.rot, p.activation, Risky: false);
         foreach (var c in _casters)
             yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }

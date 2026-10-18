@@ -522,6 +522,6 @@ public sealed class AIHints
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
-        return p => sh(p) >= 0 ? 10 : 0;
+        return p => sh(p) >= 0 ? 15 : 0;
     }
 }

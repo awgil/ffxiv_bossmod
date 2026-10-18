@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 class P1Slipstream(BossModule module) : Components.StandardAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
-class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 60.Degrees()));
+class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 65.Degrees()));
 class P1EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
 class P1Gigastorm(BossModule module) : Components.StandardAOEs(module, AID.Gigastorm, new AOEShapeCircle(6.5f));
 class P2RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlumeAOE, 8);
@@ -32,6 +32,9 @@ class P1Positioning(BossModule module) : BossComponent(module)
         {
             garuda.DesiredPosition = DesiredPosition;
             garuda.DesiredRotation = DesiredRotation;
+
+            if (garuda.Actor.PendingHPRatio < 0.02f && garuda.Actor.FindStatus(SID.Woken) == null)
+                garuda.Priority = AIHints.Enemy.PriorityForbidden;
         }
     }
 }
