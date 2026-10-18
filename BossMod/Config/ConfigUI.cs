@@ -52,7 +52,7 @@ public sealed class ConfigUI : IDisposable
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
         _about = new(replayDir);
-        _mv = new(rotationDB?.Plans, ws, bossModuleRegistry);
+        _mv = new(rotationDB?.Plans, ws, bossModuleRegistry, serOptions);
         _presets = rotationDB != null ? new(rotationDB, rotationModuleRegistry, serOptions) : null;
         _rotationDB = rotationDB;
 

@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
+using BossMod.ReplayAnalysis;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -59,7 +60,7 @@ class ReplayDetailsWindow : UIWindow
         _player.AdvanceTo(_curTime, Bossmods.Update);
         _config = new(Service.Config, _player.WorldState, scope.Resolve<BossModuleRegistry>(), scope.Resolve<RotationModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), null, null);
         _events = _playerScope.Resolve<EventList.Factory>().Invoke(MoveTo, this);
-        _analysis = new([data], scope.Resolve<BossModuleRegistry>());
+        _analysis = _playerScope.Resolve<AnalysisManager.Factory>().Invoke([data]);
     }
 
     protected override void Dispose(bool disposing)

@@ -67,7 +67,7 @@ class ClassDefinitions
     private readonly SortedDictionary<int, List<ActionData>> _byCDGroup = [];
     private readonly BitMask[] _classPerCategory = new BitMask[(int)ClassCategory.Limited + 1];
 
-    public ClassDefinitions(List<Replay> replays)
+    public ClassDefinitions(List<Replay> replays, BozjaActionID bozjaActions)
     {
         var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
         var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
@@ -139,9 +139,8 @@ class ClassDefinitions
         }
 
         // mark bozja holster actions
-        // FIXME
-        //for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
-        //    _actionData[BozjaActionID.GetNormal(i)].IsBozjaHolster = true;
+        for (var i = BozjaHolsterID.None + 1; i < BozjaHolsterID.Count; ++i)
+            _actionData[bozjaActions.GetNormal(i)].IsBozjaHolster = true;
 
         foreach (var id in typeof(PhantomID).GetEnumValues())
             if ((uint)id > 0)

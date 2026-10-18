@@ -187,7 +187,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
         _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
-        _wndReplay = new ReplayManagementWindow(_ws, scope, bossModuleRegistry, _bossmod, replayDir);
+        _wndReplay = new ReplayManagementWindow(_ws, scope, _bossmod, replayDir);
         _wndRotation = new UIRotationWindow(_rotation, _amex);
         _wndAI = new AIWindow(_rotation);
         _wndChangelog = new();

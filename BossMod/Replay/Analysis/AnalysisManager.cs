@@ -12,12 +12,12 @@ public sealed class AnalysisManager : IDisposable
         public T Get() => _impl ??= _init();
     }
 
-    private sealed class Global(List<Replay> replays)
+    private sealed class Global(List<Replay> replays, BozjaActionID bozjaActions)
     {
         private readonly Lazy<UnknownActionEffects> _unkEffects = new(() => new(replays));
         private readonly Lazy<ParticipantInfo> _participantInfo = new(() => new(replays));
         private readonly Lazy<AbilityInfo> _abilityInfo = new(() => new(replays));
-        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays));
+        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays, bozjaActions));
         private readonly Lazy<ClientActions> _clientActions = new(() => new(replays));
         private readonly Lazy<EffectResultMispredict> _effectResultMissing = new(() => new(replays, true));
         private readonly Lazy<EffectResultMispredict> _effectResultUnexpected = new(() => new(replays, false));
@@ -120,11 +120,13 @@ public sealed class AnalysisManager : IDisposable
     private readonly Dictionary<uint, PerEncounter> _perEncounter = []; // key = encounter OID
     private readonly UITree _tree = new();
 
-    public AnalysisManager(List<Replay> replays, BossModuleRegistry registry)
+    public delegate AnalysisManager Factory(List<Replay> replays);
+
+    public AnalysisManager(List<Replay> replays, BossModuleRegistry registry, BozjaActionID bozjaActions)
     {
         _replays = replays;
         this.registry = registry;
-        _global = new(_replays);
+        _global = new(_replays, bozjaActions);
         InitEncounters();
     }
 
@@ -150,6 +152,6 @@ public sealed class AnalysisManager : IDisposable
         foreach (var replay in _replays)
             foreach (var e in replay.Encounters)
                 if (!_perEncounter.ContainsKey(e.OID))
-                    _perEncounter[e.OID] = new(_replays, registry.FindByOID(e.OID));
+                    _perEncounter[e.OID] = new(_replays, registry.FindByOID(e.OID)!);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Config;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -9,6 +10,7 @@ using Lumina.Text.ReadOnly;
 using System.Data;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 
 namespace BossMod;
 
@@ -21,6 +23,7 @@ public sealed class ModuleViewer : IDisposable
     private readonly PlanDatabase? _planDB;
     private readonly WorldState _ws; // TODO: reconsider...
     private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly JsonSerializerOptions serOptions;
     private readonly BossModuleConfig _bmConfig = Service.Config.Get<BossModuleConfig>();
 
     private BitMask _filterExpansions;
@@ -37,11 +40,12 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase? planDB, WorldState ws, BossModuleRegistry bossModuleRegistry)
+    public ModuleViewer(PlanDatabase? planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions)
     {
         _planDB = planDB;
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
+        this.serOptions = serOptions;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
@@ -479,6 +483,10 @@ public sealed class ModuleViewer : IDisposable
             return;
 
         var mplans = _planDB.Plans.GetOrAdd(info.ModuleType);
+
+        if (ImGui.Selectable("Export..."))
+            _ = new MultiExport(mplans, serOptions);
+
         foreach (var (cls, plans) in mplans)
         {
             foreach (var plan in plans.Plans)

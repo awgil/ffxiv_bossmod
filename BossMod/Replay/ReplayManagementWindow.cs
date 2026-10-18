@@ -33,12 +33,12 @@ public class ReplayManagementWindow : UIWindow
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, BossModuleRegistry registry, BossModuleManager bmm, DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, BossModuleManager bmm, DirectoryInfo logDir) : base(_windowID, false, new(400, 500))
     {
         _ws = ws;
         _logDir = logDir;
         _config = Service.Config.Get<ReplayManagementConfig>();
-        _manager = new(registry, logDir.FullName, scope);
+        _manager = new(logDir.FullName, scope);
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
