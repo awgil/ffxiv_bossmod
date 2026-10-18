@@ -8,6 +8,7 @@ public enum OID : uint
     Ghost = 0x213F, // R1.800, chasers
     PassengerGhost = 0x2148, // R1.000, the ghost inside a passenger car
     PassengerGhost2 = 0x21E8, // R1.000
+    Siegfried = 0x214D, // R0.500, x0 (spawn during fight), special ghost inside a passenger car
     PutridPassenger = 0x2140, // R0.500
     DoomChimney = 0x2174, // R3.850, on the train roof
     Phantom = 0x214F, // R1.000
@@ -397,7 +398,7 @@ class ChasingGhost(BossModule module) : Components.Voidzone(module, 4, OID.Ghost
 }
 
 class Passengers(BossModule module) : Components.Adds(module, (uint)OID.PutridPassenger);
-class CarGhost(BossModule module) : Components.AddsMulti(module, [(uint)OID.PassengerGhost, (uint)OID.PassengerGhost2]);
+class CarGhost(BossModule module) : Components.AddsMulti(module, [(uint)OID.PassengerGhost, (uint)OID.PassengerGhost2, (uint)OID.Siegfried]);
 class Chimney(BossModule module) : Components.Adds(module, (uint)OID.DoomChimney);
 
 class JumpPads(BossModule module) : BossComponent(module)
