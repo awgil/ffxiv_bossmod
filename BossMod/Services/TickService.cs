@@ -190,7 +190,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         if (Service.IsMock)
         {
-            windowSystem.Windows.FirstOrDefault(w => w.GetType() == typeof(ReplayManagementWindow))?.IsOpen = true;
+            windowSystem.Windows.OfType<ReplayManagementWindow>().FirstOrDefault()?.OpenAndBringToFront();
         }
     }
 

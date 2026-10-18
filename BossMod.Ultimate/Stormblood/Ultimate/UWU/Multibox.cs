@@ -10,14 +10,10 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
         return new RotationModuleDefinition("Auto-UWU", "Auto-food, auto-wall, prepull position", "AI", "xan", RotationModuleQuality.WIP, new(~0ul), 70, 70, RelatedBossModule: typeof(UWU));
     }
 
-    private readonly PartyRolesConfig partyRolesConfig = Service.Config.Get<PartyRolesConfig>();
-
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         if (World.Party.WithoutSlot(includeDead: true).Any(p => p.IsDead || p.FindStatus(235) != null) && Bossmods.ActiveModule!.StateMachine.ActivePhaseIndex < 4)
             Hints.ForcedMovement = -Player.DirectionTo(new WPos(100, 100)).ToVec3();
-
-        var playerAssignment = partyRolesConfig[World.Party.Members[0].ContentId];
 
         if (!Player.InCombat && World.Client.CountdownRemaining > 0)
         {

@@ -160,7 +160,7 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
             _numFriction++;
             if (_numFriction == 2)
             {
-                var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+                var assignments = PartyRoles.SlotsPerAssignment(Raid);
                 if (assignments.Length > 0)
                     Forbidden.Clear(assignments[(int)PartyRolesConfig.Assignment.M1]);
             }
@@ -174,7 +174,7 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
             Forbidden.Reset();
             Deadline = Module.CastFinishAt(spell);
 
-            var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+            var assignments = PartyRoles.SlotsPerAssignment(Raid);
             if (assignments.Length == 0)
             {
                 ReportError($"Don't know who should leave for friction, doing nothing");
@@ -210,7 +210,7 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
 
         if (_bubbleExpire > WorldState.CurrentTime)
         {
-            var ass = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
+            var ass = PartyRoles.SlotsPerAssignment(Raid);
             if (ass.Length == 0)
                 return;
 

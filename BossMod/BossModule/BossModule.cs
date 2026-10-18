@@ -22,8 +22,9 @@ public abstract class BossModule : IDisposable
 {
     public readonly WorldState WorldState;
     public Actor PrimaryActor { get; private set; }
-    public readonly BossModuleConfig WindowConfig;
-    public readonly ColorConfig ColorConfig;
+    public readonly ConfigRoot ConfigRoot;
+    public BossModuleConfig WindowConfig => ConfigRoot.Get<BossModuleConfig>();
+    public ColorConfig ColorConfig => ConfigRoot.Get<ColorConfig>();
     public ArenaColor ArenaColor => Arena.ArenaColor;
     public readonly MiniArena Arena;
     public readonly BossModuleRegistry.Info? Info;
@@ -113,8 +114,7 @@ public abstract class BossModule : IDisposable
         WorldState = init.World;
         PrimaryActor = init.Primary;
         Info = init.Info;
-        WindowConfig = init.ConfigRoot.Get<BossModuleConfig>();
-        ColorConfig = init.ConfigRoot.Get<ColorConfig>();
+        ConfigRoot = init.ConfigRoot;
         Arena = new(WindowConfig, center, bounds, ColorConfig);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 

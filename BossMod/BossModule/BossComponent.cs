@@ -7,6 +7,7 @@ public class BossComponent(BossModule module)
 {
     public readonly BossModule Module = module;
     public ArenaColor ArenaColor => Module.ArenaColor;
+    public PartyRolesConfig PartyRoles => Module.ConfigRoot.Get<PartyRolesConfig>();
 
     // list of actor-specific hints (string + whether this is a "risk" type of hint)
     public class TextHints : List<(string, bool)>
