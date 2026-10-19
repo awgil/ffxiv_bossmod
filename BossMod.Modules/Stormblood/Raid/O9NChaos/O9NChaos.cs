@@ -248,5 +248,5 @@ class ChaosStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 587, NameID = 7691)]
+[ModuleInfo(Contributors = "croizat", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 587, NameID = 7691)]
 public class Chaos(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20));
