@@ -34,6 +34,9 @@ public sealed class ClassWHMUtilityEx(RotationModuleManager manager, Actor playe
         if (strategy.Heal.Value != HealStrategy.FullHeal)
             return;
 
+        var medica = BestActionUnlocked(WHM.AID.MedicaIII, WHM.AID.MedicaII);
+        var medicaStatus = medica == WHM.AID.MedicaIII ? WHM.SID.MedicaIII : WHM.SID.MedicaII;
+
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
 
         var swift = Player.FindStatus(ClassShared.SID.Swiftcast, World.FutureTime(30))?.ExpireAt > World.FutureTime(GCD);
@@ -47,10 +50,17 @@ public sealed class ClassWHMUtilityEx(RotationModuleManager manager, Actor playe
 
         // TODO: we should apply Medica first if the deadline is decently far into the future
         // Medica is a 200 potency heal + 5 ticks of a 100 potency heal over 15 seconds
-        var healTargets = targets.Where(t => t.PendingHPClamped < t.HPMP.MaxHP).ToList();
+        var healTargets = targets.Where(t => t.PendingHPClamped < t.HPMP.MaxHP && !(t.FindStatus(medicaStatus, World.FutureTime(15))?.ExpireAt >= World.FutureTime(3))).ToList();
 
         // C3 is a gain on 2
         var (c3target, numtargets) = healTargets.Select(t => (t, healTargets.InRadius(t.Position, 10).Count())).MaxBy(t => t.Item2);
+
+        if (deadline >= 12 && numtargets > 0)
+        {
+            var numMedica = healTargets.Count(t => t.Position.InCircle(Player.Position, 20) && t.FindStatus(medicaStatus, World.FutureTime(15)) == null);
+            if (numMedica >= numtargets)
+                Hints.ActionsToExecute.Push(ActionID.MakeSpell(medica), Player, ActionQueue.Priority.VeryHigh, castTime: swift ? 0 : 2);
+        }
 
         if (numtargets > 1)
         {

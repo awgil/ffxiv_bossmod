@@ -141,7 +141,9 @@ class QueenHawkPiece(BossModule module) : Components.AddsPointless(module, (uint
             foreach (var center in safe)
             {
                 hints.ForbiddenZones.RemoveAll(z => z.tag == 0x12345678);
-                hints.GoalZones.Add(hints.PullTargetToLocation(add, Thorns.ForbiddenArcs.Center + center.ToDirection() * 3, actor, 0, 1, false));
+                var dest = Thorns.ForbiddenArcs.Center + center.ToDirection() * 3;
+
+                hints.FindEnemy(add)?.DesiredPosition = dest;
             }
         }
     }

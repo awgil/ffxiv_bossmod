@@ -1,18 +1,15 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
+// satin plumes apply raidwide sleep after about 21 seconds
 class P1Plumes(BossModule module) : BossComponent(module)
 {
-    private readonly IReadOnlyList<Actor> _razor = module.Enemies(OID.RazorPlume);
-    private readonly IReadOnlyList<Actor> _spiny = module.Enemies(OID.SpinyPlume);
-    private readonly IReadOnlyList<Actor> _satin = module.Enemies(OID.SatinPlume);
+    private readonly List<(Actor Plume, DateTime Spawn)> _plumes = [];
 
-    public bool Active => _razor.Any(p => p.IsTargetable) || _spiny.Any(p => p.IsTargetable) || _satin.Any(p => p.IsTargetable);
+    public bool Active => _plumes.Any(p => p.Plume.IsTargetable);
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.Actors(_razor, ArenaColor.Enemy);
-        Arena.Actors(_spiny, ArenaColor.Enemy);
-        Arena.Actors(_satin, ArenaColor.Enemy);
+        Arena.Actors(_plumes.Select(p => p.Plume), ArenaColor.Enemy);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -20,37 +17,53 @@ class P1Plumes(BossModule module) : BossComponent(module)
         if (Module.PrimaryActor.TargetID == actor.InstanceID)
             return;
 
-        foreach (var sp in _spiny)
+        var dest = Module.PrimaryActor.Position + new WDir(0, 3);
+
+        foreach (var (plume, spawn) in _plumes)
         {
-            if (hints.FindEnemy(sp) is { } spi)
+            if (hints.FindEnemy(plume) is not { } enemy)
+                continue;
+
+            enemy.AllowDOTs = false;
+            enemy.DesiredPosition = dest;
+
+            if (plume.OID == (uint)OID.SpinyPlume)
             {
-                spi.DesiredPosition = new(93.3f, 105);
+                var stacks = WorldState.Actors.Find(plume.TargetID)?.FindStatus(SID.ThermalLow, DateTime.MaxValue)?.Extra ?? 0;
 
-                var stacks = WorldState.Actors.Find(sp.TargetID)?.FindStatus(SID.ThermalLow, DateTime.MaxValue)?.Extra ?? 0;
-
-                if (sp.Tether.ID == 0)
+                if (plume.Tether.ID == 0)
                 {
                     if (assignment != PartyRolesConfig.Assignment.OT)
-                        spi.Priority = AIHints.Enemy.PriorityForbidden;
+                        enemy.Priority = AIHints.Enemy.PriorityForbidden;
                 }
-                else if (sp.Tether.Target == actor.InstanceID)
-                    spi.Priority = 1;
                 else
-                    spi.Priority = 0;
+                    enemy.Priority = 0;
 
-                if (sp.PendingHPRatio < 0.15f)
-                    spi.Priority = stacks == 2 ? 1 : AIHints.Enemy.PriorityForbidden;
+                if (plume.PendingHPRatio < 0.15f)
+                    enemy.Priority = stacks == 2 ? 1 : AIHints.Enemy.PriorityForbidden;
             }
-        }
 
-        foreach (var sp in _satin)
-        {
-            if (hints.FindEnemy(sp) is { } sat)
+            if (plume.OID == (uint)OID.SatinPlume)
             {
-                sat.DesiredPosition = new(93.3f, 105);
-                sat.Priority = 0;
+                enemy.Priority = 0;
+
+                // roughly when the plume casts sleep
+                var deadline = spawn.AddSeconds(20.7f);
+                if (deadline < WorldState.FutureTime(5))
+                    enemy.Priority = 1;
             }
         }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID is OID.SpinyPlume or OID.SatinPlume or OID.RazorPlume)
+            _plumes.Add((actor, WorldState.CurrentTime));
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        _plumes.RemoveAll(p => p.Plume == actor);
     }
 }
 
