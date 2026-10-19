@@ -66,6 +66,7 @@ class ReplayDetailsWindow : UIWindow
 
     protected override void Dispose(bool disposing)
     {
+        _replayDebugEvents?.Dispose();
         _modulePopout?.Dispose();
         _analysis.Dispose();
         _config.Dispose();
