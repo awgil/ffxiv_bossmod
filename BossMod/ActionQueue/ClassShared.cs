@@ -74,6 +74,7 @@ public enum AID : uint
     AntiGravityGimbal = 9483, // O2N Catastrophe
     BlackPaint = 20304, // O6N Chadarnook
     Snort = 10270, // O6N Chadarnook
+    OmegaJammer = 12911,  // O11N Omega
 
     // Variant actions
     VariantCure1 = 29729, // available in sil'dih
@@ -254,6 +255,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.AntiGravityGimbal);
         d.RegisterSpell(AID.BlackPaint);
         d.RegisterSpell(AID.Snort);
+        d.RegisterSpell(AID.OmegaJammer);
 
         // variant actions
         d.RegisterSpell(AID.VariantCure1);
