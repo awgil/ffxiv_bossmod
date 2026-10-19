@@ -23,6 +23,7 @@ public enum AID : uint
     EarthShaker = 12753, // Helper->self, no cast, cone on marked players
     AkhMorn = 12742, // Boss->player, 5.0s cast, range 6 circle
     AkhMornRepeat = 12795, // Boss->player, no cast, range 6 circle
+    AkhMornInterval = 12873, // Boss->self, no cast, single-target
     Thunderstorm = 12754, // Helper->player, 5.0s cast, range 5 circle
     ThunderstormVisual = 12815, // Boss->self, 4.5s cast, single-target
     HorridRoar = 12755, // Helper->location, 3.5s cast, range 6 circle
