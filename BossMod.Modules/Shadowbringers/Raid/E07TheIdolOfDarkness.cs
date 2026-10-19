@@ -228,11 +228,13 @@ class AwayWithThee(BossModule module) : Components.Knockback(module, ignoreImmun
 
 class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<(AOEInstance AOE, bool Astral, bool PortalExit)> _aoes = [];
+    private readonly List<(AOEInstance AOE, bool Astral, bool PortalExit, int Wave)> _aoes = [];
     private readonly List<(WPos Pos, Angle Rot)> _pendingExitPortals = [];
     private readonly List<(WPos Pos, Angle Rot)> _exitPortals = [];
-    private readonly List<(bool Astral, DateTime When)> _pendingPortalEntries = [];
+    private readonly List<(bool Astral, int Wave, DateTime Finish)> _pendingPortalEntries = [];
     private int _portalEntries;
+    private int _nextWave;
+    private DateTime _lastEntryFinish;
 
     private static readonly AOEShapeRect _shape50 = new(50, 5);
     private static readonly AOEShapeRect _shape25 = new(25, 5);
@@ -243,11 +245,11 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
         var cutoff = WorldState.CurrentTime.AddSeconds(-0.5f); // I have no idea but sometimes they just don't resolve
         _aoes.RemoveAll(a => a.AOE.Activation < cutoff);
 
-        if (_pendingPortalEntries.Count > 0)
+        if (_pendingPortalEntries.Count > 0 && _exitPortals.Count > 0)
         {
             // same-wave mixed, offset light first then dark
-            foreach (var e in _pendingPortalEntries.OrderBy(e => e.When).ThenByDescending(e => e.Astral))
-                PredictPortalExits(e.Astral);
+            foreach (var e in _pendingPortalEntries.OrderBy(e => e.Finish).ThenByDescending(e => e.Astral))
+                PredictPortalExits(e.Astral, e.Wave, e.Finish);
             _pendingPortalEntries.Clear();
         }
     }
@@ -256,18 +258,31 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
     {
         var astral = actor.FindStatus(SID.AstralEffect) != null;
         var umbral = actor.FindStatus(SID.UmbralEffect) != null;
-        DateTime earliest = default;
-        foreach (var (aoe, isAstral, _) in _aoes.OrderBy(a => a.AOE.Activation))
+        var visible = new List<(AOEInstance AOE, bool Astral, bool PortalExit, int Wave)>();
+        foreach (var a in _aoes)
         {
             // light soaks dark, dark soaks light
-            if (astral && !isAstral || umbral && isAstral)
+            if (astral && !a.Astral || umbral && a.Astral)
                 continue;
-            if (earliest == default) // only show imminent or else the entire arena gets covered
-                earliest = aoe.Activation.AddSeconds(0.5f);
-            if (aoe.Activation > earliest)
-                yield break;
-            yield return aoe;
+            visible.Add(a);
         }
+        if (visible.Count == 0)
+            yield break;
+
+        visible.Sort((a, b) => a.AOE.Activation.CompareTo(b.AOE.Activation));
+        var window = visible[0].AOE.Activation.AddSeconds(0.5f);
+        var imminent = 0;
+        while (imminent < visible.Count && visible[imminent].AOE.Activation <= window)
+            ++imminent;
+
+        var entranceUp = false;
+        for (var i = 0; i < imminent; ++i)
+            if (!visible[i].PortalExit)
+                entranceUp = true;
+
+        for (var i = 0; i < imminent; ++i)
+            if (!entranceUp || !visible[i].PortalExit)
+                yield return visible[i].AOE;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -287,7 +302,10 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
                 _exitPortals.Clear();
                 _exitPortals.AddRange(_pendingExitPortals);
                 _pendingExitPortals.Clear();
+                _pendingPortalEntries.Clear();
                 _portalEntries = 0;
+                _nextWave = 0;
+                _lastEntryFinish = default;
                 _aoes.RemoveAll(a => a.PortalExit);
                 break;
             case AID.LightsCourseExit:
@@ -311,28 +329,36 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
+        var aid = (AID)spell.Action.ID;
+        if (aid is not (AID.LightsCourse or AID.LightsCoursePortal or AID.LightsCourseNight or AID.LightsCourseShort or AID.DarksCourse or AID.DarksCoursePortal or AID.DarksCourseNight))
+            return;
+
+        var activation = Module.CastFinishAt(spell);
+        var wave = WaveFor(activation);
+        switch (aid)
         {
             case AID.LightsCourse:
             case AID.LightsCoursePortal:
             case AID.LightsCourseNight:
-                _aoes.Add((new(_shape50, caster.Position, spell.Rotation, Module.CastFinishAt(spell)), true, false));
+                _aoes.Add((new(_shape50, caster.Position, spell.Rotation, activation), true, false, wave));
                 break;
             case AID.LightsCourseShort:
-                _aoes.Add((new(_shape25, caster.Position, spell.Rotation, Module.CastFinishAt(spell)), true, false));
+                _aoes.Add((new(_shape25, caster.Position, spell.Rotation, activation), true, false, wave));
                 break;
             case AID.DarksCourse:
             case AID.DarksCoursePortal:
             case AID.DarksCourseNight:
-                _aoes.Add((new(_shape50, caster.Position, spell.Rotation, Module.CastFinishAt(spell)), false, false));
+                _aoes.Add((new(_shape50, caster.Position, spell.Rotation, activation), false, false, wave));
                 break;
         }
+
+        if (aid is AID.LightsCourseShort or AID.LightsCoursePortal or AID.DarksCoursePortal)
+            _pendingPortalEntries.Add((aid is not AID.DarksCoursePortal, wave, activation));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        var aid = (AID)spell.Action.ID;
-        switch (aid)
+        switch ((AID)spell.Action.ID)
         {
             case AID.LightsCourse:
             case AID.LightsCourseShort:
@@ -344,9 +370,6 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
                 _aoes.RemoveAll(a => !a.PortalExit && a.AOE.Origin.AlmostEqual(caster.Position, 1) && a.AOE.Rotation.AlmostEqual(spell.Rotation, 0.1f));
                 break;
         }
-
-        if (aid is AID.LightsCourseShort or AID.LightsCoursePortal or AID.DarksCoursePortal)
-            _pendingPortalEntries.Add((aid is not AID.DarksCoursePortal, WorldState.CurrentTime));
     }
 
     private void RemoveClosestPortalExit(WPos pos)
@@ -368,7 +391,15 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
             _aoes.RemoveAt(best);
     }
 
-    private void PredictPortalExits(bool astral)
+    private int WaveFor(DateTime activation)
+    {
+        foreach (var a in _aoes)
+            if (!a.PortalExit && Math.Abs((a.AOE.Activation - activation).TotalSeconds) < 0.5)
+                return a.Wave;
+        return _nextWave++;
+    }
+
+    private void PredictPortalExits(bool astral, int wave, DateTime castFinish)
     {
         if (_exitPortals.Count == 0)
             return;
@@ -376,14 +407,17 @@ class LightsAndDarksCourse(BossModule module) : Components.GenericAOEs(module)
         // words of night + multi-portal resolves faster than words of motion portal redirects
         var night = Raid.WithoutSlot().Any(p => p.FindStatus(SID.AstralEffect) != null || p.FindStatus(SID.UmbralEffect) != null);
         var delay = night ? 3.2f : 6.1f;
-        var act = WorldState.FutureTime(delay);
+        if (_portalEntries > 0 && Math.Abs((castFinish - _lastEntryFinish).TotalSeconds) < 0.5)
+            delay += 3.1f;
+        _lastEntryFinish = castFinish;
+        var act = castFinish.AddSeconds(delay);
         var sign = (_portalEntries % 2 == 0) ? 1 : -1;
 
         foreach (var (pos, rot) in _exitPortals)
         {
-            var baseOff = rot.Rad > 0 ? 5f : -5f; // west facing: +Z first, east facing: -Z first. Second set flips the other lane
-            var origin = new WPos(pos.X, pos.Z + baseOff * sign);
-            _aoes.Add((new(_shape55, origin, rot, act), astral, true));
+            // both facings emit +Z on the first entry. Second entry takes the other lane.
+            var origin = new WPos(pos.X, pos.Z + 5f * sign);
+            _aoes.Add((new(_shape55, origin, rot, act), astral, true, wave));
         }
         _portalEntries++;
     }
