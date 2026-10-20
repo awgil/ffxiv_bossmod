@@ -32,21 +32,9 @@ public enum Keys
     ReplayDirectory
 }
 
-public class Plugin : HostedPlugin
+public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 {
     public string Name => "Boss Mod";
-
-    public Plugin(IDalamudPluginInterface dalamud, ISigScanner sigScanner, IDataManager dataManager) : base(dalamud)
-    {
-#if LOCAL_CS
-        if (sigScanner == null) // nonexistent in mock environment
-            return;
-
-        InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
-        FFXIVClientStructs.Interop.Generated.Addresses.Register();
-        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
-#endif
-    }
 
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
@@ -55,22 +43,20 @@ public class Plugin : HostedPlugin
 
         ConfigureExtra(containerBuilder);
 
-        containerBuilder.RegisterSingletonSelfAndInterfaces<ModulePackService>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<PlanDatabase>().WithAttributeFiltering();
+        // useful filepaths
+        var autorotRoot = Path.Join(GetStorageDir(), "autorot");
+        containerBuilder.Register(ctx => new FileInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().AssemblyLocation.DirectoryName, "DefaultRotationPresets.json")))
+            .Keyed<FileInfo>(Keys.DefaultPresetsFile);
+        containerBuilder.Register(ctx => new FileInfo(Path.Join(autorotRoot, "presets.db.json")))
+            .Keyed<FileInfo>(Keys.PresetDatabase);
+        containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(autorotRoot, "plans")))
+            .Keyed<DirectoryInfo>(Keys.PlanDatabase);
+        containerBuilder.Register(ctx => new FileInfo(Path.Join(autorotRoot, "plans.manifest.json")))
+            .Keyed<FileInfo>(Keys.PlanManifest);
+        containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.ResolveKeyed<DirectoryInfo>(Keys.ConfigDirectory).FullName, "replays")))
+            .Keyed<DirectoryInfo>(Keys.ReplayDirectory);
 
-        containerBuilder.RegisterSingletonSelf<RotationModuleRegistry>();
-        containerBuilder.RegisterSingletonSelf<RotationDatabase>();
-        containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
-
-        containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
-        containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<ModuleInit>().InstancePerDependency();
-
-        containerBuilder.RegisterSingletonSelf<ZoneModuleRegistry>();
-        containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
-        containerBuilder.RegisterType<ZoneModuleInit>().InstancePerDependency();
-
+        // root config node
         containerBuilder.Register((ctx) =>
         {
             var root = new ConfigRoot(ctx.Resolve<IDalamudPluginInterface>().ConfigFile, ctx.Resolve<BossModuleRegistry>(), ctx.Resolve<JsonSerializerOptions>());
@@ -81,6 +67,8 @@ public class Plugin : HostedPlugin
 
             return root;
         }).SingleInstance();
+
+        // dynamic resolvers for ConfigNode descendants
         foreach (var node in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()))
         {
             containerBuilder.Register(s =>
@@ -114,30 +102,20 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterType<ActionQueue>();
 
+        // hints related stuff
         containerBuilder.RegisterSingletonSelf<ObstacleMapDatabase>();
         containerBuilder.RegisterType<ObstacleMapManager>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
 
+        // ui related stuff
         containerBuilder.RegisterType<ConfigUI>().InstancePerLifetimeScope().WithAttributeFiltering();
         containerBuilder.RegisterSingletonSelf<ModuleViewer>();
 
+        // action definitions stuff
+        containerBuilder.RegisterSingletonSelf<BozjaActionID>();
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsSubclassOf(typeof(Defs))).As<Defs>().SingleInstance();
-
         containerBuilder.RegisterSingletonSelf<ActionDefinitions>();
-
-        var autorotRoot = Path.Join(GetStorageDir(), "autorot");
-
-        containerBuilder.Register(ctx => new FileInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().AssemblyLocation.DirectoryName, "DefaultRotationPresets.json")))
-            .Keyed<FileInfo>(Keys.DefaultPresetsFile);
-        containerBuilder.Register(ctx => new FileInfo(Path.Join(autorotRoot, "presets.db.json")))
-            .Keyed<FileInfo>(Keys.PresetDatabase);
-        containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(autorotRoot, "plans")))
-            .Keyed<DirectoryInfo>(Keys.PlanDatabase);
-        containerBuilder.Register(ctx => new FileInfo(Path.Join(autorotRoot, "plans.manifest.json")))
-            .Keyed<FileInfo>(Keys.PlanManifest);
-        containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.ResolveKeyed<DirectoryInfo>(Keys.ConfigDirectory).FullName, "replays")))
-            .Keyed<DirectoryInfo>(Keys.ReplayDirectory);
 
         containerBuilder.RegisterGeneric((ctx, prms) =>
         {
@@ -146,12 +124,30 @@ public class Plugin : HostedPlugin
             return method!.Invoke(gd, [null, null])!;
         }).As(typeof(ExcelSheet<>));
 
-        containerBuilder.RegisterSingletonSelf<BozjaActionID>();
-
+        // replay stuff
         containerBuilder.RegisterType<AnalysisManager>();
         containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
         containerBuilder.RegisterType<ReplayVisualization.EventList>();
 
+        // stuff related to plans/presets/modules
+        // pack service needs to be registered first here
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ModulePackService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PlanDatabase>().WithAttributeFiltering();
+
+        containerBuilder.RegisterSingletonSelf<RotationModuleRegistry>();
+        containerBuilder.RegisterSingletonSelf<RotationDatabase>();
+        containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
+
+        containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
+        containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ModuleInit>().InstancePerDependency();
+
+        containerBuilder.RegisterSingletonSelf<ZoneModuleRegistry>();
+        containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ZoneModuleInit>().InstancePerDependency();
+
+        // persistent main windows
         containerBuilder.RegisterSingletonSelf<BossModuleHintsWindow>().As<WindowBase>();
         containerBuilder.RegisterSingletonSelf<BossModuleMainWindow>().As<WindowBase>();
         containerBuilder.RegisterSingletonSelf<ZoneModuleWindow>().As<WindowBase>();
@@ -162,6 +158,7 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelf<UIPresetDatabaseEditor>();
         containerBuilder.RegisterSingletonSelf<AIWindow>().As<WindowBase>();
 
+        // utility windows
         containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(t => t.IsSubclassOf(typeof(TestWindow)))
             .As<TestWindow>()
@@ -173,13 +170,14 @@ public class Plugin : HostedPlugin
             .SingleInstance()
             .WithAttributeFiltering();
 
+        // plugin services
         containerBuilder.RegisterSingletonSelf<HookProvider>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
 
-        // has to be executed before instances are requested since ConfigRoot needs to be populated (with builtin nodes)
+        // can't be a service since it needs to run before constructors do (otherwise root config will not be populated)
         containerBuilder.RegisterBuildCallback(scope =>
         {
             var self = Assembly.GetExecutingAssembly();
@@ -195,6 +193,7 @@ public class Plugin : HostedPlugin
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
     {
+        // global worldstate
         containerBuilder.Register(ctx =>
         {
             var dataManager = ctx.Resolve<IDataManager>();
@@ -208,9 +207,9 @@ public class Plugin : HostedPlugin
 
         //containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
 
+        // plugin services
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
-
         containerBuilder.RegisterSingletonSelfAndInterfaces<OpcodeMap>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PacketInterceptor>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
@@ -218,6 +217,21 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
+
+#if LOCAL_CS
+        containerBuilder.RegisterBuildCallback(ctx =>
+        {
+            ctx.Resolve<IPluginLog>().Info("initializing address resolver (LOCAL_CS)");
+
+            InteropGenerator.Runtime.Resolver.GetInstance.Setup(
+                ctx.Resolve<ISigScanner>().SearchBase,
+                ctx.Resolve<IDataManager>().GameData.Repositories["ffxiv"].Version,
+                new(ctx.ResolveKeyed<DirectoryInfo>(Keys.ConfigDirectory).FullName + "/cs.json")
+            );
+            FFXIVClientStructs.Interop.Generated.Addresses.Register();
+            InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
+        });
+#endif
     }
 
     public static string GetStorageDir() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vbm");

@@ -9,7 +9,6 @@ using DalaMock.Core.Plugin;
 using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 using static DalaMock.Core.Fonts.MockDefaultFontConfig;
@@ -22,7 +21,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, IDataManager dataManager) : Plugin(dalamud, null!, dataManager)
+    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud) : Plugin(dalamud)
     {
         public override IReplacementContainer ReplacementContainer { get; } = mrc;
 
@@ -35,11 +34,10 @@ static class Program
 
             containerBuilder.Register(ctx => new WorldState(0, "unknown")).SingleInstance();
 
-            // i'm pretty sure this is a bug - for dalamock, ConfigDirectory is set to the top level pluginConfigs, not the plugin-specific one
+            // ConfigDirectory is supposed to be plugin-scoped, but dalamock has a bug and returns the top level pluginConfigs dir instead
             containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName, "BossMod"))).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
             containerBuilder.RegisterSingletonSelf<MainDevWindow>().As<WindowBase>();
-
         }
     }
 

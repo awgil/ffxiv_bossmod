@@ -2,6 +2,7 @@
 using BossMod.ReplayAnalysis;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.Data.SQLite;
 using System.IO;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-public sealed class ModulePackService(IDalamudPluginInterface dalamud, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, ZoneModuleRegistry zoneModuleRegistry) : IHostedService
+public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLog logger, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, ZoneModuleRegistry zoneModuleRegistry) : IHostedService, IDisposable
 {
     class LoadContext() : AssemblyLoadContext(true)
     {
@@ -77,9 +78,19 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, ConfigRoo
         _watcher.Path = packDirectory;
 
         var dir = new DirectoryInfo(packDirectory);
+
+        List<Assembly> assembliesOld = [];
+        List<Assembly> assembliesNew = [];
+
         foreach (var file in dir.EnumerateFiles())
             if (file.Extension == ".dll")
-                OnFileChanged(file.FullName, true);
+            {
+                var (o, n) = ReplaceLoadContext(file.FullName);
+                assembliesOld.AddRange(o?.Assemblies ?? []);
+                assembliesNew.AddRange(n?.Assemblies ?? []);
+            }
+
+        ReloadAll(assembliesOld, assembliesNew);
 
         Modified.Fire();
     }
@@ -90,7 +101,7 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, ConfigRoo
             _loadContexts[e.FullPath] = ctx;
     }
 
-    private void OnFileChanged(string fullPath, bool suppress = false)
+    private (LoadContext? Old, LoadContext? New) ReplaceLoadContext(string fullPath)
     {
         var ctxOld = _loadContexts.Remove(fullPath, out var ctx) ? ctx : null;
         var ctxNew = _loadContexts[fullPath] = new LoadContext();
@@ -104,42 +115,47 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, ConfigRoo
         }
         catch (BadImageFormatException ex)
         {
-            Service.PluginLog.Warning(ex, $"Unable to hot-reload {fullPath}");
+            logger.Warning(ex, $"Unable to hot-reload {fullPath}");
             _loadContexts.Remove(fullPath);
+            return (ctxOld, null);
         }
 
-        configRoot.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        bossModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        rotationModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        zoneModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        AnalyzerRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
+        return (ctxOld, ctxNew);
+    }
 
+    private void OnFileChanged(string fullPath)
+    {
+        var (ctxOld, ctxNew) = ReplaceLoadContext(fullPath);
+
+        ReloadAll(ctxOld?.Assemblies ?? [], ctxNew?.Assemblies ?? []);
         ctxOld?.Unload();
 
-        if (!suppress)
-        {
-            Modified.Fire();
-            Service.ShowNotification($"Loaded {Path.GetFileName(fullPath)}");
-        }
+        Modified.Fire();
+        Service.ShowNotification($"Reloaded {Path.GetFileName(fullPath)}");
     }
 
     private void OnFileDeleted(string fullPath)
     {
         if (_loadContexts.Remove(fullPath, out var ctx))
         {
-            configRoot.Reload(ctx.Assemblies, []);
-            bossModuleRegistry.Reload(ctx.Assemblies, []);
-            rotationModuleRegistry.Reload(ctx.Assemblies, []);
-            zoneModuleRegistry.Reload(ctx.Assemblies, []);
-            AnalyzerRegistry.Reload(ctx.Assemblies, []);
-
+            ReloadAll(ctx.Assemblies, []);
             ctx.Unload();
 
             Modified.Fire();
+            Service.ShowNotification($"Unloaded {Path.GetFileName(fullPath)}");
         }
     }
 
-    public void Dispose()
+    private void ReloadAll(IEnumerable<Assembly> oldAssemblies, IEnumerable<Assembly> newAssemblies)
+    {
+        configRoot.Reload(oldAssemblies, newAssemblies);
+        bossModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        rotationModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        zoneModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        AnalyzerRegistry.Reload(oldAssemblies, newAssemblies);
+    }
+
+    void IDisposable.Dispose()
     {
         _modified.Dispose();
         _watcher.Dispose();
