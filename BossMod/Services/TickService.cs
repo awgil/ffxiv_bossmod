@@ -716,10 +716,22 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         void copy(string filename)
         {
             var src = Path.Join(assemblyDir, filename);
+            var dest = Path.Join(modulesDir, filename);
             if (File.Exists(src))
+            {
+                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
+                {
+                    Service.PluginLog.Debug($"{dest} is newer than our version, skipping copy");
+                    return;
+                }
+
+                Service.PluginLog.Debug($"copied {src} to {dest}");
                 File.Copy(src, Path.Join(modulesDir, filename), true);
-            else
-                Service.PluginLog.Verbose($"{filename} missing from assembly directory, is this a dev build?");
+
+                return;
+            }
+
+            Service.PluginLog.Warning($"{src} does not exist, cannot copy");
         }
 
         copy("BossMod.Autorotation.dll");

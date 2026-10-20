@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Config;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -478,6 +479,10 @@ public sealed class ModuleViewer : IDisposable
             return;
 
         var mplans = _planDB.Plans.GetOrAdd(info.ModuleType);
+
+        if (ImGui.Selectable("Export..."))
+            _ = new MultiExport(mplans);
+
         foreach (var (cls, plans) in mplans)
         {
             foreach (var plan in plans.Plans)

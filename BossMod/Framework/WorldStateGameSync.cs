@@ -10,8 +10,10 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
@@ -51,16 +53,13 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     private readonly AIHintsConfig _solverConfig;
     private readonly EventSubscriptions _subscriptions;
 
-    private unsafe delegate void ProcessPacketActorCastDelegate(uint casterId, Network.ServerIPC.ActorCast* packet);
-    private readonly Hook<ProcessPacketActorCastDelegate> _processPacketActorCastHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleActorCastPacket> _processPacketActorCastHook;
 
     private unsafe delegate void ProcessPacketEffectResultDelegate(uint targetID, byte* packet, byte replaying);
     private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultHook;
     private readonly Hook<ProcessPacketEffectResultDelegate> _processPacketEffectResultBasicHook;
 
-    // FIXME: use the CS version instead of manually hooking once it's released
-    private delegate void ProcessPacketActorControlDelegate(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetID, byte replaying);
-    private readonly Hook<ProcessPacketActorControlDelegate> _processPacketActorControlHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleActorControlPacket> _processPacketActorControlHook;
 
     private unsafe delegate void ProcessPacketNpcYellDelegate(Network.ServerIPC.NpcYell* packet);
     private readonly Hook<ProcessPacketNpcYellDelegate> _processPacketNpcYellHook;
@@ -89,8 +88,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private readonly unsafe delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
 
-    private unsafe delegate void InventoryAckDelegate(InventoryManager* mgr, uint a1, void* a2);
-    private readonly Hook<InventoryAckDelegate> _inventoryAckHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket> _inventoryUpdateHook;
 
     private unsafe delegate void ProcessPacketPlayActionTimelineSync(Network.ServerIPC.PlayActionTimelineSync* data);
     private readonly Hook<ProcessPacketPlayActionTimelineSync> _processPlayActionTimelineSyncHook;
@@ -119,7 +117,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
             amex.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 
-        _processPacketActorCastHook = Service.Hook.HookFromSignature<ProcessPacketActorCastDelegate>("40 53 57 48 81 EC ?? ?? ?? ?? 48 8B FA 8B D1", ProcessPacketActorCastDetour);
+        _processPacketActorCastHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleActorCastPacket>(PacketDispatcher.Addresses.HandleActorCastPacket.Value, ProcessPacketActorCastDetour);
         _processPacketActorCastHook.Enable();
         Service.Log($"[WSG] ProcessPacketActorCast address = 0x{_processPacketActorCastHook.Address:X}");
 
@@ -131,7 +129,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _processPacketEffectResultBasicHook.Enable();
         Service.Log($"[WSG] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
 
-        _processPacketActorControlHook = Service.Hook.HookFromSignature<ProcessPacketActorControlDelegate>("E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64", ProcessPacketActorControlDetour);
+        _processPacketActorControlHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleActorControlPacket>(PacketDispatcher.Addresses.HandleActorControlPacket.Value, ProcessPacketActorControlDetour);
         _processPacketActorControlHook.Enable();
         Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
 
@@ -179,9 +177,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _processLegacyMapEffectHook.Enable();
         Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
 
-        _inventoryAckHook = Service.Hook.HookFromSignature<InventoryAckDelegate>("48 89 5C 24 ?? 57 48 83 EC 30 48 8B 05 ?? ?? ?? ?? 48 8B D9 41 0F B6 50 ??", InventoryAckDetour);
-        _inventoryAckHook.Enable();
-        Service.Log($"[WSG] InventoryAck address = {_inventoryAckHook.Address:X}");
+        _inventoryUpdateHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket>(PacketDispatcher.Addresses.HandleInventoryItemUpdatePacket.Value, InventoryItemUpdateDetour);
+        _inventoryUpdateHook.Enable();
+        Service.Log($"[WSG] InventoryItemUpdate address = {_inventoryUpdateHook.Address:X}");
 
         _processPlayActionTimelineSyncHook = Service.Hook.HookFromSignature<ProcessPacketPlayActionTimelineSync>("48 8B D1 48 8D 0D ?? ?? ?? ?? E9 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 53 56", ProcessPlayActionTimelineSyncDetour);
         _processPlayActionTimelineSyncHook.Enable();
@@ -195,7 +193,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
     public void Dispose()
     {
         _processPlayActionTimelineSyncHook.Dispose();
-        _inventoryAckHook.Dispose();
+        _inventoryUpdateHook.Dispose();
         _processLegacyMapEffectHook.Dispose();
         _processMapEffect1Hook.Dispose();
         _processMapEffect2Hook.Dispose();
@@ -1088,9 +1086,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _actorOps.GetOrAdd(targetID).Add(new ActorState.OpEffectResult(targetID, seq, targetIndex));
     }
 
-    private unsafe void ProcessPacketActorCastDetour(uint casterId, Network.ServerIPC.ActorCast* packet)
+    private unsafe void ProcessPacketActorCastDetour(uint casterId, ActorCastPacket* packet)
     {
-        _lastCastPositions[casterId] = Network.PacketDecoder.IntToFloatCoords(packet->PosX, packet->PosY, packet->PosZ);
+        _lastCastPositions[casterId] = Network.PacketDecoder.IntToFloatCoords(packet->PositionInt[0], packet->PositionInt[1], packet->PositionInt[2]);
         _processPacketActorCastHook.Original(casterId, packet);
     }
 
@@ -1118,7 +1116,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _processPacketEffectResultBasicHook.Original(targetID, packet, replaying);
     }
 
-    private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetID, byte replaying)
+    private void ProcessPacketActorControlDetour(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, GameObjectId targetID, bool replaying)
     {
         _processPacketActorControlHook.Original(actorID, category, p1, p2, p3, p4, p5, p6, p7, p8, targetID, replaying);
         switch ((Network.ServerIPC.ActorControlCategory)category)
@@ -1232,9 +1230,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         _globalOps.Add(new WorldState.OpLegacyMapEffect(seq, unk, new Span<byte>(data, (int)length).ToArray()));
     }
 
-    private unsafe void InventoryAckDetour(InventoryManager* mgr, uint a1, void* a2)
+    private unsafe void InventoryItemUpdateDetour(uint targetId, InventoryItemPacket* packet)
     {
-        _inventoryAckHook.Original(mgr, a1, a2);
+        _inventoryUpdateHook.Original(targetId, packet);
         _needInventoryUpdate = true;
     }
 

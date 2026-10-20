@@ -20,6 +20,8 @@ insert_final_newline = true
 # note: we enable analyzers on csproj level rather than here, so that we can avoid build time increase in debug builds
 #dotnet_analyzer_diagnostic.severity = warning
 
+dotnet_diagnostic.CA2213.severity = warning # error for not disposing Disposable, causes weird bugs, should always be on
+
 dotnet_code_quality.api_surface = all # all rules should apply to all types
 dotnet_code_quality.CA1826.exclude_ordefault_methods = true # there is no good replacement for FirstOrDefault / LastOrDefault
 dotnet_code_quality.CA1707.api_surface = public, internal # we follow official naming conventions, which recommend private fields to have _ prefix - TODO: reconsider?..
