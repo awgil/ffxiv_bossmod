@@ -13,9 +13,9 @@
 //   this tweak does nothing for casts, since they already work correctly
 // The tweak also allows predicting the delay based on history (using exponential average).
 // TODO: consider adding 'clamped delay' mode that doesn't reduce it straight to zero (a-la xivalex)?
-public sealed class AnimationLockTweak
+public sealed class AnimationLockTweak(ActionTweaksConfig config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _config = config;
     private float _lastReqInitialAnimLock;
     private int _lastReqSequence = -1;
 

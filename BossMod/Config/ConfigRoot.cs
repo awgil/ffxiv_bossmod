@@ -9,8 +9,17 @@ public sealed class ConfigRoot : IDisposable
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
     public Version PreviousAssemblyVersion = new();
-    record LazyNode(ConfigNode Node, EventSubscription OnModified);
-    private readonly Dictionary<Type, LazyNode?> _nodes = []; // node is null if the type has been registered but the node has never been loaded before
+    sealed class LazyNode(ConfigNode node, Action onModified) : IDisposable
+    {
+        public readonly ConfigNode Node = node;
+        public readonly EventSubscription OnModified = node.Modified.Subscribe(onModified);
+
+        public void Dispose()
+        {
+            OnModified.Dispose();
+        }
+    }
+    private readonly Dictionary<Type, LazyNode?> _nodes = []; // node is null if the type has been registered but the node has never been loaded
 
     public IEnumerable<Type> Nodes => _nodes.Keys;
 
@@ -24,7 +33,7 @@ public sealed class ConfigRoot : IDisposable
     {
         foreach (var k in _nodes.Keys.Where(k => k.Assembly == assembly))
             if (_nodes.Remove(k, out var node))
-                node?.OnModified.Dispose();
+                node?.Dispose();
     }
 
     public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
@@ -58,7 +67,7 @@ public sealed class ConfigRoot : IDisposable
             }
         }
 
-        _nodes[derived] = new(t, t.Modified.Subscribe(Modified.Fire));
+        _nodes[derived] = new(t, Modified.Fire);
 
         return t;
     }
@@ -262,7 +271,7 @@ public sealed class ConfigRoot : IDisposable
     public void Dispose()
     {
         foreach (var (_, n) in _nodes)
-            n?.OnModified.Dispose();
+            n?.Dispose();
 
         _nodes.Clear();
 

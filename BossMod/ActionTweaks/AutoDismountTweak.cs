@@ -1,9 +1,9 @@
 ﻿namespace BossMod;
 
 // Tweak to automatically dismount when trying to use an action and failing due to being mounted.
-public sealed class AutoDismountTweak(WorldState ws)
+public sealed class AutoDismountTweak(WorldState ws, ActionTweaksConfig config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _config = config;
 
     public bool AutoDismountEnabled => _config.AutoDismount;
 

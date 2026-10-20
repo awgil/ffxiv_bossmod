@@ -1,9 +1,9 @@
 ﻿namespace BossMod;
 
 // This tweak controls auto attacks to prevent early pulls and to enable them asap when pulling, changing targets or starting casts.
-public sealed class AutoAutosTweak(WorldState ws, AIHints hints)
+public sealed class AutoAutosTweak(WorldState ws, AIHints hints, ActionTweaksConfig config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _config = config;
     private bool _lastActionDisabledAutos;
 
     public const float PrePullThreshold = 0.5f; // effect result delay for autos

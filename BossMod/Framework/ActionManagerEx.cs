@@ -1,5 +1,6 @@
 ﻿using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -11,7 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Client.UI.Shell;
-using System.Runtime.InteropServices;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
 namespace BossMod;
@@ -49,7 +49,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     public Event<ClientActionRequest> ActionRequestExecuted { get; } = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived { get; } = new();
 
-    public ActionTweaksConfig Config { get; } = Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config { get; }
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
@@ -57,62 +57,64 @@ public sealed unsafe class ActionManagerEx : IAmex
     private readonly AIHints _hints;
     private readonly MovementOverride _movement;
     private readonly BozjaActionID bozjaActions;
+    private readonly IPluginLog logger;
+    private readonly ICondition condition;
     private readonly ManualActionQueueTweak _manualQueue;
-    private readonly AnimationLockTweak _animLockTweak = new();
-    private readonly CooldownDelayTweak _cooldownTweak = new();
+    private readonly AnimationLockTweak _animLockTweak;
+    private readonly CooldownDelayTweak _cooldownTweak;
     private readonly CancelCastTweak _cancelCastTweak;
     private readonly AutoDismountTweak _dismountTweak;
     private readonly SmartRotationTweak _smartRotationTweak;
     private readonly OutOfCombatActionsTweak _oocActionsTweak;
     private readonly AutoAutosTweak _autoAutosTweak;
 
-    private readonly HookAddress<ActionManager.Delegates.Update> _updateHook;
-    private readonly HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
-    private readonly HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
-    private readonly HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
-    private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
-    private readonly HookAddress<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
-    private readonly HookAddress<InstanceContentCrucibleOfTheUnbroken.Delegates.UseItem> _useCrucibleItemHook;
-    private readonly HookAddress<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
-    private readonly HookAddress<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
+    private readonly Hook<ActionManager.Delegates.Update> _updateHook;
+    private readonly Hook<ActionManager.Delegates.UseAction> _useActionHook;
+    private readonly Hook<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
+    private readonly Hook<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
+    private readonly Hook<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
+    private readonly Hook<InstanceContentDeepDungeon.Delegates.UseStone> _useStoneHook;
+    private readonly Hook<InstanceContentCrucibleOfTheUnbroken.Delegates.UseItem> _useCrucibleItemHook;
+    private readonly Hook<ActionEffectHandler.Delegates.Receive> _processPacketActionEffectHook;
+    private readonly Hook<AutoAttackState.Delegates.SetImpl> _setAutoAttackStateHook;
 
-    private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
-    private readonly ExecuteCommandGTDelegate _executeCommandGT;
+    private readonly delegate* unmanaged<uint, Vector3*, uint, uint, uint, uint, void> _executeCommandGT;
     private DateTime _nextAllowedExecuteCommand;
 
     private readonly delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
 
-    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions, IUnlockState unlockState)
+    public ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions, IUnlockState unlockState, ActionTweaksConfig tweaksConfig, SmartRotationConfig smartRotationConfig, OutOfCombatActionsConfig outOfCombatActionsConfig, IPluginLog logger, HookHelper hook, ICondition condition)
     {
+        Config = tweaksConfig;
+        this.logger = logger;
+        this.condition = condition;
+        this.bozjaActions = bozjaActions;
+        _animLockTweak = new(Config);
+        _cooldownTweak = new(Config);
         _ws = ws;
         _hints = hints;
         _movement = movement;
-        this.bozjaActions = bozjaActions;
-        _manualQueue = new(ws, hints, unlockState);
-        _cancelCastTweak = new(ws, hints);
-        _dismountTweak = new(ws);
-        _smartRotationTweak = new(ws, hints);
-        _oocActionsTweak = new(ws);
-        _autoAutosTweak = new(ws, hints);
+        _manualQueue = new(ws, hints, unlockState, tweaksConfig);
+        _cancelCastTweak = new(ws, hints, tweaksConfig);
+        _dismountTweak = new(ws, tweaksConfig);
+        _smartRotationTweak = new(ws, hints, smartRotationConfig);
+        _oocActionsTweak = new(ws, outOfCombatActionsConfig);
+        _autoAutosTweak = new(ws, hints, tweaksConfig);
 
-        Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
-        _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
-        _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
-        _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
-        _useBozjaFromHolsterDirectorHook = new(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
-        _usePomanderHook = new(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
-        _useStoneHook = new(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
-        _useCrucibleItemHook = new(InstanceContentCrucibleOfTheUnbroken.Addresses.UseItem, UseCrucibleItemDetour);
-        _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
-        _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
+        logger.Debug($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
+        _updateHook = hook.FromAddress<ActionManager.Delegates.Update>(ActionManager.Addresses.Update, UpdateDetour);
+        _useActionHook = hook.FromAddress<ActionManager.Delegates.UseAction>(ActionManager.Addresses.UseAction, UseActionDetour);
+        _useActionLocationHook = hook.FromAddress<ActionManager.Delegates.UseActionLocation>(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
+        _useBozjaFromHolsterDirectorHook = hook.FromAddress<PublicContentBozja.Delegates.UseFromHolster>(PublicContentBozja.Addresses.UseFromHolster, UseBozjaFromHolsterDirectorDetour);
+        _usePomanderHook = hook.FromAddress<InstanceContentDeepDungeon.Delegates.UsePomander>(InstanceContentDeepDungeon.Addresses.UsePomander, UsePomanderDetour);
+        _useStoneHook = hook.FromAddress<InstanceContentDeepDungeon.Delegates.UseStone>(InstanceContentDeepDungeon.Addresses.UseStone, UseStoneDetour);
+        _useCrucibleItemHook = hook.FromAddress<InstanceContentCrucibleOfTheUnbroken.Delegates.UseItem>(InstanceContentCrucibleOfTheUnbroken.Addresses.UseItem, UseCrucibleItemDetour);
+        _processPacketActionEffectHook = hook.FromAddress<ActionEffectHandler.Delegates.Receive>(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
+        _setAutoAttackStateHook = hook.FromAddress<AutoAttackState.Delegates.SetImpl>(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
-        var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??");
-        Service.Log($"ExecuteCommandGT address: 0x{executeCommandGTAddress:X}");
-        _executeCommandGT = Marshal.GetDelegateForFunctionPointer<ExecuteCommandGTDelegate>(executeCommandGTAddress);
+        _executeCommandGT = (delegate* unmanaged<uint, Vector3*, uint, uint, uint, uint, void>)hook.ScanText("E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??", "ExecuteCommandGT");
 
-        var selectTargetAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 3B C5");
-        Service.Log($"SelectTarget address: 0x{selectTargetAddress:X}");
-        _autoSelectTarget = (delegate* unmanaged<TargetSystem*, TargetSystem*>)selectTargetAddress;
+        _autoSelectTarget = (delegate* unmanaged<TargetSystem*, TargetSystem*>)hook.ScanText("E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 3B C5", "SelectTarget");
     }
 
     public void Dispose()
@@ -166,7 +168,7 @@ public sealed unsafe class ActionManagerEx : IAmex
 
     public void FaceDirection(Angle direction)
     {
-        Service.Log($"face direction requested: {direction}");
+        logger.Debug($"face direction requested: {direction}");
         var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (player != null)
         {
@@ -449,7 +451,7 @@ public sealed unsafe class ActionManagerEx : IAmex
 
         // check whether movement is safe; block movement if not and if desired
         MoveMightInterruptCast &= CastTimeRemaining > 0; // previous cast could have ended without action effect
-        // if we're not casting, but will start soon, moving might interrupt future cast
+                                                         // if we're not casting, but will start soon, moving might interrupt future cast
         MoveMightInterruptCast |= imminentActionAdj && CastTimeRemaining <= 0 && _inst->AnimationLock < 0.1f && GetAdjustedCastTime(imminentActionAdj) > 0 && !CanMoveWhileCasting(imminentActionAdj) && (!IsGCD(imminentActionAdj) || GCD() < 0.1f);
 
         var blockMovementCast = Config.PreventMovingWhileCasting && MoveMightInterruptCast && _ws.Party.Player()?.MountId == 0;
@@ -487,12 +489,12 @@ public sealed unsafe class ActionManagerEx : IAmex
             }
             else if (_dismountTweak.IsMountPreventingAction(actionAdj))
             {
-                Service.Log("[AMEx] Trying to dismount...");
+                logger.Debug("[AMEx] Trying to dismount...");
                 autoDismount = _dismountTweak.AutoDismountEnabled;
             }
             else
             {
-                Service.Log($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
+                logger.Warning($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
                 blockMovementCast = blockMovementStillness = false;
             }
         }
@@ -509,7 +511,7 @@ public sealed unsafe class ActionManagerEx : IAmex
 
         _movement.MovementBlocked = blockMovementCast || blockMovementStillness;
 
-        if (!GameMain.IsInPvPArea() && !Service.Condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
+        if (!GameMain.IsInPvPArea() && !condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
         {
             var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
             if (_autoAutosTweak.GetDesiredState(autosEnabled, _ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
@@ -779,7 +781,7 @@ public sealed unsafe class ActionManagerEx : IAmex
             // TODO: reconsider the condition:
             // - do we want to do non-anim-lock related things (eg unblock movement override) when we get action with 'force anim lock' flag?
             if (currAnimLock != prevAnimLock)
-                Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
+                logger.Warning($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
             return;
         }
 
@@ -789,7 +791,7 @@ public sealed unsafe class ActionManagerEx : IAmex
         // animation lock delay update
         var animLockReduction = _animLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
         _inst->AnimationLock -= animLockReduction;
-        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+        logger.Debug($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
     }
 
     private void HandleActionRequest(ActionID action, uint seq, ulong targetID, Vector3 targetPos, Angle prevRot, Angle currRot)
@@ -810,7 +812,7 @@ public sealed unsafe class ActionManagerEx : IAmex
 
         var (castElapsed, castTotal) = _inst->CastSpellId != 0 ? (_inst->CastTimeElapsed, _inst->CastTimeTotal) : (0, 0);
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
-        Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
+        logger.Debug($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
         ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
     }
 
@@ -820,7 +822,7 @@ public sealed unsafe class ActionManagerEx : IAmex
     {
         if (value && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
         {
-            Service.Log($"[AMEx] Prevented starting autoattacks");
+            logger.Debug($"[AMEx] Prevented starting autoattacks");
             return true;
         }
         return _setAutoAttackStateHook.Original(self, value, sendPacket, isInstant);

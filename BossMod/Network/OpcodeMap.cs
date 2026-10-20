@@ -1,4 +1,6 @@
-﻿namespace BossMod.Network;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod.Network;
 
 // map betweek network message opcodes (which are randomized every build) to more-or-less stable indices
 public class OpcodeMap
@@ -12,7 +14,7 @@ public class OpcodeMap
     public ServerIPC.PacketID ID(int opcode) => (ServerIPC.PacketID)(opcode >= 0 && opcode < _opcodeToID.Count ? _opcodeToID[opcode] : -1);
     public int Opcode(ServerIPC.PacketID id) => (int)id >= 0 && (int)id < _idToOpcode.Count ? _idToOpcode[(int)id] : -1;
 
-    public unsafe OpcodeMap()
+    public unsafe OpcodeMap(ISigScanner scanner, IPluginLog logger)
     {
         // look for an internal tracing function - it's a giant switch on opcode that calls virtual function corresponding to the opcode; we use vf indices as 'opcode index'
         // function starts with:
@@ -25,7 +27,7 @@ public class OpcodeMap
         // lea r11, <__ImageBase_off>
         // cdqe
         // mov r9d, ds::<jumptable_rva>[r11+rax*4]
-        var func = (byte*)Service.SigScanner.ScanText("49 8B 40 10  4C 8B 50 38  41 0F B7 42 02  83 C0 ??  3D ?? ?? ?? ??  0F 87 ?? ?? ?? ??  4C 8D 1D ?? ?? ?? ??  48 98  45 8B 8C 83 ?? ?? ?? ??");
+        var func = (byte*)scanner.ScanText("49 8B 40 10  4C 8B 50 38  41 0F B7 42 02  83 C0 ??  3D ?? ?? ?? ??  0F 87 ?? ?? ?? ??  4C 8D 1D ?? ?? ?? ??  48 98  45 8B 8C 83 ?? ?? ?? ??");
         var minCase = -*(sbyte*)(func + 15);
         var jumptableSize = *(int*)(func + 17) + 1;
         var defaultAddr = ReadRVA(func + 23);
@@ -40,9 +42,9 @@ public class OpcodeMap
             var opcode = minCase + i;
             var index = ReadIndexForCaseBody(bodyAddr);
             if (index < 0)
-                Service.Log($"[OpcodeMap] Unexpected body for opcode {opcode}");
+                logger.Warning($"[OpcodeMap] Unexpected body for opcode {opcode}");
             else
-                AddMapping(opcode, index);
+                AddMapping(opcode, index, logger);
         }
     }
 
@@ -69,12 +71,12 @@ public class OpcodeMap
         return (vtoff >> 3) - 2;
     }
 
-    private void AddMapping(int opcode, int id)
+    private void AddMapping(int opcode, int id, IPluginLog logger)
     {
         if (!AddEntry(_opcodeToID, opcode, id))
-            Service.Log($"[OpcodeMap] Trying to define several mappings for opcode {opcode} ({ID(opcode)} and ({(ServerIPC.PacketID)id})");
+            logger.Warning($"[OpcodeMap] Trying to define several mappings for opcode {opcode} ({ID(opcode)} and ({(ServerIPC.PacketID)id})");
         if (!AddEntry(_idToOpcode, id, opcode))
-            Service.Log($"[OpcodeMap] Trying to map multiple opcodes to same index {(ServerIPC.PacketID)id} ({_idToOpcode[id]} and {opcode})");
+            logger.Warning($"[OpcodeMap] Trying to map multiple opcodes to same index {(ServerIPC.PacketID)id} ({_idToOpcode[id]} and {opcode})");
     }
 
     private static bool AddEntry(List<int> list, int index, int value)

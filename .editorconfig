@@ -51,7 +51,7 @@ dotnet_diagnostic.CA1812.severity = none # we have tons of classes that we insta
 dotnet_diagnostic.CA1815.severity = none # this is useful, unfortunately it's way too spammy currently (eg for interop structs); figure out how to enable it!
 dotnet_diagnostic.CA1822.severity = none # this is useful, unfortunately sometimes method just happening not to access this is implementation detail; revise and potentially reenable
 dotnet_diagnostic.CA1852.severity = none # make a pass over all classes (including public) and seal all of them that aren't used as bases, since apparently that's a performance improvement
-dotnet_diagnostic.CA2000.severity = none # requires major refactoring to ensure idiomatic dispose usage
+dotnet_diagnostic.CA2000.severity = warning # requires major refactoring to ensure idiomatic dispose usage
 
 # these rules are reasonable in theory, but cause many false positives, and so are disabled
 dotnet_diagnostic.CA1027.severity = none # this considers many enums with non-sequential values to be flags erroneosly, and actually missing Flags attribute where it's needed is quite hard

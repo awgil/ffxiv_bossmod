@@ -3,6 +3,7 @@ using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -31,7 +32,9 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private readonly WorldState _ws;
     private readonly ActionManagerEx _amex;
-    private readonly Network.PingTracker _ping;
+    private readonly Network.PingService _ping;
+    private readonly ActionDefinitions actionDefinitions;
+    private readonly MovementOverride movement;
     private readonly DateTime _startTime;
     private readonly long _startQPC;
 
@@ -45,8 +48,8 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private bool _needInventoryUpdate = true;
 
-    private readonly Network.OpcodeMap _opcodeMap = new();
-    private readonly Network.PacketInterceptor _interceptor = new();
+    private readonly Network.OpcodeMap _opcodeMap;
+    private readonly Network.PacketInterceptor _interceptor;
     private readonly Network.PacketDecoderGame _decoder = new();
 
     private readonly ConfigListener<ReplayManagementConfig> _netConfig;
@@ -95,99 +98,103 @@ sealed class WorldStateGameSync : IWorldStateGameSync
 
     private readonly Hook<ActionManager.Delegates.GetActionInRangeOrLoS> _getActionInRangeOrLoSHook;
 
-    public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex, Network.PingTracker ping)
+    public unsafe WorldStateGameSync(WorldState ws, ActionManagerEx amex, Network.PingService ping, ISigScanner scanner, IPluginLog logger, HookHelper hook, ConfigRoot root, IGameInteropProvider hooking, ActionDefinitions actionDefinitions, MovementOverride movement)
     {
+        _opcodeMap = new(scanner, logger);
+        _interceptor = new(scanner, logger, hook);
         _ws = ws;
         _amex = amex;
         _ping = ping;
+        this.actionDefinitions = actionDefinitions;
+        this.movement = movement;
         _startTime = DateTime.Now;
         _startQPC = Framework.Instance()->PerformanceCounterValue;
         _interceptor.ServerIPCReceived += ServerIPCReceived;
         _interceptor.ClientIPCSent += ClientIPCSent;
 
-        _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config =>
+        _netConfig = root.GetAndSubscribe<ReplayManagementConfig>(config =>
         {
             _interceptor.ActiveRecv = config.RecordServerPackets || config.DumpServerPackets;
             _interceptor.ActiveSend = config.DumpClientPackets;
         });
-        _solverConfig = Service.Config.Get<AIHintsConfig>();
+        _solverConfig = root.Get<AIHintsConfig>();
         _subscriptions = new
         (
             amex.ActionRequestExecuted.Subscribe(OnActionRequested),
             amex.ActionEffectReceived.Subscribe(OnActionEffect)
         );
 
-        _processPacketActorCastHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleActorCastPacket>(PacketDispatcher.Addresses.HandleActorCastPacket.Value, ProcessPacketActorCastDetour);
+        _processPacketActorCastHook = hooking.HookFromAddress<PacketDispatcher.Delegates.HandleActorCastPacket>(PacketDispatcher.Addresses.HandleActorCastPacket.Value, ProcessPacketActorCastDetour);
         _processPacketActorCastHook.Enable();
-        Service.Log($"[WSG] ProcessPacketActorCast address = 0x{_processPacketActorCastHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketActorCast address = 0x{_processPacketActorCastHook.Address:X}");
 
-        _processPacketEffectResultHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
+        _processPacketEffectResultHook = hooking.HookFromSignature<ProcessPacketEffectResultDelegate>("48 8B C4 44 88 40 18 89 48 08", ProcessPacketEffectResultDetour);
         _processPacketEffectResultHook.Enable();
-        Service.Log($"[WSG] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketEffectResult address = 0x{_processPacketEffectResultHook.Address:X}");
 
-        _processPacketEffectResultBasicHook = Service.Hook.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40 83 3D ?? ?? ?? ?? ??", ProcessPacketEffectResultBasicDetour);
+        _processPacketEffectResultBasicHook = hooking.HookFromSignature<ProcessPacketEffectResultDelegate>("40 53 41 54 41 55 48 83 EC 40 83 3D ?? ?? ?? ?? ??", ProcessPacketEffectResultBasicDetour);
         _processPacketEffectResultBasicHook.Enable();
-        Service.Log($"[WSG] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketEffectResultBasic address = 0x{_processPacketEffectResultBasicHook.Address:X}");
 
-        _processPacketActorControlHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleActorControlPacket>(PacketDispatcher.Addresses.HandleActorControlPacket.Value, ProcessPacketActorControlDetour);
+        _processPacketActorControlHook = hooking.HookFromAddress<PacketDispatcher.Delegates.HandleActorControlPacket>(PacketDispatcher.Addresses.HandleActorControlPacket.Value, ProcessPacketActorControlDetour);
         _processPacketActorControlHook.Enable();
-        Service.Log($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketActorControl address = 0x{_processPacketActorControlHook.Address:X}");
 
         // alt sig - impl: "45 33 D2 48 8D 41 48"
-        _processPacketNpcYellHook = Service.Hook.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 68 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
+        _processPacketNpcYellHook = hooking.HookFromSignature<ProcessPacketNpcYellDelegate>("48 83 EC 68 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 0F 10 41 10", ProcessPacketNpcYellDetour);
         _processPacketNpcYellHook.Enable();
-        Service.Log($"[WSG] ProcessPacketNpcYell address = 0x{_processPacketNpcYellHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketNpcYell address = 0x{_processPacketNpcYellHook.Address:X}");
 
-        _processMapEffectHook = Service.Hook.HookFromSignature<ProcessMapEffectDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessMapEffectDetour);
+        _processMapEffectHook = hooking.HookFromSignature<ProcessMapEffectDelegate>("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessMapEffectDetour);
         _processMapEffectHook.Enable();
-        Service.Log($"[WSG] ProcessMapEffect address = 0x{_processMapEffectHook.Address:X}");
+        logger.Debug($"[WSG] ProcessMapEffect address = 0x{_processMapEffectHook.Address:X}");
 
-        var mapEffectAddrs = Service.SigScanner.ScanAllText("40 55 41 57 48 83 EC ?? 48 83 B9");
+        var mapEffectAddrs = scanner.ScanAllText("40 55 41 57 48 83 EC ?? 48 83 B9");
         if (mapEffectAddrs.Length != 3)
             throw new InvalidOperationException($"expected 3 matches for multi-MapEffect handlers, but got {mapEffectAddrs.Length}");
 
-        _processMapEffect1Hook = Service.Hook.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[0], ProcessMapEffect1Detour);
+        _processMapEffect1Hook = hooking.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[0], ProcessMapEffect1Detour);
         _processMapEffect1Hook.Enable();
-        _processMapEffect2Hook = Service.Hook.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[1], ProcessMapEffect2Detour);
+        _processMapEffect2Hook = hooking.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[1], ProcessMapEffect2Detour);
         _processMapEffect2Hook.Enable();
-        _processMapEffect3Hook = Service.Hook.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[2], ProcessMapEffect3Detour);
+        _processMapEffect3Hook = hooking.HookFromAddress<ProcessMapEffectNDelegate>(mapEffectAddrs[2], ProcessMapEffect3Detour);
         _processMapEffect3Hook.Enable();
-        Service.Log($"[WSG] ProcessMapEffectN addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
+        logger.Debug($"[WSG] ProcessMapEffectN addresses = 0x{_processMapEffect1Hook.Address:X}, 0x{_processMapEffect2Hook.Address:X}, 0x{_processMapEffect3Hook.Address:X}");
 
-        _processPacketRSVDataHook = Service.Hook.HookFromSignature<ProcessPacketRSVDataDelegate>("44 8B 09 4C 8D 41 34", ProcessPacketRSVDataDetour);
+        _processPacketRSVDataHook = hooking.HookFromSignature<ProcessPacketRSVDataDelegate>("44 8B 09 4C 8D 41 34", ProcessPacketRSVDataDetour);
         _processPacketRSVDataHook.Enable();
-        Service.Log($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketRSVData address = 0x{_processPacketRSVDataHook.Address:X}");
 
-        _processSystemLogMessageHook = Service.Hook.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 47 28", ProcessSystemLogMessageDetour);
+        _processSystemLogMessageHook = hooking.HookFromSignature<ProcessSystemLogMessageDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B6 47 28", ProcessSystemLogMessageDetour);
         _processSystemLogMessageHook.Enable();
-        Service.Log($"[WSG] ProcessSystemLogMessage address = 0x{_processSystemLogMessageHook.Address:X}");
+        logger.Debug($"[WSG] ProcessSystemLogMessage address = 0x{_processSystemLogMessageHook.Address:X}");
 
-        _processPacketFateInfoHook = Service.Hook.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4F 10 48 8D 57 12 41 B8", ProcessPacketFateInfoDetour);
+        _processPacketFateInfoHook = hooking.HookFromSignature<ProcessPacketFateInfoDelegate>("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4F 10 48 8D 57 12 41 B8", ProcessPacketFateInfoDetour);
         _processPacketFateInfoHook.Enable();
-        Service.Log($"[WSG] ProcessPacketFateInfo address = 0x{_processPacketFateInfoHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketFateInfo address = 0x{_processPacketFateInfoHook.Address:X}");
 
-        _processPacketFateTradeHook = Service.Hook.HookFromSignature<ProcessPacketFateTradeDelegate>("48 89 5C 24 ?? 57 48 83 EC 20 48 8B DA 0F B7 F9", ProcessPacketFateTradeDetour);
+        _processPacketFateTradeHook = hooking.HookFromSignature<ProcessPacketFateTradeDelegate>("48 89 5C 24 ?? 57 48 83 EC 20 48 8B DA 0F B7 F9", ProcessPacketFateTradeDetour);
         _processPacketFateTradeHook.Enable();
-        Service.Log($"[WSG] ProcessPacketFateTrade address = 0x{_processPacketFateTradeHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPacketFateTrade address = 0x{_processPacketFateTradeHook.Address:X}");
 
-        _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
-        Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
+        _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)scanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
+        logger.Debug($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
 
-        _processLegacyMapEffectHook = Service.Hook.HookFromAddress<EventFramework.Delegates.SetDirectorData>(EventFramework.Addresses.SetDirectorData.Value, ProcessLegacyMapEffectDetour);
+        _processLegacyMapEffectHook = hooking.HookFromAddress<EventFramework.Delegates.SetDirectorData>(EventFramework.Addresses.SetDirectorData.Value, ProcessLegacyMapEffectDetour);
         _processLegacyMapEffectHook.Enable();
-        Service.Log($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
+        logger.Debug($"[WSG] LegacyMapEffect address = {_processLegacyMapEffectHook.Address:X}");
 
-        _inventoryUpdateHook = Service.Hook.HookFromAddress<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket>(PacketDispatcher.Addresses.HandleInventoryItemUpdatePacket.Value, InventoryItemUpdateDetour);
+        _inventoryUpdateHook = hooking.HookFromAddress<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket>(PacketDispatcher.Addresses.HandleInventoryItemUpdatePacket.Value, InventoryItemUpdateDetour);
         _inventoryUpdateHook.Enable();
-        Service.Log($"[WSG] InventoryItemUpdate address = {_inventoryUpdateHook.Address:X}");
+        logger.Debug($"[WSG] InventoryItemUpdate address = {_inventoryUpdateHook.Address:X}");
 
-        _processPlayActionTimelineSyncHook = Service.Hook.HookFromSignature<ProcessPacketPlayActionTimelineSync>("48 8B D1 48 8D 0D ?? ?? ?? ?? E9 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 53 56", ProcessPlayActionTimelineSyncDetour);
+        _processPlayActionTimelineSyncHook = hooking.HookFromSignature<ProcessPacketPlayActionTimelineSync>("48 8B D1 48 8D 0D ?? ?? ?? ?? E9 ?? ?? ?? ?? CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 53 56", ProcessPlayActionTimelineSyncDetour);
         _processPlayActionTimelineSyncHook.Enable();
-        Service.Log($"[WSG] ProcessPlayActionTimelineSync address = {_processPlayActionTimelineSyncHook.Address:X}");
+        logger.Debug($"[WSG] ProcessPlayActionTimelineSync address = {_processPlayActionTimelineSyncHook.Address:X}");
 
-        _getActionInRangeOrLoSHook = Service.Hook.HookFromAddress<ActionManager.Delegates.GetActionInRangeOrLoS>((nint)ActionManager.MemberFunctionPointers.GetActionInRangeOrLoS, GetActionInRangeOrLoSDetour);
+        _getActionInRangeOrLoSHook = hooking.HookFromAddress<ActionManager.Delegates.GetActionInRangeOrLoS>((nint)ActionManager.MemberFunctionPointers.GetActionInRangeOrLoS, GetActionInRangeOrLoSDetour);
         _getActionInRangeOrLoSHook.Enable();
-        Service.Log($"[WSG] GetActionInRangeOrLoS address = 0x{_getActionInRangeOrLoSHook.Address:X}");
+        logger.Debug($"[WSG] GetActionInRangeOrLoS address = 0x{_getActionInRangeOrLoSHook.Address:X}");
     }
 
     public void Dispose()
@@ -266,7 +273,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         UpdateDeepDungeon();
     }
 
-    public void UpdateReplayState(RotationModuleManager rmm, IMovementOverride movement, AIHints hints)
+    public void UpdateReplayState(RotationModuleManager rmm, IMovementOverride movement, AIHints hints, PartyRolesConfig roles)
     {
         var active = rmm.Presets;
         var stored = _ws.ReplayState.ActivePresets;
@@ -277,8 +284,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (mods != _ws.ReplayState.ModifierKeys)
             _ws.Execute(new ReplayState.OpModifierKeysChange(mods));
 
-        var prc = Service.Config.Get<PartyRolesConfig>();
-        var roleAssignments = Utils.GenArrayI(PartyState.MaxPartySize, i => prc[_ws.Party.Members[i].ContentId]);
+        var roleAssignments = Utils.GenArrayI(PartyState.MaxPartySize, i => roles[_ws.Party.Members[i].ContentId]);
         if (!MemoryExtensions.SequenceEqual(roleAssignments.AsSpan(), _ws.ReplayState.RoleAssignments.AsSpan()))
             _ws.Execute(new ReplayState.OpRoleAssignmentsChange(roleAssignments));
 
@@ -878,7 +884,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         if (_ws.Client.FocusTargetId != focusTargetId)
             _ws.Execute(new ClientState.OpFocusTargetChange(focusTargetId));
 
-        var forcedMovementDir = MovementOverride.ForcedMovementDirection->Radians();
+        var forcedMovementDir = movement.ForcedMovementDirection->Radians();
         if (_ws.Client.ForcedMovementDirection != forcedMovementDir)
             _ws.Execute(new ClientState.OpForcedMovementDirectionChange(forcedMovementDir));
 
@@ -920,7 +926,7 @@ sealed class WorldStateGameSync : IWorldStateGameSync
         {
             var im = InventoryManager.Instance();
             // update tracked items
-            foreach (var id in ActionDefinitions.Instance.SupportedItems)
+            foreach (var id in actionDefinitions.SupportedItems)
             {
                 var count = im->GetInventoryItemCount(id % 500000, id > 1000000, checkEquipped: false, checkArmory: false);
                 updateQuantity(id, (uint)count);

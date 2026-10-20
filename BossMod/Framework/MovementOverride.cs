@@ -1,6 +1,7 @@
 ﻿using BossMod.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
+using Dalamud.Hooking;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -40,6 +41,8 @@ public sealed unsafe class MovementOverride : IMovementOverride
 
     private readonly IDalamudPluginInterface _dalamud;
     private readonly ActionTweaksConfig _tweaksConfig;
+    private readonly IGameConfig gameConfig;
+    private readonly IPluginLog logger;
     private bool? _forcedControlState;
     private bool _legacyMode;
     private bool[]? _navmeshPathIsRunning;
@@ -62,46 +65,46 @@ public sealed unsafe class MovementOverride : IMovementOverride
         set;
     }
 
-    public static readonly float* ForcedMovementDirection = (float*)Service.SigScanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
+    public readonly float* ForcedMovementDirection;
 
     private delegate bool RMIWalkIsInputEnabled(void* self);
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
     private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
 
     private delegate void RMIWalkDelegate(MoveControllerSubMemberForMine* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
-    private readonly HookAddress<RMIWalkDelegate> _rmiWalkHook;
+    private readonly Hook<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
-    private readonly HookAddress<RMIFlyDelegate> _rmiFlyHook;
+    private readonly Hook<RMIFlyDelegate> _rmiFlyHook;
 
     // input source flags: 1 = kb/mouse, 2 = gamepad
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
-    private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
+    private readonly Hook<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
 
-    public MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, ActionTweaksConfig tweaksConfig, IPluginLog logger)
+    public MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookHelper hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger)
     {
         _dalamud = dalamud;
         _tweaksConfig = tweaksConfig;
+        this.gameConfig = gameConfig;
+        this.logger = logger;
 
-        var rmiWalkIsInputEnabled1Addr = scanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
-        var rmiWalkIsInputEnabled2Addr = scanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
-        logger.Verbose($"RMIWalkIsInputEnabled1 address: 0x{rmiWalkIsInputEnabled1Addr:X}");
-        logger.Verbose($"RMIWalkIsInputEnabled2 address: 0x{rmiWalkIsInputEnabled2Addr:X}");
-        _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
-        _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
+        ForcedMovementDirection = (float*)scanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
 
-        _rmiWalkHook = new(scanner, "E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
-        _rmiFlyHook = new(scanner, "E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
-        _mcIsInputActiveHook = new(scanner, "E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
+        _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(hooking.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C", "RMIWalkIsInputEnabled1"));
+        _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(hooking.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F", "RMIWalkIsInputEnabled2"));
 
-        Service.GameConfig.UiControlChanged += OnConfigChanged;
+        _rmiWalkHook = hooking.FromSignature<RMIWalkDelegate>("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
+        _rmiFlyHook = hooking.FromSignature<RMIFlyDelegate>("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
+        _mcIsInputActiveHook = hooking.FromSignature<MoveControlIsInputActiveDelegate>("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
+
+        gameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
     }
 
     public void Dispose()
     {
         _dalamud.RelinquishData("vnav.PathIsRunning");
-        Service.GameConfig.UiControlChanged -= OnConfigChanged;
+        gameConfig.UiControlChanged -= OnConfigChanged;
         MovementBlocked = false;
         _mcIsInputActiveHook.Dispose();
         _rmiWalkHook.Dispose();
@@ -244,7 +247,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();
     private void UpdateLegacyMode()
     {
-        _legacyMode = Service.GameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
-        Service.Log($"Legacy mode is now {(_legacyMode ? "enabled" : "disabled")}");
+        _legacyMode = gameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
+        logger.Info($"Legacy mode is now {(_legacyMode ? "enabled" : "disabled")}");
     }
 }

@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IFramework framework, AIConfig aiConfig, DtrConfig dtrConfig) : IHostedService, IDisposable
+internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IUiBuilder uiBuilder, AIConfig aiConfig, DtrConfig dtrConfig) : IHostedService, IDisposable
 {
     private readonly List<(string, IDtrBarEntry)> _autorotEntries = [];
     private readonly IDtrBarEntry _arEntry = dtrBar.Get("vbm-ar");
@@ -36,13 +37,13 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
         _arEntry.Tooltip = "Left click: open preset selector; right click: disable all";
         _arEntry.OnClick = OnAutorotClick;
 
-        framework.Update += Update;
+        uiBuilder.Draw += Update;
 
         return Task.CompletedTask;
     }
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        framework.Update -= Update;
+        uiBuilder.Draw -= Update;
 
         return Task.CompletedTask;
     }
@@ -56,7 +57,7 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
         _statsEntry.Dispose();
     }
 
-    public void Update(IFramework _)
+    public void Update()
     {
         if (_autorotEntries.Count != dtrConfig.ShowPresets.Count)
         {

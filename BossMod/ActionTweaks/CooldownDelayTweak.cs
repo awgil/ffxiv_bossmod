@@ -6,9 +6,9 @@
 // If we were running with infinite fps, cooldown would be reduced to 0 and action would be executed slightly (5ms) earlier.
 // We can't fix that easily, but at least we can fix the cooldown after action execution - so that next time it can be pressed at X+5ms.
 // We do that by reducing actual cooldown by difference between previously-remaining cooldown and frame delta, if action is executed at first opportunity.
-public sealed class CooldownDelayTweak
+public sealed class CooldownDelayTweak(ActionTweaksConfig config)
 {
-    private readonly ActionTweaksConfig _config = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _config = config;
 
     public float Adjustment { get; private set; } // if >0 while using an action, cooldown/anim lock will be reduced by this amount as if action was used a bit in the past
 

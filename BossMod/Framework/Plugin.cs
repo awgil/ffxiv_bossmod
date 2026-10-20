@@ -5,6 +5,7 @@ using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
+using BossMod.Network;
 using BossMod.Pathfinding;
 using BossMod.ReplayAnalysis;
 using BossMod.Services;
@@ -175,6 +176,8 @@ public class Plugin : HostedPlugin
         containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
 
+        containerBuilder.RegisterSingletonSelf<HookHelper>();
+
         ConfigureExtra(containerBuilder);
 
         containerBuilder.RegisterBuildCallback(scope =>
@@ -213,12 +216,13 @@ public class Plugin : HostedPlugin
 
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
-        containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
+        //containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();

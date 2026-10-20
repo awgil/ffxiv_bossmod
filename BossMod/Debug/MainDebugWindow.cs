@@ -10,12 +10,12 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, HookHelper hook) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
     private readonly DebugParty _debugParty = new();
-    private readonly DebugMapEffect _debugMapEffect = new(ws);
+    private readonly DebugMapEffect _debugMapEffect = new(ws, hook);
     private readonly DebugGraphics _debugGraphics = new();
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new(ws);
@@ -192,7 +192,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         if (player == null)
             return;
 
-        ImGui.TextUnformatted($"Forced movement direction: {MovementOverride.ForcedMovementDirection->Radians()}");
+        ImGui.TextUnformatted($"Forced movement direction: {move.ForcedMovementDirection->Radians()}");
         ImGui.SameLine();
         if (ImGui.Button("Add misdirection"))
             player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, (GameObjectId)0xE0000000, true);

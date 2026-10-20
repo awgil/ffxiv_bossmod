@@ -1,4 +1,5 @@
 ﻿using BossMod.Pathfinding;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-internal sealed class AutoBitmapService(IDalamudPluginInterface dalamud, ICondition condition, IFramework framework, WorldState world, DeveloperConfig config, ObstacleMapManager obstacles) : IHostedService
+internal sealed class AutoBitmapService(IDalamudPluginInterface dalamud, ICondition condition, IClientState clientState, IFramework framework, WorldState world, DeveloperConfig config, ObstacleMapManager obstacles) : IHostedService
 {
     private bool Paused;
     private Exception? LastException;
@@ -20,14 +21,17 @@ internal sealed class AutoBitmapService(IDalamudPluginInterface dalamud, ICondit
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        framework.Update += CreateIfMissing;
-    }
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        framework.Update -= CreateIfMissing;
+        framework.Update += Update;
+        clientState.ZoneInit += ZoneInit;
     }
 
-    void CreateIfMissing(IFramework framework)
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        framework.Update -= Update;
+        clientState.ZoneInit -= ZoneInit;
+    }
+
+    void Update(IFramework framework)
     {
         if (Paused || world.Party.Player() is not { } player || !config.AutoBitmaps)
             return;
@@ -106,5 +110,10 @@ internal sealed class AutoBitmapService(IDalamudPluginInterface dalamud, ICondit
             Paused = true;
             LastException = ex;
         }
+    }
+
+    private void ZoneInit(ZoneInitEventArgs obj)
+    {
+        Paused = false;
     }
 }

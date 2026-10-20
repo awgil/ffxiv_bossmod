@@ -1,17 +1,19 @@
 ﻿using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-public sealed class SaveConfigService(ConfigRoot config, IDalamudPluginInterface dalamud) : IHostedService
+public sealed class SaveConfigService(ConfigRoot config, IDalamudPluginInterface dalamud, IPluginLog logger) : IHostedService
 {
     private CancellationTokenSource Source = new();
     private Task SaverTask = Task.CompletedTask;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        logger.Debug("[SaveConfigService] Spawning task");
         Source = new();
 
         var token = Source.Token;
@@ -21,15 +23,17 @@ public sealed class SaveConfigService(ConfigRoot config, IDalamudPluginInterface
             {
                 await Task.Delay(30_000, token);
 
+                logger.Verbose($"Saving config to {dalamud.ConfigFile}");
                 config.SaveToFile(dalamud.ConfigFile);
             }
         }, token);
     }
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        logger.Debug("[SaveConfigService] Stopping");
         Source.Cancel();
 
-        await SaverTask; // ensures we aren't running multiple saves at once
+        await Task.WhenAny(SaverTask); // ensures we aren't running multiple saves at once
 
         config.SaveToFile(dalamud.ConfigFile);
     }

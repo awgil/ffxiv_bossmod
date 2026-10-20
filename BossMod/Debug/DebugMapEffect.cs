@@ -9,7 +9,7 @@ namespace BossMod;
 
 sealed unsafe class DebugMapEffect : IDisposable
 {
-    private readonly WorldStateGameSync.ProcessMapEffectDelegate ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<WorldStateGameSync.ProcessMapEffectDelegate>(Service.SigScanner.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8"));
+    private readonly WorldStateGameSync.ProcessMapEffectDelegate ProcessMapEffect;
 
     private readonly List<string> _history = [];
     private string _current = "";
@@ -17,8 +17,9 @@ sealed unsafe class DebugMapEffect : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public DebugMapEffect(WorldState ws)
+    public DebugMapEffect(WorldState ws, HookHelper hook)
     {
+        ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<WorldStateGameSync.ProcessMapEffectDelegate>(hook.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", "ProcessMapEffect"));
         _subscriptions = new(
             ws.MapEffect.Subscribe(OnMapEffect),
             ws.LegacyMapEffect.Subscribe(OnLegacyMapEffect)
