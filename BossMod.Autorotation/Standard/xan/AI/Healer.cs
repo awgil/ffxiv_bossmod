@@ -37,7 +37,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         public Track<HintedStrategy> Esuna;
 
         [Track("Stay near party", InternalName = "Stay near party")]
-        public Track<EnabledByDefault> StayNearParty;
+        public Track<StayNearPartyStrategy> StayNearParty;
         [Track("Allow generic out-of-combat predictive heals on tank (Excogitation, Divine Benison, etc)")]
         public Track<EnabledByDefault> OutOfCombat;
     }
@@ -54,6 +54,16 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         Slowcast,
         [Option("Raise without using Swiftcast")]
         Hardcast,
+    }
+
+    public enum StayNearPartyStrategy
+    {
+        [Option("Stay within 15y of all allies, if possible")]
+        Enabled,
+        [Option("Disabled")]
+        Disabled,
+        [Option("Maximize number of nearby allies (expensive!)")]
+        EnabledSlow
     }
 
     public ActionID RaiseAction => Player.Class switch
@@ -149,10 +159,19 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     {
         Health.Update(Hints);
 
-        if (strategy.StayNearParty.IsEnabled() && Player.InCombat)
+        if (Player.InCombat)
         {
-            List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
-            Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 15)));
+            switch (strategy.StayNearParty.Value)
+            {
+                case StayNearPartyStrategy.Enabled:
+                    if (LightParty.Exclude(Player).Farthest(Player.Position) is { } farthest)
+                        Hints.GoalZones.Add(AIHints.GoalSingleTarget(farthest.Position, 16, 0.1f));
+                    break;
+                case StayNearPartyStrategy.EnabledSlow:
+                    List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
+                    Hints.GoalZones.Add(p => allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 15)));
+                    break;
+            }
         }
 
         AutoRaise(strategy);

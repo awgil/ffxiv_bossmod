@@ -417,7 +417,7 @@ public abstract class QuestBattle : ZoneModule
             return;
         }
 
-        if (UIMisc.Button("Leave duty", !ImGui.GetIO().KeyShift, "Hold shift to leave"))
+        if (ImGui.Button("Leave duty"))
             _abandonDuty?.Invoke(false);
         ImGui.SameLine();
         UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");

@@ -29,11 +29,11 @@
       },
       "DalaMock.Host": {
         "type": "Transitive",
-        "resolved": "6.2.0",
-        "contentHash": "PdSK9AW+NQcT1iiR2YzOdN51Tu5Uo6GlkklnVx9l4vyg5vmuRoO/Qi08AAWAqOEm8zk5bv2zcoXTQdOSW0t3Ew==",
+        "resolved": "6.2.1",
+        "contentHash": "rtYsv0U/iMeRXUgFU72pc7XVmW+QVU7es4xW+FUHAtvuTEq7Q8q/9jH4OebpzMmjGs70nUOhZ5joyHuY3lxEJA==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "DalaMock.Shared": "6.2.0",
+          "DalaMock.Shared": "6.2.1",
           "Microsoft.Extensions.Hosting": "10.0.4",
           "Microsoft.Extensions.Hosting.Abstractions": "10.0.4",
           "Microsoft.Extensions.ObjectPool": "10.0.4"
@@ -41,8 +41,8 @@
       },
       "DalaMock.Shared": {
         "type": "Transitive",
-        "resolved": "6.2.0",
-        "contentHash": "SybFMwepowMT0+QosFfkiaEw/Q6YMhEij5WmPw3tqAb/9/uojv+WikEzUNb9homPYSFzATJJ7NEMaj5KgaZndA==",
+        "resolved": "6.2.1",
+        "contentHash": "Do9/iTvJ7rfWe64ufQzOXs4WCcxtk7VCG//BUK7Du3EOerAbqW5OR/FtmTvQeVLvtUbhUfMFPXiwH8WJ0idACw==",
         "dependencies": {
           "Autofac": "9.0.0"
         }
@@ -370,8 +370,8 @@
         "type": "Project",
         "dependencies": {
           "CsvHelper": "[33.1.0, )",
-          "DalaMock.Host": "[6.2.0, )",
-          "DalaMock.Shared": "[6.2.0, )",
+          "DalaMock.Host": "[6.2.1, )",
+          "DalaMock.Shared": "[6.2.1, )",
           "DalamudPackager": "[15.0.0, )",
           "FFXIVClientStructs": "[1.0.0, )",
           "InteropGenerator.Runtime": "[1.0.0, )",

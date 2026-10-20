@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Config;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Text.Json;
@@ -264,14 +265,20 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
             if (json?.AsObject()?.TryGetPropertyValue("payload", out var obj) == true)
                 json = obj;
 
+            if (json?.AsObject()?.TryGetPropertyValue("multi", out var exportMulti) == true && exportMulti?.AsValue().GetValue<bool>() == true)
+            {
+                var plansJson = json!.AsObject()!["plans"]!.AsArray()!;
+                var plans = plansJson.Select(p => DecodePlan(p!, finfo)).ToList();
+
+                _ = new MultiImport(rotationDB, plans);
+
+                return;
+            }
+
             // let users import encounter-specific plans from here for convenience
             if (json?.AsObject()?.ContainsKey("Encounter") == true)
             {
-                foreach (var conv in PlanPresetConverter.PlanSchema.Converters)
-                    json = conv(json, 0, finfo);
-
-                var plan = JsonSerializer.Deserialize<Plan>(json, Serialization.BuildSerializationOptions())!;
-                plan.Guid = Guid.NewGuid().ToString();
+                var plan = DecodePlan(json, finfo);
 
                 rotationDB.Plans.ModifyPlan(null, plan);
 
@@ -300,5 +307,16 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
             //    Type = Dalamud.Interface.ImGuiNotification.NotificationType.Warning
             //});
         }
+    }
+
+    private Plan DecodePlan(JsonNode json, FileInfo finfo)
+    {
+        foreach (var conv in PlanPresetConverter.PlanSchema.Converters)
+            json = conv(json, 0, finfo);
+
+        var plan = JsonSerializer.Deserialize<Plan>(json, Serialization.BuildSerializationOptions())!;
+        plan.Guid = Guid.NewGuid().ToString();
+
+        return plan;
     }
 }

@@ -38,6 +38,7 @@ sealed class IPCProvider : IDisposable
 
         Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));
 
+        Register("Presets.ListAll", () => autorotation.Database.Presets.AllPresets.Select(p => p.Name).ToList());
         Register("Presets.Get", (string name) =>
         {
             var preset = autorotation.Database.Presets.FindPresetByName(name);

@@ -1,7 +1,7 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 class P1Slipstream(BossModule module) : Components.StandardAOEs(module, AID.Slipstream, new AOEShapeCone(11.7f, 45.Degrees()));
-class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 60.Degrees()));
+class P1Downburst(BossModule module) : Components.Cleave(module, AID.Downburst, new AOEShapeCone(11.7f, 65.Degrees()));
 class P1EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.EyeOfTheStorm, new AOEShapeDonut(12, 25));
 class P1Gigastorm(BossModule module) : Components.StandardAOEs(module, AID.Gigastorm, new AOEShapeCircle(6.5f));
 class P2RadiantPlume(BossModule module) : Components.StandardAOEs(module, AID.RadiantPlumeAOE, 8);
@@ -21,17 +21,28 @@ class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(mo
 class P5LightPillar(BossModule module) : Components.StandardAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
 class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AethericBoom, 10);
 
-class P1Positioning(BossModule module) : BossComponent(module)
+class BossPositioning : BossComponent
 {
-    public WPos? DesiredPosition = module.Arena.Center;
+    public Actor? Boss;
+    public WPos? DesiredPosition;
     public Angle? DesiredRotation = 180.Degrees();
+
+    public BossPositioning(BossModule module) : base(module)
+    {
+        Boss = module.PrimaryActor;
+        DesiredPosition = module.Arena.Center;
+        KeepOnPhaseChange = true;
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (hints.FindEnemy(Module.PrimaryActor) is { } garuda)
+        if (hints.FindEnemy(Boss) is { } target)
         {
-            garuda.DesiredPosition = DesiredPosition;
-            garuda.DesiredRotation = DesiredRotation;
+            target.DesiredPosition = DesiredPosition;
+            target.DesiredRotation = DesiredRotation;
+
+            if (target.Actor.PendingHPRatio < 0.02f && target.Actor.FindStatus(SID.Woken) == null)
+                target.Priority = AIHints.Enemy.PriorityForbidden;
         }
     }
 }

@@ -227,6 +227,16 @@ public enum AID : uint
 
     // The Patisserie
     BakeOff = 44039, // instant cast, range 5 60-degree cone, 3 charges
+
+    // Krile
+    FireInRed = 46756,
+    AeroInGreen = 46757,
+    WaterInBlue = 46758,
+    Fire2InRed = 46759,
+    Aero2InGreen = 46760,
+    Water2InBlue = 46761,
+    AquaVitaeKrile = 46762,
+    ButterflyMotif = 46763,
 }
 
 public enum TraitID : uint { }
@@ -274,6 +284,9 @@ public enum SID : uint
 
     // godbert
     GlovesOff = 3458,
+
+    // krile
+    ButterflyMotif = 4836
 }
 
 public sealed class Definitions : Defs
@@ -482,6 +495,15 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.DawnlitConviction, castAnimLock: 3.86f);
 
         d.RegisterSpell(AID.BakeOff);
+
+        d.RegisterSpell(AID.FireInRed);
+        d.RegisterSpell(AID.AeroInGreen);
+        d.RegisterSpell(AID.WaterInBlue);
+        d.RegisterSpell(AID.Fire2InRed);
+        d.RegisterSpell(AID.Aero2InGreen);
+        d.RegisterSpell(AID.Water2InBlue);
+        d.RegisterSpell(AID.AquaVitaeKrile, instantAnimLock: 1.1f);
+        d.RegisterSpell(AID.ButterflyMotif, instantAnimLock: 6.1f);
 
         Customize(d);
     }
