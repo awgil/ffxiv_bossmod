@@ -7,7 +7,6 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
-using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
@@ -172,7 +171,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
             if (Bossmods.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                _ = new StateMachineWindow(Bossmods.ActiveModule);
+                _ = new StateMachineWindow(Bossmods.ActiveModule, _playerScope.Resolve<ColorConfig>());
             }
 
             if (Bossmods.ActiveModule?.Info?.PlanLevel > 0)
@@ -200,7 +199,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == Bossmods.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        _ = new ReplayTimelineWindow(_parentScope.Resolve<BossModuleRegistry>(), _parentScope.Resolve<JsonSerializerOptions>(), _player.Replay, enc, BitMask.Build(_povSlot), RotationDB.Plans, this);
+                        mediator.Publish(new CreateWindow(_parentScope.Resolve<ReplayTimelineWindow.Factory>().Invoke(_player.Replay, enc, BitMask.Build(_povSlot), this)));
                     }
                 }
             }

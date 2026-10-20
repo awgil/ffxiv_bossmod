@@ -1,26 +1,30 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
-class ReplayTimelineWindow : UIWindow
+public sealed class ReplayTimelineWindow : DetachedWindow, IDisposable
 {
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly Replay.Encounter _encounter;
     private readonly ReplayDetailsWindow _timelineSync;
     private readonly StateMachineTree _stateTree;
     private readonly List<int> _phaseBranches;
-    private readonly Timeline _timeline = new();
+    private readonly Timeline _timeline;
     private readonly ColumnEnemiesCastEvents _colCastEvents;
     private readonly ColumnStateMachineBranch _colStates;
     private readonly ColumnEnemiesDetails _colEnemies;
     private readonly ColumnPlayersDetails _colPlayers;
     private readonly UITree _configTree = new();
 
-    public ReplayTimelineWindow(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Replay replay, Replay.Encounter enc, BitMask showPlayers, PlanDatabase planDB, ReplayDetailsWindow timelineSync) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", true, new(1600, 1000))
+    private readonly ILifetimeScope _windowScope;
+
+    public delegate ReplayTimelineWindow Factory(Replay replay, Replay.Encounter enc, BitMask showPlayers, ReplayDetailsWindow timelineSync);
+
+    public ReplayTimelineWindow(BossModuleRegistry bossModuleRegistry, Replay replay, Replay.Encounter enc, BitMask showPlayers, ReplayDetailsWindow timelineSync, ILifetimeScope parentScope, ColorConfig colors) : base($"Replay timeline: {replay.Path} @ {enc.Time.Start:O}", new(1600, 1000))
     {
+        _timeline = new(colors);
         this.bossModuleRegistry = bossModuleRegistry;
         _encounter = enc;
         _timelineSync = timelineSync;
@@ -28,11 +32,25 @@ class ReplayTimelineWindow : UIWindow
         _timeline.MinTime = -30;
         _timeline.MaxTime = _stateTree.TotalMaxTime;
 
+        _windowScope = parentScope.BeginLifetimeScope(ctx =>
+        {
+            ctx.Register(_ => _stateTree).SingleInstance();
+            ctx.Register(_ => _phaseBranches).SingleInstance();
+            ctx.Register(_ => _timeline).SingleInstance();
+            ctx.Register(_ => replay).SingleInstance();
+            ctx.Register(_ => enc).SingleInstance();
+        });
+
         _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc));
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
         _timeline.Columns.Add(new ColumnSeparator(_timeline));
         _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc));
-        _colPlayers = _timeline.Columns.Add(new ColumnPlayersDetails(bossModuleRegistry, serOptions, _timeline, _stateTree, _phaseBranches, replay, enc, showPlayers, planDB));
+        _colPlayers = _timeline.Columns.Add(_windowScope.Resolve<ColumnPlayersDetails.Factory>().Invoke(showPlayers));
+    }
+
+    void IDisposable.Dispose()
+    {
+        _windowScope.Dispose();
     }
 
     public override void PreOpenCheck() => RespectCloseHotkey = !_colPlayers.AnyPlanModified;

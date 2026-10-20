@@ -166,7 +166,6 @@ public class ColumnPlayerGaugeGNB : ColumnPlayerGauge
 #region MNK
 public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
 {
-    private readonly ColorConfig _colors = Service.Config.Get<ColorConfig>();
     private readonly ColumnGenericHistory _chakras;
     private readonly ColumnGenericHistory _beast1;
     private readonly ColumnGenericHistory _beast2;
@@ -254,7 +253,7 @@ public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
         {
             var color = gauge switch
             {
-                5 => _colors.PlannerWindow[2],
+                5 => Timeline.Colors.PlannerWindow[2],
                 4 => new(0xFFE8FAFF),
                 3 => new(0xFFBEEFFF),
                 2 => new(0xFF90E0FF),
@@ -268,7 +267,7 @@ public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
     {
         if (count != BeastChakraType.None && to > from)
         {
-            var color = count == BeastChakraType.None ? _colors.PlannerWindow[2] : new(0xFF0066FF);
+            var color = count == BeastChakraType.None ? Timeline.Colors.PlannerWindow[2] : new(0xFF0066FF);
             col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {count}", color.ABGR);
         }
     }
@@ -281,7 +280,7 @@ public class ColumnPlayerGaugeMNK : ColumnPlayerGauge
                 NadiFlags.Solar => new(0xFF90E0FF),
                 NadiFlags.Lunar => new(0xFFFFA500),
                 0 => new(0x80808080),
-                _ => _colors.PlannerWindow[2]
+                _ => Timeline.Colors.PlannerWindow[2]
             };
             col.AddHistoryEntryRange(Encounter.Time.Start, from, to, $"{label}: {nadi}", color.ABGR, 100);
         }

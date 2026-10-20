@@ -6,7 +6,6 @@ using BossMod.Dev;
 using BossMod.Interfaces;
 using BossMod.Network;
 using BossMod.Pathfinding;
-using BossMod.ReplayAnalysis;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Shared.Extensions;
@@ -124,11 +123,6 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             return method!.Invoke(gd, [null, null])!;
         }).As(typeof(ExcelSheet<>));
 
-        // replay stuff
-        containerBuilder.RegisterType<AnalysisManager>();
-        containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
-        containerBuilder.RegisterType<ReplayVisualization.EventList>();
-
         // stuff related to plans/presets/modules
         // pack service needs to be registered first here
         containerBuilder.RegisterSingletonSelfAndInterfaces<ModulePackService>();
@@ -170,6 +164,17 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             .SingleInstance()
             .WithAttributeFiltering();
 
+        // replay stuff
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ReplayManager>().WithAttributeFiltering();
+        containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager>();
+        containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager.Global>();
+        containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
+        containerBuilder.RegisterType<ReplayVisualization.EventList>();
+        containerBuilder.RegisterType<ReplayVisualization.ReplayTimelineWindow>();
+        containerBuilder.RegisterType<ReplayVisualization.ColumnPlayersDetails>();
+        containerBuilder.RegisterType<ReplayVisualization.ColumnPlayerDetails>();
+        containerBuilder.RegisterType<ReplayVisualization.ColumnPlayerActions>();
+
         // plugin services
         containerBuilder.RegisterSingletonSelf<HookProvider>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
@@ -183,7 +188,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             var self = Assembly.GetExecutingAssembly();
             foreach (var sub in scope.Resolve<IReloadable[]>())
                 sub.Reload([], [self]);
-            AnalyzerRegistry.Reload([], [self]);
+            ReplayAnalysis.AnalyzerRegistry.Reload([], [self]);
         });
     }
 

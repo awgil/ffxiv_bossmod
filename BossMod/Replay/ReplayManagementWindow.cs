@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Autofac.Features.AttributeFilters;
-using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -37,13 +36,13 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, ILifetimeScope scope, ICondition condition, BossModuleManager bmm, MediatorService mediator, ReplayManagementConfig config, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : base(_windowID, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ICondition condition, BossModuleManager bmm, ReplayManagementConfig config, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ReplayManager manager) : base(_windowID, new(400, 500))
     {
         _ws = ws;
         this.condition = condition;
         _logDir = logDir;
         _config = config;
-        _manager = new(logDir.FullName, scope, mediator);
+        _manager = manager;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI),
@@ -62,7 +61,6 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
     {
         _recorder?.Dispose();
         _subscriptions.Dispose();
-        _manager.Dispose();
     }
 
     public void SetVisible(bool vis)

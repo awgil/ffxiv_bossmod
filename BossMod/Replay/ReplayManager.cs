@@ -1,7 +1,9 @@
 ﻿using Autofac;
+using Autofac.Features.AttributeFilters;
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -9,8 +11,10 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager : IDisposable
+public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ILifetimeScope container, MediatorService mediator) : IHostedService, IDisposable
 {
+    private string fileDialogStartPath = logDir.FullName;
+
     public sealed class ReplayEntry : IDisposable
     {
         public string Path;
@@ -85,24 +89,19 @@ public sealed class ReplayManager : IDisposable
 
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
-    private readonly AnalysisEntry.Factory _afac;
-    private readonly ReplayHistory _replayHistory;
+    private readonly AnalysisEntry.Factory _afac = container.Resolve<AnalysisEntry.Factory>();
+    private ReplayHistory _replayHistory = null!;
     private int _nextAnalysisId;
     private string _path = "";
-    private string _fileDialogStartPath;
-    private readonly ILifetimeScope container;
-    private readonly MediatorService mediator;
     private bool _convertAnonymize;
 
-    public ReplayManager(string fileDialogStartPath, ILifetimeScope container, MediatorService mediator)
+    public async Task StartAsync(CancellationToken token)
     {
-        _fileDialogStartPath = fileDialogStartPath;
-        _afac = container.Resolve<AnalysisEntry.Factory>();
-        this.container = container;
-        this.mediator = mediator;
         _replayHistory = ReplayHistory.Load();
         RestoreHistory();
     }
+
+    public Task StopAsync(CancellationToken token) => Task.CompletedTask;
 
     public void Dispose()
     {
@@ -272,9 +271,9 @@ public sealed class ReplayManager : IDisposable
                 if (c)
                 {
                     _path = p[0];
-                    _fileDialogStartPath = new FileInfo(_path).Directory!.FullName;
+                    fileDialogStartPath = new FileInfo(_path).Directory!.FullName;
                 }
-            }, 1, _fileDialogStartPath);
+            }, 1, fileDialogStartPath);
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Open file");
@@ -286,9 +285,9 @@ public sealed class ReplayManager : IDisposable
                 if (c)
                 {
                     _path = p;
-                    _fileDialogStartPath = p;
+                    fileDialogStartPath = p;
                 }
-            }, _fileDialogStartPath);
+            }, fileDialogStartPath);
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Open folder");

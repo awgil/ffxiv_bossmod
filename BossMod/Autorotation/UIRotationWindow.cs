@@ -12,14 +12,16 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
     private readonly IAmex _amex;
     private readonly AutorotationConfig _config;
     private readonly DtrConfig dtrConfig;
+    private readonly ColorConfig colors;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, AutorotationConfig config, DtrConfig dtrConfig) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, AutorotationConfig config, DtrConfig dtrConfig, ColorConfig colors) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
         _config = config;
         this.dtrConfig = dtrConfig;
+        this.colors = colors;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
@@ -103,7 +105,7 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
                 plans.SelectedIndex = plans.Plans.Count;
                 _mgr.Database.Plans.ModifyPlan(null, plan);
             }
-            UIPlanDatabaseEditor.StartPlanEditor(_mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+            UIPlanDatabaseEditor.StartPlanEditor(colors, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
         }
 
         if (newSel >= 0 && _mgr.Presets.Count > 0)

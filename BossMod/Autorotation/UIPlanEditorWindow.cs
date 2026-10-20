@@ -3,19 +3,20 @@ using System.Text.Json;
 
 namespace BossMod.Autorotation;
 
-public class UIPlanEditorWindow : UIWindow
+public class UIPlanEditorWindow : DetachedWindow
 {
     private readonly PlanDatabase _db;
     private Plan _original;
-    private readonly Timeline _timeline = new();
+    private readonly Timeline _timeline;
     private readonly ColumnStateMachineBranch _colStates;
     private readonly CooldownPlannerColumns _planner;
     private int _selectedPhase;
 
-    public UIPlanEditorWindow(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, PlanDatabase db, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", true, new(1200, 900))
+    public UIPlanEditorWindow(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, PlanDatabase db, ColorConfig colors, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", new(1200, 900))
     {
         _db = db;
         _original = plan;
+        _timeline = new(colors);
 
         var tree = new StateMachineTree(sm);
         var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();

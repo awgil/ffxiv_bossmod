@@ -25,6 +25,7 @@ public sealed class ModuleViewer : IDisposable
     private readonly WorldState _ws; // TODO: reconsider...
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly JsonSerializerOptions serOptions;
+    private readonly ColorConfig colors;
     private readonly ExcelSheet<BNpcName> bNpcName;
     private readonly BossModuleConfig _bmConfig;
 
@@ -42,13 +43,14 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
+    public ModuleViewer(PlanDatabase planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ColorConfig colors, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
     {
         _planDB = planDB;
         _ws = ws;
         _bmConfig = bmc;
         this.bossModuleRegistry = bossModuleRegistry;
         this.serOptions = serOptions;
+        this.colors = colors;
         this.bNpcName = bNpcName;
 
         uint defaultIcon = 61762;
@@ -496,7 +498,7 @@ public sealed class ModuleViewer : IDisposable
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+                    UIPlanDatabaseEditor.StartPlanEditor(colors, _planDB, plan);
                 }
             }
         }
@@ -526,7 +528,7 @@ public sealed class ModuleViewer : IDisposable
         });
 
         _planDB!.ModifyPlan(null, plan);
-        UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
+        UIPlanDatabaseEditor.StartPlanEditor(colors, _planDB, plan);
     }
 
     static readonly Class[] supportedClasses = [

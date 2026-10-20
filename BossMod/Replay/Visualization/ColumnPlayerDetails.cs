@@ -32,7 +32,9 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public bool PlanModified => _planner?.Modified ?? false;
 
-    public ColumnPlayerDetails(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, PlanDatabase planDB)
+    public delegate ColumnPlayerDetails Factory(Replay.Participant player, Class playerClass);
+
+    public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, PlanDatabase planDB, ColumnPlayerActions.Factory colPlayerActions)
         : base(timeline)
     {
         this.bossModuleRegistry = bossModuleRegistry;
@@ -46,7 +48,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _planDatabase = planDB;
         _moduleInfo = bossModuleRegistry.FindByOID(enc.OID);
 
-        _actions = Add(new ColumnPlayerActions(timeline, tree, phaseBranches, replay, enc, player, playerClass));
+        _actions = Add(colPlayerActions(player, playerClass));
         _actions.Name = player.NameHistory.FirstOrDefault().Value.name;
 
         _statuses = Add(new ColumnActorStatuses(timeline, tree, phaseBranches, replay, enc, player));
