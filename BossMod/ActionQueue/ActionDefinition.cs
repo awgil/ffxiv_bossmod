@@ -210,15 +210,13 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    public static ActionDefinitions Instance = null!;
+    public static readonly ActionDefinitions Instance = null!;
 
-    public Func<uint, bool>? UnlockCheck;
-
-    public ActionDefinitions(IEnumerable<Defs> definitions, IDataManager dataManager, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet, ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet, BozjaActionID bozjaID)
+    public ActionDefinitions(Defs[] definitions, IDataManager dataManager, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet, ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet, BozjaActionID bozjaID)
     {
         _actionsSheet = actionsSheet;
         _itemsSheet = itemsSheet;
-        _cjcSheet = dataManager.Excel.GetSheet<RawRow>(null, "ClassJobCategory")!;
+        _cjcSheet = dataManager.Excel.GetSheet<RawRow>(null, "ClassJobCategory");
         _traitSheet = traitSheet;
         BozjaActions = bozjaID;
 

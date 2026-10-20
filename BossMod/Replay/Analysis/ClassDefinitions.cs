@@ -67,8 +67,10 @@ class ClassDefinitions
     private readonly Dictionary<int, Dictionary<ActionID, List<Entry>>> _byLock = [];
     private readonly SortedDictionary<int, List<ActionData>> _byCDGroup = [];
     private readonly BitMask[] _classPerCategory = new BitMask[(int)ClassCategory.Limited + 1];
+    private readonly ActionDefinitions actionDefinitions;
+    private readonly IUnlockState unlockState;
 
-    public ClassDefinitions(List<Replay> replays, BozjaActionID bozjaActions)
+    public ClassDefinitions(List<Replay> replays, BozjaActionID bozjaActions, ActionDefinitions actionDefinitions, IUnlockState unlockState)
     {
         var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
         var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
@@ -101,7 +103,7 @@ class ClassDefinitions
         var nullOwner = _classData[Class.None] = new(Class.None, Class.None);
 
         // add any actions from definitions that weren't found yet
-        foreach (var def in ActionDefinitions.Instance.Definitions)
+        foreach (var def in actionDefinitions.Definitions)
             if (RegisterAction(def.ID, def.ID.Type == ActionType.Spell ? actionSheet?.GetRow(def.ID.ID) : null, nullOwner, out var data))
                 data.PotentiallyRemoved = true;
 
@@ -196,6 +198,9 @@ class ClassDefinitions
                 }
             }
         }
+
+        this.actionDefinitions = actionDefinitions;
+        this.unlockState = unlockState;
     }
 
     public void Draw(UITree tree)
@@ -254,7 +259,7 @@ class ClassDefinitions
         if (!_actionData.TryGetValue(action, out var data))
         {
             newlyCreated = true;
-            data = _actionData[action] = new(action, ActionDefinitions.Instance[action], row);
+            data = _actionData[action] = new(action, actionDefinitions[action], row);
         }
         actionData = data;
         if (!data.OwningClasses[(int)owner.ID])
@@ -297,7 +302,7 @@ class ClassDefinitions
             tree.LeafNode($"Row: {na.Row}, raw range: {na.Row?.Range}, class: {na.Row?.ClassJob.ValueNullable?.Abbreviation}, category: {na.Row?.ClassJobCategory.ValueNullable?.Name}");
             tree.LeafNode($"Unlock: {UnlockString(na.Row?.ClassJobLevel ?? 0, na.Row?.UnlockLink.RowId ?? 0)}");
             tree.LeafNode($"Warnings: {(na.PotentiallyRemoved ? "PR " : "")}{(na.ReplayOnly ? "RO " : "")}", na.PotentiallyRemoved || na.ReplayOnly ? 0xff0000ff : 0xffffffff);
-            tree.LeafNode($"Targets: [{ActionDefinitions.Instance.ActionAllowedTargets(na.ID)}]");
+            tree.LeafNode($"Targets: [{actionDefinitions.ActionAllowedTargets(na.ID)}]");
             tree.LeafNode($"Can be put on action bar: {na.CanBePutOnActionBar}");
             tree.LeafNode($"Is role action: {na.IsRoleAction}");
             tree.LeafNode($"Expected anim lock: {na.ExpectedInstantAnimLock} / {na.ExpectedCastAnimLock}", na.SeenDifferentInstantAnimLocks || na.SeenDifferentCastAnimLocks ? 0xff0000ff : 0xffffffff);
@@ -337,7 +342,7 @@ class ClassDefinitions
 
         if (ImGui.MenuItem("Generate AID enum"))
         {
-            var writer = new AIDWriter(ns);
+            var writer = new AIDWriter(ns, actionDefinitions, unlockState);
             writer.Add("None", 0);
             writer.Add("Sprint", ActionDefinitions.IDSprint.ID);
             for (var c = ClassCategory.Tank; c <= ClassCategory.Limited; ++c)
@@ -421,7 +426,7 @@ class ClassDefinitions
 
     private string GenerateClassAID(ClassData cd)
     {
-        var writer = new AIDWriter(cd.ID.ToString());
+        var writer = new AIDWriter(cd.ID.ToString(), actionDefinitions, unlockState);
         writer.Add("None", 0);
         writer.Add("Sprint", "ClassShared.AID.Sprint");
         writer.Group("", cd.Actions.Where(a => a.OwningClasses.NumSetBits() == 1), false);
@@ -469,7 +474,7 @@ class ClassDefinitions
         }
     }
 
-    private record class AIDWriter(string Namespace) : EnumWriter("AID")
+    private record class AIDWriter(string Namespace, ActionDefinitions ActionDefinitions, IUnlockState UnlockState) : EnumWriter("AID")
     {
         public void Add(ActionData a, bool allowClasses, bool shared = false)
         {
@@ -494,7 +499,7 @@ class ClassDefinitions
         }
 
         public string Comment(ActionData action, bool allowClasses)
-            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.Instance.ActionRange(action.ID, action.IsPhysRanged)}, {(action.Row != null ? DescribeShape(action.Row.Value) : "????")}, targets={ActionDefinitions.Instance.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
+            => $"{LevelString(action, allowClasses)}, {CastTimeString(action)}{CooldownString(action)}{ChargesString(action)}, range {ActionDefinitions.ActionRange(action.ID, action.IsPhysRanged)}, {(action.Row != null ? DescribeShape(action.Row.Value) : "????")}, targets={ActionDefinitions.ActionAllowedTargets(action.ID).ToString().Replace(", ", "/", StringComparison.InvariantCulture)}{AnimLockString(action)}";
 
         private string LevelString(ActionData action, bool allowClasses)
         {
@@ -505,7 +510,7 @@ class ClassDefinitions
 
         private string CastTimeString(ActionData action)
         {
-            var castTime = ActionDefinitions.Instance.ActionBaseCastTime(action.ID);
+            var castTime = ActionDefinitions.ActionBaseCastTime(action.ID);
             return castTime != 0 ? $"{castTime:f1}s cast" : "instant";
         }
 
@@ -513,14 +518,14 @@ class ClassDefinitions
         {
             < 0 => "",
             ActionDefinitions.GCDGroup => ", GCD",
-            _ => $", {ActionDefinitions.Instance.ActionBaseCooldown(action.ID):f1}s CD (group {action.MainCDGroup}{(action.ExtraCDGroup >= 0 ? $"/{action.ExtraCDGroup}" : "")})"
+            _ => $", {ActionDefinitions.ActionBaseCooldown(action.ID):f1}s CD (group {action.MainCDGroup}{(action.ExtraCDGroup >= 0 ? $"/{action.ExtraCDGroup}" : "")})"
         };
 
         private string ChargesString(ActionData action)
         {
             // assume if definition is present, we know what we're doing...
-            var min = ActionDefinitions.Instance.ActionBaseMaxCharges(action.ID);
-            var max = action.Definition?.MaxChargesAtCap(Utils.Landmine<IUnlockState>()) ?? 0;
+            var min = ActionDefinitions.ActionBaseMaxCharges(action.ID);
+            var max = action.Definition?.MaxChargesAtCap(UnlockState) ?? 0;
             return min == 1 && max <= 1 ? "" // simple
                 : min == max ? $" ({min} charges)"
                 : max == 0 ? $" ({min}? charges)"

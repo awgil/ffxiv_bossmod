@@ -68,7 +68,6 @@ public sealed class ReplayManager : IDisposable
             if (Window != null)
                 Mediator.Publish(new DestroyWindow(Window));
             Window?.Dispose();
-            Analysis?.Dispose();
             Disposed = true;
         }
 

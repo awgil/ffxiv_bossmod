@@ -34,7 +34,7 @@ namespace BossMod;
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
 // 7. auto cancel cast utility
 // TODO: should not be public!
-public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions, IUnlockState unlockState, ActionTweaksConfig tweaksConfig, SmartRotationConfig smartRotationConfig, OutOfCombatActionsConfig outOfCombatActionsConfig, IPluginLog logger, HookProvider hook, ICondition condition, ActionDefinitions defs) : IAmex, IHostedService
+public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement, BozjaActionID bozjaActions, ActionTweaksConfig tweaksConfig, IPluginLog logger, HookProvider hook, ICondition condition, AnimationLockTweak animLockTweak, CooldownDelayTweak cooldownTweak, CancelCastTweak cancelCastTweak, AutoDismountTweak dismountTweak, OutOfCombatActionsTweak oocActionsTweak, SmartRotationTweak smartRotationTweak, AutoAutosTweak autoAutosTweak, ManualActionQueueTweak manualQueue) : IAmex, IHostedService
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
     public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
@@ -46,7 +46,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
     public bool MacroCapture { get; set; }
 
     public float EffectiveAnimationLock => _inst->AnimationLock + CastTimeRemaining; // animation lock starts ticking down only when cast ends, so this is the minimal time until next action can be requested
-    public float AnimationLockDelayEstimate => _animLockTweak.DelayEstimate;
+    public float AnimationLockDelayEstimate => animLockTweak.DelayEstimate;
 
     public Event<ClientActionRequest> ActionRequestExecuted { get; } = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived { get; } = new();
@@ -55,14 +55,6 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private readonly ActionManager* _inst = ActionManager.Instance();
-    private readonly ManualActionQueueTweak _manualQueue = new(ws, hints, unlockState, tweaksConfig, defs, logger);
-    private readonly AnimationLockTweak _animLockTweak = new(tweaksConfig);
-    private readonly CooldownDelayTweak _cooldownTweak = new(tweaksConfig);
-    private readonly CancelCastTweak _cancelCastTweak = new(ws, hints, tweaksConfig);
-    private readonly AutoDismountTweak _dismountTweak = new(ws, tweaksConfig);
-    private readonly SmartRotationTweak _smartRotationTweak = new(ws, hints, smartRotationConfig);
-    private readonly OutOfCombatActionsTweak _oocActionsTweak = new(ws, outOfCombatActionsConfig);
-    private readonly AutoAutosTweak _autoAutosTweak = new(ws, hints, tweaksConfig);
 
 #nullable disable
     private Hook<ActionManager.Delegates.Update> _updateHook;
@@ -113,13 +105,12 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
-        _oocActionsTweak.Dispose();
     }
 
     public void QueueManualActions()
     {
-        _manualQueue.RemoveExpired();
-        _manualQueue.FillQueue(hints.ActionsToExecute);
+        manualQueue.RemoveExpired();
+        manualQueue.FillQueue(hints.ActionsToExecute);
     }
 
     // finish gathering candidate actions for this frame: sort by priority and select best action to execute
@@ -130,8 +121,8 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         if (player == null)
             return;
 
-        _oocActionsTweak.FillActions(player, hints);
-        AutoQueue = hints.ActionsToExecute.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, hints, _animLockTweak.DelayEstimate, _dismountTweak.AutoDismountEnabled);
+        oocActionsTweak.FillActions(player, hints);
+        AutoQueue = hints.ActionsToExecute.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, hints, animLockTweak.DelayEstimate, dismountTweak.AutoDismountEnabled);
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
 
@@ -406,9 +397,9 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
             currentTargetPos = new(realPos.X, realPos.Z);
         }
         var currentTargetLoc = isCasting ? new WPos(castInfo->TargetLocation.X, castInfo->TargetLocation.Z) : new(AutoQueue.TargetPos.XZ()); // note: this only matters for area-targeted spells, for which targetlocation in castinfo is set correctly
-        var idealOrientation = currentAction ? _smartRotationTweak.GetSpellOrientation(GetSpellIdForAction(currentAction), new(player->Position.X, player->Position.Z), currentTargetSelf, currentTargetPos, currentTargetLoc) : null;
+        var idealOrientation = currentAction ? smartRotationTweak.GetSpellOrientation(GetSpellIdForAction(currentAction), new(player->Position.X, player->Position.Z), currentTargetSelf, currentTargetPos, currentTargetLoc) : null;
         // avoiding a gaze has a priority over restore
-        return _smartRotationTweak.GetSafeRotation(current, idealOrientation, isCasting ? 75.Degrees() : 45.Degrees());
+        return smartRotationTweak.GetSafeRotation(current, idealOrientation, isCasting ? 75.Degrees() : 45.Degrees());
     }
 
     private static bool IsGCD(ActionID action)
@@ -430,7 +421,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         var imminentActionAdj = imminentAction.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(imminentAction.ID)) : imminentAction;
         var imminentRecast = imminentActionAdj ? _inst->GetRecastGroupDetail(GetRecastGroup(imminentActionAdj)) : null;
 
-        _cooldownTweak.StartAdjustment(_inst->AnimationLock, imminentRecast != null && imminentRecast->IsActive ? imminentRecast->Total - imminentRecast->Elapsed : 0, dt);
+        cooldownTweak.StartAdjustment(_inst->AnimationLock, imminentRecast != null && imminentRecast->IsActive ? imminentRecast->Total - imminentRecast->Elapsed : 0, dt);
         _updateHook.Original(self);
 
         // check whether movement is safe; block movement if not and if desired
@@ -467,14 +458,14 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
             if (status == 0)
             {
                 // disable in-game auto rotation, to prevent fucking up with our logic
-                autoRotateConfig->Value.UInt = _smartRotationTweak.Enabled ? 0 : autoRotateOriginal;
+                autoRotateConfig->Value.UInt = smartRotationTweak.Enabled ? 0 : autoRotateOriginal;
                 var res = ExecuteAction(actionAdj, targetID, AutoQueue.TargetPos);
                 //Service.Log($"[AMEx] Auto-execute {AutoQueue.Source} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X} {Utils.Vec3String(AutoQueue.TargetPos)} => {res}");
             }
-            else if (_dismountTweak.IsMountPreventingAction(actionAdj))
+            else if (dismountTweak.IsMountPreventingAction(actionAdj))
             {
                 logger.Debug("[AMEx] Trying to dismount...");
-                autoDismount = _dismountTweak.AutoDismountEnabled;
+                autoDismount = dismountTweak.AutoDismountEnabled;
             }
             else
             {
@@ -484,10 +475,10 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         }
 
         autoRotateConfig->Value.UInt = autoRotateOriginal;
-        _cooldownTweak.StopAdjustment(); // clear any potential adjustments
+        cooldownTweak.StopAdjustment(); // clear any potential adjustments
 
         // doing it here so we can unblock movement early; cast canceling is serverside but movement is not
-        if (ws.Party.Player()?.CastInfo != null && _cancelCastTweak.ShouldCancel(ws.CurrentTime, hints.ForceCancelCast))
+        if (ws.Party.Player()?.CastInfo != null && cancelCastTweak.ShouldCancel(ws.CurrentTime, hints.ForceCancelCast))
         {
             UIState.Instance()->Hotbar.CancelCast();
             blockMovementCast = false;
@@ -498,11 +489,11 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         if (!GameMain.IsInPvPArea() && !condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
         {
             var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
-            if (_autoAutosTweak.GetDesiredState(autosEnabled, ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
+            if (autoAutosTweak.GetDesiredState(autosEnabled, ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
                 _inst->UseAction(CSActionType.GeneralAction, 1);
         }
 
-        var shouldDismount = hints.WantDismount && _dismountTweak.AllowManualDismount() || autoDismount && _dismountTweak.AllowAutoDismount();
+        var shouldDismount = hints.WantDismount && dismountTweak.AllowManualDismount() || autoDismount && dismountTweak.AllowAutoDismount();
 
         if (!movement.FollowPathActive() && shouldDismount)
             _inst->UseAction(CSActionType.GeneralAction, 23);
@@ -540,7 +531,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
 
         // note: current implementation introduces slight input lag (on button press, next autorotation update will pick state updates, which will be executed on next action manager update)
         var canManualQueue = mode == ActionManager.UseActionMode.None || mode == ActionManager.UseActionMode.Macro && MacroCapture;
-        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && _manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, AutotargetNative))
+        if (canManualQueue && action.Type is ActionType.Spell or ActionType.Item && manualQueue.Push(action, targetId, GetAdjustedCastTime(action) * 0.001f, !targetOverridden, getAreaTarget, AutotargetNative))
             return false;
 
         var areaTargeted = false;
@@ -574,7 +565,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         var prevSeq = _inst->LastUsedActionSequence;
         var prevRot = player != null ? player->Rotation.Radians() : default;
         var hardTarget = targetSystem->Target;
-        var preventAutos = _autoAutosTweak.ShouldPreventAutoActivation(ActionManager.GetSpellIdForAction(actionType, actionId));
+        var preventAutos = autoAutosTweak.ShouldPreventAutoActivation(ActionManager.GetSpellIdForAction(actionType, actionId));
         if (preventAutos)
             targetSystem->Target = null;
         var ret = _useActionLocationHook.Original(self, actionType, actionId, targetId, location, extraParam, a7);
@@ -602,7 +593,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
             return false;
         var action = new ActionID(slot == 0 ? ActionType.BozjaHolsterSlot0 : ActionType.BozjaHolsterSlot1, state->HolsterActions[(int)holsterIndex]);
 
-        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+        if (manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
             return true;
 
         return UseBozjaHolsterNative(action);
@@ -626,7 +617,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
     private void UsePomanderDetour(InstanceContentDeepDungeon* self, uint slot)
     {
         var action = ws.DeepDungeon.GetPomanderActionID((int)slot);
-        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+        if (manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
             return;
 
         UsePomanderNative(action);
@@ -651,7 +642,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
     private void UseStoneDetour(InstanceContentDeepDungeon* self, uint slot)
     {
         var action = new ActionID(ActionType.Magicite, slot + 1);
-        if (_manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
+        if (manualQueue.Push(action, 0xE0000000, 0, false, () => (0, null), () => 0xE0000000))
             return;
 
         UseStoneNative(action);
@@ -698,7 +689,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
 
         var targetId = target == null ? 0xE0000000 : target->GetGameObjectId();
 
-        if (_manualQueue.Push(action, targetId, 0, false, () => (0, null), AutotargetNative))
+        if (manualQueue.Push(action, targetId, 0, false, () => (0, null), AutotargetNative))
             return;
 
         UseCrucibleItemNative(action, targetId);
@@ -773,26 +764,26 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         movement.MovementBlocked = false; // unblock input unconditionally on successful cast (I assume there are no instances where we need to immediately start next GCD?)
 
         // animation lock delay update
-        var animLockReduction = _animLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
+        var animLockReduction = animLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
         _inst->AnimationLock -= animLockReduction;
         logger.Debug($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
     }
 
     private void HandleActionRequest(ActionID action, uint seq, ulong targetID, Vector3 targetPos, Angle prevRot, Angle currRot)
     {
-        _manualQueue.Pop(action);
-        _animLockTweak.RecordRequest(seq, _inst->AnimationLock);
+        manualQueue.Pop(action);
+        animLockTweak.RecordRequest(seq, _inst->AnimationLock);
         MoveMightInterruptCast = CastTimeRemaining > 0 && !CanMoveWhileCasting(action);
 
         var recast = _inst->GetRecastGroupDetail(GetRecastGroup(action));
 
         if (CastTimeRemaining > 0)
-            _inst->CastTimeElapsed += _cooldownTweak.Adjustment;
+            _inst->CastTimeElapsed += cooldownTweak.Adjustment;
         else
-            _inst->AnimationLock = Math.Max(0, _inst->AnimationLock - _cooldownTweak.Adjustment);
+            _inst->AnimationLock = Math.Max(0, _inst->AnimationLock - cooldownTweak.Adjustment);
 
         if (recast != null)
-            recast->Elapsed += _cooldownTweak.Adjustment;
+            recast->Elapsed += cooldownTweak.Adjustment;
 
         var (castElapsed, castTotal) = _inst->CastSpellId != 0 ? (_inst->CastTimeElapsed, _inst->CastTimeTotal) : (0, 0);
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
@@ -804,7 +795,7 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
     // TODO: current implementation means that we'll check desired state twice (once before making a decision to start autos, then again in the hook)
     private bool SetAutoAttackStateDetour(AutoAttackState* self, bool value, bool sendPacket, bool isInstant)
     {
-        if (value && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
+        if (value && !autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
         {
             logger.Debug($"[AMEx] Prevented starting autoattacks");
             return true;

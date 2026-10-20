@@ -287,7 +287,7 @@ public abstract class RotationModule(RotationModuleManager manager, Actor player
     public int FindDutyActionSlot<AID>(AID aid) where AID : Enum => FindDutyActionSlot(ActionID.MakeSpell(aid));
 
     public float DutyActionCD(int slot) => slot is >= 0 and < 7
-        ? (ActionDefinitions.Instance[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) ?? float.MaxValue)
+        ? (Manager.ActionDefinitions[World.Client.DutyActions[slot].Action]?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) ?? float.MaxValue)
         : float.MaxValue;
     public float DutyActionCD(ActionID action) => DutyActionCD(FindDutyActionSlot(action));
 

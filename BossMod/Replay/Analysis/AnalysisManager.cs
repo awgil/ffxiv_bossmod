@@ -1,8 +1,9 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Plugin.Services;
 
 namespace BossMod.ReplayAnalysis;
 
-public sealed class AnalysisManager : IDisposable
+public sealed class AnalysisManager
 {
     public class Lazy<T>(Func<T> init)
     {
@@ -12,12 +13,14 @@ public sealed class AnalysisManager : IDisposable
         public T Get() => _impl ??= _init();
     }
 
-    private sealed class Global(List<Replay> replays, BozjaActionID bozjaActions)
+    public sealed class Global(List<Replay> replays, BozjaActionID bozjaActions, ActionDefinitions defs, IUnlockState unlocks)
     {
+        public delegate Global Factory(List<Replay> replays);
+
         private readonly Lazy<UnknownActionEffects> _unkEffects = new(() => new(replays));
         private readonly Lazy<ParticipantInfo> _participantInfo = new(() => new(replays));
         private readonly Lazy<AbilityInfo> _abilityInfo = new(() => new(replays));
-        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays, bozjaActions));
+        private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays, bozjaActions, defs, unlocks));
         private readonly Lazy<ClientActions> _clientActions = new(() => new(replays));
         private readonly Lazy<EffectResultMispredict> _effectResultMissing = new(() => new(replays, true));
         private readonly Lazy<EffectResultMispredict> _effectResultUnexpected = new(() => new(replays, false));
@@ -122,16 +125,12 @@ public sealed class AnalysisManager : IDisposable
 
     public delegate AnalysisManager Factory(List<Replay> replays);
 
-    public AnalysisManager(List<Replay> replays, BossModuleRegistry registry, BozjaActionID bozjaActions)
+    public AnalysisManager(List<Replay> replays, BossModuleRegistry registry, Global.Factory makeGlobal)
     {
         _replays = replays;
         this.registry = registry;
-        _global = new(_replays, bozjaActions);
+        _global = makeGlobal.Invoke(_replays);
         InitEncounters();
-    }
-
-    public void Dispose()
-    {
     }
 
     public void Draw()
