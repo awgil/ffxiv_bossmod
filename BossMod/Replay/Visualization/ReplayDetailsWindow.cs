@@ -69,6 +69,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
     public void Dispose()
     {
+        _config.Dispose();
         if (_modulePopout != null)
             mediator.Publish(new DestroyWindow(_modulePopout));
         _analysis.Dispose();

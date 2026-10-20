@@ -8,7 +8,7 @@ class UWUStates : StateMachineBuilder
     {
         _module = module;
         SimplePhase(0, Phase1Garuda, "P1: Garuda")
-            .ActivateOnEnter<P1Positioning>()
+            .ActivateOnEnter<BossPositioning>()
             .ActivateOnEnter<P1Plumes>()
             .ActivateOnEnter<P1Gigastorm>()
             .ActivateOnEnter<P1SpinyShield>()
@@ -62,7 +62,7 @@ class UWUStates : StateMachineBuilder
             .DeactivateOnExit<P1Slipstream>();
         ComponentCondition<P1MistralSongBoss>(id + 0x10, 2.7f, comp => comp.NumCasts > 0, "Mistral song")
             .DeactivateOnExit<P1MistralSongBoss>()
-            .ExecOnExit<P1Positioning>(p =>
+            .ExecOnExit<BossPositioning>(p =>
             {
                 p.DesiredPosition = new(93.3f, 100);
             });
@@ -81,7 +81,7 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P1Downburst>()
             .ExecOnEnter<P1Downburst>(p => p.NextExpected = p.Module.WorldState.FutureTime(3.5f))
             .DeactivateOnExit<P1Downburst>()
-            .ExecOnExit<P1Positioning>(p => p.DesiredRotation = null);
+            .ExecOnExit<BossPositioning>(p => p.DesiredRotation = null);
         // great whirlwind disappears somewhere here...
 
         P1GarudaFeatherRainRaidwide(id + 0x1000, 7.3f, AID.MistralShriek, "Cyclone 2 + Feathers"); // note: cyclone happens ~0.6s before feathers
@@ -106,11 +106,11 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P1FeatherRain>(id + 2, 1, comp => !comp.CastsActive, name)
             .DeactivateOnExit<P1FeatherRain>();
         ActorTargetable(id + 3, _module.Garuda, true, 1.7f, "Reappear")
-            .ExecOnEnter<P1Positioning>(p => p.DesiredPosition = Module.Arena.Center);
+            .ExecOnEnter<BossPositioning>(p => p.DesiredPosition = Module.Arena.Center);
 
         ActorCast(id + 0x10, _module.Garuda, raidwide, 0.1f, 3, true, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide)
-            .ExecOnExit<P1Positioning>(p => p.DesiredRotation = 180.Degrees());
+            .ExecOnExit<BossPositioning>(p => p.DesiredRotation = 180.Degrees());
     }
 
     private void P1SistersFeatherRain(uint id, float delay)
@@ -148,7 +148,7 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P1Downburst>(id + 0x20, 3.5f, comp => comp.NumCasts > 0, "Cleave + Mesohigh")
             .ActivateOnEnter<P1Downburst>()
             .ExecOnEnter<P1Downburst>(p => p.NextExpected = p.Module.WorldState.FutureTime(3.5f))
-            .ExecOnExit<P1Positioning>(p => p.DesiredRotation = null)
+            .ExecOnExit<BossPositioning>(p => p.DesiredRotation = null)
             .DeactivateOnExit<P1Downburst>()
             .DeactivateOnExit<P1EyeOfTheStorm>() // ends ~2.2s before cleave
             .DeactivateOnExit<P1Mesohigh>(); // resolves at the same time as cleave
@@ -195,14 +195,26 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P2Preposition>()
             .ActivateOnEnter<P2CrimsonCyclone>()
             .ActivateOnEnter<P2RadiantPlume>() // casts starts at the same time as charge (2.1s)
-            .DeactivateOnExit<P1FeatherRain>() // in case we killed mid cast
-            .ExecOnExit<P2Preposition>(p => p.Step = 2);
+            .ExecOnExit<P2Preposition>(p => p.Step = 2)
+            .OnExit(() =>
+            {
+                // in case we killed mid cast
+                // checking for existence first so we don't get transition errors
+                if (Module.FindComponent<P1FeatherRain>() != null)
+                    Module.DeactivateComponent<P1FeatherRain>();
+            });
         ComponentCondition<P2CrimsonCyclone>(id + 0x10, 5.1f, comp => comp.NumCasts > 0, "Charge")
             .DeactivateOnExit<P2CrimsonCyclone>();
         ComponentCondition<P2RadiantPlume>(id + 0x20, 1, comp => comp.NumCasts > 0, "Plumes")
             .DeactivateOnExit<P2RadiantPlume>();
 
         Condition(id + 0x100, 3.2f, () => _module.Ifrit() != null, "Ifrit appears")
+            .ExecOnExit<BossPositioning>(p =>
+            {
+                p.Boss = _module.Ifrit();
+                p.DesiredPosition = Module.Arena.Center;
+                p.DesiredRotation = 0.Degrees();
+            })
             .DeactivateOnExit<P2Preposition>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x200, _module.Ifrit, AID.Hellfire, 0.1f, 3, true, "Raidwide")
@@ -227,14 +239,14 @@ class UWUStates : StateMachineBuilder
 
     private void P2Nails(uint id, float delay)
     {
-        ComponentCondition<P2Nails>(id, delay, comp => comp.Active, "Nails spawn");
+        ComponentCondition<P2Nails>(id, delay, comp => comp.Active, "Nails spawn")
+            .ActivateOnEnter<P2Eruption1>();
         // +5.0s: fetters
         ActorCast(id + 0x100, _module.Ifrit, AID.InfernoHowl, 5.2f, 2, true, "Searing wind start");
-        ActorCastStart(id + 0x110, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits")
-            .ActivateOnEnter<P2Eruption>(); // activate early to show bait hints
+        ActorCastStart(id + 0x110, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits");
         ActorCastEnd(id + 0x111, _module.Ifrit, 2.5f, true);
-        ComponentCondition<P2Eruption>(id + 0x120, 6.5f, comp => comp.NumCasts >= 8)
-            .DeactivateOnExit<P2Eruption>();
+        ComponentCondition<P2Eruption1>(id + 0x120, 6.5f, comp => comp.NumCasts >= 8)
+            .DeactivateOnExit<P2Eruption1>();
         ComponentCondition<P2SearingWind>(id + 0x130, 5.8f, comp => !comp.Active, "Searing wind end");
 
         ActorTargetable(id + 0x200, _module.Ifrit, false, 5.1f, "Disappear");

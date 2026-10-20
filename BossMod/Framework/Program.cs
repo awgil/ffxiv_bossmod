@@ -2,6 +2,7 @@
 using Autofac;
 using BossMod;
 using BossMod.Dev;
+using BossMod.Interfaces;
 using BossMod.Services;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
@@ -28,6 +29,8 @@ static class Program
         public override void ConfigureExtra(ContainerBuilder containerBuilder)
         {
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateGameSync>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockAmex>();
 
             containerBuilder.Register(ctx => new WorldState(0, "unknown")).SingleInstance();

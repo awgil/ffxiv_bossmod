@@ -16,7 +16,11 @@ public record ReplayPlayer(Replay Replay, WorldState WorldState, RotationDatabas
 
         var ts = Replay.Ops[_nextOp].Timestamp;
         while (_nextOp < Replay.Ops.Count && Replay.Ops[_nextOp].Timestamp == ts)
-            WorldState.Execute(Replay.Ops[_nextOp++]);
+        {
+            var nextOp = Replay.Ops[_nextOp++];
+            WorldState.Execute(nextOp);
+            ApplyReplayStateOps(nextOp);
+        }
         return true;
     }
 
@@ -40,6 +44,18 @@ public record ReplayPlayer(Replay Replay, WorldState WorldState, RotationDatabas
             if (Replay.Ops[i].Timestamp < curr)
                 return Replay.Ops[i].Timestamp;
         return default;
+    }
+
+    private void ApplyReplayStateOps(WorldState.Operation op)
+    {
+        switch (op)
+        {
+            case ReplayState.OpActivePresetsChange p:
+                Rotations.Clear();
+                foreach (var active in p.Presets)
+                    Rotations.Activate(active);
+                break;
+        }
     }
 
     public static (ILifetimeScope Scope, ReplayPlayer Player) Create(Replay data, ILifetimeScope parent)

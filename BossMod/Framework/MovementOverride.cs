@@ -2,6 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
@@ -38,7 +39,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
 
     private readonly IDalamudPluginInterface _dalamud;
-    private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
+    private readonly ActionTweaksConfig _tweaksConfig;
     private bool? _forcedControlState;
     private bool _legacyMode;
     private bool[]? _navmeshPathIsRunning;
@@ -77,20 +78,21 @@ public sealed unsafe class MovementOverride : IMovementOverride
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
     private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
 
-    public MovementOverride(IDalamudPluginInterface dalamud)
+    public MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, ActionTweaksConfig tweaksConfig, IPluginLog logger)
     {
         _dalamud = dalamud;
+        _tweaksConfig = tweaksConfig;
 
-        var rmiWalkIsInputEnabled1Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
-        var rmiWalkIsInputEnabled2Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
-        Service.Log($"RMIWalkIsInputEnabled1 address: 0x{rmiWalkIsInputEnabled1Addr:X}");
-        Service.Log($"RMIWalkIsInputEnabled2 address: 0x{rmiWalkIsInputEnabled2Addr:X}");
+        var rmiWalkIsInputEnabled1Addr = scanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
+        var rmiWalkIsInputEnabled2Addr = scanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
+        logger.Verbose($"RMIWalkIsInputEnabled1 address: 0x{rmiWalkIsInputEnabled1Addr:X}");
+        logger.Verbose($"RMIWalkIsInputEnabled2 address: 0x{rmiWalkIsInputEnabled2Addr:X}");
         _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
         _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
 
-        _rmiWalkHook = new("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
-        _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
-        _mcIsInputActiveHook = new("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
+        _rmiWalkHook = new(scanner, "E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
+        _rmiFlyHook = new(scanner, "E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
+        _mcIsInputActiveHook = new(scanner, "E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
 
         Service.GameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();

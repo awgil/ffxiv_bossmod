@@ -10,7 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
@@ -26,14 +26,13 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
     private readonly DebugQuests _debugQuests = new();
     private readonly DebugVfx _debugVfx = new();
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
         _debugAction.Dispose();
         _debugInput.Dispose();
         _debugAddon.Dispose();
         _debugMapEffect.Dispose();
         _debugVfx.Dispose();
-        base.Dispose(disposing);
     }
 
     public override unsafe void Draw()

@@ -18,7 +18,8 @@ public sealed class ZoneModuleManager : IDisposable
         WorldState = ws;
         _subscriptions = new
         (
-            WorldState.CurrentZoneChanged.Subscribe(op => OnZoneChanged(op.CFCID))
+            WorldState.CurrentZoneChanged.Subscribe(op => OnZoneChanged(op.CFCID)),
+            registry.Modified.Subscribe(() => OnZoneChanged(ws.CurrentCFCID))
         );
         OnZoneChanged(ws.CurrentCFCID);
     }

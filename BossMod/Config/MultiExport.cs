@@ -101,7 +101,7 @@ public sealed class MultiImport(RotationDatabase rotationDB, List<Plan> plans) :
         using (ImRaii.Disabled(num == 0))
             if (ImGui.Button("Import selected plans"))
             {
-                var sel = _plans.Where(p => p.selected).Select(p => p.plan);
+                var sel = _plans.Where(p => p.selected).Select(p => p.plan).ToList();
 
                 foreach (var plan in sel)
                     rotationDB.Plans.ModifyPlan(null, plan);

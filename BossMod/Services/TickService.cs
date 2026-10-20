@@ -72,6 +72,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         ZoneModuleManager zmm,
         AIHintsBuilder builder,
         IWorldStateGameSync wsSync,
+        IMovementOverride movementOverride,
+        IHintExecutor hintExecutor,
         IEnumerable<ConfigMigration> migrations
     ) : base(mLogger, mediator)
     {
@@ -120,23 +122,25 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex = amex;
         _ws = wsGlobal;
         _wsSync = wsSync;
+        _movementOverride = movementOverride;
+        _hintExecutor = hintExecutor;
         this.migrations = migrations;
         if (Service.IsMock)
         {
-            _movementOverride = new MockMovementOverride();
+            //_movementOverride = new MockMovementOverride();
             //_amex = new MockAmex();
             //_wsSync = new MockWorldStateGameSync();
-            _hintExecutor = new MockHintExecutor();
+            //_hintExecutor = new MockHintExecutor();
 
             Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
         }
         else
         {
             _ping.Run();
-            _movementOverride = new MovementOverride(dalamud);
+            //_movementOverride = new MovementOverride(dalamud);
             //_amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
             //_wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
-            _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
+            //_hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
 
             ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
         }
