@@ -9,6 +9,7 @@ using DalaMock.Core.Plugin;
 using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 using static DalaMock.Core.Fonts.MockDefaultFontConfig;
@@ -27,17 +28,29 @@ static class Program
 
         public override void ConfigureExtra(ContainerBuilder containerBuilder)
         {
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockCamera>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateGameSync>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockAmex>();
 
-            containerBuilder.Register(ctx => new WorldState(0, "unknown")).SingleInstance();
+            containerBuilder.Register(ctx =>
+            {
+                var ws = new WorldState(0, "unknown");
+
+                ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
+                ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
+                ws.IsFrozen = true;
+
+                return ws;
+            }).SingleInstance();
 
             // ConfigDirectory is supposed to be plugin-scoped, but dalamock has a bug and returns the top level pluginConfigs dir instead
             containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName, "BossMod"))).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
             containerBuilder.RegisterSingletonSelf<MainDevWindow>().As<WindowBase>();
+
+            containerBuilder.RegisterBuildCallback(ctx => ctx.Resolve<IDataManager>().GameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue);
         }
     }
 

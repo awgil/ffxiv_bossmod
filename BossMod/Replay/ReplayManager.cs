@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Autofac.Features.AttributeFilters;
 using DalaMock.Host.Mediator;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Microsoft.Extensions.Hosting;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ILifetimeScope container, MediatorService mediator) : IHostedService, IDisposable
+public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ILifetimeScope container, MediatorService mediator, IFileDialogManager dialogManager) : IHostedService, IDisposable
 {
     private string fileDialogStartPath = logDir.FullName;
 
@@ -79,10 +80,7 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
         {
             Analysis ??= AnalysisFactory.Invoke([.. Replays.Where(r => r.Replay.IsCompletedSuccessfully && r.Replay.Result.Ops.Count > 0).Select(r => r.Replay.Result)]);
             if (Window == null)
-            {
-                Window = new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800));
-                Mediator.Publish(new CreateWindow(Window));
-            }
+                Mediator.CreateWindow(Window = new($"Multiple logs: {Identifier}", Analysis.Draw, false, new(1200, 800)));
             Window.IsOpen = true;
         }
     }
@@ -263,10 +261,7 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
         ImGui.SameLine();
         if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File))
         {
-            // FIXME
-            var suffixFilter = Service.IsMock ? "log" : ".log";
-
-            Service.FileDialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
+            dialogManager.OpenFileDialog("Select file", ".log", (c, p) =>
             {
                 if (c)
                 {
@@ -280,7 +275,7 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
         ImGui.SameLine();
         if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
         {
-            Service.FileDialogManager.OpenFolderDialog("Select directory", (c, p) =>
+            dialogManager.OpenFolderDialog("Select directory", (c, p) =>
             {
                 if (c)
                 {
@@ -388,9 +383,6 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
 
     private void RestoreHistory()
     {
-        if (!Service.IsMock)
-            return;
-
         foreach (var rp in _replayHistory.History)
             _replayEntries.Add(new(rp.Path, rp.IsOpen, container, mediator, rp.PlaybackPosition));
     }

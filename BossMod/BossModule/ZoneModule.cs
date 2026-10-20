@@ -1,11 +1,12 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot, IUnlockState UnlockState)
+public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot, IUnlockState UnlockState, ICamera Camera)
 {
     public delegate ZoneModuleInit Factory(WorldState World);
 }
@@ -16,6 +17,7 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
 
     public readonly WorldState World = init.World;
     public readonly ArenaColor ArenaColor = new(init.ConfigRoot.Get<ColorConfig>());
+    public readonly ICamera Camera = init.Camera;
 
     public void Dispose()
     {

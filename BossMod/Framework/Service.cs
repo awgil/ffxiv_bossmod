@@ -1,5 +1,4 @@
 ﻿using DalaMock.Host.Mediator;
-using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -54,7 +53,6 @@ public sealed class Service
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;
-    public static IFileDialogManager FileDialogManager = null!;
     public static ImFontPtr IconFont = ImFontPtr.Null;
     public static ImFontPtr MonoFont = ImFontPtr.Null;
     public static IFontAtlas FontAtlas = null!;

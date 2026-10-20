@@ -171,7 +171,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
             if (Bossmods.ActiveModule != null && ImGui.Button("Timeline"))
             {
-                _ = new StateMachineWindow(Bossmods.ActiveModule, _playerScope.Resolve<ColorConfig>());
+                mediator.CreateWindow(new StateMachineWindow(Bossmods.ActiveModule, _playerScope.Resolve<ColorConfig>()));
             }
 
             if (Bossmods.ActiveModule?.Info?.PlanLevel > 0)
@@ -199,7 +199,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
                     var enc = _player.Replay.Encounters.FirstOrDefault(e => e.InstanceID == Bossmods.ActiveModule.PrimaryActor.InstanceID);
                     if (enc != null)
                     {
-                        mediator.Publish(new CreateWindow(_parentScope.Resolve<ReplayTimelineWindow.Factory>().Invoke(_player.Replay, enc, BitMask.Build(_povSlot), this)));
+                        mediator.CreateWindow(_parentScope.Resolve<ReplayTimelineWindow.Factory>().Invoke(_player.Replay, enc, BitMask.Build(_povSlot), this));
                     }
                 }
             }

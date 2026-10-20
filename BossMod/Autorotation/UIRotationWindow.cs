@@ -1,3 +1,4 @@
+using BossMod.Interfaces;
 using BossMod.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -10,15 +11,17 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
 {
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
+    private readonly ICamera camera;
     private readonly AutorotationConfig _config;
     private readonly DtrConfig dtrConfig;
     private readonly ColorConfig colors;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, AutorotationConfig config, DtrConfig dtrConfig, ColorConfig colors) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, ICamera camera, AutorotationConfig config, DtrConfig dtrConfig, ColorConfig colors) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
+        this.camera = camera;
         _config = config;
         this.dtrConfig = dtrConfig;
         this.colors = colors;
@@ -319,11 +322,11 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
             switch (pos.Pos)
             {
                 case Positional.Flank:
-                    Camera.Instance()?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 90.Degrees(), 45.Degrees(), color);
-                    Camera.Instance()?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation - 90.Degrees(), 45.Degrees(), color);
+                    camera.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 90.Degrees(), 45.Degrees(), color);
+                    camera.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation - 90.Degrees(), 45.Degrees(), color);
                     break;
                 case Positional.Rear:
-                    Camera.Instance()?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
+                    camera.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
                     break;
             }
         }

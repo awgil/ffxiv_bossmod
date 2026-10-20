@@ -1,17 +1,12 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace BossMod;
 
-public class Camera
+public class Camera : ICamera
 {
-    private static Camera? _instance;
-    public static Camera? Instance()
-    {
-        return Service.IsMock ? null : (_instance ??= new());
-    }
-
     public Vector3 Origin;
     public Matrix4x4 View;
     public Matrix4x4 Proj;

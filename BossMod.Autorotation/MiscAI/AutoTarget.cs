@@ -231,9 +231,6 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
     // TODO: this shouldn't be here
     private unsafe bool IsRelicTarget(Actor a)
     {
-        if (Service.IsMock)
-            return false;
-
         // leve targets xDDDD
         var obj = GameObjectManager.Instance()->Objects.IndexSorted[a.SpawnIndex];
         if (obj != null && obj.Value->NamePlateIconId == 71244)

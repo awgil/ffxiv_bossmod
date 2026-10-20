@@ -1,3 +1,4 @@
+using BossMod.Interfaces;
 using BossMod.Pathfinding;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
@@ -7,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalamud)
+sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterface dalamud, ICamera camera)
 {
-    class Editor(DebugObstacles owner, Bitmap bm, ObstacleMapDatabase.Entry e) : UIBitmapEditor(bm)
+    class Editor(DebugObstacles owner, ICamera camera, Bitmap bm, ObstacleMapDatabase.Entry e) : UIBitmapEditor(bm)
     {
         private int _deltaCells;
 
@@ -112,10 +113,10 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
                 var y = player?.PosRot.Y ?? 0;
                 var tl = e.Origin + new WDir(HoveredPixel.x, HoveredPixel.y) * Bitmap.PixelSize;
                 var br = tl + new WDir(Bitmap.PixelSize, Bitmap.PixelSize);
-                Camera.Instance()?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
-                Camera.Instance()?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
-                Camera.Instance()?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
-                Camera.Instance()?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
             }
         }
 
@@ -133,11 +134,13 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
     sealed class TempMapViewer : UIBitmapEditor
     {
         private readonly DebugObstacles _owner;
+        private readonly ICamera camera;
         private readonly ObstacleMapDatabase.Entry _e;
 
-        public TempMapViewer(DebugObstacles owner, Bitmap bm, ObstacleMapDatabase.Entry e) : base(bm)
+        public TempMapViewer(DebugObstacles owner, ICamera camera, Bitmap bm, ObstacleMapDatabase.Entry e) : base(bm)
         {
             _owner = owner;
+            this.camera = camera;
             _e = e;
             CurrentMode = PanModeId;
         }
@@ -163,10 +166,10 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
                 var y = player?.PosRot.Y ?? 0;
                 var tl = _e.Origin + new WDir(HoveredPixel.x, HoveredPixel.y) * Bitmap.PixelSize;
                 var br = tl + new WDir(Bitmap.PixelSize, Bitmap.PixelSize);
-                Camera.Instance()?.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
-                Camera.Instance()?.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
-                Camera.Instance()?.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
-                Camera.Instance()?.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(tl.X, y, tl.Z), new(tl.X, y, br.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(tl.X, y, br.Z), new(br.X, y, br.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(br.X, y, br.Z), new(br.X, y, tl.Z), 0xff00ffff);
+                camera.DrawWorldLine(new(br.X, y, tl.Z), new(tl.X, y, tl.Z), 0xff00ffff);
             }
         }
 
@@ -211,7 +214,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         {
             ImGui.TextUnformatted($"{meta.Filename}  {meta.Width}x{meta.Height} cells");
             if (ImGui.Button("Open viewer##tempObstacle") && Obstacles.TryCloneTempMap(out var ent, out var bmp))
-                _ = new UISimpleWindow($"Temp obstacle map: {ent.Filename}", new TempMapViewer(this, bmp, ent).Draw, true, new(1000, 1000));
+                _ = new UISimpleWindow($"Temp obstacle map: {ent.Filename}", new TempMapViewer(this, camera, bmp, ent).Draw, true, new(1000, 1000));
         }
 
         var curZoneEntries = Obstacles.Database.Entries.GetValueOrDefault(Obstacles.CurrentKey());
@@ -324,7 +327,7 @@ sealed class DebugObstacles(ObstacleMapManager obstacles, IDalamudPluginInterfac
         var wasGenerated = !entry.Embedded;
         entry.Embedded = true;
         using var stream = File.OpenRead(fname);
-        var editor = new Editor(this, new(stream), entry);
+        var editor = new Editor(this, camera, new(stream), entry);
         _ = new UISimpleWindow($"Obstacle map {entry.Filename}", editor.Draw, true, new(1000, 1000));
 
         if (wasGenerated)

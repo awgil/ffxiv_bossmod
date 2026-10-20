@@ -291,17 +291,9 @@ public abstract class QuestBattle : ZoneModule
         //    ObjectiveCleared.Subscribe(OnObjectiveCleared)
         //);
 
-        if (Service.IsMock)
-        {
-            _pathfind = new PathfindNoop();
-            _meshIsReady = new PathReadyNoop();
-        }
-        else
-        {
-            _pathfind = Service.PluginInterface.GetIpcSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>("vnavmesh.Nav.Pathfind");
-            _meshIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
-            _abandonDuty = Marshal.GetDelegateForFunctionPointer<AbandonDuty>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B2 01 EB 39"));
-        }
+        _pathfind = Service.PluginInterface.GetIpcSubscriber<Vector3, Vector3, bool, Task<List<Vector3>>?>("vnavmesh.Nav.Pathfind");
+        _meshIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
+        _abandonDuty = Marshal.GetDelegateForFunctionPointer<AbandonDuty>(Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 41 B2 01 EB 39"));
     }
 
     protected override void Dispose(bool disposing)
@@ -643,7 +635,7 @@ public abstract class QuestBattle : ZoneModule
         var current = true;
         foreach (var wp in CurrentWaypoints)
         {
-            Camera.Instance()?.DrawWorldLine(start, wp.Position, current ? ArenaColor.Safe : ArenaColor.Danger);
+            Camera.DrawWorldLine(start, wp.Position, current ? ArenaColor.Safe : ArenaColor.Danger);
             current = false;
             start = wp.Position;
         }

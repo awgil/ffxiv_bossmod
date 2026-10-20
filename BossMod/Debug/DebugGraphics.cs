@@ -1,11 +1,12 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using System.Text;
 
 namespace BossMod;
 
-class DebugGraphics
+class DebugGraphics(ICamera camera)
 {
     private class WatchedRenderObject
     {
@@ -118,7 +119,7 @@ class DebugGraphics
         foreach (var v in _watchedRenderObjects)
         {
             var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-            Camera.Instance()?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
+            camera.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
         }
     }
 
@@ -349,7 +350,7 @@ class DebugGraphics
 
     public void DrawOverlay()
     {
-        if (Camera.Instance == null || Service.ObjectTable.LocalPlayer == null)
+        if (Service.ObjectTable.LocalPlayer == null)
             return;
 
         ImGui.Checkbox("Circle", ref _overlayCircle);
@@ -368,12 +369,12 @@ class DebugGraphics
             var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
             for (var ir = 0; ir <= mx; ++ir)
             {
-                Camera.Instance()?.DrawWorldCircle(center, ir * _overlayStep.X, 0xff00ff00);
+                camera.DrawWorldCircle(center, ir * _overlayStep.X, 0xff00ff00);
             }
             for (var ia = 0; ia < 8; ++ia)
             {
                 var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
-                Camera.Instance()?.DrawWorldLine(center - offset, center + offset, 0xff00ff00);
+                camera.DrawWorldLine(center - offset, center + offset, 0xff00ff00);
             }
         }
         else
@@ -381,12 +382,12 @@ class DebugGraphics
             for (var ix = -mx; ix <= mx; ++ix)
             {
                 var x = _overlayCenter.X + ix * _overlayStep.X;
-                Camera.Instance()?.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), 0xff00ff00);
+                camera.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), 0xff00ff00);
             }
             for (var iz = -mz; iz <= mz; ++iz)
             {
                 var z = _overlayCenter.Y + iz * _overlayStep.Y;
-                Camera.Instance()?.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), 0xff00ff00);
+                camera.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), 0xff00ff00);
             }
         }
     }

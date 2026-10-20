@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using static BossMod.BossModuleConfig;
 
@@ -9,14 +10,15 @@ public class BossModuleMainWindow : WindowBase
     private readonly BossModuleManager _mgr;
     private readonly ZoneModuleManager _zmm;
     private readonly AIHints _hints;
-
+    private readonly ICamera camera;
     private const string _windowID = "###Boss module";
 
-    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints) : base(_windowID, new(400, 400))
+    public BossModuleMainWindow(BossModuleManager mgr, ZoneModuleManager zmm, AIHints hints, ICamera camera) : base(_windowID, new(400, 400))
     {
         _mgr = mgr;
         _zmm = zmm;
         _hints = hints;
+        this.camera = camera;
         RespectCloseHotkey = false;
     }
 
@@ -147,19 +149,19 @@ public class BossModuleMainWindow : WindowBase
 
     private void DrawMovementHints(BossComponent.MovementHints? arrows, float y)
     {
-        if (arrows == null || arrows.Count == 0 || Camera.Instance == null)
+        if (arrows == null || arrows.Count == 0)
             return;
 
         foreach ((var start, var end, var color) in arrows)
         {
             var start3 = start.ToVec3(y);
             var end3 = end.ToVec3(y);
-            Camera.Instance()?.DrawWorldLine(start3, end3, color);
+            camera.DrawWorldLine(start3, end3, color);
             var dir = Vector3.Normalize(end3 - start3);
             var arrowStart = end3 - 0.4f * dir;
             var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-            Camera.Instance()?.DrawWorldLine(arrowStart + offset, end3, color);
-            Camera.Instance()?.DrawWorldLine(arrowStart - offset, end3, color);
+            camera.DrawWorldLine(arrowStart + offset, end3, color);
+            camera.DrawWorldLine(arrowStart - offset, end3, color);
         }
     }
 

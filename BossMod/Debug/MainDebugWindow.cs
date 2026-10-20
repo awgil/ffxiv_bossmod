@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
@@ -10,13 +11,13 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, HookProvider hook) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, HookProvider hook, ICamera camera) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
 {
-    private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
-    private readonly DebugObjects _debugObjects = new();
+    private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud, camera);
+    private readonly DebugObjects _debugObjects = new(camera);
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws, hook);
-    private readonly DebugGraphics _debugGraphics = new();
+    private readonly DebugGraphics _debugGraphics = new(camera);
     private readonly DebugAction _debugAction = new(ws, amex);
     private readonly DebugHate _debugHate = new(ws);
     private readonly DebugInput _debugInput = new(autorot, move);
@@ -116,7 +117,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         {
             _debugGraphics.DrawMatrices();
         }
-        if (Camera.Instance != null && ImGui.CollapsingHeader("In-game overlay"))
+        if (ImGui.CollapsingHeader("In-game overlay"))
         {
             _debugGraphics.DrawOverlay();
         }

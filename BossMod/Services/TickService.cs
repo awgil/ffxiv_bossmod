@@ -11,7 +11,6 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,10 +18,10 @@ namespace BossMod.Services;
 
 internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 {
-    readonly IWindowSystem windowSystem;
+#nullable disable
+    private IWindowSystem windowSystem;
+#nullable restore
 
-    readonly RotationDatabase _rotationDB;
-    readonly WorldState _ws;
     readonly AIHints _hints;
     readonly BossModuleManager _bossmod;
     readonly ZoneModuleManager _zonemod;
@@ -30,16 +29,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     readonly IMovementOverride _movementOverride;
     readonly IAmex _amex;
     readonly IWorldStateGameSync _wsSync;
-    private readonly IEnumerable<ConfigMigration> migrations;
+    private readonly IFileDialogManager fileDialogManager;
+    private readonly ICamera camera;
     readonly RotationModuleManager _rotation;
     TimeSpan _prevUpdateTime;
-    readonly ModulePackService _packs;
     private readonly ConfigRoot configRoot;
     private readonly IDalamudPluginInterface dalamud;
     private readonly IUiBuilder uiBuilder;
     private readonly ICondition condition;
     private readonly IPluginLog logger;
     private readonly IClientState clientState;
+    private readonly IWindowSystemFactory windowSystemFactory;
+    private readonly WindowBase[] windows;
     private readonly IHintExecutor _hintExecutor;
 
     public TickService(
@@ -50,13 +51,10 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IUiBuilder uiBuilder,
         ICondition condition,
         IPluginLog logger,
-        IFileDialogManager dialog,
         IClientState clientState,
         IWindowSystemFactory windowSystemFactory,
         WindowBase[] windows,
-        ModulePackService packs,
         ConfigRoot configRoot,
-        RotationDatabase db,
         IAmex amex,
         WorldState wsGlobal,
         AIHints hintsGlobal,
@@ -67,7 +65,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IWorldStateGameSync wsSync,
         IMovementOverride movementOverride,
         IHintExecutor hintExecutor,
-        ConfigMigration[] migrations
+        IFileDialogManager fileDialogManager,
+        ICamera camera
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;
@@ -75,68 +74,26 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         this.condition = condition;
         this.logger = logger;
         this.clientState = clientState;
-        windowSystem = windowSystemFactory.Create("vbm");
+        this.windowSystemFactory = windowSystemFactory;
+        this.windows = windows;
 
-        foreach (var window in windows)
-            windowSystem.AddWindow(window);
-
-        dalamud.Create<Service>();
         Service.Mediator = mediator;
         Service.PluginInterface = dalamud;
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
-        Service.FileDialogManager = dialog;
 
-        // TODO: all of this stuff should be replaced by actual DI, but that will be complicated
-        // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
-        var configDir = dalamud.ConfigDirectory.FullName;
-        if (Service.IsMock)
-        {
-            // bug(?) in dalamock gives us the wrong config dir (top-level directory)
-            configDir = Path.Join(configDir, "BossMod");
-            // don't save automatically, instead we have a button attached to MainDevWindow (to avoid destructive changes)
-        }
-        else
-        {
-            // requires windows/wine
-            MultiboxUnlock.Exec();
-        }
-
-        _packs = packs;
         this.configRoot = configRoot;
 
         _hints = hintsGlobal;
 
-        _rotationDB = db;
-
         _amex = amex;
-        _ws = wsGlobal;
         _wsSync = wsSync;
         _movementOverride = movementOverride;
         _hintExecutor = hintExecutor;
-        this.migrations = migrations;
-        if (Service.IsMock)
-        {
-            //_movementOverride = new MockMovementOverride();
-            //_amex = new MockAmex();
-            //_wsSync = new MockWorldStateGameSync();
-            //_hintExecutor = new MockHintExecutor();
-
-            Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
-        }
-        else
-        {
-            //_ping.Run();
-            //_movementOverride = new MovementOverride(dalamud);
-            //_amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
-            //_wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
-            //_hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
-
-            //ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
-        }
-
+        this.fileDialogManager = fileDialogManager;
+        this.camera = camera;
         _bossmod = bmm;
         _zonemod = zmm;
         _hintsBuilder = builder;
@@ -145,6 +102,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        dalamud.Create<Service>();
+
+        windowSystem = windowSystemFactory.Create("vbm");
+
+        foreach (var window in windows)
+            windowSystem.AddWindow(window);
+
         clientState.Logout += OnLogout;
 
         uiBuilder.Draw += Update;
@@ -153,14 +117,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         uiBuilder.OpenMainUi += OpenUi;
 
         condition.ConditionChange += OnConditionChanged;
-
-        if (Service.IsMock)
-        {
-            _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
-            _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
-            //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
-            _ws.IsFrozen = true;
-        }
 
         MediatorService.Subscribe(this, (OpenWindow o) =>
         {
@@ -195,7 +151,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var tsStart = DateTime.Now;
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
 
-        Camera.Instance()?.Update();
+        camera.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
         _zonemod.ActiveModule?.Update();
@@ -212,7 +168,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!uiHidden)
         {
             windowSystem.Draw();
-            Service.FileDialogManager.Draw();
+            fileDialogManager.Draw();
         }
 
         _hintExecutor.Execute();
@@ -226,17 +182,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 id.Dispose();
         }
 
-        Camera.Instance()?.DrawWorldPrimitives();
+        camera.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
-    }
-
-    private unsafe bool QuestUnlocked(uint link)
-    {
-        // see ActionManager.IsActionUnlocked
-        var gameMain = FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance();
-        return link == 0
-            || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
-            || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
     }
 
     void OnConditionChanged(ConditionFlag flag, bool value)
@@ -255,65 +202,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     }
 
     void OpenUi() => OpenConfigUI();
-
-    private static void MigratePlans(string pluginConfigDir)
-    {
-        var source = Path.Join(pluginConfigDir, "autorot");
-
-        // no autorot dir means fresh install
-        if (!Path.Exists(source))
-        {
-            Service.PluginLog.Verbose($"[Migrator] No configs, nothing to do.");
-            return;
-        }
-
-        var destination = Path.Join(Plugin.GetStorageDir(), "autorot");
-
-        if (File.Exists(Path.Join(destination, ".migrate-ok")))
-        {
-            Service.PluginLog.Verbose($"[Migrator] Nothing to do.");
-            return;
-        }
-
-        Utils.CopyRecursive(source, destination);
-
-        File.Create(Path.Join(destination, ".migrate-ok")).Dispose();
-
-        Service.Log($"[Migrator] Done.");
-    }
-
-    private void CopyLibraries(FileInfo assemblyLocation)
-    {
-        var modulesDir = _packs.ModuleDir;
-        var assemblyDir = assemblyLocation.DirectoryName;
-
-        Directory.CreateDirectory(modulesDir);
-
-        void copy(string filename)
-        {
-            var src = Path.Join(assemblyDir, filename);
-            var dest = Path.Join(modulesDir, filename);
-            if (File.Exists(src))
-            {
-                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
-                {
-                    Service.PluginLog.Debug($"{dest} is newer than our version, skipping copy");
-                    return;
-                }
-
-                Service.PluginLog.Debug($"copied {src} to {dest}");
-                File.Copy(src, Path.Join(modulesDir, filename), true);
-
-                return;
-            }
-
-            Service.PluginLog.Warning($"{src} does not exist, cannot copy");
-        }
-
-        copy("BossMod.Autorotation.dll");
-        copy("BossMod.Modules.dll");
-        copy("BossMod.Ultimate.dll");
-    }
 
     protected override void Dispose(bool disposing)
     {

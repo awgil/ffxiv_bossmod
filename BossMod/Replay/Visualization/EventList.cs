@@ -274,7 +274,7 @@ class EventList(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions ser
 
     private void OpenTimeline(Replay.Encounter enc, BitMask showPlayers)
     {
-        mediator.Publish(new CreateWindow(timelineFactory.Invoke(r, enc, showPlayers, timelineSync)));
+        mediator.CreateWindow(timelineFactory.Invoke(r, enc, showPlayers, timelineSync));
     }
 
     private void DrawTimelines(Replay.Encounter enc)

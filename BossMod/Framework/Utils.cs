@@ -444,7 +444,7 @@ public static partial class Utils
     public static void TextOutlined(string text, Color outlineColor)
     {
         // FIXME: when (if) SeStringRenderer is an interface and dalamock supports it
-        if (outlineColor.A > 0 && !Service.IsMock)
+        if (outlineColor.A > 0)
         {
             var prms = new SeStringDrawParams()
             {

@@ -170,10 +170,13 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager.Global>();
         containerBuilder.RegisterType<ReplayManager.AnalysisEntry>();
         containerBuilder.RegisterType<ReplayVisualization.EventList>();
+        containerBuilder.RegisterType<ReplayVisualization.ColumnEnemiesCastEvents>();
+        containerBuilder.RegisterType<ReplayVisualization.ColumnEnemiesDetails>();
         containerBuilder.RegisterType<ReplayVisualization.ReplayTimelineWindow>();
         containerBuilder.RegisterType<ReplayVisualization.ColumnPlayersDetails>();
         containerBuilder.RegisterType<ReplayVisualization.ColumnPlayerDetails>();
         containerBuilder.RegisterType<ReplayVisualization.ColumnPlayerActions>();
+        containerBuilder.RegisterType<ColumnStateMachineBranch>();
 
         // plugin services
         containerBuilder.RegisterSingletonSelf<HookProvider>();
@@ -209,6 +212,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
         //containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<Camera>();
 
         // plugin services
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();

@@ -33,7 +33,7 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookProvider hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger) : IMovementOverride, IHostedService
+public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookProvider hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger, Camera camera) : IMovementOverride, IHostedService
 {
     public Vector3? DesiredDirection { get; set; }
     public Angle MisdirectionThreshold { get; set; }
@@ -229,7 +229,7 @@ public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, ISi
         return (dirH - ForwardMovementDirection(), dirV);
     }
 
-    private Angle ForwardMovementDirection() => _legacyMode ? Camera.Instance()!.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
+    private Angle ForwardMovementDirection() => _legacyMode ? camera.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
 
     private bool PlayerHasMisdirection()
     {

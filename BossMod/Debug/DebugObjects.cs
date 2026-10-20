@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace BossMod;
 
-public class DebugObjects
+public class DebugObjects(ICamera camera)
 {
     private readonly UITree _tree = new();
     private bool _showCrap;
@@ -93,15 +94,15 @@ public class DebugObjects
         if (selected != null)
         {
             var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
-            Camera.Instance()?.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
-            Camera.Instance()?.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
-            Camera.Instance()?.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
-            Camera.Instance()?.DrawWorldCircle(selected.Position + h * 2, selected.HitboxRadius, 0xff00ff00);
+            camera.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
+            camera.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
+            camera.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
+            camera.DrawWorldCircle(selected.Position + h * 2, selected.HitboxRadius, 0xff00ff00);
             var numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
             for (var i = 0; i < numSegments; ++i)
             {
                 var p = selected.Position + selected.HitboxRadius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
-                Camera.Instance()?.DrawWorldLine(p - h, p + h, 0xff00ff00);
+                camera.DrawWorldLine(p - h, p + h, 0xff00ff00);
             }
         }
     }

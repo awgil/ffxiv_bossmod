@@ -41,10 +41,10 @@ public sealed class ReplayTimelineWindow : DetachedWindow, IDisposable
             ctx.Register(_ => enc).SingleInstance();
         });
 
-        _colCastEvents = _timeline.Columns.Add(new ColumnEnemiesCastEvents(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc));
-        _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, _stateTree, _phaseBranches));
+        _colCastEvents = _timeline.Columns.Add(_windowScope.Resolve<ColumnEnemiesCastEvents>());
+        _colStates = _timeline.Columns.Add(_windowScope.Resolve<ColumnStateMachineBranch>());
         _timeline.Columns.Add(new ColumnSeparator(_timeline));
-        _colEnemies = _timeline.Columns.Add(new ColumnEnemiesDetails(bossModuleRegistry, _timeline, _stateTree, _phaseBranches, replay, enc));
+        _colEnemies = _timeline.Columns.Add(_windowScope.Resolve<ColumnEnemiesDetails>());
         _colPlayers = _timeline.Columns.Add(_windowScope.Resolve<ColumnPlayersDetails.Factory>().Invoke(showPlayers));
     }
 

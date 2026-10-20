@@ -503,17 +503,9 @@ public sealed class ModuleViewer : IDisposable
             }
         }
 
-        if (Service.IsMock)
-        {
-            foreach (var cls in supportedClasses)
-                if (ImGui.Selectable($"New plan for {cls}..."))
-                    CreateForClass(info, mplans, cls);
-        }
-        else if (_ws.Party.Player() is { } player)
-        {
-            if (ImGui.Selectable($"New plan for {player.Class}..."))
-                CreateForClass(info, mplans, player.Class);
-        }
+        foreach (var cls in supportedClasses)
+            if (ImGui.Selectable($"New plan for {cls}..."))
+                CreateForClass(info, mplans, cls);
     }
 
     private void CreateForClass(BossModuleRegistry.Info info, Dictionary<Class, PlanDatabase.PlanList> mplans, Class cls)
