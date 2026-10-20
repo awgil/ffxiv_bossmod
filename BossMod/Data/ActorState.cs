@@ -37,7 +37,7 @@ public sealed class ActorState : IEnumerable<Actor>
     {
         foreach (var act in this)
         {
-            yield return new OpCreate(act.InstanceID, act.OID, act.SpawnIndex, act.LayoutID, act.Name, act.NameID, act.Type, act.Class, act.Level, act.PosRot, act.HitboxRadius, act.HPMP, act.IsTargetable, act.IsAlly, act.OwnerID, act.FateID);
+            yield return new OpCreate(act.InstanceID, act.OID, act.SpawnIndex, act.LayoutID, act.Name, act.NameID, act.Type, act.Class, act.Level, act.PosRot, act.OmnidirectionalByDefault, act.HitboxRadius, act.HPMP, act.IsTargetable, act.IsAlly, act.OwnerID, act.FateID);
             if (act.IsDead)
                 yield return new OpDead(act.InstanceID, true);
             if (act.InCombat)
@@ -139,14 +139,14 @@ public sealed class ActorState : IEnumerable<Actor>
 
     // implementation of operations
     public Event<Actor> Added = new();
-    public sealed record class OpCreate(ulong InstanceID, uint OID, int SpawnIndex, uint LayoutID, string Name, uint NameID, ActorType Type, Class Class, int Level, Vector4 PosRot, float HitboxRadius,
+    public sealed record class OpCreate(ulong InstanceID, uint OID, int SpawnIndex, uint LayoutID, string Name, uint NameID, ActorType Type, Class Class, int Level, Vector4 PosRot, bool IsOmnidirectional, float HitboxRadius,
         ActorHPMP HPMP, bool IsTargetable, bool IsAlly, ulong OwnerID, uint FateID)
         : Operation(InstanceID)
     {
         protected override void ExecActor(WorldState ws, Actor actor) { }
         protected override void Exec(WorldState ws)
         {
-            var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, LayoutID, Name, NameID, Type, Class, Level, PosRot, HitboxRadius, HPMP, IsTargetable, IsAlly, OwnerID, FateID);
+            var actor = ws.Actors._actors[InstanceID] = new Actor(InstanceID, OID, SpawnIndex, LayoutID, Name, NameID, Type, Class, Level, PosRot, IsOmnidirectional, HitboxRadius, HPMP, IsTargetable, IsAlly, OwnerID, FateID);
             ws.Actors.Added.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ACT+"u8)
@@ -161,6 +161,7 @@ public sealed class ActorState : IEnumerable<Actor>
             .Emit(Level)
             .Emit(PosRot.XYZ())
             .Emit(PosRot.W.Radians())
+            .Emit(IsOmnidirectional)
             .Emit(HitboxRadius, "f3")
             .Emit(HPMP.CurHP)
             .Emit(HPMP.MaxHP)
@@ -471,7 +472,7 @@ public sealed class ActorState : IEnumerable<Actor>
             {
                 ws.Actors.StatusLose.Fire(actor, Index);
                 if (prev.ID == StatusIDDirectionalDisregard)
-                    actor.Omnidirectional = false;
+                    actor.DirectionalDisregard = false;
             }
             actor.Statuses[Index] = Value;
             actor.PendingStatuses.RemoveAll(s => s.StatusId == Value.ID && s.Effect.SourceInstanceId == Value.SourceID);
@@ -479,7 +480,7 @@ public sealed class ActorState : IEnumerable<Actor>
             {
                 ws.Actors.StatusGain.Fire(actor, Index);
                 if (Value.ID == StatusIDDirectionalDisregard)
-                    actor.Omnidirectional = true;
+                    actor.DirectionalDisregard = true;
             }
         }
         public override void Write(ReplayRecorder.Output output)

@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Utility;
 
 namespace BossMod;
@@ -7,12 +8,14 @@ public class ZoneModuleWindow : WindowBase
 {
     private readonly ZoneModuleManager _zmm;
     private readonly RotationModuleManager _rmm;
+    private readonly MediatorService mediator;
     private bool _wasOpen;
 
-    public ZoneModuleWindow(ZoneModuleManager zmm, RotationModuleManager rmm) : base("Zone module###Zone module", new(400, 400))
+    public ZoneModuleWindow(ZoneModuleManager zmm, RotationModuleManager rmm, MediatorService mediator) : base("Zone module###Zone module", new(400, 400))
     {
         _zmm = zmm;
         _rmm = rmm;
+        this.mediator = mediator;
         RespectCloseHotkey = false;
     }
 
@@ -40,6 +43,6 @@ public class ZoneModuleWindow : WindowBase
 
     public override void Draw()
     {
-        _zmm.ActiveModule?.DrawWindow(_rmm);
+        _zmm.ActiveModule?.DrawWindow(mediator, _rmm);
     }
 }

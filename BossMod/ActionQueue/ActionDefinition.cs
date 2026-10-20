@@ -210,8 +210,6 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty1 = new(ActionType.General, 26);
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
-    public static readonly ActionDefinitions Instance = null!;
-
     public ActionDefinitions(Defs[] definitions, IDataManager dataManager, ExcelSheet<Lumina.Excel.Sheets.Action> actionsSheet, ExcelSheet<Lumina.Excel.Sheets.Item> itemsSheet, ExcelSheet<Lumina.Excel.Sheets.Trait> traitSheet, BozjaActionID bozjaID)
     {
         _actionsSheet = actionsSheet;

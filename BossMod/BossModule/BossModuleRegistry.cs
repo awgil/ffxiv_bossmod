@@ -265,9 +265,9 @@ public class BossModuleRegistry(Lazy<BossModuleConfig> config, ModuleInit.Factor
     public BossModule? CreateModuleForConfigPlanning(Type module)
     {
         var info = FindByType(module);
-        return info != null ? CreateModule(info, new(TimeSpan.TicksPerSecond, "fake"), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new())) : null;
+        return info != null ? CreateModule(info, new(TimeSpan.TicksPerSecond, "fake"), new(0, info.PrimaryActorOID, -1, 0, "", 0, ActorType.None, Class.None, 0, new(), false)) : null;
     }
 
     // TODO: this is a hack...
-    public BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new()));
+    public BossModule? CreateModuleForTimeline(uint oid) => CreateModule(FindByOID(oid), new(TimeSpan.TicksPerSecond, "fake"), new(0, oid, -1, 0, "", 0, ActorType.None, Class.None, 0, new(), false));
 }

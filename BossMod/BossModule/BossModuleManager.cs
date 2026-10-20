@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod;
 
 // class that creates and manages instances of proper boss modules in response to world state changes
 public sealed class BossModuleManager : IDisposable
@@ -8,6 +10,7 @@ public sealed class BossModuleManager : IDisposable
     public readonly BossModuleConfig Config;
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly ModuleInit.Factory moduleInitMaker;
+    private readonly IPluginLog logger;
     private readonly EventSubscriptions _subscriptions;
 
     public List<BossModule> LoadedModules { get; } = [];
@@ -32,11 +35,12 @@ public sealed class BossModuleManager : IDisposable
         }
     }
 
-    public BossModuleManager(WorldState ws, BossModuleConfig cfg, BossModuleRegistry bossModuleRegistry, ModuleInit.Factory moduleInitMaker)
+    public BossModuleManager(WorldState ws, BossModuleConfig cfg, BossModuleRegistry bossModuleRegistry, ModuleInit.Factory moduleInitMaker, IPluginLog logger)
     {
         Config = cfg;
         this.bossModuleRegistry = bossModuleRegistry;
         this.moduleInitMaker = moduleInitMaker;
+        this.logger = logger;
         WorldState = ws;
         RaidCooldowns = new(ws);
         _subscriptions = new
@@ -88,7 +92,7 @@ public sealed class BossModuleManager : IDisposable
             }
             catch (Exception ex)
             {
-                Service.Log($"Boss module {m.GetType()} crashed: {ex}");
+                logger.Warning(ex, $"Boss module {m.GetType()} crashed");
                 wasActive = true; // force unload if exception happened before activation
                 isActive = false;
             }
@@ -107,7 +111,7 @@ public sealed class BossModuleManager : IDisposable
             // if module is active and wants to be reset, oblige
             if (isActive && m.CheckReset())
             {
-                Service.Log($"[BMM] Resetting module '{m.GetType()}'");
+                logger.Debug($"[BMM] Resetting module '{m.GetType()}'");
                 ModuleDeactivated.Fire(m);
                 var actor = m.PrimaryActor;
                 UnloadModule(i--);
@@ -126,7 +130,7 @@ public sealed class BossModuleManager : IDisposable
 
             if (!wasActive && isActive)
             {
-                Service.Log($"[BMM] Boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}' activated");
+                logger.Debug($"[BMM] Boss module '{m.GetType()}' for actor {m.PrimaryActor.InstanceID:X} ({m.PrimaryActor.OID:X}) '{m.PrimaryActor.Name}' activated");
                 anyModuleActivated |= true;
             }
         }
@@ -134,7 +138,7 @@ public sealed class BossModuleManager : IDisposable
         var curPriority = ModuleDisplayPriority(_activeModule);
         if (bestPriority > curPriority && (anyModuleActivated || !_activeModuleOverridden))
         {
-            Service.Log($"[BMM] Active module change: from {_activeModule?.GetType().FullName ?? "<n/a>"} (prio {curPriority}, manual-override={_activeModuleOverridden}) to {bestModule?.GetType().FullName ?? "<n/a>"} (prio {bestPriority})");
+            logger.Debug($"[BMM] Active module change: from {_activeModule?.GetType().FullName ?? "<n/a>"} (prio {curPriority}, manual-override={_activeModuleOverridden}) to {bestModule?.GetType().FullName ?? "<n/a>"} (prio {bestPriority})");
             _activeModule = bestModule;
             _activeModuleOverridden = false;
         }
@@ -152,14 +156,14 @@ public sealed class BossModuleManager : IDisposable
         }
 
         LoadedModules.Add(m);
-        Service.Log($"[BMM] Boss module '{m.GetType()}' loaded for actor {m.PrimaryActor}");
+        logger.Debug($"[BMM] Boss module '{m.GetType()}' loaded for actor {m.PrimaryActor}");
         ModuleLoaded.Fire(m);
     }
 
     private void UnloadModule(int index)
     {
         var m = LoadedModules[index];
-        Service.Log($"[BMM] Boss module '{m.GetType()}' unloaded for actor {m.PrimaryActor}");
+        logger.Debug($"[BMM] Boss module '{m.GetType()}' unloaded for actor {m.PrimaryActor}");
         ModuleUnloaded.Fire(m);
         if (_activeModule == m)
         {
@@ -183,7 +187,7 @@ public sealed class BossModuleManager : IDisposable
         return 1;
     }
 
-    private DemoModule CreateDemoModule() => new(moduleInitMaker.Invoke(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new()), null));
+    private DemoModule CreateDemoModule() => new(moduleInitMaker.Invoke(WorldState, new(0, 0, -1, 0, "", 0, ActorType.None, Class.None, 0, new(), false), null));
 
     private void ActorAdded(Actor actor)
     {
@@ -227,7 +231,7 @@ public sealed class BossModuleManager : IDisposable
     public void ForceUnload(string? cause = null)
     {
         if (cause != null)
-            Service.Log($"[BMM] Unload requested with cause: {cause}");
+            logger.Debug($"[BMM] Unload requested with cause: {cause}");
 
         for (var i = LoadedModules.Count - 1; i >= 0; i--)
         {

@@ -1,5 +1,6 @@
 using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
@@ -46,12 +47,12 @@ public sealed class ConfigUI : IDisposable
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo replayDir, RotationDatabase rotationDB, ModuleViewer mv, UIPresetDatabaseEditor presets)
+    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo replayDir, RotationDatabase rotationDB, ModuleViewer mv, UIPresetDatabaseEditor presets, MediatorService mediator)
     {
         _root = config;
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
-        _about = new(replayDir);
+        _about = new(replayDir, mediator);
         _mv = mv;
         _presets = presets;
         _rotationDB = rotationDB;

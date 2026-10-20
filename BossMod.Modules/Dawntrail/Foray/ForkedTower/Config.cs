@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Dawntrail.Foray.ForkedTower;
@@ -53,7 +54,7 @@ class FTAllianceSelector(ZoneModuleInit init) : ZoneModule(init)
 
     public override WindowDescription? GetWindowDescription() => _config.DrawOverlay && World.Party.Player()?.PosRot.Y < -200 ? new("FT alliance selector") : null;
 
-    public override void DrawWindow(RotationModuleManager rmm)
+    public override void DrawWindow(MediatorService mediator, RotationModuleManager rmm)
     {
         var a = _config.PlayerAlliance;
 

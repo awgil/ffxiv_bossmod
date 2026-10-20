@@ -4,6 +4,7 @@ using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Text.Json;
@@ -38,7 +39,7 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
             this.scope = scope;
             this.mediator = mediator;
             InitialTime = initialTime;
-            Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), scope.Resolve<ModuleInit.Factory>(), ref Progress, Cancel.Token));
+            Replay = Task.Run(() => ReplayParserLog.Parse(path, scope.Resolve<BossModuleConfig>(), scope.Resolve<BossModuleRegistry>(), scope.Resolve<JsonSerializerOptions>(), scope.Resolve<ModuleInit.Factory>(), scope.Resolve<IPluginLog>(), ref Progress, Cancel.Token));
         }
 
         public void Dispose()

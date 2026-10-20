@@ -94,7 +94,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
                     new JsonStringEnumConverter(),
                     new Serialization.JsonTypeConverter(),
                     new JsonPresetConverter(rmr),
-                    new JsonPlanConverter(bmr, rmr)
+                    new JsonPlanConverter(bmr, rmr, ctx.Resolve<IPluginLog>())
                 }
             };
         }).SingleInstance();

@@ -1,5 +1,6 @@
 ﻿using BossMod.AI;
 using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IUiBuilder uiBuilder, AIConfig aiConfig, DtrConfig dtrConfig) : IHostedService, IDisposable
+internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IUiBuilder uiBuilder, AIConfig aiConfig, DtrConfig dtrConfig, MediatorService mediator) : IHostedService, IDisposable
 {
     private readonly List<(string, IDtrBarEntry)> _autorotEntries = [];
     private readonly IDtrBarEntry _arEntry = dtrBar.Get("vbm-ar");
@@ -139,7 +140,7 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
     {
         if (_popupFor == null)
         {
-            UIRotationWindow.DrawRotationSelector(manager, dtrConfig);
+            UIRotationWindow.DrawRotationSelector(manager, dtrConfig, mediator);
             ImGui.Separator();
             if (ImGui.MenuItem("Remove from info bar"))
             {
@@ -155,7 +156,7 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
         ImGui.Separator();
 
         if (ImGui.MenuItem("Open in preset editor"))
-            Service.Mediator.Publish(new OpenPresetEditor(_popupFor));
+            mediator.Publish(new OpenPresetEditor(_popupFor));
 
         if (ImGui.MenuItem("Remove from info bar"))
         {

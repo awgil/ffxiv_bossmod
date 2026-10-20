@@ -86,7 +86,7 @@ public enum Visibility
     Blocked
 }
 
-public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layoutID, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0, uint fateID = 0)
+public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layoutID, string name, uint nameID, ActorType type, Class classID, int level, Vector4 posRot, bool isOmnidirectional = false, float hitboxRadius = 1, ActorHPMP hpmp = default, bool targetable = true, bool ally = false, ulong ownerID = 0, uint fateID = 0)
 {
     public ulong InstanceID = instanceID; // 'uuid'
     public uint OID = oid;
@@ -134,11 +134,9 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public WPos PrevPosition => new(PrevPosRot.X, PrevPosRot.Z);
     public WDir LastFrameMovement => Position - PrevPosition;
     public Angle Rotation => PosRot.W.Radians();
-    public bool Omnidirectional
-    {
-        get;
-        set => field = value || Utils.CharacterIsOmnidirectional(OID);
-    } = Utils.CharacterIsOmnidirectional(oid);
+    public readonly bool OmnidirectionalByDefault = isOmnidirectional;
+    public bool DirectionalDisregard;
+    public bool Omnidirectional => DirectionalDisregard || OmnidirectionalByDefault;
 
     public bool IsDeadOrDestroyed => IsDead || IsDestroyed;
     public bool IsFriendlyNPC => Type == ActorType.Enemy && IsAlly && IsTargetable;

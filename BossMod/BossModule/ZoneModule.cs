@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using BossMod.Interfaces;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
@@ -35,7 +36,7 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
     public virtual void CalculateAIHints(int playerSlot, Actor player, AIHints hints) { } // note: this is called after framework automatically fills auto-detected hints
 
     public virtual WindowDescription? GetWindowDescription() => null;
-    public virtual void DrawWindow(RotationModuleManager rmm) { }
+    public virtual void DrawWindow(MediatorService mediator, RotationModuleManager rmm) { }
     public virtual void OnWindowClose() { }
 
     public void DrawGlobalHints()

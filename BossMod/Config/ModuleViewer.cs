@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -22,7 +23,7 @@ public sealed class ModuleViewer : IDisposable
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
     private readonly PlanDatabase? _planDB;
-    private readonly WorldState _ws; // TODO: reconsider...
+    private readonly IPluginLog logger;
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly JsonSerializerOptions serOptions;
     private readonly ColorConfig colors;
@@ -43,10 +44,10 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase planDB, WorldState ws, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ColorConfig colors, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
+    public ModuleViewer(PlanDatabase planDB, IPluginLog logger, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ColorConfig colors, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
     {
         _planDB = planDB;
-        _ws = ws;
+        this.logger = logger;
         _bmConfig = bmc;
         this.bossModuleRegistry = bossModuleRegistry;
         this.serOptions = serOptions;
@@ -119,7 +120,7 @@ public sealed class ModuleViewer : IDisposable
             }
             else if (groups[groupIndex].Info != groupInfo)
             {
-                Service.Log($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
+                logger.Warning($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
             }
             groups[groupIndex].Modules.Add(moduleInfo);
         }
@@ -129,14 +130,14 @@ public sealed class ModuleViewer : IDisposable
             groups.SortBy(g => g.Info.SortOrder);
             foreach (var (g1, g2) in groups.Pairwise())
                 if (g1.Info.SortOrder == g2.Info.SortOrder)
-                    Service.Log($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
+                    logger.Warning($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
 
             foreach (var g in groups)
             {
                 g.Modules.SortBy(m => m.SortOrder);
                 foreach (var (m1, m2) in g.Modules.Pairwise())
                     if (m1.SortOrder == m2.SortOrder)
-                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
+                        logger.Warning($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
             }
         }
     }

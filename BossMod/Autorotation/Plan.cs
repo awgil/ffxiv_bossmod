@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Dalamud.Plugin.Services;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace BossMod.Autorotation;
@@ -54,7 +55,7 @@ public sealed record class Plan(string Name, Type Encounter)
 }
 
 // we want to serialize track/option indices as internal names, to simplify making changes
-public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModuleRegistry> rmr) : JsonConverter<Plan>
+public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModuleRegistry> rmr, IPluginLog logger) : JsonConverter<Plan>
 {
     public override Plan? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -63,7 +64,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
         var encName = jdoc.RootElement.GetProperty(nameof(Plan.Encounter)).GetString() ?? "";
         if (bmr.Value.FindByName(encName) is not { } encInfo)
         {
-            Service.Log($"Error while deserializing plan {name}: failed to find encounter {encName}");
+            logger.Warning($"Error while deserializing plan {name}: failed to find encounter {encName}");
             return null;
         }
 
@@ -80,7 +81,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
         {
             if (!rmr.Value.Modules.TryGetValue(jm.Name, out var md))
             {
-                Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find module {jm.Name}");
+                logger.Warning($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find module {jm.Name}");
                 continue;
             }
 
@@ -95,7 +96,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
                         var dTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jd.Name);
                         if (dTrack < 0)
                         {
-                            Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jd.Name} in module {jm.Name}");
+                            logger.Warning($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jd.Name} in module {jm.Name}");
                             continue;
                         }
 
@@ -109,7 +110,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
                                 };
                                 if (s.Option < 0)
                                 {
-                                    Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jd.Name} in module {jm.Name}");
+                                    logger.Warning($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jd.Name} in module {jm.Name}");
                                     continue;
                                 }
                                 res.Modules[mi].Defaults[dTrack] = s;
@@ -128,7 +129,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
                 var iTrack = md.Definition.Configs.FindIndex(s => s.InternalName == jt.Name);
                 if (iTrack < 0)
                 {
-                    Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jt.Name} in module {jm.Name}");
+                    logger.Warning($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find track {jt.Name} in module {jm.Name}");
                     continue;
                 }
                 var track = m[iTrack];
@@ -146,7 +147,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
                             };
                             if (t.Option < 0)
                             {
-                                Service.Log($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
+                                logger.Warning($"Error while deserializing plan {name} for L{res.Level} {res.Class} encounter {encName}: failed to find option {optionName} in track {jt.Name} in module {jm.Name}");
                                 continue;
                             }
                             s = new Plan.Entry(t);
@@ -166,7 +167,7 @@ public class JsonPlanConverter(Lazy<BossModuleRegistry> bmr, Lazy<RotationModule
                             s = new Plan.Entry(ci);
                             break;
                         default:
-                            Service.Log($"Error while deserializing: unrecognized config type {cfg.GetType()}");
+                            logger.Warning($"Error while deserializing: unrecognized config type {cfg.GetType()}");
                             continue;
                     }
 

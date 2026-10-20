@@ -95,7 +95,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
             {
                 if (_modulePopout == null)
                 {
-                    _modulePopout = mediator.CreateWindow(new SimpleDetachedWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(Rmm), new(600, 400), desc.Flags));
+                    _modulePopout = mediator.CreateWindow(new SimpleDetachedWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(mediator, Rmm), new(600, 400), desc.Flags));
                     _modulePopout.OpenAndBringToFront();
                 }
             }
@@ -167,7 +167,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
 
         if (ImGui.CollapsingHeader("Plan execution"))
         {
-            resetPF |= UIRotationWindow.DrawRotationSelector(Rmm, _playerScope.Resolve<DtrConfig>());
+            resetPF |= UIRotationWindow.DrawRotationSelector(Rmm, _playerScope.Resolve<DtrConfig>(), mediator);
 
             if (Bossmods.ActiveModule != null && ImGui.Button("Timeline"))
             {

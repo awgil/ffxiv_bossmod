@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using Dalamud.Plugin.Services;
+
+namespace BossMod;
 
 // utility for building a replay by executing a series of recorded operations (eg. taken from a log) using private worldstate/module manager/etc
 public sealed class ReplayBuilder : IDisposable
@@ -24,11 +26,11 @@ public sealed class ReplayBuilder : IDisposable
     private readonly Dictionary<ulong, Replay.Tether> _tethers = [];
     private readonly List<Replay.ClientAction> _pendingClientActions = [];
 
-    public ReplayBuilder(string path, BossModuleConfig cfg, BossModuleRegistry registry, ModuleInit.Factory mfac)
+    public ReplayBuilder(string path, BossModuleConfig cfg, BossModuleRegistry registry, ModuleInit.Factory mfac, IPluginLog logger)
     {
         _res = new() { Path = path };
         _ws = new(TimeSpan.TicksPerSecond, "pending");
-        _mgr = new(_ws, cfg, registry, mfac);
+        _mgr = new(_ws, cfg, registry, mfac, logger);
         _subscribers = new
         (
             _ws.Actors.Added.Subscribe(ActorAdded),

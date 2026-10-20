@@ -77,12 +77,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         this.windowSystemFactory = windowSystemFactory;
         this.windows = windows;
 
-        Service.Mediator = mediator;
         Service.PluginInterface = dalamud;
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
-
-        Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
         this.configRoot = configRoot;
 
@@ -103,6 +100,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         dalamud.Create<Service>();
+
+        Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
         windowSystem = windowSystemFactory.Create("vbm");
 

@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Plugin.Services;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -222,7 +223,7 @@ public sealed class ReplayParserLog : IDisposable
         public override ulong ReadActorID() => _input.ReadUInt64();
     }
 
-    public static Replay Parse(string path, BossModuleConfig config, BossModuleRegistry registry, JsonSerializerOptions serOptions, ModuleInit.Factory mfac, ref float progress, CancellationToken cancel)
+    public static Replay Parse(string path, BossModuleConfig config, BossModuleRegistry registry, JsonSerializerOptions serOptions, ModuleInit.Factory mfac, IPluginLog logger, ref float progress, CancellationToken cancel)
     {
         try
         {
@@ -250,7 +251,7 @@ public sealed class ReplayParserLog : IDisposable
 
             var streamInvLength = 1.0f / rawStream.Length;
             var curOp = 0;
-            using ReplayBuilder builder = new(path, config, registry, mfac);
+            using ReplayBuilder builder = new(path, config, registry, mfac, logger);
             using ReplayParserLog parser = new(input, builder, serOptions);
             while (parser.ParseLine())
             {
@@ -528,10 +529,12 @@ public sealed class ReplayParserLog : IDisposable
             var hpmp = _input.CanRead() ? ReadActorHPMP() : default;
             var ally = _input.CanRead() && _input.ReadBool();
             var spawnIndex = _input.CanRead() ? _input.ReadInt() : -1;
+            var iid = ulong.Parse(parts[0], NumberStyles.HexNumber);
+            var oid = uint.Parse(parts[1], NumberStyles.HexNumber);
             return new
             (
-                ulong.Parse(parts[0], NumberStyles.HexNumber),
-                uint.Parse(parts[1], NumberStyles.HexNumber),
+                iid,
+                oid,
                 spawnIndex,
                 0,
                 parts[2],
@@ -540,6 +543,7 @@ public sealed class ReplayParserLog : IDisposable
                 cls,
                 0,
                 new(float.Parse(parts[4]), float.Parse(parts[5]), float.Parse(parts[6]), float.Parse(parts[7]).Degrees().Rad),
+                Utils.CharacterIsOmnidirectional(oid),
                 radius,
                 hpmp,
                 targetable,
@@ -550,10 +554,12 @@ public sealed class ReplayParserLog : IDisposable
         }
         else
         {
+            var iid = _input.ReadULong(true);
+            var oid = _input.ReadUInt(true);
             return new
             (
-                _input.ReadULong(true),
-                _input.ReadUInt(true),
+                iid,
+                oid,
                 _input.ReadInt(),
                 _version >= 26 ? _input.ReadUInt(true) : 0,
                 _input.ReadString(),
@@ -562,6 +568,7 @@ public sealed class ReplayParserLog : IDisposable
                 _input.ReadClass(),
                 _version < 12 ? 0 : _input.ReadInt(),
                 new(_input.ReadVec3(), _input.ReadAngle().Rad),
+                _version < 32 ? Utils.CharacterIsOmnidirectional(oid) : _input.ReadBool(),
                 _input.ReadFloat(),
                 new(_input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _input.ReadUInt(false), _version >= 24 ? _input.ReadUInt(false) : 10000),
                 _input.ReadBool(),

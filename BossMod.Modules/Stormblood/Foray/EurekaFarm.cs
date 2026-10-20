@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using System.Reflection;
 
@@ -121,9 +122,9 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
     }
 
     public override WindowDescription? GetWindowDescription() => _globalConfig.Enabled ? new($"VBM Auto-{Zone}###Eureka module", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
-    public override void DrawWindow(RotationModuleManager rmm)
+    public override void DrawWindow(MediatorService mediator, RotationModuleManager rmm)
     {
-        Overlays.DrawPseudoTitlebar($"VBM Farmer: {Zone}", typeof(EurekaConfig), 61833, "Disable module (and hide this overlay)", () =>
+        Overlays.DrawPseudoTitlebar(mediator, $"VBM Farmer: {Zone}", typeof(EurekaConfig), 61833, "Disable module (and hide this overlay)", () =>
         {
             _globalConfig.Enabled = false;
             _globalConfig.Modified.Fire();

@@ -362,7 +362,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Netw
         if (act == null)
         {
             var type = (ActorType)(((int)obj->ObjectKind << 8) + obj->SubKind);
-            ws.Execute(new ActorState.OpCreate(obj->EntityId, obj->BaseId, index, obj->LayoutId, name, nameID, type, classID, level, posRot, radius, hpmp, targetable, friendly, SanitizedObjectID(obj->OwnerId), obj->FateId));
+            ws.Execute(new ActorState.OpCreate(obj->EntityId, obj->BaseId, index, obj->LayoutId, name, nameID, type, classID, level, posRot, Utils.CharacterIsOmnidirectional(obj->BaseId), radius, hpmp, targetable, friendly, SanitizedObjectID(obj->OwnerId), obj->FateId));
             act = _actorsByIndex[index] = ws.Actors.Find(obj->EntityId)!;
 
             // note: for now, we continue relying on network messages for tether changes, since sometimes multiple changes can happen in a single frame, and some components rely on seeing all of them...

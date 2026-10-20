@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
@@ -390,9 +391,9 @@ public abstract class QuestBattle : ZoneModule
 
     public override WindowDescription? GetWindowDescription() => _config.EnableQuestBattles ? new("VBM Quest Battle", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
 
-    public override void DrawWindow(RotationModuleManager rmm)
+    public override void DrawWindow(MediatorService mediator, RotationModuleManager rmm)
     {
-        Overlays.DrawPseudoTitlebar("VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
+        Overlays.DrawPseudoTitlebar(mediator, "VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
         {
             _config.EnableQuestBattles = false;
             _config.Modified.Fire();

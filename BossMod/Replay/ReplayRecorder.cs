@@ -6,7 +6,7 @@ namespace BossMod;
 
 public sealed class ReplayRecorder : IDisposable
 {
-    public const int Version = 31;
+    public const int Version = 32;
 
     // approach copied from https://stackoverflow.com/a/2565861
     // we don't care about reversing this "encryption" step; all we care about is that each unique ContentID is mapped to a unique "random" ContentID

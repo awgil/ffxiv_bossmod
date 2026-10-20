@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 
@@ -6,7 +7,7 @@ namespace BossMod;
 
 public static class Overlays
 {
-    public static void DrawPseudoTitlebar(string title, Type configType, uint iconId, string closeTooltip, Action onClose)
+    public static void DrawPseudoTitlebar(MediatorService mediator, string title, Type configType, uint iconId, string closeTooltip, Action onClose)
     {
         if (iconId != 0 && Service.Texture.TryGetFromGameIcon(iconId, out var tex))
         {
@@ -23,7 +24,7 @@ public static class Overlays
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - w - w - 10);
 
         if (UIMisc.IconButton(FontAwesomeIcon.Cog, new(w, 0)))
-            Service.Mediator.Publish(new ShowConfigNode(configType));
+            mediator.Publish(new ShowConfigNode(configType));
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Open settings");
         ImGui.SameLine();
