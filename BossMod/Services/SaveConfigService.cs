@@ -13,7 +13,6 @@ public sealed class SaveConfigService(ConfigRoot config, IDalamudPluginInterface
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.Debug("[SaveConfigService] Spawning task");
         Source = new();
 
         var token = Source.Token;
@@ -30,7 +29,6 @@ public sealed class SaveConfigService(ConfigRoot config, IDalamudPluginInterface
     }
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.Debug("[SaveConfigService] Stopping");
         Source.Cancel();
 
         await Task.WhenAny(SaverTask); // ensures we aren't running multiple saves at once

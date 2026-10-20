@@ -1,5 +1,4 @@
-﻿using BossMod.Autorotation;
-using BossMod.ReplayAnalysis;
+﻿using BossMod.ReplayAnalysis;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLog logger, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, ZoneModuleRegistry zoneModuleRegistry) : IHostedService, IDisposable
+public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLog logger, IReloadable[] subscribers) : IHostedService, IDisposable
 {
     class LoadContext() : AssemblyLoadContext(true)
     {
@@ -148,10 +147,11 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
 
     private void ReloadAll(IEnumerable<Assembly> oldAssemblies, IEnumerable<Assembly> newAssemblies)
     {
-        configRoot.Reload(oldAssemblies, newAssemblies);
-        bossModuleRegistry.Reload(oldAssemblies, newAssemblies);
-        rotationModuleRegistry.Reload(oldAssemblies, newAssemblies);
-        zoneModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        foreach (var r in subscribers)
+        {
+            logger.Verbose($"triggering reload on subscriber {r.GetType()}");
+            r.Reload(oldAssemblies, newAssemblies);
+        }
         AnalyzerRegistry.Reload(oldAssemblies, newAssemblies);
     }
 

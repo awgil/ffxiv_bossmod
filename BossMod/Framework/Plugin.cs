@@ -66,7 +66,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             //Service.Config = root;
 
             return root;
-        }).SingleInstance();
+        }).SingleInstance().AsSelf().As<IReloadable>();
 
         // dynamic resolvers for ConfigNode descendants
         foreach (var node in Utils.GetDerivedTypes<ConfigNode>(Assembly.GetExecutingAssembly()))
@@ -135,15 +135,15 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PlanDatabase>().WithAttributeFiltering();
 
-        containerBuilder.RegisterSingletonSelf<RotationModuleRegistry>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<RotationModuleRegistry>();
         containerBuilder.RegisterSingletonSelf<RotationDatabase>();
         containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
 
-        containerBuilder.RegisterSingletonSelf<BossModuleRegistry>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<BossModuleRegistry>();
         containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<ModuleInit>().InstancePerDependency();
 
-        containerBuilder.RegisterSingletonSelf<ZoneModuleRegistry>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ZoneModuleRegistry>();
         containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<ZoneModuleInit>().InstancePerDependency();
 
@@ -181,10 +181,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterBuildCallback(scope =>
         {
             var self = Assembly.GetExecutingAssembly();
-            scope.Resolve<ConfigRoot>().Reload([], [self]);
-            scope.Resolve<BossModuleRegistry>().Reload([], [self]);
-            scope.Resolve<RotationModuleRegistry>().Reload([], [self]);
-            scope.Resolve<ZoneModuleRegistry>().Reload([], [self]);
+            foreach (var sub in scope.Resolve<IReloadable[]>())
+                sub.Reload([], [self]);
             AnalyzerRegistry.Reload([], [self]);
         });
     }

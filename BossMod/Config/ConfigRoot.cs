@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace BossMod;
 
-public sealed class ConfigRoot : IDisposable
+public sealed class ConfigRoot : IDisposable, IReloadable
 {
     public Event Modified = new();
     public Version AssemblyVersion = new(); // we use this to show newly added config options
@@ -36,7 +36,7 @@ public sealed class ConfigRoot : IDisposable
                 node?.Dispose();
     }
 
-    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    void IReloadable.Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
     {
         foreach (var a in old)
             UnloadFrom(a);

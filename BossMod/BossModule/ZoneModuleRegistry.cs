@@ -10,7 +10,7 @@ public sealed class ZoneModuleInfoAttribute(uint cfcId, uint territoryID = 0) : 
     public uint TerritoryID => territoryID;
 }
 
-public class ZoneModuleRegistry(ZoneModuleInit.Factory factoryFactory)
+public class ZoneModuleRegistry(ZoneModuleInit.Factory factoryFactory) : IReloadable
 {
     public readonly Event Modified = new();
 
@@ -52,7 +52,7 @@ public class ZoneModuleRegistry(ZoneModuleInit.Factory factoryFactory)
         return modified;
     }
 
-    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    void IReloadable.Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
     {
         var modified = false;
 

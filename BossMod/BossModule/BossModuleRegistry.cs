@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public class BossModuleRegistry(Lazy<BossModuleConfig> config, ModuleInit.Factory factoryFactory, IPluginLog logger)
+public class BossModuleRegistry(Lazy<BossModuleConfig> config, ModuleInit.Factory factoryFactory, IPluginLog logger) : IReloadable
 {
     public readonly Event Modified = new();
 
@@ -216,7 +216,7 @@ public class BossModuleRegistry(Lazy<BossModuleConfig> config, ModuleInit.Factor
         return modified;
     }
 
-    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    void IReloadable.Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
     {
         var modified = false;
 

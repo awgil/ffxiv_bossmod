@@ -17,7 +17,6 @@ public sealed partial class PingService(IPluginLog logger) : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.Debug("[PingService] Spawning task");
         Source = new();
 
         var token = Source.Token;
@@ -37,10 +36,9 @@ public sealed partial class PingService(IPluginLog logger) : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.Debug("[PingService] Stopping");
         Source.Cancel();
 
-        await Task.WhenAny(UpdateTask);
+        // task is intentionally not awaited, GetRTTAndHopCount blocks for a pretty long time, and unlike config saver service we don't care about race conditions
     }
 
     private unsafe void Fetch()

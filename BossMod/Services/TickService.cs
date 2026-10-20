@@ -53,7 +53,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IFileDialogManager dialog,
         IClientState clientState,
         IWindowSystemFactory windowSystemFactory,
-        IEnumerable<WindowBase> windows,
+        WindowBase[] windows,
         ModulePackService packs,
         ConfigRoot configRoot,
         RotationDatabase db,
@@ -67,7 +67,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IWorldStateGameSync wsSync,
         IMovementOverride movementOverride,
         IHintExecutor hintExecutor,
-        IEnumerable<ConfigMigration> migrations
+        ConfigMigration[] migrations
     ) : base(mLogger, mediator)
     {
         this.dalamud = dalamud;

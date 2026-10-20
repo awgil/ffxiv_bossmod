@@ -3,7 +3,7 @@
 namespace BossMod.Autorotation;
 
 // database containing all registered rotation module definitions and builder functions
-public class RotationModuleRegistry(ActionDefinitions actionDefinitions)
+public class RotationModuleRegistry(Lazy<ActionDefinitions> actionDefinitions) : IReloadable
 {
     public readonly Event Modified = new();
 
@@ -22,7 +22,7 @@ public class RotationModuleRegistry(ActionDefinitions actionDefinitions)
             var defMethod = t.GetMethod("Definition", BindingFlags.Static | BindingFlags.Public);
             object?[] args = [];
             if (defMethod?.GetParameters().Length == 1)
-                args = [actionDefinitions];
+                args = [actionDefinitions.Value];
             var def = defMethod?.Invoke(null, args) as RotationModuleDefinition;
             if (def == null)
             {
@@ -47,7 +47,7 @@ public class RotationModuleRegistry(ActionDefinitions actionDefinitions)
         return modified;
     }
 
-    public void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
+    void IReloadable.Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)
     {
         var modified = false;
 
