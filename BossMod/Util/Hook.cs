@@ -38,7 +38,7 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
     public void Dispose() => _hook.Dispose();
 }
 
-public sealed class HookHelper(ISigScanner scanner, IPluginLog logger, IGameInteropProvider hooking)
+public sealed class HookProvider(ISigScanner scanner, IPluginLog logger, IGameInteropProvider hooking)
 {
     public Hook<T> FromSignature<T>(string signature, T detour, bool autoEnable = true) where T : Delegate => FromAddress(scanner.ScanText(signature), detour, autoEnable);
     public Hook<T> FromAddress<T>(Address address, T detour, bool autoEnable = true) where T : Delegate => FromAddress(address.Value, detour, autoEnable);

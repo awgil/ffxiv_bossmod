@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
 using BossMod.Interfaces;
-using BossMod.ReplayAnalysis;
 using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
@@ -13,7 +12,6 @@ using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +33,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly IEnumerable<ConfigMigration> migrations;
     readonly RotationModuleManager _rotation;
     TimeSpan _prevUpdateTime;
-    readonly PackLoader _packs;
+    readonly ModulePackService _packs;
     private readonly ConfigRoot configRoot;
     private readonly IDalamudPluginInterface dalamud;
     private readonly IUiBuilder uiBuilder;
@@ -56,7 +54,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IClientState clientState,
         IWindowSystemFactory windowSystemFactory,
         IEnumerable<WindowBase> windows,
-        PackLoader packs,
+        ModulePackService packs,
         ConfigRoot configRoot,
         RotationDatabase db,
         IAmex amex,
@@ -147,15 +145,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        foreach (var migration in migrations)
-            if (configRoot.PreviousAssemblyVersion < migration.Since && configRoot.AssemblyVersion >= migration.Since)
-                migration.Execute();
-
-        AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-
-        MigratePlans(dalamud.ConfigDirectory.FullName);
-        CopyLibraries(dalamud.AssemblyLocation);
-
         clientState.Logout += OnLogout;
 
         uiBuilder.Draw += Update;

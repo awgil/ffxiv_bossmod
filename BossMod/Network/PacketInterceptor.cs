@@ -30,7 +30,7 @@ unsafe struct SentIPCHeader
     [FieldOffset(0x08)] public ulong PayloadSize; // 0x10 (payload header) + actual data size
 }
 
-internal sealed unsafe class PacketInterceptor(ISigScanner scanner, IPluginLog logger, HookHelper hook) : IDisposable, IHostedService
+internal sealed unsafe class PacketInterceptor(ISigScanner scanner, IPluginLog logger, HookProvider hook) : IDisposable, IHostedService
 {
     public delegate void ServerIPCReceivedDelegate(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload);
     public event ServerIPCReceivedDelegate? ServerIPCReceived;

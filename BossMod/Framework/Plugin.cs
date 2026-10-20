@@ -1,5 +1,4 @@
 using Autofac;
-using Autofac.Diagnostics;
 using Autofac.Features.AttributeFilters;
 using BossMod.AI;
 using BossMod.Autorotation;
@@ -52,10 +51,11 @@ public class Plugin : HostedPlugin
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
+        containerBuilder.RegisterSingletonSelfAndInterfaces<StartupService>().WithAttributeFiltering();
+
         ConfigureExtra(containerBuilder);
 
-        containerBuilder.RegisterSingletonSelfAndInterfaces<PackLoader>();
-
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ModulePackService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PlanDatabase>().WithAttributeFiltering();
 
@@ -173,14 +173,13 @@ public class Plugin : HostedPlugin
             .SingleInstance()
             .WithAttributeFiltering();
 
+        containerBuilder.RegisterSingletonSelf<HookProvider>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
 
-        containerBuilder.RegisterSingletonSelf<HookHelper>();
-
-        // FIXME: turn into an install service
+        // has to be executed before instances are requested since ConfigRoot needs to be populated (with builtin nodes)
         containerBuilder.RegisterBuildCallback(scope =>
         {
             var self = Assembly.GetExecutingAssembly();
@@ -188,17 +187,7 @@ public class Plugin : HostedPlugin
             scope.Resolve<BossModuleRegistry>().Reload([], [self]);
             scope.Resolve<RotationModuleRegistry>().Reload([], [self]);
             scope.Resolve<ZoneModuleRegistry>().Reload([], [self]);
-        });
-
-        var tracer = new DefaultDiagnosticTracer();
-        tracer.OperationCompleted += (sender, args) =>
-        {
-            Console.WriteLine(args.TraceContent);
-        };
-
-        containerBuilder.RegisterBuildCallback(c =>
-        {
-            //(c as IContainer)!.SubscribeToDiagnostics(tracer);
+            AnalyzerRegistry.Reload([], [self]);
         });
     }
 

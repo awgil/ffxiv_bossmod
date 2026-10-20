@@ -17,7 +17,7 @@ sealed unsafe class DebugMapEffect : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public DebugMapEffect(WorldState ws, HookHelper hook)
+    public DebugMapEffect(WorldState ws, HookProvider hook)
     {
         ProcessMapEffect = Marshal.GetDelegateForFunctionPointer<WorldStateGameSync.ProcessMapEffectDelegate>(hook.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", "ProcessMapEffect"));
         _subscriptions = new(

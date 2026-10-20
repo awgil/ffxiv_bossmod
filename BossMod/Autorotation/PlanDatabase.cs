@@ -8,7 +8,12 @@ using System.Threading.Tasks;
 namespace BossMod.Autorotation;
 
 // note: plans in the database are immutable (otherwise eg. manager won't see the changes in active plan)
-public sealed class PlanDatabase : IHostedService
+public sealed class PlanDatabase(
+    [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
+    [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
+    BossModuleRegistry bossModuleRegistry,
+    JsonSerializerOptions jsonSerializerOptions
+    ) : IHostedService
 {
     public record class PlanList
     {
@@ -19,39 +24,23 @@ public sealed class PlanDatabase : IHostedService
     public readonly Dictionary<Type, Dictionary<Class, PlanList>> Plans = [];
     public Event<Type, Class> ListModifed = new();
     public Event<Plan?, Plan?> PlanModified = new(); // (old, new); old == null if plan is added, new == null if plan is removed
-
-    private readonly FileInfo _manifestPath;
-    private readonly DirectoryInfo _planStore;
-    public readonly JsonSerializerOptions SerializerOptions;
-    private readonly SensibleFileWatcher _watcher;
-    private readonly EventSubscriptions _subscriptions;
+    public readonly JsonSerializerOptions SerializerOptions = jsonSerializerOptions;
+    private readonly SensibleFileWatcher _watcher = new(planStore.FullName, filter: "*.json", includeSubdirectories: true);
+    private readonly EventSubscriptions _subscriptions = new();
 
     private readonly Queue<string> _pendingFiles = [];
 
-    public BossModuleRegistry BossModuleRegistry { get; }
-
-    public PlanDatabase(
-        [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
-        [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
-        BossModuleRegistry bossModuleRegistry,
-        JsonSerializerOptions jsonSerializerOptions
-    )
-    {
-        _manifestPath = manifestPath;
-        _planStore = planStore;
-        BossModuleRegistry = bossModuleRegistry;
-        SerializerOptions = jsonSerializerOptions;
-        _watcher = new(planStore.FullName, filter: "*.json", includeSubdirectories: true);
-        _subscriptions = new(
-            _watcher.Changed.Subscribe(OnPlanFileChanged),
-            _watcher.Deleted.Subscribe(OnPlanFileDeleted)
-        );
-    }
+    public BossModuleRegistry BossModuleRegistry { get; } = bossModuleRegistry;
 
     async Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        if (!_planStore.Exists)
-            _planStore.Create();
+        _subscriptions.Add(
+            _watcher.Changed.Subscribe(OnPlanFileChanged),
+            _watcher.Deleted.Subscribe(OnPlanFileDeleted)
+        );
+
+        if (!planStore.Exists)
+            planStore.Create();
 
         _watcher.EnableRaisingEvents = true;
     }
@@ -67,7 +56,7 @@ public sealed class PlanDatabase : IHostedService
 
         // first load all actually available plans
         Dictionary<string, Plan> foundPlans = [];
-        foreach (var f in _planStore.EnumerateFiles("*.json"))
+        foreach (var f in planStore.EnumerateFiles("*.json"))
         {
             try
             {
@@ -87,11 +76,11 @@ public sealed class PlanDatabase : IHostedService
         }
 
         // now load the manifest, and add referenced plans to the database
-        if (_manifestPath.Exists)
+        if (manifestPath.Exists)
         {
             try
             {
-                using var json = Serialization.ReadJson(_manifestPath.FullName);
+                using var json = Serialization.ReadJson(manifestPath.FullName);
                 var version = json.RootElement.GetProperty("version").GetInt32();
                 var payload = json.RootElement.GetProperty("payload");
                 foreach (var enc in payload.EnumerateObject())
@@ -141,7 +130,7 @@ public sealed class PlanDatabase : IHostedService
             }
             catch (Exception ex)
             {
-                Service.Log($"Failed to parse plan database '{_manifestPath}': {ex}");
+                Service.Log($"Failed to parse plan database '{manifestPath}': {ex}");
             }
         }
 
@@ -161,7 +150,7 @@ public sealed class PlanDatabase : IHostedService
         ListModifed.Fire(encounter, cls);
         try
         {
-            using var fstream = new FileStream(_manifestPath.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var fstream = new FileStream(manifestPath.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
             using var jwriter = Serialization.WriteJson(fstream);
             jwriter.WriteStartObject();
             jwriter.WriteNumber("version", 0);
@@ -189,11 +178,11 @@ public sealed class PlanDatabase : IHostedService
             }
             jwriter.WriteEndObject();
             jwriter.WriteEndObject();
-            Service.Log($"Manifest saved successfully to '{_manifestPath.FullName}'");
+            Service.Log($"Manifest saved successfully to '{manifestPath.FullName}'");
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to write manifest to '{_manifestPath.FullName}': {ex}");
+            Service.Log($"Failed to write manifest to '{manifestPath.FullName}': {ex}");
         }
     }
 
@@ -239,7 +228,7 @@ public sealed class PlanDatabase : IHostedService
 
     private void SavePlan(Plan plan)
     {
-        var filename = $"{_planStore.FullName}/{plan.Guid}.json";
+        var filename = $"{planStore.FullName}/{plan.Guid}.json";
         try
         {
             _pendingFiles.Enqueue(plan.Guid);
@@ -255,7 +244,7 @@ public sealed class PlanDatabase : IHostedService
 
     private void DeletePlan(Plan plan)
     {
-        var filename = $"{_planStore.FullName}/{plan.Guid}.json";
+        var filename = $"{planStore.FullName}/{plan.Guid}.json";
         try
         {
             _pendingFiles.Enqueue(plan.Guid);

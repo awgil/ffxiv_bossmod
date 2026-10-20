@@ -33,7 +33,7 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookHelper hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger) : IMovementOverride, IHostedService
+public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookProvider hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger) : IMovementOverride, IHostedService
 {
     public Vector3? DesiredDirection { get; set; }
     public Angle MisdirectionThreshold { get; set; }

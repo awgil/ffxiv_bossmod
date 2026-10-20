@@ -27,7 +27,7 @@ using System.Threading;
 namespace BossMod;
 
 // utility that updates a world state to correspond to game state
-sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Network.PingService ping, ISigScanner scanner, HookHelper hook, ActionDefinitions actionDefinitions, MovementOverride movement, Network.OpcodeMap opcodeMap, Network.PacketInterceptor interceptor, ReplayManagementConfig rmc, AIHintsConfig solverConfig, ICondition condition, IClientState clientState, IPluginLog logger) : IWorldStateGameSync, IHostedService
+sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Network.PingService ping, ISigScanner scanner, HookProvider hook, ActionDefinitions actionDefinitions, MovementOverride movement, Network.OpcodeMap opcodeMap, Network.PacketInterceptor interceptor, ReplayManagementConfig rmc, AIHintsConfig solverConfig, ICondition condition, IClientState clientState, IPluginLog logger) : IWorldStateGameSync, IHostedService
 {
     private const int ObjectTableSize = 819; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;

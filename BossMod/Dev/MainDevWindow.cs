@@ -1,4 +1,5 @@
-﻿using DalaMock.Host.Mediator;
+﻿using BossMod.Services;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
@@ -15,11 +16,11 @@ class MainDevWindow : WindowBase, IDisposable
 
     readonly EventSubscription _configChange;
     private readonly IDalamudPluginInterface dalamud;
-    private readonly PackLoader packs;
+    private readonly ModulePackService packs;
     private readonly IEnumerable<TestWindow> testWindows;
     private readonly MediatorService mediator;
 
-    public MainDevWindow(IDalamudPluginInterface dalamud, PackLoader packs, IEnumerable<TestWindow> testWindows, MediatorService mediator, ConfigRoot config) : base("Dev tools", new(600, 600))
+    public MainDevWindow(IDalamudPluginInterface dalamud, ModulePackService packs, IEnumerable<TestWindow> testWindows, MediatorService mediator, ConfigRoot config) : base("Dev tools", new(600, 600))
     {
         _configChange = config.Modified.Subscribe(() => ConfigModified = true);
         this.dalamud = dalamud;

@@ -10,9 +10,9 @@ using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BossMod;
+namespace BossMod.Services;
 
-public sealed class PackLoader : IHostedService
+public sealed class ModulePackService(IDalamudPluginInterface dalamud, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, ZoneModuleRegistry zoneModuleRegistry) : IHostedService
 {
     class LoadContext() : AssemblyLoadContext(true)
     {
@@ -21,7 +21,7 @@ public sealed class PackLoader : IHostedService
             // assemblies from parent
             // TODO: doc page says you can return null here to make these load from the parent context, but that doesn't seem to work for me
             if (assemblyName.Name == "BossMod")
-                return typeof(PackLoader).Assembly;
+                return typeof(ModulePackService).Assembly;
             if (assemblyName.Name == "Dalamud")
                 return typeof(IDalamudPluginInterface).Assembly;
             if (assemblyName.Name == "Dalamud.Bindings.ImGui")
@@ -42,32 +42,13 @@ public sealed class PackLoader : IHostedService
     // one context per filepath - this is because AssemblyLoadContext doesn't support unloading individual assemblies, and we don't want to force everything to hot reload when one file changes
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
     private readonly SensibleFileWatcher _watcher = new(filter: "*.dll", includeSubdirectories: true);
-    private readonly EventSubscriptions _modified;
-    public readonly string ModuleDir;
+    private readonly EventSubscriptions _modified = new();
+    public readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), dalamud.IsDev ? "modules-dev" : "modules");
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
 
     // fired after all the registries have processed a file change event
     public readonly Event Modified = new();
-    private readonly ConfigRoot configRoot;
-    private readonly BossModuleRegistry bossModuleRegistry;
-    private readonly RotationModuleRegistry rotationModuleRegistry;
-    private readonly ZoneModuleRegistry zoneModuleRegistry;
-
-    public PackLoader(IDalamudPluginInterface dalamud, ConfigRoot configRoot, BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, ZoneModuleRegistry zoneModuleRegistry)
-    {
-        this.configRoot = configRoot;
-        this.bossModuleRegistry = bossModuleRegistry;
-        this.rotationModuleRegistry = rotationModuleRegistry;
-        this.zoneModuleRegistry = zoneModuleRegistry;
-        ModuleDir = Path.Join(Plugin.GetStorageDir(), dalamud.IsDev ? "modules-dev" : "modules");
-
-        _modified = new(
-            _watcher.Renamed.Subscribe(OnFileRenamed),
-            _watcher.Changed.Subscribe(f => OnFileChanged(f.FullPath)),
-            _watcher.Deleted.Subscribe(f => OnFileDeleted(f.FullPath))
-        );
-    }
 
     async Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
@@ -75,6 +56,11 @@ public sealed class PackLoader : IHostedService
 
         ReloadFrom(ModuleDir);
 
+        _modified.Add(
+            _watcher.Renamed.Subscribe(OnFileRenamed),
+            _watcher.Changed.Subscribe(f => OnFileChanged(f.FullPath)),
+            _watcher.Deleted.Subscribe(f => OnFileDeleted(f.FullPath))
+        );
         _watcher.EnableRaisingEvents = true;
     }
 

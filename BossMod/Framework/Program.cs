@@ -35,6 +35,7 @@ static class Program
 
             containerBuilder.Register(ctx => new WorldState(0, "unknown")).SingleInstance();
 
+            // i'm pretty sure this is a bug - for dalamock, ConfigDirectory is set to the top level pluginConfigs, not the plugin-specific one
             containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory.FullName, "BossMod"))).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
             containerBuilder.RegisterSingletonSelf<MainDevWindow>().As<WindowBase>();

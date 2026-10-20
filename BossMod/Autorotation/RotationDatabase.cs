@@ -1,6 +1,8 @@
-﻿namespace BossMod.Autorotation;
+﻿using BossMod.Services;
 
-public sealed class RotationDatabase(PresetDatabase presets, PlanDatabase plans, PackLoader loader) : IDisposable
+namespace BossMod.Autorotation;
+
+public sealed class RotationDatabase(PresetDatabase presets, PlanDatabase plans, ModulePackService loader) : IDisposable
 {
     public readonly PresetDatabase Presets = presets;
     public readonly PlanDatabase Plans = plans;

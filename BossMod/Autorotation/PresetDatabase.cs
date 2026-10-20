@@ -1,4 +1,5 @@
 ﻿using Autofac.Features.AttributeFilters;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Text.Json;
@@ -12,7 +13,8 @@ public sealed class PresetDatabase(
     [KeyFilter(Keys.DefaultPresetsFile)] FileInfo defaultPresets,
     [KeyFilter(Keys.PresetDatabase)] FileInfo dbPath,
     AutorotationConfig config,
-    JsonSerializerOptions serOptions
+    JsonSerializerOptions serOptions,
+    IPluginLog logger
 ) : IHostedService
 {
     public readonly List<Preset> DefaultPresets = []; // default presets, distributed as part of the plugin
@@ -50,7 +52,7 @@ public sealed class PresetDatabase(
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to parse preset database '{file.FullName}': {ex}");
+            logger.Warning(ex, $"Failed to parse preset database '{file.FullName}'");
             return [];
         }
     }
@@ -79,11 +81,11 @@ public sealed class PresetDatabase(
         try
         {
             PlanPresetConverter.PresetSchema.Save(dbPath, jwriter => JsonSerializer.Serialize(jwriter, UserPresets, serOptions));
-            Service.Log($"Database saved successfully to '{dbPath.FullName}'");
+            logger.Debug($"Database saved successfully to '{dbPath.FullName}'");
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to write database to '{dbPath.FullName}': {ex}");
+            logger.Warning(ex, $"Failed to write database to '{dbPath.FullName}'");
         }
     }
 
