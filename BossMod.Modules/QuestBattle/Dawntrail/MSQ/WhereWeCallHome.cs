@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Dawntrail.MSQ;
 
-class AutoKrile(ZoneModuleInit init) : UnmanagedRotation(init.World, 25)
+class AutoKrile(ZoneModuleInit init) : UnmanagedRotation(init.World, init.ActionDefinitions, 25)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -29,7 +29,7 @@ class AutoKrile(ZoneModuleInit init) : UnmanagedRotation(init.World, 25)
                 _ => AID.FireInRed
             }, primaryTarget);
 
-        var butterflyIn = ActionDefinitions.Instance[ActionID.MakeSpell(AID.ButterflyMotif)]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, init.UnlockState);
+        var butterflyIn = init.ActionDefinitions[ActionID.MakeSpell(AID.ButterflyMotif)]!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, init.UnlockState);
 
         if (butterflyIn < 5 || Player.FindStatus(SID.ButterflyMotif) != null)
             Hints.GoalZones.Add(Hints.GoalAOECircle(10));

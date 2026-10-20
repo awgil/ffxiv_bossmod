@@ -204,24 +204,24 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
 
     protected bool Unlocked<AID>(AID aid) where AID : Enum => ActionUnlocked(ActionID.MakeSpell(aid));
     protected float ReadyIn<AID>(AID aid) where AID : Enum => ReadyIn(ActionID.MakeSpell(aid));
-    protected float ReadyIn(ActionID action) => ActionUnlocked(action) && ActionDefinitions.Instance[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) : float.MaxValue;
+    protected float ReadyIn(ActionID action) => ActionUnlocked(action) && Manager.ActionDefinitions[action] is { } def ? def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState) : float.MaxValue;
     protected bool GCDReady<AID>(AID aid) where AID : Enum => ReadyIn(aid) < GCD + 0.05f;
 
     protected bool CanWeave<AID>(AID aid) where AID : Enum => CanWeave(ActionID.MakeSpell(aid));
     protected bool CanWeave(ActionID action)
     {
-        if (!ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def)
+        if (!ActionUnlocked(action) || Manager.ActionDefinitions[action] is not { } def)
             return false;
         return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
     }
 
-    protected float ScaledCastTime<AID>(AID aid) where AID : Enum => ActionDefinitions.Instance.Spell(aid) is { CastTime: > 0 } def ? def.CastTime * GCDLength / 2.5f : 0;
+    protected float ScaledCastTime<AID>(AID aid) where AID : Enum => Manager.ActionDefinitions.Spell(aid) is { CastTime: > 0 } def ? def.CastTime * GCDLength / 2.5f : 0;
 
     protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
 
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)
     {
-        if (action.ID == 0 || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
+        if (action.ID == 0 || !ActionUnlocked(action) || Manager.ActionDefinitions[action] is not { } def || def.Range != 0 && target == null)
             return false;
         var targetPos = def.AllowedTargets.HasFlag(ActionTargets.Area) ? (def.Range == 0 ? Player.PosRot.XYZ() : target?.PosRot.XYZ() ?? default) : default;
         Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facing);

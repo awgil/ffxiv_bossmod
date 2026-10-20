@@ -750,7 +750,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     private bool Unlocked(TraitID tid) => TraitUnlocked((uint)tid);
 
     private void PushGCD(AID aid, Actor? target, int priority)
-        => base.PushGCD(aid, target, priority, ActionDefinitions.Instance.Spell(aid)?.CastTime > 0 ? IaiCastTime : 0);
+        => base.PushGCD(aid, target, priority, Manager.ActionDefinitions.Spell(aid)?.CastTime > 0 ? IaiCastTime : 0);
 
     #endregion
 }

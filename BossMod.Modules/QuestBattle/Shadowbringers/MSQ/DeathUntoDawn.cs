@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-public class AutoAlisaie(WorldState ws) : UnmanagedRotation(ws, 25)
+public class AutoAlisaie(ZoneModuleInit init) : UnmanagedRotation(init, 25)
 {
     public const ushort StatusParam = 157;
 
@@ -63,7 +63,7 @@ public class AutoAlisaie(WorldState ws) : UnmanagedRotation(ws, 25)
 [ZoneModuleInfo(780)]
 internal class DeathUntoDawn(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoAlisaie _ai = new(init.World);
+    private readonly AutoAlisaie _ai = new(init);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

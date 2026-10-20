@@ -14,8 +14,8 @@ public static class New<T>
 
     public static Func<T> Constructor() => Build.Constructor;
     public static Func<Arg1, T> Constructor<Arg1>() => Build<Arg1>.Constructor;
-    public static Func<Arg1, Arg2, T> Construct<Arg1, Arg2>() => Build<Arg1, Arg2>.Constructor;
-    public static Func<Arg1, Arg2, Arg3, T> Construct<Arg1, Arg2, Arg3>() => Build<Arg1, Arg2, Arg3>.Constructor;
+    public static Func<Arg1, Arg2, T> Constructor<Arg1, Arg2>() => Build<Arg1, Arg2>.Constructor;
+    public static Func<Arg1, Arg2, Arg3, T> Constructor<Arg1, Arg2, Arg3>() => Build<Arg1, Arg2, Arg3>.Constructor;
 
     public static Func<T> ConstructorDerived(Type derived) => Build.CreateConstructor(derived);
     public static Func<Arg1, T> ConstructorDerived<Arg1>(Type derived) => Build<Arg1>.CreateConstructor(derived);

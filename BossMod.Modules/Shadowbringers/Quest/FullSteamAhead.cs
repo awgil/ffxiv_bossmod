@@ -57,7 +57,7 @@ class LightningVoidzone(BossModule module) : Components.Voidzone(module, 6, OID.
 
 class ThancredAI(BossModule module) : RotationModule<AutoThancred>(module);
 
-class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
+class AutoThancred(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {

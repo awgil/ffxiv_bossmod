@@ -55,7 +55,7 @@ public sealed class Caster(RotationModuleManager manager, Actor player) : AIBase
         if (Player.Class is Class.ACN or Class.SMN)
         {
             var res = ActionID.MakeSpell(BossMod.SMN.AID.Resurrection);
-            var def = ActionDefinitions.Instance[res];
+            var def = Manager.ActionDefinitions[res];
 
             if (raise == RaiseStrategy.Slowcast)
             {

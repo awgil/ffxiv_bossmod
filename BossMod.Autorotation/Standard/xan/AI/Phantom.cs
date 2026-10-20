@@ -637,7 +637,7 @@ public class PhantomAI(RotationModuleManager manager, Actor player) : AIBase<Pha
 
         if (cd < GCD + 0.05f)
         {
-            if (ActionDefinitions.Instance[action] is { } def && def.Range > 0)
+            if (Manager.ActionDefinitions[action] is { } def && def.Range > 0)
                 DesiredRange = MathF.Min(DesiredRange, def.Range);
 
             Hints.ActionsToExecute.Push(action, target, prio, castTime: castTime);

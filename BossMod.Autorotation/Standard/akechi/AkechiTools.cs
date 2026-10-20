@@ -18,7 +18,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     #region ActionQueue
     protected bool QueueAction(AID aid, Actor? target, float priority, float delay, float castTime, Vector3 targetPos = default, Angle? facingAngle = null)
     {
-        var ability = ActionDefinitions.Instance.Spell(aid);
+        var ability = Manager.ActionDefinitions.Spell(aid);
         if (ability == null ||
             (uint)(object)aid == 0 ||
             (ability.Range != 0 && target == null))
@@ -133,8 +133,8 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
     protected bool IsFirstGCD => !Player.InCombat || CombatTimer < 0.1f;
     protected bool InOddWindow(AID aid) => Cooldown(aid) is < 90 and > 30;
     protected bool InCombat(Actor? target) => Player.InCombat && target != null;
-    protected float ReadyIn(AID aid) => ActionDefinitions.Instance.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState);
-    protected float Cooldown(AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining;
+    protected float ReadyIn(AID aid) => Manager.ActionDefinitions.Spell(aid)!.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Manager.UnlockState);
+    protected float Cooldown(AID aid) => World.Client.Cooldowns[Manager.ActionDefinitions.Spell(aid)!.MainCooldownGroup].Remaining;
     protected bool ActionReady(AID aid) => Unlocked(aid) && Cooldown(aid) <= 0.5f;
     protected bool LastActionUsed(AID aid) => Manager.LastCast.Data?.IsSpell(aid) == true || Manager.LastCast.Data?.Action == ActionID.MakeSpell(aid);
     protected int Stacks<SID>(SID sid, float duration = 1000f, Actor? on = null)
@@ -556,9 +556,9 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         ComboTimer = (float)(object)World.Client.ComboState.Remaining;
         CountdownRemaining = World.Client.CountdownRemaining;
         HasTrueNorth = Status(ClassShared.SID.TrueNorth, 15) > 0.1f;
-        CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
+        CanTrueNorth = !HasTrueNorth && ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.TrueNorth)) && World.Client.Cooldowns[Manager.ActionDefinitions.Spell(ClassShared.AID.TrueNorth)!.MainCooldownGroup].Remaining < 45.6f;
         HasSwiftcast = Status(ClassShared.SID.Swiftcast, 10) > 0.1f;
-        CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[ActionDefinitions.Instance.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
+        CanSwiftcast = ActionUnlocked(ActionID.MakeSpell(ClassShared.AID.Swiftcast)) && World.Client.Cooldowns[Manager.ActionDefinitions.Spell(ClassShared.AID.Swiftcast)!.MainCooldownGroup].Remaining < 0.6f;
         (RaidBuffsLeft, RaidBuffsIn) = EstimateRaidBuffTimings(primaryTarget);
         if (Manager.Planner?.EstimateTimeToNextDowntime() is (var downtimeNow, var stateLeft))
         {

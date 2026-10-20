@@ -67,7 +67,7 @@ public class WindChisel(BossModule module) : Components.StandardAOEs(module, AID
 
 public class Scales(BossModule module) : Components.Adds(module, (uint)OID.TheScaleOfTheFather);
 
-class AutoYshtola(WorldState ws) : UnmanagedRotation(ws, 25)
+class AutoYshtola(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 25)
 {
     private Actor Magnai => World.Actors.First(x => (OID)x.OID == OID.Magnai);
     private Actor Hien => World.Actors.First(x => (OID)x.OID == OID.Hien);

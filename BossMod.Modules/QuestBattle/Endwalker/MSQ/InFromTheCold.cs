@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Endwalker.MSQ;
 
-class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
+class ImperialAI(ZoneModuleInit init) : UnmanagedRotation(init, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -44,7 +44,7 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(793)]
 internal class InFromTheCold(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly ImperialAI _ai = new(init.World);
+    private readonly ImperialAI _ai = new(init);
     private readonly Dictionary<ulong, (WPos Position, DateTime Time, WDir Velocity)> _motion = [];
     private bool _sneak;
 

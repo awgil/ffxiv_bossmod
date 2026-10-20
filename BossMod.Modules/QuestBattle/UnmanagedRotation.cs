@@ -1,7 +1,9 @@
 ﻿namespace BossMod.QuestBattle;
 
-public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
+public abstract class UnmanagedRotation(WorldState ws, ActionDefinitions defs, float effectiveRange)
 {
+    public UnmanagedRotation(ZoneModuleInit init, float effectiveRange) : this(init.World, init.ActionDefinitions, effectiveRange) { }
+
     protected AIHints Hints = null!;
     protected Actor Player = null!;
     protected WorldState World => ws;
@@ -28,7 +30,7 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
     protected void UseAction(Roleplay.AID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default, Angle? facingAngle = null) => UseAction(ActionID.MakeSpell(action), target, additionalPriority, targetPos, facingAngle);
     protected void UseAction(ActionID action, Actor? target, float additionalPriority = 0, Vector3 targetPos = default, Angle? facingAngle = null)
     {
-        var def = ActionDefinitions.Instance[action];
+        var def = defs[action];
         if (def == null)
             return;
         Hints.ActionsToExecute.Push(action, target, ActionQueue.Priority.High + additionalPriority, castTime: def.CastTime - 0.5f, targetPos: targetPos, facingAngle: facingAngle);
@@ -46,6 +48,6 @@ public abstract class UnmanagedRotation(WorldState ws, float effectiveRange)
 
 public abstract class RotationModule<R>(BossModule module) : BossComponent(module) where R : UnmanagedRotation
 {
-    private readonly R _rotation = New<R>.Constructor<WorldState>()(module.WorldState);
+    private readonly R _rotation = New<R>.Constructor<WorldState, ActionDefinitions>()(module.WorldState, module.ActionDefinitions);
     public sealed override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints) => _rotation.Execute(actor, hints);
 }

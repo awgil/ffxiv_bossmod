@@ -7,7 +7,7 @@ using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot, IUnlockState UnlockState, ICamera Camera)
+public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot, IUnlockState UnlockState, ICamera Camera, ActionDefinitions ActionDefinitions)
 {
     public delegate ZoneModuleInit Factory(WorldState World);
 }
@@ -19,6 +19,7 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
     public readonly WorldState World = init.World;
     public readonly ArenaColor ArenaColor = new(init.ConfigRoot.Get<ColorConfig>());
     public readonly ICamera Camera = init.Camera;
+    public readonly ActionDefinitions ActionDefinitions = init.ActionDefinitions;
 
     public void Dispose()
     {

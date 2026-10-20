@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.MSQ;
 
-class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 3)
+class AutoEstinien(ZoneModuleInit init) : UnmanagedRotation(init, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -25,7 +25,7 @@ class AutoEstinien(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(702)]
 public class VowsOfVirtueDeedsOfCruelty(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoEstinien _ai = new(init.World);
+    private readonly AutoEstinien _ai = new(init);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

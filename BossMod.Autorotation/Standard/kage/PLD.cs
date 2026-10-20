@@ -334,7 +334,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
     {
         if (aid is not (AID.HolySpirit or AID.HolyCircle) || DivineMightLeft > GCD || RequiescatLeft > GCD)
             return 0;
-        return ActionDefinitions.Instance.Spell(aid)?.CastTime ?? 0;
+        return Manager.ActionDefinitions.Spell(aid)?.CastTime ?? 0;
     }
 
     #endregion

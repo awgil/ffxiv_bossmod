@@ -267,7 +267,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
             return false;
         if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !InBossFight || !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)
             return true;
-        var cooldown = ActionDefinitions.Instance.Spell(AID.Phlegma)!.Cooldown;
+        var cooldown = Manager.ActionDefinitions.Spell(AID.Phlegma)!.Cooldown;
         return MaxChargesIn(AID.Phlegma) + cooldown <= RaidBuffsIn;
     }
 

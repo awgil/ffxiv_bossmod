@@ -62,7 +62,7 @@ public sealed class RolePvPUtility(RotationModuleManager manager, Actor player) 
         return res;
     }
 
-    private bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[ActionDefinitions.Instance.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
+    private bool IsReady(ClassShared.AID aid) => World.Client.Cooldowns[Manager.ActionDefinitions.Spell(aid)!.MainCooldownGroup].Remaining <= 0.2f;
     private int EnemiesTargetingPlayer => Hints.PotentialTargets.Count(x => !x.Actor.IsDeadOrDestroyed && x.Actor.TargetID == Player.InstanceID);
     private bool TargetsNearby(float range) => Hints.PotentialTargets.Any(h => !h.Actor.IsDeadOrDestroyed && h.Actor.DistanceToHitbox(Player) <= range);
 

@@ -25,7 +25,7 @@ class CodexOfGravity(BossModule module) : Components.StackWithCastTargets(module
     }
 }
 
-class LamittAI(WorldState ws) : UnmanagedRotation(ws, 25)
+class LamittAI(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 25)
 {
     protected override void Exec(Actor? primaryTarget)
     {

@@ -10,7 +10,8 @@ public record ModuleInit(
     Actor Primary,
     BossModuleRegistry.Info? Info,
     ConfigRoot ConfigRoot,
-    ITextureProvider Texture
+    ITextureProvider Texture,
+    ActionDefinitions ActionDefinitions
 )
 {
     public delegate ModuleInit Factory(WorldState World, Actor Primary, BossModuleRegistry.Info? Info);
@@ -23,6 +24,7 @@ public abstract class BossModule : IDisposable
     public readonly WorldState WorldState;
     public Actor PrimaryActor { get; private set; }
     public readonly ConfigRoot ConfigRoot;
+    public readonly ActionDefinitions ActionDefinitions;
     public BossModuleConfig WindowConfig => ConfigRoot.Get<BossModuleConfig>();
     public ColorConfig ColorConfig => ConfigRoot.Get<ColorConfig>();
     public ArenaColor ArenaColor => Arena.ArenaColor;
@@ -115,6 +117,7 @@ public abstract class BossModule : IDisposable
         PrimaryActor = init.Primary;
         Info = init.Info;
         ConfigRoot = init.ConfigRoot;
+        ActionDefinitions = init.ActionDefinitions;
         Arena = new(WindowConfig, center, bounds, ColorConfig);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 

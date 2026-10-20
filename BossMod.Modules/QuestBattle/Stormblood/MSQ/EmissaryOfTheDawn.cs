@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Stormblood.MSQ;
 
-public class AutoAlphi(WorldState ws) : UnmanagedRotation(ws, 25)
+public class AutoAlphi(ZoneModuleInit init) : UnmanagedRotation(init, 25)
 {
     private Actor? Carby => World.Actors.FirstOrDefault(x => x.OID == 0x2343);
 
@@ -17,7 +17,7 @@ public class AutoAlphi(WorldState ws) : UnmanagedRotation(ws, 25)
 [ZoneModuleInfo(582)]
 public class EmissaryOfTheDawn(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoAlphi _ai = new(init.World);
+    private readonly AutoAlphi _ai = new(init);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)

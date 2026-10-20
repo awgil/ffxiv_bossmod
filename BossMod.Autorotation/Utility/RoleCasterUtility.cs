@@ -47,7 +47,7 @@ public abstract class RoleCasterUtility(RotationModuleManager manager, Actor pla
         if (lbLevel > 0)
         {
             var lbAction = lbLevel == 3 ? lb3 : ActionID.MakeSpell(lbLevel == 2 ? ClassShared.AID.Starstorm : ClassShared.AID.Skyshard);
-            Hints.ActionsToExecute.Push(lbAction, null, ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: ActionDefinitions.Instance[lbAction]!.CastTime, targetPos: ResolveTargetLocation(lb.Value).ToVec3(Player.PosRot.Y));
+            Hints.ActionsToExecute.Push(lbAction, null, ActionQueue.Priority.VeryHigh, lb.Value.ExpireIn, castTime: Manager.ActionDefinitions[lbAction]!.CastTime, targetPos: ResolveTargetLocation(lb.Value).ToVec3(Player.PosRot.Y));
         }
 
         var addle = strategy.Option(SharedTrack.Addle);

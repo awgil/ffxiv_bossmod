@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Endwalker.MSQ;
 
-class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
+class AutoThancred(ZoneModuleInit init) : UnmanagedRotation(init, 3)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -33,7 +33,7 @@ class AutoThancred(WorldState ws) : UnmanagedRotation(ws, 3)
 [ZoneModuleInfo(812)]
 internal class AFrostyReception(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly AutoThancred _ai = new(init.World);
+    private readonly AutoThancred _ai = new(init);
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
@@ -141,7 +141,7 @@ internal class AFrostyReception(ZoneModuleInit init) : QuestBattle(init)
                     if (World.Party.Player()?.InCombat ?? false)
                         return;
 
-                    var cd = ActionDefinitions.Instance[ActionID.MakeSpell(Roleplay.AID.SwiftDeception)];
+                    var cd = ActionDefinitions[ActionID.MakeSpell(Roleplay.AID.SwiftDeception)];
                     obj.CompleteIf(cd?.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions, Utils.Landmine<IUnlockState>()) < 0.5f);
                 };
             }),

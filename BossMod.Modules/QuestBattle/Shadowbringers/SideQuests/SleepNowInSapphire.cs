@@ -1,6 +1,6 @@
 ﻿namespace BossMod.QuestBattle.Shadowbringers.SideQuests;
 
-class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
+class SapphireWeapon(ZoneModuleInit init) : UnmanagedRotation(init, 40)
 {
     protected override void Exec(Actor? primaryTarget)
     {
@@ -59,7 +59,7 @@ class SapphireWeapon(WorldState ws) : UnmanagedRotation(ws, 40)
 [ZoneModuleInfo(740)]
 internal class SleepNowInSapphire(ZoneModuleInit init) : QuestBattle(init)
 {
-    private readonly SapphireWeapon _weapon = new(init.World);
+    private readonly SapphireWeapon _weapon = new(init);
 
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
 
