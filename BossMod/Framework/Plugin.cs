@@ -216,14 +216,13 @@ public class Plugin : HostedPlugin
 
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
-        //containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
+        containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
-
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
     }

@@ -1,6 +1,7 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using InteropGenerator.Runtime;
+using System.Diagnostics;
 
 namespace BossMod;
 
@@ -44,7 +45,7 @@ public sealed class HookHelper(ISigScanner scanner, IPluginLog logger, IGameInte
     public Hook<T> FromAddress<T>(nint address, T detour, bool autoEnable = true) where T : Delegate
     {
         var hook = hooking.HookFromAddress(address, detour);
-        logger.Debug($"Hooking {typeof(T)} @ 0x{address:X}");
+        logger.Debug($"Hooking {typeof(T)} @ +0x{address - GetBaseAddress():X}");
         if (autoEnable)
             hook.Enable();
         return hook;
@@ -53,7 +54,9 @@ public sealed class HookHelper(ISigScanner scanner, IPluginLog logger, IGameInte
     public nint ScanText(string signature, string label)
     {
         var addr = scanner.ScanText(signature);
-        logger.Debug($"{label} address: 0x{addr:X}");
+        logger.Debug($"{label} address: +0x{addr - GetBaseAddress():X}");
         return addr;
     }
+
+    static nint GetBaseAddress() => Process.GetCurrentProcess().MainModule!.BaseAddress;
 }
