@@ -7,7 +7,7 @@ using System.IO;
 
 namespace BossMod;
 
-public sealed class AboutTab(DirectoryInfo? replayDir, MediatorService mediator)
+public sealed class AboutTab(DirectoryInfo? replayDir, MediatorService mediator, IUiBuilder uiBuilder)
 {
     private readonly Color DiscordColor = Color.FromComponents(88, 101, 242);
 
@@ -82,7 +82,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir, MediatorService mediator)
             _lastErrorMessage = OpenDirectory(replayDir);
 
         if (_lastErrorMessage.Length > 0)
-            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, _lastErrorMessage, UIMisc.ColorDanger);
+            uiBuilder.Banner(FontAwesomeIcon.ExclamationTriangle, _lastErrorMessage, UIMisc.ColorDanger);
     }
 
     private static void DrawSection(string title, string[] bulletPoints)

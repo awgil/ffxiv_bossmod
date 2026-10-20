@@ -1,10 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public static class UIStrategyValue
+public class UIStrategyValue(IUiBuilder uiBuilder)
 {
     private static readonly (string Name, float Value)[] PriorityBaselines =
     [
@@ -47,7 +48,7 @@ public static class UIStrategyValue
         return (targetDetails.Length > 0 ? $"{value.Target} ({targetDetails})" : $"{value.Target}") + offsetDetails;
     }
 
-    public static bool DrawEditor(StrategyValue value, StrategyConfigTrack cfg, BossModuleRegistry.Info? moduleInfo, int? level)
+    public bool DrawEditor(StrategyValue value, StrategyConfigTrack cfg, BossModuleRegistry.Info? moduleInfo, int? level)
     {
         var modified = false;
         if (value is StrategyValueTrack tr)
@@ -84,7 +85,7 @@ public static class UIStrategyValue
         return modified;
     }
 
-    public static bool DrawEditorPriority(StrategyValueTrack value)
+    public bool DrawEditorPriority(StrategyValueTrack value)
     {
         var modified = false;
         var overridePriority = !float.IsNaN(value.PriorityOverride);
@@ -94,7 +95,7 @@ public static class UIStrategyValue
             value.PriorityOverride = overridePriority ? ActionQueue.Priority.Low : float.NaN;
         }
         ImGui.SameLine();
-        UIMisc.HelpMarker("""
+        uiBuilder.HelpMarker("""
             Define custom priority for the corresponding action.
             Priority is compared against other candidate actions; it is suggested to use a predefined base and add a small offset to disambiguate multiple actions.
             Base priorities are the following:

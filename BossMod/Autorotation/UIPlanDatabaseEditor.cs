@@ -1,9 +1,11 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using Autofac;
+using DalaMock.Host.Mediator;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public sealed class UIPlanDatabaseEditor
+public sealed class UIPlanDatabaseEditor(ILifetimeScope parentScope, MediatorService mediator)
 {
     // utility: draw combo that allows selecting a plan from a list; used in variety of contexts
     public static int DrawPlanCombo(PlanDatabase.PlanList list, int selected, string label)
@@ -27,12 +29,12 @@ public sealed class UIPlanDatabaseEditor
         return selected;
     }
 
-    public static void StartPlanEditor(ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
+    public void StartPlanEditor(ColorConfig colors, PlanDatabase db, Plan plan, StateMachine sm)
     {
-        _ = new UIPlanEditorWindow(db.BossModuleRegistry, db.SerializerOptions, db, colors, plan, sm);
+        mediator.CreateWindow(new UIPlanEditorWindow(db, colors, plan, sm, parentScope));
     }
 
-    public static void StartPlanEditor(ColorConfig colors, PlanDatabase db, Plan plan)
+    public void StartPlanEditor(ColorConfig colors, PlanDatabase db, Plan plan)
     {
         var m = db.BossModuleRegistry.CreateModuleForConfigPlanning(plan.Encounter);
         if (m != null)

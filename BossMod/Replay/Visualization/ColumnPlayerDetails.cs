@@ -1,22 +1,19 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using System.Text.Json;
 
 namespace BossMod.ReplayVisualization;
 
 // TODO: currently it assumes that there's only one instance that can edit db, it won't refresh if plan is edited and saved in a different instance...
 public class ColumnPlayerDetails : Timeline.ColumnGroup
 {
-    private readonly BossModuleRegistry bossModuleRegistry;
-    private readonly JsonSerializerOptions serOptions;
     private readonly StateMachineTree _tree;
-    private readonly List<int> _phaseBraches;
     private readonly Replay _replay;
     private readonly Replay.Encounter _enc;
     private readonly Replay.Participant _player;
     private readonly Class _playerClass;
     private readonly PlanDatabase _planDatabase;
+    private readonly CooldownPlannerColumns.Factory cdFactory;
     private readonly BossModuleRegistry.Info? _moduleInfo;
 
     private readonly ColumnPlayerActions _actions;
@@ -34,18 +31,16 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
 
     public delegate ColumnPlayerDetails Factory(Replay.Participant player, Class playerClass);
 
-    public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, PlanDatabase planDB, ColumnPlayerActions.Factory colPlayerActions)
+    public ColumnPlayerDetails(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, Replay replay, Replay.Encounter enc, Replay.Participant player, Class playerClass, BossModuleRegistry bossModuleRegistry, PlanDatabase planDB, ColumnPlayerActions.Factory colPlayerActions, CooldownPlannerColumns.Factory cdFactory)
         : base(timeline)
     {
-        this.bossModuleRegistry = bossModuleRegistry;
-        this.serOptions = serOptions;
         _tree = tree;
-        _phaseBraches = phaseBranches;
         _replay = replay;
         _enc = enc;
         _player = player;
         _playerClass = playerClass;
         _planDatabase = planDB;
+        this.cdFactory = cdFactory;
         _moduleInfo = bossModuleRegistry.FindByOID(enc.OID);
 
         _actions = Add(colPlayerActions(player, playerClass));
@@ -196,7 +191,7 @@ public class ColumnPlayerDetails : Timeline.ColumnGroup
         _selectedPlan = newSelection;
         if (_selectedPlan >= 0)
         {
-            _planner = AddBefore(new CooldownPlannerColumns(bossModuleRegistry, serOptions, list.Plans[newSelection].MakeClone(), Timeline, _tree, _phaseBraches, false, _plannerActions, _enc.Time.Start), _actions);
+            _planner = AddBefore(cdFactory.Invoke(list.Plans[newSelection].MakeClone(), false, _plannerActions, _enc.Time.Start), _actions);
         }
     }
 

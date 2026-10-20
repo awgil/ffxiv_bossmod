@@ -8,7 +8,7 @@ namespace BossMod;
 //                       rotation 0 corresponds to South, and increases counterclockwise (so East is +pi/2, North is pi, West is -pi/2)
 // - camera azimuth 0 correpsonds to camera looking North and increases counterclockwise
 // - screen coordinates - X points left to right, Y points top to bottom
-public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds bounds, ColorConfig colors)
+public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds bounds, ColorConfig colors, IUiBuilder uiBuilder)
 {
     public readonly BossModuleConfig Config = config;
     public readonly ArenaColor ArenaColor = new(colors);
@@ -294,9 +294,9 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
 
     public void IconScreen(Vector2 center, FontAwesomeIcon icon, uint color, float fontSize = 17)
     {
-        var size = ImGui.CalcTextSizeA(Service.IconFont, fontSize, float.MaxValue, float.MaxValue, icon.ToIconString(), out var i);
+        var size = ImGui.CalcTextSizeA(uiBuilder.FontIcon, fontSize, float.MaxValue, float.MaxValue, icon.ToIconString(), out var i);
         size.X -= i * 0.5f;
-        ImGui.GetWindowDrawList().AddText(Service.IconFont, fontSize, center - size / 2, color, icon.ToIconString());
+        ImGui.GetWindowDrawList().AddText(uiBuilder.FontIcon, fontSize, center - size / 2, color, icon.ToIconString());
     }
 
     public void IconWorld(WPos center, FontAwesomeIcon icon, uint color, float fontSize = 17)

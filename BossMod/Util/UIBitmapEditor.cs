@@ -1,5 +1,6 @@
-﻿using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
@@ -15,7 +16,7 @@ public class UIBitmapEditor
     public readonly int PanModeId;
     public readonly int BrushModeId;
     public readonly int EraseModeId;
-
+    private readonly IUiBuilder uiBuilder;
     public Vector2 ScreenSize = new(600, 600); // size of the 'viewport' in screen space
     public Vector2 ScreenOffset; // top-level coordinate of the virtual 'viewport' in screen space coordinates (scaled by zoom level compared to bitmap coordinates)
     public int ZoomLevel = 4; // 0 is 1:1 screen to bitmap, positive if bitmap pixel is bigger than screen pixel (upscaled bitmap), negative otherwise
@@ -25,13 +26,14 @@ public class UIBitmapEditor
 
     public Bitmap Bitmap => _bitmaps[_curUndoPos];
 
-    public UIBitmapEditor(Bitmap initial)
+    public UIBitmapEditor(Bitmap initial, IUiBuilder uiBuilder)
     {
         _bitmaps = [initial.Clone()];
         PanModeId = RegisterMode("Pan");
         BrushModeId = RegisterMode("Brush");
         EraseModeId = RegisterMode("Erase");
         CurrentMode = PanModeId;
+        this.uiBuilder = uiBuilder;
     }
 
     public void Draw()
@@ -76,7 +78,7 @@ public class UIBitmapEditor
     {
         DrawModeButtons();
         DrawUndoRedoButtons();
-        UIMisc.HelpMarker("Wheel to zoom, shift-wheel to change brush size");
+        uiBuilder.HelpMarker("Wheel to zoom, shift-wheel to change brush size");
         ImGui.SameLine();
         ImGui.TextUnformatted($"Brush radius: {BrushRadius}");
         if (HoveredPixel.x >= 0 && HoveredPixel.y >= 0)

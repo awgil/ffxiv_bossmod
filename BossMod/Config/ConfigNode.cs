@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using Dalamud.Interface;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -79,7 +80,7 @@ public abstract class ConfigNode
     public Event Modified = new();
 
     // draw custom contents; override this for complex config nodes
-    public virtual void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db) { }
+    public virtual void DrawCustom(UITree tree, WorldState ws, IUiBuilder uiBuilder, RotationDatabase? db) { }
 
     // deserialize fields from json; default implementation should work fine for most cases
     public virtual void Deserialize(JsonElement j, JsonSerializerOptions ser)

@@ -42,19 +42,21 @@ public sealed class ConfigUI : IDisposable
     private readonly WorldState _ws;
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly UIPresetDatabaseEditor? _presets;
+    private readonly IUiBuilder uiBuilder;
     private readonly RotationDatabase? _rotationDB;
 
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo replayDir, RotationDatabase rotationDB, ModuleViewer mv, UIPresetDatabaseEditor presets, MediatorService mediator)
+    public ConfigUI(ConfigRoot config, WorldState ws, BossModuleRegistry bossModuleRegistry, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo replayDir, RotationDatabase rotationDB, ModuleViewer mv, UIPresetDatabaseEditor presets, MediatorService mediator, IUiBuilder uiBuilder)
     {
         _root = config;
         _ws = ws;
         this.bossModuleRegistry = bossModuleRegistry;
-        _about = new(replayDir, mediator);
+        _about = new(replayDir, mediator, uiBuilder);
         _mv = mv;
         _presets = presets;
+        this.uiBuilder = uiBuilder;
         _rotationDB = rotationDB;
 
         _tabs.Add("About", _about.Draw);
@@ -204,7 +206,7 @@ public sealed class ConfigUI : IDisposable
         if (!IsHeader(root))
         {
             UIMisc.SectionHeader(root.Name);
-            DrawNode(root.Node, _root, _tree, _ws, _rotationDB);
+            DrawNode(root.Node, _root, _tree, _ws, _rotationDB, uiBuilder);
             return;
         }
 
@@ -226,9 +228,9 @@ public sealed class ConfigUI : IDisposable
     {
         List<(string key, string label, Action draw)> res = [];
         if (root.HasGeneral)
-            res.Add((PageKey(root, ""), "General", () => DrawNode(root.Node, _root, _tree, _ws, _rotationDB, page: "")));
+            res.Add((PageKey(root, ""), "General", () => DrawNode(root.Node, _root, _tree, _ws, _rotationDB, uiBuilder, page: "")));
         foreach (var p in root.Pages)
-            res.Add((PageKey(root, p), p, () => DrawNode(root.Node, _root, _tree, _ws, _rotationDB, page: p)));
+            res.Add((PageKey(root, p), p, () => DrawNode(root.Node, _root, _tree, _ws, _rotationDB, uiBuilder, page: p)));
 
         List<(string key, string label, List<UINode> nodes)> children = [];
         foreach (var c in root.Children)
@@ -248,7 +250,7 @@ public sealed class ConfigUI : IDisposable
 
     private void DrawChildNode(UINode node)
     {
-        DrawNode(node.Node, _root, _tree, _ws, _rotationDB);
+        DrawNode(node.Node, _root, _tree, _ws, _rotationDB, uiBuilder);
         DrawNodesByCategory(node.Children);
     }
 
@@ -369,7 +371,7 @@ public sealed class ConfigUI : IDisposable
     }
 
     // page: "" is the part before the first page start, null draws all pages
-    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, RotationDatabase? db, Func<PropertyDisplayAttribute, bool>? filter = null, string? page = null)
+    public static void DrawNode(ConfigNode node, ConfigRoot root, UITree tree, WorldState ws, RotationDatabase? db, IUiBuilder uiBuilder, Func<PropertyDisplayAttribute, bool>? filter = null, string? page = null)
     {
         // draw standard properties
         var currentPage = "";
@@ -421,7 +423,7 @@ public sealed class ConfigUI : IDisposable
             var value = field.GetValue(node);
             using (ImRaii.Disabled(disabled))
             {
-                if (DrawProperty(props, nested, node, field, value, root, tree, ws))
+                if (DrawProperty(uiBuilder, props, nested, node, field, value, root, tree, ws))
                 {
                     node.Modified.Fire();
                 }
@@ -431,7 +433,7 @@ public sealed class ConfigUI : IDisposable
 
         // draw custom stuff
         if (page is null or "")
-            node.DrawCustom(tree, ws, db);
+            node.DrawCustom(tree, ws, uiBuilder, db);
     }
 
     private static (List<string> pages, bool hasDefault) GetPages(ConfigNode node)
@@ -561,7 +563,7 @@ public sealed class ConfigUI : IDisposable
             using var id = ImRaii.PushId(n.Name);
             if (!ImGui.TreeNodeEx($"{label(n)}###node"))
                 continue;
-            DrawNode(n.Node, _root, _tree, _ws, _rotationDB, props => MatchesFilter([.. n.Path, props.Label]));
+            DrawNode(n.Node, _root, _tree, _ws, _rotationDB, uiBuilder, props => MatchesFilter([.. n.Path, props.Label]));
             DrawNodes(n.Children);
             ImGui.TreePop();
         }
@@ -592,18 +594,18 @@ public sealed class ConfigUI : IDisposable
         return _filterNodes.Any(matchesOneFilter);
     }
 
-    public static void DrawHelp(string tooltip, bool nested = false)
+    public static void DrawHelp(IUiBuilder uiBuilder, string tooltip, bool nested = false)
     {
         // draw tooltip marker with proper alignment
         ImGui.AlignTextToFramePadding();
         if (tooltip.Length > 0)
         {
-            UIMisc.HelpMarker(tooltip);
+            uiBuilder.HelpMarker(tooltip);
         }
         else
         {
             using var invisible = ImRaii.PushColor(ImGuiCol.Text, 0x00000000);
-            UIMisc.IconText(FontAwesomeIcon.InfoCircle);
+            uiBuilder.IconText(FontAwesomeIcon.InfoCircle);
         }
         ImGui.SameLine();
         if (nested)
@@ -624,23 +626,23 @@ public sealed class ConfigUI : IDisposable
         ImGui.GetWindowDrawList().AddText(pos + (sBox - size) * 0.5f, ImGui.GetColorU32(ImGuiCol.Text), bar);
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, object? value, ConfigRoot root, UITree tree, WorldState ws) => value switch
     {
-        bool v => DrawProperty(attrs, nested, node, member, v),
-        Enum v => DrawProperty(attrs, nested, node, member, v),
-        float v => DrawProperty(attrs, nested, node, member, v),
-        int v => DrawProperty(attrs, nested, node, member, v),
-        string v => DrawProperty(attrs, nested, node, member, v),
-        Color v => DrawProperty(attrs, nested, node, member, v),
-        Color[] v => DrawProperty(attrs, nested, node, member, v),
-        GroupAssignment v => DrawProperty(attrs, nested, node, member, v, root, tree, ws),
+        bool v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        Enum v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        float v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        int v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        string v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        Color v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        Color[] v => DrawProperty(uiBuilder, attrs, nested, node, member, v),
+        GroupAssignment v => DrawProperty(uiBuilder, attrs, nested, node, member, v, root, tree, ws),
         object v => DrawCustom(attrs, nested, node, member, v, root, tree, ws),
         null => false
     };
 
-    private static float DrawLabelAbove(PropertyDisplayAttribute attrs, bool radio, bool nested)
+    private static float DrawLabelAbove(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool radio, bool nested)
     {
-        DrawHelp(attrs.Tooltip, nested);
+        DrawHelp(uiBuilder, attrs.Tooltip, nested);
         var x = ImGui.GetCursorPosX();
         ImGui.TextUnformatted($"{attrs.Label}{(radio ? ":" : "")}");
         ImGui.SetCursorPosX(x);
@@ -678,12 +680,12 @@ public sealed class ConfigUI : IDisposable
         return true;
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, bool v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, bool v)
     {
         var combo = member.GetCustomAttribute<PropertyComboAttribute>();
         if (combo != null)
         {
-            var x = DrawLabelAbove(attrs, true, nested);
+            var x = DrawLabelAbove(uiBuilder, attrs, true, nested);
             var ix = v ? 1 : 0;
             var modified = combo.Values.Length <= MaxRadioOptions
                 ? DrawRadioList(x, attrs.Label, combo.Values, false, ref ix) && SetValue(node, member, ix != 0)
@@ -692,13 +694,13 @@ public sealed class ConfigUI : IDisposable
             return modified;
         }
 
-        DrawHelp(attrs.Tooltip, nested);
+        DrawHelp(uiBuilder, attrs.Tooltip, nested);
         return ImGui.Checkbox(attrs.Label, ref v) && SetValue(node, member, v);
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Enum v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Enum v)
     {
-        var x = DrawLabelAbove(attrs, true, nested);
+        var x = DrawLabelAbove(uiBuilder, attrs, true, nested);
         var modified = false;
         var values = Enum.GetValues(v.GetType()).Cast<Enum>().ToArray();
         var radio = member.GetCustomAttribute<PropertyRadioAttribute>();
@@ -716,9 +718,9 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, float v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, float v)
     {
-        DrawLabelAbove(attrs, false, nested);
+        DrawLabelAbove(uiBuilder, attrs, false, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         var flags = slider?.Logarithmic == true ? ImGuiSliderFlags.Logarithmic : ImGuiSliderFlags.None;
         var modified = slider != null
@@ -729,9 +731,9 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, int v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, int v)
     {
-        DrawLabelAbove(attrs, false, nested);
+        DrawLabelAbove(uiBuilder, attrs, false, nested);
         var slider = member.GetCustomAttribute<PropertySliderAttribute>();
         var flags = slider?.Logarithmic == true ? ImGuiSliderFlags.Logarithmic : ImGuiSliderFlags.None;
         var modified = slider != null
@@ -742,9 +744,9 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, string v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, string v)
     {
-        DrawLabelAbove(attrs, false, nested);
+        DrawLabelAbove(uiBuilder, attrs, false, nested);
         var modified = ImGui.InputText($"##{attrs.Label}", ref v, 256) && SetValue(node, member, v);
         ImGui.Spacing();
         return modified;
@@ -752,19 +754,19 @@ public sealed class ConfigUI : IDisposable
 
     private const ImGuiColorEditFlags ColorFlags = ImGuiColorEditFlags.PickerHueWheel | ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaPreviewHalf;
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color v)
     {
-        DrawHelp(attrs.Tooltip, nested);
+        DrawHelp(uiBuilder, attrs.Tooltip, nested);
         var col = v.ToFloat4();
         return ImGui.ColorEdit4(attrs.Label, ref col, ColorFlags) && SetValue(node, member, Color.FromFloat4(col));
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color[] v)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, Color[] v)
     {
         var modified = false;
         for (var i = 0; i < v.Length; ++i)
         {
-            DrawHelp(attrs.Tooltip, nested);
+            DrawHelp(uiBuilder, attrs.Tooltip, nested);
             var col = v[i].ToFloat4();
             if (ImGui.ColorEdit4($"{attrs.Label} {i}", ref col, ColorFlags))
             {
@@ -776,13 +778,13 @@ public sealed class ConfigUI : IDisposable
         return modified;
     }
 
-    public static void DrawGroupPresetIndicator(string text, string help, Action contextMenu)
+    public static void DrawGroupPresetIndicator(IUiBuilder uiBuilder, string text, string help, Action contextMenu)
     {
         using var _ = ImRaii.PushId(text);
         ImGui.AlignTextToFramePadding();
         var paddingX = ImGui.GetStyle().FramePadding.X;
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - paddingX);
-        if (UIMisc.IconButton(help.Length == 0 ? FontAwesomeIcon.ListUl : FontAwesomeIcon.InfoCircle))
+        if (uiBuilder.IconButton(help.Length == 0 ? FontAwesomeIcon.ListUl : FontAwesomeIcon.InfoCircle))
         {
             Service.Log($"Opening popup {text}popup");
             ImGui.OpenPopup($"{text}popup");
@@ -808,7 +810,7 @@ public sealed class ConfigUI : IDisposable
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - paddingX);
     }
 
-    private static bool DrawProperty(PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
+    private static bool DrawProperty(IUiBuilder uiBuilder, PropertyDisplayAttribute attrs, bool nested, ConfigNode node, FieldInfo member, GroupAssignment v, ConfigRoot root, UITree tree, WorldState ws)
     {
         var group = member.GetCustomAttribute<GroupDetailsAttribute>();
         if (group == null)
@@ -822,18 +824,18 @@ public sealed class ConfigUI : IDisposable
         ImGui.AlignTextToFramePadding();
         if (havePresetButton)
         {
-            DrawGroupPresetIndicator(attrs.Label, attrs.Tooltip, () => DrawPropertyContextMenu(node, member, v));
+            DrawGroupPresetIndicator(uiBuilder, attrs.Label, attrs.Tooltip, () => DrawPropertyContextMenu(node, member, v));
         }
         else if (haveTooltip)
         {
-            UIMisc.HelpMarker(attrs.Tooltip);
+            uiBuilder.HelpMarker(attrs.Tooltip);
             ImGui.SameLine();
         }
         else
         {
             using (ImRaii.PushColor(ImGuiCol.Text, 0))
             {
-                UIMisc.IconText(FontAwesomeIcon.InfoCircle);
+                uiBuilder.IconText(FontAwesomeIcon.InfoCircle);
                 ImGui.SameLine();
             }
         }

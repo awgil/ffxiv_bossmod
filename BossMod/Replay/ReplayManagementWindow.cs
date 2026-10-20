@@ -15,6 +15,7 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
 {
     private readonly WorldState _ws;
     private readonly ICondition condition;
+    private readonly IUiBuilder uiBuilder;
     private readonly DirectoryInfo _logDir;
     private readonly ReplayManagementConfig _config;
     private readonly ReplayManager _manager;
@@ -36,10 +37,11 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
 
     private const string _windowID = "###Replay recorder";
 
-    public ReplayManagementWindow(WorldState ws, ICondition condition, BossModuleManager bmm, ReplayManagementConfig config, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ReplayManager manager) : base(_windowID, new(400, 500))
+    public ReplayManagementWindow(WorldState ws, ICondition condition, IUiBuilder uiBuilder, BossModuleManager bmm, ReplayManagementConfig config, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ReplayManager manager) : base(_windowID, new(400, 500))
     {
         _ws = ws;
         this.condition = condition;
+        this.uiBuilder = uiBuilder;
         _logDir = logDir;
         _config = config;
         _manager = manager;
@@ -99,7 +101,7 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
             _lastErrorMessage = OpenDirectory(_logDir);
 
         if (_lastErrorMessage.Length > 0)
-            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, _lastErrorMessage, UIMisc.ColorDanger);
+            uiBuilder.Banner(FontAwesomeIcon.ExclamationTriangle, _lastErrorMessage, UIMisc.ColorDanger);
 
         if (_recorder != null)
         {
@@ -127,14 +129,14 @@ public sealed class ReplayManagementWindow : WindowBase, IDisposable
         if (_recorder == null)
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled)))
-                UIMisc.IconText(FontAwesomeIcon.Circle);
+                uiBuilder.IconText(FontAwesomeIcon.Circle);
             ImGui.SameLine();
             ImGui.TextDisabled(_config.AutoRecord ? "Not recording (auto-record is on)" : "Not recording");
             return;
         }
 
         using (ImRaii.PushColor(ImGuiCol.Text, UIMisc.ColorDanger))
-            UIMisc.IconText(FontAwesomeIcon.Circle);
+            uiBuilder.IconText(FontAwesomeIcon.Circle);
         ImGui.SameLine();
         var elapsed = DateTime.Now - _recordingStart;
         var reason = _recordingManual ? "manual" : _recordingDuty ? "duty" : _recordingActiveModules > 0 ? "boss module" : "auto";

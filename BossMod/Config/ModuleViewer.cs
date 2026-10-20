@@ -23,11 +23,13 @@ public sealed class ModuleViewer : IDisposable
     private record struct ModuleGroup(ModuleGroupInfo Info, List<ModuleInfo> Modules);
 
     private readonly PlanDatabase? _planDB;
+    private readonly IUiBuilder uiBuilder;
     private readonly IPluginLog logger;
     private readonly BossModuleRegistry bossModuleRegistry;
     private readonly JsonSerializerOptions serOptions;
     private readonly ColorConfig colors;
     private readonly ExcelSheet<BNpcName> bNpcName;
+    private readonly UIPlanDatabaseEditor uIPlanDatabaseEditor;
     private readonly BossModuleConfig _bmConfig;
 
     private BitMask _filterExpansions;
@@ -44,15 +46,17 @@ public sealed class ModuleViewer : IDisposable
 
     private readonly EventSubscriptions _subscriptions;
 
-    public ModuleViewer(PlanDatabase planDB, IPluginLog logger, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ColorConfig colors, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName)
+    public ModuleViewer(PlanDatabase planDB, IUiBuilder uiBuilder, IPluginLog logger, BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, ColorConfig colors, BossModuleConfig bmc, ExcelSheet<ExVersion> exVersion, ExcelSheet<ContentType> contentType, ExcelSheet<CharaCardPlayStyle> playStyle, ExcelSheet<BNpcName> bNpcName, UIPlanDatabaseEditor uIPlanDatabaseEditor)
     {
         _planDB = planDB;
+        this.uiBuilder = uiBuilder;
         this.logger = logger;
         _bmConfig = bmc;
         this.bossModuleRegistry = bossModuleRegistry;
         this.serOptions = serOptions;
         this.colors = colors;
         this.bNpcName = bNpcName;
+        this.uIPlanDatabaseEditor = uIPlanDatabaseEditor;
 
         uint defaultIcon = 61762;
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
@@ -368,7 +372,7 @@ public sealed class ModuleViewer : IDisposable
                             var statusColor = mod.Info.Incomplete ? UIMisc.ColorWarning : UIMisc.ColorGood;
                             ImGui.AlignTextToFramePadding();
                             using (ImRaii.PushColor(ImGuiCol.Text, statusColor))
-                                UIMisc.IconText(mod.Info.Incomplete ? FontAwesomeIcon.Wrench : FontAwesomeIcon.CheckCircle);
+                                uiBuilder.IconText(mod.Info.Incomplete ? FontAwesomeIcon.Wrench : FontAwesomeIcon.CheckCircle);
                             if (ImGui.IsItemHovered())
                                 ImGui.SetTooltip(mod.Info.Incomplete ? "WIP: some mechanics may be missing or wrong. Only loaded with \"Allow WIP modules\" enabled." : "Complete");
                             ImGui.SameLine();
@@ -382,14 +386,14 @@ public sealed class ModuleViewer : IDisposable
                             }
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.ConfigType == null))
-                                if (UIMisc.IconButton(FontAwesomeIcon.Cog, $"{mod.Info.ModuleType.FullName}_cfg"))
-                                    _ = new BossModuleConfigWindow(mod.Info, ws);
+                                if (uiBuilder.IconButton(FontAwesomeIcon.Cog, $"{mod.Info.ModuleType.FullName}_cfg"))
+                                    _ = new BossModuleConfigWindow(mod.Info, ws, uiBuilder);
                             ImGui.SameLine();
                             using (ImRaii.Disabled(mod.Info.PlanLevel == 0))
-                                if (UIMisc.IconButton(FontAwesomeIcon.ClipboardList, $"{mod.Info.ModuleType.FullName}_plans"))
+                                if (uiBuilder.IconButton(FontAwesomeIcon.ClipboardList, $"{mod.Info.ModuleType.FullName}_plans"))
                                     ImGui.OpenPopup($"{mod.Info.ModuleType.FullName}_popup");
                             ImGui.SameLine();
-                            UIMisc.HelpMarker(() => ModuleHelpText(mod));
+                            uiBuilder.HelpMarker(() => ModuleHelpText(mod));
                             ImGui.SameLine();
                             ImGui.AlignTextToFramePadding();
                             using (ImRaii.PushColor(ImGuiCol.Text, isEnabled ? statusColor : ImGui.GetColorU32(ImGuiCol.TextDisabled)))
@@ -499,7 +503,7 @@ public sealed class ModuleViewer : IDisposable
             {
                 if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
                 {
-                    UIPlanDatabaseEditor.StartPlanEditor(colors, _planDB, plan);
+                    uIPlanDatabaseEditor.StartPlanEditor(colors, _planDB, plan);
                 }
             }
         }
@@ -521,7 +525,7 @@ public sealed class ModuleViewer : IDisposable
         });
 
         _planDB!.ModifyPlan(null, plan);
-        UIPlanDatabaseEditor.StartPlanEditor(colors, _planDB, plan);
+        uIPlanDatabaseEditor.StartPlanEditor(colors, _planDB, plan);
     }
 
     static readonly Class[] supportedClasses = [

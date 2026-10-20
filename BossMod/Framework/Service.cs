@@ -1,6 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.ManagedFontAtlas;
+﻿using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -52,9 +50,6 @@ public sealed class Service
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;
-    public static ImFontPtr IconFont = ImFontPtr.Null;
-    public static ImFontPtr MonoFont = ImFontPtr.Null;
-    public static IFontAtlas FontAtlas = null!;
     public static ConfigRoot Config = null!;
 #pragma warning restore CA2211
 

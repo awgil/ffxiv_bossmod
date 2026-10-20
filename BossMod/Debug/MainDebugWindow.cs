@@ -2,6 +2,7 @@
 using BossMod.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -11,9 +12,9 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, HookProvider hook, ICamera camera) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, IUiBuilder uiBuilder, HookProvider hook, ICamera camera) : WindowBase("Boss mod debug UI", new(300, 200)), IDisposable
 {
-    private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud, camera);
+    private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, uiBuilder, dalamud, camera);
     private readonly DebugObjects _debugObjects = new(camera);
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws, hook);

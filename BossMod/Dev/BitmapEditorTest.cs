@@ -1,11 +1,12 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using System.IO;
 
 namespace BossMod.Dev;
 
 class BitmapEditorTest : TestWindow
 {
-    class Editor(Bitmap initial) : UIBitmapEditor(initial)
+    class Editor(Bitmap initial, IUiBuilder uiBuilder) : UIBitmapEditor(initial, uiBuilder)
     {
         protected override void DrawSidebar()
         {
@@ -56,13 +57,13 @@ class BitmapEditorTest : TestWindow
 
     private readonly Editor _editor;
 
-    public BitmapEditorTest() : base("Bitmap editor test", new(1500, 1500), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+    public BitmapEditorTest(IUiBuilder uiBuilder) : base("Bitmap editor test", new(1500, 1500), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         var init = new Bitmap(16, 16, new(0), Color.FromComponents(255, 127, 0));
         for (var y = 0; y < init.Height; ++y)
             for (var x = 0; x < init.Width; ++x)
                 init[x, y] = (x >> 1) == 1 || (y >> 1) == 1;
-        _editor = new(init);
+        _editor = new(init, uiBuilder);
     }
 
     public override void Draw()

@@ -1,10 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace BossMod.Dev;
 
-class MiniArenaTest(ColorConfig colors) : TestWindow("Arena test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+class MiniArenaTest(ColorConfig colors, IUiBuilder uiBuilder) : TestWindow("Arena test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
 {
-    private readonly MiniArena _arena = new(new(), new(100, 100), new ArenaBoundsSquare(20), colors);
+    private readonly MiniArena _arena = new(new(), new(100, 100), new ArenaBoundsSquare(20), colors, uiBuilder);
     private bool _arenaIsCircle;
     private float _azimuth = -72;
     private float _altitude = 90;

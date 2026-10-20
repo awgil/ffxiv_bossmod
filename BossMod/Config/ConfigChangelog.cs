@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.Reflection;
@@ -94,13 +95,13 @@ class AIMigrationNotice2 : ChangelogNotice
     }
 }
 
-class SmartRotationNotice : ChangelogNotice
+class SmartRotationNotice(IUiBuilder uiBuilder) : ChangelogNotice
 {
     public override Version Since => new(7, 5, 0, 22);
 
     public override void Draw()
     {
-        using (ImRaii.PushFont(Service.MonoFont))
+        using (ImRaii.PushFont(uiBuilder.FontMono))
             ImGui.TextUnformatted("Smart character orientation");
         ImGui.SameLine();
         ImGui.TextUnformatted("has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.");
@@ -139,7 +140,7 @@ class ArenaScaleNotice(BossModuleConfig bossModuleConfig) : ChangelogNotice
     }
 }
 
-class MacroNotice : ChangelogNotice
+class MacroNotice(IUiBuilder uiBuilder) : ChangelogNotice
 {
     public override Version Since => new(7, 5, 1, 28);
 
@@ -147,7 +148,7 @@ class MacroNotice : ChangelogNotice
     {
         ImGui.Text("You can now use");
         ImGui.SameLine();
-        using (ImRaii.PushFont(Service.MonoFont))
+        using (ImRaii.PushFont(uiBuilder.FontMono))
             ImGui.Text("/vbm macro");
         ImGui.SameLine();
         ImGui.Text("in your macros to enable custom queueing for the duration of the macro.");
@@ -180,6 +181,7 @@ public class ConfigChangelogWindow : WindowBase
     private readonly List<VersionedField> Fields = [];
     private readonly List<ChangelogNotice> Notices = [];
     private readonly ConfigRoot configRoot;
+    private readonly IUiBuilder uiBuilder;
     private readonly List<ChangelogNotice> allNotices;
 
     private int StuffCount => Fields.Count + Notices.Count;
@@ -187,9 +189,10 @@ public class ConfigChangelogWindow : WindowBase
     string _versionText = "";
     string _versionErr = "";
 
-    public ConfigChangelogWindow(ConfigRoot configRoot, IEnumerable<ChangelogNotice> notices) : base("VBM Changelog", new(400, 300))
+    public ConfigChangelogWindow(ConfigRoot configRoot, IUiBuilder uiBuilder, IEnumerable<ChangelogNotice> notices) : base("VBM Changelog", new(400, 300))
     {
         this.configRoot = configRoot;
+        this.uiBuilder = uiBuilder;
         allNotices = [.. notices];
         PreviousVersion = configRoot.PreviousAssemblyVersion;
         IsOpen = StuffCount > 0;
@@ -254,7 +257,7 @@ public class ConfigChangelogWindow : WindowBase
                 ImGui.AlignTextToFramePadding();
                 ImGui.Bullet();
                 if (!string.IsNullOrEmpty(disp?.Tooltip))
-                    UIMisc.HelpMarker(disp.Tooltip);
+                    uiBuilder.HelpMarker(disp.Tooltip);
                 ImGui.SameLine();
                 ImGui.TextUnformatted(disp?.Label ?? "unknown");
                 ImGui.SameLine();

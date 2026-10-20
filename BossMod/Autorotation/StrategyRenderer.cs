@@ -1,15 +1,16 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Autorotation;
 
-public class TargetingRenderer : TrackRenderer
+public class TargetingRenderer(IUiBuilder uiBuilder) : TrackRenderer
 {
     public override void DrawLabel(StrategyContext context, StrategyConfig config)
     {
         ImGui.Text("Targeting");
         ImGui.SameLine();
-        UIMisc.HelpMarker("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting.");
+        uiBuilder.HelpMarker("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting.");
     }
 
     public override bool DrawValue(StrategyContext context, StrategyConfigTrack config, ref StrategyValueTrack value)

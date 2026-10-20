@@ -47,31 +47,6 @@ public static class UIMisc
         }
     }
 
-    public static void Banner(FontAwesomeIcon icon, string text, uint color)
-    {
-        var pad = 4 * ImGuiHelpers.GlobalScale;
-        var start = ImGui.GetCursorScreenPos();
-        var right = start.X + ImGui.GetContentRegionAvail().X;
-        var dl = ImGui.GetWindowDrawList();
-        dl.ChannelsSplit(2);
-        dl.ChannelsSetCurrent(1);
-        ImGui.SetCursorScreenPos(start + new Vector2(pad, pad));
-        ImGui.BeginGroup();
-        using (ImRaii.PushColor(ImGuiCol.Text, color))
-            IconText(icon);
-        ImGui.SameLine();
-        using (ImRaii.TextWrapPos(right - ImGui.GetWindowPos().X - pad))
-            ImGui.TextUnformatted(text);
-        ImGui.EndGroup();
-        var max = new Vector2(right, ImGui.GetItemRectMax().Y + pad);
-        dl.ChannelsSetCurrent(0);
-        dl.AddRectFilled(start, max, (color & 0x00ffffff) | 0x30000000, pad);
-        dl.AddRect(start, max, (color & 0x00ffffff) | 0x90000000, pad);
-        dl.ChannelsMerge();
-        ImGui.SetCursorScreenPos(new(start.X, max.Y + ImGui.GetStyle().ItemSpacing.Y));
-        ImGui.Dummy(default);
-    }
-
     public static bool ToggleButton(string label, bool active, uint activeColor = ColorActive)
     {
         using var c1 = ImRaii.PushColor(ImGuiCol.Button, activeColor, active);
@@ -152,72 +127,6 @@ public static class UIMisc
         ImGui.TextUnformatted(text);
     }
 
-    public static bool IconButton(FontAwesomeIcon icon, string id, Vector2 size = default) => IconButtonRaw($"{icon.ToIconString()}##{id}", size);
-    public static bool IconButton(FontAwesomeIcon icon, Vector2 size = default) => IconButtonRaw(icon.ToIconString(), size);
-
-    static bool IconButtonRaw(string text, Vector2 size = default)
-    {
-        using (ImRaii.PushFont(Service.IconFont))
-            return ImGui.Button(text, size);
-    }
-
-    public static bool IconButtonWithText(FontAwesomeIcon icon, string text)
-    {
-        bool button;
-
-        Vector2 iconSize;
-        using (ImRaii.PushFont(Service.IconFont))
-            iconSize = ImGui.CalcTextSize(icon.ToIconString());
-
-        var textStr = text;
-        if (textStr.Contains('#', StringComparison.Ordinal))
-            textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
-
-        var framePadding = ImGui.GetStyle().FramePadding;
-        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
-
-        var cursor = ImGui.GetCursorScreenPos();
-
-        using (ImRaii.PushId(text))
-        {
-            var textSize = ImGui.CalcTextSize(textStr);
-            var width = iconSize.X + textSize.X + framePadding.X * 2 + iconPadding;
-            var height = ImGui.GetFrameHeight();
-
-            button = ImGui.Button(string.Empty, new Vector2(width, height));
-        }
-
-        var iconPos = cursor + framePadding;
-        var textPos = new Vector2(iconPos.X + iconSize.X + iconPadding, cursor.Y + framePadding.Y);
-
-        var dl = ImGui.GetWindowDrawList();
-
-        using (ImRaii.PushFont(Service.IconFont))
-            dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
-
-        dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
-
-        return button;
-    }
-
-    public static void IconText(FontAwesomeIcon icon)
-    {
-        using var scope = ImRaii.PushFont(Service.IconFont);
-        ImGui.TextUnformatted(icon.ToIconString());
-    }
-
-    public static void HelpMarker(Func<string> helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle)
-    {
-        IconText(icon);
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-        {
-            using var tooltip = ImRaii.Tooltip();
-            using var wrap = ImRaii.TextWrapPos(ImGui.GetFontSize() * 35f);
-            ImGui.TextUnformatted(helpText());
-        }
-    }
-    public static void HelpMarker(string helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle) => HelpMarker(() => helpText, icon);
-
     /// <summary>
     /// Draw rotated text at the current cursor position. The origin of rotation is the point on the left edge of the text's bounding box and at its vertical midpoint.
     /// </summary>
@@ -243,5 +152,103 @@ public static class UIMisc
     static Vector2 Rotate(Vector2 vec, float rad)
     {
         return new WDir(vec).Rotate(new Angle(rad)).ToVec2();
+    }
+}
+
+public static class UiBuilderExtensions
+{
+    extension(IUiBuilder uiBuilder)
+    {
+        public void Banner(FontAwesomeIcon icon, string text, uint color)
+        {
+            var pad = 4 * ImGuiHelpers.GlobalScale;
+            var start = ImGui.GetCursorScreenPos();
+            var right = start.X + ImGui.GetContentRegionAvail().X;
+            var dl = ImGui.GetWindowDrawList();
+            dl.ChannelsSplit(2);
+            dl.ChannelsSetCurrent(1);
+            ImGui.SetCursorScreenPos(start + new Vector2(pad, pad));
+            ImGui.BeginGroup();
+            using (ImRaii.PushColor(ImGuiCol.Text, color))
+                uiBuilder.IconText(icon);
+            ImGui.SameLine();
+            using (ImRaii.TextWrapPos(right - ImGui.GetWindowPos().X - pad))
+                ImGui.TextUnformatted(text);
+            ImGui.EndGroup();
+            var max = new Vector2(right, ImGui.GetItemRectMax().Y + pad);
+            dl.ChannelsSetCurrent(0);
+            dl.AddRectFilled(start, max, (color & 0x00ffffff) | 0x30000000, pad);
+            dl.AddRect(start, max, (color & 0x00ffffff) | 0x90000000, pad);
+            dl.ChannelsMerge();
+            ImGui.SetCursorScreenPos(new(start.X, max.Y + ImGui.GetStyle().ItemSpacing.Y));
+            ImGui.Dummy(default);
+        }
+
+        public bool IconButton(FontAwesomeIcon icon, string id, Vector2 size = default) => uiBuilder.IconButtonRaw($"{icon.ToIconString()}##{id}", size);
+        public bool IconButton(FontAwesomeIcon icon, Vector2 size = default) => uiBuilder.IconButtonRaw(icon.ToIconString(), size);
+
+        public bool IconButtonRaw(string text, Vector2 size = default)
+        {
+            using (ImRaii.PushFont(uiBuilder.FontIcon))
+                return ImGui.Button(text, size);
+        }
+
+        public bool IconButtonWithText(FontAwesomeIcon icon, string text)
+        {
+            bool button;
+
+            Vector2 iconSize;
+            using (ImRaii.PushFont(uiBuilder.FontIcon))
+                iconSize = ImGui.CalcTextSize(icon.ToIconString());
+
+            var textStr = text;
+            if (textStr.Contains('#', StringComparison.Ordinal))
+                textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
+
+            var framePadding = ImGui.GetStyle().FramePadding;
+            var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+
+            var cursor = ImGui.GetCursorScreenPos();
+
+            using (ImRaii.PushId(text))
+            {
+                var textSize = ImGui.CalcTextSize(textStr);
+                var width = iconSize.X + textSize.X + framePadding.X * 2 + iconPadding;
+                var height = ImGui.GetFrameHeight();
+
+                button = ImGui.Button(string.Empty, new Vector2(width, height));
+            }
+
+            var iconPos = cursor + framePadding;
+            var textPos = new Vector2(iconPos.X + iconSize.X + iconPadding, cursor.Y + framePadding.Y);
+
+            var dl = ImGui.GetWindowDrawList();
+
+            using (ImRaii.PushFont(uiBuilder.FontIcon))
+                dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
+
+            dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
+
+            return button;
+        }
+
+        public void IconText(FontAwesomeIcon icon)
+        {
+            using (ImRaii.PushFont(uiBuilder.FontIcon))
+                ImGui.TextUnformatted(icon.ToIconString());
+        }
+
+        public void HelpMarker(Func<string> helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle)
+        {
+            uiBuilder.IconText(icon);
+            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            {
+                using var tooltip = ImRaii.Tooltip();
+                using var wrap = ImRaii.TextWrapPos(ImGui.GetFontSize() * 35f);
+                ImGui.TextUnformatted(helpText());
+            }
+        }
+
+        public void HelpMarker(string helpText, FontAwesomeIcon icon = FontAwesomeIcon.InfoCircle) => uiBuilder.HelpMarker(() => helpText, icon);
     }
 }

@@ -36,6 +36,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
     private bool _showDebug = true;
     private readonly EventList _events;
     private readonly AnalysisManager _analysis;
+    private readonly IUiBuilder _uiBuilder;
     private BossModule.DebugOptions _moduleDebug = new();
     private SimpleDetachedWindow? _modulePopout;
 
@@ -54,6 +55,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
     {
         Size = (ImGui.GetMainViewport().Size - new Vector2(150, 150)) / ImGuiHelpers.GlobalScale;
         _parentScope = scope;
+        _uiBuilder = _parentScope.Resolve<IUiBuilder>();
         this.mediator = mediator;
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
@@ -95,7 +97,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
             {
                 if (_modulePopout == null)
                 {
-                    _modulePopout = mediator.CreateWindow(new SimpleDetachedWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(mediator, Rmm), new(600, 400), desc.Flags));
+                    _modulePopout = mediator.CreateWindow(new SimpleDetachedWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(Rmm), new(600, 400), desc.Flags));
                     _modulePopout.OpenAndBringToFront();
                 }
             }
@@ -239,7 +241,7 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
             var cursor = ImGui.GetCursorPos();
             if (inline)
                 ImGui.SameLine();
-            GaugeVisualizer.Instance().Draw(player, Bossmods.WorldState.Client);
+            _parentScope.Resolve<GaugeVisualizer>().Draw(player, Bossmods.WorldState.Client);
             if (inline)
                 ImGui.SetCursorPos(cursor);
             return true;
@@ -252,35 +254,35 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
     {
         ImGui.TextUnformatted($"{_curTime:O}");
         ImGui.SameLine();
-        if (UIMisc.IconButtonWithText(FontAwesomeIcon.StepBackward, "20s"))
+        if (_uiBuilder.IconButtonWithText(FontAwesomeIcon.StepBackward, "20s"))
             Rewind(20);
         ImGui.SameLine();
-        if (UIMisc.IconButtonWithText(FontAwesomeIcon.StepBackward, "5s"))
+        if (_uiBuilder.IconButtonWithText(FontAwesomeIcon.StepBackward, "5s"))
             Rewind(5);
         ImGui.SameLine();
-        if (UIMisc.IconButtonWithText(FontAwesomeIcon.StepBackward, "1s"))
+        if (_uiBuilder.IconButtonWithText(FontAwesomeIcon.StepBackward, "1s"))
             Rewind(1);
         ImGui.SameLine();
-        if (UIMisc.IconButton(FontAwesomeIcon.StepBackward))
+        if (_uiBuilder.IconButton(FontAwesomeIcon.StepBackward))
             RewindPrevFrame();
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Back 1 frame");
         ImGui.SameLine();
-        if (UIMisc.IconButton(_playSpeed == 0 ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause))
+        if (_uiBuilder.IconButton(_playSpeed == 0 ? FontAwesomeIcon.Play : FontAwesomeIcon.Pause))
             _playSpeed = _playSpeed == 0 ? 1 : 0;
         ImGui.SameLine();
-        if (UIMisc.IconButton(FontAwesomeIcon.StepForward))
+        if (_uiBuilder.IconButton(FontAwesomeIcon.StepForward))
             AdvanceNextFrame();
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Forward 1 frame");
         ImGui.SameLine();
-        if (UIMisc.IconButtonWithText(FontAwesomeIcon.Play, "0.2x"))
+        if (_uiBuilder.IconButtonWithText(FontAwesomeIcon.Play, "0.2x"))
             _playSpeed = 0.2f;
         ImGui.SameLine();
-        if (UIMisc.IconButtonWithText(FontAwesomeIcon.Play, "1x"))
+        if (_uiBuilder.IconButtonWithText(FontAwesomeIcon.Play, "1x"))
             _playSpeed = 1;
         ImGui.SameLine();
-        if (UIMisc.IconButtonWithText(FontAwesomeIcon.Play, "10x"))
+        if (_uiBuilder.IconButtonWithText(FontAwesomeIcon.Play, "10x"))
             _playSpeed = 10;
 
         ImGui.SameLine();

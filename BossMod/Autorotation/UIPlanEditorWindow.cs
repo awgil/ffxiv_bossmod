@@ -1,9 +1,9 @@
-﻿using Dalamud.Bindings.ImGui;
-using System.Text.Json;
+﻿using Autofac;
+using Dalamud.Bindings.ImGui;
 
 namespace BossMod.Autorotation;
 
-public class UIPlanEditorWindow : DetachedWindow
+public sealed class UIPlanEditorWindow : DetachedWindow, IDisposable
 {
     private readonly PlanDatabase _db;
     private Plan _original;
@@ -12,7 +12,11 @@ public class UIPlanEditorWindow : DetachedWindow
     private readonly CooldownPlannerColumns _planner;
     private int _selectedPhase;
 
-    public UIPlanEditorWindow(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, PlanDatabase db, ColorConfig colors, Plan plan, StateMachine sm) : base($"Cooldown planner: {plan.Guid}", new(1200, 900))
+    private readonly ILifetimeScope _scope;
+
+    public delegate UIPlanEditorWindow Factory(ColorConfig colors, Plan plan, StateMachine sm);
+
+    public UIPlanEditorWindow(PlanDatabase db, ColorConfig colors, Plan plan, StateMachine sm, ILifetimeScope parentScope) : base($"Cooldown planner: {plan.Guid}", new(1200, 900))
     {
         _db = db;
         _original = plan;
@@ -20,8 +24,16 @@ public class UIPlanEditorWindow : DetachedWindow
 
         var tree = new StateMachineTree(sm);
         var phaseBranches = Enumerable.Repeat(0, tree.Phases.Count).ToList();
+
+        _scope = parentScope.BeginLifetimeScope(ctx =>
+        {
+            ctx.Register(_ => _timeline).SingleInstance();
+            ctx.Register(_ => tree).SingleInstance();
+            ctx.Register(_ => phaseBranches).SingleInstance();
+        });
+
         _colStates = _timeline.Columns.Add(new ColumnStateMachineBranch(_timeline, tree, phaseBranches));
-        _planner = _timeline.Columns.Add(new CooldownPlannerColumns(bossModuleRegistry, serOptions, plan.MakeClone(), _timeline, tree, phaseBranches, true, [], default));
+        _planner = _timeline.Columns.Add(_scope.Resolve<CooldownPlannerColumns.Factory>().Invoke(plan.MakeClone(), true, [], default));
 
         _timeline.MinTime = -30;
         _timeline.MaxTime = tree.TotalMaxTime;
@@ -57,5 +69,10 @@ public class UIPlanEditorWindow : DetachedWindow
     {
         _db.ModifyPlan(_original, null);
         IsOpen = false;
+    }
+
+    void IDisposable.Dispose()
+    {
+        _scope.Dispose();
     }
 }

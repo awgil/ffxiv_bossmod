@@ -177,9 +177,14 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterType<ReplayVisualization.ColumnPlayerDetails>();
         containerBuilder.RegisterType<ReplayVisualization.ColumnPlayerActions>();
         containerBuilder.RegisterType<ColumnStateMachineBranch>();
+        containerBuilder.RegisterType<CooldownPlannerColumns>();
+
+        containerBuilder.RegisterSingletonSelf<UIPlanDatabaseEditor>();
+        containerBuilder.RegisterSingletonSelf<UIStrategyValue>();
 
         // plugin services
         containerBuilder.RegisterSingletonSelf<HookProvider>();
+        containerBuilder.RegisterSingletonSelf<ReplayVisualization.GaugeVisualizer>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<CommandService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<DtrService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<IpcService>();

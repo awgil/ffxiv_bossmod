@@ -3,6 +3,7 @@ using Autofac.Features.AttributeFilters;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ILifetimeScope container, MediatorService mediator, IFileDialogManager dialogManager) : IHostedService, IDisposable
+public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir, ILifetimeScope container, IUiBuilder uiBuilder, MediatorService mediator, IFileDialogManager dialogManager) : IHostedService, IDisposable
 {
     private string fileDialogStartPath = logDir.FullName;
 
@@ -260,7 +261,7 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
     {
         ImGui.InputText("###path", ref _path, 500);
         ImGui.SameLine();
-        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.File))
+        if (uiBuilder.IconButton(FontAwesomeIcon.File))
         {
             dialogManager.OpenFileDialog("Select file", ".log", (c, p) =>
             {
@@ -274,7 +275,7 @@ public sealed class ReplayManager([KeyFilter(Keys.ReplayDirectory)] DirectoryInf
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Open file");
         ImGui.SameLine();
-        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
+        if (uiBuilder.IconButton(FontAwesomeIcon.FolderOpen))
         {
             dialogManager.OpenFolderDialog("Select directory", (c, p) =>
             {

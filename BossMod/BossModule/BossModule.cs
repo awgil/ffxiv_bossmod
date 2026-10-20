@@ -1,5 +1,6 @@
 ﻿using BossMod.Pathfinding;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 
@@ -11,6 +12,7 @@ public record ModuleInit(
     BossModuleRegistry.Info? Info,
     ConfigRoot ConfigRoot,
     ITextureProvider Texture,
+    IUiBuilder UiBuilder,
     ActionDefinitions ActionDefinitions
 )
 {
@@ -118,7 +120,7 @@ public abstract class BossModule : IDisposable
         Info = init.Info;
         ConfigRoot = init.ConfigRoot;
         ActionDefinitions = init.ActionDefinitions;
-        Arena = new(WindowConfig, center, bounds, ColorConfig);
+        Arena = new(WindowConfig, center, bounds, ColorConfig, init.UiBuilder);
         StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new([]);
 
         _subscriptions = new

@@ -1,46 +1,29 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 using Lumina.Data.Files;
 
 namespace BossMod.ReplayVisualization;
 
-internal class GaugeVisualizer
+#pragma warning disable CA2000 // IDalamudTextureWrap docs specify that Dispose does nothing
+public sealed class GaugeVisualizer(IUiBuilder uiBuilder, ITextureProvider texture) : IDisposable
 {
-    private static GaugeVisualizer? _instance;
+    readonly IFontHandle GaugeFont = uiBuilder.FontAtlas.NewGameFontHandle(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
 
-    public static GaugeVisualizer Instance()
-    {
-        _instance ??= new();
-        return _instance;
-    }
+    readonly Dictionary<string, IDalamudTextureWrap> _tex = [];
 
-    public static void Dispose()
-    {
-        _instance?.DisposeInstance();
-        _instance = null;
-    }
-
-    void DisposeInstance()
+    void IDisposable.Dispose()
     {
         foreach (var t in _tex.Values)
             t.Dispose();
 
-        _tex.Clear();
         GaugeFont.Dispose();
-    }
-
-    readonly IFontHandle GaugeFont;
-
-    readonly Dictionary<string, IDalamudTextureWrap> _tex = [];
-
-    private GaugeVisualizer()
-    {
-        GaugeFont = Service.FontAtlas.NewGameFontHandle(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
     }
 
     public void Draw(Actor player, ClientState clientState)
@@ -72,10 +55,10 @@ internal class GaugeVisualizer
         if (Service.LuminaGameData.GetFile<TexFile>(path) is { } tex)
         {
             var im = ImageData.FromTexFile(tex);
-            return Service.Texture.CreateFromRaw(im.ImageSpecification, im.Data);
+            return texture.CreateFromRaw(im.ImageSpecification, im.Data);
         }
         else
-            return Service.Texture.CreateEmpty(RawImageSpecification.Rgba32(1, 1), true, true);
+            return texture.CreateEmpty(RawImageSpecification.Rgba32(1, 1), true, true);
     });
 
     private IDalamudTextureWrap Tint(string key, string path, int[] color) => Generate(key, () =>
@@ -98,10 +81,10 @@ internal class GaugeVisualizer
 
             id = id.Tint(tint, bias);
 
-            return Service.Texture.CreateFromRaw(id.ImageSpecification, id.Data);
+            return texture.CreateFromRaw(id.ImageSpecification, id.Data);
         }
         else
-            return Service.Texture.CreateEmpty(RawImageSpecification.Rgba32(1, 1), true, true);
+            return texture.CreateEmpty(RawImageSpecification.Rgba32(1, 1), true, true);
     });
 
     static Vector2 Scale(float x, float y) => new(x * ImGuiHelpers.GlobalScale, y * ImGuiHelpers.GlobalScale);
@@ -168,7 +151,7 @@ internal class GaugeVisualizer
         else
             DrawBar(origin + Scale(28, 4), "oath_normal", gauge.OathGauge, 100, [-50, 50, 120], true);
 
-        if (stance && Service.Texture.GetFromGame("ui/uld/JobHudPLD_hr1.tex").TryGetWrap(out var wrap, out _))
+        if (stance && texture.GetFromGame("ui/uld/JobHudPLD_hr1.tex").TryGetWrap(out var wrap, out _))
         {
             ImGui.SetCursorPos(origin);
             ImGui.Image(wrap.Handle, Scale(32, 32), new Vector2(0.5265f, 0.8333f), new Vector2(0.6018f, 0.9143f));
@@ -191,7 +174,7 @@ internal class GaugeVisualizer
         if (stance)
         {
             ImGui.SetCursorPos(origin + Scale(0, 36));
-            if (Service.Texture.GetFromGame("ui/uld/JobHudDRK0_hr1.tex").TryGetWrap(out var wrap, out _))
+            if (texture.GetFromGame("ui/uld/JobHudDRK0_hr1.tex").TryGetWrap(out var wrap, out _))
                 ImGui.Image(wrap.Handle, Scale(28, 28), new Vector2(0.8526f, 0), new Vector2(0.9263f, 0.0946f));
         }
     }
@@ -211,7 +194,7 @@ internal class GaugeVisualizer
         var gauge = clientState.GetGauge<MonkGauge>();
         var origin = ImGui.GetCursorPos();
 
-        if (!Service.Texture.GetFromGame("ui/uld/JobHudMNK0_hr1.tex").TryGetWrap(out var wrap, out _))
+        if (!texture.GetFromGame("ui/uld/JobHudMNK0_hr1.tex").TryGetWrap(out var wrap, out _))
             return;
 
         // beast chakra
@@ -296,7 +279,7 @@ internal class GaugeVisualizer
         var gauge = clientState.GetGauge<BlackMageGauge>();
         var origin = ImGui.GetCursorPos() + Scale(0, 16);
 
-        if (!Service.Texture.GetFromGame("ui/uld/JobHudBLM0_hr1.tex").TryGetWrap(out var wrap, out _))
+        if (!texture.GetFromGame("ui/uld/JobHudBLM0_hr1.tex").TryGetWrap(out var wrap, out _))
             return;
 
         if (gauge.EnochianActive)

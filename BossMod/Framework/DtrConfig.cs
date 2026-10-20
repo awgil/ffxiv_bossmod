@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
@@ -30,14 +31,14 @@ public sealed class DtrConfig : ConfigNode
 
     public List<string> ShowPresets = ["VBM Default", "VBM AI"];
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(UITree tree, WorldState ws, IUiBuilder uiBuilder, RotationDatabase? db)
     {
         if (db == null)
             return;
 
         var modified = false;
 
-        ConfigUI.DrawHelp("A separate info bar entry will be created for each preset you select here. The entry can be clicked to toggle the preset on and off.");
+        ConfigUI.DrawHelp(uiBuilder, "A separate info bar entry will be created for each preset you select here. The entry can be clicked to toggle the preset on and off.");
 
         ImGui.SetNextItemWidth(300 * ImGuiHelpers.GlobalScale);
 
@@ -56,7 +57,7 @@ public sealed class DtrConfig : ConfigNode
             }
         }
 
-        ConfigUI.DrawHelp("");
+        ConfigUI.DrawHelp(uiBuilder, "");
 
         foreach (var p in ShowPresets)
         {
@@ -70,7 +71,7 @@ public sealed class DtrConfig : ConfigNode
 
         using (ImRaii.Disabled(ShowPresets.Count == 0))
         {
-            if (UIMisc.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.SquareXmark, "Remove all"))
+            if (uiBuilder.IconButtonWithText(FontAwesomeIcon.SquareXmark, "Remove all"))
                 remove.AddRange(ShowPresets);
         }
 

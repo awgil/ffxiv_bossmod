@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace BossMod.Dev;
 
@@ -17,11 +18,13 @@ class ComplexBoundsTest : TestWindow
     private bool _evenOdd;
     private bool _fillBG;
     private readonly ColorConfig colors;
+    private readonly IUiBuilder uiBuilder;
 
-    public ComplexBoundsTest(ColorConfig colors) : base("Complex bounds test", new(800, 800), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+    public ComplexBoundsTest(ColorConfig colors, IUiBuilder uiBuilder) : base("Complex bounds test", new(800, 800), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        _arena = RebuildArena();
         this.colors = colors;
+        this.uiBuilder = uiBuilder;
+        _arena = RebuildArena();
     }
 
     public override void Draw()
@@ -68,7 +71,7 @@ class ComplexBoundsTest : TestWindow
         AddPlatform(shape, _platformCenterOffset * 120.Degrees().ToDirection());
         AddPlatform(shape, _platformCenterOffset * 240.Degrees().ToDirection());
         var bounds = new PolygonClipper().Simplify(shape, _evenOdd ? Clipper2Lib.FillRule.EvenOdd : Clipper2Lib.FillRule.NonZero);
-        return new(new(), new(100, 100), new ArenaBoundsCustom(40, bounds), colors);
+        return new(new(), new(100, 100), new ArenaBoundsCustom(40, bounds), colors, uiBuilder);
     }
 
     private void AddPlatform(PolygonClipper.Operand poly, WDir centerOffset)

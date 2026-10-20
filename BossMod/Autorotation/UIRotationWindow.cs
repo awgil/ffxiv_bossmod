@@ -13,21 +13,25 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
     private readonly RotationModuleManager _mgr;
     private readonly IAmex _amex;
     private readonly ICamera camera;
+    private readonly IUiBuilder uiBuilder;
     private readonly AutorotationConfig _config;
     private readonly DtrConfig dtrConfig;
     private readonly ColorConfig colors;
     private readonly MediatorService mediator;
+    private readonly UIPlanDatabaseEditor uIPlanDatabaseEditor;
     private readonly EventSubscriptions _subscriptions;
 
-    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, ICamera camera, AutorotationConfig config, DtrConfig dtrConfig, ColorConfig colors, MediatorService mediator) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
+    public UIRotationWindow(RotationModuleManager mgr, IAmex amex, ICamera camera, IUiBuilder uiBuilder, AutorotationConfig config, DtrConfig dtrConfig, ColorConfig colors, MediatorService mediator, UIPlanDatabaseEditor uIPlanDatabaseEditor) : base("Autorotation", new(400, 400), ImGuiWindowFlags.NoFocusOnAppearing)
     {
         _mgr = mgr;
         _amex = amex;
         this.camera = camera;
+        this.uiBuilder = uiBuilder;
         _config = config;
         this.dtrConfig = dtrConfig;
         this.colors = colors;
         this.mediator = mediator;
+        this.uIPlanDatabaseEditor = uIPlanDatabaseEditor;
         _subscriptions = new
         (
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
@@ -66,11 +70,11 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
         DrawRotationSelector(_mgr, dtrConfig, mediator, true);
 
         if (_mgr.IsForceDisabled)
-            UIMisc.Banner(FontAwesomeIcon.Ban, "Autorotation is disabled. Click Disabled again or pick a preset to re-enable it.", UIMisc.ColorDanger);
+            uiBuilder.Banner(FontAwesomeIcon.Ban, "Autorotation is disabled. Click Disabled again or pick a preset to re-enable it.", UIMisc.ColorDanger);
 
         var dups = _mgr.DuplicateModules.ToList();
         if (dups.Count > 0)
-            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, $"Multiple copies of the same module are active ({string.Join(", ", dups.Select(d => d.Name))}). Only one of each will execute.", UIMisc.ColorWarning);
+            uiBuilder.Banner(FontAwesomeIcon.ExclamationTriangle, $"Multiple copies of the same module are active ({string.Join(", ", dups.Select(d => d.Name))}). Only one of each will execute.", UIMisc.ColorWarning);
 
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)
@@ -111,11 +115,11 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
                 plans.SelectedIndex = plans.Plans.Count;
                 _mgr.Database.Plans.ModifyPlan(null, plan);
             }
-            UIPlanDatabaseEditor.StartPlanEditor(colors, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
+            uIPlanDatabaseEditor.StartPlanEditor(colors, _mgr.Database.Plans, plans.Plans[plans.SelectedIndex], activeModule.StateMachine);
         }
 
         if (newSel >= 0 && _mgr.Presets.Count > 0)
-            UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, "A preset is active, which fully overrides the CD plan.", UIMisc.ColorWarning);
+            uiBuilder.Banner(FontAwesomeIcon.ExclamationTriangle, "A preset is active, which fully overrides the CD plan.", UIMisc.ColorWarning);
     }
 
     private void DrawUpcoming(BossModule module)
@@ -172,7 +176,7 @@ public sealed class UIRotationWindow : WindowBase, IDisposable
         {
             ImGui.SameLine();
             using (ImRaii.PushColor(ImGuiCol.Text, UIMisc.ColorGood))
-                UIMisc.IconText(FontAwesomeIcon.BoltLightning);
+                uiBuilder.IconText(FontAwesomeIcon.BoltLightning);
             if (ImGui.IsItemHovered())
             {
                 using var tooltip = ImRaii.Tooltip();

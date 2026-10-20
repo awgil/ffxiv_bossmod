@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
@@ -391,9 +390,9 @@ public abstract class QuestBattle : ZoneModule
 
     public override WindowDescription? GetWindowDescription() => _config.EnableQuestBattles ? new("VBM Quest Battle", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
 
-    public override void DrawWindow(MediatorService mediator, RotationModuleManager rmm)
+    public override void DrawWindow(RotationModuleManager rmm)
     {
-        Overlays.DrawPseudoTitlebar(mediator, "VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
+        Overlays.DrawPseudoTitlebar("VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
         {
             _config.EnableQuestBattles = false;
             _config.Modified.Fire();
@@ -414,7 +413,7 @@ public abstract class QuestBattle : ZoneModule
         if (ImGui.Button("Leave duty"))
             _abandonDuty?.Invoke(false);
         ImGui.SameLine();
-        UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
+        UiBuilder.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -672,7 +671,7 @@ public abstract class QuestBattle : ZoneModule
                 {
                     if (vec.SpecifiedInPath)
                     {
-                        UIMisc.IconText(FontAwesomeIcon.Star);
+                        UiBuilder.IconText(FontAwesomeIcon.Star);
                         ImGui.SameLine();
                     }
                     ImGui.TextUnformatted(Utils.Vec3String(vec.Position));

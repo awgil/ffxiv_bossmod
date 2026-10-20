@@ -1,6 +1,7 @@
 ﻿using BossMod.Autorotation;
 using BossMod.ReplayVisualization;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using System.Text.Json;
@@ -12,7 +13,10 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 {
     public bool Modified;
     private readonly BossModuleRegistry bossModuleRegistry;
+    private readonly RotationModuleRegistry rotationModuleRegistry;
     private readonly JsonSerializerOptions serOptions;
+    private readonly IUiBuilder uiBuilder;
+    private readonly UIStrategyValue uisv;
     public Plan Plan; // note: this is a copy of the plan stored in database
     private readonly StateMachineTree _tree;
     private readonly List<int> _phaseBranches;
@@ -26,11 +30,16 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
 
     public Class PlanClass => Plan.Class;
 
-    public CooldownPlannerColumns(BossModuleRegistry bossModuleRegistry, JsonSerializerOptions serOptions, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
+    public delegate CooldownPlannerColumns Factory(Plan plan, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart);
+
+    public CooldownPlannerColumns(BossModuleRegistry bossModuleRegistry, RotationModuleRegistry rotationModuleRegistry, JsonSerializerOptions serOptions, IUiBuilder uiBuilder, UIStrategyValue uisv, Plan plan, Timeline timeline, StateMachineTree tree, List<int> phaseBranches, bool syncTimings, List<Replay.Action> playerActions, DateTime encStart)
         : base(timeline)
     {
         this.bossModuleRegistry = bossModuleRegistry;
+        this.rotationModuleRegistry = rotationModuleRegistry;
         this.serOptions = serOptions;
+        this.uiBuilder = uiBuilder;
+        this.uisv = uisv;
         Plan = plan;
         _tree = tree;
         _phaseBranches = phaseBranches;
@@ -75,11 +84,11 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                         ImGui.Separator();
 
                     using (var disable = ImRaii.Disabled(i == 0 || Plan.Modules[i - 1].Definition.Order != m.Definition.Order))
-                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp, $"up{i}"))
+                        if (uiBuilder.IconButton(FontAwesomeIcon.ArrowUp, $"up{i}"))
                             post += SwapModulesAction(i, false);
                     ImGui.SameLine();
                     using (var disable = ImRaii.Disabled(i == Plan.Modules.Count - 1 || Plan.Modules[i + 1].Definition.Order != m.Definition.Order))
-                        if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown, $"down{i}"))
+                        if (uiBuilder.IconButton(FontAwesomeIcon.ArrowDown, $"down{i}"))
                             post += SwapModulesAction(i, true);
                     ImGui.SameLine();
                     var added = true;
@@ -98,8 +107,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                     }
                 }
                 ImGui.Separator();
-                /* FIXME
-                foreach (var m in RotationModuleRegistry.Modules.Values.Where(m => (m.Definition.RelatedBossModule == null || m.Definition.RelatedBossModule == Plan.Encounter) && m.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.ModuleType)))
+                foreach (var m in rotationModuleRegistry.Modules.Values.Where(m => (m.Definition.RelatedBossModule == null || m.Definition.RelatedBossModule == Plan.Encounter) && m.Definition.Classes[(int)Plan.Class] && !Plan.Modules.Any(x => x.Type == m.ModuleType)))
                 {
                     var added = false;
                     if (ImGui.Checkbox(m.Definition.DisplayName, ref added))
@@ -114,7 +122,6 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
                         }
                     }
                 }
-                */
                 post?.Invoke();
             }
         }
@@ -288,7 +295,7 @@ public class CooldownPlannerColumns : Timeline.ColumnGroup
             if (config.Options.Count(opt => Plan.Level >= opt.MinLevel && Plan.Level <= opt.MaxLevel) <= 1)
                 continue; // don't bother showing tracks that have no customization options
 
-            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo, (StrategyValueTrack)m.Defaults[i]), insertionPoint);
+            var col = AddBefore(new ColumnPlannerTrackStrategy(Timeline, _tree, _phaseBranches, config, Plan.Level, moduleInfo, (StrategyValueTrack)m.Defaults[i], uisv), insertionPoint);
             col.Width = config.UIPriority >= 0 || m.Tracks[i].Count > 0 ? _trackWidth : 0;
             col.NotifyModified = () => OnModifiedStrategy(m, i, col);
             foreach (var entry in m.Tracks[i])

@@ -2,12 +2,22 @@
 using BossMod.Interfaces;
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 
 namespace BossMod;
 
-public sealed record ZoneModuleInit(WorldState World, ConfigRoot ConfigRoot, IUnlockState UnlockState, ICamera Camera, ActionDefinitions ActionDefinitions)
+public sealed record ZoneModuleInit(
+    WorldState World,
+    ConfigRoot ConfigRoot,
+    IUnlockState UnlockState,
+    ICamera Camera,
+    ActionDefinitions ActionDefinitions,
+    IUiBuilder UiBuilder,
+    MediatorService Mediator,
+    Overlays Overlays
+)
 {
     public delegate ZoneModuleInit Factory(WorldState World);
 }
@@ -17,9 +27,12 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
     public record struct WindowDescription(string Name, ImGuiWindowFlags Flags = ImGuiWindowFlags.None);
 
     public readonly WorldState World = init.World;
-    public readonly ArenaColor ArenaColor = new(init.ConfigRoot.Get<ColorConfig>());
-    public readonly ICamera Camera = init.Camera;
-    public readonly ActionDefinitions ActionDefinitions = init.ActionDefinitions;
+    protected readonly ArenaColor ArenaColor = new(init.ConfigRoot.Get<ColorConfig>());
+    protected ICamera Camera => init.Camera;
+    protected ActionDefinitions ActionDefinitions => init.ActionDefinitions;
+    protected IUiBuilder UiBuilder => init.UiBuilder;
+    protected MediatorService Mediator => init.Mediator;
+    protected Overlays Overlays => init.Overlays;
 
     public void Dispose()
     {
@@ -37,7 +50,7 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
     public virtual void CalculateAIHints(int playerSlot, Actor player, AIHints hints) { } // note: this is called after framework automatically fills auto-detected hints
 
     public virtual WindowDescription? GetWindowDescription() => null;
-    public virtual void DrawWindow(MediatorService mediator, RotationModuleManager rmm) { }
+    public virtual void DrawWindow(RotationModuleManager rmm) { }
     public virtual void OnWindowClose() { }
 
     public void DrawGlobalHints()

@@ -4,7 +4,7 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfigTrack config, int level, BossModuleRegistry.Info? moduleInfo, StrategyValueTrack defaultOverride)
+public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree, List<int> phaseBranches, StrategyConfigTrack config, int level, BossModuleRegistry.Info? moduleInfo, StrategyValueTrack defaultOverride, UIStrategyValue uisv)
     : ColumnPlannerTrack(timeline, tree, phaseBranches, config.InternalName)
 {
     public StrategyValueTrack DefaultOverride { get; private set; } = defaultOverride;
@@ -132,5 +132,5 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
     }
 
     protected override List<string> DescribeElement(Element e) => UIStrategyValue.Preview(e.Value, config, moduleInfo);
-    protected override bool EditElement(Element e) => UIStrategyValue.DrawEditor(e.Value, config, moduleInfo, level) | EditElementWindow(e);
+    protected override bool EditElement(Element e) => uisv.DrawEditor(e.Value, config, moduleInfo, level) | EditElementWindow(e);
 }

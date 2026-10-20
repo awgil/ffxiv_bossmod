@@ -1,5 +1,6 @@
 ﻿using BossMod.Config;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
 using System.Text.Json;
@@ -8,7 +9,7 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions, AutorotationConfig cfg)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions, AutorotationConfig cfg, IUiBuilder uiBuilder)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -82,7 +83,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
 
     private void DrawPresetSelector()
     {
-        UIMisc.HelpMarker("""
+        uiBuilder.HelpMarker("""
             To start using autorotation, create a *preset*.
             Preset configures rotation *modules* and their *strategies*.
             Module is a piece of code that evaluates game state and fills prioritized list of candidate actions.

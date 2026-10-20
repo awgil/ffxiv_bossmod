@@ -1,8 +1,9 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace BossMod.Dev;
 
-class IntersectionTest(ColorConfig colors) : TestWindow("Intersection test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+class IntersectionTest(ColorConfig colors, IUiBuilder uiBuilder) : TestWindow("Intersection test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
 {
     private float _circleOffset = 5.5f;
     private float _circleDir;
@@ -12,7 +13,7 @@ class IntersectionTest(ColorConfig colors) : TestWindow("Intersection test", new
     private float _shapeDirDeg = 90;
     private float _coneInner;
     private bool _shapeIsRect;
-    private readonly MiniArena _arena = new(new(), default, new ArenaBoundsSquare(10), colors);
+    private readonly MiniArena _arena = new(new(), default, new ArenaBoundsSquare(10), colors, uiBuilder);
 
     public override void Draw()
     {
