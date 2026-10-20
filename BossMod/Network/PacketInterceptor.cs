@@ -1,6 +1,9 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Hosting;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod.Network;
 
@@ -27,7 +30,7 @@ unsafe struct SentIPCHeader
     [FieldOffset(0x08)] public ulong PayloadSize; // 0x10 (payload header) + actual data size
 }
 
-internal sealed class PacketInterceptor : IDisposable
+internal sealed unsafe class PacketInterceptor(ISigScanner scanner, IPluginLog logger, HookHelper hook) : IDisposable, IHostedService
 {
     public delegate void ServerIPCReceivedDelegate(DateTime sendTimestamp, uint sourceServerActor, uint targetServerActor, ushort opcode, uint epoch, Span<byte> payload);
     public event ServerIPCReceivedDelegate? ServerIPCReceived;
@@ -35,12 +38,11 @@ internal sealed class PacketInterceptor : IDisposable
     public delegate void ClientIPCSentDelegate(uint opcode, Span<byte> payload);
     public event ClientIPCSentDelegate? ClientIPCSent;
 
-    private unsafe delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
-    private readonly Hook<FetchReceivedPacketDelegate>? _fetchHook;
+    private delegate bool FetchReceivedPacketDelegate(void* self, ReceivedPacket* outData);
+    private Hook<FetchReceivedPacketDelegate>? _fetchHook;
 
-    private unsafe delegate byte SendPacketDelegate(void* self, SentIPCHeader* packet, int* a3, byte a4);
-    private readonly Hook<SendPacketDelegate>? _sendHook;
-    private readonly IPluginLog logger;
+    private delegate byte SendPacketDelegate(void* self, SentIPCHeader* packet, int* a3, byte a4);
+    private Hook<SendPacketDelegate>? _sendHook;
 
     public bool ActiveRecv
     {
@@ -78,16 +80,13 @@ internal sealed class PacketInterceptor : IDisposable
         }
     }
 
-    public unsafe PacketInterceptor(ISigScanner scanner, IPluginLog logger, HookHelper hook)
+    public async Task StartAsync(CancellationToken token)
     {
-        this.logger = logger;
-
         // alternative signatures - seem to be changing from build to build:
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 35
         // - E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24
         var foundFetchAddress = scanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 48 8D 4C 24 ?? FF 15", out var fetchAddress)
             || scanner.TryScanText("E8 ?? ?? ?? ?? 84 C0 0F 85 ?? ?? ?? ?? 44 0F B6 64 24", out fetchAddress);
-        logger.Debug($"[NPI] FetchReceivedPacket address = 0x{fetchAddress:X}");
         if (foundFetchAddress)
             _fetchHook = hook.FromAddress<FetchReceivedPacketDelegate>(fetchAddress, FetchReceivedPacketDetour, false);
 
@@ -97,13 +96,15 @@ internal sealed class PacketInterceptor : IDisposable
         // server ipc handler: 40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 44 24 ?? 8B F2 --- void(void* self, uint targetId, void* dataPtr)
     }
 
+    public Task StopAsync(CancellationToken token) => Task.CompletedTask;
+
     public void Dispose()
     {
         _fetchHook?.Dispose();
         _sendHook?.Dispose();
     }
 
-    private unsafe bool FetchReceivedPacketDetour(void* self, ReceivedPacket* outData)
+    private bool FetchReceivedPacketDetour(void* self, ReceivedPacket* outData)
     {
         var res = _fetchHook!.Original(self, outData);
         if (outData->IPC != null)
@@ -119,7 +120,7 @@ internal sealed class PacketInterceptor : IDisposable
         return res;
     }
 
-    private unsafe byte SendPacketDetour(void* self, SentIPCHeader* packet, int* a3, byte a4)
+    private byte SendPacketDetour(void* self, SentIPCHeader* packet, int* a3, byte a4)
     {
         ClientIPCSent?.Invoke(packet->Opcode, new((byte*)packet + 0x20, (int)packet->PayloadSize - 0x10));
         return _sendHook!.Original(self, packet, a3, a4);

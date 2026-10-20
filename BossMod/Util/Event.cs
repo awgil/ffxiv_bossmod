@@ -9,11 +9,18 @@ public sealed class EventSubscription(Action unsubscribe) : IDisposable
 // event subscription list is a simple way to use a single member to track multiple event subscriptions
 public sealed class EventSubscriptions : IDisposable
 {
-    private Action? _dispose;
+    private Action _dispose = () => { };
 
-    public EventSubscriptions(params EventSubscription[] subscriptions) => Array.ForEach(subscriptions, Add);
-    public void Dispose() => _dispose?.Invoke();
-    public void Add(EventSubscription a) => _dispose += a.Dispose;
+    public EventSubscriptions(params EventSubscription[] subscriptions)
+    {
+        Add(subscriptions);
+    }
+    public void Dispose() => _dispose.Invoke();
+    public void Add(params EventSubscription[] a)
+    {
+        foreach (var sub in a)
+            _dispose += sub.Dispose;
+    }
 }
 
 // a replacement for standard events

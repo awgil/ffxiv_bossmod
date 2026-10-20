@@ -52,6 +52,8 @@ public class Plugin : HostedPlugin
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
+        ConfigureExtra(containerBuilder);
+
         containerBuilder.RegisterSingletonSelfAndInterfaces<PackLoader>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<PresetDatabase>().WithAttributeFiltering();
@@ -178,8 +180,7 @@ public class Plugin : HostedPlugin
 
         containerBuilder.RegisterSingletonSelf<HookHelper>();
 
-        ConfigureExtra(containerBuilder);
-
+        // FIXME: turn into an install service
         containerBuilder.RegisterBuildCallback(scope =>
         {
             var self = Assembly.GetExecutingAssembly();
@@ -216,14 +217,17 @@ public class Plugin : HostedPlugin
 
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
-        containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
+        //containerBuilder.RegisterSingletonSelf<MainDebugWindow>().As<WindowBase>();
 
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<OpcodeMap>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PacketInterceptor>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
-        containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
     }
 

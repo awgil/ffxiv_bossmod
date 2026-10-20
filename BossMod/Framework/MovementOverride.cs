@@ -8,7 +8,10 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using Microsoft.Extensions.Hosting;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -30,7 +33,7 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride : IMovementOverride
+public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookHelper hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger) : IMovementOverride, IHostedService
 {
     public Vector3? DesiredDirection { get; set; }
     public Angle MisdirectionThreshold { get; set; }
@@ -39,10 +42,6 @@ public sealed unsafe class MovementOverride : IMovementOverride
     public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
 
-    private readonly IDalamudPluginInterface _dalamud;
-    private readonly ActionTweaksConfig _tweaksConfig;
-    private readonly IGameConfig gameConfig;
-    private readonly IPluginLog logger;
     private bool? _forcedControlState;
     private bool _legacyMode;
     private bool[]? _navmeshPathIsRunning;
@@ -50,7 +49,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     public bool IsMoving() => ActualMove != default;
     public bool IsMoveRequested() => UserMove != default;
 
-    public bool IsForceUnblocked() => _tweaksConfig.MoveEscapeHatch switch
+    public bool IsForceUnblocked() => tweaksConfig.MoveEscapeHatch switch
     {
         ActionTweaksConfig.ModifierKey.Ctrl => ImGui.GetIO().KeyCtrl,
         ActionTweaksConfig.ModifierKey.Alt => ImGui.GetIO().KeyAlt,
@@ -65,33 +64,29 @@ public sealed unsafe class MovementOverride : IMovementOverride
         set;
     }
 
-    public readonly float* ForcedMovementDirection;
+    public float* ForcedMovementDirection { get; private set; }
 
-    private delegate bool RMIWalkIsInputEnabled(void* self);
-    private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
-    private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
+    private delegate* unmanaged<void*, bool> _rmiWalkIsInputEnabled1;
+    private delegate* unmanaged<void*, bool> _rmiWalkIsInputEnabled2;
 
+#nullable disable
     private delegate void RMIWalkDelegate(MoveControllerSubMemberForMine* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
-    private readonly Hook<RMIWalkDelegate> _rmiWalkHook;
+    private Hook<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
-    private readonly Hook<RMIFlyDelegate> _rmiFlyHook;
+    private Hook<RMIFlyDelegate> _rmiFlyHook;
 
     // input source flags: 1 = kb/mouse, 2 = gamepad
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
-    private readonly Hook<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
+    private Hook<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
+#nullable restore
 
-    public MovementOverride(IDalamudPluginInterface dalamud, ISigScanner scanner, HookHelper hooking, ActionTweaksConfig tweaksConfig, IGameConfig gameConfig, IPluginLog logger)
+    public async Task StartAsync(CancellationToken token)
     {
-        _dalamud = dalamud;
-        _tweaksConfig = tweaksConfig;
-        this.gameConfig = gameConfig;
-        this.logger = logger;
-
         ForcedMovementDirection = (float*)scanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
 
-        _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(hooking.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C", "RMIWalkIsInputEnabled1"));
-        _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(hooking.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F", "RMIWalkIsInputEnabled2"));
+        _rmiWalkIsInputEnabled1 = (delegate* unmanaged<void*, bool>)hooking.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C", "RMIWalkIsInputEnabled1");
+        _rmiWalkIsInputEnabled2 = (delegate* unmanaged<void*, bool>)hooking.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F", "RMIWalkIsInputEnabled2");
 
         _rmiWalkHook = hooking.FromSignature<RMIWalkDelegate>("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
         _rmiFlyHook = hooking.FromSignature<RMIFlyDelegate>("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
@@ -101,19 +96,23 @@ public sealed unsafe class MovementOverride : IMovementOverride
         UpdateLegacyMode();
     }
 
+    public async Task StopAsync(CancellationToken token)
+    {
+        gameConfig.UiControlChanged -= OnConfigChanged;
+        dalamud.RelinquishData("vnav.PathIsRunning");
+        MovementBlocked = false;
+    }
+
     public void Dispose()
     {
-        _dalamud.RelinquishData("vnav.PathIsRunning");
-        gameConfig.UiControlChanged -= OnConfigChanged;
-        MovementBlocked = false;
-        _mcIsInputActiveHook.Dispose();
-        _rmiWalkHook.Dispose();
-        _rmiFlyHook.Dispose();
+        _mcIsInputActiveHook?.Dispose();
+        _rmiWalkHook?.Dispose();
+        _rmiFlyHook?.Dispose();
     }
 
     public bool FollowPathActive()
     {
-        if (_navmeshPathIsRunning == null && _dalamud.TryGetData<bool[]>("vnav.PathIsRunning", out var data))
+        if (_navmeshPathIsRunning == null && dalamud.TryGetData<bool[]>("vnav.PathIsRunning", out var data))
             _navmeshPathIsRunning = data;
 
         return _navmeshPathIsRunning != null && _navmeshPathIsRunning[0];
@@ -124,7 +123,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
         if (bAdditiveUnk == 0)
             _forcedControlState = null;
 
-        _rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
+        _rmiWalkHook!.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
 
         // handling the Spinning status, during which we can only steer toward a desired safe spot
         // all vanilla movement input is ignored in this state so we skip the rest of the override logic
@@ -173,7 +172,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
         // misdirection override logic
         if (misdirectionMode)
         {
-            var thresholdDeg = UserMove != default && _tweaksConfig.AutoMisdirection ? _tweaksConfig.MisdirectionThreshold : MisdirectionThreshold.Deg;
+            var thresholdDeg = UserMove != default && tweaksConfig.AutoMisdirection ? tweaksConfig.MisdirectionThreshold : MisdirectionThreshold.Deg;
             if (thresholdDeg < 180)
             {
                 // note: if we are already moving, it doesn't matter what we do here, only whether 'is input active' function returns true or false
@@ -194,7 +193,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     private void RMIFlyDetour(void* self, PlayerMoveControllerFlyInput* result)
     {
         _forcedControlState = null;
-        _rmiFlyHook.Original(self, result);
+        _rmiFlyHook!.Original(self, result);
 
         // do nothing while followpath is running
         if (FollowPathActive())
@@ -212,7 +211,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
 
     private byte MCIsInputActiveDetour(void* self, byte inputSourceFlags)
     {
-        return _forcedControlState != null ? (byte)(_forcedControlState.Value ? 1 : 0) : _mcIsInputActiveHook.Original(self, inputSourceFlags);
+        return _forcedControlState != null ? (byte)(_forcedControlState.Value ? 1 : 0) : _mcIsInputActiveHook!.Original(self, inputSourceFlags);
     }
 
     private (Angle h, Angle v)? DirectionToDestination(bool allowVertical)

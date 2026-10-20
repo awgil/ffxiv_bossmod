@@ -14,14 +14,13 @@ namespace BossMod;
 // - our queue distinguishes GCD and oGCD actions; since oGCDs can be delayed, effective 'expiration' time for oGCDs is much larger than native 0.5s
 // - trying to queue an oGCD action while it is already queued (double tapping) activates 'emergency mode': all preceeding queued actions are removed and this action is returned even if it would delay GCD
 // - entries from the manual queue are added to the autoqueue every frame with appropriate priorities, and usual logic selects best action to execute
-public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlockState unlockState, ActionTweaksConfig config)
+public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlockState unlockState, ActionTweaksConfig config, ActionDefinitions defs, IPluginLog logger)
 {
     private readonly record struct Entry(ActionID Action, Actor? Target, Vector3 TargetPos, Angle? FacingAngle, ActionDefinition Definition, DateTime ExpireAt, float CastTime)
     {
         public readonly bool Expired(DateTime now) => ExpireAt < now || (Target?.IsDestroyed ?? false);
     }
 
-    private readonly ActionTweaksConfig _config = config;
     private readonly List<Entry> _queue = [];
     private bool _emergencyMode;
 
@@ -29,7 +28,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
     {
         if (_emergencyMode && _queue[0].Expired(ws.CurrentTime))
         {
-            Service.Log($"[MAO] Emergency {_queue[0].Action} expired");
+            logger.Debug($"[MAO] Emergency {_queue[0].Action} expired");
             _emergencyMode = false;
         }
 
@@ -37,7 +36,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
         {
             if (e.Expired(ws.CurrentTime))
             {
-                Service.Log($"[MAO] Action {e.Action} @ {e.Target} expired");
+                logger.Debug($"[MAO] Action {e.Action} @ {e.Target} expired");
                 return true;
             }
             return false;
@@ -71,7 +70,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
         }
     }
 
-    public bool Enabled => _config.UseManualQueue;
+    public bool Enabled => config.UseManualQueue;
 
     public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest)
     {
@@ -82,7 +81,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
         if (player == null)
             return false; // player is unknown, skip
 
-        var def = ActionDefinitions.Instance[action];
+        var def = defs[action];
         if (def == null)
             return false; // unknown action, let native queue handle it instead
 
@@ -100,7 +99,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
         var index = _queue.FindIndex(e => e.Definition.MainCooldownGroup == def.MainCooldownGroup); // TODO: what about alt groups and duty actions?..
         if (index < 0)
         {
-            Service.Log($"[MAO] Queueing {action} @ {target}");
+            logger.Debug($"[MAO] Queueing {action} @ {target}");
             _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
             return true;
         }
@@ -108,13 +107,13 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
         ref var e = ref _queue.Ref(index);
         if (e.Action != action || e.Target != target)
         {
-            Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
+            logger.Debug($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
             _queue.RemoveAt(index);
             _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
         }
         else
         {
-            Service.Log($"[MAO] Entering emergency mode for {e.Action}");
+            logger.Debug($"[MAO] Entering emergency mode for {e.Action}");
             // spamming oGCD - enter emergency mode
             _queue.Clear();
             _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime));
@@ -128,7 +127,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
         var index = _queue.FindIndex(e => e.Action == action);
         if (index >= 0)
         {
-            Service.Log($"[MAO] Executed {action}");
+            logger.Debug($"[MAO] Executed {action}");
             _queue.RemoveAt(index);
         }
 
@@ -228,7 +227,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints, IUnlock
             return false; // target is valid, but not found in world, bail... (TODO this shouldn't be happening really)
 
         // custom smart-targeting
-        if (allowSmartTarget && _config.SmartTargets && def.SmartTarget != null)
+        if (allowSmartTarget && config.SmartTargets && def.SmartTarget != null)
             target = def.SmartTarget(ws, player, target, hints);
 
         // fallback: if requested, use native "target nearest" function to try to find a valid hostile target

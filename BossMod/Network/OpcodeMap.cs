@@ -1,9 +1,12 @@
 ﻿using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod.Network;
 
 // map betweek network message opcodes (which are randomized every build) to more-or-less stable indices
-public class OpcodeMap
+public sealed unsafe class OpcodeMap(ISigScanner scanner, IPluginLog logger) : IHostedService
 {
     private readonly List<int> _opcodeToID = [];
     private readonly List<int> _idToOpcode = [];
@@ -14,7 +17,7 @@ public class OpcodeMap
     public ServerIPC.PacketID ID(int opcode) => (ServerIPC.PacketID)(opcode >= 0 && opcode < _opcodeToID.Count ? _opcodeToID[opcode] : -1);
     public int Opcode(ServerIPC.PacketID id) => (int)id >= 0 && (int)id < _idToOpcode.Count ? _idToOpcode[(int)id] : -1;
 
-    public unsafe OpcodeMap(ISigScanner scanner, IPluginLog logger)
+    public async Task StartAsync(CancellationToken token)
     {
         // look for an internal tracing function - it's a giant switch on opcode that calls virtual function corresponding to the opcode; we use vf indices as 'opcode index'
         // function starts with:
@@ -48,14 +51,16 @@ public class OpcodeMap
         }
     }
 
-    private static unsafe byte* ReadRVA(byte* p) => p + 4 + *(int*)p;
+    public Task StopAsync(CancellationToken token) => Task.CompletedTask;
+
+    private static byte* ReadRVA(byte* p) => p + 4 + *(int*)p;
 
     // assume each case has the following body:
     // mov rax, [rcx]
     // lea r9, [r10+10h]
     // jmp qword ptr [rax+<vfoff>]
     private static readonly byte[] BodyPrefix = [0x48, 0x8B, 0x01, 0x4D, 0x8D, 0x4A, 0x10, 0x48, 0xFF];
-    private static unsafe int ReadIndexForCaseBody(byte* bodyAddr)
+    private static int ReadIndexForCaseBody(byte* bodyAddr)
     {
         for (var i = 0; i < BodyPrefix.Length; ++i)
             if (bodyAddr[i] != BodyPrefix[i])
