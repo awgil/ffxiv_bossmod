@@ -125,6 +125,8 @@ public sealed class ReplayDetailsWindow : WindowBase, IDisposable
             if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
                 Bossmods.ActiveModule.DebugOpts = _moduleDebug;
 
+            ImGui.Text($"Ping: {Bossmods.WorldState.Network.LastRTT * 1000:f1}ms");
+
             if (Bossmods.WorldState.Client.CountdownRemaining != null)
             {
                 ImGui.SameLine();

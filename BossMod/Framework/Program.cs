@@ -9,7 +9,6 @@ using DalaMock.Core.Plugin;
 using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 using static DalaMock.Core.Fonts.MockDefaultFontConfig;
