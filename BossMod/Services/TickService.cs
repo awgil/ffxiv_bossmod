@@ -11,8 +11,6 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Ipc;
-using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
@@ -40,6 +38,7 @@ internal sealed class TickService(
     RotationDatabase rotationDB,
     ReplayManager replayManager,
     ModulePackService packService,
+    PingService pingService,
     WorldState worldstateGlobal,
     AIHints hintsGlobal
 ) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
@@ -57,7 +56,6 @@ internal sealed class TickService(
     private SlashCommandProvider _slashCmd;
     private MultiboxManager _mbox;
     private TimeSpan _prevUpdateTime;
-    private PingTracker _ping;
     private IHintExecutor _hintExecutor;
 
     private BossModuleMainWindow _wndBossmod;
@@ -71,28 +69,11 @@ internal sealed class TickService(
 #nullable restore
     private MainDebugWindow? _wndDebug;
 
-    private ICallGateSubscriber<bool>? _vnavIsReady;
-    private ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         Service.WindowSystem = windowSystem = windowSystemFactory.Create("vbm");
 
-        if (!Service.IsMock)
-        {
-            // requires windows/wine
-            MultiboxUnlock.Exec();
-        }
-
         MigratePlans(configDir.FullName);
-
-        _ping = new(logger);
-
-        if (!Service.IsMock)
-        {
-            _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
-            _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
-        }
 
         if (Service.IsMock)
         {
@@ -103,10 +84,9 @@ internal sealed class TickService(
         }
         else
         {
-            _ping.Run();
             _movementOverride = new MovementOverride(dalamud);
             _amex = new ActionManagerEx(worldstateGlobal, hintsGlobal, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(worldstateGlobal, (ActionManagerEx)_amex, _ping);
+            _wsSync = new WorldStateGameSync(worldstateGlobal, (ActionManagerEx)_amex, pingService);
             _hintExecutor = new HintExecutor(worldstateGlobal, _movementOverride, _amex, hintsGlobal);
         }
 
@@ -147,7 +127,6 @@ internal sealed class TickService(
 
         // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
-        clientState.ZoneInit += OnZoneInit;
 
         uiBuilder.Draw += Update;
         uiBuilder.DisableAutomaticUiHide = true;
@@ -169,18 +148,12 @@ internal sealed class TickService(
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         clientState.Logout -= OnLogout;
-        clientState.ZoneInit -= OnZoneInit;
 
         uiBuilder.Draw -= Update;
         uiBuilder.OpenConfigUi -= OpenUi;
         uiBuilder.OpenMainUi -= OpenUi;
 
         condition.ConditionChange -= OnConditionChanged;
-    }
-
-    private void OnZoneInit(Dalamud.Game.ClientState.ZoneInitEventArgs obj)
-    {
-        _pauseBitmapGeneration = false;
     }
 
     void Update()
@@ -207,100 +180,8 @@ internal sealed class TickService(
 
         _hintExecutor.Execute();
 
-        if (_vnavIsReady != null && _vnavIsOnMesh != null)
-            CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
-
         Camera.Instance()?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
-    }
-
-    private unsafe bool QuestUnlocked(uint link)
-    {
-        // see ActionManager.IsActionUnlocked
-        var gameMain = FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance();
-        return link == 0
-            || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
-            || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
-    }
-
-    bool _pauseBitmapGeneration;
-
-    void CreateBitmapIfMissing(ICallGateSubscriber<bool> isReady, ICallGateSubscriber<Vector3, float, bool, bool> isPointOnMesh)
-    {
-        if (_pauseBitmapGeneration || worldstateGlobal.Party.Player() is not { } player || !Service.Config.Get<DeveloperConfig>().AutoBitmaps)
-            return;
-
-        unsafe
-        {
-            // vnav isn't reliable in housing zones and there's not really a reason to have bitmaps there anyway
-            // TODO isn't there a oneliner for this?
-            if (FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance()->CurrentTerritoryIntendedUseId is FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingIndoor or FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingOutdoor)
-                return;
-        }
-
-        // scorched earth approach: if player is moving vertically, assume we can't trust their position
-        // this covers jumping and clientpaths, as well as some annoying edge cases that don't show up anywhere else: walking off the boat in ihuykatumu (during which IsJumping() returns false), walking off of any wall-less arena (which puts you into condition 47, not Jumping), etc
-        if (player.PosRot.Y != player.PrevPosRot.Y)
-            return;
-
-        // try to do nothing if player is in any state that isn't "standing on the ground"
-        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving, ConditionFlag.Jumping, (ConditionFlag)47, ConditionFlag.DutyRecorderPlayback))
-            return;
-
-        var insertAtFront = false;
-
-        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
-        if (entry != null && data != null)
-        {
-            var poff = ((player.Position - entry.Origin) / data.PixelSize).Floor();
-            var px = (int)poff.X;
-            var py = (int)poff.Z;
-
-            var playerDeepInObstacle = px >= 0 && py >= 0 && px < data.Width && py < data.Height && data[px, py] && (px == 0 || data[px - 1, py]) && (py == 0 || data[px, py - 1]) && (px == (data.Width - 1) || data[px + 1, py]) && (py == (data.Height - 1) || data[px, py + 1]);
-
-            if (playerDeepInObstacle)
-                // we are probably standing on an isolated landmass that is within the current map's bounding box
-                // we should try to generate a new map from player's current position and make it higher priority (assumption is that this area has a smaller bounding box)
-                insertAtFront = true;
-            else
-                // standing in normal part of map, everything is fine
-                return;
-        }
-
-        try
-        {
-            if (!isReady.InvokeFunc())
-                return;
-        }
-        catch (IpcNotReadyError ex)
-        {
-            Service.PluginLog.Debug(ex, "vnav is not loaded, pausing");
-            _pauseBitmapGeneration = true;
-            return;
-        }
-
-        try
-        {
-            // if player is standing on a little rock or at the edge of accessible ground, we want to avoid generating a bitmap every frame which just overwrites an existing one
-            if (!isPointOnMesh.InvokeFunc(player.PosRot.XYZ(), 2, true))
-                return;
-        }
-        catch (IpcNotReadyError ex)
-        {
-            Service.PluginLog.Debug(ex, "vnav is too old, must be >=1.2.3.8 to support auto generation");
-            _pauseBitmapGeneration = true;
-            return;
-        }
-
-        try
-        {
-            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true, insertAtFront);
-        }
-        catch (Exception ex)
-        {
-            Service.PluginLog.Warning(ex, "Unable to generate an obstacle map, pausing");
-            _pauseBitmapGeneration = true;
-        }
     }
 
     void OnConditionChanged(ConditionFlag flag, bool value)
@@ -687,7 +568,6 @@ internal sealed class TickService(
         _rotation.Dispose();
         _wsSync.Dispose();
         _amex.Dispose();
-        _ping.Dispose();
         _movementOverride.Dispose();
         _hintsBuilder.Dispose();
         _zonemod.Dispose();

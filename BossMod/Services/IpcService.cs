@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-sealed class IpcService(IDalamudPluginInterface dalamud, RotationModuleManager autorotation, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
+internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModuleManager autorotation, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
 {
     private Action _stopActions = () => { };
     private readonly ConfigRoot config = Service.Config;

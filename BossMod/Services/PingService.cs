@@ -1,36 +1,44 @@
 ﻿using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Application.Network;
+using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BossMod.Network;
+namespace BossMod.Services;
 
-public sealed partial class PingTracker(IPluginLog logger) : IDisposable
+internal sealed partial class PingService(IPluginLog logger) : IHostedService
 {
     public float LastRTT { get; private set; }
 
-    private readonly CancellationTokenSource Cts = new();
+    private CancellationTokenSource Source = new();
+    private Task UpdateTask = Task.CompletedTask;
 
-    public void Run()
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        Task.Run(Loop);
+        Source = new();
+
+        var token = Source.Token;
+        UpdateTask = Task.Run(async () =>
+        {
+            while (!token.IsCancellationRequested)
+            {
+                unsafe
+                {
+                    Fetch();
+                }
+
+                await Task.Delay(3000, token);
+            }
+        }, token);
     }
 
-    private async Task Loop()
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        var token = Cts.Token;
+        Source.Cancel();
 
-        while (!token.IsCancellationRequested)
-        {
-            unsafe
-            {
-                Fetch();
-            }
-
-            await Task.Delay(3000, token).ConfigureAwait(true);
-        }
+        // task is intentionally not awaited, GetRTTAndHopCount blocks for a pretty long time, and unlike config saver service we don't care about race conditions
     }
 
     private unsafe void Fetch()
@@ -57,13 +65,6 @@ public sealed partial class PingTracker(IPluginLog logger) : IDisposable
             logger.Warning($"Ping failure: {err}");
         else
             LastRTT = rtt * 0.001f;
-    }
-
-    public void Dispose()
-    {
-        logger.Info("Shutting down");
-        Cts.Cancel();
-        Cts.Dispose();
     }
 
     private static ulong GetAddressLastRTT(IPAddress addr)

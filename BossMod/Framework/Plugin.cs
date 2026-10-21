@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
+using BossMod.Network;
 using BossMod.Pathfinding;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
@@ -102,6 +103,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
     {
+        containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
 
         // global worldstate
@@ -115,6 +118,11 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
                 );
             }
         }).SingleInstance();
+
+        containerBuilder.RegisterBuildCallback(ctx =>
+        {
+            unsafe { MultiboxUnlock.Exec(); }
+        });
 
 #if LOCAL_CS
         containerBuilder.RegisterBuildCallback(ctx =>

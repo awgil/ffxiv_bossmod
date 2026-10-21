@@ -12,7 +12,7 @@ using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BossMod;
+namespace BossMod.Services;
 
 internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, IUiBuilder uiBuilder, MediatorService mediator) : IHostedService, IDisposable
 {
