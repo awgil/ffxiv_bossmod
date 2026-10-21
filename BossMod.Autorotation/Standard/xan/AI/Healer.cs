@@ -104,9 +104,22 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private float MultiHitIn;
     private bool MultiHitLong; // 8+ hits or 10+ seconds
 
+    // per-frame caches, the heal logic below reads these many times per frame
+    private readonly List<Actor> _lightParty = [];
+    private readonly int[] _predictedHits = new int[PartyState.MaxAllies];
+    private readonly Dictionary<ulong, float> _ratioCache = [];
+
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         Health.Update(Hints);
+        _lightParty.Clear();
+        _lightParty.AddRange(Health.TrackedMembers.Select(x => x.Item2));
+        Array.Clear(_predictedHits);
+        foreach (var d in Hints.PredictedDamage)
+            foreach (var hitSlot in d.Players.SetBits())
+                ++_predictedHits[hitSlot];
+        _ratioCache.Clear();
+
         AutoMit = strategy.Mitigation.Value == MitigationMode.Automatic;
         RaidwideIn = SecondsUntilNext(Raidwides);
         FullRaidwideIn = SecondsUntilNext(StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints, includeShared: false));
@@ -114,7 +127,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         MultiHitIn = SecondsUntilNext(multiHit.Select(d => d.Activation));
         MultiHitLong = multiHit.Any(d => d.Hits >= 8 || (d.LastHit - d.Activation).TotalSeconds >= 10);
 
-        if (Player.InCombat)
+        // goal zones are summed: stay out of the way of module goals
+        if (Player.InCombat && Hints.GoalZones.Count == 0)
         {
             switch (strategy.StayNearParty.Value)
             {
@@ -122,8 +136,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     if (LightParty.Exclude(Player).Farthest(Player.Position) is { } farthest)
                         Hints.GoalZones.Add(AIHints.GoalSingleTarget(farthest.Position, 16, 0.1f));
                     break;
-                // goal zones are summed: stay out of the way of module goals
-                case StayNearPartyStrategy.EnabledSlow when Hints.GoalZones.Count == 0:
+                case StayNearPartyStrategy.EnabledSlow:
                     List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
                     var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
                     var scale = 1f / Math.Max(1, allies.Count);
@@ -643,7 +656,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         }
     }
 
-    private IEnumerable<Actor> LightParty => Health.TrackedMembers.Select(x => x.Item2);
+    private IEnumerable<Actor> LightParty => _lightParty;
 
     private int ResolveHealTarget(in Strategy strategy) => strategy.Heal.TrackRaw.Target switch
     {
@@ -692,8 +705,13 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     }
 
     // without the flat 30% per predicted hit: a heal can't overheal past max hp
-    private float HealRatio(int slot) => Health.PartyMemberStates[slot].PredictedHPRatio + 0.3f * Hints.PredictedDamage.Count(d => d.Players[slot]);
-    private float PredictedRatio(Actor a) => World.Party.FindSlot(a.InstanceID) is var slot && slot >= 0 ? HealRatio(slot) : a.HPRatio;
+    private float HealRatio(int slot) => Health.PartyMemberStates[slot].PredictedHPRatio + 0.3f * _predictedHits[slot];
+    private float PredictedRatio(Actor a)
+    {
+        if (!_ratioCache.TryGetValue(a.InstanceID, out var ratio))
+            _ratioCache[a.InstanceID] = ratio = World.Party.FindSlot(a.InstanceID) is var slot && slot >= 0 ? HealRatio(slot) : a.HPRatio;
+        return ratio;
+    }
 
     private float ThresholdShift(Actor target, int slot)
     {
@@ -718,7 +736,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
             return 0.1f;
         if (RaidwideIn < 15)
             return 0;
-        var party = LightParty.ToList();
+        var party = _lightParty;
         return party.Count(HasHealOverTime) * 2 >= party.Count ? -0.2f : -0.1f;
     }
 
@@ -732,7 +750,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private int MissingWithoutRegen(WPos center, float radius, float below = 0.85f) => LightParty.Count(p => p.Position.InCircle(center, radius) && PredictedRatio(p) < below && !HasHealOverTime(p));
     private bool MostOfPartyNear(WPos center, float radius)
     {
-        var party = LightParty.ToList();
+        var party = _lightParty;
         return party.Count > 0 && party.Count(p => p.Position.InCircle(center, radius)) * 2 >= party.Count;
     }
 
@@ -785,7 +803,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
     private bool CoveredByOthers(uint[] ids)
     {
-        var party = LightParty.ToList();
+        var party = _lightParty;
         return party.Count > 0 && party.Count(p => p.Statuses.Any(s => ids.Contains(s.ID) && s.SourceID != Player.InstanceID)) * 2 >= party.Count;
     }
 
