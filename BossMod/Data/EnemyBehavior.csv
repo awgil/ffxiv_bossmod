@@ -5,6 +5,8 @@ OID,Name,TankDistance,CanMove
 0x2212,Garuda,0,true
 0x2215,Satin Plume,0,true
 0x2216,Spiny Plume,0,true
+0x221A,Ifrit,0,true
+0x221B,Infernal Nail,0,false
 0x4B8E,Wisp Piece,0,false
 0x4C63,Devilet Piece,0,false
 0x4C90,Bone Bishop,5,true

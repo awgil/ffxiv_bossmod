@@ -57,7 +57,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         public Track<HintedStrategy> Esuna;
 
         [Track("Stay near party", InternalName = "Stay near party")]
-        public Track<EnabledByDefault> StayNearParty;
+        public Track<StayNearPartyStrategy> StayNearParty;
         [Track("Allow generic out-of-combat predictive heals on tank (Excogitation, Divine Benison, etc)")]
         public Track<EnabledByDefault> OutOfCombat;
         [Track("Allow automatic use of mitigation and big healing cooldowns (Temperance, Kerachole, Collective Unconscious, etc)", InternalName = "Mitigation", Actions = [
@@ -75,6 +75,16 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     public static RotationModuleDefinition Definition()
     {
         return new RotationModuleDefinition("Healer AI", "Auto-healer", "AI (xan)", "xan", RotationModuleQuality.WIP, BitMask.Build(Class.CNJ, Class.WHM, Class.SCH, Class.SGE, Class.AST), 100).WithStrategies<Strategy>();
+    }
+
+    public enum StayNearPartyStrategy
+    {
+        [Option("Stay within 15y of all allies, if possible")]
+        Enabled,
+        [Option("Disabled")]
+        Disabled,
+        [Option("Maximize number of nearby allies (expensive!)")]
+        EnabledSlow
     }
 
     public ActionID RaiseAction => Player.Class switch
@@ -104,13 +114,22 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         MultiHitIn = SecondsUntilNext(multiHit.Select(d => d.Activation));
         MultiHitLong = multiHit.Any(d => d.Hits >= 8 || (d.LastHit - d.Activation).TotalSeconds >= 10);
 
-        // goal zones are summed: stay out of the way of module goals
-        if (strategy.StayNearParty.IsEnabled() && Player.InCombat && Hints.GoalZones.Count == 0)
+        if (Player.InCombat)
         {
-            List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
-            var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
-            var scale = 1f / Math.Max(1, allies.Count);
-            Hints.GoalZones.Add(p => scale * Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
+            switch (strategy.StayNearParty.Value)
+            {
+                case StayNearPartyStrategy.Enabled:
+                    if (LightParty.Exclude(Player).Farthest(Player.Position) is { } farthest)
+                        Hints.GoalZones.Add(AIHints.GoalSingleTarget(farthest.Position, 16, 0.1f));
+                    break;
+                // goal zones are summed: stay out of the way of module goals
+                case StayNearPartyStrategy.EnabledSlow when Hints.GoalZones.Count == 0:
+                    List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
+                    var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
+                    var scale = 1f / Math.Max(1, allies.Count);
+                    Hints.GoalZones.Add(p => scale * Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
+                    break;
+            }
         }
 
         AutoRaise(strategy);

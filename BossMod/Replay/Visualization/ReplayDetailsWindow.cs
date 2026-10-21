@@ -32,6 +32,7 @@ class ReplayDetailsWindow : UIWindow
     private readonly ReplayAnalysis.AnalysisManager _analysis;
     private BossModule.DebugOptions _moduleDebug = new();
     private UIWindow? _modulePopout;
+    private EventSubscriptions? _replayDebugEvents;
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -56,6 +57,7 @@ class ReplayDetailsWindow : UIWindow
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
+        EnableDebugEvents();
         _player.AdvanceTo(_curTime, _mgr.Update);
         _config = new(Service.Config, _player.WorldState, null, null);
         _events = new(data, MoveTo, rotationDB.Plans, this);
@@ -64,6 +66,7 @@ class ReplayDetailsWindow : UIWindow
 
     protected override void Dispose(bool disposing)
     {
+        _replayDebugEvents?.Dispose();
         _modulePopout?.Dispose();
         _analysis.Dispose();
         _config.Dispose();
@@ -583,6 +586,7 @@ class ReplayDetailsWindow : UIWindow
             _zmm = new(_player.WorldState);
             _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
             _rmm = new(_rotationDB, _mgr, _hints);
+            EnableDebugEvents();
         }
         _player.AdvanceTo(t, _mgr.Update);
         _mgr.ActiveModule?.DebugOpts = _moduleDebug;
@@ -613,6 +617,20 @@ class ReplayDetailsWindow : UIWindow
     private void ResetPF()
     {
         _pfVisu = null;
+    }
+
+    private void EnableDebugEvents()
+    {
+        _replayDebugEvents?.Dispose();
+
+        _replayDebugEvents = new(
+            _player.WorldState.ReplayState.ActivePresetsChanged.Subscribe(p =>
+            {
+                _rmm.Clear();
+                foreach (var active in p.Presets)
+                    _rmm.Activate(active);
+            })
+        );
     }
 
     private void SplitLog()

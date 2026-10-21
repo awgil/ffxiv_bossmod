@@ -102,7 +102,11 @@ public sealed class RotationModuleManager : IDisposable
             WorldState.Client.ActionFailedLoS.Subscribe(OnLoSFailed),
             Database.Presets.PresetModified.Subscribe(OnPresetModified),
             WorldState.IsPvPAreaChanged.Subscribe(a => DirtyActiveModules(true)),
-            RotationModuleRegistry.Modified.Subscribe(() => DirtyActiveModules(true)),
+            RotationModuleRegistry.Modified.Subscribe(() =>
+            {
+                Clear();
+                DirtyActiveModules(true);
+            }),
             _aiConfig.Modified.Subscribe(() => DirtyActiveModules(true))
         );
     }
