@@ -76,7 +76,7 @@ class FollowHien(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class AutoYshtola(WorldState ws) : UnmanagedRotation(ws, 25)
+class AutoYshtola(WorldState ws, ActionDefinitions defs) : UnmanagedRotation(ws, defs, 25)
 {
     private Actor Magnai => World.Actors.First(x => (OID)x.OID == OID.Boss);
     private Actor Hien => World.Actors.First(x => (OID)x.OID == OID.Hien);
