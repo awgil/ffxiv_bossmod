@@ -136,15 +136,62 @@ public class StateMachine(List<StateMachine.Phase> phases)
         }
 
         Utils.TextOutlined("Then:", outlineColor);
-        for (var i = 0; i < future.Count; ++i)
+        if (wrap)
         {
-            var text = i == 0 ? future[i].name : $"> {future[i].name}";
-            if (wrap)
+            for (var i = 0; i < future.Count; ++i)
+            {
+                var text = i == 0 ? future[i].name : $"> {future[i].name}";
                 UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X);
-            else
-                ImGui.SameLine();
-            DrawStateText(text, future[i].hint, outlineColor);
+                DrawStateText(text, future[i].hint, outlineColor);
+            }
+            return;
         }
+
+        // single line: if everything doesn't fit, drop unimportant mechanics before important ones (and later before earlier), keeping chronological order
+        ImGui.SameLine();
+        var shown = SelectFitting(future, ImGui.GetContentRegionAvail().X);
+        for (var i = 0; i < shown.Count; ++i)
+        {
+            if (i > 0)
+                ImGui.SameLine();
+            var index = shown[i];
+            DrawStateText(FutureText(future, shown, i), future[index].hint, outlineColor);
+        }
+    }
+
+    private static bool IsImportant(StateHint hint) => (hint & (StateHint.Tankbuster | StateHint.Raidwide | StateHint.Knockback)) != 0;
+
+    // text for the i-th displayed entry; '...' marks skipped mechanics before it
+    private static string FutureText(List<(string name, StateHint hint)> future, List<int> shown, int i)
+    {
+        var index = shown[i];
+        var skipped = index > (i > 0 ? shown[i - 1] + 1 : 0);
+        return $"{(i > 0 ? "> " : "")}{(skipped ? "... > " : "")}{future[index].name}";
+    }
+
+    private static float LineWidth(List<(string name, StateHint hint)> future, List<int> shown)
+    {
+        var width = ImGui.GetStyle().ItemSpacing.X * Math.Max(0, shown.Count - 1);
+        for (var i = 0; i < shown.Count; ++i)
+            width += ImGui.CalcTextSize(FutureText(future, shown, i)).X;
+        return width;
+    }
+
+    private static List<int> SelectFitting(List<(string name, StateHint hint)> future, float availableWidth)
+    {
+        var all = Enumerable.Range(0, future.Count).ToList();
+        if (LineWidth(future, all) <= availableWidth)
+            return all;
+
+        List<int> shown = [];
+        foreach (var candidate in all.OrderBy(i => IsImportant(future[i].hint) ? 0 : 1).ThenBy(i => i))
+        {
+            List<int> tentative = [.. shown, candidate];
+            tentative.Sort();
+            if (shown.Count == 0 || LineWidth(future, tentative) <= availableWidth)
+                shown = tentative; // always show at least one entry, even if it gets clipped
+        }
+        return shown;
     }
 
     private static void DrawStateText(string text, StateHint hint, Color outlineColor)
