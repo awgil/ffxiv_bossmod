@@ -1,7 +1,7 @@
-﻿using DalaMock.Host.Mediator;
-using Dalamud.Bindings.ImGui;
+﻿using BossMod.ReplayVisualization;
+using DalaMock.Host.Mediator;
+using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -13,7 +13,6 @@ namespace BossMod;
 public sealed class Service
 {
 #pragma warning disable CS8618
-    [PluginService] public static IPluginLog Logger { get; private set; }
     [PluginService] public static IChatGui ChatGui { get; private set; }
     [PluginService] public static IGameGui GameGui { get; private set; }
     [PluginService] public static IGameConfig GameConfig { get; private set; }
@@ -34,6 +33,7 @@ public sealed class Service
     [PluginService] private static INotificationManager Notifications { get; set; }
     [PluginService] public static IPluginLog PluginLog { get; private set; }
     [PluginService] public static IUnlockState UnlockState { get; private set; }
+    [PluginService] public static IUiBuilder UiBuilder { get; private set; }
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211
@@ -42,6 +42,8 @@ public sealed class Service
 
     public static bool IsDev;
     public static bool IsMock;
+
+    public static GaugeVisualizer GaugeVisualizer = null!;
 
     public static void ChatMessage(string msg) => ChatGui.Print(msg, "VBM");
     public static void ChatError(string msg) => ChatGui.PrintError(msg, "VBM");
@@ -54,9 +56,6 @@ public sealed class Service
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;
-    public static ImFontPtr IconFont = ImFontPtr.Null;
-    public static ImFontPtr MonoFont = ImFontPtr.Null;
-    public static IFontAtlas FontAtlas = null!;
     public static ConfigRoot Config = null!;
 
     public static MediatorService Mediator = null!;

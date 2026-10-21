@@ -3,13 +3,14 @@ using BossMod.Autorotation;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BossMod;
 
-public sealed class ReplayManager : IDisposable
+public sealed class ReplayManager(RotationDatabase rotationDB, IFileDialogManager fileDialogManager, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir) : IHostedService, IDisposable
 {
     private sealed class ReplayEntry : IDisposable
     {
@@ -72,24 +73,20 @@ public sealed class ReplayManager : IDisposable
         }
     }
 
-    private readonly RotationDatabase _rotationDB;
-    private readonly IFileDialogManager fileDialogManager;
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
-    private readonly ReplayHistory _replayHistory;
+    private readonly ReplayHistory _replayHistory = ReplayHistory.Load();
     private int _nextAnalysisId;
     private string _path = "";
-    private string _fileDialogStartPath;
+    private string _fileDialogStartPath = logDir.FullName;
     private bool _convertAnonymize;
 
-    public ReplayManager(RotationDatabase rotationDB, IFileDialogManager fileDialogManager, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _rotationDB = rotationDB;
-        this.fileDialogManager = fileDialogManager;
-        _fileDialogStartPath = logDir.FullName;
-        _replayHistory = ReplayHistory.Load();
         RestoreHistory();
     }
+
+    Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     public void Dispose()
     {
@@ -111,7 +108,7 @@ public sealed class ReplayManager : IDisposable
         {
             if (e.AutoShowWindow && e.Window == null && e.Replay.IsCompletedSuccessfully && e.Replay.Result.Ops.Count > 0)
             {
-                e.Show(_rotationDB);
+                e.Show(rotationDB);
             }
         }
         // auto-show analysis windows that are now ready, auto dispose entries that had their windows closed
@@ -178,7 +175,7 @@ public sealed class ReplayManager : IDisposable
                 {
                     if (ImGui.MenuItem("Show"))
                     {
-                        e.Show(_rotationDB);
+                        e.Show(rotationDB);
                         SaveHistory();
                     }
                     if (ImGui.MenuItem("Convert to verbose"))
@@ -381,9 +378,6 @@ public sealed class ReplayManager : IDisposable
 
     private void RestoreHistory()
     {
-        if (!Service.IsMock)
-            return;
-
         foreach (var rp in _replayHistory.History)
             _replayEntries.Add(new(rp.Path, rp.IsOpen, rp.PlaybackPosition));
     }

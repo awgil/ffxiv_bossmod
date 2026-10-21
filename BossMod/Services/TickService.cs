@@ -4,7 +4,6 @@ using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
 using BossMod.Network;
-using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
@@ -87,7 +86,6 @@ internal sealed class TickService(
 
         MigratePlans(configDir.FullName);
 
-        hintsGlobal = new();
         _ping = new(logger);
 
         if (!Service.IsMock)
@@ -200,9 +198,6 @@ internal sealed class TickService(
         _amex.FinishActionGather();
         _wsSync.UpdateReplayState(_rotation, _movementOverride, hintsGlobal);
 
-        Service.IconFont = uiBuilder.FontIcon;
-        Service.MonoFont = uiBuilder.FontMono;
-        Service.FontAtlas = uiBuilder.FontAtlas;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
         {
@@ -279,7 +274,7 @@ internal sealed class TickService(
         }
         catch (IpcNotReadyError ex)
         {
-            Service.Logger.Debug(ex, "vnav is not loaded, pausing");
+            Service.PluginLog.Debug(ex, "vnav is not loaded, pausing");
             _pauseBitmapGeneration = true;
             return;
         }
@@ -292,7 +287,7 @@ internal sealed class TickService(
         }
         catch (IpcNotReadyError ex)
         {
-            Service.Logger.Debug(ex, "vnav is too old, must be >=1.2.3.8 to support auto generation");
+            Service.PluginLog.Debug(ex, "vnav is too old, must be >=1.2.3.8 to support auto generation");
             _pauseBitmapGeneration = true;
             return;
         }
@@ -303,7 +298,7 @@ internal sealed class TickService(
         }
         catch (Exception ex)
         {
-            Service.Logger.Warning(ex, "Unable to generate an obstacle map, pausing");
+            Service.PluginLog.Warning(ex, "Unable to generate an obstacle map, pausing");
             _pauseBitmapGeneration = true;
         }
     }
@@ -678,7 +673,6 @@ internal sealed class TickService(
         if (!disposing)
             return;
 
-        GaugeVisualizer.Dispose();
         _wndDebug?.Dispose();
         _wndChangelog.Dispose();
         _wndAI.Dispose();

@@ -6,6 +6,7 @@ using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Extensions;
+using Dalamud.Interface;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +50,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             .Keyed<DirectoryInfo>(Keys.ReplayDirectory);
 
         // lower level stuff
+        containerBuilder.Register(ctx => new ReplayVisualization.GaugeVisualizer(ctx.Resolve<IUiBuilder>().FontAtlas)).SingleInstance();
         containerBuilder.Register(_ => Serialization.BuildSerializationOptions()).SingleInstance();
         containerBuilder.Register(scope =>
         {
@@ -66,7 +68,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<PlanDatabase>().WithAttributeFiltering();
         containerBuilder.RegisterSingletonSelf<RotationDatabase>();
         containerBuilder.RegisterSingletonSelf<ObstacleMapManager>();
-        containerBuilder.RegisterSingletonSelf<ReplayManager>().WithAttributeFiltering();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ReplayManager>().WithAttributeFiltering();
 
         // everything defined in this section is created on demand during replay parsing/viewing
         containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
@@ -88,8 +90,9 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             Service.LuminaGameData = scope.Resolve<IDataManager>().GameData;
             Service.Mediator = scope.Resolve<MediatorService>();
             Service.IsDev = dalamud.IsDev;
+            Service.GaugeVisualizer = scope.Resolve<ReplayVisualization.GaugeVisualizer>();
 
-            // has to run before service startup since it registers all of our builtin config types
+            // registers all built in config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
         });
     }

@@ -243,7 +243,7 @@ class ReplayDetailsWindow : UIWindow
             var cursor = ImGui.GetCursorPos();
             if (inline)
                 ImGui.SameLine();
-            GaugeVisualizer.Instance().Draw(player, _mgr.WorldState.Client);
+            Service.GaugeVisualizer.Draw(player, _mgr.WorldState.Client);
             if (inline)
                 ImGui.SetCursorPos(cursor);
             return true;

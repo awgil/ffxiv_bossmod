@@ -277,7 +277,7 @@ public sealed class ModuleViewer : IDisposable
         {
             ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)
-                Service.Logger.Warning(ex, $"unable to load icon {iconId}");
+                Service.PluginLog.Warning(ex, $"unable to load icon {iconId}");
         }
 
         ImGui.TableNextColumn();
