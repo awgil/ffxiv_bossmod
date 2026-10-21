@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LocalCS>true</LocalCS>
+    <LocalCS>false</LocalCS>
     <LocalDalamock>false</LocalDalamock>
   </PropertyGroup>
 
