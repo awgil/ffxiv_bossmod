@@ -272,14 +272,20 @@ public sealed class RendererAttribute(Type type) : Attribute
     public Type Type => type;
 }
 
-public class RendererFactory
+public class StrategiesRenderer
 {
-    private static RendererFactory? _instance;
     private readonly Dictionary<Type, IStrategyRenderer> _dict = [];
 
-    public static bool Draw(StrategyContext context, StrategyConfig config, ref StrategyValue value)
+    public StrategiesRenderer(IStrategyRenderer[] renderers)
     {
-        var inst = (_instance ??= new()).Get(config.Renderer);
+        foreach (var r in renderers)
+            _dict[r.GetType()] = r;
+    }
+
+    public bool Draw(StrategyContext context, StrategyConfig config, ref StrategyValue value)
+    {
+        if (!_dict.TryGetValue(config.Renderer, out var inst))
+            throw new InvalidOperationException($"Error: renderer {config.Renderer} is not registered");
 
         ImGui.TableNextRow();
         using var _ = ImRaii.PushId(config.InternalName);
@@ -289,8 +295,6 @@ public class RendererFactory
         ImGui.TableNextColumn();
         return inst.DrawValue(context, config, ref value);
     }
-
-    private IStrategyRenderer Get(Type t) => _dict.TryGetValue(t, out var r) ? r : (_dict[t] = (IStrategyRenderer)Activator.CreateInstance(t)!);
 }
 
 public interface IStrategyRenderer

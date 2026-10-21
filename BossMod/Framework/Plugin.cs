@@ -164,6 +164,12 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             .SingleInstance()
             .WithAttributeFiltering();
 
+        containerBuilder.RegisterSingletonSelf<StrategiesRenderer>();
+        containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(t => t.IsAssignableTo<IStrategyRenderer>())
+            .As<IStrategyRenderer>()
+            .SingleInstance();
+
         // replay stuff
         containerBuilder.RegisterSingletonSelfAndInterfaces<ReplayManager>().WithAttributeFiltering();
         containerBuilder.RegisterType<ReplayAnalysis.AnalysisManager>();

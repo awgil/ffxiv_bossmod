@@ -1,5 +1,4 @@
 ﻿using BossMod.Autorotation;
-using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
@@ -18,11 +17,11 @@ abstract partial class AutoClear : ZoneModule
 
     public override WindowDescription? GetWindowDescription() => _config.EnableMinimap && !Palace.IsBossFloor ? new("VBM Deep Dungeon minimap##VBMDD", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize) : null;
 
-    public override void DrawWindow(MediatorService mediator, RotationModuleManager rmm)
+    public override void DrawWindow(RotationModuleManager rmm)
     {
         DrawTraps();
 
-        Overlays.DrawPseudoTitlebar(mediator, "VBM Deep Dungeon map", typeof(AutoDDConfig), 61824, "Disable minimap", () =>
+        DrawPseudoTitlebar("VBM Deep Dungeon map", typeof(AutoDDConfig), 61824, "Disable minimap", () =>
         {
             _config.EnableMinimap = false;
             _config.Modified.Fire();

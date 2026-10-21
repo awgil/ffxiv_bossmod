@@ -392,7 +392,7 @@ public abstract class QuestBattle : ZoneModule
 
     public override void DrawWindow(RotationModuleManager rmm)
     {
-        Overlays.DrawPseudoTitlebar("VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
+        DrawPseudoTitlebar("VBM Solo Duties", typeof(ZoneModuleConfig), 61805, "Disable solo duty runner", () =>
         {
             _config.EnableQuestBattles = false;
             _config.Modified.Fire();

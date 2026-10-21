@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
@@ -65,7 +66,7 @@ public class AutoDDConfig : ConfigNode
     public BitMask AutoMagicite;
     public BitMask AutoDemiclone;
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(UITree tree, WorldState ws, IUiBuilder uiBuilder, RotationDatabase? db)
     {
         UIMisc.SectionHeader("Auto-poms");
 

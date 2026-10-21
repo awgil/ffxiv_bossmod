@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 
 namespace BossMod.Dawntrail.Quantum.Q01TheFinalVerse;
 
@@ -45,11 +46,11 @@ public class Q01TheFinalVerseConfig : ConfigNode
 
     public FlamebornAssignment FlamebornAssignments;
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(UITree tree, WorldState ws, IUiBuilder uiBuilder, RotationDatabase? db)
     {
         var modified = false;
 
-        ConfigUI.DrawHelp(""); // fixes spacing
+        ConfigUI.DrawHelp(uiBuilder, ""); // fixes spacing
         foreach (var _ in tree.Node("Fevered Flame assignments", contextMenu: () =>
         {
             if (ImGui.MenuItem("Single Merge (pastebin)"))

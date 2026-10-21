@@ -13,7 +13,8 @@ public sealed class UIPresetEditor
         public List<(Type type, RotationModuleDefinition def, Func<RotationModuleManager, Actor, RotationModule> builder)> Leafs = [];
     }
 
-    private readonly AutorotationConfig _autorotConfig = Service.Config.Get<AutorotationConfig>();
+    private readonly AutorotationConfig _autorotConfig;
+    private readonly StrategiesRenderer rendererFactory;
     private readonly PresetDatabase _db;
     private readonly RotationModuleRegistry rmr;
     private int _sourcePresetIndex;
@@ -40,8 +41,10 @@ public sealed class UIPresetEditor
 
     public Type? SelectedModuleType => Preset.Modules.BoundSafeAt(_selectedModuleIndex)?.Type;
 
-    public UIPresetEditor(PresetDatabase db, RotationModuleRegistry rmr, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(PresetDatabase db, RotationModuleRegistry rmr, AutorotationConfig autorotationConfig, StrategiesRenderer rendererFactory, int index, bool isDefaultPreset, Type? initiallySelectedModuleType)
     {
+        _autorotConfig = autorotationConfig;
+        this.rendererFactory = rendererFactory;
         _db = db;
         this.rmr = rmr;
         _sourcePresetIndex = index;
@@ -62,8 +65,9 @@ public sealed class UIPresetEditor
         SelectModule(FindModuleByType(initiallySelectedModuleType));
     }
 
-    public UIPresetEditor(PresetDatabase db, RotationModuleRegistry rmr, Preset preset, Type? initiallySelectedModuleType)
+    public UIPresetEditor(PresetDatabase db, RotationModuleRegistry rmr, AutorotationConfig autorotationConfig, Preset preset, Type? initiallySelectedModuleType)
     {
+        _autorotConfig = autorotationConfig;
         _db = db;
         this.rmr = rmr;
         _sourcePresetIndex = -1;
@@ -270,7 +274,7 @@ public sealed class UIPresetEditor
                 if (active >= 0)
                 {
                     var v2 = ms.SerializedSettings[active].Value with { }; // make clone
-                    if (RendererFactory.Draw(StrategyContext.Preset, cfg, ref v2))
+                    if (rendererFactory.Draw(StrategyContext.Preset, cfg, ref v2))
                     {
                         ms.SerializedSettings.RemoveAt(active);
                         if (!cfg.IsDefault(v2))
@@ -281,7 +285,7 @@ public sealed class UIPresetEditor
                 else
                 {
                     var v1 = cfg.CreateEmpty();
-                    if (RendererFactory.Draw(StrategyContext.Preset, cfg, ref v1))
+                    if (rendererFactory.Draw(StrategyContext.Preset, cfg, ref v1))
                     {
                         if (!cfg.IsDefault(v1))
                             ms.SerializedSettings.Add(new(default, track, v1));
@@ -320,7 +324,7 @@ public sealed class UIPresetEditor
 
             using var _i2 = ImRaii.PushId($"{cfg.InternalName}_override_{i}");
 
-            Modified |= RendererFactory.Draw(StrategyContext.Preset, cfg, ref val.Value);
+            Modified |= rendererFactory.Draw(StrategyContext.Preset, cfg, ref val.Value);
 
             Modified |= DrawModifier(ref val.Mod, Preset.Modifier.Shift, "Shift");
             ImGui.SameLine();

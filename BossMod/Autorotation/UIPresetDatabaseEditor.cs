@@ -9,7 +9,7 @@ using System.Text.Json.Nodes;
 namespace BossMod.Autorotation;
 
 // note: the editor assumes it's the only thing that modifies the database instance; having multiple editors or editing database externally will break things
-public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions, AutorotationConfig cfg, IUiBuilder uiBuilder)
+public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, RotationModuleRegistry rmr, JsonSerializerOptions serOptions, AutorotationConfig cfg, IUiBuilder uiBuilder, StrategiesRenderer rendererFactory)
 {
     private readonly PresetDatabase PresetDB = rotationDB.Presets;
 
@@ -175,7 +175,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
 
     private bool DrawSaveCurrentPresetButton() => UIMisc.Button("Save", 0, (!HaveUnsavedModifications, "Current preset is not modified"), (_selectedPreset?.NameConflict ?? false, "Current preset name is empty or duplicates name of other existing preset"));
 
-    private void RevertCurrentPreset() => _selectedPreset = new(PresetDB, rmr, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
+    private void RevertCurrentPreset() => _selectedPreset = new(PresetDB, rmr, cfg, rendererFactory, _selectedPresetIndex, _selectedPresetDefault, _selectedModuleType);
 
     private void SaveCurrentPreset()
     {
@@ -213,7 +213,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
     {
         _selectedPresetIndex = -1;
         _selectedPresetDefault = false;
-        _selectedPreset = new(PresetDB, rmr, referenceIndex, referenceDefault, _selectedModuleType);
+        _selectedPreset = new(PresetDB, rmr, cfg, rendererFactory, referenceIndex, referenceDefault, _selectedModuleType);
         _selectedPreset.DetachFromSource();
         _selectedPreset.MakeNameUnique();
     }
@@ -293,7 +293,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB, Rotation
             var preset = JsonSerializer.Deserialize<Preset>(json.AsArray()[0], serOptions)!;
             _selectedPresetIndex = -1;
             _selectedPresetDefault = false;
-            _selectedPreset = new(PresetDB, rmr, preset, _selectedModuleType);
+            _selectedPreset = new(PresetDB, rmr, cfg, preset, _selectedModuleType);
         }
         catch (Exception ex)
         {

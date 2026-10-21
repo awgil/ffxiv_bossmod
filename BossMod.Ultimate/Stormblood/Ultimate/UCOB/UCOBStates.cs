@@ -152,11 +152,7 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Plummet>()
-            .ExecOnEnter<P1Plummet>(p =>
-            {
-                p.NextExpected = Module.WorldState.FutureTime(delay);
-                p.Soak = soak;
-            })
+            .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P1Plummet>();
     }
 

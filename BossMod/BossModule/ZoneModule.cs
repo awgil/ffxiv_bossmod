@@ -3,6 +3,7 @@ using BossMod.Interfaces;
 using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 
@@ -15,8 +16,8 @@ public sealed record ZoneModuleInit(
     ICamera Camera,
     ActionDefinitions ActionDefinitions,
     IUiBuilder UiBuilder,
-    MediatorService Mediator,
-    Overlays Overlays
+    ITextureProvider TextureProvider,
+    MediatorService Mediator
 )
 {
     public delegate ZoneModuleInit Factory(WorldState World);
@@ -32,7 +33,6 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
     protected ActionDefinitions ActionDefinitions => init.ActionDefinitions;
     protected IUiBuilder UiBuilder => init.UiBuilder;
     protected MediatorService Mediator => init.Mediator;
-    protected Overlays Overlays => init.Overlays;
 
     public void Dispose()
     {
@@ -62,5 +62,36 @@ public abstract class ZoneModule(ZoneModuleInit init) : IDisposable
             //ImGui.SameLine();
         }
         //ImGui.NewLine();
+    }
+
+    protected void DrawPseudoTitlebar(string title, Type configType, uint iconId, string closeTooltip, Action onClose)
+    {
+        if (iconId != 0 && init.TextureProvider.TryGetFromGameIcon(iconId, out var tex))
+        {
+            UIMisc.Image(tex, new(24 * ImGuiHelpers.GlobalScale));
+            ImGui.SameLine();
+        }
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(title);
+
+        var w = 24 * ImGuiHelpers.GlobalScale;
+
+        ImGui.SameLine(0, 0);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - w - w - 10);
+
+        if (init.UiBuilder.IconButton(FontAwesomeIcon.Cog, new(w, 0)))
+            init.Mediator.Publish(new ShowConfigNode(configType));
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Open settings");
+        ImGui.SameLine();
+        if (init.UiBuilder.IconButton(FontAwesomeIcon.SquareXmark, new(w, 0)))
+            onClose.Invoke();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(closeTooltip);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
     }
 }

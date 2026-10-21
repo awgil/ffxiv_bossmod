@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.Dawntrail.Savage.RM12S2TheLindwurm;
@@ -14,10 +15,10 @@ public class RM12S2TheLindwurmConfig : ConfigNode
     };
     public Replication3Tethers Rep3Assignments = new() { RolesOrdered = [.. Replication3Tethers.DN.RolesOrdered] };
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(UITree tree, WorldState ws, IUiBuilder uiBuilder, RotationDatabase? db)
     {
-        Rep2Assignments.DrawCustom(tree, Modified);
-        Rep3Assignments.DrawCustom(tree, Modified);
+        Rep2Assignments.DrawCustom(tree, uiBuilder, Modified);
+        Rep3Assignments.DrawCustom(tree, uiBuilder, Modified);
     }
 }
 
@@ -82,9 +83,9 @@ public class Replication2Tethers
 
     public bool IsValid() => RolesOrdered.Distinct().Count() == 8;
 
-    public void DrawCustom(UITree tree, Event modified)
+    public void DrawCustom(UITree tree, IUiBuilder uiBuilder, Event modified)
     {
-        ConfigUI.DrawGroupPresetIndicator("rep2clone", "", () => DrawContextMenu(modified));
+        ConfigUI.DrawGroupPresetIndicator(uiBuilder, "rep2clone", "", () => DrawContextMenu(modified));
         foreach (var _ in tree.Node("Replication 2: clone assignments"))
         {
             if (UICombo.Enum("Relative north (for tether priority)", ref RelativeNorth))
@@ -192,9 +193,9 @@ public class Replication3Tethers
 
     public bool IsValid() => RolesOrdered.Distinct().Count() == 8;
 
-    public void DrawCustom(UITree tree, Event modified)
+    public void DrawCustom(UITree tree, IUiBuilder uiBuilder, Event modified)
     {
-        ConfigUI.DrawGroupPresetIndicator("dreamclone", "", () => DrawContextMenu(modified));
+        ConfigUI.DrawGroupPresetIndicator(uiBuilder, "dreamclone", "", () => DrawContextMenu(modified));
         foreach (var _ in tree.Node("Idyllic Dream: clone assignments"))
         {
             using (var table = ImRaii.Table("tab2", 10, ImGuiTableFlags.SizingFixedFit))
