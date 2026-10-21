@@ -798,22 +798,21 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private bool UsedWithin(ActionID action, float seconds)
         => ActionDefinitions.Instance[action] is { MainCooldownGroup: >= 0 } def && World.Client.Cooldowns[def.MainCooldownGroup] is { Total: > 0 } cd && cd.Elapsed < seconds;
 
-    private bool PushMitOGCD<AID>(ref int budget, AID aid, Actor? target, int prio) where AID : Enum
+    // each party mitigation pushed takes one slot of the raidwide budget
+    private void PushMitOGCD<AID>(ref int budget, AID aid, Actor? target, int prio) where AID : Enum
     {
         if (budget <= 0 || !ReadySoon(aid))
-            return false;
+            return;
         UseOGCD(aid, target, prio);
         --budget;
-        return true;
     }
 
-    private bool PushMitOGCDAt<AID>(ref int budget, AID aid, Vector3 location, int prio) where AID : Enum
+    private void PushMitOGCDAt<AID>(ref int budget, AID aid, Vector3 location, int prio) where AID : Enum
     {
         if (budget <= 0 || !ReadySoon(aid))
-            return false;
+            return;
         UseOGCDAt(aid, location, prio);
         --budget;
-        return true;
     }
 
     // ground heal radii aren't in the action data

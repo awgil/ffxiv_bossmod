@@ -59,14 +59,12 @@ public class RaidwideMultiHit(BossModule module, Enum startAction, Enum[] hitAct
     public int Remaining;
     public DateTime NextHit;
     public DateTime LastHit;
-    public int Hits = hits;
-    public float Interval = interval;
     private float _interval;
     private DateTime _lastCounted;
     private int _numSequences;
 
     // hit count and interval of the n-th sequence (0-based), for fights where they differ between casts
-    protected virtual (int Hits, float Interval) Sequence(int index) => (Hits, Interval);
+    protected virtual (int Hits, float Interval) Sequence(int index) => (hits, interval);
 
     public override void AddGlobalHints(GlobalHints hints)
     {
