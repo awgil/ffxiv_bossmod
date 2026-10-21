@@ -137,12 +137,16 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show mechanic sequence and timer hints")]
     public bool ShowMechanicTimers = true;
 
-    [PropertyDisplay("Wrap upcoming mechanics onto multiple lines", tooltip: "If disabled, upcoming mechanics are shown on a single line so the radar does not move up and down as the sequence changes; if they do not all fit, plain mechanics are hidden before tankbusters, raidwides and knockbacks", depends: nameof(ShowMechanicTimers), since: "7.5.7.4")]
+    [PropertyDisplay("Wrap upcoming mechanics onto multiple lines", tooltip: "If disabled, upcoming mechanics are shown on a single line.\r\nIf they do not all fit, the next mechanic is always shown, then plain mechanics are hidden before tankbusters, raidwides and knockbacks.\r\nWhen wrapping, the number of lines is still limited by the reserved text lines setting below.", depends: nameof(ShowMechanicTimers), since: "7.5.7.4")]
     public bool WrapMechanicSequence = false;
 
     [PropertyDisplay("Maximum number of upcoming mechanics to show", depends: nameof(ShowMechanicTimers), since: "7.5.7.4")]
     [PropertySlider(1, 10)]
     public int MaxUpcomingMechanics = 5;
+
+    [PropertyDisplay("Text lines reserved above the radar", tooltip: "Text hints use this many lines above the radar, so the radar stays in place.\r\nIf there is not enough room, the mechanic sequence is shortened first so player and raidwide hints stay visible.\r\nSet to 0 to let the text grow and push the radar down. Has no effect if text hints are in a separate window.", since: "7.5.7.4")]
+    [PropertySlider(0, 20)]
+    public int TextHintLines = 4;
 
     [PropertyDisplay("Show raidwide hints")]
     public bool ShowGlobalHints = true;
