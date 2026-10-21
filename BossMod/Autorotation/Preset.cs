@@ -135,7 +135,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
         {
             if (!RotationModuleRegistry.Modules.TryGetValue(jm.Name, out var md))
             {
-                Service.Log($"Error while deserializing preset {res.Name}: failed to find module {jm.Name}");
+                throw new InvalidOperationException($"Error while deserializing preset {res.Name}: failed to find module {jm.Name}");
                 continue;
             }
 

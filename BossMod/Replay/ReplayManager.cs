@@ -1,4 +1,6 @@
-﻿using BossMod.Autorotation;
+﻿using Autofac.Features.AttributeFilters;
+using BossMod.Autorotation;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.IO;
@@ -71,6 +73,7 @@ public sealed class ReplayManager : IDisposable
     }
 
     private readonly RotationDatabase _rotationDB;
+    private readonly IFileDialogManager fileDialogManager;
     private readonly List<ReplayEntry> _replayEntries = [];
     private readonly List<AnalysisEntry> _analysisEntries = [];
     private readonly ReplayHistory _replayHistory;
@@ -79,10 +82,11 @@ public sealed class ReplayManager : IDisposable
     private string _fileDialogStartPath;
     private bool _convertAnonymize;
 
-    public ReplayManager(RotationDatabase rotationDB, string fileDialogStartPath)
+    public ReplayManager(RotationDatabase rotationDB, IFileDialogManager fileDialogManager, [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo logDir)
     {
         _rotationDB = rotationDB;
-        _fileDialogStartPath = fileDialogStartPath;
+        this.fileDialogManager = fileDialogManager;
+        _fileDialogStartPath = logDir.FullName;
         _replayHistory = ReplayHistory.Load();
         RestoreHistory();
     }
@@ -256,7 +260,7 @@ public sealed class ReplayManager : IDisposable
             // FIXME
             var suffixFilter = Service.IsMock ? "log" : ".log";
 
-            Service.FileDialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
+            fileDialogManager.OpenFileDialog("Select file", suffixFilter, (c, p) =>
             {
                 if (c)
                 {
@@ -270,7 +274,7 @@ public sealed class ReplayManager : IDisposable
         ImGui.SameLine();
         if (UIMisc.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
         {
-            Service.FileDialogManager.OpenFolderDialog("Select directory", (c, p) =>
+            fileDialogManager.OpenFolderDialog("Select directory", (c, p) =>
             {
                 if (c)
                 {
