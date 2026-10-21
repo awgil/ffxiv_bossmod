@@ -175,7 +175,7 @@ public abstract class BossModule : IDisposable
         if (includeText)
         {
             if (WindowConfig.ShowMechanicTimers)
-                StateMachine.Draw(ActualShadowColor);
+                StateMachine.Draw(ActualShadowColor, WindowConfig.MaxUpcomingMechanics, WindowConfig.WrapMechanicSequence);
 
             if (WindowConfig.ShowGlobalHints)
                 DrawGlobalHints(CalculateGlobalHints());

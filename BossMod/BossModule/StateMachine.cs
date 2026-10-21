@@ -108,7 +108,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         }
     }
 
-    public void Draw(Color outlineColor)
+    public void Draw(Color outlineColor, int maxFuture, bool wrap)
     {
         if (ActiveState == null)
         {
@@ -121,7 +121,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         DrawStateText($"Cur: {activeName}", activeEnd.EndHint, outlineColor);
 
         List<(string name, StateHint hint)> future = [];
-        while (next != null && future.Count < 5)
+        while (next != null && future.Count < maxFuture)
         {
             (var name, var end, var after) = BuildComplexState(next, 0, false);
             if (name.Length > 0)
@@ -139,7 +139,10 @@ public class StateMachine(List<StateMachine.Phase> phases)
         for (var i = 0; i < future.Count; ++i)
         {
             var text = i == 0 ? future[i].name : $"> {future[i].name}";
-            UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X);
+            if (wrap)
+                UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X);
+            else
+                ImGui.SameLine();
             DrawStateText(text, future[i].hint, outlineColor);
         }
     }

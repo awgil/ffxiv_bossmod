@@ -137,6 +137,13 @@ public class BossModuleConfig : ConfigNode
     [PropertyDisplay("Show mechanic sequence and timer hints")]
     public bool ShowMechanicTimers = true;
 
+    [PropertyDisplay("Wrap upcoming mechanics onto multiple lines", tooltip: "If disabled, upcoming mechanics are shown on a single line that is cut off at the edge of the window, so the radar does not move up and down as the sequence changes", depends: nameof(ShowMechanicTimers), since: "7.5.7.4")]
+    public bool WrapMechanicSequence = false;
+
+    [PropertyDisplay("Maximum number of upcoming mechanics to show", depends: nameof(ShowMechanicTimers), since: "7.5.7.4")]
+    [PropertySlider(1, 10)]
+    public int MaxUpcomingMechanics = 5;
+
     [PropertyDisplay("Show raidwide hints")]
     public bool ShowGlobalHints = true;
 
