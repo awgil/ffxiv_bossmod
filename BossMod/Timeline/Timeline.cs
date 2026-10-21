@@ -108,6 +108,7 @@ public class Timeline
 
     private float _tickFrequency = 5;
     private readonly float _timeAxisWidth = 35 * ImGuiHelpers.GlobalScale;
+    private bool _vScrollDragging;
 
     // these fields are transient and reinitialized on each draw
     private float _curColumnOffset;
@@ -154,26 +155,77 @@ public class Timeline
         }
 
         _screenClientTL = ImGui.GetCursorScreenPos();
-        _screenClientTL.Y += TopMargin;
-        Columns.DrawHeader(_screenClientTL + new Vector2(_timeAxisWidth, 0));
+        var avail = ImGui.GetContentRegionAvail();
+        var scrollSize = ImGui.GetStyle().ScrollbarSize;
 
-        ImGui.SetCursorScreenPos(_screenClientTL);
-        _screenClientTL.X += _timeAxisWidth;
+        var hScrollH = 0f;
+        var vScrollW = 0f;
+        var colViewW = 0f;
+        Height = 10;
+        var fullTimeHeight = TimeDeltaToScreenDelta(MathF.Max(0.01f, MaxTime - MinTime));
+        for (int i = 0; i < 2; ++i)
+        {
+            Height = MathF.Max(10, avail.Y - TopMargin - BottomMargin - hScrollH);
+            vScrollW = fullTimeHeight > Height + 1 ? scrollSize : 0;
+            colViewW = MathF.Max(50, avail.X - _timeAxisWidth - vScrollW);
+            hScrollH = Columns.Width > colViewW + 1 ? scrollSize : 0;
+        }
 
-        Height = MathF.Max(10, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight() - _screenClientTL.Y - BottomMargin - 8);
-        ImGui.InvisibleButton("canvas", new(_timeAxisWidth + Columns.Width, Height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
-        HandleScrollZoom();
+        var origin = _screenClientTL;
+        _screenClientTL = origin + new Vector2(_timeAxisWidth, TopMargin);
+
+        // columns + headers (horizontal scroll); time axis stays pinned on the left
+        ImGui.SetCursorScreenPos(origin + new Vector2(_timeAxisWidth, 0));
+        using (var hchild = ImRaii.Child("##timeline-h", new Vector2(colViewW, TopMargin + Height + hScrollH), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+        {
+            if (hchild)
+            {
+                var colOrigin = ImGui.GetCursorScreenPos();
+                Columns.DrawHeader(colOrigin + new Vector2(0, TopMargin));
+                ImGui.SetCursorScreenPos(colOrigin + new Vector2(0, TopMargin));
+                ImGui.InvisibleButton("canvas", new(MathF.Max(Columns.Width, 1), Height), ImGuiButtonFlags.MouseButtonLeft | ImGuiButtonFlags.MouseButtonRight);
+                HandleScrollZoom();
+
+                _screenClientTL = colOrigin + new Vector2(0, TopMargin);
+                ImGui.PushClipRect(_screenClientTL, _screenClientTL + new Vector2(MathF.Max(Columns.Width, colViewW), Height), true);
+
+                _curColumnOffset = 0;
+                Columns.DrawAdvance(ref _curColumnOffset);
+
+                foreach (var h in _highlightTime)
+                    ImGui.GetWindowDrawList().AddLine(CanvasCoordsToScreenCoords(0, h.t), CanvasCoordsToScreenCoords(Columns.Width, h.t), h.color);
+                _highlightTime.Clear();
+
+                ImGui.PopClipRect();
+            }
+        }
+
+        // vertical scrollbar for time
+        if (vScrollW > 0)
+        {
+            ImGui.SetCursorScreenPos(origin + new Vector2(avail.X - vScrollW, TopMargin));
+            using (var vchild = ImRaii.Child("##timeline-v", new Vector2(vScrollW, Height), false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            {
+                if (vchild)
+                {
+                    ImGui.Dummy(new Vector2(1, MathF.Max(fullTimeHeight, Height + 1)));
+                    var expected = TimeDeltaToScreenDelta(MinVisibleTime - MinTime);
+                    if (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        _vScrollDragging = true;
+                    if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                        _vScrollDragging = false;
+                    if (_vScrollDragging)
+                        MinVisibleTime = Math.Clamp(MinTime + ScreenDeltaToTimeDelta(ImGui.GetScrollY()), MinTime, MathF.Max(MinTime, MaxTime - Height / PixelsPerSecond));
+                    else
+                        ImGui.SetScrollY(expected);
+                }
+            }
+        }
+
+        // time axis on top of the left gutter (after scroll so labels match the visible range)
+        _screenClientTL = origin + new Vector2(_timeAxisWidth, TopMargin);
+        ImGui.PushClipRect(origin, origin + new Vector2(_timeAxisWidth, TopMargin + Height), true);
         DrawTimeAxis();
-        ImGui.PushClipRect(_screenClientTL, _screenClientTL + new Vector2(Columns.Width, Height), true);
-
-        _curColumnOffset = 0;
-        Columns.DrawAdvance(ref _curColumnOffset);
-
-        // cursor lines
-        foreach (var h in _highlightTime)
-            ImGui.GetWindowDrawList().AddLine(CanvasCoordsToScreenCoords(0, h.t), CanvasCoordsToScreenCoords(Columns.Width, h.t), h.color);
-        _highlightTime.Clear();
-
         ImGui.PopClipRect();
 
         if (_tooltip.Count > 0)
