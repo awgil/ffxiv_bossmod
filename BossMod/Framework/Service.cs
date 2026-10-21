@@ -34,7 +34,6 @@ public sealed class Service
     [PluginService] private static INotificationManager Notifications { get; set; }
     [PluginService] public static IPluginLog PluginLog { get; private set; }
     [PluginService] public static IUnlockState UnlockState { get; private set; }
-    [PluginService] public static IUiBuilder UiBuilder { get; private set; }
 #pragma warning restore CS8618
 
 #pragma warning disable CA2211
@@ -55,6 +54,7 @@ public sealed class Service
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;
+    public static IUiBuilder UiBuilder = null!;
     public static ConfigRoot Config = null!;
     public static MediatorService Mediator = null!;
     public static GaugeVisualizer GaugeVisualizer = null!;

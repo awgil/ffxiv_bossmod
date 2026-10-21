@@ -96,6 +96,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             Service.Mediator = scope.Resolve<MediatorService>();
             Service.GaugeVisualizer = scope.Resolve<ReplayVisualization.GaugeVisualizer>();
             Service.Camera = scope.Resolve<ICamera>();
+            Service.UiBuilder = scope.Resolve<IUiBuilder>();
 
             // registers all built in config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
@@ -107,6 +108,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
     {
+        containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
+
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
