@@ -9,26 +9,30 @@ using System.IO;
 
 namespace BossMod;
 
-public class Plugin : HostedPlugin
+public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 {
     public string Name => "Boss Mod";
-
-    public Plugin(IDalamudPluginInterface dalamud, ISigScanner sigScanner, IDataManager dataManager) : base(dalamud)
-    {
-#if LOCAL_CS
-        if (sigScanner == null) // nonexistent in mock environment
-            return;
-
-        InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
-        FFXIVClientStructs.Interop.Generated.Addresses.Register();
-        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
-#endif
-    }
 
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
+
+#if LOCAL_CS
+        containerBuilder.RegisterBuildCallback(ctx =>
+        {
+            var sigScanner = ctx.Resolve<ISigScanner>();
+            var dataManager = ctx.Resolve<IDataManager>();
+            var dalamud = ctx.Resolve<IDalamudPluginInterface>();
+            var logger = ctx.Resolve<IPluginLog>();
+
+            logger.Info("LOCAL_CS: initializing our custom address resolver");
+
+            InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
+            FFXIVClientStructs.Interop.Generated.Addresses.Register();
+            InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
+        });
+#endif
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
 
