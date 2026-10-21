@@ -4,7 +4,6 @@ using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using System.IO;
 using System.Reflection;
 using static DalaMock.Core.Fonts.MockDefaultFontConfig;
@@ -17,7 +16,7 @@ sealed class DalamudLibPathAttribute(string path) : Attribute
 
 static class Program
 {
-    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud, IDataManager dataManager) : Plugin(dalamud, null!, dataManager)
+    private class MockPlugin(MockReplacementContainer mrc, IDalamudPluginInterface dalamud) : Plugin(dalamud)
     {
         public override IReplacementContainer ReplacementContainer { get; } = mrc;
     }
