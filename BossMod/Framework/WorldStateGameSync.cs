@@ -192,7 +192,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
             ),
             prevFramePerf,
             GaugeData(),
-            Camera.Instance()?.CameraAzimuth.Radians() ?? default
+            Service.Camera.CameraAzimuth.Radians()
         ));
         if (ws.CurrentZone != Service.ClientState.TerritoryType || ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {

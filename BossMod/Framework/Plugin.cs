@@ -89,11 +89,13 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
             dalamud.Create<Service>();
 
+            Service.IsDev = dalamud.IsDev;
+
             Service.Config = scope.Resolve<ConfigRoot>();
             Service.LuminaGameData = scope.Resolve<IDataManager>().GameData;
             Service.Mediator = scope.Resolve<MediatorService>();
-            Service.IsDev = dalamud.IsDev;
             Service.GaugeVisualizer = scope.Resolve<ReplayVisualization.GaugeVisualizer>();
+            Service.Camera = scope.Resolve<ICamera>();
 
             // registers all built in config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
@@ -110,9 +112,13 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
 
-        containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
+
+        containerBuilder.RegisterSingletonSelf<MainDebugWindow>();
+
+        containerBuilder.RegisterSingletonSelfAndInterfaces<Camera>();
 
         // global worldstate
         containerBuilder.Register(scope =>
@@ -128,7 +134,10 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
         containerBuilder.RegisterBuildCallback(ctx =>
         {
-            unsafe { MultiboxUnlock.Exec(); }
+            unsafe
+            {
+                MultiboxUnlock.Exec();
+            }
         });
 
 #if LOCAL_CS

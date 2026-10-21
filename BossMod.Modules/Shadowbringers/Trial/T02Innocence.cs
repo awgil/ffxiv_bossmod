@@ -323,5 +323,5 @@ public class T02Innocence(ModuleInit init) : BossModule(init, new(100, 100), new
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 2)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 666, NameID = 8353, PrimaryActorOID = (uint)OID.BossP2, SortOrder = 3)]
 public class T02InnocenceP2(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

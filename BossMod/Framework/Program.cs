@@ -51,6 +51,7 @@ static class Program
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockAmex>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockCamera>();
         }
     }
 

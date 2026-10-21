@@ -42,16 +42,17 @@ internal sealed class TickService(
     BossModuleManager bossmod,
     RotationDatabase rotationDB,
     RotationModuleManager rotation,
+    ZoneModuleManager zonemod,
     ReplayManager replayManager,
     WorldState worldstateGlobal,
     AIHintsBuilder hintsBuilder,
-    AIHints hintsGlobal
+    AIHints hintsGlobal,
+    IEnumerable<Func<MainDebugWindow>> mainDebugWindow
 ) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
 {
 #nullable disable
     private IWindowSystem windowSystem;
 
-    private ZoneModuleManager _zonemod;
     private SlashCommandProvider _slashCmd;
     private TimeSpan _prevUpdateTime;
 
@@ -72,15 +73,12 @@ internal sealed class TickService(
 
         MigratePlans(configDir.FullName);
 
-        _zonemod = new(worldstateGlobal);
-        hintsBuilder = new(worldstateGlobal, bossmod, _zonemod);
-        rotation = new(rotationDB, bossmod, hintsGlobal);
         _slashCmd = new(commandManager, "/vbm");
 
         _wndConfig = new(new(Service.Config, worldstateGlobal, replayDir, rotationDB));
-        _wndBossmod = new BossModuleMainWindow(bossmod, _zonemod, hintsGlobal);
-        _wndBossmodHints = new BossModuleHintsWindow(bossmod, _zonemod, hintsGlobal);
-        _wndZone = new ZoneModuleWindow(_zonemod, rotation);
+        _wndBossmod = new BossModuleMainWindow(bossmod, zonemod, hintsGlobal);
+        _wndBossmodHints = new BossModuleHintsWindow(bossmod, zonemod, hintsGlobal);
+        _wndZone = new ZoneModuleWindow(zonemod, rotation);
         _wndReplay = new ReplayManagementWindow(worldstateGlobal, bossmod, replayDir, replayManager);
         _wndRotation = new UIRotationWindow(rotation, amex);
         _wndAI = new AIWindow(rotation);
@@ -91,10 +89,8 @@ internal sealed class TickService(
             Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
             _ = new MainDevWindow(dalamud, packService) { IsOpen = true };
         }
-        else
-        {
-            _wndDebug = new MainDebugWindow(worldstateGlobal, rotation, (ActionManagerEx)amex, (MovementOverride)movementOverride, hintsBuilder, dalamud);
-        }
+
+        _wndDebug = mainDebugWindow.FirstOrDefault()?.Invoke();
 
         RegisterSlashCommands();
 
@@ -141,10 +137,10 @@ internal sealed class TickService(
         var tsStart = DateTime.Now;
         var moveImminent = movementOverride.IsMoveRequested() && (!amex.Config.PreventMovingWhileCasting || movementOverride.IsForceUnblocked());
 
-        Camera.Instance()?.Update();
+        Service.Camera.Update();
         wsSync.Update(_prevUpdateTime);
         bossmod.Update();
-        _zonemod.ActiveModule?.Update();
+        zonemod.ActiveModule?.Update();
         hintsBuilder.Update(hintsGlobal, PartyState.PlayerSlot, moveImminent);
         amex.QueueManualActions();
         rotation.Update(amex.AnimationLockDelayEstimate, movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
@@ -160,7 +156,7 @@ internal sealed class TickService(
 
         hintExecutor.Execute();
 
-        Camera.Instance()?.DrawWorldPrimitives();
+        Service.Camera.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
     }
 
@@ -494,39 +490,6 @@ internal sealed class TickService(
         Service.Log($"[Migrator] Done.");
     }
 
-    private void CopyLibraries(FileInfo assemblyLocation)
-    {
-        var modulesDir = packService.ModuleDir;
-        var assemblyDir = assemblyLocation.DirectoryName;
-
-        Directory.CreateDirectory(modulesDir);
-
-        void copy(string filename)
-        {
-            var src = Path.Join(assemblyDir, filename);
-            var dest = Path.Join(modulesDir, filename);
-            if (File.Exists(src))
-            {
-                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
-                {
-                    Service.PluginLog.Debug($"{dest} is newer than our version, skipping copy");
-                    return;
-                }
-
-                Service.PluginLog.Debug($"copied {src} to {dest}");
-                File.Copy(src, Path.Join(modulesDir, filename), true);
-
-                return;
-            }
-
-            Service.PluginLog.Warning($"{src} does not exist, cannot copy");
-        }
-
-        copy("BossMod.Autorotation.dll");
-        copy("BossMod.Modules.dll");
-        copy("BossMod.Ultimate.dll");
-    }
-
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -544,6 +507,5 @@ internal sealed class TickService(
         _wndBossmod.Dispose();
         _wndConfig.Dispose();
         _slashCmd.Dispose();
-        _zonemod.Dispose();
     }
 }

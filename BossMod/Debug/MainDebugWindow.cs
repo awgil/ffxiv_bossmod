@@ -117,7 +117,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         {
             _debugGraphics.DrawMatrices();
         }
-        if (Camera.Instance != null && ImGui.CollapsingHeader("In-game overlay"))
+        if (ImGui.CollapsingHeader("In-game overlay"))
         {
             _debugGraphics.DrawOverlay();
         }

@@ -1,4 +1,5 @@
-﻿using BossMod.ReplayVisualization;
+﻿using BossMod.Interfaces;
+using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
@@ -43,8 +44,6 @@ public sealed class Service
     public static bool IsDev;
     public static bool IsMock;
 
-    public static GaugeVisualizer GaugeVisualizer = null!;
-
     public static void ChatMessage(string msg) => ChatGui.Print(msg, "VBM");
     public static void ChatError(string msg) => ChatGui.PrintError(msg, "VBM");
 
@@ -57,8 +56,9 @@ public sealed class Service
 
     public static IWindowSystem WindowSystem = null!;
     public static ConfigRoot Config = null!;
-
     public static MediatorService Mediator = null!;
+    public static GaugeVisualizer GaugeVisualizer = null!;
+    public static ICamera Camera = null!;
 #pragma warning restore CA2211
 
     //public static SharpDX.Direct3D11.Device? Device = null;

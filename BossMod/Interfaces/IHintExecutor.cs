@@ -6,13 +6,10 @@ namespace BossMod.Interfaces;
 
 public interface IHintExecutor
 {
-    void Execute();
+    void Execute() { }
 }
 
-internal sealed class MockHintExecutor : IHintExecutor
-{
-    public void Execute() { }
-}
+internal sealed class MockHintExecutor : IHintExecutor;
 
 internal sealed class HintExecutor(WorldState ws, IMovementOverride movementOverride, IAmex amex, AIHints hints) : IHintExecutor
 {
