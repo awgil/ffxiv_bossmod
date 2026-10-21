@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using BossMod.Autorotation;
+using BossMod.Dev;
 using BossMod.Interfaces;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
@@ -40,6 +41,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly IClientState clientState;
     private readonly IWindowSystemFactory windowSystemFactory;
     private readonly WindowBase[] windows;
+    private readonly TestWindow[] testWindows;
     private readonly IHintExecutor _hintExecutor;
 
     public TickService(
@@ -53,9 +55,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         IClientState clientState,
         IWindowSystemFactory windowSystemFactory,
         WindowBase[] windows,
+        TestWindow[] testWindows,
         ConfigRoot configRoot,
         IAmex amex,
-        WorldState wsGlobal,
         AIHints hintsGlobal,
         BossModuleManager bmm,
         RotationModuleManager rmm,
@@ -75,7 +77,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         this.clientState = clientState;
         this.windowSystemFactory = windowSystemFactory;
         this.windows = windows;
-
+        this.testWindows = testWindows;
         Service.PluginInterface = dalamud;
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
@@ -106,6 +108,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         foreach (var window in windows)
             windowSystem.AddWindow(window);
+        foreach (var testWindow in testWindows)
+            windowSystem.AddWindow(testWindow);
 
         clientState.Logout += OnLogout;
 

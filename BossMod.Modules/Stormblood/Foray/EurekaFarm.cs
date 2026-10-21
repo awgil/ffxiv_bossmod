@@ -1,5 +1,6 @@
 ﻿using BossMod.Autorotation;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using System.Reflection;
 
 namespace BossMod.Stormblood.Foray;
@@ -139,9 +140,9 @@ public abstract class EurekaZone<NM> : ZoneModule where NM : struct, Enum
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.SetNextItemWidth(200);
+        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
         modified |= ImGui.SliderFloat("Search distance (yalms)", ref _globalConfig.MaxPullDistance, 20, 120);
-        ImGui.SetNextItemWidth(200);
+        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
         modified |= ImGui.SliderInt("Max pull size (0 = unlimited)", ref _globalConfig.MaxPullCount, 0, 30);
         modified |= ImGui.Checkbox("Only attack mobs that are already in combat", ref _globalConfig.AssistMode);
 

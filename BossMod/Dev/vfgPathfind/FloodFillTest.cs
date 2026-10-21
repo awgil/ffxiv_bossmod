@@ -1,10 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
+using System.Threading.Tasks;
 
 namespace BossMod.Dev.vfgPathfind;
 
 class FloodFillTest() : TestWindow("vfg floodfill test", new(400, 400), ImGuiWindowFlags.None)
 {
-    private FloodFillVisualizer? _visu;
+    private Task<FloodFillVisualizer>? _visu;
     private float _spaceRes = 0.5f;
     private float _timeRes = 0.25f;
     private float _aoeLeeway = 0.5f;
@@ -13,8 +14,14 @@ class FloodFillTest() : TestWindow("vfg floodfill test", new(400, 400), ImGuiWin
 
     public override void Draw()
     {
-        _visu ??= RebuildMap();
-        _visu.Draw();
+        _visu ??= Task.Run(RebuildMap);
+
+        if (!_visu.IsCompleted)
+        {
+            ImGui.Text("Pathfinding...");
+            return;
+        }
+        _visu.Result.Draw();
 
         var rebuild = false;
         ImGui.TextUnformatted($"Time to pathfind: {_timeToBuild:f3}s");
@@ -27,7 +34,7 @@ class FloodFillTest() : TestWindow("vfg floodfill test", new(400, 400), ImGuiWin
         }
 
         if (rebuild)
-            _visu = RebuildMap();
+            _visu = Task.Run(RebuildMap);
     }
 
     private FloodFillVisualizer RebuildMap()

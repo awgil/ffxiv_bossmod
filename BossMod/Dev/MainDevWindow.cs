@@ -17,10 +17,10 @@ class MainDevWindow : WindowBase, IDisposable
     readonly EventSubscription _configChange;
     private readonly IDalamudPluginInterface dalamud;
     private readonly ModulePackService packs;
-    private readonly IEnumerable<TestWindow> testWindows;
+    private readonly TestWindow[] testWindows;
     private readonly MediatorService mediator;
 
-    public MainDevWindow(IDalamudPluginInterface dalamud, ModulePackService packs, IEnumerable<TestWindow> testWindows, MediatorService mediator, ConfigRoot config) : base("Dev tools", new(600, 600))
+    public MainDevWindow(IDalamudPluginInterface dalamud, ModulePackService packs, TestWindow[] testWindows, MediatorService mediator, ConfigRoot config) : base("Dev tools", new(600, 600))
     {
         _configChange = config.Modified.Subscribe(() => ConfigModified = true);
         this.dalamud = dalamud;
@@ -52,9 +52,6 @@ class MainDevWindow : WindowBase, IDisposable
 
         foreach (var t in testWindows)
             if (ImGui.Button($"Show {t.GetType()}"))
-            {
-                t.IsOpen = true;
-                mediator.CreateWindow(t);
-            }
+                mediator.Publish(new OpenWindow(t.GetType()));
     }
 }

@@ -230,6 +230,7 @@ public class UIStrategyValue(IUiBuilder uiBuilder)
         StrategyTarget.Self => supported.HasFlag(ActionTargets.Self),
         StrategyTarget.PartyByAssignment => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.PartyWithLowestHP => supported.HasFlag(ActionTargets.Party),
+        StrategyTarget.PartyByFilter => supported.HasFlag(ActionTargets.Party),
         StrategyTarget.EnemyWithHighestPriority => supported.HasFlag(ActionTargets.Hostile),
         StrategyTarget.EnemyByOID => supported.HasFlag(ActionTargets.Hostile) && moduleInfo != null,
         StrategyTarget.PointAbsolute or StrategyTarget.PointCenter or StrategyTarget.PointWaymark => false,
@@ -274,9 +275,9 @@ public sealed class RendererAttribute(Type type) : Attribute
 
 public class StrategiesRenderer
 {
-    private readonly Dictionary<Type, IStrategyRenderer> _dict = [];
+    private readonly Dictionary<Type, Lazy<IStrategyRenderer>> _dict = [];
 
-    public StrategiesRenderer(IStrategyRenderer[] renderers)
+    public StrategiesRenderer(Lazy<IStrategyRenderer>[] renderers)
     {
         foreach (var r in renderers)
             _dict[r.GetType()] = r;
@@ -291,9 +292,9 @@ public class StrategiesRenderer
         using var _ = ImRaii.PushId(config.InternalName);
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        inst.DrawLabel(context, config);
+        inst.Value.DrawLabel(context, config);
         ImGui.TableNextColumn();
-        return inst.DrawValue(context, config, ref value);
+        return inst.Value.DrawValue(context, config, ref value);
     }
 }
 
