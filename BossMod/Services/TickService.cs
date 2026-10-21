@@ -3,7 +3,6 @@ using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
-using BossMod.Network;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
@@ -35,28 +34,26 @@ internal sealed class TickService(
     IClientState clientState,
     IWindowSystemFactory windowSystemFactory,
     IFileDialogManager fileDialogManager,
-    RotationDatabase rotationDB,
-    ReplayManager replayManager,
     ModulePackService packService,
-    PingService pingService,
+    IAmex amex,
+    IMovementOverride movementOverride,
+    IWorldStateGameSync wsSync,
+    IHintExecutor hintExecutor,
+    BossModuleManager bossmod,
+    RotationDatabase rotationDB,
+    RotationModuleManager rotation,
+    ReplayManager replayManager,
     WorldState worldstateGlobal,
+    AIHintsBuilder hintsBuilder,
     AIHints hintsGlobal
 ) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
 {
 #nullable disable
     private IWindowSystem windowSystem;
 
-    private BossModuleManager _bossmod;
     private ZoneModuleManager _zonemod;
-    private AIHintsBuilder _hintsBuilder;
-    private IMovementOverride _movementOverride;
-    private IAmex _amex;
-    private IWorldStateGameSync _wsSync;
-    private RotationModuleManager _rotation;
     private SlashCommandProvider _slashCmd;
-    private MultiboxManager _mbox;
     private TimeSpan _prevUpdateTime;
-    private IHintExecutor _hintExecutor;
 
     private BossModuleMainWindow _wndBossmod;
     private BossModuleHintsWindow _wndBossmodHints;
@@ -75,35 +72,18 @@ internal sealed class TickService(
 
         MigratePlans(configDir.FullName);
 
-        if (Service.IsMock)
-        {
-            _movementOverride = new MockMovementOverride();
-            _amex = new MockAmex();
-            _wsSync = new MockWorldStateGameSync();
-            _hintExecutor = new MockHintExecutor();
-        }
-        else
-        {
-            _movementOverride = new MovementOverride(dalamud);
-            _amex = new ActionManagerEx(worldstateGlobal, hintsGlobal, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(worldstateGlobal, (ActionManagerEx)_amex, pingService);
-            _hintExecutor = new HintExecutor(worldstateGlobal, _movementOverride, _amex, hintsGlobal);
-        }
-
-        _bossmod = new(worldstateGlobal);
         _zonemod = new(worldstateGlobal);
-        _hintsBuilder = new(worldstateGlobal, _bossmod, _zonemod);
-        _rotation = new(rotationDB, _bossmod, hintsGlobal);
+        hintsBuilder = new(worldstateGlobal, bossmod, _zonemod);
+        rotation = new(rotationDB, bossmod, hintsGlobal);
         _slashCmd = new(commandManager, "/vbm");
-        _mbox = new(_rotation, worldstateGlobal);
 
         _wndConfig = new(new(Service.Config, worldstateGlobal, replayDir, rotationDB));
-        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, hintsGlobal);
-        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, hintsGlobal);
-        _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
-        _wndReplay = new ReplayManagementWindow(worldstateGlobal, _bossmod, replayDir, replayManager);
-        _wndRotation = new UIRotationWindow(_rotation, _amex);
-        _wndAI = new AIWindow(_rotation);
+        _wndBossmod = new BossModuleMainWindow(bossmod, _zonemod, hintsGlobal);
+        _wndBossmodHints = new BossModuleHintsWindow(bossmod, _zonemod, hintsGlobal);
+        _wndZone = new ZoneModuleWindow(_zonemod, rotation);
+        _wndReplay = new ReplayManagementWindow(worldstateGlobal, bossmod, replayDir, replayManager);
+        _wndRotation = new UIRotationWindow(rotation, amex);
+        _wndAI = new AIWindow(rotation);
         _wndChangelog = new();
 
         if (Service.IsMock)
@@ -113,7 +93,7 @@ internal sealed class TickService(
         }
         else
         {
-            _wndDebug = new MainDebugWindow(worldstateGlobal, _rotation, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
+            _wndDebug = new MainDebugWindow(worldstateGlobal, rotation, (ActionManagerEx)amex, (MovementOverride)movementOverride, hintsBuilder, dalamud);
         }
 
         RegisterSlashCommands();
@@ -121,8 +101,8 @@ internal sealed class TickService(
         Version cutoff = new(7, 5, 1, 13);
         if (Service.Config.PreviousAssemblyVersion < cutoff && Service.Config.AssemblyVersion >= cutoff)
         {
-            Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
-            _hintsBuilder.Obstacles.ClearGenerated();
+            Service.Log($"Removing potentially broken bitmaps from {hintsBuilder.Obstacles.UserRoot.FullName}");
+            hintsBuilder.Obstacles.ClearGenerated();
         }
 
         // TODO: this should be in worldstate, but how?
@@ -159,17 +139,17 @@ internal sealed class TickService(
     void Update()
     {
         var tsStart = DateTime.Now;
-        var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
+        var moveImminent = movementOverride.IsMoveRequested() && (!amex.Config.PreventMovingWhileCasting || movementOverride.IsForceUnblocked());
 
         Camera.Instance()?.Update();
-        _wsSync.Update(_prevUpdateTime);
-        _bossmod.Update();
+        wsSync.Update(_prevUpdateTime);
+        bossmod.Update();
         _zonemod.ActiveModule?.Update();
-        _hintsBuilder.Update(hintsGlobal, PartyState.PlayerSlot, moveImminent);
-        _amex.QueueManualActions();
-        _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
-        _amex.FinishActionGather();
-        _wsSync.UpdateReplayState(_rotation, _movementOverride, hintsGlobal);
+        hintsBuilder.Update(hintsGlobal, PartyState.PlayerSlot, moveImminent);
+        amex.QueueManualActions();
+        rotation.Update(amex.AnimationLockDelayEstimate, movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
+        amex.FinishActionGather();
+        wsSync.UpdateReplayState(rotation, movementOverride, hintsGlobal);
 
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
@@ -178,7 +158,7 @@ internal sealed class TickService(
             fileDialogManager.Draw();
         }
 
-        _hintExecutor.Execute();
+        hintExecutor.Execute();
 
         Camera.Instance()?.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
@@ -191,7 +171,7 @@ internal sealed class TickService(
 
     void OnLogout(int type, int code)
     {
-        _bossmod.ForceUnload($"logout type={type}, code={code}");
+        bossmod.ForceUnload($"logout type={type}, code={code}");
     }
 
     void OpenConfigUI(string tab = "")
@@ -223,14 +203,14 @@ internal sealed class TickService(
             GC.Collect();
         });
 
-        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
+        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", hintsBuilder.Obstacles.ClearGenerated);
 
         _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
         {
             unsafe
             {
                 if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
-                    _amex.MacroCapture = true;
+                    amex.MacroCapture = true;
                 else
                     Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
             }
@@ -240,7 +220,7 @@ internal sealed class TickService(
             unsafe
             {
                 if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
-                    _amex.MacroCapture = false;
+                    amex.MacroCapture = false;
                 else
                     Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
             }
@@ -258,20 +238,20 @@ internal sealed class TickService(
         {
             if (toggle)
             {
-                var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
+                var verb = rotation.Presets.Contains(preset) ? "disables" : "enables";
                 Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
-                _rotation.Toggle(preset, exclusive);
+                rotation.Toggle(preset, exclusive);
             }
             else
             {
                 Service.Log($"Console: set activates preset '{preset.Name}'");
-                _rotation.Activate(preset, exclusive);
+                rotation.Activate(preset, exclusive);
             }
         }
 
         void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle, bool exclusive)
         {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            var preset = rotation.Database.Presets.FindPresetByName(presetName);
             if (preset != null)
                 SetOrToggle(preset, toggle, exclusive);
             else
@@ -280,11 +260,11 @@ internal sealed class TickService(
 
         void ClearByName(ReadOnlySpan<char> presetName)
         {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            var preset = rotation.Database.Presets.FindPresetByName(presetName);
             if (preset != null)
             {
                 Service.Log($"Console: unset deactivates preset '{preset.Name}'");
-                _rotation.Deactivate(preset);
+                rotation.Deactivate(preset);
             }
             else
                 Service.ChatError($"Failed to find preset '{presetName}'");
@@ -293,13 +273,13 @@ internal sealed class TickService(
         cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
-            Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
-            _rotation.Clear();
+            Service.Log($"Console: clearing autorotation preset(s) '{rotation.PresetNames}'");
+            rotation.Clear();
         });
         cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
         {
-            Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
-            _rotation.SetForceDisabled();
+            Service.Log($"Console: force-disabling from presets '{rotation.PresetNames}'");
+            rotation.SetForceDisabled();
         });
         cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset, and deactivate others", preset =>
         {
@@ -433,7 +413,7 @@ internal sealed class TickService(
 
         diag.AppendLine();
         diag.AppendLine("autorot:");
-        foreach (var m in _rotation.Presets)
+        foreach (var m in rotation.Presets)
         {
             diag.AppendLine($"{m.Name}");
             foreach (var mod in m.Modules)
@@ -449,7 +429,7 @@ internal sealed class TickService(
 
         diag.AppendLine();
         diag.AppendLine("modules:");
-        foreach (var m in _bossmod.LoadedModules)
+        foreach (var m in bossmod.LoadedModules)
         {
             var s = m.StateMachine.ActiveState == null ? "inactive" : "active";
             diag.AppendLine($"{m.GetType()} ({s}) (OID=0x{m.PrimaryActor.OID:X})");
@@ -460,7 +440,7 @@ internal sealed class TickService(
             diag.AppendLine();
             diag.AppendLine("bitmap:");
 
-            var (entry, _) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+            var (entry, _) = hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
             if (entry != null)
                 diag.AppendLine(entry.ToString());
 
@@ -563,14 +543,7 @@ internal sealed class TickService(
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _wndConfig.Dispose();
-        _mbox.Dispose();
         _slashCmd.Dispose();
-        _rotation.Dispose();
-        _wsSync.Dispose();
-        _amex.Dispose();
-        _movementOverride.Dispose();
-        _hintsBuilder.Dispose();
         _zonemod.Dispose();
-        _bossmod.Dispose();
     }
 }

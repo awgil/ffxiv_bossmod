@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
-using BossMod.Network;
+using BossMod.Interfaces;
 using BossMod.Pathfinding;
 using BossMod.Services;
 using DalaMock.Host.Hosting;
@@ -72,8 +72,10 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<ReplayManager>().WithAttributeFiltering();
 
         // everything defined in this section is created on demand during replay parsing/viewing
-        containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<BossModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<RotationModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<ZoneModuleManager>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<AIHintsBuilder>().InstancePerLifetimeScope();
         containerBuilder.RegisterType<AIHints>().InstancePerLifetimeScope();
 
         // framework update stuff
@@ -103,8 +105,13 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
     public virtual void ConfigureExtra(ContainerBuilder containerBuilder)
     {
-        containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
+
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
 
         // global worldstate

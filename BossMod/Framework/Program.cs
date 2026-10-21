@@ -1,8 +1,11 @@
 ﻿#if DEBUG
 using Autofac;
 using BossMod;
+using BossMod.Interfaces;
+using BossMod.Services;
 using DalaMock.Core.Mocks;
 using DalaMock.Core.Plugin;
+using DalaMock.Shared.Extensions;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -43,6 +46,11 @@ static class Program
 
                 return ws;
             }).SingleInstance();
+
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockWorldStateGameSync>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockAmex>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
         }
     }
 
