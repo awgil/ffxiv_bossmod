@@ -21,14 +21,17 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 #if LOCAL_CS
         containerBuilder.RegisterBuildCallback(ctx =>
         {
-            var sigScanner = ctx.Resolve<ISigScanner>();
+            var sigScanner = ctx.Resolve<ISigScanner[]>();
+            if (sigScanner.Length == 0)
+                return;
+
             var dataManager = ctx.Resolve<IDataManager>();
             var dalamud = ctx.Resolve<IDalamudPluginInterface>();
             var logger = ctx.Resolve<IPluginLog>();
 
             logger.Info("LOCAL_CS: initializing our custom address resolver");
 
-            InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
+            InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner[0].SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
             FFXIVClientStructs.Interop.Generated.Addresses.Register();
             InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
         });
