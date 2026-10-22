@@ -288,7 +288,7 @@ class River(BossModule module) : BossComponent(module)
     }
 }
 
-// TODO: storm cloud never seen in a replay (both kills end before it)
+// TODO: storm cloud never seen in a replay
 class TempestPiece(BossModule module) : Components.GenericAOEs(module, AID.Highlightning)
 {
     private Actor? _cloud;

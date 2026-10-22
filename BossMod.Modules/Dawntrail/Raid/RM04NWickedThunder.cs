@@ -88,14 +88,15 @@ class WickedJolt(BossModule module) : Components.BaitAwayCast(module, AID.Wicked
 class SidewiseSpark(BossModule module) : Components.GroupedAOEs(module, [AID.SidewiseSpark1, AID.SidewiseSpark2, AID.SidewiseSpark3, AID.SidewiseSpark4], new AOEShapeCone(60, 90.Degrees()));
 class Thunderslam(BossModule module) : Components.StandardAOEs(module, AID.Thunderslam, new AOEShapeCircle(5));
 class Thunderstorm(BossModule module) : Components.SpreadFromCastTargets(module, AID.Thunderstorm, 6);
-class WickedBolt(BossModule module) : Components.StackWithIcon(module, (uint)IconID.WickedBolt, AID.WickedBolt, 5, 5.1f, 4, 8, 5);
+// TODO: pass Hits=5 once RaidwideMultiHit / StackWithIcon hit count is on master
+class WickedBolt(BossModule module) : Components.StackWithIcon(module, (uint)IconID.WickedBolt, AID.WickedBolt, 5, 5.1f, 4, 8);
 class SoaringSoulpress(BossModule module) : Components.StackWithIcon(module, (uint)IconID.SoaringSoulpress, AID.SoaringSoulpress, 6, 5.4f, 4, 8);
 class BewitchingFlight(BossModule module) : Components.StandardAOEs(module, AID.BewitchingFlightAOE, new AOEShapeRect(40, 2.5f));
 class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, new AOEShapeRect(40, 8), 2, highlightImminent: true);
 class WickedHypercannon1(BossModule module) : Components.RaidwideCastDelay(module, AID.WickedHypercannon1, AID.WickedHypercannonAOE, 0.6f, "Raidwide x10");
 class WickedHypercannon2(BossModule module) : Components.RaidwideCastDelay(module, AID.WickedHypercannon2, AID.WickedHypercannonAOE, 0.6f, "Raidwide x10");
 
-// TODO: never cast in a replay so far
+// TODO: never cast in a replay
 class WitchHunt(BossModule module) : Components.GenericAOEs(module, AID.WitchHuntAOE)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -356,7 +357,7 @@ class RM04NWickedThunderStates : StateMachineBuilder
             .DeactivateOnExit<Thunderstorm>();
     }
 
-    // TODO: kills so far end during the second hypercannon; the enrage is unseen
+    // TODO: enrage unseen (kills end during second hypercannon)
     private void Enrage(uint id)
     {
         SimpleState(id, 120, "Until enrage")

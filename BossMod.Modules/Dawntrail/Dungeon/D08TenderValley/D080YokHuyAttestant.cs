@@ -33,7 +33,7 @@ class AncientWrath(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeRect _full = new(35, 4);
     private static readonly AOEShapeRect _short = new(22, 4);
 
-    // TODO: rows at z -471.5 / -486.5 fire 12 or 22 long, the length is only known when they fire; this assumes 22
+    // TODO: z -471.5 / -486.5 rows are 12 or 22 long; only known on fire, assumes 22
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation == default)

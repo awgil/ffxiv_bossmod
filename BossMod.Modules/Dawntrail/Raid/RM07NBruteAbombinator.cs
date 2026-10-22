@@ -93,7 +93,7 @@ public enum TetherID : uint
     WallNear = 339, // Wall->Boss
 }
 
-// TODO: switch to RaidwideMultiHit once it is on master
+// TODO: RaidwideMultiHit when available on master
 class BrutalImpact(BossModule module) : Components.RaidwideCast(module, AID.BrutalImpact);
 class BrutalImpactRest(BossModule module) : Components.CastCounter(module, AID.BrutalImpactAOE);
 class NeoBombarianSpecial(BossModule module) : Components.RaidwideCast(module, AID.NeoBombarianSpecial);

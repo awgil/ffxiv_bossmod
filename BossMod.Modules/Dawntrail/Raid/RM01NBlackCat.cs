@@ -593,7 +593,7 @@ class RM01NBlackCatStates : StateMachineBuilder
         BiscuitMaker(id + 0xC0000, 2.2f);
         LeapingOneTwoPaw(id + 0xD0000, 8.3f);
 
-        // TODO: Leaping Black Cat Crossing and Copycat (clone) were never reached in a replay
+        // TODO: Leaping Black Cat Crossing + Copycat never reached in a replay
         SimpleState(id + 0xE0000, 120, "Until enrage")
             .ActivateOnEnter<BloodyScratch>()
             .ActivateOnEnter<BiscuitMaker>()

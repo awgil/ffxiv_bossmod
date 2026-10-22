@@ -11,7 +11,7 @@ public enum OID : uint
     HelperA = 0x1201, // R3.500
     HelperB = 0x1335, // R3.500
     Helper = 0x13D2, // R0.500
-    FireFloorCross = 0x1E9991, // R0.500, EventObj type, burning + floor after the Slaughter lanes
+    FireFloorCross = 0x1E9991, // R0.500, EventObj; clears the burning Slaughter floor
 }
 
 public enum AID : uint

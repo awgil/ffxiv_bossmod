@@ -720,7 +720,7 @@ class T07DoomtrainStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
         Tankbusters(id + 0x90, 2.2f);
         Hails(id + 0xA0, 7.8f, 14.1f, 14.1f);
-        // TODO: timeline after the last Arcane Revelation + enrage (MNK 09-09 replay killed there); only one replay, so Express / Windpipe and breath / headlight order per car is unverified
+        // TODO: post-last Arcane Revelation + enrage unseen; Express/Windpipe and breath/headlight order per car unverified (one replay)
         SimpleState(id + 0xFF0000, 10000, "???");
     }
 
@@ -765,7 +765,7 @@ class T07DoomtrainStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu, wen, xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1076, NameID = 14284, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1076, NameID = 14284, Incomplete = true)]
 public class T07Doomtrain(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(10, CarGeometry.CarHeight))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

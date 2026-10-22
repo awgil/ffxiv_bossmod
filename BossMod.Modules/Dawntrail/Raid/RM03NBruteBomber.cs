@@ -82,7 +82,7 @@ public enum IconID : uint
     SpinCCW = 168, // Boss
 }
 
-// TODO: switch to RaidwideMultiHit once it is on master
+// TODO: RaidwideMultiHit when available on master
 class BrutalImpact(BossModule module) : Components.RaidwideCast(module, AID.BrutalImpact);
 class BrutalImpactRest(BossModule module) : Components.CastCounter(module, AID.BrutalImpactRest);
 class KnuckleSandwich(BossModule module) : Components.CastSharedTankbuster(module, AID.KnuckleSandwich, 6);
@@ -301,7 +301,7 @@ class RM03NBruteBomberStates : StateMachineBuilder
         LariatCombo(id + 0xE0000, 4.0f);
         InfernalSpin(id + 0xF0000, 12.4f);
         LariatCombo(id + 0x100000, 0.7f);
-        // TODO: kills so far end during the lariat combo above; timings below and the enrage are unseen
+        // TODO: timeline past this lariat combo + enrage unseen
         BrutalBurn(id + 0x110000, 4.6f);
         BrutalImpact(id + 0x120000, 1.6f, 5);
 
