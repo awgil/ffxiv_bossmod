@@ -150,7 +150,7 @@ public sealed record class ActionDefinition(ActionID ID)
         return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && LinkUnlocked(UnlockLink);
     }
 
-    private static bool LinkUnlocked(uint link) => Service.UnlockState.IsUnlockLinkUnlocked(link);
+    private static bool LinkUnlocked(uint link) => link == 0 || Service.UnlockState.IsUnlockLinkUnlocked(link);
 }
 
 // database of all supported player-initiated actions
