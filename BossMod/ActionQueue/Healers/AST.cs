@@ -106,9 +106,13 @@ public enum SID : uint
     NeutralSect = 1892,
     NeutralSectShield = 1921,
     Divination = 1878,
+    EarthlyDominance = 1224, // applied by Earthly Star to self, star not matured yet
     GiantDominance = 1248,
     ClarifyingDraw = 2713,
     Macrocosmos = 2718,
+    CollectiveUnconscious = 849, // applied by Collective Unconscious to party, damage reduction
+    Suntouched = 3895, // applied by Neutral Sect to self, allows Sun Sign
+    SunSign = 3896, // applied by Sun Sign to party, damage reduction
     Lightspeed = 841,
     SelfSynastry = 845,
     TargetSynastry = 846,

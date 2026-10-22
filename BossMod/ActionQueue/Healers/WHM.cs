@@ -131,6 +131,7 @@ public enum SID : uint
     SacredSight = 3879, // applied by Presence of Mind to self
     MedicaIII = 3880, // applied by Medica III to self/target
     DivineGrace = 3881, // applied by Temperance to self
+    TemperanceParty = 1873, // applied by Temperance to party, damage reduction
     DivineCaress = 3903, // applied by Divine Caress to self/target
 
     //Shared
