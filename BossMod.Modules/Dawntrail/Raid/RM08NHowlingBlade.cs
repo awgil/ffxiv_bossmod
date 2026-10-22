@@ -270,9 +270,9 @@ class RM08NHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<Gust>()
             .ActivateOnEnter<Heavensearth2>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
-        ComponentCondition<Gust>(id + 0xA0010, 17.3f, c => c.NumFinishedSpreads > 0, "Spreads")
-            .DeactivateOnExit<Gust>();
-        ComponentCondition<Heavensearth2>(id + 0xA0020, 16.2f, c => c.NumFinishedStacks > 0, "Stack")
+        Condition(id + 0xA0010, 17.3f, () => AddsResolved() >= 1, "Spreads / stack");
+        Condition(id + 0xA0020, 16.2f, () => AddsResolved() >= 2, "Stack / spreads")
+            .DeactivateOnExit<Gust>()
             .DeactivateOnExit<Heavensearth2>();
         ComponentCondition<RavenousSaber>(id + 0xA0030, 17.1f, c => c.NumCasts > 0, "Raidwide x5")
             .ActivateOnEnter<RavenousSaber>()
@@ -371,9 +371,11 @@ class RM08NHowlingBladeStates : StateMachineBuilder
         ComponentCondition<TrackingTremors>(id + 0x20, 4.3f, c => c.NumCasts >= 5, "Multi-hit stack end")
             .DeactivateOnExit<TrackingTremors>();
     }
+
+    private int AddsResolved() => (Module.FindComponent<Gust>()?.NumFinishedSpreads > 0 ? 1 : 0) + (Module.FindComponent<Heavensearth2>()?.NumFinishedStacks > 0 ? 1 : 0);
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1025, NameID = 13843, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1025, NameID = 13843)]
 public class RM08NHowlingBlade(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(17))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -473,7 +473,7 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1023, NameID = 13756, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1023, NameID = 13756)]
 public class RM07NBruteAbombinator(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

@@ -11,6 +11,7 @@ public enum OID : uint
     HelperA = 0x1201, // R3.500
     HelperB = 0x1335, // R3.500
     Helper = 0x13D2, // R0.500
+    FireFloorCross = 0x1E9991, // R0.500, EventObj type, burning + floor after the Slaughter lanes
 }
 
 public enum AID : uint
@@ -101,7 +102,48 @@ class PreludeToSlaughterRect(BossModule module) : Components.GenericAOEs(module,
     }
 }
 
-class SlaughterRect(BossModule module) : Components.StandardAOEs(module, AID.SlaughterRect, new AOEShapeRect(44, 4));
+class SlaughterRect(BossModule module) : Components.GenericAOEs(module, AID.SlaughterRect)
+{
+    private static readonly AOEShapeRect _shape = new(44, 4);
+    private readonly List<AOEInstance> _aoes = [];
+    private DateTime _burnEnd;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void Update()
+    {
+        if (_burnEnd != default && WorldState.CurrentTime > _burnEnd)
+        {
+            _aoes.Clear();
+            _burnEnd = default;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action != WatchedAction)
+            return;
+        ++NumCasts;
+        for (var i = 0; i < _aoes.Count; ++i)
+            _aoes[i] = _aoes[i] with { Activation = default };
+        _burnEnd = WorldState.FutureTime(10);
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID == OID.FireFloorCross && state == 0x00010002)
+        {
+            _aoes.Clear();
+            _burnEnd = default;
+        }
+    }
+}
 class SlaughterCross(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCross, new AOEShapeRect(40, 4));
 class SlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCast, new AOEShapeCone(40, 135.Degrees()));
 class TheRoseOfHate(BossModule module) : Components.StandardAOEs(module, AID.TheRoseOfHate, new AOEShapeRect(40, 4));

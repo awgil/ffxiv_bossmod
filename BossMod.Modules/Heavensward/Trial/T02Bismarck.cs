@@ -150,6 +150,8 @@ class Whaleback(BossModule module) : BossComponent(module)
 
 class Interactables(BossModule module) : BossComponent(module)
 {
+    private readonly Dictionary<ulong, ulong> _gunners = [];
+
     private IEnumerable<Actor> Usable(OID oid) => Module.Enemies(oid).Where(o => o.IsTargetable);
     private IEnumerable<Actor> Cannons => Usable(OID.DragonkillerNorth).Concat(Usable(OID.DragonkillerSouth));
 
@@ -163,17 +165,35 @@ class Interactables(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Raid.WithoutSlot().Count() > 1)
-            return;
-
-        var cannons = Cannons.ToList();
+        var party = Raid.WithoutSlot().Where(p => !p.IsDead).ToList();
+        var cannons = Cannons.OrderBy(c => c.InstanceID).ToList();
+        foreach (var stale in _gunners.Keys.Where(k => !cannons.Any(c => c.InstanceID == k)).ToList())
+            _gunners.Remove(stale);
         if (cannons.Count > 0)
         {
-            hints.InteractWithTarget = cannons.MinBy(actor.DistanceToHitbox);
-            if (cannons.Count == 1)
+            if (party.Count <= 1)
+            {
+                hints.InteractWithTarget = cannons.MinBy(actor.DistanceToHitbox);
+                if (cannons.Count == 1)
+                    hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
+                return;
+            }
+
+            foreach (var cannon in cannons)
+            {
+                if (_gunners.TryGetValue(cannon.InstanceID, out var id) && party.Any(p => p.InstanceID == id))
+                    continue;
+                var gunner = party.Where(p => !_gunners.ContainsValue(p.InstanceID)).MinBy(cannon.DistanceToHitbox);
+                if (gunner != null)
+                    _gunners[cannon.InstanceID] = gunner.InstanceID;
+            }
+            if (cannons.FirstOrDefault(c => _gunners.GetValueOrDefault(c.InstanceID) == actor.InstanceID) is { } mine)
+            {
+                hints.InteractWithTarget = mine;
                 hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Sprint), actor, ActionQueue.Priority.High);
+            }
         }
-        else if (Usable(OID.FieldGeneratorSwitch).FirstOrDefault() is { } generator)
+        else if (party.Count <= 1 && Usable(OID.FieldGeneratorSwitch).FirstOrDefault() is { } generator)
         {
             hints.InteractWithTarget = generator;
         }
