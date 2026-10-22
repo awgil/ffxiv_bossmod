@@ -18,7 +18,8 @@ internal sealed class AutoBitmapService(
     IFramework framework,
     WorldState world,
     ObstacleMapManager obstacles,
-    IPluginLog logger) : IHostedService
+    IPluginLog logger
+) : IHostedService
 {
     private readonly DeveloperConfig config = Service.Config.Get<DeveloperConfig>();
     private bool Paused;

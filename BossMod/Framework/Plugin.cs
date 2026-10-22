@@ -97,6 +97,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             Service.GaugeVisualizer = scope.Resolve<ReplayVisualization.GaugeVisualizer>();
             Service.Camera = scope.Resolve<ICamera>();
             Service.UiBuilder = scope.Resolve<IUiBuilder>();
+            Service.PluginInterface = dalamud;
 
             // registers all built in config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);

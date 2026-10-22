@@ -497,7 +497,6 @@ internal sealed class TickService(
         if (!disposing)
             return;
 
-        _wndDebug?.Dispose();
         _wndChangelog.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
