@@ -1,5 +1,6 @@
 ﻿using Dalamud.Hooking;
 using InteropGenerator.Runtime;
+using System.Diagnostics;
 
 namespace BossMod;
 
@@ -26,7 +27,8 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
     public HookAddress(string signature, T detour, bool autoEnable = true) : this(Service.SigScanner.ScanText(signature), detour, autoEnable) { }
     public HookAddress(nint address, T detour, bool autoEnable = true)
     {
-        Service.Log($"Hooking {typeof(T)} @ 0x{address:X}");
+        var @base = Process.GetCurrentProcess().MainModule!.BaseAddress;
+        Service.Log($"Hooking {typeof(T)} @ +0x{address - @base:X}");
         _hook = Service.Hook.HookFromAddress(address, detour);
         if (autoEnable)
             _hook.Enable();

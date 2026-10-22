@@ -19,7 +19,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         ImGui.TextUnformatted("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab.");
 
         if (ImGui.Button("Show changelog"))
-            Service.Mediator.Publish(new OpenWindowMessage(typeof(ConfigChangelogWindow)));
+            Service.Mediator.Publish(new OpenWindow(typeof(ConfigChangelogWindow)));
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled($"Version {typeof(AboutTab).Assembly.GetName().Version}");

@@ -157,7 +157,7 @@ public static class UIMisc
 
     static bool IconButtonRaw(string text, Vector2 size = default)
     {
-        using (ImRaii.PushFont(Service.IconFont))
+        using (ImRaii.PushFont(Service.UiBuilder.FontIcon))
             return ImGui.Button(text, size);
     }
 
@@ -166,7 +166,7 @@ public static class UIMisc
         bool button;
 
         Vector2 iconSize;
-        using (ImRaii.PushFont(Service.IconFont))
+        using (ImRaii.PushFont(Service.UiBuilder.FontIcon))
             iconSize = ImGui.CalcTextSize(icon.ToIconString());
 
         var textStr = text;
@@ -192,7 +192,7 @@ public static class UIMisc
 
         var dl = ImGui.GetWindowDrawList();
 
-        using (ImRaii.PushFont(Service.IconFont))
+        using (ImRaii.PushFont(Service.UiBuilder.FontIcon))
             dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
 
         dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
@@ -202,7 +202,7 @@ public static class UIMisc
 
     public static void IconText(FontAwesomeIcon icon)
     {
-        using var scope = ImRaii.PushFont(Service.IconFont);
+        using var scope = ImRaii.PushFont(Service.UiBuilder.FontIcon);
         ImGui.TextUnformatted(icon.ToIconString());
     }
 

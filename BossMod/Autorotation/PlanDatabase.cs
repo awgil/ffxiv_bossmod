@@ -1,10 +1,18 @@
-﻿using System.IO;
+﻿using Autofac.Features.AttributeFilters;
+using Microsoft.Extensions.Hosting;
+using System.IO;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod.Autorotation;
 
 // note: plans in the database are immutable (otherwise eg. manager won't see the changes in active plan)
-public sealed class PlanDatabase : IDisposable
+public sealed class PlanDatabase(
+    [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
+    [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
+    JsonSerializerOptions jsonSerializerOptions
+    ) : IHostedService
 {
     public record class PlanList
     {
@@ -15,29 +23,28 @@ public sealed class PlanDatabase : IDisposable
     public readonly Dictionary<Type, Dictionary<Class, PlanList>> Plans = [];
     public Event<Type, Class> ListModifed = new();
     public Event<Plan?, Plan?> PlanModified = new(); // (old, new); old == null if plan is added, new == null if plan is removed
-
-    private readonly FileInfo _manifestPath;
-    private readonly DirectoryInfo _planStore;
-
-    private readonly SensibleFileWatcher _watcher;
-    private readonly EventSubscriptions _subscriptions;
+    public readonly JsonSerializerOptions SerializerOptions = jsonSerializerOptions;
+    private readonly SensibleFileWatcher _watcher = new(planStore.FullName, filter: "*.json", includeSubdirectories: true);
+    private readonly EventSubscriptions _subscriptions = new();
 
     private readonly Queue<string> _pendingFiles = [];
 
-    public PlanDatabase(string rootPath)
+    async Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        _manifestPath = new(rootPath + ".manifest.json");
-        _planStore = new(rootPath);
-        if (!_planStore.Exists)
-            _planStore.Create();
+        _subscriptions.Add(
+            _watcher.Changed.Subscribe(OnPlanFileChanged),
+            _watcher.Deleted.Subscribe(OnPlanFileDeleted)
+        );
 
-        _watcher = new(rootPath, filter: "*.json", includeSubdirectories: true)
-        {
-            EnableRaisingEvents = true
-        };
-        _subscriptions = new(_watcher.Changed.Subscribe(OnPlanFileChanged), _watcher.Deleted.Subscribe(OnPlanFileDeleted));
+        if (!planStore.Exists)
+            planStore.Create();
 
-        Load();
+        _watcher.EnableRaisingEvents = true;
+    }
+    Task IHostedService.StopAsync(CancellationToken cancellationToken)
+    {
+        _watcher.EnableRaisingEvents = false;
+        return Task.CompletedTask;
     }
 
     public void Load()
@@ -46,14 +53,13 @@ public sealed class PlanDatabase : IDisposable
 
         // first load all actually available plans
         Dictionary<string, Plan> foundPlans = [];
-        var serOptions = Serialization.BuildSerializationOptions();
-        foreach (var f in _planStore.EnumerateFiles("*.json"))
+        foreach (var f in planStore.EnumerateFiles("*.json"))
         {
             try
             {
                 var data = PlanPresetConverter.PlanSchema.Load(f);
                 using var json = data.document;
-                var plan = data.payload.Deserialize<Plan>(serOptions);
+                var plan = data.payload.Deserialize<Plan>(SerializerOptions);
                 if (plan != null)
                 {
                     plan.Guid = f.Name[..^5];
@@ -67,11 +73,11 @@ public sealed class PlanDatabase : IDisposable
         }
 
         // now load the manifest, and add referenced plans to the database
-        if (_manifestPath.Exists)
+        if (manifestPath.Exists)
         {
             try
             {
-                using var json = Serialization.ReadJson(_manifestPath.FullName);
+                using var json = Serialization.ReadJson(manifestPath.FullName);
                 var version = json.RootElement.GetProperty("version").GetInt32();
                 var payload = json.RootElement.GetProperty("payload");
                 foreach (var enc in payload.EnumerateObject())
@@ -121,7 +127,7 @@ public sealed class PlanDatabase : IDisposable
             }
             catch (Exception ex)
             {
-                Service.Log($"Failed to parse plan database '{_manifestPath}': {ex}");
+                Service.Log($"Failed to parse plan database '{manifestPath}': {ex}");
             }
         }
 
@@ -141,7 +147,7 @@ public sealed class PlanDatabase : IDisposable
         ListModifed.Fire(encounter, cls);
         try
         {
-            using var fstream = new FileStream(_manifestPath.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var fstream = new FileStream(manifestPath.FullName, FileMode.Create, FileAccess.Write, FileShare.Read);
             using var jwriter = Serialization.WriteJson(fstream);
             jwriter.WriteStartObject();
             jwriter.WriteNumber("version", 0);
@@ -169,11 +175,11 @@ public sealed class PlanDatabase : IDisposable
             }
             jwriter.WriteEndObject();
             jwriter.WriteEndObject();
-            Service.Log($"Manifest saved successfully to '{_manifestPath.FullName}'");
+            Service.Log($"Manifest saved successfully to '{manifestPath.FullName}'");
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to write manifest to '{_manifestPath.FullName}': {ex}");
+            Service.Log($"Failed to write manifest to '{manifestPath.FullName}': {ex}");
         }
     }
 
@@ -219,11 +225,11 @@ public sealed class PlanDatabase : IDisposable
 
     private void SavePlan(Plan plan)
     {
-        var filename = $"{_planStore.FullName}/{plan.Guid}.json";
+        var filename = $"{planStore.FullName}/{plan.Guid}.json";
         try
         {
             _pendingFiles.Enqueue(plan.Guid);
-            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, Serialization.BuildSerializationOptions()));
+            PlanPresetConverter.PlanSchema.Save(new(filename), jwriter => JsonSerializer.Serialize(jwriter, plan, SerializerOptions));
             Service.Log($"Plan saved successfully to '{filename}'");
         }
         catch (Exception ex)
@@ -235,7 +241,7 @@ public sealed class PlanDatabase : IDisposable
 
     private void DeletePlan(Plan plan)
     {
-        var filename = $"{_planStore.FullName}/{plan.Guid}.json";
+        var filename = $"{planStore.FullName}/{plan.Guid}.json";
         try
         {
             _pendingFiles.Enqueue(plan.Guid);
@@ -270,7 +276,7 @@ public sealed class PlanDatabase : IDisposable
         {
             var data = PlanPresetConverter.PlanSchema.Load(new(args.FullPath));
             using var json = data.document;
-            var newPlan = data.payload.Deserialize<Plan>(Serialization.BuildSerializationOptions());
+            var newPlan = data.payload.Deserialize<Plan>(SerializerOptions);
             if (newPlan != null)
             {
                 newPlan.Guid = guid;
