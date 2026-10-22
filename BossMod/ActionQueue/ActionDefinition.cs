@@ -509,7 +509,7 @@ public sealed class ActionDefinitions
     // hardcoded mechanic implementations
     public void RegisterChargeIncreaseTrait(ActionID aid, uint traitId)
     {
-        var trait = TraitData(traitId)!;
+        var trait = TraitData(traitId);
         _definitions[aid].MaxChargesOverride.Add((trait.Value, trait.Level, trait.Quest.RowId));
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }
