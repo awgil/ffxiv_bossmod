@@ -34,6 +34,8 @@
       <OutputItemType>Analyzer</OutputItemType>
       <PrivateAssets>All</PrivateAssets>
     </ProjectReference>
+
+    <ProjectReference Include="..\Pictomancy\Pictomancy\Pictomancy.csproj" />
   </ItemGroup>
 
   <ItemGroup>

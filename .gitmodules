@@ -4,3 +4,6 @@
 [submodule "DalaMock"]
 	path = DalaMock
 	url = https://github.com/xanunderscore/DalaMock.git
+[submodule "Pictomancy"]
+	path = Pictomancy
+	url = https://github.com/sourpuh/ffxiv_pictomancy

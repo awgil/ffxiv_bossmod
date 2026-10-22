@@ -92,6 +92,9 @@ internal sealed class TickService(
 
         _wndDebug = mainDebugWindow.FirstOrDefault()?.Invoke();
 
+        if (Service.Config.Get<DeveloperConfig>().DebugWindowOpen)
+            _wndDebug?.IsOpen = true;
+
         RegisterSlashCommands();
 
         Version cutoff = new(7, 5, 1, 13);
@@ -156,7 +159,6 @@ internal sealed class TickService(
 
         hintExecutor.Execute();
 
-        Service.Camera.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
     }
 
