@@ -46,6 +46,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Spend in Technical Finish; never overcap")]
         Automatic,
+        [Option("Spend as soon as possible")]
+        ASAP,
         [Option("Only to avoid overcapping")]
         Overcap,
         [Option("Do not use")]
@@ -468,6 +470,8 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     {
         if (Feathers == 0 || !Unlocked(AID.FanDance) || FeathersStrat == FeatherStrategy.Delay)
             return false;
+        if (FeathersStrat == FeatherStrategy.ASAP)
+            return true;
         var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0 || FlourishStrat != OffensiveStrategy.Delay && Unlocked(AID.Flourish) && ReadyIn(AID.Flourish) <= GCD);
         if (FeathersStrat == FeatherStrategy.Overcap)
             return overcap;

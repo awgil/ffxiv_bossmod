@@ -59,6 +59,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
+        [Option("Spend as soon as possible (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
+        ASAP,
         [Option("Spend between combos, but always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
         [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
@@ -429,7 +431,10 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         PushGCD(Unlocked(AID.ReavingMaw) && (HonedReavers > 0 || HonedSteel == 0) ? AID.ReavingMaw : AID.SteelMaw, Player, 1);
     }
 
-    private bool HoldForIre => IreWanted && InBossFight && IreIn <= 10 && Swiftscaled > GCDLength * 4 && Instinct > GCDLength * 4;
+    private bool HoldForIre => IreWanted && InBossFight && IreIn <= 10 && !HoldIreForBuffs && Swiftscaled > GCDLength * 4 && Instinct > GCDLength * 4;
+    // like MCH's Wildfire: the estimate drops buffs 10s after they're overdue, so this holds ~22s at most; no pooling while held
+    private bool HoldIreForBuffs => IreStrat == OffensiveStrategy.Automatic && HasRaidBuffJobs && !(OpenerMode != OpenerStrategy.None && CombatTime < 30)
+        && IreIn <= GCD && RaidBuffsLeft == 0 && RaidBuffsIn < 12;
 
     private bool ShouldTwinblade(in Strategy strategy, AID aid)
     {
@@ -446,6 +451,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
         if (HoldForIre || aid == AID.Vicewinder && !InMelee)
             return false;
+        // Balance leveling (70-89): both Vicewinder combos go in party buffs, one charge in between right before it would cap
+        if (!Unlocked(AID.Reawaken) && InBossFight && HasRaidBuffJobs && RaidBuffsLeft <= GCD && MaxChargesIn(aid) > GCD + GCDLength * 3 && RaidBuffsIn < MaxChargesIn(aid))
+            return false;
         if (OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove != AID.SwiftskinsSting)
             return false;
         if (DowntimeIn < GCD + GCDLength * 3)
@@ -461,6 +469,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
             return false;
         if (dying)
             return true;
+        if (strategy.Uncoiled.Value == UncoiledStrategy.ASAP)
+            return Dread == 0 && Reawakened == 0 && !TwinWeavesPending;
         var ireSoon = IreWanted && IreIn <= GCDLength * 2;
         var inBurst = RaidBuffsLeft > GCD || OpenerMode != OpenerStrategy.None && CombatTime < 30;
         if (Coil <= 1 && !ireSoon && !inBurst && TimeToKill.WillLive(target, 6) && DowntimeIn > GCDLength * 3)
@@ -537,7 +547,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
         if (SwiftskinsVenom > 0)
             PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (IreWanted && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
+        if (IreWanted && !HoldIreForBuffs && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
         if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
@@ -592,7 +602,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.SerpentsIre) ? IreIn < 6 : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
+        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.Reawaken) ? ReawakenReady > 0 && ReawakenReady <= 30 - GCDLength && Reawakened == 0
+            : Unlocked(AID.SerpentsIre) ? IreIn < 6 && !HoldIreForBuffs : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
         PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
         PotionStrategy.Immediate => true,
         _ => false

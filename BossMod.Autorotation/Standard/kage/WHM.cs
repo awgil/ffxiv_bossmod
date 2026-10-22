@@ -58,6 +58,8 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
+        [Option("Refresh on the current target now (for a short plan window)")]
+        Force,
         [Option("Do not use")]
         Delay
     }
@@ -165,9 +167,13 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
             && (strategy.GlareIV.Value == OffensiveStrategy.Force || !CanCast || RaidBuffsLeft > GCD || !HasRaidBuffJobs || SacredSightLeft < GCD + GCDLength * SacredSight + 1 || DowntimeIn < GCDLength * (SacredSight + 1)))
             PushGCD(AID.GlareIV, splash.Actor, 40);
 
+        var setReachesMisery = TimeToKill.WillLive(target.Actor, GCD + GCDLength * (3 - BloodLily) + 1);
         if (Player.InCombat && CanSpendLily(strategy)
-            && (strategy.Lilies.Value == OffensiveStrategy.Force || LilyCapIn < GCD + 8 || !ForceST && Hints.NumPriorityTargetsInAOECircle(misery.Position, 5) >= 2))
+            && (strategy.Lilies.Value == OffensiveStrategy.Force || setReachesMisery && (LilyCapIn < GCD + 8 || !ForceST && Hints.NumPriorityTargetsInAOECircle(misery.Position, 5) >= 2)))
             PushGCD(LilySpell, Player, 35);
+
+        if (Player.InCombat && CanSpendLily(strategy) && BloodLily > 0 && Lily >= 3 - BloodLily && setReachesMisery && !TimeToKill.WillLive(target.Actor, 20))
+            PushGCD(LilySpell, Player, 36);
 
         if (strategy.Opener.Value == OpenerStrategy.DoubleMisery && Player.InCombat && CombatTime < 30 && Unlocked(AID.AfflatusRapture) && CanSpendLily(strategy)
             && Lily >= 3 - BloodLily && RaidBuffsLeft > GCD + GCDLength * (3 - BloodLily))
@@ -218,6 +224,8 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
     {
+        if (strategy.Dot.Value == DotStrategy.Force)
+            return target.Actor;
         if (DotWorthIt(target) && (DotLeft(target.Actor) < DotRefresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < 8))
             return target.Actor;
         if (strategy.Dot.Value != DotStrategy.Automatic || AOEMode || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
@@ -239,7 +247,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
             && (AssizeStrat == OffensiveStrategy.Force || AssizeHits(target) && !(CombatTime < 30 && HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn < 12)))
             PushOGCD(AID.Assize, Player, 40);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 9000)
+        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 8000)
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }

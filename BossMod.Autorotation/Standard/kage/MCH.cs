@@ -91,6 +91,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
+        [Option("Spend as soon as possible", Targets = ActionTargets.Hostile)]
+        ASAP,
         [Option("Only to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
         [Option("Do not use")]
@@ -622,6 +624,14 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.GaussRound, target, gauss <= rico ? 45 : 44);
         if (rico <= capIn && CanWeave(AID.Ricochet))
             PushOGCD(AID.Ricochet, target, rico < gauss ? 45 : 44);
+
+        if (strategy.Charges.Value == ChargeStrategy.ASAP)
+        {
+            if (CanWeave(AID.GaussRound))
+                PushOGCD(AID.GaussRound, target, gauss <= rico ? 46 : 45);
+            if (CanWeave(AID.Ricochet))
+                PushOGCD(AID.Ricochet, target, rico < gauss ? 46 : 45);
+        }
 
         if (strategy.Charges.Value != ChargeStrategy.Automatic)
             return;

@@ -215,7 +215,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
             PushGCD(holyAction, holyTarget, 58);
 
         if (canHoly && DivineMightLeft > GCD && (FoFLeft > GCD || !InMelee || ComboLastMove == (AOEMode ? AID.TotalEclipse : AID.RiotBlade) || DivineMightLeft < 6))
-            PushGCD(holyAction, holyTarget, DivineMightLeft < 6 || FoFLeft <= GCD ? 46 : 44);
+            PushGCD(holyAction, holyTarget, FoFLeft > GCD && Player.Level < 94 ? 49 : DivineMightLeft < 6 || FoFLeft <= GCD ? 46 : 44);
 
         // grab trash that's hitting someone else before continuing the combo; the primary target is usually already on us
         if (Loose.Where(a => !TargetInAOECircle(a, Player.Position, 5) && Player.DistanceToHitbox(a) <= 20).MinBy(Player.DistanceToHitbox) is { } stray)
@@ -344,7 +344,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => Player.InCombat && ReadyIn(AID.FightOrFlight) < 3 && (CombatTime > 15 || ComboLastMove is AID.RiotBlade or AID.FastBlade),
+        PotionStrategy.AlignWithBurst => Player.InCombat && ReadyIn(AID.FightOrFlight) < 3 && (CombatTime > 15 || ComboLastMove == (strategy.Opener.Value == OpenerStrategy.EarlyBuff ? AID.FastBlade : AID.RiotBlade) || !Unlocked(AID.RiotBlade)),
         PotionStrategy.Immediate => true,
         _ => false
     };

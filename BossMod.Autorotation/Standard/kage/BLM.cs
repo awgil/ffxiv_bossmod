@@ -68,6 +68,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Use Triplecast, then Swiftcast, for movement")]
         Automatic,
+        [Option("Use Triplecast, then Swiftcast, as soon as possible")]
+        ASAP,
         [Option("Do not use")]
         Delay
     }
@@ -239,8 +241,15 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(PolyglotAction, target.Actor, 5);
         }
 
-        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < (InOpener ? (InLeyLines ? 7.5f : 5) : 3) && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
+        // Balance: refresh under 3s, skip right before downtime (no ticks while untargetable), every proc on two targets
+        var thunderAt = InOpener ? (InLeyLines ? 7.5f : 5) : AOEMode && NumAOETargets == 2 ? 30 : 3;
+        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < thunderAt && DowntimeIn > 20 && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
+
+        // Icy Veins: two targets too far apart for the AoE rotation -> keep High Thunder on both
+        if (strategy.Thunder.Value == OffensiveStrategy.Automatic && !AOEMode && ThunderheadLeft > GCD && DowntimeIn > 20
+            && Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && ThunderLeft(e.Actor) < 3).MaxBy(e => e.Actor.HPMP.CurHP) is { } second)
+            PushGCD(ThunderAction, second.Actor, 64);
 
         if (CantCast && MovementThunder(strategy, target))
             PushGCD(ThunderAction, target.Actor, 4);
@@ -428,7 +437,8 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
             && (LeyLinesStrat == LeyLinesStrategy.ASAP || ShouldLeyLines(target.Actor)))
             PushOGCD(AID.LeyLines, Player, 55);
 
-        if (strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant
+        if (strategy.Movement.Value == MovementStrategy.ASAP && !Instant
+            || strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant
             && (Polyglot == 0 || Player.Level < 80 || PolyglotStrat == PolyglotStrategy.Delay) && !MovementThunder(strategy, target) && !(InFire && FirestarterLeft > 0 && !AOEMode))
         {
             if (!InLeyLines && CanWeave(AID.Triplecast))
