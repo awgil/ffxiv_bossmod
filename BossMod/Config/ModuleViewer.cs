@@ -112,7 +112,7 @@ public sealed class ModuleViewer : IDisposable
             }
             else if (groups[groupIndex].Info != groupInfo)
             {
-                Service.Log($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
+                Service.PluginLog.Warning($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
             }
             groups[groupIndex].Modules.Add(moduleInfo);
         }
@@ -122,14 +122,14 @@ public sealed class ModuleViewer : IDisposable
             groups.SortBy(g => g.Info.SortOrder);
             foreach (var (g1, g2) in groups.Pairwise())
                 if (g1.Info.SortOrder == g2.Info.SortOrder)
-                    Service.Log($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
+                    Service.PluginLog.Warning($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
 
             foreach (var g in groups)
             {
                 g.Modules.SortBy(m => m.SortOrder);
                 foreach (var (m1, m2) in g.Modules.Pairwise())
                     if (m1.SortOrder == m2.SortOrder)
-                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
+                        Service.PluginLog.Warning($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
             }
         }
     }
@@ -277,7 +277,7 @@ public sealed class ModuleViewer : IDisposable
         {
             ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)
-                Service.Logger.Warning(ex, $"unable to load icon {iconId}");
+                Service.PluginLog.Warning(ex, $"unable to load icon {iconId}");
         }
 
         ImGui.TableNextColumn();

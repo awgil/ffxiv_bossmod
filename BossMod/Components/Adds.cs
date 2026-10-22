@@ -11,13 +11,12 @@ public class Adds(BossModule module, uint oid, int priority = 0, bool forbidDots
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Priority >= 0)
-            foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == ObjectID))
-            {
-                target.Priority = Priority;
-                if (forbidDots)
-                    target.ForbidDOTs = true;
-            }
+        foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == ObjectID))
+        {
+            target.Priority = Priority;
+            if (forbidDots)
+                target.ForbidDOTs = true;
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

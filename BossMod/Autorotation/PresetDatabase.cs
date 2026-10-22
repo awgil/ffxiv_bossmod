@@ -1,40 +1,45 @@
-﻿using System.IO;
+﻿using Autofac.Features.AttributeFilters;
+using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Hosting;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod.Autorotation;
 
 // note: presets in the database are immutable (otherwise eg. manager won't see the changes in active preset)
-public sealed class PresetDatabase
+public sealed class PresetDatabase(
+    [KeyFilter(Keys.DefaultPresetsFile)] FileInfo defaultPresets,
+    [KeyFilter(Keys.PresetDatabase)] FileInfo dbPath,
+    JsonSerializerOptions serOptions,
+    IPluginLog logger
+) : IHostedService
 {
-    private readonly AutorotationConfig _cfg = Service.Config.Get<AutorotationConfig>();
+    private readonly AutorotationConfig config = Service.Config.Get<AutorotationConfig>();
 
     public readonly List<Preset> DefaultPresets = []; // default presets, distributed as part of the plugin
     public readonly List<Preset> UserPresets = []; // user-defined presets, stored in user's preset db
     public Event<Preset?, Preset?> PresetModified = new(); // (old, new); old == null if preset is added, new == null if preset is removed
 
-    private readonly FileInfo _dbPath;
-    private readonly FileInfo _defaultPath;
-
     private readonly Lock _lock = new();
 
-    public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = _cfg.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
+    public IEnumerable<Preset> AllPresets => DefaultPresets.Select(p => p with { HiddenByDefault = config.HideDefaultPreset || p.Name == "VBM Multibox" }).Concat(UserPresets);
 
-    public PresetDatabase(string rootPath, FileInfo defaultPresets)
+    async Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        _dbPath = new(rootPath + ".db.json");
-        _defaultPath = defaultPresets;
         Load();
     }
+    Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     public void Load()
     {
         lock (_lock)
         {
             DefaultPresets.Clear();
-            DefaultPresets.AddRange(LoadPresetsFromFile(_defaultPath));
+            DefaultPresets.AddRange(LoadPresetsFromFile(defaultPresets));
             UserPresets.Clear();
-            UserPresets.AddRange(LoadPresetsFromFile(_dbPath));
+            UserPresets.AddRange(LoadPresetsFromFile(dbPath));
         }
     }
 
@@ -44,11 +49,11 @@ public sealed class PresetDatabase
         {
             var data = PlanPresetConverter.PresetSchema.Load(file);
             using var json = data.document;
-            return data.payload.Deserialize<List<Preset>>(Serialization.BuildSerializationOptions()) ?? [];
+            return data.payload.Deserialize<List<Preset>>(serOptions) ?? [];
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to parse preset database '{file.FullName}': {ex}");
+            logger.Warning(ex, $"Failed to parse preset database '{file.FullName}'");
             return [];
         }
     }
@@ -76,20 +81,20 @@ public sealed class PresetDatabase
     {
         try
         {
-            PlanPresetConverter.PresetSchema.Save(_dbPath, jwriter => JsonSerializer.Serialize(jwriter, UserPresets, Serialization.BuildSerializationOptions()));
-            Service.Log($"Database saved successfully to '{_dbPath.FullName}'");
+            PlanPresetConverter.PresetSchema.Save(dbPath, jwriter => JsonSerializer.Serialize(jwriter, UserPresets, serOptions));
+            logger.Debug($"Database saved successfully to '{dbPath.FullName}'");
         }
         catch (Exception ex)
         {
-            Service.Log($"Failed to write database to '{_dbPath.FullName}': {ex}");
+            logger.Warning(ex, $"Failed to write database to '{dbPath.FullName}'");
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c)
+    public List<Preset> PresetsForClass(Class c)
     {
         lock (_lock)
         {
-            return AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+            return [.. AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]))];
         }
     }
 

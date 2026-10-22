@@ -65,7 +65,18 @@ public abstract class UIWindow : Window, IDisposable
     }
 
     // note: it won't be called for a detached window that was never registered...
-    protected virtual void Dispose(bool disposing) => Service.WindowSystem?.RemoveWindow(this);
+    protected virtual void Dispose(bool disposing)
+    {
+        try
+        {
+            Service.WindowSystem?.RemoveWindow(this);
+            Service.Log($"removed window {WindowName}");
+        }
+        catch (ArgumentException ex)
+        {
+            Service.PluginLog.Warning(ex, $"Unable to remove window {WindowName}");
+        }
+    }
 }
 
 // utility: window that uses custom delegate to perform drawing - allows avoiding creating derived classes in simple cases

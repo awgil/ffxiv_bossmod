@@ -2,14 +2,18 @@
 using BossMod.ReplayAnalysis;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Hosting;
 using System.Data.SQLite;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace BossMod;
+namespace BossMod.Services;
 
-public sealed class PackLoader : IDisposable
+public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLog logger) : IHostedService, IDisposable
 {
     class LoadContext() : AssemblyLoadContext(true)
     {
@@ -18,7 +22,7 @@ public sealed class PackLoader : IDisposable
             // assemblies from parent
             // TODO: doc page says you can return null here to make these load from the parent context, but that doesn't seem to work for me
             if (assemblyName.Name == "BossMod")
-                return typeof(PackLoader).Assembly;
+                return typeof(ModulePackService).Assembly;
             if (assemblyName.Name == "Dalamud")
                 return typeof(IDalamudPluginInterface).Assembly;
             if (assemblyName.Name == "Dalamud.Bindings.ImGui")
@@ -38,30 +42,32 @@ public sealed class PackLoader : IDisposable
 
     // one context per filepath - this is because AssemblyLoadContext doesn't support unloading individual assemblies, and we don't want to force everything to hot reload when one file changes
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
-    private readonly SensibleFileWatcher _watcher;
-    private readonly EventSubscriptions _modified;
-    public static readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), Service.IsDev ? "modules-dev" : "modules");
+    private readonly SensibleFileWatcher _watcher = new(filter: "*.dll", includeSubdirectories: true);
+    private readonly EventSubscriptions _modified = new();
+    public readonly string ModuleDir = Path.Join(Plugin.GetStorageDir(), dalamud.IsDev ? "modules-dev" : "modules");
 
     public IEnumerable<Assembly> Loaded => _loadContexts.Values.SelectMany(c => c.Assemblies);
 
     // fired after all the registries have processed a file change event
     public readonly Event Modified = new();
 
-    public PackLoader()
+    async Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        _watcher = new(filter: "*.dll", includeSubdirectories: true);
-
-        Directory.CreateDirectory(ModuleDir);
+        InstallLibraries(dalamud.AssemblyLocation);
 
         ReloadFrom(ModuleDir);
 
-        _watcher.EnableRaisingEvents = true;
-
-        _modified = new(
+        _modified.Add(
             _watcher.Renamed.Subscribe(OnFileRenamed),
             _watcher.Changed.Subscribe(f => OnFileChanged(f.FullPath)),
             _watcher.Deleted.Subscribe(f => OnFileDeleted(f.FullPath))
         );
+        _watcher.EnableRaisingEvents = true;
+    }
+
+    async Task IHostedService.StopAsync(CancellationToken cancellationToken)
+    {
+        _watcher.EnableRaisingEvents = false;
     }
 
     private void ReloadFrom(string packDirectory)
@@ -72,9 +78,19 @@ public sealed class PackLoader : IDisposable
         _watcher.Path = packDirectory;
 
         var dir = new DirectoryInfo(packDirectory);
+
+        List<Assembly> assembliesOld = [];
+        List<Assembly> assembliesNew = [];
+
         foreach (var file in dir.EnumerateFiles())
             if (file.Extension == ".dll")
-                OnFileChanged(file.FullName);
+            {
+                var (o, n) = ReplaceLoadContext(file.FullName);
+                assembliesOld.AddRange(o?.Assemblies ?? []);
+                assembliesNew.AddRange(n?.Assemblies ?? []);
+            }
+
+        ReloadAll(assembliesOld, assembliesNew);
 
         Modified.Fire();
     }
@@ -85,7 +101,7 @@ public sealed class PackLoader : IDisposable
             _loadContexts[e.FullPath] = ctx;
     }
 
-    private void OnFileChanged(string fullPath)
+    private (LoadContext? Old, LoadContext? New) ReplaceLoadContext(string fullPath)
     {
         var ctxOld = _loadContexts.Remove(fullPath, out var ctx) ? ctx : null;
         var ctxNew = _loadContexts[fullPath] = new LoadContext();
@@ -99,41 +115,80 @@ public sealed class PackLoader : IDisposable
         }
         catch (BadImageFormatException ex)
         {
-            Service.PluginLog.Warning(ex, $"Unable to hot-reload {fullPath}");
+            logger.Warning(ex, $"Unable to hot-reload {fullPath}");
             _loadContexts.Remove(fullPath);
+            return (ctxOld, null);
         }
 
-        Service.Config.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        BossModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        RotationModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        ZoneModuleRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
-        AnalyzerRegistry.Reload(ctxOld?.Assemblies ?? [], ctxNew.Assemblies);
+        return (ctxOld, ctxNew);
+    }
 
+    private void OnFileChanged(string fullPath)
+    {
+        var (ctxOld, ctxNew) = ReplaceLoadContext(fullPath);
+
+        ReloadAll(ctxOld?.Assemblies ?? [], ctxNew?.Assemblies ?? []);
         ctxOld?.Unload();
 
         Modified.Fire();
-
-        if (_watcher.EnableRaisingEvents)
-            Service.ShowNotification($"Loaded {Path.GetFileName(fullPath)}");
+        Service.ShowNotification($"Reloaded {Path.GetFileName(fullPath)}");
     }
 
     private void OnFileDeleted(string fullPath)
     {
         if (_loadContexts.Remove(fullPath, out var ctx))
         {
-            Service.Config.Reload(ctx.Assemblies, []);
-            RotationModuleRegistry.Reload(ctx.Assemblies, []);
-            BossModuleRegistry.Reload(ctx.Assemblies, []);
-            ZoneModuleRegistry.Reload(ctx.Assemblies, []);
-            AnalyzerRegistry.Reload(ctx.Assemblies, []);
-
+            ReloadAll(ctx.Assemblies, []);
             ctx.Unload();
 
             Modified.Fire();
+            Service.ShowNotification($"Unloaded {Path.GetFileName(fullPath)}");
         }
     }
 
-    public void Dispose()
+    public void ReloadAll(IEnumerable<Assembly> oldAssemblies, IEnumerable<Assembly> newAssemblies)
+    {
+        Service.Config.Reload(oldAssemblies, newAssemblies);
+        BossModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        RotationModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        ZoneModuleRegistry.Reload(oldAssemblies, newAssemblies);
+        AnalyzerRegistry.Reload(oldAssemblies, newAssemblies);
+    }
+
+    private void InstallLibraries(FileInfo assemblyLocation)
+    {
+        var modulesDir = ModuleDir;
+        var assemblyDir = assemblyLocation.DirectoryName;
+
+        Directory.CreateDirectory(modulesDir);
+
+        void copy(string filename)
+        {
+            var src = Path.Join(assemblyDir, filename);
+            var dest = Path.Join(modulesDir, filename);
+            if (File.Exists(src))
+            {
+                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
+                {
+                    logger.Debug($"{dest} is newer than our version, skipping copy");
+                    return;
+                }
+
+                logger.Debug($"copied {src} to {dest}");
+                File.Copy(src, Path.Join(modulesDir, filename), true);
+
+                return;
+            }
+
+            logger.Warning($"{src} does not exist, cannot copy");
+        }
+
+        copy("BossMod.Autorotation.dll");
+        copy("BossMod.Modules.dll");
+        copy("BossMod.Ultimate.dll");
+    }
+
+    void IDisposable.Dispose()
     {
         _modified.Dispose();
         _watcher.Dispose();

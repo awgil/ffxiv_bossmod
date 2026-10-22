@@ -150,7 +150,7 @@ public sealed record class ActionDefinition(ActionID ID)
         return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && LinkUnlocked(UnlockLink);
     }
 
-    private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
+    private static bool LinkUnlocked(uint link) => link == 0 || Service.UnlockState.IsUnlockLinkUnlocked(link);
 }
 
 // database of all supported player-initiated actions
@@ -210,8 +210,6 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
     public static readonly ActionDefinitions Instance = new();
-
-    public Func<uint, bool>? UnlockCheck;
 
     private ActionDefinitions()
     {
