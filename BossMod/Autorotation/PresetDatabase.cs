@@ -90,11 +90,11 @@ public sealed class PresetDatabase(
         }
     }
 
-    public IEnumerable<Preset> PresetsForClass(Class c)
+    public List<Preset> PresetsForClass(Class c)
     {
         lock (_lock)
         {
-            return AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]));
+            return [.. AllPresets.Where(p => p.Modules.Any(m => m.Definition.Classes[(int)c]))];
         }
     }
 
