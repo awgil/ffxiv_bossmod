@@ -118,7 +118,7 @@ class DebugGraphics
         foreach (var v in _watchedRenderObjects)
         {
             var obj = (FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Object*)v.Key;
-            Camera.Instance()?.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
+            Service.Camera.DrawWorldLine(Service.ObjectTable.LocalPlayer!.Position, obj->Position, 0xff0000ff);
         }
     }
 
@@ -349,7 +349,7 @@ class DebugGraphics
 
     public void DrawOverlay()
     {
-        if (Camera.Instance == null || Service.ObjectTable.LocalPlayer == null)
+        if (Service.ObjectTable.LocalPlayer == null)
             return;
 
         ImGui.Checkbox("Circle", ref _overlayCircle);
@@ -368,12 +368,12 @@ class DebugGraphics
             var center = new Vector3(_overlayCenter.X, y, _overlayCenter.Y);
             for (var ir = 0; ir <= mx; ++ir)
             {
-                Camera.Instance()?.DrawWorldCircle(center, ir * _overlayStep.X, ArenaColor.PC);
+                Service.Camera.DrawWorldCircle(center, ir * _overlayStep.X, ArenaColor.PC);
             }
             for (var ia = 0; ia < 8; ++ia)
             {
                 var offset = ((ia * 22.5f.Degrees()).ToDirection() * _overlayMaxOffset.X).ToVec3();
-                Camera.Instance()?.DrawWorldLine(center - offset, center + offset, ArenaColor.PC);
+                Service.Camera.DrawWorldLine(center - offset, center + offset, ArenaColor.PC);
             }
         }
         else
@@ -381,12 +381,12 @@ class DebugGraphics
             for (var ix = -mx; ix <= mx; ++ix)
             {
                 var x = _overlayCenter.X + ix * _overlayStep.X;
-                Camera.Instance()?.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
+                Service.Camera.DrawWorldLine(new(x, y, _overlayCenter.Y - _overlayMaxOffset.Y), new(x, y, _overlayCenter.Y + _overlayMaxOffset.Y), ArenaColor.PC);
             }
             for (var iz = -mz; iz <= mz; ++iz)
             {
                 var z = _overlayCenter.Y + iz * _overlayStep.Y;
-                Camera.Instance()?.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
+                Service.Camera.DrawWorldLine(new(_overlayCenter.X - _overlayMaxOffset.X, y, z), new(_overlayCenter.X + _overlayMaxOffset.X, y, z), ArenaColor.PC);
             }
         }
     }

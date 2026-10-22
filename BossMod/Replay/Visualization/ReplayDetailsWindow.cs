@@ -125,6 +125,8 @@ class ReplayDetailsWindow : UIWindow
             if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
                 _mgr.ActiveModule.DebugOpts = _moduleDebug;
 
+            ImGui.Text($"Ping: {_mgr.WorldState.Network.LastRTT * 1000:f1}ms");
+
             if (_mgr.WorldState.Client.CountdownRemaining != null)
             {
                 ImGui.SameLine();
@@ -241,7 +243,7 @@ class ReplayDetailsWindow : UIWindow
             var cursor = ImGui.GetCursorPos();
             if (inline)
                 ImGui.SameLine();
-            GaugeVisualizer.Instance().Draw(player, _mgr.WorldState.Client);
+            Service.GaugeVisualizer.Draw(player, _mgr.WorldState.Client);
             if (inline)
                 ImGui.SetCursorPos(cursor);
             return true;

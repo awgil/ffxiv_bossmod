@@ -9,6 +9,7 @@ public class ASleepDisturbed(WorldState ws) : QuestBattle(ws)
         0x1EAF81,
         // wolf statue (second correct answer)
         // easier to just pick wolf twice than figure out what state transition makes the serpent statue the right choice
+        // TODO: we can just check if cymet is targetable lol...
         0x1EAF7E,
         // list of all the correct cards
         .. Enumerable.Range(0x1EAF8C, 6),

@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Services;
 
-public interface IMovementOverride : IDisposable
+public interface IMovementOverride
 {
     bool IsMoving();
     bool IsMoveRequested();
@@ -26,6 +26,4 @@ internal sealed class MockMovementOverride : IMovementOverride
 
     public WDir UserMove => default;
     public WDir ActualMove => default;
-
-    public void Dispose() { }
 }

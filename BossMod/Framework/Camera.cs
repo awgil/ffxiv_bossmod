@@ -1,23 +1,18 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Interfaces;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace BossMod;
 
-public class Camera
+public class Camera : ICamera
 {
-    private static Camera? _instance;
-    public static Camera? Instance()
-    {
-        return Service.IsMock ? null : (_instance ??= new());
-    }
-
     public Vector3 Origin;
     public Matrix4x4 View;
     public Matrix4x4 Proj;
     public Matrix4x4 ViewProj;
     public Vector4 NearPlane;
-    public float CameraAzimuth; // facing north = 0, facing west = pi/4, facing south = +-pi/2, facing east = -pi/4
+    public float CameraAzimuth { get; private set; } // facing north = 0, facing west = pi/4, facing south = +-pi/2, facing east = -pi/4
     public float CameraAltitude; // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
     public Vector2 ViewportSize;
 

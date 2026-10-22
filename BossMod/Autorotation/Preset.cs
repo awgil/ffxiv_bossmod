@@ -135,7 +135,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
         {
             if (!RotationModuleRegistry.Modules.TryGetValue(jm.Name, out var md))
             {
-                Service.Log($"Error while deserializing preset {res.Name}: failed to find module {jm.Name}");
+                Service.PluginLog.Warning($"Error while deserializing preset {res.Name}: failed to find module {jm.Name}");
                 continue;
             }
 
@@ -149,7 +149,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
                 s.Track = md.Definition.Configs.FindIndex(s => s.InternalName == trackName);
                 if (s.Track < 0)
                 {
-                    Service.Log($"Error while deserializing preset {res.Name}: failed to find track {trackName} in module {jm.Name}");
+                    Service.PluginLog.Warning($"Error while deserializing preset {res.Name}: failed to find track {trackName} in module {jm.Name}");
                     continue;
                 }
 
@@ -165,7 +165,7 @@ public class JsonPresetConverter : JsonConverter<Preset>
 
                         if (t.Option < 0)
                         {
-                            Service.Log($"Error while deserializing preset {res.Name}: failed to find option {optionName} in track {trackName} in module {jm.Name}");
+                            Service.PluginLog.Warning($"Error while deserializing preset {res.Name}: failed to find option {optionName} in track {trackName} in module {jm.Name}");
                             continue;
                         }
                         break;
