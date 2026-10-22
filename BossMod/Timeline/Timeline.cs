@@ -163,6 +163,7 @@ public class Timeline
         var colViewW = 0f;
         Height = 10;
         var fullTimeHeight = TimeDeltaToScreenDelta(MathF.Max(0.01f, MaxTime - MinTime));
+        // two passes: each scrollbar can force the other
         for (int i = 0; i < 2; ++i)
         {
             Height = MathF.Max(10, avail.Y - TopMargin - BottomMargin - hScrollH);
@@ -174,7 +175,7 @@ public class Timeline
         var origin = _screenClientTL;
         _screenClientTL = origin + new Vector2(_timeAxisWidth, TopMargin);
 
-        // columns + headers (horizontal scroll); time axis stays pinned on the left
+        // columns + headers scroll horizontally; time axis stays pinned on the left
         ImGui.SetCursorScreenPos(origin + new Vector2(_timeAxisWidth, 0));
         using (var hchild = ImRaii.Child("##timeline-h", new Vector2(colViewW, TopMargin + Height + hScrollH), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
@@ -200,7 +201,6 @@ public class Timeline
             }
         }
 
-        // vertical scrollbar for time
         if (vScrollW > 0)
         {
             ImGui.SetCursorScreenPos(origin + new Vector2(avail.X - vScrollW, TopMargin));
@@ -214,6 +214,7 @@ public class Timeline
                         _vScrollDragging = true;
                     if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
                         _vScrollDragging = false;
+                    // SetScrollY while dragging fights the bar
                     if (_vScrollDragging)
                         MinVisibleTime = Math.Clamp(MinTime + ScreenDeltaToTimeDelta(ImGui.GetScrollY()), MinTime, MathF.Max(MinTime, MaxTime - Height / PixelsPerSecond));
                     else
@@ -222,7 +223,7 @@ public class Timeline
             }
         }
 
-        // time axis on top of the left gutter (after scroll so labels match the visible range)
+        // draw time axis after scroll so labels match the visible range
         _screenClientTL = origin + new Vector2(_timeAxisWidth, TopMargin);
         ImGui.PushClipRect(origin, origin + new Vector2(_timeAxisWidth, TopMargin + Height), true);
         DrawTimeAxis();

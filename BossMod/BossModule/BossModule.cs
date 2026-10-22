@@ -174,7 +174,7 @@ public abstract class BossModule : IDisposable
         var pcHints = CalculateHintsForRaidMember(pcSlot, pc);
         if (includeText)
         {
-            // when text is drawn above the radar, keep it to a fixed number of lines so it doesn't move the radar; the mechanic sequence gives way to the other hints
+            // reserved lines pin the radar; mechanic sequence shrinks first so player/raidwide hints stay
             var reservedLines = includeArena ? WindowConfig.TextHintLines : 0;
             var startY = ImGui.GetCursorPosY();
             var globalHints = WindowConfig.ShowGlobalHints ? CalculateGlobalHints() : null;

@@ -89,7 +89,7 @@ public static class UIMisc
             ImGui.NewLine();
     }
 
-    // number of lines the items would take if drawn with SameLineOrWrap, starting at the beginning of a line
+    // SameLineOrWrap line count, assuming we start at the beginning of a line
     public static int CountWrappedLines(IEnumerable<float> itemWidths, float availableWidth)
     {
         var spacing = ImGui.GetStyle().ItemSpacing.X;

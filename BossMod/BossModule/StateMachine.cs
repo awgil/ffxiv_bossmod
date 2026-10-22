@@ -167,6 +167,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         return $"{(i > 0 ? "> " : "")}{(skipped ? "... > " : "")}{future[index].name}";
     }
 
+    // always keep the next mechanic; when space is short, drop plain ones before tankbuster/raidwide/knockback
     private static List<int> SelectFitting(List<(string name, StateHint hint)> future, Func<List<int>, bool> fits)
     {
         var all = Enumerable.Range(0, future.Count).ToList();
@@ -230,6 +231,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         return (name, next);
     }
 
+    // very long states are placeholders (eg 'enrage' in modules without a timeline)
     private static string TimerText(float timeLeft) => timeLeft < 600 ? $" in {timeLeft:f1}s" : "";
 
     private (string name, StateHint hint, State? next) BuildComplexState(State start, float timeActive, bool writeTime)
