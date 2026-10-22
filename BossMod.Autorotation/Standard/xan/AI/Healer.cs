@@ -99,12 +99,11 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private readonly TrackPartyHealth Health = new(manager.WorldState);
 
     private bool AutoMit;
-    private float RaidwideIn; // raidwides and shared hits
-    private float FullRaidwideIn; // raidwides only (GCD shields are wasted on stacks)
+    private float RaidwideIn;
+    private float FullRaidwideIn; // raidwides only: GCD shields are wasted on stacks
     private float MultiHitIn;
     private bool MultiHitLong; // 8+ hits or 10+ seconds
 
-    // per-frame caches, the heal logic below reads these many times per frame
     private readonly List<Actor> _lightParty = [];
     private readonly int[] _predictedHits = new int[PartyState.MaxAllies];
     private readonly Dictionary<ulong, float> _ratioCache = [];
@@ -816,7 +815,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     private bool UsedWithin(ActionID action, float seconds)
         => ActionDefinitions.Instance[action] is { MainCooldownGroup: >= 0 } def && World.Client.Cooldowns[def.MainCooldownGroup] is { Total: > 0 } cd && cd.Elapsed < seconds;
 
-    // each party mitigation pushed takes one slot of the raidwide budget
     private void PushMitOGCD<AID>(ref int budget, AID aid, Actor? target, int prio) where AID : Enum
     {
         if (budget <= 0 || !ReadySoon(aid))
@@ -866,10 +864,6 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         return new Vector3(bestCenter.X, Player.PosRot.Y, bestCenter.Z);
     }
 
-    /// <summary>
-    /// Run the given Action if the party has exactly one tank, otherwise do nothing
-    /// </summary>
-    /// <param name="tankFun"></param>
     private void RunForTank(Action<Actor, PartyMemberState> tankFun)
     {
         var tankSlot = -1;
