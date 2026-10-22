@@ -79,8 +79,8 @@ public sealed class AIHintsBuilder : IDisposable
 
     public void Dispose()
     {
-        _subscriptions.Dispose();
         Obstacles.Dispose();
+        _subscriptions.Dispose();
     }
 
     public void Update(AIHints hints, int playerSlot, bool moveImminent)

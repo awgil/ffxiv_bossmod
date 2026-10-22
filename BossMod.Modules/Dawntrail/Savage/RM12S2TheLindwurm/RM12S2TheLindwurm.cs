@@ -6,5 +6,5 @@ class LindwurmsMeteor(BossModule module) : Components.RaidwideCast(module, AID.L
 class ArcadianHell5x(BossModule module) : Components.RaidwideCast(module, AID.ArcadianHell4x);
 class ArcadianHell9x(BossModule module) : Components.RaidwideCast(module, AID.ArcadianHell8x);
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1075, NameID = 14379, PlanLevel = 100)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1075, NameID = 14379, PlanLevel = 100, SortOrder = 13)]
 public class RM12S2TheLindwurm(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));

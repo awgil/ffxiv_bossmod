@@ -13,17 +13,17 @@ public sealed class ConfigWindow : UIWindow, IMediatorSubscriber
         this.root = root;
         MediatorService = Service.Mediator;
 
-        MediatorService.Subscribe<OpenSettingsWindowMessage>(this, c =>
+        MediatorService.Subscribe<OpenSettingsWindow>(this, c =>
         {
             root.ShowTab(c.Tab);
             OpenAndBringToFront();
         });
-        MediatorService.Subscribe<OpenPresetEditorMessage>(this, c =>
+        MediatorService.Subscribe<OpenPresetEditor>(this, c =>
         {
             root.ShowPreset(c.Name);
             OpenAndBringToFront();
         });
-        MediatorService.Subscribe<ShowConfigNodeMessage>(this, c =>
+        MediatorService.Subscribe<ShowConfigNode>(this, c =>
         {
             root.OpenConfigNode(c.NodeType);
             OpenAndBringToFront();

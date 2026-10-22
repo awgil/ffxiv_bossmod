@@ -1,10 +1,8 @@
-﻿using BossMod.AI;
+﻿using Autofac.Features.AttributeFilters;
+using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Dev;
 using BossMod.Interfaces;
-using BossMod.Network;
-using BossMod.ReplayAnalysis;
-using BossMod.ReplayVisualization;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Interfaces;
 using Dalamud.Bindings.ImGui;
@@ -12,204 +10,99 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Ipc;
-using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-internal class TickService : DisposableMediatorSubscriberBase, IHostedService
+internal sealed class TickService(
+    [KeyFilter(Keys.ConfigDirectory)] DirectoryInfo configDir,
+    [KeyFilter(Keys.ReplayDirectory)] DirectoryInfo replayDir,
+    MediatorService mediator,
+    ILogger<DisposableMediatorSubscriberBase> mLogger,
+    IDalamudPluginInterface dalamud,
+    ICommandManager commandManager,
+    IUiBuilder uiBuilder,
+    ICondition condition,
+    IPluginLog logger,
+    IClientState clientState,
+    IWindowSystemFactory windowSystemFactory,
+    IFileDialogManager fileDialogManager,
+    ModulePackService packService,
+    IAmex amex,
+    IMovementOverride movementOverride,
+    IWorldStateGameSync wsSync,
+    IHintExecutor hintExecutor,
+    BossModuleManager bossmod,
+    RotationDatabase rotationDB,
+    RotationModuleManager rotation,
+    ZoneModuleManager zonemod,
+    ReplayManager replayManager,
+    WorldState worldstateGlobal,
+    AIHintsBuilder hintsBuilder,
+    AIHints hintsGlobal,
+    IEnumerable<Func<MainDebugWindow>> mainDebugWindow
+) : DisposableMediatorSubscriberBase(mLogger, mediator), IHostedService
 {
-    readonly IWindowSystem windowSystem;
+#nullable disable
+    private IWindowSystem windowSystem;
 
-    readonly RotationDatabase _rotationDB;
-    readonly WorldState _ws;
-    readonly AIHints _hints;
-    readonly BossModuleManager _bossmod;
-    readonly ZoneModuleManager _zonemod;
-    readonly AIHintsBuilder _hintsBuilder;
-    readonly IMovementOverride _movementOverride;
-    readonly IAmex _amex;
-    readonly IWorldStateGameSync _wsSync;
-    readonly RotationModuleManager _rotation;
-    readonly IPCProvider _ipc;
-    readonly DtrProvider _dtr;
-    readonly SlashCommandProvider _slashCmd;
-    readonly MultiboxManager _mbox;
-    TimeSpan _prevUpdateTime;
-    readonly PackLoader _packs;
-    readonly PingTracker _ping;
-    private readonly IDalamudPluginInterface dalamud;
-    private readonly IUiBuilder uiBuilder;
-    private readonly ICondition condition;
-    private readonly IPluginLog logger;
-    private readonly IClientState clientState;
-    private readonly IHintExecutor _hintExecutor;
+    private SlashCommandProvider _slashCmd;
+    private TimeSpan _prevUpdateTime;
 
-    private readonly BossModuleMainWindow _wndBossmod;
-    private readonly BossModuleHintsWindow _wndBossmodHints;
-    private readonly ZoneModuleWindow _wndZone;
-    private readonly ReplayManagementWindow _wndReplay;
-    private readonly UIRotationWindow _wndRotation;
-    private readonly AIWindow _wndAI;
-    private readonly MainDebugWindow? _wndDebug;
-    private readonly ConfigWindow _wndConfig;
-    private readonly ConfigChangelogWindow _wndChangelog;
+    private BossModuleMainWindow _wndBossmod;
+    private BossModuleHintsWindow _wndBossmodHints;
+    private ZoneModuleWindow _wndZone;
+    private ReplayManagementWindow _wndReplay;
+    private UIRotationWindow _wndRotation;
+    private AIWindow _wndAI;
+    private ConfigWindow _wndConfig;
+    private ConfigChangelogWindow _wndChangelog;
+#nullable restore
+    private MainDebugWindow? _wndDebug;
 
-    private readonly ICallGateSubscriber<bool>? _vnavIsReady;
-    private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
-
-    private readonly CancellationTokenSource _saveCts = new();
-
-    public unsafe TickService(
-        MediatorService mediator,
-        ILogger<DisposableMediatorSubscriberBase> mLogger,
-        IDalamudPluginInterface dalamud,
-        IDataManager dataManager,
-        ICommandManager commandManager,
-        IUiBuilder uiBuilder,
-        ICondition condition,
-        IPluginLog logger,
-        IFileDialogManager dialog,
-        IChatGui chat,
-        IClientState clientState,
-        IWindowSystemFactory windowSystemFactory
-    ) : base(mLogger, mediator)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        this.dalamud = dalamud;
-        this.uiBuilder = uiBuilder;
-        this.condition = condition;
-        this.logger = logger;
-        this.clientState = clientState;
-        windowSystem = windowSystemFactory.Create("vbm");
+        Service.WindowSystem = windowSystem = windowSystemFactory.Create("vbm");
 
-        dalamud.Create<Service>();
-        Service.Mediator = mediator;
-        Service.PluginInterface = dalamud;
-        Service.LuminaGameData = dataManager.GameData;
-        Service.WindowSystem = windowSystem;
-        Service.FileDialogManager = dialog;
+        MigratePlans(configDir.FullName);
 
-        // TODO: all of this stuff should be replaced by actual DI, but that will be complicated
-        // testing against actual type incurs a dependency on DalaMock.Core, which is 60MB
-        Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
-
-        Service.Config = new(dalamud.ConfigFile);
-
-        Service.Config.PreviousAssemblyVersion = Service.Config.AssemblyVersion;
-        Service.Config.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
-
-        Service.Config.Reload([], [Assembly.GetExecutingAssembly()]);
-        BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        RotationModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        ZoneModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-        AnalyzerRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
-
-        var configDir = dalamud.ConfigDirectory.FullName;
-        if (Service.IsMock)
-        {
-            // bug(?) in dalamock gives us the wrong config dir (top-level directory)
-            configDir = Path.Join(configDir, "BossMod");
-            // don't save automatically, instead we have a button attached to MainDevWindow (to avoid destructive changes)
-        }
-        else
-        {
-            Task.Run(SavePeriodically);
-
-            // requires windows/wine
-            MultiboxUnlock.Exec();
-        }
-
-        MigratePlans(configDir);
-        CopyLibraries(dalamud.AssemblyLocation);
-
-        _packs = new();
-        _hints = new();
-        _ping = new(logger);
-
-        if (!Service.IsMock)
-        {
-            _vnavIsReady = Service.PluginInterface.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");
-            _vnavIsOnMesh = Service.PluginInterface.GetIpcSubscriber<Vector3, float, bool, bool>("vnavmesh.Query.Mesh.IsPointOnMesh");
-        }
-
-        _rotationDB = new(new(Path.Join(Plugin.GetStorageDir(), "autorot")), new(dalamud.AssemblyLocation.DirectoryName! + "/DefaultRotationPresets.json"), _packs);
-
-        if (Service.IsMock)
-        {
-            _ws = new(0, "unknown");
-            _movementOverride = new MockMovementOverride();
-            _amex = new MockAmex();
-            _wsSync = new MockWorldStateGameSync();
-            _hintExecutor = new MockHintExecutor();
-
-            Service.LuminaGameData.Options.RsvResolver = Service.LuminaRSV.TryGetValue;
-        }
-        else
-        {
-            _ping.Run();
-            _ws = new((ulong)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->PerformanceCounterFrequency, dataManager.GameData.Repositories["ffxiv"].Version);
-            _movementOverride = new MovementOverride(dalamud);
-            _amex = new ActionManagerEx(_ws, _hints, (MovementOverride)_movementOverride);
-            _wsSync = new WorldStateGameSync(_ws, (ActionManagerEx)_amex, _ping);
-            _hintExecutor = new HintExecutor(_ws, _movementOverride, _amex, _hints);
-
-            ActionDefinitions.Instance.UnlockCheck = QuestUnlocked;
-        }
-
-        _bossmod = new(_ws);
-        _zonemod = new(_ws);
-        _hintsBuilder = new(_ws, _bossmod, _zonemod);
-        _rotation = new(_rotationDB, _bossmod, _hints);
-        _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
-        _mbox = new(_rotation, _ws);
 
-        var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
-
-        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB));
-        _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
-        _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
-        _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
-        _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new UIRotationWindow(_rotation, _amex);
-        _wndAI = new AIWindow(_rotation);
+        _wndConfig = new(new(Service.Config, worldstateGlobal, replayDir, rotationDB));
+        _wndBossmod = new BossModuleMainWindow(bossmod, zonemod, hintsGlobal);
+        _wndBossmodHints = new BossModuleHintsWindow(bossmod, zonemod, hintsGlobal);
+        _wndZone = new ZoneModuleWindow(zonemod, rotation);
+        _wndReplay = new ReplayManagementWindow(worldstateGlobal, bossmod, replayDir, replayManager);
+        _wndRotation = new UIRotationWindow(rotation, amex);
+        _wndAI = new AIWindow(rotation);
         _wndChangelog = new();
 
         if (Service.IsMock)
         {
             Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
-            _ = new MainDevWindow(dalamud, _packs) { IsOpen = true };
+            _ = new MainDevWindow(dalamud, packService) { IsOpen = true };
         }
-        else
-        {
-            _wndDebug = new MainDebugWindow(_ws, _rotation, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
-        }
+
+        _wndDebug = mainDebugWindow.FirstOrDefault()?.Invoke();
 
         RegisterSlashCommands();
-    }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
         Version cutoff = new(7, 5, 1, 13);
         if (Service.Config.PreviousAssemblyVersion < cutoff && Service.Config.AssemblyVersion >= cutoff)
         {
-            Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
-            _hintsBuilder.Obstacles.ClearGenerated();
+            Service.Log($"Removing potentially broken bitmaps from {hintsBuilder.Obstacles.UserRoot.FullName}");
+            hintsBuilder.Obstacles.ClearGenerated();
         }
 
         // TODO: this should be in worldstate, but how?
         clientState.Logout += OnLogout;
-        clientState.ZoneInit += OnZoneInit;
 
         uiBuilder.Draw += Update;
         uiBuilder.DisableAutomaticUiHide = true;
@@ -218,18 +111,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         condition.ConditionChange += OnConditionChanged;
 
-        if (Service.IsMock)
-        {
-            _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
-            _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
-            //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
-        }
-
-        MediatorService.Subscribe<OpenWindowMessage>(this, o =>
+        MediatorService.Subscribe<OpenWindow>(this, o =>
         {
             windowSystem.Windows.FirstOrDefault(w => w.GetType() == o.WindowType)?.IsOpen = true;
         });
-        MediatorService.Subscribe<ToggleWindowMessage>(this, t =>
+        MediatorService.Subscribe<ToggleWindow>(this, t =>
         {
             windowSystem.Windows.FirstOrDefault(w => w.GetType() == t.WindowType)?.IsOpen ^= true;
         });
@@ -238,7 +124,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         clientState.Logout -= OnLogout;
-        clientState.ZoneInit -= OnZoneInit;
 
         uiBuilder.Draw -= Update;
         uiBuilder.OpenConfigUi -= OpenUi;
@@ -247,133 +132,32 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         condition.ConditionChange -= OnConditionChanged;
     }
 
-    private void OnZoneInit(Dalamud.Game.ClientState.ZoneInitEventArgs obj)
-    {
-        _pauseBitmapGeneration = false;
-    }
-
     void Update()
     {
         var tsStart = DateTime.Now;
-        var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
+        var moveImminent = movementOverride.IsMoveRequested() && (!amex.Config.PreventMovingWhileCasting || movementOverride.IsForceUnblocked());
 
-        _dtr.Update();
-        Camera.Instance()?.Update();
-        _wsSync.Update(_prevUpdateTime);
-        _bossmod.Update();
-        _zonemod.ActiveModule?.Update();
-        _hintsBuilder.Update(_hints, PartyState.PlayerSlot, moveImminent);
-        _amex.QueueManualActions();
-        _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
-        _amex.FinishActionGather();
-        _wsSync.UpdateReplayState(_rotation, _movementOverride, _hints);
+        Service.Camera.Update();
+        wsSync.Update(_prevUpdateTime);
+        bossmod.Update();
+        zonemod.ActiveModule?.Update();
+        hintsBuilder.Update(hintsGlobal, PartyState.PlayerSlot, moveImminent);
+        amex.QueueManualActions();
+        rotation.Update(amex.AnimationLockDelayEstimate, movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
+        amex.FinishActionGather();
+        wsSync.UpdateReplayState(rotation, movementOverride, hintsGlobal);
 
-        Service.IconFont = uiBuilder.FontIcon;
-        Service.MonoFont = uiBuilder.FontMono;
-        Service.FontAtlas = uiBuilder.FontAtlas;
         var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
         if (!uiHidden)
         {
             windowSystem.Draw();
-            Service.FileDialogManager.Draw();
+            fileDialogManager.Draw();
         }
 
-        _hintExecutor.Execute();
+        hintExecutor.Execute();
 
-        if (_vnavIsReady != null && _vnavIsOnMesh != null)
-            CreateBitmapIfMissing(_vnavIsReady, _vnavIsOnMesh);
-
-        Camera.Instance()?.DrawWorldPrimitives();
+        Service.Camera.DrawWorldPrimitives();
         _prevUpdateTime = DateTime.Now - tsStart;
-    }
-
-    private unsafe bool QuestUnlocked(uint link)
-    {
-        // see ActionManager.IsActionUnlocked
-        var gameMain = FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance();
-        return link == 0
-            || Service.LuminaRow<Lumina.Excel.Sheets.TerritoryType>(gameMain->CurrentTerritoryTypeId)?.TerritoryIntendedUse.RowId == 31 // deep dungeons check is hardcoded in game
-            || FFXIVClientStructs.FFXIV.Client.Game.UI.UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(link);
-    }
-
-    bool _pauseBitmapGeneration;
-
-    void CreateBitmapIfMissing(ICallGateSubscriber<bool> isReady, ICallGateSubscriber<Vector3, float, bool, bool> isPointOnMesh)
-    {
-        if (_pauseBitmapGeneration || _ws.Party.Player() is not { } player || !Service.Config.Get<DeveloperConfig>().AutoBitmaps)
-            return;
-
-        unsafe
-        {
-            // vnav isn't reliable in housing zones and there's not really a reason to have bitmaps there anyway
-            // TODO isn't there a oneliner for this?
-            if (FFXIVClientStructs.FFXIV.Client.Game.GameMain.Instance()->CurrentTerritoryIntendedUseId is FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingIndoor or FFXIVClientStructs.FFXIV.Client.Enums.TerritoryIntendedUse.HousingOutdoor)
-                return;
-        }
-
-        // scorched earth approach: if player is moving vertically, assume we can't trust their position
-        // this covers jumping and clientpaths, as well as some annoying edge cases that don't show up anywhere else: walking off the boat in ihuykatumu (during which IsJumping() returns false), walking off of any wall-less arena (which puts you into condition 47, not Jumping), etc
-        if (player.PosRot.Y != player.PrevPosRot.Y)
-            return;
-
-        // try to do nothing if player is in any state that isn't "standing on the ground"
-        if (Service.Condition.Any(ConditionFlag.BetweenAreas, ConditionFlag.BetweenAreas51, ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.OccupiedInQuestEvent, ConditionFlag.InFlight, ConditionFlag.Diving, ConditionFlag.Jumping, (ConditionFlag)47, ConditionFlag.DutyRecorderPlayback))
-            return;
-
-        var insertAtFront = false;
-
-        var (entry, data) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
-        if (entry != null && data != null)
-        {
-            var poff = ((player.Position - entry.Origin) / data.PixelSize).Floor();
-            var px = (int)poff.X;
-            var py = (int)poff.Z;
-
-            var playerDeepInObstacle = px >= 0 && py >= 0 && px < data.Width && py < data.Height && data[px, py] && (px == 0 || data[px - 1, py]) && (py == 0 || data[px, py - 1]) && (px == (data.Width - 1) || data[px + 1, py]) && (py == (data.Height - 1) || data[px, py + 1]);
-
-            if (playerDeepInObstacle)
-                // we are probably standing on an isolated landmass that is within the current map's bounding box
-                // we should try to generate a new map from player's current position and make it higher priority (assumption is that this area has a smaller bounding box)
-                insertAtFront = true;
-            else
-                // standing in normal part of map, everything is fine
-                return;
-        }
-
-        try
-        {
-            if (!isReady.InvokeFunc())
-                return;
-        }
-        catch (IpcNotReadyError ex)
-        {
-            Service.Logger.Debug(ex, "vnav is not loaded, pausing");
-            _pauseBitmapGeneration = true;
-            return;
-        }
-
-        try
-        {
-            // if player is standing on a little rock or at the edge of accessible ground, we want to avoid generating a bitmap every frame which just overwrites an existing one
-            if (!isPointOnMesh.InvokeFunc(player.PosRot.XYZ(), 2, true))
-                return;
-        }
-        catch (IpcNotReadyError ex)
-        {
-            Service.Logger.Debug(ex, "vnav is too old, must be >=1.2.3.8 to support auto generation");
-            _pauseBitmapGeneration = true;
-            return;
-        }
-
-        try
-        {
-            _hintsBuilder.Obstacles.GenerateMap(player.PosRot.XYZ(), 2048, true, insertAtFront);
-        }
-        catch (Exception ex)
-        {
-            Service.Logger.Warning(ex, "Unable to generate an obstacle map, pausing");
-            _pauseBitmapGeneration = true;
-        }
     }
 
     void OnConditionChanged(ConditionFlag flag, bool value)
@@ -383,12 +167,12 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OnLogout(int type, int code)
     {
-        _bossmod.ForceUnload($"logout type={type}, code={code}");
+        bossmod.ForceUnload($"logout type={type}, code={code}");
     }
 
     void OpenConfigUI(string tab = "")
     {
-        MediatorService.Publish(new OpenSettingsWindowMessage(tab));
+        MediatorService.Publish(new OpenSettingsWindow(tab));
     }
 
     void OpenUi() => OpenConfigUI();
@@ -415,14 +199,14 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             GC.Collect();
         });
 
-        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", _hintsBuilder.Obstacles.ClearGenerated);
+        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", hintsBuilder.Obstacles.ClearGenerated);
 
         _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
         {
             unsafe
             {
                 if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
-                    _amex.MacroCapture = true;
+                    amex.MacroCapture = true;
                 else
                     Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
             }
@@ -432,7 +216,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             unsafe
             {
                 if (RaptureShellModule.Instance()->MacroCurrentLine >= 0)
-                    _amex.MacroCapture = false;
+                    amex.MacroCapture = false;
                 else
                     Service.ChatMessage("That command doesn't do anything unless it's inside a macro.");
             }
@@ -450,20 +234,20 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         {
             if (toggle)
             {
-                var verb = _rotation.Presets.Contains(preset) ? "disables" : "enables";
+                var verb = rotation.Presets.Contains(preset) ? "disables" : "enables";
                 Service.Log($"Console: toggle {verb} preset '{preset.Name}'");
-                _rotation.Toggle(preset, exclusive);
+                rotation.Toggle(preset, exclusive);
             }
             else
             {
                 Service.Log($"Console: set activates preset '{preset.Name}'");
-                _rotation.Activate(preset, exclusive);
+                rotation.Activate(preset, exclusive);
             }
         }
 
         void SetOrToggleByName(ReadOnlySpan<char> presetName, bool toggle, bool exclusive)
         {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            var preset = rotation.Database.Presets.FindPresetByName(presetName);
             if (preset != null)
                 SetOrToggle(preset, toggle, exclusive);
             else
@@ -472,11 +256,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         void ClearByName(ReadOnlySpan<char> presetName)
         {
-            var preset = _rotation.Database.Presets.FindPresetByName(presetName);
+            var preset = rotation.Database.Presets.FindPresetByName(presetName);
             if (preset != null)
             {
                 Service.Log($"Console: unset deactivates preset '{preset.Name}'");
-                _rotation.Deactivate(preset);
+                rotation.Deactivate(preset);
             }
             else
                 Service.ChatError($"Failed to find preset '{presetName}'");
@@ -485,13 +269,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         cmd.SetSimpleHandler("toggle autorotation ui", () => _wndRotation.SetVisible(!_wndRotation.IsOpen));
         cmd.AddSubcommand("clear").SetSimpleHandler("clear current preset; autorotation will do nothing unless plan is active", () =>
         {
-            Service.Log($"Console: clearing autorotation preset(s) '{_rotation.PresetNames}'");
-            _rotation.Clear();
+            Service.Log($"Console: clearing autorotation preset(s) '{rotation.PresetNames}'");
+            rotation.Clear();
         });
         cmd.AddSubcommand("disable").SetSimpleHandler("force disable autorotation; no actions will be executed automatically even if plan is active", () =>
         {
-            Service.Log($"Console: force-disabling from presets '{_rotation.PresetNames}'");
-            _rotation.SetForceDisabled();
+            Service.Log($"Console: force-disabling from presets '{rotation.PresetNames}'");
+            rotation.SetForceDisabled();
         });
         cmd.AddSubcommand("set").SetComplexHandler("<preset>", "start executing specified preset, and deactivate others", preset =>
         {
@@ -557,8 +341,8 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         cmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "enable multibox mode and follow party member with specified name or at specified slot", masterString =>
         {
             var ms = masterString.ToString();
-            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : Array.FindIndex(_ws.Party.Members, m => _ws.Actors.Find(m.InstanceId)?.Name == ms);
-            if (_ws.Party[masterSlot] != null)
+            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : Array.FindIndex(worldstateGlobal.Party.Members, m => worldstateGlobal.Actors.Find(m.InstanceId)?.Name == ms);
+            if (worldstateGlobal.Party[masterSlot] != null)
             {
                 _wndAI.SetSlot(masterSlot);
                 if (aiConfig.ChatConfirmation)
@@ -602,9 +386,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         var i = 0;
 
         diag.AppendLine($"VBM {typeof(TickService).Assembly.GetName().Version}");
-        diag.AppendLine($"current zone: {_ws.CurrentZone}/{_ws.CurrentCFCID}");
+        diag.AppendLine($"current zone: {worldstateGlobal.CurrentZone}/{worldstateGlobal.CurrentCFCID}");
 
-        var player = _ws.Party.Player();
+        var player = worldstateGlobal.Party.Player();
 
         if (player != null)
         {
@@ -619,13 +403,13 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
                 if (sid.ID == 0)
                     continue;
                 var desc = Service.LuminaRow<Lumina.Excel.Sheets.Status>(sid.ID);
-                diag.AppendLine($"status [{i++}]: {sid.ID} '{desc?.Name ?? "unknown"}' p=0x{sid.Extra:X} ({(sid.ExpireAt - _ws.CurrentTime).TotalSeconds:f1})");
+                diag.AppendLine($"status [{i++}]: {sid.ID} '{desc?.Name ?? "unknown"}' p=0x{sid.Extra:X} ({(sid.ExpireAt - worldstateGlobal.CurrentTime).TotalSeconds:f1})");
             }
         }
 
         diag.AppendLine();
         diag.AppendLine("autorot:");
-        foreach (var m in _rotation.Presets)
+        foreach (var m in rotation.Presets)
         {
             diag.AppendLine($"{m.Name}");
             foreach (var mod in m.Modules)
@@ -641,7 +425,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         diag.AppendLine();
         diag.AppendLine("modules:");
-        foreach (var m in _bossmod.LoadedModules)
+        foreach (var m in bossmod.LoadedModules)
         {
             var s = m.StateMachine.ActiveState == null ? "inactive" : "active";
             diag.AppendLine($"{m.GetType()} ({s}) (OID=0x{m.PrimaryActor.OID:X})");
@@ -652,11 +436,11 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
             diag.AppendLine();
             diag.AppendLine("bitmap:");
 
-            var (entry, _) = _hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
+            var (entry, _) = hintsBuilder.Obstacles.Find(player.PosRot.XYZ());
             if (entry != null)
                 diag.AppendLine(entry.ToString());
 
-            var (map, rect) = _hints.PathfindMapObstacles;
+            var (map, rect) = hintsGlobal.PathfindMapObstacles;
             diag.AppendLine($"current bounds: {rect}");
 
             if (map != null)
@@ -706,51 +490,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.Log($"[Migrator] Done.");
     }
 
-    private static void CopyLibraries(FileInfo assemblyLocation)
-    {
-        var modulesDir = PackLoader.ModuleDir;
-        var assemblyDir = assemblyLocation.DirectoryName;
-
-        Directory.CreateDirectory(modulesDir);
-
-        void copy(string filename)
-        {
-            var src = Path.Join(assemblyDir, filename);
-            var dest = Path.Join(modulesDir, filename);
-            if (File.Exists(src))
-            {
-                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
-                {
-                    Service.PluginLog.Debug($"{dest} is newer than our version, skipping copy");
-                    return;
-                }
-
-                Service.PluginLog.Debug($"copied {src} to {dest}");
-                File.Copy(src, Path.Join(modulesDir, filename), true);
-
-                return;
-            }
-
-            Service.PluginLog.Warning($"{src} does not exist, cannot copy");
-        }
-
-        copy("BossMod.Autorotation.dll");
-        copy("BossMod.Modules.dll");
-        copy("BossMod.Ultimate.dll");
-    }
-
-    private async Task SavePeriodically()
-    {
-        var token = _saveCts.Token;
-
-        while (!token.IsCancellationRequested)
-        {
-            await Task.Delay(30_000, token).ConfigureAwait(true);
-
-            Service.Config.SaveToFile(dalamud.ConfigFile);
-        }
-    }
-
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -758,13 +497,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         if (!disposing)
             return;
 
-        _saveCts.Cancel();
-        _saveCts.Dispose();
-        if (!Service.IsMock)
-            Service.Config.SaveToFile(dalamud.ConfigFile);
-
-        GaugeVisualizer.Dispose();
-        _wndDebug?.Dispose();
         _wndChangelog.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
@@ -773,19 +505,6 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _wndBossmodHints.Dispose();
         _wndBossmod.Dispose();
         _wndConfig.Dispose();
-        _rotationDB.Dispose();
-        _mbox.Dispose();
         _slashCmd.Dispose();
-        _dtr.Dispose();
-        _ipc.Dispose();
-        _rotation.Dispose();
-        _wsSync.Dispose();
-        _amex.Dispose();
-        _ping.Dispose();
-        _movementOverride.Dispose();
-        _hintsBuilder.Dispose();
-        _zonemod.Dispose();
-        _bossmod.Dispose();
-        _packs.Dispose();
     }
 }
