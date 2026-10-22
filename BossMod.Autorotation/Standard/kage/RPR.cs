@@ -142,7 +142,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Use right after Communio", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Hold for melee downtime, use before it expires", Targets = ActionTargets.Hostile)]
+        [Option("Hold as a ranged GCD for melee downtime; still used before it expires, before the boss leaves or the target dies", Targets = ActionTargets.Hostile)]
         Ranged,
         [Option("Do not use")]
         Delay
@@ -150,7 +150,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
 
     public enum HarvestMoonStrategy
     {
-        [Option("Use out of melee range, or when moving at the end of Enshroud", Targets = ActionTargets.Hostile)]
+        [Option("Use out of melee range, when moving at the end of Enshroud, or as the last GCD before downtime or a kill", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Automatic, and also use during raid buffs", Targets = ActionTargets.Hostile)]
         Burst,
@@ -214,7 +214,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use right before Arcane Circle")]
+        [Option("Use with Arcane Circle (right before it in the opener, right after it from the 4 minute window on)")]
         AlignWithBurst,
         [Option("Use as soon as possible")]
         Immediate
@@ -267,6 +267,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     private float CircleLeft;
     private float EnhancedGibbetLeft;
     private float EnhancedGallowsLeft;
+    private float EnhancedVoidLeft;
     private float EnhancedCrossLeft;
     private float EnhancedHarpeLeft;
     private bool HasSoulsow;
@@ -274,7 +275,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
 
     private bool AOEMode;
     private bool ConeAOE;
+    private bool GuillotineMode;
     private bool ForceST;
+    private AOEStrategy AOEStrat;
     private bool InMelee;
     private int NumCircleTargets;
     private int NumConeTargets;
@@ -289,6 +292,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     private bool WorthBurst;
     private bool AvoidGluttonyDrift;
     private bool SpendUnderTrueNorth;
+    private bool HoldingPerfectio;
 
     private readonly Dictionary<uint, DateTime> LastUsed = [];
     private DateTime LastCastSeen;
@@ -306,8 +310,14 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     private bool PerfectioReady => PerfectioLeft > GCD && Unlocked(AID.Perfectio);
     private bool HasImmortal => ImmortalLeft > GCD;
     private float CircleIn => CircleStrat == OffensiveStrategy.Delay ? float.MaxValue : ReadyIn(AID.ArcaneCircle);
-    private bool InNormalRotation => !Enshrouded && !SoulReaver && !HasImmortal && IdealHostLeft == 0 && !PerfectioReady;
-    private bool InPostBurst => JustUsed(AID.Perfectio, GCDLength * 8);
+    // a held perfectio (ranged option) doesn't pause the rotation - the guide continues with the post-perfectio priority
+    private bool PerfectioPending => PerfectioReady && !HoldingPerfectio;
+    private bool InNormalRotation => !Enshrouded && !SoulReaver && !HasImmortal && IdealHostLeft == 0 && !PerfectioPending;
+    // the burst ends with perfectio, or with the last communio if perfectio is held
+    private float SinceBurstEnd => MathF.Min(SinceUsed(AID.Perfectio), HoldingPerfectio ? SinceUsed(AID.Communio) : float.MaxValue);
+    private bool InPostBurst => SinceBurstEnd < GCDLength * 8;
+    private float SinceUsed(AID aid) => LastUsed.TryGetValue((uint)aid, out var t) ? (float)(World.CurrentTime - t).TotalSeconds : float.MaxValue;
+    private bool ConeAt(int minTargets) => !ForceST && UseAOE(AOEStrat, NumConeTargets, minTargets);
     private bool ShroudOvercapping => Shroud >= 100 && !WantEnshroud;
     private bool ComboExpiring(float gcds) => ComboLeft > 0 && ComboLeft < GCDLength * gcds;
     private bool DDExpiring(float gcds) => TargetDDLeft < GCDLength * gcds;
@@ -324,6 +334,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         EnshroudStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => EnshroudStrategy.Delay, OffensiveStrategy.Force => EnshroudStrategy.Force, _ => strategy.Enshroud.Value };
         GaugeStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => SoulGaugeStrategy.HoldGluttony, OffensiveStrategy.Force => SoulGaugeStrategy.ForceGluttony, _ => strategy.SoulGauge.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
+        AOEStrat = strategy.AOE.Value;
 
         var gauge = World.Client.GetGauge<ReaperGauge>();
         Soul = gauge.Soul;
@@ -342,6 +353,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         CircleLeft = SelfStatusLeft(SID.ArcaneCircle);
         EnhancedGibbetLeft = SelfStatusLeft(SID.EnhancedGibbet);
         EnhancedGallowsLeft = SelfStatusLeft(SID.EnhancedGallows);
+        EnhancedVoidLeft = SelfStatusLeft(SID.EnhancedVoidReaping);
         EnhancedCrossLeft = SelfStatusLeft(SID.EnhancedCrossReaping);
         EnhancedHarpeLeft = SelfStatusLeft(SID.EnhancedHarpe);
         HasSoulsow = SelfStatusLeft(SID.Soulsow) > 0;
@@ -352,7 +364,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         AOEMode = Unlocked(AID.SpinningScythe) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         (BestConeTarget, NumConeTargets) = BestAOETarget(target, 8, allowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 90.Degrees()));
-        ConeAOE = !ForceST && UseAOE(strategy.AOE.Value, NumConeTargets, 3);
+        ConeAOE = ConeAt(3);
+        // the balance: guillotine on 3+, but 4+ while gibbet/gallows is enhanced; executioner's guillotine on 3+
+        GuillotineMode = Unlocked(AID.Guillotine) && ConeAt(Executioner || EnhancedGibbetLeft == 0 && EnhancedGallowsLeft == 0 ? 3 : 4);
         BestLineTarget = BestAOETarget(target, 15, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 15, 2)).Best;
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
@@ -380,6 +394,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
             if (!HasSoulsow && strategy.Soulsow.Value != SoulsowStrategy.Delay)
                 PushGCD(AID.Soulsow, Player, 95);
         }
+
+        HoldingPerfectio = target != null && ShouldHoldPerfectio(strategy, target);
 
         if (target == null)
         {
@@ -530,6 +546,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         UsePerfectio(strategy, target);
         PostBurstGCD(strategy, target);
         UseDeathsDesign(strategy, target);
+        ComboBeforeDoubleEnshroud(target);
         UseReaver(target);
         UseHarvest(strategy, target);
         EnshroudGCDs(strategy, target, isMoving);
@@ -544,12 +561,19 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     {
         if (!PerfectioReady || strategy.Perfectio.Value == PerfectioStrategy.Delay)
             return;
-        var hold = strategy.Perfectio.Value == PerfectioStrategy.Ranged && InMelee && PerfectioLeft > GCD + GCDLength * 2;
-        PushGCD(AID.Perfectio, ResolveTarget(strategy.Perfectio) ?? BestSplashTarget ?? target.Actor, hold ? 18 : 90);
+        PushGCD(AID.Perfectio, ResolveTarget(strategy.Perfectio) ?? BestSplashTarget ?? target.Actor, HoldingPerfectio ? 18 : 90);
     }
 
-    // the balance: after perfectio, continue the combo, then gluttony if we have 50 soul, else soul slice into gluttony
-    private bool PostPerfectioCombo => JustUsed(AID.Perfectio, GCDLength + 0.5f) && MidCombo(AOEMode);
+    // ranged option: keep perfectio as a ranged gcd while we're in melee, but never let it go to waste - use it before it expires,
+    // before the boss leaves (it can't hit an untargetable boss) or before the target dies
+    private bool ShouldHoldPerfectio(in Strategy strategy, Enemy target)
+        => PerfectioReady && strategy.Perfectio.Value == PerfectioStrategy.Ranged && InMelee
+        && PerfectioLeft > GCD + GCDLength * 2
+        && DowntimeIn > GCD + GCDLength * 2
+        && TimeToKill.WillLive(target.Actor, GCD + GCDLength * 2);
+
+    // the balance: after perfectio (or the last communio, if perfectio is held), continue the combo, then gluttony if we have 50 soul, else soul slice into gluttony
+    private bool PostPerfectioCombo => SinceBurstEnd < GCDLength + 0.5f && MidCombo(AOEMode);
 
     private void PostBurstGCD(in Strategy strategy, Enemy target)
     {
@@ -582,7 +606,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
                 return;
         }
 
-        if (!Unlocked(AID.ShadowofDeath) || target.ForbidDOTs || SoulReaver || PerfectioReady || HasImmortal)
+        if (!Unlocked(AID.ShadowofDeath) || target.ForbidDOTs || SoulReaver || PerfectioPending || HasImmortal)
             return;
 
         if (AvoidGluttonyDrift)
@@ -617,12 +641,25 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
             PushGCD(AID.ShadowofDeath, target.Actor, 80);
     }
 
+    // the balance: with a combo running into the double enshroud, one of the two gcds before the first enshroud must be a combo gcd,
+    // or the combo runs out during the ~25s burst; if the first one wasn't, force the second one
+    private void ComboBeforeDoubleEnshroud(Enemy target)
+    {
+        // death's design running out wins - shadow of death needs that slot instead
+        if (AOEMode || Enshrouded || SoulReaver || !MidCombo(false) || !InBossFight || !Unlocked(AID.PlentifulHarvest) || Shroud < 50
+            || EnshroudStrat != EnshroudStrategy.Automatic || CircleStrat == OffensiveStrategy.Delay || DDExpiring(3))
+            return;
+        var entry = GCDLength + 1.5f; // ShouldEnshroud enters the double enshroud when arcane circle is this close
+        if (CircleIn > entry && CircleIn <= entry + GCDLength + 0.3f && !JustUsed(AID.Slice, GCDLength + 0.5f) && !JustUsed(AID.WaxingSlice, GCDLength + 0.5f))
+            Combo(target, 85);
+    }
+
     private void UseReaver(Enemy target)
     {
         if (!SoulReaver || Enshrouded || ShroudOvercapping || !Unlocked(AID.Gibbet))
             return;
 
-        if (ConeAOE && Unlocked(AID.Guillotine))
+        if (GuillotineMode)
             PushGCD(Executioner ? AID.ExecutionersGuillotine : AID.Guillotine, BestConeTarget ?? target.Actor, 76);
 
         var gibbet = Executioner ? AID.ExecutionersGibbet : AID.Gibbet;
@@ -663,7 +700,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(AID.HarvestMoon, BestSplashTarget ?? target.Actor, 67);
         }
 
-        if (ConeAOE && Unlocked(AID.GrimReaping))
+        // the balance: grim reaping on 3+, but 4+ while void/cross reaping is enhanced
+        if (Unlocked(AID.GrimReaping) && ConeAt(EnhancedVoidLeft > GCD || EnhancedCrossLeft > GCD ? 4 : 3))
             PushGCD(AID.GrimReaping, BestConeTarget ?? target.Actor, 65);
         else
             PushGCD(EnhancedCrossLeft > GCD ? AID.CrossReaping : AID.VoidReaping, target.Actor, 65);
@@ -712,6 +750,11 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(AID.HarvestMoon, hmTarget, 55);
                 break;
         }
+
+        // last gcd before the boss leaves or the target dies: harvest moon (800 potency) beats any filler, and soulsow comes back during the downtime
+        if (strategy.HarvestMoon.Value is HarvestMoonStrategy.Automatic or HarvestMoonStrategy.Burst && !Enshrouded && !PerfectioPending
+            && (DowntimeIn < GCD + GCDLength || !TimeToKill.WillLive(target.Actor, GCD + GCDLength)))
+            PushGCD(AID.HarvestMoon, hmTarget, 62);
     }
 
     // wrath's ranged attack: harvest moon, then harpe
@@ -794,7 +837,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         var sodDone = JustUsed(AID.ShadowofDeath, GCDLength + 0.5f) || target.ForbidDOTs || strategy.DeathsDesign.Value == DeathsDesignStrategy.Delay;
         var overdue = CircleReadySince != default && (World.CurrentTime - CircleReadySince).TotalSeconds > 10;
         var use = CircleStrat == OffensiveStrategy.Force
-            || WorthBurst && (AOEMode || sodDone || !Unlocked(AID.Enshroud) || overdue);
+            || WorthBurst && DowntimeIn > 10 && (AOEMode || sodDone || !Unlocked(AID.Enshroud) || overdue);
         if (use)
             PushOGCD(AID.ArcaneCircle, Player, 70, CircleStrat == OffensiveStrategy.Force ? 0 : MathF.Max(0, GCD - GCDLength * 0.5f));
     }
@@ -818,6 +861,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
 
         if (wouldOverwrite || AOEMode && ComboExpiring(6))
             return false;
+        // don't start one the boss leaves in the middle of (4 reapings + communio), unless ideal host would run out during the downtime anyway
+        if (DowntimeIn < GCD + 1.5f * 4 + GCDLength && !(IdealHostLeft > 0 && IdealHostLeft < DowntimeIn + 5))
+            return false;
         if (!Unlocked(AID.PlentifulHarvest) || CircleLeft > 0 || IdealHostLeft > 0)
             return true;
         // double enshroud: arcane circle at 9s, two more gcds, then enshroud
@@ -828,7 +874,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         if (DDExpiring(5))
             return false;
         // single enshroud at odd minutes; also when soul is nearly full (no soul gain while enshrouded) or shroud is capped and the burst is far
-        return CircleIn is >= 49f and <= 66f || Soul >= 90 || Shroud >= 100 && CircleIn > 15;
+        // the balance: not with gluttony under 13s (it turns into sacrificium while enshrouded and would drift); shroud overcap still wins, since gluttony is held while shroud is capped
+        var gluttonySoon = Unlocked(AID.Gluttony) && ReadyIn(AID.Gluttony) < 13;
+        return !gluttonySoon && (CircleIn is >= 49f and <= 66f || Soul >= 90) || Shroud >= 100 && CircleIn > 15;
     }
 
     private void UseGluttony(in Strategy strategy, Enemy target)
@@ -852,7 +900,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
 
         // gluttony drifts to the end of the first even minute burst, then goes on cooldown
         var burst = InPostBurst && !PostPerfectioCombo;
-        var normal = !Enshrouded && !SoulReaver && IdealHostLeft == 0 && !PerfectioReady && (!HasImmortal || GaugeStrat == SoulGaugeStrategy.GluttonyFirst)
+        var normal = !Enshrouded && !SoulReaver && IdealHostLeft == 0 && !PerfectioPending && (!HasImmortal || GaugeStrat == SoulGaugeStrategy.GluttonyFirst)
             && !ComboExpiring(3) && !InPostBurst;
         if ((burst || normal) && TargetDDLeft > GCD + GCDLength * 2)
             PushOGCD(AID.Gluttony, gluttonyTarget, 64);
@@ -880,7 +928,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
         }
 
         var stalkTarget = ResolveTarget(strategy.SoulGauge);
-        if (ConeAOE && stalkTarget == null && Unlocked(AID.GrimSwathe))
+        // grim swathe replaces blood stalk on 3+, but unveiled gibbet/gallows only on 4+ (icy veins)
+        var unveiled = Unlocked(AID.UnveiledGibbet) && (EnhancedGibbetLeft > 0 || EnhancedGallowsLeft > 0);
+        if (stalkTarget == null && Unlocked(AID.GrimSwathe) && ConeAt(unveiled ? 4 : 3))
             PushOGCD(AID.GrimSwathe, BestConeTarget ?? target.Actor, 62);
         else
             PushOGCD(AID.BloodStalk, stalkTarget ?? target.Actor, 62);
@@ -942,7 +992,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
     private void UpdatePositionals(in Strategy strategy, Enemy target)
     {
         var (pos, imminent) = (Positional.Any, false);
-        if (Unlocked(AID.Gibbet) && !ConeAOE && !Enshrouded)
+        if (Unlocked(AID.Gibbet) && !GuillotineMode && !Enshrouded)
         {
             pos = EnhancedGibbetLeft > 0 ? Positional.Flank
                 : EnhancedGallowsLeft > 0 ? Positional.Rear
@@ -965,8 +1015,10 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        // the balance: potion in the weave slot before arcane circle
-        PotionStrategy.AlignWithBurst => Player.InCombat && InBossFight && (CircleIn <= GCD + GCDLength || CircleLeft > 0 || RaidBuffsLeft > 0),
+        // the balance: potion in the weave slot before arcane circle in the opener; from the 4 minute window on, arcane circle first, then the potion
+        PotionStrategy.AlignWithBurst => Player.InCombat && InBossFight && (CombatTime < 60
+            ? CircleIn <= GCD + GCDLength || CircleLeft > 0 || RaidBuffsLeft > 0
+            : CircleLeft > 0 || CircleStrat == OffensiveStrategy.Delay && RaidBuffsLeft > 0),
         PotionStrategy.Immediate => Player.InCombat,
         _ => false
     };
