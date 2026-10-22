@@ -451,7 +451,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
         if (HoldForIre || aid == AID.Vicewinder && !InMelee)
             return false;
-        // Balance leveling (70-89): both Vicewinder combos go in party buffs, one charge in between right before it would cap
+        // pre-Reawaken: both Vicewinder combos in party buffs; only one charge between windows, right before cap
         if (!Unlocked(AID.Reawaken) && InBossFight && HasRaidBuffJobs && RaidBuffsLeft <= GCD && MaxChargesIn(aid) > GCD + GCDLength * 3 && RaidBuffsIn < MaxChargesIn(aid))
             return false;
         if (OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove != AID.SwiftskinsSting)

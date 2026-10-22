@@ -241,12 +241,12 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(PolyglotAction, target.Actor, 5);
         }
 
-        // Balance: refresh under 3s, skip right before downtime (no ticks while untargetable), every proc on two targets
+        // no Thunder ticks while untargetable; every proc on exactly two AoE targets
         var thunderAt = InOpener ? (InLeyLines ? 7.5f : 5) : AOEMode && NumAOETargets == 2 ? 30 : 3;
         if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < thunderAt && DowntimeIn > 20 && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
 
-        // Icy Veins: two targets too far apart for the AoE rotation -> keep High Thunder on both
+        // two ST targets too far for AoE -> keep High Thunder on both
         if (strategy.Thunder.Value == OffensiveStrategy.Automatic && !AOEMode && ThunderheadLeft > GCD && DowntimeIn > 20
             && Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && ThunderLeft(e.Actor) < 3).MaxBy(e => e.Actor.HPMP.CurHP) is { } second)
             PushGCD(ThunderAction, second.Actor, 64);

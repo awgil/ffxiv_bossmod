@@ -251,7 +251,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     {
         if (NeedsDot(target))
             return target.Actor;
-        // Icy Veins: refresh on the last GCD of raid buffs so all 10 ticks snapshot them (the opener pays a few more ticks once)
+        // last GCD of raid buffs: refresh so remaining ticks snapshot (opener window a bit wider)
         if (DotWorthIt(target) && RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < (CombatTime < 40 ? 12 : 8))
             return target.Actor;
         if (strategy.Dot.Value != DotStrategy.Automatic || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
