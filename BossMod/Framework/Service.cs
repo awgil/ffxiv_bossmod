@@ -22,8 +22,6 @@ public sealed class Service
     [PluginService] public static ICondition Condition { get; private set; }
     [PluginService] public static IFramework Framework { get; private set; }
     [PluginService] public static ITextureProvider Texture { get; private set; }
-    [PluginService] public static ICommandManager CommandManager { get; private set; }
-    [PluginService] public static IDtrBar DtrBar { get; private set; }
     public static IDalamudPluginInterface PluginInterface { get; set; }
     // TODO: get rid of stuff below in favour of CS
     [PluginService] public static IClientState ClientState { get; private set; }
@@ -38,7 +36,6 @@ public sealed class Service
 
 #pragma warning disable CA2211
     public static void Log(string msg, params object[] values) => PluginLog.Debug(msg, values);
-    public static void LogVerbose(string msg, params object[] values) => PluginLog.Verbose(msg, values);
 
     public static bool IsDev;
     public static bool IsMock;
@@ -49,8 +46,8 @@ public sealed class Service
     public static void ShowNotification(string msg, string? title = null, NotificationType type = NotificationType.Success) => Notifications?.AddNotification(new() { Content = msg, Type = type, Title = title });
 
     public static Lumina.GameData LuminaGameData = null!;
-    public static Lumina.Excel.ExcelSheet<T>? LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData.GetExcelSheet<T>();
-    public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>()?.GetRowOrDefault(row);
+    public static Lumina.Excel.ExcelSheet<T> LuminaSheet<T>() where T : struct, Lumina.Excel.IExcelRow<T> => LuminaGameData.GetExcelSheet<T>()!;
+    public static T? LuminaRow<T>(uint row) where T : struct, Lumina.Excel.IExcelRow<T> => LuminaSheet<T>().GetRowOrDefault(row);
     public static ConcurrentDictionary<Lumina.Text.ReadOnly.ReadOnlySeString, Lumina.Text.ReadOnly.ReadOnlySeString> LuminaRSV = []; // TODO: reconsider
 
     public static IWindowSystem WindowSystem = null!;

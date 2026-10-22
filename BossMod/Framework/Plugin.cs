@@ -33,7 +33,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
-        // needs to run first to initialize registries
+        // runs first to initialize registries
         containerBuilder.RegisterSingletonSelfAndInterfaces<ModulePackService>();
 
         ConfigureExtra(containerBuilder);
@@ -99,7 +99,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             Service.UiBuilder = scope.Resolve<IUiBuilder>();
             Service.PluginInterface = dalamud;
 
-            // registers all built in config nodes
+            // register builtin config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
         });
     }
@@ -115,14 +115,13 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<Camera>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
 
         containerBuilder.RegisterSingletonSelf<MainDebugWindow>();
-
-        containerBuilder.RegisterSingletonSelfAndInterfaces<Camera>();
 
         // global worldstate
         containerBuilder.Register(scope =>

@@ -27,12 +27,6 @@ public static class Food
     private static PotionType[] CollectPotionTypes()
     {
         var itemFoodSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ItemFood>();
-        if (itemFoodSheet == null)
-        {
-            Service.Log("[AD] Unable to load food sheet, potions will not behave correctly!");
-            return [];
-        }
-
         var foodCount = itemFoodSheet.Count;
 
         var types = new PotionType[foodCount];
