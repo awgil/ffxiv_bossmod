@@ -48,39 +48,36 @@ class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
 
 class P2ThermionicBurst(BossModule module) : Components.StandardAOEs(module, AID.ThermionicBurst, new AOEShapeCone(24.5f, 11.25f.Degrees()));
 
-class MeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
+abstract class MeteorStream(BossModule module) : Components.StrictUniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
 {
     public int NumCasts;
 }
 
 class P2MeteorStream : MeteorStream
 {
+    readonly Assignment[] assignments;
+
     public P2MeteorStream(BossModule module) : base(module)
     {
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(5.6f));
+        assignments = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
     }
 
-    public override void AddAIHints(int slot, Actor actor, Assignment assignment, AIHints hints)
+    public override (WPos, float)? GetSpreadDestination(int order, Actor target)
     {
-        if (Spreads.Count == 8)
+        var (dist, angle) = assignments.BoundSafeAt(Raid.FindSlot(target.InstanceID)) switch
         {
-            var (dist, angle) = assignment switch
-            {
-                Assignment.MT => (9, -11.25f.Degrees()),
-                Assignment.OT => (9, 11.25f.Degrees()),
-                Assignment.H1 => (18, -11.25f.Degrees()),
-                Assignment.H2 => (18, 11.25f.Degrees()),
-                Assignment.M1 => (9, -56.25f.Degrees()),
-                Assignment.M2 => (9, 56.25f.Degrees()),
-                Assignment.R1 => (18, -56.25f.Degrees()),
-                Assignment.R2 => (18, 56.25f.Degrees()),
-                _ => (0, default)
-            };
-
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + angle.ToDirection() * dist, 2), Spreads[0].Activation);
-        }
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
+            Assignment.MT => (9, -11.25f.Degrees()),
+            Assignment.OT => (9, 11.25f.Degrees()),
+            Assignment.H1 => (18, -11.25f.Degrees()),
+            Assignment.H2 => (18, 11.25f.Degrees()),
+            Assignment.M1 => (9, -56.25f.Degrees()),
+            Assignment.M2 => (9, 56.25f.Degrees()),
+            Assignment.R1 => (18, -56.25f.Degrees()),
+            Assignment.R2 => (18, 56.25f.Degrees()),
+            _ => default
+        };
+        return (Arena.Center + angle.ToDirection() * dist, 2);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -127,8 +124,5 @@ class P2HeavensfallDalamudDive(BossModule module) : Components.GenericBaitAway(m
         if (actor.Role is Role.Melee or Role.Tank)
             foreach (var b in ActiveBaitsNotOn(actor))
                 hints.GoalZones.Add(AIHints.GoalSingleTarget(b.Target.Position, 6, 1));
-
-        if (NumCasts > 0 && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { IsTargetable: false } nael)
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius));
     }
 }

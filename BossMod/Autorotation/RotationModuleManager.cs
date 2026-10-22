@@ -34,7 +34,7 @@ public sealed class RotationModuleManager : IDisposable
 
     private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
 
-    private Preset PresetMultibox => Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
+    private Preset? PresetMultibox => Database.Presets.DefaultPresets.FirstOrDefault(p => p.Name == "VBM Multibox");
 
     public bool IsForceDisabled => Presets.Count == 1 && Presets[0] == ForceDisable;
 
@@ -130,10 +130,13 @@ public sealed class RotationModuleManager : IDisposable
         // rebuild modules if needed
         if (_activeModules == null)
         {
-            // ensure AI compatibility status matches config option, unless force disabled
-            Presets.Remove(PresetMultibox);
-            if (_aiConfig.Enabled && !Presets.Contains(ForceDisable))
-                Presets.Add(PresetMultibox);
+            if (PresetMultibox is { } mbox)
+            {
+                // ensure AI compatibility status matches config option, unless force disabled
+                Presets.Remove(mbox);
+                if (_aiConfig.Enabled && !Presets.Contains(ForceDisable))
+                    Presets.Add(mbox);
+            }
 
             _activeModules ??= Presets.Count > 0 ? [.. Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i))] : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
         }

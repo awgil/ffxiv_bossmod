@@ -97,9 +97,11 @@ class QuoteIronChariotLunarDynamo(BossModule module) : Components.GenericAOEs(mo
     }
 }
 
-class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(module, 4, 0, 8)
+class QuoteThermionicBeam(BossModule module) : Components.StrictUniformStackSpread(module, 4, 0, 8)
 {
     private readonly Quote? _quote = module.FindComponent<Quote>();
+
+    public override (WPos, float)? GetStackDestination(int order, Actor target) => (((UCOB)Module).Nael()!.Position, 1);
 
     public override void Update()
     {
@@ -109,12 +111,6 @@ class QuoteThermionicBeam(BossModule module) : Components.UniformStackSpread(mod
         else if (!stackImminent && Stacks.Count > 0)
             Stacks.Clear();
         base.Update();
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Stacks.Count > 0 && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nael.Position, 2), Stacks[0].Activation);
     }
 }
 
@@ -168,11 +164,13 @@ class QuoteRavenDive(BossModule module) : Components.UniformStackSpread(module, 
     }
 }
 
-class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
+class QuoteMeteorStream(BossModule module) : Components.StrictUniformStackSpread(module, 0, 4, alwaysShowSpreads: true)
 {
     private readonly Quote? _quote = module.FindComponent<Quote>();
 
     public bool Fixed;
+
+    private int _spreadCounter;
 
     public override void Update()
     {
@@ -184,16 +182,34 @@ class QuoteMeteorStream(BossModule module) : Components.UniformStackSpread(modul
         base.Update();
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override (WPos, float)? GetSpreadDestination(int order, Actor target)
     {
-        // fellruin: fixed spread spots, as usual
-        if (Fixed && IsSpreadTarget(actor) && ((UCOB)Module).BahamutPrime() is { } baha && SpreadSpot(baha, assignment) is var spot && spot != default)
+        var slot = Raid.FindSlot(target.InstanceID);
+        var assignment = AssignmentsPerSlot.BoundSafeAt(slot);
+
+        // fixed spots for post heavensfall
+        if (Fixed && ((UCOB)Module).BahamutPrime() is { } baha)
+            return (SpreadSpot(baha, assignment), 0);
+
+        // fixed-ish spots for p2 divebombs
+        if (((UCOB)Module).Nael() is { } nael)
         {
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(spot, 1), Spreads[0].Activation);
-            return;
+            // baiters get to do whatever
+            if (Module.FindComponent<P2Cauterize>()?.BaitOrder[slot].Order > 0)
+                return default;
+
+            if (nael.TargetID == target.InstanceID)
+                return (Arena.Center, 0);
+
+            return (Arena.Center + (90 * _spreadCounter++).Degrees().ToDirection() * 5, 0);
         }
 
-        // p2: normal spread
+        return default;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        _spreadCounter = 0;
         base.AddAIHints(slot, actor, assignment, hints);
     }
 
