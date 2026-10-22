@@ -22,7 +22,7 @@ public sealed class UIRotationWindow : UIWindow
             _config.Modified.ExecuteAndSubscribe(() => IsOpen = _config.ShowUI)
         );
         RespectCloseHotkey = false;
-        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => Service.Mediator.Publish(new OpenSettingsWindowMessage("Autorotation Presets")) });
+        TitleBarButtons.Add(new() { Icon = FontAwesomeIcon.Cog, IconOffset = new(1), Click = _ => Service.Mediator.Publish(new OpenSettingsWindow("Autorotation Presets")) });
     }
 
     protected override void Dispose(bool disposing)
@@ -301,7 +301,7 @@ public sealed class UIRotationWindow : UIWindow
                     dtrConfig.Modified.Fire();
                 }
                 if (ImGui.MenuItem("Open in preset editor"))
-                    Service.Mediator.Publish(new OpenPresetEditorMessage(p.Name));
+                    Service.Mediator.Publish(new OpenPresetEditor(p.Name));
             }
         }
 
@@ -317,11 +317,11 @@ public sealed class UIRotationWindow : UIWindow
             switch (pos.Pos)
             {
                 case Positional.Flank:
-                    Camera.Instance()?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 90.Degrees(), 45.Degrees(), color);
-                    Camera.Instance()?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation - 90.Degrees(), 45.Degrees(), color);
+                    Service.Camera.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 90.Degrees(), 45.Degrees(), color);
+                    Service.Camera.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation - 90.Degrees(), 45.Degrees(), color);
                     break;
                 case Positional.Rear:
-                    Camera.Instance()?.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
+                    Service.Camera.DrawWorldCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
                     break;
             }
         }

@@ -83,15 +83,12 @@ internal class DeathUntoDawn(WorldState ws) : QuestBattle(ws)
             .With(obj => {
                 obj.AddAIHints += (player, hints) => {
                     if (!player.InCombat)
-                        hints.ForcedTarget = hints.PotentialTargets.MinBy(t => player.DistanceToPoint(t.Actor.Position))?.Actor;
+                        hints.PrioritizeAll();
                     _ai.Execute(player, hints);
                 };
             })
             .CompleteOnKilled(0x3376),
 
-        new QuestObjective(ws)
-            .WithConnection(new Vector3(1.64f, -16.00f, -195.63f))
-            .WithInteract(0x1EB183)
-            .CompleteOnState7(0x1EB183)
+        QuestObjective.StandardInteract(ws, 0x1EB183, new Vector3(1.64f, -16.00f, -195.63f))
     ];
 }

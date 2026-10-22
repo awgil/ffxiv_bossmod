@@ -23,7 +23,7 @@ public static class Overlays
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - w - w - 10);
 
         if (UIMisc.IconButton(FontAwesomeIcon.Cog, new(w, 0)))
-            Service.Mediator.Publish(new ShowConfigNodeMessage(configType));
+            Service.Mediator.Publish(new ShowConfigNode(configType));
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Open settings");
         ImGui.SameLine();

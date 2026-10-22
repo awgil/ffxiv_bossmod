@@ -117,7 +117,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         {
             _debugGraphics.DrawMatrices();
         }
-        if (Camera.Instance != null && ImGui.CollapsingHeader("In-game overlay"))
+        if (ImGui.CollapsingHeader("In-game overlay"))
         {
             _debugGraphics.DrawOverlay();
         }
@@ -193,7 +193,7 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         if (player == null)
             return;
 
-        ImGui.TextUnformatted($"Forced movement direction: {MovementOverride.ForcedMovementDirection->Radians()}");
+        ImGui.TextUnformatted($"Forced movement direction: {move.ForcedMovementDirection->Radians()}");
         ImGui.SameLine();
         if (ImGui.Button("Add misdirection"))
             player->GetStatusManager()->SetStatus(20, 3909, 20.0f, 100, (GameObjectId)0xE0000000, true);

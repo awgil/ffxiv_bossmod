@@ -44,7 +44,7 @@ abstract partial class AutoClear : ZoneModule
     {
         if (_config.DrawTraps)
             foreach (var p in _trapsCurrentFloor)
-                Camera.Instance()?.DrawWorldCircle(p, 2, 0xFF0000FF, 2);
+                Service.Camera.DrawWorldCircle(p, 2, 0xFF0000FF, 2);
     }
 
     private void HandleTrap(Actor actor, ActorCastEvent ev)

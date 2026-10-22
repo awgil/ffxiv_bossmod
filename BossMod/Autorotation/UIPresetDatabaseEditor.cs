@@ -298,7 +298,7 @@ public sealed class UIPresetDatabaseEditor(RotationDatabase rotationDB)
         }
         catch (Exception ex)
         {
-            Service.Logger.Warning(ex, $"Failed to parse preset");
+            Service.PluginLog.Warning(ex, $"Failed to parse preset");
             Service.ShowNotification(ex.Message, "Error while importing preset", Dalamud.Interface.ImGuiNotification.NotificationType.Warning);
             //Service.Notifications.AddNotification(new()
             //{

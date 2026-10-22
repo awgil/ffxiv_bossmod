@@ -417,7 +417,7 @@ public abstract class QuestBattle : ZoneModule
             return;
         }
 
-        if (UIMisc.Button("Leave duty", !ImGui.GetIO().KeyShift, "Hold shift to leave"))
+        if (ImGui.Button("Leave duty"))
             _abandonDuty?.Invoke(false);
         ImGui.SameLine();
         UIMisc.HelpMarker("Attempt to leave duty by directly sending the \"abandon duty\" packet, which may be able to bypass the out-of-combat restriction. Only works in some duties.");
@@ -642,7 +642,7 @@ public abstract class QuestBattle : ZoneModule
         var current = true;
         foreach (var wp in CurrentWaypoints)
         {
-            Camera.Instance()?.DrawWorldLine(start, wp.Position, current ? ArenaColor.Safe : ArenaColor.Danger);
+            Service.Camera.DrawWorldLine(start, wp.Position, current ? ArenaColor.Safe : ArenaColor.Danger);
             current = false;
             start = wp.Position;
         }
