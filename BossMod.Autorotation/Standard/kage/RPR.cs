@@ -246,7 +246,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageR
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage RPR", "Reaper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.Basic, BitMask.Build(Class.RPR), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage RPR", "Reaper", "Standard rotation (Kage)|Melee", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.RPR), 100).WithStrategies<Strategy>();
     }
 
     private const float DDRefresh = 6;
