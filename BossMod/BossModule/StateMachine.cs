@@ -108,7 +108,6 @@ public class StateMachine(List<StateMachine.Phase> phases)
         }
     }
 
-    // maxLines limits the total number of lines (current state + upcoming mechanics)
     public void Draw(Color outlineColor, int maxFuture, bool wrap, int maxLines = int.MaxValue)
     {
         if (maxLines <= 0)
@@ -161,7 +160,6 @@ public class StateMachine(List<StateMachine.Phase> phases)
 
     private static bool IsImportant(StateHint hint) => (hint & (StateHint.Tankbuster | StateHint.Raidwide | StateHint.Knockback)) != 0;
 
-    // text for the i-th displayed entry; '...' marks skipped mechanics before it
     private static string FutureText(List<(string name, StateHint hint)> future, List<int> shown, int i)
     {
         var index = shown[i];
@@ -169,7 +167,6 @@ public class StateMachine(List<StateMachine.Phase> phases)
         return $"{(i > 0 ? "> " : "")}{(skipped ? "... > " : "")}{future[index].name}";
     }
 
-    // if everything doesn't fit, always keep the next mechanic, then drop unimportant mechanics before important ones (and later before earlier), keeping chronological order
     private static List<int> SelectFitting(List<(string name, StateHint hint)> future, Func<List<int>, bool> fits)
     {
         var all = Enumerable.Range(0, future.Count).ToList();
@@ -233,10 +230,8 @@ public class StateMachine(List<StateMachine.Phase> phases)
         return (name, next);
     }
 
-    // very long states are placeholders (eg 'enrage' in modules without a timeline)
     private static string TimerText(float timeLeft) => timeLeft < 600 ? $" in {timeLeft:f1}s" : "";
 
-    // hint combines the end hints of all grouped states
     private (string name, StateHint hint, State? next) BuildComplexState(State start, float timeActive, bool writeTime)
     {
         var res = new StringBuilder(start.Name);
