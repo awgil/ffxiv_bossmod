@@ -1,4 +1,4 @@
-﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.MNK;
+﻿namespace BossMod.QuestBattle.ARealmReborn.ClassJobQuests.PGL;
 
 [ZoneModuleInfo(321)]
 internal class StarcrossedRivals(WorldState ws) : QuestBattle(ws)
