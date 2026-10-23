@@ -28,14 +28,13 @@
     <PackageReference Include="System.Data.Sqlite" Version="2.0.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
+    <PackageReference Include="Pictomancy" Version="1.0.10" />
 
     <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Analyzer</OutputItemType>
       <PrivateAssets>All</PrivateAssets>
     </ProjectReference>
-
-    <ProjectReference Include="..\Pictomancy\Pictomancy\Pictomancy.csproj" />
   </ItemGroup>
 
   <ItemGroup>
