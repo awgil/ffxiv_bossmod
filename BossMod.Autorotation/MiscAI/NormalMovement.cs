@@ -305,7 +305,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                                 navi.Destination = uptimePosition;
                             break;
 
-                        // TODO: don't use a _navCtx that's being modified in a background thread; we should hold onto two of them and swap them when the task completes
                         case RangeStrategy.GreedAutomatic:
                             var uptimeCell = CtxInactive.Map.GridToIndex(CtxInactive.Map.WorldToGrid(uptimePosition));
                             var curCell = CtxInactive.ThetaStar.StartNodeIndex;
@@ -323,8 +322,11 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
         }
 
+        // nasty hack: due to inherent precision loss when rasterizing round shapes onto a square grid, we can occasionally end up inside a single pixel surrounded on cardinals by obstacles
+        // this only happens if a module creates temporary obstacles representing voidzones, but that is a valid usecase so here we are
+        // TODO: this actually can also happen with regular pathfinding zones, but i'm worried about messing with the pathfinding logic too much
+        // (this case is special because pathfinder never moves into g<0 cells)
         var map = CtxInactive.Map;
-
         float cellG(int x, int y)
         {
             if (x < 0 || x >= map.Width)
@@ -344,6 +346,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 (int, int)[] corners = [(-1, -1), (-1, +1), (+1, +1), (+1, -1)];
                 foreach (var (dx, dy) in corners)
                 {
+                    // "unblocked" corner isn't an obstacle, let's go for it
                     if (cellG(pX + dx, pY + dy) >= 0)
                     {
                         Hints.ForcedMovement = new(dx, 0, dy);
