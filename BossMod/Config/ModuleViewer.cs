@@ -47,7 +47,7 @@ public sealed class ModuleViewer : IDisposable
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
         _categories = [.. Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon))];
 
-        var exVersion = Service.LuminaSheet<ExVersion>()!;
+        var exVersion = Service.LuminaSheet<ExVersion>();
         Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion.GetRow(0).Name);
         Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion.GetRow(1).Name);
         Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion.GetRow(2).Name);
@@ -56,7 +56,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
         Customize(BossModuleInfo.Expansion.Global, 61875, "Global");
 
-        var contentType = Service.LuminaSheet<ContentType>()!;
+        var contentType = Service.LuminaSheet<ContentType>();
         Customize(BossModuleInfo.Category.Uncategorized, contentType.GetRow(1), "Uncategorized");
         Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
         Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4), "Normal Trials");
@@ -78,7 +78,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30), "Criterion Dungeons");
         Customize(BossModuleInfo.Category.HallOfTheNovice, contentType.GetRow(20), "Hall of the Novice");
 
-        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
+        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>();
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
         Customize(BossModuleInfo.Category.Crucible, playStyle.GetRow(35));

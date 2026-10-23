@@ -14,7 +14,7 @@ public class RM12S2TheLindwurmConfig : ConfigNode
     };
     public Replication3Tethers Rep3Assignments = new() { RolesOrdered = [.. Replication3Tethers.DN.RolesOrdered] };
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
         Rep2Assignments.DrawCustom(tree, Modified);
         Rep3Assignments.DrawCustom(tree, Modified);

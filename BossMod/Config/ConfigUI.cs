@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public sealed class ConfigUI : IDisposable
+public sealed partial class ConfigUI : IDisposable
 {
     private class UINode(Type type, ConfigNode node)
     {
@@ -44,9 +44,9 @@ public sealed class ConfigUI : IDisposable
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
-        _root = config;
+        _root = Service.Config;
         _ws = ws;
         _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
@@ -427,8 +427,7 @@ public sealed class ConfigUI : IDisposable
         }
 
         // draw custom stuff
-        if (page is null or "")
-            node.DrawCustom(tree, ws, db);
+        node.DrawCustom(page, tree, ws, db);
     }
 
     private static (List<string> pages, bool hasDefault) GetPages(ConfigNode node)
@@ -543,7 +542,7 @@ public sealed class ConfigUI : IDisposable
         {
             if (!duplicates.Contains(n.DisplayName) || n.DisplayName == n.Name)
                 return n.DisplayName ?? n.Name;
-            var phase = System.Text.RegularExpressions.Regex.Match(n.Name, @"^P\d+S(\d)");
+            var phase = PhaseRegex().Match(n.Name);
             return phase.Success ? $"{n.DisplayName} - Phase {phase.Groups[1].Value}" : $"{n.DisplayName} [{n.Name}]";
         }
         foreach (var n in nodes.Where(n => MatchesFilter(n.Path)))
@@ -918,4 +917,7 @@ public sealed class ConfigUI : IDisposable
             }
         }
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^P\d+S(\d)")]
+    private static partial System.Text.RegularExpressions.Regex PhaseRegex();
 }

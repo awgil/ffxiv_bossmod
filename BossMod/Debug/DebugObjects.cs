@@ -94,9 +94,9 @@ public class DebugObjects
         {
             var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
             Service.Camera.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff);
+            Service.Camera.DrawWorldCircle(selected.Position - h, selected.HitboxRadius, 0xff00ff00);
             Service.Camera.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
             Service.Camera.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
-            Service.Camera.DrawWorldCircle(selected.Position + h * 2, selected.HitboxRadius, 0xff00ff00);
             var numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
             for (var i = 0; i < numSegments; ++i)
             {

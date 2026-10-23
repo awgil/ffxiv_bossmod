@@ -12,7 +12,7 @@ public sealed class PlanDatabase(
     [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
     [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
     JsonSerializerOptions jsonSerializerOptions
-    ) : IHostedService
+) : IHostedService, IDisposable
 {
     public record class PlanList
     {
@@ -302,7 +302,7 @@ public sealed class PlanDatabase(
 
     public void Dispose()
     {
-        _subscriptions.Dispose();
         _watcher.Dispose();
+        _subscriptions.Dispose();
     }
 }

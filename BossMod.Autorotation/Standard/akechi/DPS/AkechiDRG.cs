@@ -795,7 +795,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
 
         if (mainTarget != null)
         {
-            GoalZoneCombined(strategy, 3, Hints.GoalAOERect(mainTarget, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
+            GoalZoneCombined(3, Hints.GoalAOERect(mainTarget, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
         }
     }
 }

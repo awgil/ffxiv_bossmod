@@ -1,6 +1,7 @@
 ﻿using Dalamud.Hooking;
 using InteropGenerator.Runtime;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace BossMod;
 
@@ -35,4 +36,12 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
     }
 
     public void Dispose() => _hook.Dispose();
+
+    public static T FnPtr(string signature)
+    {
+        var @base = Process.GetCurrentProcess().MainModule!.BaseAddress;
+        var addr = Service.SigScanner.ScanText(signature);
+        Service.Log($"Located {typeof(T)} @ +0x{addr - @base:X}");
+        return Marshal.GetDelegateForFunctionPointer<T>(addr);
+    }
 }

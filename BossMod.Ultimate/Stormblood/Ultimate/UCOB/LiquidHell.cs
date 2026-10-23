@@ -7,7 +7,7 @@ class LiquidHell(BossModule module) : Components.VoidzoneAtCastTarget(module, 6,
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var p in _predictedByEvent)
-            if (p.time < WorldState.FutureTime(0.9f + ActivationDelay))
+            if (p.time < WorldState.FutureTime(1 + ActivationDelay))
                 hints.AddForbiddenZone(Shape, p.pos, default, p.time);
 
         foreach (var (z, spawn) in _sources)

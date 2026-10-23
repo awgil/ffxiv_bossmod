@@ -1,9 +1,9 @@
-﻿using Dalamud.Interface.Utility.Raii;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.Interop;
-using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 
 namespace BossMod;
@@ -38,7 +38,7 @@ unsafe class DebugQuests
 
     public DebugQuests()
     {
-        foreach (var q in Service.LuminaSheet<Quest>()!)
+        foreach (var q in Service.LuminaSheet<Quest>())
         {
             if (q.RepeatIntervalType == 1 && q.QuestRepeatFlag.RowId == 0)
             {

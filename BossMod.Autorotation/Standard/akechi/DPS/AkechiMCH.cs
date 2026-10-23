@@ -642,7 +642,7 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         if (primaryTarget != null)
         {
             var aoebreakpoint = OverheatActive && Unlocked(AID.AutoCrossbow) ? 4 : 2;
-            GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), AID.SpreadShot, aoebreakpoint);
+            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), AID.SpreadShot, aoebreakpoint);
         }
         #endregion
     }
