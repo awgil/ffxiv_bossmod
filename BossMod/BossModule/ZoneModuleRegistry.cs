@@ -3,7 +3,7 @@
 namespace BossMod;
 
 // attribute for defining zone module's metadata; it is required by each module to be loaded
-[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
 public sealed class ZoneModuleInfoAttribute(uint cfcId, uint territoryID = 0) : Attribute
 {
     public uint CFCID => cfcId;
@@ -24,19 +24,21 @@ public static class ZoneModuleRegistry
 
         foreach (var t in Utils.GetDerivedTypes<ZoneModule>(assembly).Where(t => !t.IsAbstract))
         {
-            var attr = t.GetCustomAttribute<ZoneModuleInfoAttribute>();
-            if (attr == null)
+            var haveAttr = false;
+            foreach (var attr in t.GetCustomAttributes<ZoneModuleInfoAttribute>())
             {
-                Service.Log($"[ZoneModuleRegistry] Zone module {t} has no ZoneModuleInfo attribute, skipping");
-                continue;
+                haveAttr = true;
+                if (_modulesByCFC.TryGetValue(attr.CFCID, out var existingModule))
+                {
+                    Service.Log($"[ZoneModuleRegistry] Two zone modules have same CFCID: {t.FullName} and {existingModule.ModuleType.FullName}");
+                    continue;
+                }
+                _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));
+                modified = true;
             }
-            if (_modulesByCFC.TryGetValue(attr.CFCID, out var existingModule))
-            {
-                Service.Log($"[ZoneModuleRegistry] Two zone modules have same CFCID: {t.FullName} and {existingModule.ModuleType.FullName}");
-                continue;
-            }
-            _modulesByCFC[attr.CFCID] = new Info(t, attr, New<ZoneModule>.ConstructorDerived<WorldState>(t));
-            modified = true;
+
+            if (!haveAttr)
+                Service.Log($"[ZoneModuleRegistry] Zone module {t} has no ZoneModuleInfo attribute");
         }
 
         return modified;
