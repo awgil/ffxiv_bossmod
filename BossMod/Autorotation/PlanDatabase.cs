@@ -36,9 +36,6 @@ public sealed class PlanDatabase(
             _watcher.Deleted.Subscribe(OnPlanFileDeleted)
         );
 
-        if (!planStore.Exists)
-            planStore.Create();
-
         _watcher.EnableRaisingEvents = true;
     }
     Task IHostedService.StopAsync(CancellationToken cancellationToken)

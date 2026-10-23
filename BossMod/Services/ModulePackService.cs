@@ -72,9 +72,6 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
 
     private void ReloadFrom(string packDirectory)
     {
-        if (!Path.Exists(packDirectory))
-            return;
-
         _watcher.Path = packDirectory;
 
         var dir = new DirectoryInfo(packDirectory);
@@ -157,25 +154,24 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
 
     private void InstallLibraries(FileInfo assemblyLocation)
     {
-        var modulesDir = ModuleDir;
         var assemblyDir = assemblyLocation.DirectoryName;
 
-        Directory.CreateDirectory(modulesDir);
+        Directory.CreateDirectory(ModuleDir);
 
         void copy(string filename)
         {
             var src = Path.Join(assemblyDir, filename);
-            var dest = Path.Join(modulesDir, filename);
+            var dest = Path.Join(ModuleDir, filename);
             if (File.Exists(src))
             {
-                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
+                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) >= File.GetCreationTimeUtc(src))
                 {
                     logger.Debug($"{dest} is newer than our version, skipping copy");
                     return;
                 }
 
                 logger.Debug($"copied {src} to {dest}");
-                File.Copy(src, Path.Join(modulesDir, filename), true);
+                File.Copy(src, Path.Join(ModuleDir, filename), true);
 
                 return;
             }
@@ -194,6 +190,6 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
         _watcher.Dispose();
 
         foreach (var c in _loadContexts.Values)
-            c?.Unload();
+            c.Unload();
     }
 }
