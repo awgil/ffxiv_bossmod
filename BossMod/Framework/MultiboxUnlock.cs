@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Dalamud.Plugin.Services;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BossMod;
@@ -6,7 +7,7 @@ namespace BossMod;
 // utility to remove anti-multibox check
 public static partial class MultiboxUnlock
 {
-    public static unsafe void Exec()
+    public static void Exec(IPluginLog logger)
     {
         foreach (var handle in EnumHandles())
         {
@@ -17,7 +18,7 @@ public static partial class MultiboxUnlock
                 var name = ObjectNameOrTypeName(handle, false);
                 if (name.Contains("6AA83AB5-BAC4-4a36-9F66-A309770760CB_ffxiv_game0", StringComparison.Ordinal))
                 {
-                    Service.Log($"[Multibox] Closing handle {handle:X} '{name}'");
+                    logger.Debug($"[Multibox] Closing handle {handle:X} '{name}'");
                     CloseHandle(handle);
                 }
             }

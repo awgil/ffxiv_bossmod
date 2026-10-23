@@ -143,7 +143,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         {
             unsafe
             {
-                MultiboxUnlock.Exec();
+                MultiboxUnlock.Exec(ctx.Resolve<IPluginLog>());
             }
         });
 
