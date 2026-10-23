@@ -174,14 +174,23 @@ public abstract class BossModule : IDisposable
         var pcHints = CalculateHintsForRaidMember(pcSlot, pc);
         if (includeText)
         {
-            if (WindowConfig.ShowMechanicTimers)
-                StateMachine.Draw(ActualShadowColor);
+            // reserved lines pin the radar; mechanic sequence shrinks first so player/raidwide hints stay
+            var reservedLines = includeArena ? WindowConfig.TextHintLines : 0;
+            var startY = ImGui.GetCursorPosY();
+            var globalHints = WindowConfig.ShowGlobalHints ? CalculateGlobalHints() : null;
+            var otherLines = (globalHints != null ? HintLines(globalHints) : 0) + (WindowConfig.ShowPlayerHints ? HintLines(pcHints.Select(h => h.Item1)) : 0);
 
-            if (WindowConfig.ShowGlobalHints)
-                DrawGlobalHints(CalculateGlobalHints());
+            if (WindowConfig.ShowMechanicTimers)
+                StateMachine.Draw(ActualShadowColor, WindowConfig.MaxUpcomingMechanics, WindowConfig.WrapMechanicSequence, reservedLines > 0 ? reservedLines - otherLines : int.MaxValue);
+
+            if (globalHints != null)
+                DrawGlobalHints(globalHints);
 
             if (WindowConfig.ShowPlayerHints)
                 DrawPlayerHints(pcHints);
+
+            if (reservedLines > 0)
+                ImGui.SetCursorPosY(MathF.Max(ImGui.GetCursorPosY(), startY + reservedLines * ImGui.GetTextLineHeightWithSpacing()));
         }
         if (includeArena)
         {
@@ -372,6 +381,9 @@ public abstract class BossModule : IDisposable
             }
         }
     }
+
+    // empty hint lists still take a line
+    private static int HintLines(IEnumerable<string> hints) => Math.Max(1, UIMisc.CountWrappedLines(hints.Select(h => ImGui.CalcTextSize(h).X), ImGui.GetContentRegionAvail().X));
 
     private void DrawGlobalHints(BossComponent.GlobalHints hints)
     {

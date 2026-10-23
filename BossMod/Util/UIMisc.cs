@@ -89,6 +89,27 @@ public static class UIMisc
             ImGui.NewLine();
     }
 
+    // SameLineOrWrap line count, assuming we start at the beginning of a line
+    public static int CountWrappedLines(IEnumerable<float> itemWidths, float availableWidth)
+    {
+        var spacing = ImGui.GetStyle().ItemSpacing.X;
+        var lines = 0;
+        var x = 0f;
+        foreach (var width in itemWidths)
+        {
+            if (lines == 0 || availableWidth - x - spacing < width)
+            {
+                ++lines;
+                x = width;
+            }
+            else
+            {
+                x += spacing + width;
+            }
+        }
+        return lines;
+    }
+
     public static bool Button(string label, float width, params (bool disabled, string reason)[] disabled)
     {
         var isDisabled = disabled.Any(d => d.disabled);
