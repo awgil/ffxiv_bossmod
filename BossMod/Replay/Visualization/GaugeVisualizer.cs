@@ -338,7 +338,7 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
         }
     }
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         foreach (var t in _tex.Values)
             t.Dispose();

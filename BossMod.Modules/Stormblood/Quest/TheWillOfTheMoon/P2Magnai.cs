@@ -42,7 +42,7 @@ class FlatlandFury(BossModule module) : Components.StandardAOEs(module, AID.Flat
     {
         // if all axes are alive, kill the closest
         if (Casters.Count == 9)
-            hints.FindEnemy(Casters.MinBy(c => actor.DistanceToHitbox(c)))?.Priority = 2;
+            hints.FindEnemy(Casters.MinBy(actor.DistanceToHitbox))?.Priority = 2;
         else
             base.AddAIHints(slot, actor, assignment, hints);
     }

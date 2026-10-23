@@ -12,7 +12,7 @@ public sealed class PlanDatabase(
     [KeyFilter(Keys.PlanManifest)] FileInfo manifestPath,
     [KeyFilter(Keys.PlanDatabase)] DirectoryInfo planStore,
     JsonSerializerOptions jsonSerializerOptions
-    ) : IHostedService
+    ) : IHostedService, IDisposable
 {
     public record class PlanList
     {
