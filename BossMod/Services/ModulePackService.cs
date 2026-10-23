@@ -194,6 +194,6 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
         _watcher.Dispose();
 
         foreach (var c in _loadContexts.Values)
-            c.Unload();
+            c?.Unload();
     }
 }
