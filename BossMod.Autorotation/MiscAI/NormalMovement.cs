@@ -185,7 +185,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         // simulate forward forced movement; this is kind of a hack, but it definitely doesn't belong in modules because it's part of the movement constraint
         if (isSpinning)
         {
-            // rect is offset by -1 unit player-relative. we know very well that player-centered shapes make the pathfinder freak the fuck out
             Hints.AddForbiddenZone(ShapeDistance.Rect(Player.Position, Player.Rotation, SpinningLookahead, SpinningLookahead + 2, SpinningLookahead + 2), World.FutureTime(2));
             Hints.AddForbiddenZone(ShapeDistance.Cone(Player.Position, 100, Player.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
         }
