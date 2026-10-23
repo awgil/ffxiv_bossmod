@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace BossMod;
 
-public sealed class ConfigUI : IDisposable
+public sealed partial class ConfigUI : IDisposable
 {
     private class UINode(Type type, ConfigNode node)
     {
@@ -542,7 +542,7 @@ public sealed class ConfigUI : IDisposable
         {
             if (!duplicates.Contains(n.DisplayName) || n.DisplayName == n.Name)
                 return n.DisplayName ?? n.Name;
-            var phase = System.Text.RegularExpressions.Regex.Match(n.Name, @"^P\d+S(\d)");
+            var phase = PhaseRegex().Match(n.Name);
             return phase.Success ? $"{n.DisplayName} - Phase {phase.Groups[1].Value}" : $"{n.DisplayName} [{n.Name}]";
         }
         foreach (var n in nodes.Where(n => MatchesFilter(n.Path)))
@@ -917,4 +917,7 @@ public sealed class ConfigUI : IDisposable
             }
         }
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^P\d+S(\d)")]
+    private static partial System.Text.RegularExpressions.Regex PhaseRegex();
 }

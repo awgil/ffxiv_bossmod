@@ -112,7 +112,7 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         }
     }
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         picto.Dispose();
     }
