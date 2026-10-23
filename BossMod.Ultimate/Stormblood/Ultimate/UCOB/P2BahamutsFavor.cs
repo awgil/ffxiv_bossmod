@@ -7,7 +7,7 @@ class P2HugNael(BossModule module) : BossComponent(module)
         DalamudDivePreTargetable,
         DonutChainLightning1,
         PostChainLightning1,
-        Fallback
+        Standard
     }
 
     public Pos Mode = Pos.DalamudDivePreTargetable;
@@ -44,7 +44,7 @@ class P2HugNael(BossModule module) : BossComponent(module)
                 break;
 
             // party hugs Z axis along nael so that chain lightning and fireball spreaders can spread e/w
-            case Pos.Fallback:
+            case Pos.Standard:
                 var rect = ShapeDistance.Rect(nael.Position, 0.Degrees(), nael.HitboxRadius + 3.5f, nael.HitboxRadius + 3.5f, 2);
                 hints.GoalZones.Add(p => rect(p) <= 0 ? 0.1f : 0);
                 break;
@@ -207,7 +207,7 @@ class P2BahamutsFavorChainLightning : Components.StrictUniformStackSpread
             var posIdeal = nael.Position + dir * (nael.HitboxRadius + 0.5f);
 
             // worst case scenario, puddle has been baited so closely onto nael that max pull range is still too close, just pull her farther
-            if (Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.Check(0, target, posIdeal) == true)
+            if (Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.ActiveAOEs(0, target).Any(a => posIdeal.InCircle(a.Origin, 4.5f)) == true)
                 posIdeal = nael.Position + dir * 5;
 
             return (posIdeal, 0);

@@ -299,7 +299,7 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<QuoteThermionicBeam>()
             .DeactivateOnExit<Quote>()
             .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show())
-            .ExecOnExit<P2HugNael>(n => n.Mode = P2HugNael.Pos.Fallback);
+            .ExecOnExit<P2HugNael>(n => n.Mode = P2HugNael.Pos.Standard);
 
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x100, 0.7f, comp => comp.NumDeathstorms > 0) // wings of salvation 1 bait at the same time
             .ActivateOnEnter<P2BahamutsFavorDeathstorm>(); // dooms are applied ~1.0s after deathstorm cast

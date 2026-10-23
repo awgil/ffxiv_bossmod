@@ -55,17 +55,14 @@ abstract class MeteorStream(BossModule module) : Components.StrictUniformStackSp
 
 class P2MeteorStream : MeteorStream
 {
-    readonly Assignment[] assignments;
-
     public P2MeteorStream(BossModule module) : base(module)
     {
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(5.6f));
-        assignments = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
     }
 
     public override (WPos, float)? GetSpreadDestination(int order, Actor target)
     {
-        var (dist, angle) = assignments.BoundSafeAt(Raid.FindSlot(target.InstanceID)) switch
+        var (dist, angle) = AssignmentsPerSlot.BoundSafeAt(Raid.FindSlot(target.InstanceID)) switch
         {
             Assignment.MT => (9, -11.25f.Degrees()),
             Assignment.OT => (9, 11.25f.Degrees()),
