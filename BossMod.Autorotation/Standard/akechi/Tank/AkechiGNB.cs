@@ -556,6 +556,6 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
             QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
 
         GetNextTarget(strategy, ref primaryTarget, 3);
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DemonSlice, 2, maximumActionRange: 20);
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), AID.DemonSlice, 2, maximumActionRange: 20);
     }
 }

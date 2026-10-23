@@ -1,13 +1,16 @@
 ﻿using BossMod.Autorotation;
+using DalaMock.Host.Mediator;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod.AI;
 
-internal sealed class AIWindow : UIWindow
+internal sealed class AIWindow : UIWindow, IMediatorSubscriber
 {
     private const string _windowID = "Multibox settings###AI";
+
+    public MediatorService MediatorService { get; }
 
     readonly RotationModuleManager _manager;
     readonly EventSubscriptions _subscriptions;
@@ -17,8 +20,9 @@ internal sealed class AIWindow : UIWindow
 
     readonly Preset _pMultibox;
 
-    public AIWindow(RotationModuleManager mgr) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
+    public AIWindow(RotationModuleManager mgr, MediatorService mediator) : base(_windowID, false, new(100, 100), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing)
     {
+        MediatorService = mediator;
         _manager = mgr;
         _pMultibox = mgr.Database.Presets.DefaultPresets.First(p => p.Name == "VBM Multibox");
         _subscriptions = new
@@ -31,11 +35,14 @@ internal sealed class AIWindow : UIWindow
             })
         );
         RespectCloseHotkey = false;
+
+        mediator.Subscribe(this, (SetFollowSlot s) => SetSlot(s.Slot));
     }
 
     protected override void Dispose(bool disposing)
     {
         _subscriptions.Dispose();
+        MediatorService.UnsubscribeAll(this);
         base.Dispose(disposing);
     }
 
@@ -113,7 +120,7 @@ internal sealed class AIWindow : UIWindow
         }
     }
 
-    void ToggleMove()
+    private void ToggleMove()
     {
         var normalMove = _pMultibox.Modules[^1];
         normalMove.TransientSettings.RemoveAll(s => s.Track == 0);
@@ -121,7 +128,7 @@ internal sealed class AIWindow : UIWindow
             normalMove.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 0 }));
     }
 
-    void ToggleTarget()
+    private void ToggleTarget()
     {
         var autoT = _pMultibox.Modules[0];
         autoT.TransientSettings.RemoveAll(s => s.Track == 0);
@@ -129,7 +136,7 @@ internal sealed class AIWindow : UIWindow
             autoT.TransientSettings.Add(new Preset.ModuleSetting(default, 0, new StrategyValueTrack() { Option = 1 }));
     }
 
-    public void SetSlot(int slot)
+    private void SetSlot(int slot)
     {
         _masterSlot = slot;
         var mbox = _pMultibox.Modules[1];

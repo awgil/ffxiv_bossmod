@@ -59,7 +59,7 @@ class ReplayDetailsWindow : UIWindow
         _curTime = initialTime ?? _first;
         EnableDebugEvents();
         _player.AdvanceTo(_curTime, _mgr.Update);
-        _config = new(Service.Config, _player.WorldState, null, null);
+        _config = new(_player.WorldState, null, null);
         _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
     }

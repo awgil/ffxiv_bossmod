@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>7.5.7.4</Version>
+    <Version>7.5.7.5</Version>
   </PropertyGroup>
 
   <Import Project="..\Common.targets" />
@@ -28,6 +28,7 @@
     <PackageReference Include="System.Data.Sqlite" Version="2.0.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
+    <PackageReference Include="Pictomancy" Version="1.0.10" />
 
     <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

@@ -20,6 +20,7 @@ insert_final_newline = true
 # note: we enable analyzers on csproj level rather than here, so that we can avoid build time increase in debug builds
 #dotnet_analyzer_diagnostic.severity = warning
 
+dotnet_diagnostic.CA1001.severity = warning # error for owning a Disposable in a non-Disposable
 dotnet_diagnostic.CA2213.severity = warning # error for not disposing Disposable, causes weird bugs, should always be on
 
 dotnet_code_quality.api_surface = all # all rules should apply to all types

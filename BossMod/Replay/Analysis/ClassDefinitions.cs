@@ -69,10 +69,10 @@ class ClassDefinitions
 
     public ClassDefinitions(List<Replay> replays)
     {
-        var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
-        var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>()!;
-        var cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
-        var traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
+        var actionSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>();
+        var classSheet = Service.LuminaSheet<Lumina.Excel.Sheets.ClassJob>();
+        var cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory");
+        var traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>();
 
         // we don't care about base classes and DoH/DoL here...
         for (var i = (uint)Class.PLD; i < classSheet.Count; ++i)

@@ -21,7 +21,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         var ability = ActionDefinitions.Instance.Spell(aid);
         if (ability == null ||
             (uint)(object)aid == 0 ||
-            (ability.Range != 0 && target == null))
+            ability.Range != 0 && target == null)
             return false;
 
         if (ability.AllowedTargets.HasFlag(ActionTargets.Area))
@@ -422,7 +422,7 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, range));
     }
 
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void GoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
         var (_, positional, imminent, _) = Hints.RecommendedPositional;
 

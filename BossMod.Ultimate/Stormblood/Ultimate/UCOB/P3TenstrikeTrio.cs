@@ -1,11 +1,13 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P3TenstrikeMeteorStream : MeteorStream
+class P3TenstrikeMeteorStream : Components.UniformStackSpread
 {
     public bool HatchAssigned;
     private readonly int[] _order = Utils.MakeArray(PartyState.MaxPartySize, -1);
 
-    public P3TenstrikeMeteorStream(BossModule module) : base(module)
+    public int NumCasts;
+
+    public P3TenstrikeMeteorStream(BossModule module) : base(module, 0, 4, alwaysShowSpreads: true)
     {
         AddSpreads(Raid.WithoutSlot(true), WorldState.FutureTime(3.2f));
         foreach (var (slot, group) in Service.Config.Get<UCOBConfig>().P3QuickmarchTrioAssignments.Resolve(Raid))
