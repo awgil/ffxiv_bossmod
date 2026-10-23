@@ -427,8 +427,7 @@ public sealed class ConfigUI : IDisposable
         }
 
         // draw custom stuff
-        if (page is null or "")
-            node.DrawCustom(tree, ws, db);
+        node.DrawCustom(page, tree, ws, db);
     }
 
     private static (List<string> pages, bool hasDefault) GetPages(ConfigNode node)

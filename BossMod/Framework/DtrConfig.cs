@@ -6,9 +6,12 @@ using Dalamud.Interface.Utility.Raii;
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Server info bar", Order = 6, Group = "General")]
+[ConfigDisplay(Name = "Interface", Order = -10, Group = "General")]
 public sealed class DtrConfig : ConfigNode
 {
+    [PropertyDisplay("Hide windows when game UI is hidden")]
+    public bool HideWithGameUi = true;
+
     public enum DtrStatus
     {
         [PropertyDisplay("Disabled")]
@@ -19,6 +22,7 @@ public sealed class DtrConfig : ConfigNode
         Icon
     }
 
+    [PageStart("Server info bar")]
     [PropertyDisplay("Autorotation status indicator")]
     [PropertyRadio(inline: true)]
     public DtrStatus ShowAutorot = Service.Config.Get<AutorotationConfig>().ShowDTR;
@@ -31,9 +35,9 @@ public sealed class DtrConfig : ConfigNode
 
     public List<string> ShowPresets = ["VBM Default", "VBM AI"];
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
-        if (db == null)
+        if (db == null || page != "Server info bar")
             return;
 
         var modified = false;

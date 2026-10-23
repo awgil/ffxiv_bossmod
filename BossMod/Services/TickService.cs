@@ -67,6 +67,8 @@ internal sealed class TickService(
 #nullable restore
     private MainDebugWindow? _wndDebug;
 
+    private readonly DtrConfig _uiConfig = Service.Config.Get<DtrConfig>();
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         Service.WindowSystem = windowSystem = windowSystemFactory.Create("vbm");
@@ -150,7 +152,7 @@ internal sealed class TickService(
         amex.FinishActionGather();
         wsSync.UpdateReplayState(rotation, movementOverride, hintsGlobal);
 
-        var uiHidden = Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene);
+        var uiHidden = _uiConfig.HideWithGameUi && (Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene));
         if (!uiHidden)
         {
             windowSystem.Draw();

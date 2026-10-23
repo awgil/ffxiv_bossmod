@@ -26,7 +26,7 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
 
     private readonly PctDxParams OutlineParams = new()
     {
-        OccludedAlpha = 0.3f,
+        OccludedAlpha = 0.1f,
         OcclusionTolerance = 0.5f
     };
 
