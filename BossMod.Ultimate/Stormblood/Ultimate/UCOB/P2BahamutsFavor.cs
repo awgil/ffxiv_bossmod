@@ -2,26 +2,63 @@
 
 class P2HugNael(BossModule module) : BossComponent(module)
 {
+    public enum Pos
+    {
+        DalamudDivePreTargetable,
+        DonutChainLightning1,
+        PostChainLightning1,
+        Standard
+    }
+
+    public Pos Mode = Pos.DalamudDivePreTargetable;
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (hints.FindEnemy(Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault()) is { } nael && nael.Actor.IsTargetable)
-        {
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Actor.Position, 10, 0.5f));
-            // we prefer to keep nael center to give casters/ranged the most options when trying to spread during mechanics
-            nael.DesiredPosition = Arena.Center;
+        if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is not { } nael)
+            return;
 
-            if (nael.Actor.HPMP.CurHP == 1)
-                nael.ShouldBeTargeted = true;
+        var quote = Module.FindComponent<Quote>();
+
+        if (hints.FindEnemy(nael) is { } ne)
+        {
+            // we prefer to keep nael center to give casters/ranged the most options when trying to spread during mechanics
+            ne.DesiredPosition = Arena.Center;
+
+            // at end of p2, party should target pointless nael to build gauge
+            if (nael.HPMP.CurHP == 1)
+                ne.ShouldBeTargeted = true;
+        }
+
+        switch (Mode)
+        {
+            // 0, -15 is her spawn point
+            case Pos.DalamudDivePreTargetable:
+                if (!nael.IsTargetable && !nael.Position.AlmostEqual(new(0, -15), 1))
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius));
+                break;
+
+            // everyone stack south of nael, then chain lightning players can quickly move north
+            case Pos.DonutChainLightning1:
+                if (nael.TargetID != actor.InstanceID)
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center + new WDir(0, 5), 3, 0.2f));
+                break;
+
+            // party hugs Z axis along nael so that chain lightning and fireball spreaders can spread e/w
+            case Pos.Standard:
+                var rect = ShapeDistance.Rect(nael.Position, 0.Degrees(), nael.HitboxRadius + 3.5f, nael.HitboxRadius + 3.5f, 2);
+                hints.GoalZones.Add(p => rect(p) <= 0 ? 0.1f : 0);
+                break;
         }
     }
 }
 
-class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread(module, 4, 0, 1)
+class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStackSpread(module, 4, 0, 1)
 {
     public Actor? Target;
     private BitMask _fire;
     private BitMask _ice;
     private DateTime _activation;
+    private Angle LastWingsCast;
 
     public bool FireOut;
 
@@ -76,6 +113,14 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
         }
     }
 
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.WingsOfSalvation && ((UCOB)Module).Nael() is { } nael)
+            LastWingsCast = Angle.FromDirection(spell.LocXZ - nael.Position);
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.FireballP2)
@@ -86,27 +131,26 @@ class P2BahamutsFavorFireball(BossModule module) : Components.UniformStackSpread
         }
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override (WPos, float)? GetStackDestination(int order, Actor target)
     {
-        if (IsStackTarget(actor) && ((UCOB)Module).Nael() is { } nael)
-        {
-            hints.GoalZonesEnabled = false;
+        var nael = ((UCOB)Module).Nael()!;
 
-            if (!FireOut)
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(nael.Position, 5), Stacks[0].Activation);
-        }
-        else
-            base.AddAIHints(slot, actor, assignment, hints);
+        var dist = nael.TargetID == target.InstanceID ? nael.HitboxRadius + 0.5f : 5.5f;
+
+        var angle = FireOut ? LastWingsCast + 90.Degrees() : LastWingsCast - 60.Degrees();
+
+        return (nael.Position + angle.ToDirection() * dist, 0);
     }
 }
 
 // note: if player dies immediately after chain lightning cast, he won't get a status or have aoe cast; if he dies after status application, aoe will be triggered immediately
-class P2BahamutsFavorChainLightning : Components.UniformStackSpread
+class P2BahamutsFavorChainLightning : Components.StrictUniformStackSpread
 {
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
 
     public bool FirstSet;
+    Angle RelativeSouth;
 
     public P2BahamutsFavorChainLightning(BossModule module) : base(module, 0, 5, alwaysShowSpreads: true)
     {
@@ -120,8 +164,17 @@ class P2BahamutsFavorChainLightning : Components.UniformStackSpread
         if ((SID)status.ID == SID.Thunderstruck)
         {
             AddSpread(actor, status.ExpireAt);
+            Spreads.SortBy(s => s.Target.InstanceID);
             _pendingTargets.Reset();
         }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.WingsOfSalvation && ((UCOB)Module).Nael() is { } nael)
+            RelativeSouth = (spell.LocXZ - nael.Position).ToAngle();
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -139,37 +192,28 @@ class P2BahamutsFavorChainLightning : Components.UniformStackSpread
         }
     }
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override (WPos, float)? GetSpreadDestination(int order, Actor target)
     {
-        if (!EnableHints)
-            return;
+        var nael = ((UCOB)Module).Nael()!;
+        var sign = order == 0 ? -1 : 1;
 
-        if (IsSpreadTarget(actor))
+        if (FirstSet)
+            return (nael.Position + (135 * sign).Degrees().ToDirection() * 5, 1);
+
+        // during later sets, a wings puddle is active during this mechanic, so we have to ensure tank is dodging it
+        if (nael.TargetID == target.InstanceID)
         {
-            hints.GoalZonesEnabled = false;
-            // don't you dare use a gap closer
-            hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
+            var dir = (RelativeSouth + 180.Degrees()).ToDirection();
+            var posIdeal = nael.Position + dir * (nael.HitboxRadius + 0.5f);
 
-            if (FirstSet)
-            {
-                var ordered = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
-                if (ordered.Length == 0)
-                    return;
-                var myOrder = Spreads.OrderBy(s => ordered[Raid.FindSlot(s.Target.InstanceID)]).Index().First(s => s.Item.Target == actor).Index;
-                var myDir = myOrder == 0 ? -45.Degrees() : 45.Degrees();
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(((UCOB)Module).Nael()!.Position + myDir.ToDirection() * 5, 1));
-                return;
-            }
+            // worst case scenario, puddle has been baited so closely onto nael that max pull range is still too close, just pull her farther
+            if (Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.ActiveAOEs(0, target).Any(a => posIdeal.InCircle(a.Origin, 4.5f)) == true)
+                posIdeal = nael.Position + dir * 5;
 
-            // avoid doom cleanse puddles (unless we are doomed, in which case ignore them)
-            // note no activation time specified here, we want to clear the path to the puddle ASAP for other players since they won't want to walk through lightning aoe
-            if (!(actor.FindStatus(SID.Doom)?.ExpireAt < Spreads[0].Activation.AddSeconds(1)))
-                foreach (var p in Module.Enemies(OID.VoidzoneSalvation).Where(e => e.EventState != 7))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(p.Position, 1 + SpreadRadius + ExtraAISpreadThreshold));
+            return (posIdeal, 0);
         }
 
-        foreach (var sp in ActiveSpreadTargets.Exclude(actor))
-            hints.AddForbiddenZone(ShapeDistance.Circle(sp.Position, Spreads[0].Radius + ExtraAISpreadThreshold), Spreads[0].Activation);
+        return (nael.Position + ((90 * sign).Degrees() + RelativeSouth).ToDirection() * 5.5f, 0);
     }
 }
 
@@ -231,9 +275,7 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
                 if (actor.FindStatus(SID.Thunderstruck)?.ExpireAt.AddSeconds(0.5f) < d.Expiration)
                     return;
 
-                // despite our best efforts, it's possible that a wings puddle can spawn on top of the cleanse puddle
-                var isCovered = Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.ActiveAOEs(slot, actor).Any(a => pos.Value.InCircle(a.Origin, 4)) == true;
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), isCovered ? default : d.Expiration.AddSeconds(-0.5f));
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1));
             }
             else
                 hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 1));

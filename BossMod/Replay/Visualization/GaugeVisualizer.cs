@@ -27,10 +27,10 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
                 DrawDRK(player, clientState);
                 break;
             case Class.SCH:
-                DrawSCH(player, clientState);
+                DrawSCH(clientState);
                 break;
             case Class.MNK:
-                DrawMNK(player, clientState);
+                DrawMNK(clientState);
                 break;
             case Class.BLM:
                 DrawBLM(player, clientState);
@@ -169,7 +169,7 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
         }
     }
 
-    private void DrawSCH(Actor player, ClientState clientState)
+    private void DrawSCH(ClientState clientState)
     {
         var gauge = clientState.GetGauge<ScholarGauge>();
         var origin = ImGui.GetCursorPos();
@@ -179,7 +179,7 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
         DrawDiamond(origin + Scale(38, 0), "sch_aetherflow", gauge.Aetherflow > 2, [-50, 100, 0]);
     }
 
-    private void DrawMNK(Actor player, ClientState clientState)
+    private void DrawMNK(ClientState clientState)
     {
         var gauge = clientState.GetGauge<MonkGauge>();
         var origin = ImGui.GetCursorPos();
@@ -338,7 +338,7 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
         }
     }
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         foreach (var t in _tex.Values)
             t.Dispose();

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-internal sealed partial class PingService(IPluginLog logger) : IHostedService
+internal sealed partial class PingService(IPluginLog logger) : IHostedService, IDisposable
 {
     public float LastRTT { get; private set; }
 
@@ -29,16 +29,21 @@ internal sealed partial class PingService(IPluginLog logger) : IHostedService
                     Fetch();
                 }
 
-                await Task.Delay(3000, token);
+                await Task.Delay(3000, token).ConfigureAwait(true);
             }
         }, token);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        Source.Cancel();
+        await Source.CancelAsync().ConfigureAwait(true);
 
         // task is intentionally not awaited, GetRTTAndHopCount blocks for a pretty long time, and unlike config saver service we don't care about race conditions
+    }
+
+    public void Dispose()
+    {
+        Source.Dispose();
     }
 
     private unsafe void Fetch()

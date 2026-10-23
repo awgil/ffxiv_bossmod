@@ -194,13 +194,11 @@ class UCOBStates : StateMachineBuilder
     {
         ComponentCondition<P1LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1")
             .ActivateOnEnter<P1Fireball>(withFireball)
-            .ExecOnEnter<P1Fireball>(f => f.EnableHints = false, withFireball)
             .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, withFireball ? Ultimate.UCOB.P1LiquidHell.BaitMode.Random : Ultimate.UCOB.P1LiquidHell.BaitMode.Proximity));
         ComponentCondition<P1LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
         ComponentCondition<P1LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
         ComponentCondition<P1LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
-        ComponentCondition<P1LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5")
-            .ExecOnExit<P1Fireball>(f => f.EnableHints = true, withFireball);
+        ComponentCondition<P1LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5");
     }
 
     private void P1LiquidHellFireball(uint id, float delay)
@@ -268,6 +266,7 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
         ActorTargetable(id + 0x31, _module.Nael, true, 2, "Boss appears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
+            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.DonutChainLightning1)
             .DeactivateOnExit<P2HeavensfallDalamudDive>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
@@ -293,12 +292,14 @@ class UCOBStates : StateMachineBuilder
         // +0.8s: iceball 3
         // +2.8s: iceball 4
         ComponentCondition<Quote>(id + 0x30, 3.1f, comp => comp.PendingMechanics.Count == 0, "Out/Stack")
+            .ExecOnEnter<P2HugNael>(n => n.Mode = P2HugNael.Pos.PostChainLightning1)
             .ActivateOnEnter<QuoteThermionicBeam>()
             .ActivateOnEnter<P2BahamutsFavorFireball>() // tether appears ~0.6s after in
             .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
             .DeactivateOnExit<QuoteThermionicBeam>()
             .DeactivateOnExit<Quote>()
-            .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show());
+            .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show())
+            .ExecOnExit<P2HugNael>(n => n.Mode = P2HugNael.Pos.Standard);
 
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x100, 0.7f, comp => comp.NumDeathstorms > 0) // wings of salvation 1 bait at the same time
             .ActivateOnEnter<P2BahamutsFavorDeathstorm>(); // dooms are applied ~1.0s after deathstorm cast

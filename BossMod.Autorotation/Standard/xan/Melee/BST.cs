@@ -106,7 +106,6 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
     private Enemy? BestLineTarget;
     private int NumLineTargets;
 
-    // TODO: pet AOE target selection (probably only for targeted circles)
     public override void Exec(in Strategy strategy, Enemy? primaryTarget)
     {
         SelectPrimaryTarget(strategy, ref primaryTarget, 3);

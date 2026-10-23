@@ -85,7 +85,8 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
     private delegate void ProcessPacketFateTradeDelegate(void* a1, ulong a2);
     private HookAddress<ProcessPacketFateTradeDelegate> _processPacketFateTradeHook;
 
-    private delegate* unmanaged<ContainerInterface*, float> _calculateMoveSpeedMulti;
+    private delegate float CalculateMovementSpeedMultiplier(ContainerInterface* container);
+    private CalculateMovementSpeedMultiplier _calculateMoveSpeedMulti;
 
     private HookAddress<PacketDispatcher.Delegates.HandleInventoryItemUpdatePacket> _inventoryUpdateHook;
 
@@ -139,8 +140,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
         _processPacketFateInfoHook = new("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 0F B7 4F 10 48 8D 57 12 41 B8", ProcessPacketFateInfoDetour);
         _processPacketFateTradeHook = new("48 89 5C 24 ?? 57 48 83 EC 20 48 8B DA 0F B7 F9", ProcessPacketFateTradeDetour);
 
-        _calculateMoveSpeedMulti = (delegate* unmanaged<ContainerInterface*, float>)Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
-        Service.Log($"[WSG] CalculateMovementSpeedMultiplier address = 0x{(nint)_calculateMoveSpeedMulti:X}");
+        _calculateMoveSpeedMulti = HookAddress<CalculateMovementSpeedMultiplier>.FnPtr("E8 ?? ?? ?? ?? 44 0F 28 D8 45 0F 57 D2");
 
         _processLegacyMapEffectHook = new(EventFramework.Addresses.SetDirectorData.Value, ProcessLegacyMapEffectDetour);
 
@@ -292,7 +292,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
 
             if (obj != null && (obj->EntityId & 0xFF000000) == 0xFF000000)
             {
-                Service.LogVerbose($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
+                Service.PluginLog.Verbose($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
                 obj = null;
             }
 

@@ -176,7 +176,7 @@ public sealed class AkechiPLD(RotationModuleManager manager, Actor player) : Ake
             return;
 
         GetNextTarget(strategy, ref primaryTarget, 3);
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.TotalEclipse, 3, maximumActionRange: 20);
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), AID.TotalEclipse, 3, maximumActionRange: 20);
 
         var aoe = strategy.Option(Track.AOE);
         var aoeStrat = aoe.As<AOEStrategy>();
