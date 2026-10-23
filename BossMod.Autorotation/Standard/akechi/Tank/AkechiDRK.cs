@@ -215,7 +215,7 @@ public sealed class AkechiDRK(RotationModuleManager manager, Actor player) : Ake
         QueuePotion(strategy);
 
         GetNextTarget(strategy, ref primaryTarget, 3);
-        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.Unleash, 3, maximumActionRange: 20);
+        GoalZoneCombined(3, Hints.GoalAOECircle(5), AID.Unleash, 3, maximumActionRange: 20);
     }
 
     private void QueueDelirium(StrategyValues strategy, Actor? mainTarget)

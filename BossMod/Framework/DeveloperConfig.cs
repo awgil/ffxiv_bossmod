@@ -9,5 +9,5 @@ public sealed class DeveloperConfig : ConfigNode
     [PropertyDisplay("Obstacle map auto-generation")]
     public bool AutoBitmaps = true;
 
-    public bool DebugWindowOpen = false;
+    public bool DebugWindowOpen;
 }

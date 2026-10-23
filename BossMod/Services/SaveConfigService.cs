@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-public sealed class SaveConfigService(IDalamudPluginInterface dalamud, IPluginLog logger) : IHostedService
+public sealed class SaveConfigService(IDalamudPluginInterface dalamud, IPluginLog logger) : IHostedService, IDisposable
 {
     private CancellationTokenSource Source = new();
     private Task SaverTask = Task.CompletedTask;
@@ -20,7 +20,7 @@ public sealed class SaveConfigService(IDalamudPluginInterface dalamud, IPluginLo
         {
             while (!token.IsCancellationRequested)
             {
-                await Task.Delay(30_000, token);
+                await Task.Delay(30_000, token).ConfigureAwait(true);
 
                 logger.Verbose($"Saving config to {dalamud.ConfigFile}");
                 Service.Config.SaveToFile(dalamud.ConfigFile);
@@ -29,10 +29,15 @@ public sealed class SaveConfigService(IDalamudPluginInterface dalamud, IPluginLo
     }
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        Source.Cancel();
+        await Source.CancelAsync().ConfigureAwait(true);
 
-        await Task.WhenAny(SaverTask); // ensures we aren't running multiple saves at once
+        await Task.WhenAny(SaverTask).ConfigureAwait(true); // ensures we aren't running multiple saves at once
 
         Service.Config.SaveToFile(dalamud.ConfigFile);
+    }
+
+    public void Dispose()
+    {
+        Source.Dispose();
     }
 }

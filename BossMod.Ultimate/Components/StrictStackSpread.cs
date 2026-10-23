@@ -131,11 +131,11 @@ public abstract class StrictCastStackSpread(BossModule module, Enum? stackAID, E
 
 public abstract class StrictSpreadFromCastTargets(BossModule module, Enum aid, float radius, bool drawAllSpreads = true) : StrictCastStackSpread(module, default, aid, 0, radius, alwaysShowSpreads: drawAllSpreads)
 {
-    public sealed override (WPos, float)? GetStackDestination(int slot, Actor target) => null;
+    public sealed override (WPos, float)? GetStackDestination(int order, Actor target) => null;
 }
 public abstract class StrictStackWithCastTargets(BossModule module, Enum aid, float radius, int minStackSize = 2, int maxStackSize = int.MaxValue) : StrictCastStackSpread(module, aid, default, radius, 0, minStackSize, maxStackSize)
 {
-    public sealed override (WPos, float)? GetSpreadDestination(int slot, Actor target) => null;
+    public sealed override (WPos, float)? GetSpreadDestination(int order, Actor target) => null;
 }
 
 public abstract class StrictIconStackSpread(BossModule module, uint stackIcon, uint spreadIcon, Enum? stackAID, Enum? spreadAID, float stackRadius, float spreadRadius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false) : StrictUniformStackSpread(module, stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads)
@@ -177,9 +177,9 @@ public abstract class StrictIconStackSpread(BossModule module, uint stackIcon, u
 
 public abstract class StrictSpreadFromIcon(BossModule module, uint icon, Enum? aid, float radius, float activationDelay, bool drawAllSpreads = true) : StrictIconStackSpread(module, 0, icon, default, aid, 0, radius, activationDelay, alwaysShowSpreads: drawAllSpreads)
 {
-    public sealed override (WPos, float)? GetStackDestination(int slot, Actor target) => default;
+    public sealed override (WPos, float)? GetStackDestination(int order, Actor target) => default;
 }
 public abstract class StrictStackWithIcon(BossModule module, uint icon, Enum aid, float radius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue) : StrictIconStackSpread(module, icon, 0, aid, default, radius, 0, activationDelay, minStackSize, maxStackSize)
 {
-    public sealed override (WPos, float)? GetSpreadDestination(int slot, Actor target) => default;
+    public sealed override (WPos, float)? GetSpreadDestination(int order, Actor target) => default;
 }

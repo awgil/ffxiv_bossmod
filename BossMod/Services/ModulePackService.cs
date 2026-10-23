@@ -188,7 +188,7 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
         copy("BossMod.Ultimate.dll");
     }
 
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         _modified.Dispose();
         _watcher.Dispose();
