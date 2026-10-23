@@ -66,7 +66,7 @@ class SeismicWave(BossModule module) : Components.GenericLineOfSightAOE(module, 
 
     private void Refresh()
     {
-        var blockers = IntactBoulders().Select(b => (b.Position, b.HitboxRadius)).ToList();
+        var blockers = IntactBoulders().Select(b => (b.Position, 1.5f)).ToList();
         if (blockers.Count == 0)
         {
             Modify(null, []);

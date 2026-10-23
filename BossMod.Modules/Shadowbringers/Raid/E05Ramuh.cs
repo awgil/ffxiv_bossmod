@@ -8,6 +8,7 @@ public enum OID : uint
     WillOfRamuh = 0x2D05, // R3.800
     WillOfIxion = 0x2D06, // R3.000
     SurgeOrb = 0x1EAF6B, // R0.500, EventObj
+    GatheredStorm = 0x2D04, // R1.700
 }
 
 public enum AID : uint
@@ -34,6 +35,7 @@ public enum AID : uint
     ShockStrike = 19361, // Helper->location, 2.5s cast, range 3 circle
     VoltStrike = 19698, // Helper->location, 2.5s cast, range 5 circle
     //_Weaponskill_ = 19403, // Boss->location, no cast, single-target
+    ThePartingClouds = 19357, // GatheredStorm->self, no cast, range 100 circle
 }
 
 public enum IconID : uint
@@ -114,10 +116,35 @@ class StormcloudBait(BossModule module) : Components.BaitAwayIcon(module, new AO
         {
             // bait to edge by making a forbidden zone that's -1.5y the arena size
             hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, new WDir(0, 1), 13.5f, 13.5f, 18.5f), b.Activation);
+            // ensure they're baited ~15y away from each other to prevent a Gathered Storm
+            foreach (var other in ActiveBaitsNotOn(actor))
+                hints.AddForbiddenZone(ShapeDistance.Circle(other.Target.Position, 15), b.Activation);
         }
     }
 }
 class StormcloudVoidzone(BossModule module) : Components.Voidzone(module, 8, OID.Stormcloud);
+
+class ThePartingClouds(BossModule module) : Components.RaidwideInstant(module, AID.ThePartingClouds, 4.7f, "3x heavy raidwide")
+{
+    public override void OnActorCreated(Actor actor)
+    {
+        if (actor.OID == (uint)OID.GatheredStorm)
+            Activation = WorldState.FutureTime(Delay);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if (spell.Action == WatchedAction && Module.Enemies((uint)OID.GatheredStorm).Any(a => !a.IsDeadOrDestroyed))
+            Activation = WorldState.FutureTime(3.1f);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if (actor.OID == (uint)OID.GatheredStorm && !Module.Enemies((uint)OID.GatheredStorm).Any(a => !a.IsDeadOrDestroyed))
+            Activation = default;
+    }
+}
 
 class DeadlyDischarge(BossModule module) : Components.StandardAOEs(module, AID.DeadlyDischarge, new AOEShapeRect(40, 5));
 class DeadlyDischargeKnockback(BossModule module) : Components.Knockback(module, AID.DeadlyDischarge)
@@ -201,6 +228,7 @@ class E05RamuhStates : StateMachineBuilder
             .ActivateOnEnter<SurgeOrbs>()
             .ActivateOnEnter<StormcloudBait>()
             .ActivateOnEnter<StormcloudVoidzone>()
+            .ActivateOnEnter<ThePartingClouds>()
             .ActivateOnEnter<DeadlyDischarge>()
             .ActivateOnEnter<DeadlyDischargeKnockback>()
             .ActivateOnEnter<Gallop>()
