@@ -13,7 +13,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <AnalysisMode>All</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-      <!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>

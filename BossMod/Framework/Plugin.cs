@@ -7,6 +7,7 @@ using BossMod.Services;
 using DalaMock.Host.Hosting;
 using DalaMock.Host.Mediator;
 using DalaMock.Shared.Extensions;
+using DalaMock.Shared.Interfaces;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -101,6 +102,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
             // register builtin config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
+
+            Service.WindowSystem = scope.Resolve<IWindowSystemFactory>().Create("vbm");
         });
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
@@ -120,6 +123,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<SlashCommandService>();
 
         containerBuilder.RegisterSingletonSelf<MainDebugWindow>();
 

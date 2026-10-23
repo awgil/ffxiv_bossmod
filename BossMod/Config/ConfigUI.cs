@@ -44,9 +44,9 @@ public sealed partial class ConfigUI : IDisposable
     private readonly List<List<string>> _filterNodes = [];
     private readonly EventSubscriptions _subscriptions;
 
-    public ConfigUI(ConfigRoot config, WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
+    public ConfigUI(WorldState ws, DirectoryInfo? replayDir, RotationDatabase? rotationDB)
     {
-        _root = config;
+        _root = Service.Config;
         _ws = ws;
         _about = new(replayDir);
         _mv = new(rotationDB?.Plans, ws);
