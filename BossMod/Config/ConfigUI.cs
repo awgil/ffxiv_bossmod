@@ -444,8 +444,12 @@ public sealed class ConfigUI : IDisposable
             else if (pages.Count == 0)
                 hasDefault = true;
         }
-        return (pages, hasDefault);
+        // custom ui is drawn with the general page, so a node needs one even if all of its fields are on named pages
+        return (pages, hasDefault || HasCustomDraw(node));
     }
+
+    private static bool HasCustomDraw(ConfigNode node)
+        => node.GetType().GetMethod(nameof(ConfigNode.DrawCustom), [typeof(UITree), typeof(WorldState), typeof(RotationDatabase)])?.DeclaringType != typeof(ConfigNode);
 
     private static readonly Dictionary<Type, ConfigNode?> _defaultNodes = [];
 
