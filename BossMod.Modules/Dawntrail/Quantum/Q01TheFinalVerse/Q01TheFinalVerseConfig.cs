@@ -45,7 +45,7 @@ public class Q01TheFinalVerseConfig : ConfigNode
 
     public FlamebornAssignment FlamebornAssignments;
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
         var modified = false;
 

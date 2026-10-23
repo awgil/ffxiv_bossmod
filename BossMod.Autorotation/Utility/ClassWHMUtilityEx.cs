@@ -48,9 +48,20 @@ public sealed class ClassWHMUtilityEx(RotationModuleManager manager, Actor playe
             ? World.Party.WithoutSlot().Where(a => a.Class.GetRole() != Role.Tank)
             : Manager.ResolvePartyMembers(strategy.Heal.TrackRaw.Target, strategy.Heal.TrackRaw.TargetParam);
 
-        // TODO: we should apply Medica first if the deadline is decently far into the future
-        // Medica is a 200 potency heal + 5 ticks of a 100 potency heal over 15 seconds
-        var healTargets = targets.Where(t => t.PendingHPClamped < t.HPMP.MaxHP && !(t.FindStatus(medicaStatus, World.FutureTime(15))?.ExpireAt >= World.FutureTime(3))).ToList();
+        var healTargets = targets.Where(t =>
+        {
+            var predictedPlusRegen = (float)t.PendingHPClamped;
+            if (t.FindStatus(medicaStatus, World.FutureTime(15)) is { } medica)
+            {
+                var medicaLeft = (float)(medica.ExpireAt - World.CurrentTime).TotalSeconds;
+
+                var remainingRegenTicks = MathF.Floor(MathF.Min(deadline, medicaLeft) / 3);
+
+                predictedPlusRegen += t.HPMP.MaxHP * 0.05f * remainingRegenTicks;
+            }
+
+            return predictedPlusRegen < t.HPMP.MaxHP;
+        });
 
         // C3 is a gain on 2
         var (c3target, numtargets) = healTargets.Select(t => (t, healTargets.InRadius(t.Position, 10).Count())).MaxBy(t => t.Item2);

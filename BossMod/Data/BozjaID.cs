@@ -122,7 +122,7 @@ public static class BozjaActionID
 
     static BozjaActionID()
     {
-        var sheet = Service.LuminaSheet<MYCTemporaryItem>()!;
+        var sheet = Service.LuminaSheet<MYCTemporaryItem>();
         for (var i = 0; i < _normalActions.Length; i++)
         {
             var row = sheet.GetRow((uint)i);

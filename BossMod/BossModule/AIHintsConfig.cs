@@ -31,6 +31,10 @@ public sealed class AIHintsConfig : ConfigNode
     [PropertyDisplay("Behavior for actions without AOE indicators", since: "0.3.0.0", tooltip: "This setting only applies when no module is active.")]
     public OmenBehavior OmenSetting = OmenBehavior.Automatic;
 
+    [PropertyDisplay("Pathfinding cushion")]
+    [PropertySlider(0, 1)]
+    public float AdditionalPathfindingCushion = 0.3f;
+
     [PropertyDisplay("Enable raycasting", tooltip: "Prevents VBM from trying to attack mobs that it can't see. Disable to improve performance, but AI mode will not behave optimally.")]
     public bool EnableRaycasts = true;
 

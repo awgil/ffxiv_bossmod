@@ -323,6 +323,30 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
         }
 
+        var map = CtxInactive.Map;
+        var (pX, pY) = map.WorldToGrid(Player.Position);
+        var playerCell = map.GridToIndex(pX, pY);
+        if (map.PixelMaxG[playerCell] >= 0 && map.PixelMaxG[playerCell] < map.MaxG)
+        {
+            var pW = map.GridToIndex(pX - 1, pY);
+            var pE = map.GridToIndex(pX + 1, pY);
+            var pN = map.GridToIndex(pX, pY - 1);
+            var pS = map.GridToIndex(pX, pY + 1);
+
+            if (map.PixelMaxG[pW] < 0 && map.PixelMaxG[pE] < 0 && map.PixelMaxG[pN] < 0 && map.PixelMaxG[pS] < 0)
+            {
+                (int, int)[] corners = [(-1, -1), (-1, +1), (+1, +1), (+1, -1)];
+                foreach (var (dx, dy) in corners)
+                {
+                    if (map.PixelMaxG[map.GridToIndex(pX + dx, pY + dy)] >= 0)
+                    {
+                        Hints.ForcedMovement = new(dx, 0, dy);
+                        return;
+                    }
+                }
+            }
+        }
+
         var dir = navi.Destination.Value - Player.Position;
         var distSq = dir.LengthSq();
         if (distSq <= 0.01f)

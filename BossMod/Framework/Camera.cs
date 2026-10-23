@@ -1,11 +1,11 @@
 ﻿using BossMod.Interfaces;
-using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
+using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using Pictomancy;
 
 namespace BossMod;
 
-public class Camera : ICamera
+public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposable
 {
     public Vector3 Origin;
     public Matrix4x4 View;
@@ -16,9 +16,21 @@ public class Camera : ICamera
     public float CameraAltitude; // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
     public Vector2 ViewportSize;
 
-    record struct DrawLine(Vector2 From, Vector2 To, uint Color, float Thickness = 1);
+    record struct Line(Vector3 Start, Vector3 End, uint Color, float Thickness = 1);
+    record struct Cone(Vector3 Center, float Radius, Angle Direction, Angle HalfAngle, uint Color, float Thickness = 1);
+    record struct Circle(Vector3 Center, float Radius, uint Color, float Thickness = 1);
 
-    private readonly List<DrawLine> _worldDrawLines = [];
+    readonly List<Line> _lines = [];
+    readonly List<Cone> _cones = [];
+    readonly List<Circle> _circles = [];
+
+    private readonly PctDxParams OutlineParams = new()
+    {
+        OccludedAlpha = 0.1f,
+        OcclusionTolerance = 0.5f
+    };
+
+    private readonly PctContext picto = PctService.Initialize(dalamud);
 
     public unsafe void Update()
     {
@@ -44,61 +56,39 @@ public class Camera : ICamera
         CameraAltitude = MathF.Asin(View.M23);
         var device = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.Instance();
         ViewportSize = new(device->Width, device->Height);
-    }
 
-    public void DrawWorldPrimitives()
-    {
-        if (_worldDrawLines.Count == 0)
+        using var drawList = PctService.Draw();
+        if (drawList == null)
             return;
 
-        var dl = ImGui.GetBackgroundDrawList();
-        foreach (var l in _worldDrawLines)
-            dl.AddLine(l.From, l.To, l.Color, l.Thickness);
-        _worldDrawLines.Clear();
+        foreach (var line in _lines)
+            drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, OutlineParams);
+        foreach (var cone in _cones)
+            drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Thickness, p: OutlineParams);
+        foreach (var circle in _circles)
+            drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Thickness, p: OutlineParams);
+
+        _lines.Clear();
+        _cones.Clear();
+        _circles.Clear();
     }
 
     public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1)
     {
-        var p1w = start;
-        var p2w = end;
-        if (!ClipLineToNearPlane(ref p1w, ref p2w))
-            return;
+        if ((end.X, end.Z) == (start.X, start.Z) && end.Y != start.Y)
+            Service.PluginLog.Warning($"Line {start} -> {end} is purely vertical, pictomancy doesn't like this");
 
-        var p1p = Vector4.Transform(p1w, ViewProj);
-        var p2p = Vector4.Transform(p2w, ViewProj);
-        var p1c = p1p.XY() * (1 / p1p.W);
-        var p2c = p2p.XY() * (1 / p2p.W);
-        var p1screen = new Vector2(0.5f * ViewportSize.X * (1 + p1c.X), 0.5f * ViewportSize.Y * (1 - p1c.Y)) + ImGuiHelpers.MainViewport.Pos;
-        var p2screen = new Vector2(0.5f * ViewportSize.X * (1 + p2c.X), 0.5f * ViewportSize.Y * (1 - p2c.Y)) + ImGuiHelpers.MainViewport.Pos;
-        _worldDrawLines.Add(new(p1screen, p2screen, color, thickness));
+        _lines.Add(new(start, end, color, thickness));
     }
 
     public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1)
     {
-        var numSegments = CurveApprox.CalculateCircleSegments(radius, halfWidth, 1 / 90f);
-        var delta = halfWidth / numSegments;
-
-        var prev = center + radius * (direction - delta * numSegments).ToDirection().ToVec3();
-        DrawWorldLine(center, prev, color, thickness);
-        for (var i = -numSegments + 1; i <= numSegments; ++i)
-        {
-            var curr = center + radius * (direction + delta * i).ToDirection().ToVec3();
-            DrawWorldLine(prev, curr, color, thickness);
-            prev = curr;
-        }
-        DrawWorldLine(prev, center, color, thickness);
+        _cones.Add(new(center, radius, direction, halfWidth, color, thickness));
     }
 
     public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1)
     {
-        var numSegments = CurveApprox.CalculateCircleSegments(radius, 360.Degrees(), 1 / 90f);
-        var prev = center + new Vector3(0, 0, radius);
-        for (var i = 1; i <= numSegments; ++i)
-        {
-            var curr = center + radius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
-            DrawWorldLine(curr, prev, color, thickness);
-            prev = curr;
-        }
+        _circles.Add(new(center, radius, color, thickness));
     }
 
     public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)
@@ -122,24 +112,8 @@ public class Camera : ICamera
         }
     }
 
-    private bool ClipLineToNearPlane(ref Vector3 a, ref Vector3 b)
+    public void Dispose()
     {
-        var an = Vector4.Dot(new(a, 1), NearPlane);
-        var bn = Vector4.Dot(new(b, 1), NearPlane);
-        if (an >= 0 && bn >= 0)
-            return false; // line fully behind near plane
-
-        if (an > 0 || bn > 0)
-        {
-            var ab = b - a;
-            var abn = Vector3.Dot(ab, NearPlane.XYZ());
-            var t = -an / abn;
-            var p = a + t * ab;
-            if (an > 0)
-                a = p;
-            else
-                b = p;
-        }
-        return true;
+        picto.Dispose();
     }
 }

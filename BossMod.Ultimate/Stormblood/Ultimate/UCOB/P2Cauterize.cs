@@ -40,7 +40,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 
         if (bo >= NextBaitOrder)
         {
-            if (_numHypernovas >= Math.Min(4, bo * 2 - 1))
+            if (bo == 1 && _numHypernovas >= 1 || bo == 2 && _numHypernovas >= 4 || bo == 3)
             {
                 hints.PathfindMapBounds = UCOB.PathfindHugBorderBounds;
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(CurrentBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
