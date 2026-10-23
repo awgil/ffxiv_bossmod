@@ -1,11 +1,13 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UCOB;
 
-class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 4)
+class P1Fireball(BossModule module) : Components.StrictStackWithIcon(module, (uint)IconID.Fireball, AID.Fireball, 4, 5.3f, 4)
 {
     int _neurolinkCount;
     readonly PartyRolesConfig _prc = Service.Config.Get<PartyRolesConfig>();
 
     public WPos Destination { get; private set; }
+
+    public override (WPos, float)? GetStackDestination(int order, Actor target) => (Destination, 0);
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -64,32 +66,6 @@ class P1Fireball(BossModule module) : Components.StackWithIcon(module, (uint)Ico
             var safeDist = Math.Max(Module.PrimaryActor.HitboxRadius, 7 - bossToPuddle.Length());
             // stack on opposite side of boss from first fireball spawn
             Destination = Module.PrimaryActor.Position + bossToPuddle.Normalized() * -safeDist;
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Destination == default)
-        {
-            base.AddAIHints(slot, actor, assignment, hints);
-            return;
-        }
-
-        if (Stacks.Count == 0)
-            return;
-
-        var baiters = Module.FindComponent<P1LiquidHell>()?.Baiters;
-
-        if (EnableHints || baiters.HasValue && !baiters.Value[slot])
-        {
-            var stack = Stacks[0];
-
-            if (stack.Target == actor) // stack target shouldn't move around too much, just plant on boss
-                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Destination, new(0, 1), 0.5f, actor.Position, 0.1f), stack.Activation);
-            else if (!stack.ForbiddenPlayers[slot])
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Destination, stack.Radius - 1), stack.Activation);
-            else
-                hints.AddForbiddenZone(ShapeDistance.Circle(Destination, stack.Radius), stack.Activation);
         }
     }
 }

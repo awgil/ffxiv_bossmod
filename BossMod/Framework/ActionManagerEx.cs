@@ -11,7 +11,6 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Microsoft.Extensions.Hosting;
-using System.Runtime.InteropServices;
 using System.Threading;
 using CSActionType = FFXIVClientStructs.FFXIV.Client.Game.ActionType;
 
@@ -63,6 +62,8 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
     private readonly OutOfCombatActionsTweak _oocActionsTweak = new(ws);
     private readonly AutoAutosTweak _autoAutosTweak = new(ws, hints);
 
+    private DateTime _nextAllowedExecuteCommand;
+
 #nullable disable
     private HookAddress<ActionManager.Delegates.Update> _updateHook;
     private HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
@@ -76,10 +77,10 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
 
     private delegate void ExecuteCommandGTDelegate(uint commandId, Vector3* position, uint param1, uint param2, uint param3, uint param4);
     private ExecuteCommandGTDelegate _executeCommandGT;
-#nullable restore
-    private DateTime _nextAllowedExecuteCommand;
 
-    private delegate* unmanaged<TargetSystem*, TargetSystem*> _autoSelectTarget;
+    private delegate TargetSystem* AutoSelectTarget(TargetSystem* targetSystem);
+    private AutoSelectTarget _autoSelectTarget;
+#nullable restore
 
     public async System.Threading.Tasks.Task StartAsync(CancellationToken cancellationToken)
     {
@@ -96,13 +97,8 @@ public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, Movemen
         _processPacketActionEffectHook = new(ActionEffectHandler.Addresses.Receive, ProcessPacketActionEffectDetour);
         _setAutoAttackStateHook = new(AutoAttackState.Addresses.SetImpl, SetAutoAttackStateDetour);
 
-        var executeCommandGTAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??");
-        Service.Log($"ExecuteCommandGT address: 0x{executeCommandGTAddress:X}");
-        _executeCommandGT = Marshal.GetDelegateForFunctionPointer<ExecuteCommandGTDelegate>(executeCommandGTAddress);
-
-        var selectTargetAddress = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 3B C5");
-        Service.Log($"SelectTarget address: 0x{selectTargetAddress:X}");
-        _autoSelectTarget = (delegate* unmanaged<TargetSystem*, TargetSystem*>)selectTargetAddress;
+        _executeCommandGT = HookAddress<ExecuteCommandGTDelegate>.FnPtr("E8 ?? ?? ?? ?? EB 3D 8B 93 ?? ?? ?? ??");
+        _autoSelectTarget = HookAddress<AutoSelectTarget>.FnPtr("E8 ?? ?? ?? ?? 48 8B CE E8 ?? ?? ?? ?? 48 3B C5");
     }
 
     System.Threading.Tasks.Task IHostedService.StopAsync(CancellationToken cancellationToken) => System.Threading.Tasks.Task.CompletedTask;

@@ -65,7 +65,7 @@ public class AutoDDConfig : ConfigNode
     public BitMask AutoMagicite;
     public BitMask AutoDemiclone;
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
         UIMisc.SectionHeader("Auto-poms");
 

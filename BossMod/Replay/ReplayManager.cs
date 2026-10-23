@@ -83,8 +83,7 @@ public sealed class ReplayManager(RotationDatabase rotationDB, IFileDialogManage
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (Service.IsMock)
-            RestoreHistory();
+        RestoreHistory();
     }
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

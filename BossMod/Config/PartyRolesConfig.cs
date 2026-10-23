@@ -66,7 +66,7 @@ public class PartyRolesConfig : ConfigNode
 
     record struct PartyMember(ulong CID, string Name, Class Class, Assignment Assignment);
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
         List<PartyMember> party = [];
         using (var table = ImRaii.Table("tab2", 10, ImGuiTableFlags.SizingFixedFit))

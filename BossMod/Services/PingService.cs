@@ -41,7 +41,10 @@ internal sealed partial class PingService(IPluginLog logger) : IHostedService, I
         // task is intentionally not awaited, GetRTTAndHopCount blocks for a pretty long time, and unlike config saver service we don't care about race conditions
     }
 
-    public void Dispose() => Source.Dispose();
+    public void Dispose()
+    {
+        Source.Dispose();
+    }
 
     private unsafe void Fetch()
     {

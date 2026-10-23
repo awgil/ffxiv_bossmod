@@ -23,9 +23,8 @@ class P4AddsPositioning(BossModule module) : BossComponent(module)
         if (spawned)
         {
             // healers should chill next to bosses
-            // TODO: check if needed, healer AOE rotation is a gain on 2
-            //if (actor.Class.GetRole() == Role.Healer)
-            //    hints.GoalZones.Add(AIHints.GoalSingleTarget(new(18, -9), 5, 0.5f));
+            if (actor.Class.GetRole() == Role.Healer)
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(new(18, -9), 5, 0.5f));
         }
         else
         {

@@ -22,12 +22,18 @@ class Twister(BossModule module, AID cast, float delay, float predelay) : Compon
             hints.Voidzones.Add((z, Radius));
         }
 
-        if ((_predictAt - WorldState.CurrentTime).TotalSeconds is > 0 and < PreSnapshotFreeze && PredictedPositions.Count == 0)
+        var predictionPeriod = (_predictAt - WorldState.CurrentTime).TotalSeconds is > 0 and < PreSnapshotFreeze;
+
+        if (predictionPeriod && PredictedPositions.Count == 0)
+        {
+            hints.ForcedMovement = new(0);
+            hints.AllowDash = false;
+        }
+
+        if (predictionPeriod || PredictedPositions.Count > 0)
         {
             hints.MaxCastTime = 0;
             hints.ForceCancelCast = true;
-            hints.ForcedMovement = new(0);
-            hints.AllowDash = false;
         }
 
         // pathfinder...please stop cutting across imminent danger zones to get to your goal........just get away...........

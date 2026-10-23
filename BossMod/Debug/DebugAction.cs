@@ -220,7 +220,7 @@ sealed unsafe class DebugAction : IDisposable
     {
         foreach (var nr in _tree.Node(tag))
         {
-            foreach (var a in Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!.Where(filter))
+            foreach (var a in Service.LuminaSheet<Lumina.Excel.Sheets.Action>().Where(filter))
             {
                 _tree.LeafNode($"#{a.RowId} {a.Name}");
             }

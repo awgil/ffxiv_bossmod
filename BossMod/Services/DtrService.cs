@@ -69,7 +69,7 @@ internal sealed class DtrService(RotationModuleManager manager, IDtrBar dtrBar, 
             _autorotEntries.Clear();
             foreach (var p in dtrConfig.ShowPresets)
             {
-                var newEntry = Service.DtrBar.Get($"vbm-ar-{p}");
+                var newEntry = dtrBar.Get($"vbm-ar-{p}");
                 newEntry.Shown = true;
                 newEntry.OnClick = ev => OnPresetClick(ev, p);
                 newEntry.Tooltip = $"Left click: toggle preset; right click: open settings menu";

@@ -36,5 +36,8 @@ public sealed class SaveConfigService(IDalamudPluginInterface dalamud, IPluginLo
         Service.Config.SaveToFile(dalamud.ConfigFile);
     }
 
-    public void Dispose() => Source.Dispose();
+    public void Dispose()
+    {
+        Source.Dispose();
+    }
 }

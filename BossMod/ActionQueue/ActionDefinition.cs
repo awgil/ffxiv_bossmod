@@ -157,10 +157,10 @@ public sealed record class ActionDefinition(ActionID ID)
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
 public sealed class ActionDefinitions
 {
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>();
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>();
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory");
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>();
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
@@ -509,7 +509,7 @@ public sealed class ActionDefinitions
     // hardcoded mechanic implementations
     public void RegisterChargeIncreaseTrait(ActionID aid, uint traitId)
     {
-        var trait = TraitData(traitId)!;
+        var trait = TraitData(traitId);
         _definitions[aid].MaxChargesOverride.Add((trait.Value, trait.Level, trait.Quest.RowId));
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }

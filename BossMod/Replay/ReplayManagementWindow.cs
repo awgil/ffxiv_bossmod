@@ -56,7 +56,6 @@ public class ReplayManagementWindow : UIWindow
     {
         _recorder?.Dispose();
         _subscriptions.Dispose();
-        _manager.Dispose();
         base.Dispose(disposing);
     }
 
