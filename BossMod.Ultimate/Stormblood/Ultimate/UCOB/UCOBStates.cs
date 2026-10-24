@@ -72,7 +72,7 @@ class UCOBStates : StateMachineBuilder
         P1Generate(id + 0x10000, 1.2f);
         P1LiquidHellFireball(id + 0x20000, 3.3f);
         P1DeathSentence(id + 0x30000, 5.1f);
-        P1Plummet(id + 0x40000, 3.2f, true);
+        P1Plummet(id + 0x40000, 3.2f);
         P1GenerateTwister(id + 0x50000, 4.1f);
         P1Plummet(id + 0x60000, 4.9f);
         // repeat
@@ -148,15 +148,11 @@ class UCOBStates : StateMachineBuilder
         P5Enrage(id + 0xE0000, 2.1f);
     }
 
-    private void P1Plummet(uint id, float delay, bool soak = false)
+    private void P1Plummet(uint id, float delay)
     {
         ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Plummet>()
-            .ExecOnEnter<P1Plummet>(p =>
-            {
-                p.NextExpected = Module.WorldState.FutureTime(delay);
-                p.Soak = soak;
-            })
+            .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P1Plummet>();
     }
 
