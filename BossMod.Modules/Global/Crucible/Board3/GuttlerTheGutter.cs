@@ -4,7 +4,7 @@ public enum OID : uint
 {
     Boss = 0x4CAA, // R4.000, x1
     Helper = 0x233C, // R0.500, x18, Helper type
-    OverpoweringPoint = 0x4E5D, // R1.400, x0 (spawn during fight)
+    ThanatosHurtbox = 0x4E5D, // R1.400, x0 (spawn during fight)
     CombustingBlade = 0x4CAB, // R1.000, x6
     MoltenBlade = 0x4CAC, // R1.000, x0 (spawn during fight)
     ThanatosPiece = 0x4CAD, // R2.000, x0 (spawn during fight)
@@ -174,14 +174,14 @@ class OverpoweringBait(BossModule module) : Components.GenericBaitAway(module, A
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         foreach (var bait in ActiveBaitsOn(actor))
-            if (Module.Enemies(OID.OverpoweringPoint).Any(g => AIHints.TargetInAOERect(g, bait.Source.Position, bait.Rotation.ToDirection(), 60, 3, 0)))
+            if (Module.Enemies(OID.ThanatosHurtbox).Any(g => AIHints.TargetInAOERect(g, bait.Source.Position, bait.Rotation.ToDirection(), 60, 3, 0)))
                 hints.Add("Bait away from statue!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var bait in ActiveBaitsOn(actor))
-            foreach (var enemy in Module.Enemies(OID.OverpoweringPoint))
+            foreach (var enemy in Module.Enemies(OID.ThanatosHurtbox))
                 hints.AddForbiddenZone(ShapeDistance.Cone(bait.Source.Position, 100, bait.Source.AngleTo(enemy), MathF.Atan2(3, (enemy.Position - bait.Source.Position).Length()).Radians()), bait.Activation);
     }
 
@@ -190,7 +190,7 @@ class OverpoweringBait(BossModule module) : Components.GenericBaitAway(module, A
         base.DrawArenaForeground(pcSlot, pc);
 
         foreach (var bait in ActiveBaitsOn(pc))
-            foreach (var enemy in Module.Enemies(OID.OverpoweringPoint))
+            foreach (var enemy in Module.Enemies(OID.ThanatosHurtbox))
                 Arena.AddCircle(enemy.Position, enemy.HitboxRadius, ArenaColor.Vulnerable);
     }
 
