@@ -16,4 +16,9 @@ public class UCOBConfig() : ConfigNode()
     [GroupDetails(["0", "1", "2", "3", "4", "5", "6", "7"])]
     [GroupPreset("Hector: THMR, G1 CCW, G2 CW", [7, 0, 6, 1, 5, 2, 4, 3])]
     public GroupAssignmentUnique P3HeavensfallTrioTowers = new() { Assignments = [7, 0, 6, 1, 5, 2, 4, 3] };
+
+    [SectionStart("AI-only settings")]
+    [PropertyDisplay("Twister prediction window")]
+    [PropertySlider(0, 2)]
+    public float TwisterPreDodge = 0.65f;
 }

@@ -47,5 +47,5 @@ class Twister(BossModule module, AID cast, float delay, float predelay) : Compon
 
 class P1Twister : Twister
 {
-    public P1Twister(BossModule module) : base(module, AID.Twister, 0.3f, 0.65f) { KeepOnPhaseChange = true; }
+    public P1Twister(BossModule module) : base(module, AID.Twister, 0.3f, Service.Config.Get<UCOBConfig>().TwisterPreDodge) { KeepOnPhaseChange = true; }
 }
