@@ -76,22 +76,22 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         _circles.Clear();
     }
 
-    public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occlude = true)
+    public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
     {
         if ((end.X, end.Z) == (start.X, start.Z) && end.Y != start.Y)
             Service.PluginLog.Warning($"Line {start} -> {end} is purely vertical, pictomancy doesn't like this");
 
-        _lines.Add(new(start, end, color, thickness, occlude));
+        _lines.Add(new(start, end, color, thickness, occluded));
     }
 
-    public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1, bool occlude = true)
+    public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1, bool occluded = true)
     {
-        _cones.Add(new(center, radius, direction, halfWidth, color, thickness, occlude));
+        _cones.Add(new(center, radius, direction, halfWidth, color, thickness, occluded));
     }
 
-    public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1, bool occlude = true)
+    public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1, bool occluded = true)
     {
-        _circles.Add(new(center, radius, color, thickness, occlude));
+        _circles.Add(new(center, radius, color, thickness, occluded));
     }
 
     public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)
