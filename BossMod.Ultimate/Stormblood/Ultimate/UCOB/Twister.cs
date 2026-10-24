@@ -6,8 +6,16 @@ class Twister(BossModule module, AID cast, float delay, float predelay) : Compon
     // movement before resolution will kill us because our movement will be interpolated serverside
     // additionally, dashes or slidecasting forces a position update, which may cause the twister to unavoidably spawn on top of the player
     // this is COMPLETELY arbitrary, there is probably no practical way to actually measure what this value "should" be
-    // this specific value is based on what worked for the regular Twister cast (2 second cast time + 0.3 spawn delay - 0.65 for prediction time)
-    const double PreSnapshotFreeze = 1.65;
+    const double PreSnapshotFreeze = 1.5;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            _spawnAt = Module.CastFinishAt(spell, SpawnDelay);
+            _predictAt = _spawnAt.AddSeconds(-(PredictionTime + WorldState.Network.LastRTT));
+        }
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -33,7 +41,9 @@ class Twister(BossModule module, AID cast, float delay, float predelay) : Compon
         if (predictionPeriod || PredictedPositions.Count > 0)
         {
             hints.MaxCastTime = 0;
-            hints.ForceCancelCast = true;
+
+            if (Service.Config.Get<BossModuleConfig>().AllowAutomaticActions)
+                hints.ForceCancelCast = true;
         }
 
         // pathfinder...please stop cutting across imminent danger zones to get to your goal........just get away...........

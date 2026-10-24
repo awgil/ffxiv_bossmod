@@ -20,5 +20,5 @@ public class UCOBConfig() : ConfigNode()
     [SectionStart("AI-only settings")]
     [PropertyDisplay("Twister prediction window")]
     [PropertySlider(0, 2)]
-    public float TwisterPreDodge = 0.65f;
+    public float TwisterPreDodge = 0.4f;
 }

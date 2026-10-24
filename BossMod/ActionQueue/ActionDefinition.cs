@@ -150,7 +150,9 @@ public sealed record class ActionDefinition(ActionID ID)
         return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && LinkUnlocked(UnlockLink);
     }
 
-    private static bool LinkUnlocked(uint link) => link == 0 || Service.UnlockState.IsUnlockLinkUnlocked(link);
+    // FIXME: replays need to have quest state attached, this will just return whatever is unlocked on your actual character
+    // TODO: make a convenient UI for editing these in dalamock
+    private static bool LinkUnlocked(uint link) => Service.IsMock || link == 0 || Service.UnlockState.IsUnlockLinkUnlocked(link);
 }
 
 // database of all supported player-initiated actions
