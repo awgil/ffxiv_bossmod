@@ -24,8 +24,8 @@ public class BossModuleMainWindow : UIWindow
     {
         var showZoneModule = ShowZoneModule();
         IsOpen = _mgr.Config.Enable && (_mgr.LoadedModules.Count > 0 || showZoneModule);
-        ShowCloseButton = _mgr.ActiveModule != null && !showZoneModule;
-        WindowName = (showZoneModule ? $"Zone module ({_zmm.ActiveModule?.GetType().Name})" : _mgr.ActiveModule != null ? ModuleTitle(_mgr.ActiveModule) : "Loaded boss modules") + _windowID;
+        ShowCloseButton = _mgr.DrawnModule != null && !showZoneModule;
+        WindowName = (showZoneModule ? $"Zone module ({_zmm.ActiveModule?.GetType().Name})" : _mgr.DrawnModule != null ? ModuleTitle(_mgr.DrawnModule) : "Loaded boss modules") + _windowID;
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (_mgr.Config.TrishaMode)
             Flags |= ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
@@ -33,8 +33,8 @@ public class BossModuleMainWindow : UIWindow
             Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
         ForceMainWindow = _mgr.Config.TrishaMode; // NoBackground flag without ForceMainWindow works incorrectly for whatever reason
 
-        if (_mgr.Config.ShowWorldArrows && _mgr.ActiveModule != null && _mgr.WorldState.Party[PartyState.PlayerSlot] is var pc && pc != null)
-            DrawMovementHints(_mgr.ActiveModule.CalculateMovementHintsForRaidMember(PartyState.PlayerSlot, pc), pc.PosRot.Y);
+        if (_mgr.Config.ShowWorldArrows && _mgr.DrawnModule != null && _mgr.WorldState.Party[PartyState.PlayerSlot] is var pc && pc != null)
+            DrawMovementHints(_mgr.DrawnModule.CalculateMovementHintsForRaidMember(PartyState.PlayerSlot, pc), pc.PosRot.Y);
     }
 
     private readonly Dictionary<Type, string> _titles = [];
@@ -65,12 +65,12 @@ public class BossModuleMainWindow : UIWindow
 
     public override void OnOpen()
     {
-        Service.Log($"[BMM] Opening main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.ActiveModule?.GetType().FullName ?? "<n/a>"}; zone module is {_zmm.ActiveModule?.GetType().FullName ?? "<n/a>"}");
+        Service.Log($"[BMM] Opening main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.DrawnModule?.GetType().FullName ?? "<n/a>"}; zone module is {_zmm.ActiveModule?.GetType().FullName ?? "<n/a>"}");
     }
 
     public override void OnClose()
     {
-        Service.Log($"[BMM] Closing main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.ActiveModule?.GetType().FullName ?? "<n/a>"}; zone module is {_zmm.ActiveModule?.GetType().FullName ?? "<n/a>"}");
+        Service.Log($"[BMM] Closing main window; there are {_mgr.LoadedModules.Count} loaded modules, active is {_mgr.DrawnModule?.GetType().FullName ?? "<n/a>"}; zone module is {_zmm.ActiveModule?.GetType().FullName ?? "<n/a>"}");
     }
 
     public override void PostDraw()
@@ -96,18 +96,18 @@ public class BossModuleMainWindow : UIWindow
                 break;
 
             case RadarCloseBehavior.DisableActiveModule:
-                if (_mgr.ActiveModule?.Info is { } info)
+                if (_mgr.DrawnModule?.Info is { } info)
                 {
                     _mgr.Config.DisabledModules.Add(info.ModuleType.ToString());
-                    _mgr.ActiveModule = null;
+                    _mgr.DrawnModule = null;
                 }
                 break;
 
             case RadarCloseBehavior.DisableActiveModuleCategory:
-                if (_mgr.ActiveModule?.Info is { } i)
+                if (_mgr.DrawnModule?.Info is { } i)
                 {
                     _mgr.Config.DisabledCategories.Add(i.Category);
-                    _mgr.ActiveModule = null;
+                    _mgr.DrawnModule = null;
                 }
                 break;
         }
@@ -131,16 +131,16 @@ public class BossModuleMainWindow : UIWindow
         {
             _zmm.ActiveModule?.DrawGlobalHints();
         }
-        else if (_mgr.ActiveModule != null)
+        else if (_mgr.DrawnModule != null)
         {
             try
             {
-                _mgr.ActiveModule.Draw(_mgr.Config.RotateArena ? _mgr.WorldState.Client.CameraAzimuth : default, PartyState.PlayerSlot, !_mgr.Config.HintsInSeparateWindow, true, _hints);
+                _mgr.DrawnModule.Draw(_mgr.Config.RotateArena ? _mgr.WorldState.Client.CameraAzimuth : default, PartyState.PlayerSlot, !_mgr.Config.HintsInSeparateWindow, true, _hints);
             }
             catch (Exception ex)
             {
                 Service.Log($"Boss module draw crashed: {ex}");
-                _mgr.ActiveModule = null;
+                _mgr.DrawnModule = null;
             }
         }
     }
@@ -172,9 +172,9 @@ public class BossModuleMainWindow : UIWindow
 
         if (ImGui.RadioButton("Hide the radar window", _beh == RadarCloseBehavior.DisableRadar))
             _beh = RadarCloseBehavior.DisableRadar;
-        if (ImGui.RadioButton($"Disable the current module (currently: {_mgr.ActiveModule})", _beh == RadarCloseBehavior.DisableActiveModule))
+        if (ImGui.RadioButton($"Disable the current module (currently: {_mgr.DrawnModule})", _beh == RadarCloseBehavior.DisableActiveModule))
             _beh = RadarCloseBehavior.DisableActiveModule;
-        if (ImGui.RadioButton($"Disable the current category (currently: {_mgr.ActiveModule?.Info?.Category.ToString() ?? "unknown"})", _beh == RadarCloseBehavior.DisableActiveModuleCategory))
+        if (ImGui.RadioButton($"Disable the current category (currently: {_mgr.DrawnModule?.Info?.Category.ToString() ?? "unknown"})", _beh == RadarCloseBehavior.DisableActiveModuleCategory))
             _beh = RadarCloseBehavior.DisableActiveModuleCategory;
 
         ImGui.Dummy(new(0, 15));
@@ -204,5 +204,5 @@ public class BossModuleMainWindow : UIWindow
         }
     }
 
-    private bool ShowZoneModule() => _mgr.Config.ShowGlobalHints && !_mgr.Config.HintsInSeparateWindow && _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantDrawHints() ?? false);
+    private bool ShowZoneModule() => _mgr.Config.ShowGlobalHints && !_mgr.Config.HintsInSeparateWindow && _mgr.DrawnModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantDrawHints() ?? false);
 }

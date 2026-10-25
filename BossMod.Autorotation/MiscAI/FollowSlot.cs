@@ -37,7 +37,7 @@ public sealed class FollowSlot(RotationModuleManager manager, Actor player) : Ty
             if (_aiConfig.FocusTargetMaster)
                 Hints.ForcedFocusTarget = master;
 
-            if (Bossmods.ActiveModule?.StateMachine.ActivePhase == null || _aiConfig.FollowDuringBoss)
+            if (Bossmods.ActiveModule == null || _aiConfig.FollowDuringBoss)
                 Hints.GoalZones.Add(AIHints.GoalSingleTarget(master.Position, _aiConfig.DistanceToMaster + 0.5f, 0.2f));
         }
     }

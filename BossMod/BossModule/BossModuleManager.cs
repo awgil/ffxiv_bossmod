@@ -17,18 +17,20 @@ public sealed class BossModuleManager : IDisposable
     // drawn module among loaded modules; this can be changed explicitly if needed
     // usually we don't have multiple concurrently active modules, since this prevents meaningful cd planning, raid cooldown tracking, etc.
     // but it can theoretically happen e.g. around checkpoints and in typically trivial outdoor content
-    private BossModule? _activeModule;
-    private bool _activeModuleOverridden;
-    public BossModule? ActiveModule
+    private BossModule? _drawnModule;
+    private bool _drawnModuleOverridden;
+    public BossModule? DrawnModule
     {
-        get => _activeModule;
+        get => _drawnModule;
         set
         {
-            Service.Log($"[BMM] Active module override: from {_activeModule?.GetType().FullName ?? "<n/a>"} (manual-override={_activeModuleOverridden}) to {value?.GetType().FullName ?? "<n/a>"}");
-            _activeModule = value;
-            _activeModuleOverridden = true;
+            Service.Log($"[BMM] Active module override: from {_drawnModule?.GetType().FullName ?? "<n/a>"} (manual-override={_drawnModuleOverridden}) to {value?.GetType().FullName ?? "<n/a>"}");
+            _drawnModule = value;
+            _drawnModuleOverridden = true;
         }
     }
+
+    public BossModule? ActiveModule => DrawnModule is { StateMachine.ActivePhase: not null } dm ? dm : null;
 
     public BossModuleManager(WorldState ws)
     {
@@ -54,7 +56,7 @@ public sealed class BossModuleManager : IDisposable
 
     public void Dispose()
     {
-        _activeModule = null;
+        _drawnModule = null;
         foreach (var m in LoadedModules)
             m.Dispose();
         LoadedModules.Clear();
@@ -126,12 +128,12 @@ public sealed class BossModuleManager : IDisposable
             }
         }
 
-        var curPriority = ModuleDisplayPriority(_activeModule);
-        if (bestPriority > curPriority && (anyModuleActivated || !_activeModuleOverridden))
+        var curPriority = ModuleDisplayPriority(_drawnModule);
+        if (bestPriority > curPriority && (anyModuleActivated || !_drawnModuleOverridden))
         {
-            Service.Log($"[BMM] Active module change: from {_activeModule?.GetType().FullName ?? "<n/a>"} (prio {curPriority}, manual-override={_activeModuleOverridden}) to {bestModule?.GetType().FullName ?? "<n/a>"} (prio {bestPriority})");
-            _activeModule = bestModule;
-            _activeModuleOverridden = false;
+            Service.Log($"[BMM] Active module change: from {_drawnModule?.GetType().FullName ?? "<n/a>"} (prio {curPriority}, manual-override={_drawnModuleOverridden}) to {bestModule?.GetType().FullName ?? "<n/a>"} (prio {bestPriority})");
+            _drawnModule = bestModule;
+            _drawnModuleOverridden = false;
         }
     }
 
@@ -156,10 +158,10 @@ public sealed class BossModuleManager : IDisposable
         var m = LoadedModules[index];
         Service.Log($"[BMM] Boss module '{m.GetType()}' unloaded for actor {m.PrimaryActor}");
         ModuleUnloaded.Fire(m);
-        if (_activeModule == m)
+        if (_drawnModule == m)
         {
-            _activeModule = null;
-            _activeModuleOverridden = false;
+            _drawnModule = null;
+            _drawnModuleOverridden = false;
         }
         m.Dispose();
         LoadedModules.RemoveAt(index);

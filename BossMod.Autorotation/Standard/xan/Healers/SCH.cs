@@ -179,7 +179,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         {
             if (FairyOrder != PetOrder.Place && (Player.InCombat || CountdownRemaining > 0))
             {
-                if (Bossmods.ActiveModule?.Arena.Center is WPos p)
+                if (Bossmods.ActiveModule is { Arena.Center: var p })
                     Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 3), null, ActionQueue.Priority.VeryHigh, targetPos: p.ToVec3(Player.PosRot.Y));
             }
         }

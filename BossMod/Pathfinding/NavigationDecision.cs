@@ -39,13 +39,18 @@ public struct NavigationDecision
     //  - sending position update packet (not an option, can't be done in the vanilla client, so it doesn't match our philosophy)
     public static float CushionFromRTT(float rtt) => rtt + Service.Config.Get<AIHintsConfig>().AdditionalPathfindingCushion + ActorCastInfo.NPCFinishDelay;
 
-    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
+    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion, bool useOldRasterizer = false)
     {
         var startTime = DateTime.Now;
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+        {
+            if (useOldRasterizer)
+                RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+            else
+                RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+        }
         if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
         else if (spaceCushion > 0)
