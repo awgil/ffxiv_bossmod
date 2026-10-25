@@ -14,6 +14,9 @@ internal class SpearheadingInitiatives(WorldState ws) : QuestBattle(ws)
             .WithConnection(new Vector3(229.05f, 347.18f, -513.37f))
             .CompleteOnKilled(0x11FA),
         new QuestObjective(ws)
+            .WithConnection(new Vector3(292.3642f, 360.10272f, -578.11145f))
+            .CompleteOnKilled(0x11F8),
+        new QuestObjective(ws)
             .WithConnection(new Vector3(268.09f, 362.50f, -605.65f))
             .With(obj => {
                 obj.OnConditionChange += (flag, value) => obj.CompleteIf(flag == Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas && !value);
