@@ -35,6 +35,9 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         [Track("Curing Waltz", MinLevel = 52, Action = AID.CuringWaltz)]
         public Track<WaltzStrategy> Waltz;
 
+        [Track("Peloton", MinLevel = 20, Action = AID.Peloton)]
+        public Track<PelotonStrategy> Peloton;
+
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
 
@@ -67,6 +70,14 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
     public enum WaltzStrategy
     {
         [Option("Use when you or 3+ nearby allies are low")]
+        Automatic,
+        [Option("Do not use")]
+        Delay
+    }
+
+    public enum PelotonStrategy
+    {
+        [Option("Use in the last 5s of the countdown")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -208,14 +219,14 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     private void Prepull(in Strategy strategy, float countdown)
     {
+        if (strategy.Peloton.Value == PelotonStrategy.Automatic && countdown < 5 && SelfStatusLeft(SID.Peloton) == 0 && !Player.InCombat && Unlocked(AID.Peloton))
+            PushOGCD(AID.Peloton, Player, 5);
+
         var mode = strategy.Opener.Value;
         if (mode == OpenerStrategy.None || !Unlocked(AID.StandardStep))
             return;
         if (mode is OpenerStrategy.Technical30 or OpenerStrategy.Technical7 && !Unlocked(AID.TechnicalStep))
             mode = OpenerStrategy.Standard15;
-
-        if (countdown < 5 && SelfStatusLeft(SID.Peloton) == 0 && !Player.InCombat)
-            PushOGCD(AID.Peloton, Player, 5);
 
         if (Dancing)
         {

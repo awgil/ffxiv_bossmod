@@ -425,9 +425,11 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
 
     private Actor ChaosTarget(Enemy target) => DotEnemy?.Actor ?? target.Actor;
 
+    private bool MustMoveSoon => Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(GCD + 0.5f) && z.shape.Check(Player.Position));
+
     private bool UseLifeSurge(LifeSurgeStrategy strategy)
     {
-        if (strategy == LifeSurgeStrategy.Delay || LifeSurgeLeft > 0 || !CanWeave(AID.LifeSurge))
+        if (strategy == LifeSurgeStrategy.Delay || LifeSurgeLeft > 0 || !CanWeave(AID.LifeSurge) || MustMoveSoon)
             return false;
 
         bool strongNext;
