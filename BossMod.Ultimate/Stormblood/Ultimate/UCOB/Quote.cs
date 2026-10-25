@@ -194,11 +194,16 @@ class QuoteMeteorStream(BossModule module) : Components.StrictUniformStackSpread
         // fixed-ish spots for p2 divebombs
         if (((UCOB)Module).Nael() is { } nael)
         {
-            // baiters get to do whatever
-            if (Module.FindComponent<P2Cauterize>()?.BaitOrder[slot].Order > 0)
-                return default;
+            var baitOrder = Module.FindComponent<P2Cauterize>()?.BaitOrder[slot].Order ?? 0;
 
             var center = Arena.Center - new WDir(0, 4);
+
+            if (baitOrder == 1)
+                return (center - new WDir(0, 8), 0);
+
+            // baiters 2 and 3 get to do whatever, 2 just needs to find a safe spot south and 3 won't be able to threaten the rest of the party in time
+            if (baitOrder > 1)
+                return default;
 
             if (nael.TargetID == target.InstanceID)
                 return (center, 0);
