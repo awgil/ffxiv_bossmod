@@ -26,7 +26,11 @@ internal sealed class SensibleFileWatcher : IDisposable
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.CreationTime
         };
         if (path != null)
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
             Watcher.Path = path;
+        }
         if (filter != null)
             Watcher.Filter = filter;
         if (includeSubdirectories)

@@ -91,6 +91,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
+        [Option("Spend as soon as possible", Targets = ActionTargets.Hostile)]
+        ASAP,
         [Option("Only to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
         [Option("Do not use")]
@@ -159,6 +161,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
     private bool StandardOpener => InOpener && OpenerMode == OpenerStrategy.Standard;
     private bool EarlyWFOpener => InOpener && OpenerMode == OpenerStrategy.EarlyWildfire;
     private bool InBurst => RaidBuffsLeft > GCD || WildfireLeft > 0;
+    // RaidBuffsIn turns "never" once buffs are 10s overdue, which caps the hold at ~22s
+    private bool HoldWildfireForBuffs => WildfireStrat == WildfireStrategy.Automatic && HasRaidBuffJobs && !InOpener && WildfireLeft == 0 && RaidBuffsLeft == 0 && RaidBuffsIn < 12;
     private float BurstIn => InBurst ? 0 : ReadyIn(AID.Wildfire);
 
     private WildfireStrategy WildfireStrat;
@@ -325,7 +329,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             return WildfireLeft > 0;
         if (EarlyWFOpener)
             return !Overheated && HyperchargedLeft == 0 && WildfireLeft == 0;
-        return ReadyIn(AID.Wildfire) <= GCD + GCDLength || WildfireLeft > 0 || FMFLeft < GCDLength * 3;
+        return ReadyIn(AID.Wildfire) <= GCD + GCDLength && !HoldWildfireForBuffs || WildfireLeft > 0 || FMFLeft < GCDLength * 3;
     }
 
     #endregion
@@ -401,6 +405,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
 
         if (!Unlocked(AID.Wildfire) || WildfireStrat == WildfireStrategy.Delay || !WildfireTargetWorthIt(target))
             return true;
+
+        // wildfire follows the next overheat, so holding it for buffs means holding hypercharge; release before heat overcaps
+        if (HoldWildfireForBuffs && ReadyIn(AID.Wildfire) <= 12)
+            return Heat > 95 || HyperchargedLeft is > 0 and < 4;
 
         if (ReadyIn(AID.Wildfire) <= GCD)
             return true;
@@ -616,6 +624,14 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
             PushOGCD(AID.GaussRound, target, gauss <= rico ? 45 : 44);
         if (rico <= capIn && CanWeave(AID.Ricochet))
             PushOGCD(AID.Ricochet, target, rico < gauss ? 45 : 44);
+
+        if (strategy.Charges.Value == ChargeStrategy.ASAP)
+        {
+            if (CanWeave(AID.GaussRound))
+                PushOGCD(AID.GaussRound, target, gauss <= rico ? 46 : 45);
+            if (CanWeave(AID.Ricochet))
+                PushOGCD(AID.Ricochet, target, rico < gauss ? 46 : 45);
+        }
 
         if (strategy.Charges.Value != ChargeStrategy.Automatic)
             return;

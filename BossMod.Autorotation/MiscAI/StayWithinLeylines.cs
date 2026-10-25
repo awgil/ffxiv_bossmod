@@ -61,12 +61,19 @@ public sealed class StayWithinLeylines(RotationModuleManager manager, Actor play
         var retraceStrat = strategy.Option(Tracks.UseRetrace).As<RetraceDefinition>();
         var btlStrat = strategy.Option(Tracks.UseBetweenTheLines).As<BetweenTheLinesDefinition>();
 
-        //BTL first, followed by retrace, then walk
+        // push both: dash safety blocks BTL when the old circle is unsafe (e.g. platform swap), and the queue then falls through to retrace
+        var pushed = false;
         if (btlStrat == BetweenTheLinesDefinition.Yes && ActionUnlocked(btl) && btlCd.HasValue && World.Client.Cooldowns[btlCd.Value].Elapsed <= 2f && !isMoving)
-            Hints.ActionsToExecute.Push(btl, Player, ActionQueue.Priority.Low, targetPos: zone.PosRot.XYZ());
-        else if (retraceStrat == RetraceDefinition.Yes && ActionUnlocked(retrace) && retraceCd.HasValue && World.Client.Cooldowns[retraceCd.Value].Elapsed <= 2f && !isMoving)
+        {
+            Hints.ActionsToExecute.Push(btl, Player, ActionQueue.Priority.Low + 1, targetPos: zone.PosRot.XYZ());
+            pushed = true;
+        }
+        if (retraceStrat == RetraceDefinition.Yes && ActionUnlocked(retrace) && retraceCd.HasValue && World.Client.Cooldowns[retraceCd.Value].Elapsed <= 2f && !isMoving)
+        {
             Hints.ActionsToExecute.Push(retrace, null, ActionQueue.Priority.Low, targetPos: Player.PosRot.XYZ());
-        else if (strategy.Option(Tracks.Goal).As<EnabledByDefault>().IsEnabled())
+            pushed = true;
+        }
+        if (!pushed && strategy.Option(Tracks.Goal).As<EnabledByDefault>().IsEnabled())
             Hints.GoalZones.Add(AIHints.GoalSingleTarget(zone.Position, 0.2f));
     }
 }

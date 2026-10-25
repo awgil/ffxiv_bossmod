@@ -65,6 +65,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Use while moving and on 2+ targets")]
         Automatic,
+        [Option("Spend as soon as possible")]
+        ASAP,
         [Option("Only while moving")]
         Movement,
         [Option("Do not use")]
@@ -75,6 +77,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Use on 2+ targets unless a raidwide is coming")]
         Automatic,
+        [Option("Use as soon as possible (when not moving)")]
+        ASAP,
         [Option("Do not use")]
         Delay
     }
@@ -213,9 +217,12 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(AID.Phlegma, target.Actor, 40);
         }
 
-        if (strategy.Pneuma.Value == PneumaStrategy.Automatic && CanCast && Player.InCombat && GCDReady(AID.Pneuma) && !RaidwideWithin(20)
-            && !ForceST && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2)
+        if (CanCast && Player.InCombat && GCDReady(AID.Pneuma) && (strategy.Pneuma.Value == PneumaStrategy.ASAP
+            || strategy.Pneuma.Value == PneumaStrategy.Automatic && !RaidwideWithin(20) && !ForceST && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2))
             PushGCD(AID.Pneuma, target.Actor, 35);
+
+        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.ASAP)
+            PushGCD(AID.Toxikon, target.Actor, 30);
 
         if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.Automatic && numAround < 3 && !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 2)
             PushGCD(AID.Toxikon, target.Actor, 30);
@@ -244,6 +251,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     {
         if (NeedsDot(target))
             return target.Actor;
+        // last GCD of raid buffs: refresh so remaining ticks snapshot (opener window a bit wider)
+        if (DotWorthIt(target) && RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < (CombatTime < 40 ? 12 : 8))
+            return target.Actor;
         if (strategy.Dot.Value != DotStrategy.Automatic || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
             return null;
         return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && NeedsDot(e)).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
@@ -263,6 +273,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         var buffsSoon = Player.InCombat && InBossFight && RaidBuffsLeft <= GCD && RaidBuffsIn < 10;
         if (MaxChargesIn(AID.Phlegma) <= GCD + GCDLength)
             return !buffsSoon;
+        if (DowntimeIn < GCD + GCDLength && MaxChargesIn(AID.Phlegma) < 30)
+            return true;
         if (!Player.InCombat || target.Priority == Enemy.PriorityPointless && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
             return false;
         if (RaidBuffsLeft > GCD || RaidBuffsIn > 9000 || !InBossFight || !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 3)

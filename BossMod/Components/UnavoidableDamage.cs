@@ -51,6 +51,61 @@ public class RaidwideCastDelay(BossModule module, Enum actionVisual, Enum action
     }
 }
 
+// generic unavoidable multi-hit raidwide: a cast followed by a number of hits at a regular interval; predicted as one entry for the next hit
+public class RaidwideMultiHit(BossModule module, Enum startAction, Enum[] hitActions, float firstDelay, float interval, int hits, string hint = "Raidwide") : CastCounter(module, startAction)
+{
+    public readonly ActionID[] HitActions = [.. hitActions.Select(a => ActionID.MakeSpell(a))];
+    public string Hint = hint;
+    public int Remaining;
+    public DateTime NextHit;
+    public DateTime LastHit;
+    private float _interval;
+    private DateTime _lastCounted;
+    private int _numSequences;
+
+    // hit count and interval of the n-th sequence (0-based), for fights where they differ between casts
+    protected virtual (int Hits, float Interval) Sequence(int index) => (hits, interval);
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (Remaining > 0 && Hint.Length > 0)
+            hints.Add($"{Hint} x{Remaining}");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Remaining > 0)
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), NextHit, AIHints.PredictedDamageType.Raidwide, Remaining, LastHit);
+    }
+
+    public override void Update()
+    {
+        if (Remaining > 0 && WorldState.CurrentTime > LastHit.AddSeconds(3))
+            Remaining = 0;
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action != WatchedAction)
+            return;
+        (Remaining, _interval) = Sequence(_numSequences++);
+        NextHit = Module.CastFinishAt(spell, firstDelay);
+        LastHit = NextHit.AddSeconds(_interval * (Remaining - 1));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (Remaining <= 0 || !HitActions.Contains(spell.Action) || WorldState.CurrentTime < _lastCounted.AddSeconds(0.3f))
+            return; // several helpers can resolve the same hit
+        _lastCounted = WorldState.CurrentTime;
+        ++NumCasts;
+        --Remaining;
+        NextHit = WorldState.FutureTime(_interval);
+        if (Remaining > 0)
+            LastHit = NextHit.AddSeconds(_interval * (Remaining - 1));
+    }
+}
+
 // generic unavoidable instant raidwide cast initiated by NPC yell
 public class RaidwideAfterNPCYell(BossModule module, Enum aid, uint npcYellID, float delay, string hint = "Raidwide") : RaidwideInstant(module, aid, delay, hint)
 {
