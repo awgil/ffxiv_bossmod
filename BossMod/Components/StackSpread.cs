@@ -4,7 +4,7 @@
 // there are various variants (e.g. everyone should spread, or everyone should stack in one or more groups, or some combination of that)
 public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false) : BossComponent(module)
 {
-    public struct Stack(Actor target, float radius, int minSize = 2, int maxSize = int.MaxValue, DateTime activation = default, BitMask forbiddenPlayers = default)
+    public struct Stack(Actor target, float radius, int minSize = 2, int maxSize = int.MaxValue, DateTime activation = default, BitMask forbiddenPlayers = default, int hits = 1)
     {
         public Actor Target = target;
         public float Radius = radius;
@@ -12,6 +12,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
         public int MaxSize = maxSize;
         public DateTime Activation = activation;
         public BitMask ForbiddenPlayers = forbiddenPlayers; // raid members that aren't allowed to participate in the stack
+        public int Hits = hits;
     }
 
     public record struct Spread(
@@ -152,7 +153,7 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
             if (spreadMask.Any())
                 hints.AddPredictedDamage(spreadMask, firstActivation, AIHints.PredictedDamageType.Raidwide);
             if (stackMask.Any())
-                hints.AddPredictedDamage(stackMask, firstActivation, AIHints.PredictedDamageType.Shared);
+                hints.AddPredictedDamage(stackMask, firstActivation, AIHints.PredictedDamageType.Shared, ActiveStacks.Max(s => s.Hits));
         }
     }
 
@@ -195,19 +196,20 @@ public class GenericStackSpread(BossModule module, bool alwaysShowSpreads = fals
 }
 
 // stack/spread with same properties for all stacks and all spreads (most common variant)
-public class UniformStackSpread(BossModule module, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false)
+public class UniformStackSpread(BossModule module, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false, int stackHits = 1)
     : GenericStackSpread(module, alwaysShowSpreads, raidwideOnResolve, includeDeadTargets)
 {
     public float StackRadius = stackRadius;
     public float SpreadRadius = spreadRadius;
     public int MinStackSize = minStackSize;
     public int MaxStackSize = maxStackSize;
+    public int StackHits = stackHits;
 
     public IEnumerable<Actor> ActiveStackTargets => ActiveStacks.Select(s => s.Target);
     public IEnumerable<Actor> ActiveSpreadTargets => ActiveSpreads.Select(s => s.Target);
 
-    public void AddStack(Actor target, DateTime activation = default, BitMask forbiddenPlayers = default) => Stacks.Add(new(target, StackRadius, MinStackSize, MaxStackSize, activation, forbiddenPlayers));
-    public void AddStacks(IEnumerable<Actor> targets, DateTime activation = default) => Stacks.AddRange(targets.Select(target => new Stack(target, StackRadius, MinStackSize, MaxStackSize, activation)));
+    public void AddStack(Actor target, DateTime activation = default, BitMask forbiddenPlayers = default) => Stacks.Add(new(target, StackRadius, MinStackSize, MaxStackSize, activation, forbiddenPlayers, StackHits));
+    public void AddStacks(IEnumerable<Actor> targets, DateTime activation = default) => Stacks.AddRange(targets.Select(target => new Stack(target, StackRadius, MinStackSize, MaxStackSize, activation, default, StackHits)));
     public void AddSpread(Actor target, DateTime activation = default) => Spreads.Add(new(target, SpreadRadius, activation));
     public void AddSpreads(IEnumerable<Actor> targets, DateTime activation = default) => Spreads.AddRange(targets.Select(target => new Spread(target, SpreadRadius, activation)));
 }
@@ -255,8 +257,8 @@ public class SpreadFromCastTargets(BossModule module, Enum aid, float radius, bo
 public class StackWithCastTargets(BossModule module, Enum aid, float radius, int minStackSize = 2, int maxStackSize = int.MaxValue) : CastStackSpread(module, aid, default, radius, 0, minStackSize, maxStackSize);
 
 // spread/stack mechanic that selects targets by icon and finishes by cast event
-public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon, Enum? stackAID, Enum? spreadAID, float stackRadius, float spreadRadius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false)
-    : UniformStackSpread(module, stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads)
+public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon, Enum? stackAID, Enum? spreadAID, float stackRadius, float spreadRadius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, int stackHits = 1)
+    : UniformStackSpread(module, stackRadius, spreadRadius, minStackSize, maxStackSize, alwaysShowSpreads, stackHits: stackHits)
 {
     public uint StackIcon { get; init; } = stackIcon;
     public uint SpreadIcon { get; init; } = spreadIcon;
@@ -297,4 +299,4 @@ public class IconStackSpread(BossModule module, uint stackIcon, uint spreadIcon,
 public class SpreadFromIcon(BossModule module, uint icon, Enum? aid, float radius, float activationDelay, bool drawAllSpreads = true) : IconStackSpread(module, 0, icon, default, aid, 0, radius, activationDelay, alwaysShowSpreads: drawAllSpreads);
 
 // generic 'stack with actors with specific icon' mechanic
-public class StackWithIcon(BossModule module, uint icon, Enum aid, float radius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue) : IconStackSpread(module, icon, 0, aid, default, radius, 0, activationDelay, minStackSize, maxStackSize);
+public class StackWithIcon(BossModule module, uint icon, Enum aid, float radius, float activationDelay, int minStackSize = 2, int maxStackSize = int.MaxValue, int hits = 1) : IconStackSpread(module, icon, 0, aid, default, radius, 0, activationDelay, minStackSize, maxStackSize, stackHits: hits);

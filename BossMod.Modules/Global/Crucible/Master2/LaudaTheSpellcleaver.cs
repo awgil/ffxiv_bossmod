@@ -4,13 +4,14 @@ namespace BossMod.Global.Crucible.LaudaTheSpellcleaver;
 public enum OID : uint
 {
     Boss = 0x4D1E, // R4.000, x1
+    Helper = 0x233C, // R0.500, x23, Helper type
+    ThanatosHurtbox = 0x4E5E, // R1.400, x0 (spawn during fight)
     _Gen_CombustingBlade = 0x4D1F, // R1.000, x6
     _Gen_MoltenBlade = 0x4D20, // R1.000, x0 (spawn during fight)
     _Gen_EphemeralBlade = 0x4D21, // R1.500, x14
+    _Gen_IndefatigableBlade = 0x4D22, // R1.500, x0 (spawn during fight)
     _Gen_PossessiveBlade = 0x4D23, // R1.000, x2
     _Gen_ThanatosPiece = 0x4D24, // R2.000, x0 (spawn during fight)
-    _Gen_ = 0x4E5E, // R1.400, x0 (spawn during fight)
-    Helper = 0x233C, // R0.500, x23, Helper type
 
     CageOfMoltenMetal = 0x1EC0DD
 }
@@ -65,12 +66,13 @@ public enum AID : uint
 public enum SID : uint
 {
     _Gen_Paralysis = 5388, // Boss->player, extra=0x0
-    _Gen_ = 2552, // none->Boss, extra=0x483/0x482/0x478/0x477
+    _Gen_ = 2552, // none->Boss, extra=0x483/0x482/0x478
     _Gen_Bind = 5555, // none->player, extra=0x0
     _Gen_UnseenForce = 5341, // Boss->player, extra=0x0
     _Gen_Petrification = 4891, // Helper->player, extra=0x0
-    _Gen_Burns = 3065, // none->player, extra=0x0
-    _Gen_Burns1 = 3066, // none->player, extra=0x0
+    _Gen_VulnerabilityDown = 5338, // none->Boss, extra=0x2/0x1
+    _Gen_PhysicalDamageUp = 5339, // none->Boss, extra=0x10/0xF/0xE/0xD/0xC/0xB/0xA/0x9/0x8/0x7/0x6/0x5/0x3
+
 }
 
 public enum IconID : uint
@@ -181,7 +183,7 @@ class Rush(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_
 
 class Gyrocleave(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Gyrocleave1, new AOEShapeRect(80, 10));
 
-class OverpoweringPointBait(BossModule module) : Components.GenericBaitAway(module)
+class OverpoweringBait(BossModule module) : Components.GenericBaitAway(module)
 {
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
@@ -189,12 +191,26 @@ class OverpoweringPointBait(BossModule module) : Components.GenericBaitAway(modu
             CurrentBaits.Add(new(source, target, new AOEShapeRect(60, 3), WorldState.FutureTime(5.1f)));
     }
 
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        foreach (var bait in ActiveBaitsOn(actor))
+            if (Module.Enemies(OID.ThanatosHurtbox).Any(g => AIHints.TargetInAOERect(g, bait.Source.Position, bait.Rotation.ToDirection(), 60, 3, 0)))
+                hints.Add("Bait away from statue!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var bait in ActiveBaitsOn(actor))
+            foreach (var enemy in Module.Enemies(OID.ThanatosHurtbox))
+                hints.AddForbiddenZone(ShapeDistance.Cone(bait.Source.Position, 100, bait.Source.AngleTo(enemy), MathF.Atan2(3, (enemy.Position - bait.Source.Position).Length()).Radians()), bait.Activation);
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         base.DrawArenaForeground(pcSlot, pc);
 
         if (CurrentBaits.Count > 0)
-            foreach (var e in Module.Enemies(OID._Gen_))
+            foreach (var e in Module.Enemies(OID.ThanatosHurtbox))
                 Arena.AddCircle(e.Position, e.HitboxRadius, ArenaColor.Object);
     }
 
@@ -307,6 +323,9 @@ class GluttonousGoring(BossModule module) : Components.StandardAOEs(module, AID.
 // figure out radius
 class BeastlyFlare(BossModule module) : Components.ProximityAOEs(module, AID._Spell_BeastlyFlare, 20);
 
+class VulnerabilityDown(BossModule module) : Components.InvincibleStatus(module, (uint)SID._Gen_VulnerabilityDown);
+class IndefatigableBlade(BossModule module) : Components.Adds(module, (uint)OID._Gen_IndefatigableBlade);
+
 class LaudaTheSpellcleaverStates : StateMachineBuilder
 {
     public LaudaTheSpellcleaverStates(BossModule module) : base(module)
@@ -317,7 +336,7 @@ class LaudaTheSpellcleaverStates : StateMachineBuilder
             .ActivateOnEnter<Thunderbolt>()
             .ActivateOnEnter<BeastlyAura>()
             .ActivateOnEnter<Gyrocleave>()
-            .ActivateOnEnter<OverpoweringPointBait>()
+            .ActivateOnEnter<OverpoweringBait>()
             .ActivateOnEnter<OverpoweringPoint>()
             .ActivateOnEnter<UnseenForce>()
             .ActivateOnEnter<ThanatosPiece>()
@@ -328,7 +347,9 @@ class LaudaTheSpellcleaverStates : StateMachineBuilder
             .ActivateOnEnter<BeastlyFlare>()
             .ActivateOnEnter<MagicalCombustion>()
             .ActivateOnEnter<GluttonousGutting>()
-            .ActivateOnEnter<GluttonousGoring>();
+            .ActivateOnEnter<GluttonousGoring>()
+            .ActivateOnEnter<VulnerabilityDown>()
+            .ActivateOnEnter<IndefatigableBlade>();
     }
 }
 

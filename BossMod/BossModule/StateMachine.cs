@@ -108,24 +108,30 @@ public class StateMachine(List<StateMachine.Phase> phases)
         }
     }
 
-    public void Draw(Color outlineColor)
+    public void Draw(Color outlineColor, int maxFuture, bool wrap, int maxLines = int.MaxValue)
     {
+        if (maxLines <= 0)
+            return;
+
         if (ActiveState == null)
         {
             Utils.TextOutlined("Cur: Inactive", outlineColor);
-            ImGui.TextUnformatted("");
+            if (maxLines > 1)
+                ImGui.TextUnformatted("");
             return;
         }
 
-        (var activeName, var activeEnd, var next) = BuildComplexState(ActiveState, TimeSinceTransition, true);
-        DrawStateText($"Cur: {activeName}", activeEnd.EndHint, outlineColor);
+        (var activeName, var activeHint, var next) = BuildComplexState(ActiveState, TimeSinceTransition, true);
+        DrawStateText($"Cur: {activeName}", activeHint, outlineColor);
+        if (maxLines == 1)
+            return;
 
         List<(string name, StateHint hint)> future = [];
-        while (next != null && future.Count < 5)
+        while (next != null && future.Count < maxFuture)
         {
-            (var name, var end, var after) = BuildComplexState(next, 0, false);
+            (var name, var hint, var after) = BuildComplexState(next, 0, false);
             if (name.Length > 0)
-                future.Add((name, end.EndHint));
+                future.Add((name, hint));
             next = after;
         }
 
@@ -135,13 +141,48 @@ public class StateMachine(List<StateMachine.Phase> phases)
             return;
         }
 
+        var maxRows = wrap ? maxLines - 1 : 1;
+        var availableWidth = ImGui.GetContentRegionAvail().X;
+        var labelWidth = ImGui.CalcTextSize("Then:").X;
+        var shown = SelectFitting(future, sel => UIMisc.CountWrappedLines([labelWidth, .. Enumerable.Range(0, sel.Count).Select(i => ImGui.CalcTextSize(FutureText(future, sel, i)).X)], availableWidth) <= maxRows);
+
         Utils.TextOutlined("Then:", outlineColor);
-        for (var i = 0; i < future.Count; ++i)
+        for (var i = 0; i < shown.Count; ++i)
         {
-            var text = i == 0 ? future[i].name : $"> {future[i].name}";
-            UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X);
-            DrawStateText(text, future[i].hint, outlineColor);
+            var text = FutureText(future, shown, i);
+            if (maxRows > 1)
+                UIMisc.SameLineOrWrap(ImGui.CalcTextSize(text).X);
+            else
+                ImGui.SameLine();
+            DrawStateText(text, future[shown[i]].hint, outlineColor);
         }
+    }
+
+    private static bool IsImportant(StateHint hint) => (hint & (StateHint.Tankbuster | StateHint.Raidwide | StateHint.Knockback)) != 0;
+
+    private static string FutureText(List<(string name, StateHint hint)> future, List<int> shown, int i)
+    {
+        var index = shown[i];
+        var skipped = index > (i > 0 ? shown[i - 1] + 1 : 0);
+        return $"{(i > 0 ? "> " : "")}{(skipped ? "... > " : "")}{future[index].name}";
+    }
+
+    // always keep the next mechanic; when space is short, drop plain ones before tankbuster/raidwide/knockback
+    private static List<int> SelectFitting(List<(string name, StateHint hint)> future, Func<List<int>, bool> fits)
+    {
+        var all = Enumerable.Range(0, future.Count).ToList();
+        if (fits(all))
+            return all;
+
+        List<int> shown = [0];
+        foreach (var candidate in all.Skip(1).OrderBy(i => IsImportant(future[i].hint) ? 0 : 1).ThenBy(i => i))
+        {
+            List<int> tentative = [.. shown, candidate];
+            tentative.Sort();
+            if (fits(tentative))
+                shown = tentative;
+        }
+        return shown;
     }
 
     private static void DrawStateText(string text, StateHint hint, Color outlineColor)
@@ -193,9 +234,10 @@ public class StateMachine(List<StateMachine.Phase> phases)
     // very long states are placeholders (eg 'enrage' in modules without a timeline)
     private static string TimerText(float timeLeft) => timeLeft < 600 ? $" in {timeLeft:f1}s" : "";
 
-    private (string name, State last, State? next) BuildComplexState(State start, float timeActive, bool writeTime)
+    private (string name, StateHint hint, State? next) BuildComplexState(State start, float timeActive, bool writeTime)
     {
         var res = new StringBuilder(start.Name);
+        var hint = start.EndHint;
         var timeLeft = MathF.Max(0, start.Duration - timeActive);
         if (writeTime && res.Length > 0)
         {
@@ -206,6 +248,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         while (start.EndHint.HasFlag(StateHint.GroupWithNext) && start.NextStates?.Length == 1)
         {
             start = start.NextStates[0];
+            hint |= start.EndHint;
             timeLeft += MathF.Max(0, start.Duration);
             if (start.Name.Length > 0)
             {
@@ -228,7 +271,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
             res.Append(TimerText(timeLeft));
         }
 
-        return (res.ToString(), start, start.NextStates?.Length == 1 ? start.NextStates[0] : null);
+        return (res.ToString(), hint, start.NextStates?.Length == 1 ? start.NextStates[0] : null);
     }
 
     private void TransitionToPhase(int nextIndex)

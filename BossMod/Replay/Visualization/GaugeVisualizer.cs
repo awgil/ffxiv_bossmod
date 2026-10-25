@@ -35,6 +35,9 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
             case Class.BLM:
                 DrawBLM(player, clientState);
                 break;
+            case Class.BST:
+                DrawBST(clientState);
+                break;
         }
     }
 
@@ -278,9 +281,6 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
             ImGui.Image(wrap.Handle, Scale(32, 32), new Vector2(0.5255f, 0.7473f), new Vector2(0.6071f, 0.8352f));
         }
 
-        // chevron starts at 2307
-        // enochian starts at 2243
-
         DrawBar(origin + Scale(30, 7), "enochian", 20 - gauge.EnochianTimer * 0.001f, 20, [80, 20, 100]);
 
         DrawDiamond(origin + Scale(182, 0), "blm_poly", gauge.PolyglotStacks > 0, [60, -60, -10]);
@@ -336,6 +336,17 @@ public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
                 ImGui.Image(chevronLit.Handle, new Vector2(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
             }
         }
+    }
+
+    private void DrawBST(ClientState clientState)
+    {
+        var gauge = clientState.GetGauge<BeastmasterGauge>();
+
+        var origin = ImGui.GetCursorPos();
+
+        DrawBar(origin, "bstyellow", gauge.TPGauge, 250, [100, 100, -20], true);
+
+        DrawBar(origin + Scale(0, 48), "bstblue", gauge.PetTPGauge, 250, [0, 100, 100], true);
     }
 
     public void Dispose()

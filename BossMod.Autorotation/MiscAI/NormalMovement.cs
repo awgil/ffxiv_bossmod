@@ -185,7 +185,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         // simulate forward forced movement; this is kind of a hack, but it definitely doesn't belong in modules because it's part of the movement constraint
         if (isSpinning)
         {
-            // rect is offset by -1 unit player-relative. we know very well that player-centered shapes make the pathfinder freak the fuck out
             Hints.AddForbiddenZone(ShapeDistance.Rect(Player.Position, Player.Rotation, SpinningLookahead, SpinningLookahead + 2, SpinningLookahead + 2), World.FutureTime(2));
             Hints.AddForbiddenZone(ShapeDistance.Cone(Player.Position, 100, Player.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
         }
@@ -305,7 +304,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                                 navi.Destination = uptimePosition;
                             break;
 
-                        // TODO: don't use a _navCtx that's being modified in a background thread; we should hold onto two of them and swap them when the task completes
                         case RangeStrategy.GreedAutomatic:
                             var uptimeCell = CtxInactive.Map.GridToIndex(CtxInactive.Map.WorldToGrid(uptimePosition));
                             var curCell = CtxInactive.ThetaStar.StartNodeIndex;
@@ -323,22 +321,32 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
         }
 
+        // nasty hack: due to inherent precision loss when rasterizing round shapes onto a square grid, we can occasionally end up inside a single pixel surrounded on cardinals by obstacles
+        // this only happens if a module creates temporary obstacles representing voidzones, but that is a valid usecase so here we are
+        // TODO: this actually can also happen with regular pathfinding zones, but i'm worried about messing with the pathfinding logic too much
+        // (this case is special because pathfinder never moves into g<0 cells)
         var map = CtxInactive.Map;
-        var (pX, pY) = map.WorldToGrid(Player.Position);
-        var playerCell = map.GridToIndex(pX, pY);
-        if (map.PixelMaxG[playerCell] >= 0 && map.PixelMaxG[playerCell] < map.MaxG)
+        float cellG(int x, int y)
         {
-            var pW = map.GridToIndex(pX - 1, pY);
-            var pE = map.GridToIndex(pX + 1, pY);
-            var pN = map.GridToIndex(pX, pY - 1);
-            var pS = map.GridToIndex(pX, pY + 1);
+            if (x < 0 || x >= map.Width)
+                return -1;
+            if (y < 0 || y >= map.Height)
+                return -1;
 
-            if (map.PixelMaxG[pW] < 0 && map.PixelMaxG[pE] < 0 && map.PixelMaxG[pN] < 0 && map.PixelMaxG[pS] < 0)
+            return map.PixelMaxG[map.GridToIndex(x, y)];
+        }
+
+        var (pX, pY) = map.WorldToGrid(Player.Position);
+        var playerG = cellG(pX, pY);
+        if (playerG >= 0 && playerG < map.MaxG)
+        {
+            if (cellG(pX - 1, pY) < 0 && cellG(pX + 1, pY) < 0 && cellG(pX, pY - 1) < 0 && cellG(pX, pY + 1) < 0)
             {
                 (int, int)[] corners = [(-1, -1), (-1, +1), (+1, +1), (+1, -1)];
                 foreach (var (dx, dy) in corners)
                 {
-                    if (map.PixelMaxG[map.GridToIndex(pX + dx, pY + dy)] >= 0)
+                    // "unblocked" corner isn't an obstacle, let's go for it
+                    if (cellG(pX + dx, pY + dy) >= 0)
                     {
                         Hints.ForcedMovement = new(dx, 0, dy);
                         return;

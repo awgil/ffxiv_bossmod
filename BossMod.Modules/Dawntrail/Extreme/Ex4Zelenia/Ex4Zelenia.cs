@@ -16,7 +16,7 @@ class ThornedCatharsis : Components.RaidwideCast
 }
 
 // TODO: subsequent casts don't trigger if an earlier cast kills the target
-class StockBreak(BossModule module) : Components.UniformStackSpread(module, 6, 0)
+class StockBreak(BossModule module) : Components.UniformStackSpread(module, 6, 0, stackHits: 4)
 {
     public int NumCasts;
 

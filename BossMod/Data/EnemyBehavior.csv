@@ -32,4 +32,5 @@ OID,Name,TankDistance,CanMove
 0x4D07,Congealed Kindling,0,false
 0x4D08,Congealed Kindling,5,true
 0x4D18,King Ahriman Piece,0,true
+0x4D22,IndefatigableBlade,0,false
 0x4DD4,Great Wisp Piece,0,false

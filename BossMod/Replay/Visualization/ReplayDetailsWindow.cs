@@ -125,7 +125,7 @@ class ReplayDetailsWindow : UIWindow
             if (ImGui.Checkbox("Draw all actors", ref _moduleDebug.DrawAllActors))
                 _mgr.ActiveModule.DebugOpts = _moduleDebug;
 
-            ImGui.Text($"Ping: {_mgr.WorldState.Network.LastRTT * 1000:f1}ms");
+            ImGui.Text($"{_mgr.WorldState.Network.LastRTT * 1000:f1}ms {1 / _mgr.WorldState.Frame.DurationRaw:f1}fps");
 
             if (_mgr.WorldState.Client.CountdownRemaining != null)
             {

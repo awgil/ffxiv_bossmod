@@ -16,19 +16,13 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     public float CameraAltitude; // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
     public Vector2 ViewportSize;
 
-    record struct Line(Vector3 Start, Vector3 End, uint Color, float Thickness = 1);
-    record struct Cone(Vector3 Center, float Radius, Angle Direction, Angle HalfAngle, uint Color, float Thickness = 1);
-    record struct Circle(Vector3 Center, float Radius, uint Color, float Thickness = 1);
+    record struct Line(Vector3 Start, Vector3 End, uint Color, float Thickness = 1, bool Occluded = true);
+    record struct Cone(Vector3 Center, float Radius, Angle Direction, Angle HalfAngle, uint Color, float Thickness = 1, bool Occluded = true);
+    record struct Circle(Vector3 Center, float Radius, uint Color, float Thickness = 1, bool Occluded = true);
 
     readonly List<Line> _lines = [];
     readonly List<Cone> _cones = [];
     readonly List<Circle> _circles = [];
-
-    private readonly PctDxParams OutlineParams = new()
-    {
-        OccludedAlpha = 0.1f,
-        OcclusionTolerance = 0.5f
-    };
 
     private readonly PctContext picto = PctService.Initialize(dalamud);
 
@@ -62,33 +56,42 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
             return;
 
         foreach (var line in _lines)
-            drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, OutlineParams);
+            drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, new PctDxParams()
+            {
+                OccludedAlpha = line.Occluded ? 0.1f : 1
+            });
         foreach (var cone in _cones)
-            drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Thickness, p: OutlineParams);
+            drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Thickness, p: new PctDxParams()
+            {
+                OccludedAlpha = cone.Occluded ? 0.1f : 1
+            });
         foreach (var circle in _circles)
-            drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Thickness, p: OutlineParams);
+            drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Thickness, p: new PctDxParams()
+            {
+                OccludedAlpha = circle.Occluded ? 0.1f : 1
+            });
 
         _lines.Clear();
         _cones.Clear();
         _circles.Clear();
     }
 
-    public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1)
+    public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
     {
         if ((end.X, end.Z) == (start.X, start.Z) && end.Y != start.Y)
             Service.PluginLog.Warning($"Line {start} -> {end} is purely vertical, pictomancy doesn't like this");
 
-        _lines.Add(new(start, end, color, thickness));
+        _lines.Add(new(start, end, color, thickness, occluded));
     }
 
-    public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1)
+    public void DrawWorldCone(Vector3 center, float radius, Angle direction, Angle halfWidth, uint color, float thickness = 1, bool occluded = true)
     {
-        _cones.Add(new(center, radius, direction, halfWidth, color, thickness));
+        _cones.Add(new(center, radius, direction, halfWidth, color, thickness, occluded));
     }
 
-    public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1)
+    public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1, bool occluded = true)
     {
-        _circles.Add(new(center, radius, color, thickness));
+        _circles.Add(new(center, radius, color, thickness, occluded));
     }
 
     public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)

@@ -97,6 +97,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     {
         [Option("Pool for raid buffs and spend inside them; never overcap")]
         Automatic,
+        [Option("Spend as soon as possible")]
+        ASAP,
         [Option("Only to avoid overcapping")]
         Overcap,
         [Option("Do not use")]
@@ -437,6 +439,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
             || OgiLeft <= 8
             || dotLeft > 50
             || dotLeft > 15 && (RaidBuffsLeft > GCD || !HasRaidBuffJobs)
+            || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength * 3
             || AOEMode;
         if (use)
             PushGCD(AID.OgiNamikiri, BestConeTarget ?? target.Actor, 78);
@@ -455,9 +458,16 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
         if (strategy.Opener.Value == OpenerStrategy.KashaFirst && CombatTime < 10 && FukaLeft == 0 && Unlocked(AID.Kasha))
             return AID.Kasha;
-        if (Unlocked(AID.Gekko) && (!HasGetsu || FugetsuLeft < GCD + GCDLength))
+        // missing buff before missing sen: Higanbana needs 1 sen with both buffs up
+        var fugetsuLow = Unlocked(AID.Gekko) && FugetsuLeft < GCD + GCDLength;
+        var fukaLow = Unlocked(AID.Kasha) && FukaLeft < GCD + GCDLength;
+        if (fugetsuLow && (!fukaLow || FugetsuLeft <= FukaLeft))
             return AID.Gekko;
-        if (Unlocked(AID.Kasha) && (!HasKa || FukaLeft < GCD + GCDLength))
+        if (fukaLow)
+            return AID.Kasha;
+        if (Unlocked(AID.Gekko) && !HasGetsu)
+            return AID.Gekko;
+        if (Unlocked(AID.Kasha) && !HasKa)
             return AID.Kasha;
         if (Unlocked(AID.Yukikaze) && !HasSetsu)
             return AID.Yukikaze;
@@ -630,12 +640,14 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     {
         if (strategy.Yaten.Value == YatenStrategy.Delay || !InMelee || Kenki < 10 || !CanWeave(AID.HissatsuYaten))
             return;
-        var soon = World.FutureTime(2.5f);
-        if (!Hints.ForbiddenZones.Any(z => z.activation <= soon && z.shape.Check(Player.Position)))
+        // forbidden zones also cover spreads, stacks and line of sight: only jump when the hit is too close to walk out of
+        var soon = World.FutureTime(1.2f);
+        // zones without an activation are arena edges / persistent hazards, not an incoming hit
+        if (!Hints.ForbiddenZones.Any(z => z.activation != default && z.activation <= soon && z.shape.Check(Player.Position)))
             return;
         var away = (Player.Position - target.Actor.Position).Normalized();
         var landing = Player.Position + away * 10;
-        if (!Hints.PathfindMapBounds.Contains(landing - Hints.PathfindMapCenter) || Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(5) && z.shape.Check(landing)))
+        if (!Hints.PathfindMapBounds.Contains(landing + away * 2 - Hints.PathfindMapCenter) || Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(5) && z.shape.Check(landing)))
             return;
         PushOGCD(AID.HissatsuYaten, target.Actor, 75);
     }
@@ -697,7 +709,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     {
         if (Kenki < 25)
             return false;
-        if (Kenki >= 95 || BossDying)
+        if (Kenki >= 95 || BossDying || strategy.Kenki.Value == KenkiStrategy.ASAP)
             return true;
         if (strategy.Kenki.Value == KenkiStrategy.Overcap)
             return Kenki >= 90;

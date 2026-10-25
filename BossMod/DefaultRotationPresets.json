@@ -514,6 +514,10 @@
                 {
                     "Track": "FATE",
                     "Option": "Enabled"
+                },
+                {
+                    "Track": "EE",
+                    "Option": "Enabled"
                 }
             ],
             "BossMod.Autorotation.MiscAI.FollowSlot": [],
