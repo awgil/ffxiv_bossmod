@@ -62,3 +62,24 @@ class P1Twister : Twister
 {
     public P1Twister(BossModule module) : base(module, AID.Twister, 0.3f) { KeepOnPhaseChange = true; }
 }
+
+// prevents dropping twisters in our prescribed stack spot
+class P1TwisterFireball(BossModule module) : Components.CastCounter(module, AID.Twister)
+{
+    bool Enabled = true;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        Enabled |= spell.Action == WatchedAction;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!Enabled)
+            return;
+
+        var dropPosition = Module.PrimaryActor.Position + Module.PrimaryActor.DirectionTo(Arena.Center) * (Module.PrimaryActor.HitboxRadius + 3);
+
+        hints.AddForbiddenZone(ShapeDistance.Circle(dropPosition, 2.5f), DateTime.MaxValue);
+    }
+}

@@ -36,8 +36,10 @@ class UCOBStates : StateMachineBuilder
 
     private void Phase1Twintania1(uint id)
     {
-        P1Plummet(id, 6.2f);
-        P1TwisterFireball(id + 0x10000, 4.1f);
+        P1Plummet(id, 6.2f)
+            .ActivateOnEnter<P1TwisterFireball>();
+        P1TwisterFireball(id + 0x10000, 4.1f)
+            .DeactivateOnExit<P1TwisterFireball>();
         P1DeathSentence(id + 0x20000, 4.1f);
         // repeat
         P1Plummet(id + 0x30000, 3.2f);
@@ -148,9 +150,9 @@ class UCOBStates : StateMachineBuilder
         P5Enrage(id + 0xE0000, 2.1f);
     }
 
-    private void P1Plummet(uint id, float delay)
+    private State P1Plummet(uint id, float delay)
     {
-        ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
+        return ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Plummet>()
             .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P1Plummet>();
@@ -164,9 +166,9 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
 
-    private void P1FireballResolve(uint id, float delay)
+    private State P1FireballResolve(uint id, float delay)
     {
-        ComponentCondition<P1Fireball>(id, delay, comp => !comp.ActiveStacks.Any(), "Stack", 1, delay - 0.2f) // note that if target dies, fireball won't happen
+        return ComponentCondition<P1Fireball>(id, delay, comp => !comp.ActiveStacks.Any(), "Stack", 1, delay - 0.2f) // note that if target dies, fireball won't happen
             .DeactivateOnExit<P1Fireball>();
     }
 
@@ -180,10 +182,10 @@ class UCOBStates : StateMachineBuilder
             .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball);
     }
 
-    private void P1TwisterFireball(uint id, float delay)
+    private State P1TwisterFireball(uint id, float delay)
     {
         P1Twister(id, delay, true);
-        P1FireballResolve(id + 0x10, 2.8f);
+        return P1FireballResolve(id + 0x10, 2.8f);
     }
 
     private void P1LiquidHell(uint id, float delay, bool withFireball = false)
