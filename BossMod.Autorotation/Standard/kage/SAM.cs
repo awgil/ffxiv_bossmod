@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageRotation<KageSAM.Strategy>(manager, player)
+public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageShared<KageSAM.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -198,7 +198,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
     private bool AOEMode;
     private bool ForceST;
-    private bool InMelee;
     private int NumCircleTargets;
     private int NumTenkaTargets;
     private Actor? BestLineTarget;
@@ -268,12 +267,11 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         NumCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         NumTenkaTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 8);
         AOEMode = Unlocked(AID.Fuga) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
-        InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         (BestLineTarget, NumLineTargets) = BestAOETarget(target, 10, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 10, 2));
         BestConeTarget = BestAOETarget(target, 8, allowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 60.Degrees())).Best;
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionStr);
 
         if (!Player.InCombat)
             DowntimeStart = default;
@@ -306,7 +304,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
         GCDs(strategy, target);
         UpdatePositionals(strategy, target);
-        AddGoalZone(target, allowAoE);
+        AddMeleeGoal(target, allowAoE && Unlocked(AID.Fuga) ? Hints.GoalAOECircle(5) : null);
         if (Player.InCombat)
             OGCDs(strategy, target);
     }
@@ -315,8 +313,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
     {
         if (target == null)
             return;
-        if (strategy.Engage.Value == EngageStrategy.WalkIn && !InMelee && countdown < (Player.DistanceToHitbox(target.Actor) - 3) / 6)
-            Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
+        if (strategy.Engage.Value == EngageStrategy.WalkIn)
+            WalkInForPull(target, countdown, 6);
         if (strategy.Opener.Value == OpenerStrategy.None || !Unlocked(AID.MeikyoShisui))
             return;
         if (MeikyoLeft == 0 && countdown < 14)
@@ -458,7 +456,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
 
         if (strategy.Opener.Value == OpenerStrategy.KashaFirst && CombatTime < 10 && FukaLeft == 0 && Unlocked(AID.Kasha))
             return AID.Kasha;
-        // missing buff before missing sen: Higanbana needs 1 sen with both buffs up
         var fugetsuLow = Unlocked(AID.Gekko) && FugetsuLeft < GCD + GCDLength;
         var fukaLow = Unlocked(AID.Kasha) && FukaLeft < GCD + GCDLength;
         if (fugetsuLow && (!fukaLow || FugetsuLeft <= FukaLeft))
@@ -628,7 +625,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         var dist = Player.DistanceToHitbox(dashTarget);
         if (dist is > 3 and <= 20)
         {
-            if (Hints.MaxCastTime > 0 && !Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(3) && z.shape.Check(dashTarget.Position)))
+            if (Hints.MaxCastTime > 0 && DashSafe(Player.Position + Player.DirectionTo(dashTarget) * dist))
                 PushOGCD(AID.HissatsuGyoten, dashTarget, 30);
             return;
         }
@@ -641,13 +638,11 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         if (strategy.Yaten.Value == YatenStrategy.Delay || !InMelee || Kenki < 10 || !CanWeave(AID.HissatsuYaten))
             return;
         // forbidden zones also cover spreads, stacks and line of sight: only jump when the hit is too close to walk out of
-        var soon = World.FutureTime(1.2f);
-        // zones without an activation are arena edges / persistent hazards, not an incoming hit
-        if (!Hints.ForbiddenZones.Any(z => z.activation != default && z.activation <= soon && z.shape.Check(Player.Position)))
+        if (!ForbiddenSoon(Player.Position, 1.2f, true))
             return;
         var away = (Player.Position - target.Actor.Position).Normalized();
         var landing = Player.Position + away * 10;
-        if (!Hints.PathfindMapBounds.Contains(landing + away * 2 - Hints.PathfindMapCenter) || Hints.ForbiddenZones.Any(z => z.activation <= World.FutureTime(5) && z.shape.Check(landing)))
+        if (!DashSafe(landing) || !Hints.PathfindMapBounds.Contains(landing + away * 2 - Hints.PathfindMapCenter))
             return;
         PushOGCD(AID.HissatsuYaten, target.Actor, 75);
     }
@@ -739,13 +734,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageR
         if (AOEMode || !Unlocked(AID.Gekko))
             (pos, imminent) = (Positional.Any, false);
         RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && InMelee);
-    }
-
-    private void AddGoalZone(Enemy target, bool allowAoE)
-    {
-        var (_, pos, imminent, _) = Hints.RecommendedPositional;
-        var single = Hints.GoalSingleTarget(target.Actor, imminent ? pos : Positional.Any, Player, World.Actors, 3);
-        Hints.GoalZones.Add(allowAoE && Unlocked(AID.Fuga) ? GoalCombined(single, Hints.GoalAOECircle(5), 3) : single);
     }
 
     #endregion

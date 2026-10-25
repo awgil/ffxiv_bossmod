@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageRotation<KageDNC.Strategy>(manager, player)
+public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageShared<KageDNC.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -77,7 +77,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     public enum PelotonStrategy
     {
-        [Option("Use in the last 5s of the countdown")]
+        [Option("Use in the last 10s of the countdown, outside of dance steps")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -181,7 +181,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         BestLineTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 25, 2)).Best;
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionDex);
 
         Partner(strategy);
 
@@ -219,7 +219,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
 
     private void Prepull(in Strategy strategy, float countdown)
     {
-        if (strategy.Peloton.Value == PelotonStrategy.Automatic && countdown < 5 && SelfStatusLeft(SID.Peloton) == 0 && !Player.InCombat && Unlocked(AID.Peloton))
+        if (strategy.Peloton.Value == PelotonStrategy.Automatic && countdown is > 2 and < 10 && NextStep == AID.None && SelfStatusLeft(SID.Peloton) == 0 && !Player.InCombat && Unlocked(AID.Peloton))
             PushOGCD(AID.Peloton, Player, 5);
 
         var mode = strategy.Opener.Value;
@@ -510,7 +510,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageR
         if (Player.InCombat && current != null && (DevilmentLeft > 0 || strategy.Partner.Value == PartnerStrategy.Automatic && NotSick(current) && NotDD(current)))
             return;
 
-        if (SelfStatusLeft(SID.ClosedPosition) == 0)
+        if (!HasSelfStatus(SID.ClosedPosition))
             PushOGCD(AID.ClosedPosition, desired, 40);
         else if (Player.DistanceToHitbox(desired) <= 30)
             PushOGCD(AID.Ending, Player, 40);

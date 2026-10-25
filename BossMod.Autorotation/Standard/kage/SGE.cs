@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageRotation<KageSGE.Strategy>(manager, player)
+public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageShared<KageSGE.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -134,7 +134,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     private bool ForceST;
 
     protected override bool UsesSpellSpeed => true;
-    private bool CanCast => Hints.MaxCastTime >= SlideCast(ScaledCastTime(AID.Dosis));
+    private bool CanCast => CastFits(ScaledCastTime(AID.Dosis));
 
     private OffensiveStrategy PhlegmaStrat;
     private OffensiveStrategy PsycheStrat;
@@ -157,7 +157,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         Kardia(strategy);
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionMnd);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
@@ -248,16 +248,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
     private bool NeedsDot(Enemy e) => DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh;
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
-    {
-        if (NeedsDot(target))
-            return target.Actor;
-        // last GCD of raid buffs: refresh so remaining ticks snapshot (opener window a bit wider)
-        if (DotWorthIt(target) && RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < (CombatTime < 40 ? 12 : 8))
-            return target.Actor;
-        if (strategy.Dot.Value != DotStrategy.Automatic || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
-            return null;
-        return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && NeedsDot(e)).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
-    }
+        => DotTargetFor(target, DotLeft, DotRefresh, CombatTime < 40 ? 12 : 8, strategy.Dot.Value == DotStrategy.Automatic);
 
     private bool ShouldPhlegma(in Strategy strategy, Enemy target)
     {
@@ -357,7 +348,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageR
         _ => false
     };
 
-    private float CastTime(AID aid) => Eukrasia && aid == AID.Dosis || SelfStatusLeft(ClassShared.SID.Swiftcast) > GCD ? 0 : ScaledCastTime(aid);
+    private float CastTime(AID aid) => Eukrasia && aid == AID.Dosis ? 0 : HardcastTime(aid);
 
     private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 

@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageRotation<KageVPR.Strategy>(manager, player)
+public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageShared<KageVPR.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -160,7 +160,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
     private bool AllowAoE;
     private bool AOEMode;
-    private bool InMelee;
 
     private OpenerStrategy OpenerMode;
     private bool IreWanted;
@@ -235,10 +234,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
         AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         AOEMode = Unlocked(AID.SteelMaw) && UseAOE(strategy.AOE.Value, Hints.NumPriorityTargetsInAOECircle(Player.Position, 5), 3);
-        InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionDex);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
@@ -276,20 +274,10 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
                     PushGCD(InMelee ? first : AID.Slither, target.Actor, 10);
                 break;
             case EngageStrategy.Sprint:
-                if (countdown < 10)
-                    PushOGCD(ClassShared.AID.Sprint, Player, 10);
-                if (countdown < (Player.DistanceToHitbox(target.Actor) - 3) / 7.8f + 0.5f)
-                {
-                    if (!InMelee)
-                        Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
-                    PushGCD(first, target.Actor, 10);
-                }
+                SprintPull(target, first, countdown);
                 break;
             case EngageStrategy.Facepull:
-                if (!InMelee)
-                    Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
-                else if (countdown < 1.16f)
-                    PushGCD(first, target.Actor, 10);
+                Facepull(target, first, countdown);
                 break;
         }
     }
@@ -451,7 +439,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
         if (HoldForIre || aid == AID.Vicewinder && !InMelee)
             return false;
-        // pre-Reawaken: both Vicewinder combos in party buffs; only one charge between windows, right before cap
         if (!Unlocked(AID.Reawaken) && InBossFight && HasRaidBuffJobs && RaidBuffsLeft <= GCD && MaxChargesIn(aid) > GCD + GCDLength * 3 && RaidBuffsIn < MaxChargesIn(aid))
             return false;
         if (OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove != AID.SwiftskinsSting)
@@ -562,19 +549,14 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageR
 
     private void AddGoalZone(Enemy target)
     {
-        var (_, pos, imminent, _) = Hints.RecommendedPositional;
-        var wantPositional = imminent || NextGCD == AID.Vicewinder && pos is Positional.Flank or Positional.Rear;
-        var single = Hints.GoalSingleTarget(target.Actor, wantPositional ? pos : Positional.Any, Player, World.Actors, 3);
-
         var aoeBreakpoint = Dread switch
         {
             DreadCombo.Dreadwinder or DreadCombo.HuntersCoil or DreadCombo.SwiftskinsCoil => 50,
             DreadCombo.PitOfDread or DreadCombo.HuntersDen or DreadCombo.SwiftskinsDen => 1,
             _ => Anguine > 0 ? 50 : 3
         };
-        Hints.GoalZones.Add(AllowAoE && Unlocked(AID.SteelMaw) && aoeBreakpoint < 50
-            ? GoalCombined(single, Hints.GoalAOECircle(5), aoeBreakpoint)
-            : single);
+        AddMeleeGoal(target, AllowAoE && Unlocked(AID.SteelMaw) && aoeBreakpoint < 50 ? Hints.GoalAOECircle(5) : null, aoeBreakpoint,
+            NextGCD == AID.Vicewinder && Hints.RecommendedPositional.Pos is Positional.Flank or Positional.Rear);
     }
 
     private (Positional, bool) NextPositional(Actor target)

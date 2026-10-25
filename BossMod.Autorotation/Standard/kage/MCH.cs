@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageRotation<KageMCH.Strategy>(manager, player)
+public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageShared<KageMCH.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -216,7 +216,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageR
         }
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionDex);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {

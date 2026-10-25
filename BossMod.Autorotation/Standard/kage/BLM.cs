@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageRotation<KageBLM.Strategy>(manager, player)
+public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageShared<KageBLM.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -143,7 +143,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
     private int MaxPolyglot => Player.Level >= 98 ? 3 : Player.Level >= 80 ? 2 : 1;
     private bool InFire => Astral > 0;
     private bool InIce => Umbral > 0;
-    private bool CantCast => Hints.MaxCastTime < SlideCast(CastTime(InIce ? (Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1) : (Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1)));
+    private bool CantCast => !CastFits(CastTime(InIce ? (Unlocked(AID.Blizzard4) ? AID.Blizzard4 : AID.Blizzard1) : (Unlocked(AID.Fire4) ? AID.Fire4 : AID.Fire1)));
     private bool BuffsActive => HasRaidBuffJobs && RaidBuffsLeft > GCD;
     private bool HoldPolyglotForBuffs => HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn <= 15;
     private bool CanSpendPolyglot => !ForceST || Unlocked(AID.Xenoglossy);
@@ -175,14 +175,14 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         EnochianLeft = gauge.EnochianTimer / 1000f;
         FirestarterLeft = ProcLeft(SID.Firestarter);
         ThunderheadLeft = ProcLeft(SID.Thunderhead);
-        Instant = SelfStatusLeft(SID.Triplecast) > 0 || SelfStatusLeft(SID.Swiftcast) > 0;
+        Instant = SelfStatusLeft(SID.Triplecast) > GCD || SwiftcastUp;
         InLeyLines = SelfStatusLeft(SID.CircleOfPower) > 0;
         ManafontIn = ManafontStrat != OffensiveStrategy.Delay && Player.InCombat ? ReadyIn(AID.Manafont) : float.MaxValue;
         NumAOETargets = target == null ? 0 : Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5);
         AOEMode = Unlocked(AID.Fire2) && UseAOE(strategy.AOE.Value, NumAOETargets, 2);
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionInt);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
@@ -241,12 +241,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
                 PushGCD(PolyglotAction, target.Actor, 5);
         }
 
-        // no Thunder ticks while untargetable; every proc on exactly two AoE targets
         var thunderAt = InOpener ? (InLeyLines ? 7.5f : 5) : AOEMode && NumAOETargets == 2 ? 30 : 3;
         if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < thunderAt && DowntimeIn > 20 && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
 
-        // two ST targets too far for AoE -> keep High Thunder on both
         if (strategy.Thunder.Value == OffensiveStrategy.Automatic && !AOEMode && ThunderheadLeft > GCD && DowntimeIn > 20
             && Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && ThunderLeft(e.Actor) < 3).MaxBy(e => e.Actor.HPMP.CurHP) is { } second)
             PushGCD(ThunderAction, second.Actor, 64);
@@ -501,16 +499,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageR
         _ => false
     };
 
-    private int TriplecastCharges => Charges(AID.Triplecast);
-    private int Charges(AID aid)
-    {
-        if (!Unlocked(aid))
-            return 0;
-        var def = ActionDefinitions.Instance.Spell(aid)!;
-        var max = def.MaxChargesAtLevel(Player.Level);
-        var capIn = def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level);
-        return max - (int)MathF.Ceiling(capIn / def.Cooldown);
-    }
+    private int TriplecastCharges => ChargesLeft(AID.Triplecast);
 
     private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 

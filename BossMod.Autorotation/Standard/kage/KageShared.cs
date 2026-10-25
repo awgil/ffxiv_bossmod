@@ -87,8 +87,7 @@ public static class RaidBuffs
         if (cooldowns.Count > 0)
         {
             if (left == 0 && cooldowns.Any(e => AvailableIn(world, e.AvailableAt) > CooldownLength - 2))
-                return (0, BuffSpread); // a buff was just pressed, its status lands a moment later
-            // one job skipping or drifting its buff shouldn't make the others' look like they're never coming
+                return (0, BuffSpread);
             var next = cooldowns.Select(e => AvailableIn(world, e.AvailableAt)).Where(t => t > -OverdueGrace || uptime <= OverdueGrace).DefaultIfEmpty(float.MaxValue).Min();
             return (left, next == float.MaxValue && left > 0 ? 0 : MathF.Max(0, next));
         }
@@ -97,8 +96,6 @@ public static class RaidBuffs
         return (left, MathF.Max(0, OpenerBuffs - combatTime));
     }
 
-    // buffs come in over several seconds (Chain Stratagem often 7-8s before Technical / Searing Light); don't count the window as open until the other buff jobs pressed theirs
-    // press times come from the cooldowns, a second PCT's Starry Muse replaces the first one's status
     private const float BuffSpread = 9;
     private const float BuffDuration = 20;
     private const float CooldownLength = 120;
@@ -123,7 +120,6 @@ public static class RaidBuffs
         }
         if (sinceFirst is not { } since || since >= BuffSpread)
             return 0;
-        // only wait for buffs that can still come off cooldown inside the spread, so an open window doesn't close again
         var waitLeft = BuffSpread - since;
         return notPressed.Any(t => t is not { } a || a > -OverdueGrace && a < waitLeft) ? waitLeft : 0;
     }
@@ -145,7 +141,7 @@ public static class RaidBuffs
     };
 }
 
-public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Actor player) : TypedRotationModule<TStrategy>(manager, player) where TStrategy : struct
+public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor player) : TypedRotationModule<TStrategy>(manager, player) where TStrategy : struct
 {
     protected float AnimLockDelay;
     protected Targeting TargetMode;
@@ -153,9 +149,15 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected float RaidBuffsLeft;
     protected float RaidBuffsIn;
     protected bool InBossFight;
+    protected bool InMelee;
     protected ActionID NextGCDAction { get; private set; }
+    protected ActorCastEvent? NewCast { get; private set; }
     private int NextGCDPriority;
     private DateTime LastDowntime;
+    private DateTime CountdownLockout;
+    private bool CountdownSeen;
+    private DateTime LastCastSeen;
+    private readonly Dictionary<uint, DateTime> LastUsed = [];
 
     protected virtual bool UsesSpellSpeed => false;
     protected float GCDLength => ActionSpeed.GCDRounded(UsesSpellSpeed ? World.Client.PlayerStats.SpellSpeed : World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
@@ -173,6 +175,19 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         NextGCDAction = default;
         NextGCDPriority = 0;
         TimeToKill.Update(World, Hints);
+
+        var (castAt, cast) = Manager.LastCast;
+        NewCast = cast != null && castAt != LastCastSeen ? cast : null;
+        if (NewCast != null)
+        {
+            LastCastSeen = castAt;
+            LastUsed[NewCast.Action.ID] = castAt;
+        }
+
+        if (World.Client.CountdownRemaining == null || Player.InCombat)
+            (CountdownSeen, CountdownLockout) = (false, default);
+        else if (!CountdownSeen)
+            (CountdownSeen, CountdownLockout) = (true, World.FutureTime(0.5f + World.Frame.Index % 1000 / 1000f));
 
         var target = Hints.FindEnemy(primaryTarget);
         if (target?.Priority is AIHints.Enemy.PriorityInvincible or AIHints.Enemy.PriorityForbidden || target?.Priority == AIHints.Enemy.PriorityPointless && Hints.PriorityTargets.Any())
@@ -192,7 +207,47 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
             LastDowntime = World.CurrentTime;
         (RaidBuffsLeft, RaidBuffsIn) = RaidBuffs.Estimate(Bossmods, World, Player, primaryTarget, CombatTime, MathF.Min(CombatTime, (float)(World.CurrentTime - LastDowntime).TotalSeconds));
         InBossFight = Bossmods.ActiveModule != null || primaryTarget?.IsStrikingDummy == true;
+        InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         return target;
+    }
+
+    protected float SinceUsed<AID>(AID aid) where AID : Enum => LastUsed.TryGetValue(ActionID.MakeSpell(aid).ID, out var t) ? (float)(World.CurrentTime - t).TotalSeconds : float.MaxValue;
+    protected bool JustUsed<AID>(AID aid, float within = 3) where AID : Enum => SinceUsed(aid) < within;
+
+    protected bool ForbiddenSoon(WPos pos, float within, bool incomingOnly = false)
+        => Hints.ForbiddenZones.Any(z => (!incomingOnly || z.activation != default) && z.activation <= World.FutureTime(within) && z.shape.Check(pos));
+    protected bool DashSafe(WPos to) => ActionPredicate.IsDashSafe(Player.Position, to, Hints);
+
+    protected bool WalkInForPull(AIHints.Enemy target, float countdown, float speed, float lead = 0)
+    {
+        if (countdown >= (Player.DistanceToHitbox(target.Actor) - 3) / speed + lead)
+            return false;
+        if (!InMelee)
+            Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
+        return true;
+    }
+
+    protected void SprintPull<AID>(AIHints.Enemy target, AID first, float countdown) where AID : Enum
+    {
+        if (countdown < 10)
+            PushOGCD(ClassShared.AID.Sprint, Player, 10);
+        if (WalkInForPull(target, countdown, 7.8f, 0.5f))
+            PushGCD(first, target.Actor, 10);
+    }
+
+    protected void Facepull<AID>(AIHints.Enemy target, AID first, float countdown) where AID : Enum
+    {
+        if (!InMelee)
+            Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
+        else if (countdown < 1.16f)
+            PushGCD(first, target.Actor, 10);
+    }
+
+    protected void AddMeleeGoal(AIHints.Enemy target, Func<WPos, float>? aoe, int minAoETargets = 3, bool forcePositional = false)
+    {
+        var (_, pos, imminent, _) = Hints.RecommendedPositional;
+        var single = Hints.GoalSingleTarget(target.Actor, imminent || forcePositional ? pos : Positional.Any, Player, World.Actors, 3);
+        Hints.GoalZones.Add(aoe != null ? AIHints.GoalCombined(single, aoe, minAoETargets) : single);
     }
 
     protected bool HasPositionals(Actor target)
@@ -234,6 +289,15 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return TimeToKill.WorthDot(Bossmods.ActiveModule, e.Actor, 15);
     }
 
+    protected Actor? DotTargetFor(AIHints.Enemy target, Func<Actor, float> dotLeft, float refresh, float buffRefresh, bool spread, float range = 25)
+    {
+        if (DotWorthIt(target) && (dotLeft(target.Actor) < refresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && dotLeft(target.Actor) < buffRefresh))
+            return target.Actor;
+        if (!spread || Hints.PriorityTargets.Count(e => dotLeft(e.Actor) >= refresh) >= 2)
+            return null;
+        return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= range && DotWorthIt(e) && dotLeft(e.Actor) < refresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
+    }
+
     protected float MaxDotLeft<SID>(Actor target, params SID[] sids) where SID : Enum
     {
         var left = 0f;
@@ -248,6 +312,7 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
     protected bool GCDReady<AID>(AID aid) where AID : Enum => ReadyIn(aid) < GCD + 0.05f;
 
     protected bool CanWeave<AID>(AID aid) where AID : Enum => CanWeave(ActionID.MakeSpell(aid));
+    protected bool HasSelfStatus<SID>(SID sid) where SID : Enum => Player.FindStatus(sid, Player.InstanceID, World.FutureTime(1000)) != null;
     protected bool CanWeave(ActionID action)
     {
         if (!ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def)
@@ -255,13 +320,23 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
         return MathF.Max(def.ReadyIn(World.Client.Cooldowns, World.Client.DutyActions), World.Client.AnimationLock) + def.TotalDuration + AnimLockDelay <= GCD;
     }
 
+    protected int ChargesLeft<AID>(AID aid) where AID : Enum
+    {
+        if (!Unlocked(aid) || ActionDefinitions.Instance.Spell(aid) is not { } def)
+            return 0;
+        return def.MaxChargesAtLevel(Player.Level) - (int)MathF.Ceiling(def.ChargeCapIn(World.Client.Cooldowns, World.Client.DutyActions, Player.Level) / def.Cooldown);
+    }
+
     protected float ScaledCastTime<AID>(AID aid) where AID : Enum => ActionDefinitions.Instance.Spell(aid) is { CastTime: > 0 } def ? def.CastTime * GCDLength / 2.5f : 0;
+    protected bool SwiftcastUp => SelfStatusLeft(ClassShared.SID.Swiftcast) > GCD;
+    protected float HardcastTime<AID>(AID aid) where AID : Enum => SwiftcastUp ? 0 : ScaledCastTime(aid);
 
     protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
+    protected bool CastFits(float castTime) => Hints.MaxCastTime >= SlideCast(castTime);
 
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)
     {
-        if (action.ID == 0 || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
+        if (action.ID == 0 || World.CurrentTime < CountdownLockout || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
             return false;
         var targetPos = def.AllowedTargets.HasFlag(ActionTargets.Area) ? (def.Range == 0 ? Player.PosRot.XYZ() : target?.PosRot.XYZ() ?? default) : default;
         Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facing);
@@ -277,6 +352,8 @@ public abstract class KageRotation<TStrategy>(RotationModuleManager manager, Act
 
     protected bool PushOGCD<AID>(AID aid, Actor? target, int priority, float delay = 0) where AID : Enum
         => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
+
+    protected void PushPotion(ActionID potion) => Hints.ActionsToExecute.Push(potion, Player, ActionQueue.Priority.Medium);
 
     protected static bool UseAOE(AOEStrategy strategy, int targets, int minTargets) => strategy switch
     {
