@@ -18,7 +18,7 @@ public class BossModuleHintsWindow : UIWindow
 
     public override void PreOpenCheck()
     {
-        IsOpen = _mgr.Config.HintsInSeparateWindow && (_mgr.ActiveModule != null || ShowZoneModule());
+        IsOpen = _mgr.Config.HintsInSeparateWindow && (_mgr.DrawnModule != null || ShowZoneModule());
         Flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         if (_mgr.Config.Lock)
             Flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs;
@@ -36,15 +36,15 @@ public class BossModuleHintsWindow : UIWindow
         {
             try
             {
-                _mgr.ActiveModule?.Draw(default, PartyState.PlayerSlot, true, false, _hints);
+                _mgr.DrawnModule?.Draw(default, PartyState.PlayerSlot, true, false, _hints);
             }
             catch (Exception ex)
             {
                 Service.Log($"Boss module draw-hints crashed: {ex}");
-                _mgr.ActiveModule = null;
+                _mgr.DrawnModule = null;
             }
         }
     }
 
-    private bool ShowZoneModule() => _mgr.ActiveModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantDrawHints() ?? false);
+    private bool ShowZoneModule() => _mgr.DrawnModule?.StateMachine.ActivePhase == null && (_zmm.ActiveModule?.WantDrawHints() ?? false);
 }

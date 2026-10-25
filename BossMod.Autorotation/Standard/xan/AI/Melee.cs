@@ -71,7 +71,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
 
     private void AutoLB(in Strategy strategy, Actor? primaryTarget)
     {
-        if (!strategy.LimitBreak.IsEnabled() || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1 || Bossmods.ActiveModule is null)
+        if (!strategy.LimitBreak.IsEnabled() || World.Party.WithoutSlot(includeDead: true).Count(x => x.Type == ActorType.Player) > 1 || Bossmods.ActiveModule == null)
             return;
 
         switch (World.Party.LimitBreakLevel)
@@ -100,7 +100,7 @@ public class MeleeAI(RotationModuleManager manager, Actor player) : AIBase<Melee
 
     private void AutoDash(in Strategy strategy, Actor? primaryTarget)
     {
-        if (!strategy.Dash.IsEnabled() || primaryTarget is not { IsAlly: false })
+        if (!strategy.Dash.IsEnabled() || primaryTarget is not { IsAlly: false } || World.Client.CountdownRemaining >= 0)
             return;
 
         switch (Player.Class)

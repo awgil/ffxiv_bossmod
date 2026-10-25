@@ -62,7 +62,7 @@ public sealed class UIRotationWindow : UIWindow
         if (dups.Count > 0)
             UIMisc.Banner(FontAwesomeIcon.ExclamationTriangle, $"Multiple copies of the same module are active ({string.Join(", ", dups.Select(d => d.Name))}). Only one of each will execute.", UIMisc.ColorWarning);
 
-        var activeModule = _mgr.Bossmods.ActiveModule;
+        var activeModule = _mgr.Bossmods.DrawnModule;
         if (activeModule != null)
         {
             DrawPlanSelector(activeModule, player);
