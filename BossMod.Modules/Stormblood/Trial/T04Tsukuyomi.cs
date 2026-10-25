@@ -78,7 +78,15 @@ class Nightbloom(BossModule module) : Components.RaidwideCast(module, AID.Nightb
 class NightbloomAdds(BossModule module) : Components.RaidwideCast(module, AID.NightbloomAdds);
 class Antitwilight(BossModule module) : Components.RaidwideCast(module, AID.Antitwilight);
 class ToAshes(BossModule module) : Components.RaidwideCast(module, AID.ToAshes, "Kill Midnight Haze or raidwide");
-class DanceOfTheDead(BossModule module) : Components.RaidwideInstant(module, AID.DanceOfTheDeadRaidwide, 0);
+class DanceOfTheDead(BossModule module) : Components.RaidwideInstant(module, AID.DanceOfTheDeadRaidwide, 5)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if ((AID)spell.Action.ID == AID.DanceOfTheDead)
+            Activation = WorldState.FutureTime(Delay);
+    }
+}
 
 class TormentUntoDeath(BossModule module) : Components.GenericBaitAway(module, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
@@ -109,7 +117,44 @@ class TsukiNoMaiogi(BossModule module) : Components.StandardAOEs(module, AID.Tsu
     }
 }
 class DarkBladeBrightBlade(BossModule module) : Components.GroupedAOEs(module, [AID.DarkBlade, AID.BrightBlade], new AOEShapeCone(70, 105.Degrees()));
-class Lunacy(BossModule module) : Components.StackWithCastTargets(module, AID.Lunacy, 6, 8, 8);
+class Lunacy(BossModule module) : Components.StackWithCastTargets(module, AID.Lunacy, 6, 8, 8)
+{
+    private int _numSeries;
+    private int _remaining;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        base.OnCastStarted(caster, spell);
+        if (spell.Action == StackAction)
+            for (var i = 0; i < Stacks.Count; ++i)
+                Stacks[i] = Stacks[i] with { Hits = _numSeries == 0 ? 3 : 4 };
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell) { }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.Lunacy:
+                _remaining = _numSeries++ == 0 ? 2 : 3;
+                UpdateStacks(2.1f);
+                break;
+            case AID.LunacyRepeat:
+                if (--_remaining <= 0)
+                    Stacks.Clear();
+                else
+                    UpdateStacks(1.1f);
+                break;
+        }
+    }
+
+    private void UpdateStacks(float nextHit)
+    {
+        for (var i = 0; i < Stacks.Count; ++i)
+            Stacks[i] = Stacks[i] with { Activation = WorldState.FutureTime(nextHit), Hits = _remaining };
+    }
+}
 class LunarHalo(BossModule module) : Components.StandardAOEs(module, AID.LunarHalo, new AOEShapeDonut(2, 15));
 class UnmovingTroikaSecond(BossModule module) : Components.StandardAOEs(module, AID.UnmovingTroikaSecond, new AOEShapeCone(39, 37.5f.Degrees()));
 class UnmovingTroikaThird(BossModule module) : Components.StandardAOEs(module, AID.UnmovingTroikaThird, new AOEShapeCone(39, 37.5f.Degrees()));

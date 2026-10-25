@@ -268,7 +268,7 @@ class D073TraumereiStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 12763, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 12763)]
 public class D073Traumerei(ModuleInit init) : BossModule(init, new(148, -433), new ArenaBoundsSquare(19.5f))
 {
     public static readonly ArenaBoundsCustom CrossArena = BuildCross();

@@ -89,7 +89,7 @@ public enum TetherID : uint
     BurningTether = 9
 }
 
-class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 35, kind: Components.Knockback.Kind.DirForward)
+class TidalWave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.TidalWave, 35, kind: Kind.DirForward)
 {
     private DateTime _knockbackUntil;
 
@@ -148,6 +148,7 @@ class TailSlap(BossModule module) : Components.GroupedAOEs(module, [AID.TailSlap
 class Dragonfist(BossModule module) : Components.StandardAOEs(module, AID.DragonfistVisual, 16);
 class EarthenFurySmash(BossModule module) : Components.StandardAOEs(module, AID.EarthenFurySmash, new AOEShapeRect(20, 10));
 class SuperCyclone(BossModule module) : Components.KnockbackFromCastTarget(module, AID.SuperCyclone, 5);
+class SuperCycloneHits(BossModule module) : Components.RaidwideMultiHit(module, AID.AerialBlast, [AID.SuperCyclone], -6.1f, 2.1f, 3);
 class AerialBlast(BossModule module) : Components.Knockback(module, AID.AerialBlast)
 {
     private WPos _origin;
@@ -192,13 +193,13 @@ class AerialBlast(BossModule module) : Components.Knockback(module, AID.AerialBl
 }
 class Hypernova(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HypernovaStack, AID.Hypernova, 7, 6);
 class Spikesicle(BossModule module) : Components.StandardAOEs(module, AID.Spikesicle, new AOEShapeRect(64.5f, 5), maxCasts: 3);
-class SpikesicleKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Spikesicle, 10, maxCasts: 3, shape: new AOEShapeRect(64.5f, 5), kind: Components.Knockback.Kind.DirForward);
+class SpikesicleKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Spikesicle, 10, maxCasts: 3, shape: new AOEShapeRect(64.5f, 5), kind: Kind.DirForward);
 class DeathSentence(BossModule module) : Components.SingleTargetCast(module, AID.DeathSentence);
 class SpikedTail(BossModule module) : Components.SingleTargetCast(module, AID.SpikedTail);
 class Hellfire(BossModule module) : Components.RaidwideCast(module, AID.Hellfire);
 class DiamondDust(BossModule module) : Components.RaidwideCast(module, AID.DiamondDust);
 class JudgmentBolt(BossModule module) : Components.RaidwideCast(module, AID.JudgmentBolt);
-class IceStormRaidwide(BossModule module) : Components.RaidwideInstant(module, AID.IceStormRaidwide, 0);
+class IceStormRaidwide(BossModule module) : Components.RaidwideCastDelay(module, AID.IceStorm, AID.IceStormRaidwide, 0.6f);
 class Protostar(BossModule module) : Components.RaidwideCast(module, AID.Protostar);
 class DarkMatter(BossModule module) : Components.RaidwideCast(module, AID.DarkMatter);
 class EarthenFury(BossModule module) : Components.RaidwideCast(module, AID.EarthenFury);
@@ -369,6 +370,7 @@ class T03ShinryuStates : StateMachineBuilder
             .ActivateOnEnter<DiamondDust>()
             .ActivateOnEnter<EarthenFurySmash>()
             .ActivateOnEnter<SuperCyclone>()
+            .ActivateOnEnter<SuperCycloneHits>()
             .ActivateOnEnter<AerialBlast>()
             .ActivateOnEnter<Hypernova>();
     }

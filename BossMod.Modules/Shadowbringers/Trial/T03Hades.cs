@@ -169,7 +169,7 @@ class HellbornYawpBait(BossModule module) : Components.BaitAwayIcon(module, new 
 }
 class CaptivityBait(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.CaptivityBait, AID.CaptivityCast, 4.7f, centerAtTarget: true);
 class LifeInCaptivity(BossModule module) : Components.RaidwideCast(module, AID.LifeInCaptivity);
-class TheDarkDevours(BossModule module) : Components.RaidwideCastDelay(module, AID.TheDarkDevoursVisual, AID.TheDarkDevours, 0.5f);
+class TheDarkDevours(BossModule module) : Components.RaidwideMultiHit(module, AID.TheDarkDevoursVisual, [AID.TheDarkDevours], 1.2f, 2.02f, 4);
 class BlackCauldron(BossModule module) : Components.RaidwideInstant(module, AID.BlackCauldron, 0.5f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

@@ -56,7 +56,6 @@ class MightyBlorpStack3(BossModule module) : Components.StackWithIcon(module, (u
 class DubiousTulidisaster(BossModule module) : Components.RaidwideCast(module, AID.DubiousTulidisaster);
 class GreatestLabyrinth(BossModule module) : BossComponent(module)
 {
-    // TODO: 0x04000200 entry is unverified
     private static readonly Dictionary<uint, WPos> _entries = new()
     {
         [0x04000200] = new(-128, -560),
@@ -206,5 +205,5 @@ class D083GreatestSerpentOfTuralStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "CerQ, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834, NameID = 12709, Incomplete = true)]
+[ModuleInfo(Contributors = "CerQ, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 834, NameID = 12709)]
 public class D083GreatestSerpentOfTural(ModuleInit init) : BossModule(init, new(-130, -554), new ArenaBoundsSquare(12));

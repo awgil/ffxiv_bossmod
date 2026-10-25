@@ -88,7 +88,7 @@ class CarGeometry : BossComponent
 {
     public int Car
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -662,7 +662,7 @@ class T07DoomtrainStates : StateMachineBuilder
                 Module.Arena.Center = new(-400, -400);
             })
             .SetHint(StateMachine.StateHint.DowntimeEnd);
-        ComponentCondition<AetherSurge>(id + 0x20, 10.7f, a => a.NumCasts >= 4, "Cones 1");
+        ComponentCondition<AetherSurge>(id + 0x20, 10.7f, a => a.NumCasts >= 4, "Cones 1", 2);
         ComponentCondition<AetherialRay>(id + 0x21, 1.8f, a => a.NumCasts >= 1, "Tank cone 1")
             .SetHint(StateMachine.StateHint.Tankbuster);
         ComponentCondition<AetherSurge>(id + 0x30, 8.7f, a => a.NumCasts >= 8, "Cones 2");
@@ -720,7 +720,7 @@ class T07DoomtrainStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
         Tankbusters(id + 0x90, 2.2f);
         Hails(id + 0xA0, 7.8f, 14.1f, 14.1f);
-        // TODO: post-last Arcane Revelation + enrage unseen; Express/Windpipe and breath/headlight order per car unverified (one replay)
+        // TODO: timeline after the last Arcane Revelation + enrage unseen (both kills ended before it)
         SimpleState(id + 0xFF0000, 10000, "???");
     }
 
@@ -750,8 +750,8 @@ class T07DoomtrainStates : StateMachineBuilder
     {
         Cast(id, AID.ArcaneRevelation, delay, 1.7f)
             .ActivateOnEnter<HailOfThunder>();
-        ComponentCondition<HailOfThunder>(id + 2, first, h => h.NumCasts >= 1, "Hail 1");
-        ComponentCondition<HailOfThunder>(id + 3, second, h => h.NumCasts >= 2, "Hail 2")
+        ComponentCondition<HailOfThunder>(id + 2, first, h => h.NumCasts >= 1, "Hail 1", 4);
+        ComponentCondition<HailOfThunder>(id + 3, second, h => h.NumCasts >= 2, "Hail 2", 4)
             .DeactivateOnExit<HailOfThunder>();
     }
 
@@ -765,7 +765,7 @@ class T07DoomtrainStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1076, NameID = 14284, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1076, NameID = 14284)]
 public class T07Doomtrain(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(10, CarGeometry.CarHeight))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

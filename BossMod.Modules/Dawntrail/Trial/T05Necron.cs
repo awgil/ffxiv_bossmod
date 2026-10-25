@@ -694,13 +694,13 @@ class T05NecronStates : StateMachineBuilder
             .ActivateOnEnter<SpreadingFear>();
     }
 
-    private void P2(uint id) => ActivateCommon(SimpleState(id, 10000, "Enrage"));
+    private void P2(uint id) => ActivateCommon(SimpleState(id, 10000, "Enrage"), false);
 
     private void NothingTargetable(uint id, bool nothing, float delay, string name)
         => Condition(id, delay, () => Module.WorldState.Actors.Any(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead) != nothing, name, 5)
             .SetHint(nothing ? StateMachine.StateHint.DowntimeStart : StateMachine.StateHint.DowntimeEnd);
 
-    private void ActivateCommon(State state)
+    private void ActivateCommon(State state, bool jail = true)
     {
         state
             .ActivateOnEnter<FearOfDeath>()
@@ -723,7 +723,7 @@ class T05NecronStates : StateMachineBuilder
             .ActivateOnEnter<BlueShockwave>()
             .ActivateOnEnter<IcyHandsAdds>()
             .ActivateOnEnter<SpreadingFear>()
-            .ActivateOnEnter<Jail>();
+            .ActivateOnEnter<Jail>(jail);
     }
 }
 

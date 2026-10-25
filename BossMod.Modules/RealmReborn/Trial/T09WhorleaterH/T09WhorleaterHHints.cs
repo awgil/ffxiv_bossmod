@@ -15,7 +15,7 @@ class Hints(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var tankMimicry = actor.FindStatus(2124) != null; // BLU Mimicry: Tank
+        var tankMimicry = actor.FindStatus(SID.MimicryTank) != null;
         var magic = actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || actor.Class is Class.BLU && !tankMimicry;
         var target = WorldState.Actors.Find(actor.TargetID);
         if (target == null)

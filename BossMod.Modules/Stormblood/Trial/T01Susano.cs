@@ -59,7 +59,7 @@ class Seasplitter(BossModule module) : Components.GenericAOEs(module, AID.Seaspl
 {
     private readonly List<AOEInstance> _aoes = [];
 
-    private const float SafeStrip = 0.6f; // hitbox leaves a thin safe strip at the origin
+    private const float SafeStrip = 0.6f;
     private static readonly AOEShapeRect _shape = new(21.5f - SafeStrip, 20);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;

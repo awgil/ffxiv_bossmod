@@ -94,7 +94,7 @@ class HeartStruck2(BossModule module) : Components.StandardAOEs(module, AID.Hear
 class HeartStruck3(BossModule module) : Components.StandardAOEs(module, AID.HeartStruck3, new AOEShapeCircle(10));
 class Loveseeker(BossModule module) : Components.StandardAOEs(module, AID.LoveseekerAOE, new AOEShapeCircle(10));
 class BlowKiss(BossModule module) : Components.StandardAOEs(module, AID.BlowKiss, new AOEShapeCone(40, 60.Degrees()));
-class BlindingLove(BossModule module) : Components.GroupedAOEs(module, [AID.BlindingLove1, AID.BlindingLove2], new AOEShapeRect(50, 4), 3, true);
+class BlindingLove(BossModule module) : Components.GroupedAOEs(module, [AID.BlindingLove1, AID.BlindingLove2], new AOEShapeRect(50, 4), 6, true);
 
 class Fracture(BossModule module) : Components.CastTowers(module, AID.Fracture, 4)
 {
@@ -151,8 +151,8 @@ class Sweethearts(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<Actor> _hearts = [];
 
-    private static readonly AOEShapeCircle _body = new(1.5f);
-    private static readonly AOEShapeRect _path = new(3, 1);
+    private static readonly AOEShapeCircle _body = new(1.8f);
+    private static readonly AOEShapeRect _path = new(3, 1.8f);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -192,7 +192,7 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
         TemptingTwist(id + 0x10000, 7.1f);
         HoneyBeeline(id + 0x20000, 3.4f);
         HoneyedBreeze(id + 0x30000, 3.5f);
-        TemptingTwist(id + 0x40000, 4.3f);
+        TwistOrBeeline(id + 0x40000, 4.3f);
         HoneyBLive(id + 0x50000, 8.9f);
         HeartsTowers(id + 0x60000, 5.8f);
         Loveseeker(id + 0x70000, 4.4f);
@@ -205,9 +205,12 @@ class RM02NHoneyBLovelyStates : StateMachineBuilder
         VenomBeeline(id + 0xE0000, 7.5f);
         VenomTwist(id + 0xF0000, 3.9f);
         AlarmPheromones(id + 0x100000, 9.1f);
+        TwistOrBeeline(id + 0x110000, 25.2f);
+        HoneyBLive(id + 0x120000, 8.6f);
+        HeartsTowers(id + 0x130000, 0.8f);
 
-        // TODO: Heartsick (4-man stacks) never reached in a replay
-        SimpleState(id + 0x110000, 120, "Until enrage")
+        // TODO: second Love Me Tender (Heartsick stacks) never resolved in a replay; timeline past it unseen
+        SimpleState(id + 0x140000, 120, "Until enrage")
             .ActivateOnEnter<CallMeHoney>()
             .ActivateOnEnter<HoneyBFinale>()
             .ActivateOnEnter<HoneyBLive>()

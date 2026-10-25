@@ -227,6 +227,8 @@ class Border(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
+    private static bool IsMainPlatform(Actor act) => act.Position.AlmostEqual(OriginalCenter + new WDir(0, -18), 1);
+
     private int FindPlatform(Actor act) => SidePlatforms.FindIndex(p => (OriginalCenter + p).AlmostEqual(act.Position, 1));
 
     public override void OnActorEAnim(Actor actor, uint state)
@@ -241,20 +243,22 @@ class Border(BossModule module) : Components.GenericAOEs(module)
                     break;
                 case 0x00100020:
                     var tile = FindPlatform(actor);
-                    if (tile < 0)
-                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
-                    else
+                    if (tile >= 0)
                         UnsafePlatforms.Set(tile);
+                    else if (!IsMainPlatform(actor))
+                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
                     break;
                 case 0x00040008:
                     var tile2 = FindPlatform(actor);
-                    if (tile2 < 0)
-                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
-                    else
+                    if (tile2 >= 0)
                     {
                         UnsafePlatforms.Clear(tile2);
                         MissingPlatforms.Set(tile2);
                         UpdateBounds();
+                    }
+                    else if (!IsMainPlatform(actor))
+                    {
+                        Module.ReportError(this, $"unmatched tile for {actor} @ {actor.Position} ({actor.Position - OriginalCenter})");
                     }
                     break;
             }

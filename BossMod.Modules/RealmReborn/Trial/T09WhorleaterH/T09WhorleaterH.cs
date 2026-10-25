@@ -40,7 +40,7 @@ public class T09WhorleaterH(ModuleInit init) : BossModule(init, new(-0, 0), new 
 
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var tankMimicry = actor.FindStatus(2124) != null; // BLU Mimicry: Tank
+        var tankMimicry = actor.FindStatus(SID.MimicryTank) != null;
         var magic = actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || actor.Class is Class.BLU && !tankMimicry;
         var physRanged = actor.Class.GetClassCategory() is ClassCategory.PhysRanged;
         foreach (var e in hints.PotentialTargets)

@@ -51,4 +51,5 @@ public enum SID : uint
     VeilOfTheWhorl = 478, // Boss->A88/Boss/A87, extra=0x64
     MantleOfTheWhorl = 477, // Tail->Tail, extra=0x64
     Invincibility = 775, // none->A88/Boss/Tail/A87, extra=0x0
+    MimicryTank = 2124, // BLU->BLU, Aetheric Mimicry: Tank
 }

@@ -140,6 +140,7 @@ class D072JackInThePotStates : StateMachineBuilder
 {
     public D072JackInThePotStates(BossModule module) : base(module)
     {
+        // TODO: Sordid Steam never seen (two clears)
         TrivialPhase()
             .ActivateOnEnter<TeaAwhirl>()
             .ActivateOnEnter<PipingPour>()
@@ -148,5 +149,5 @@ class D072JackInThePotStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 12760, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 12760)]
 public class D072JackInThePot(ModuleInit init) : BossModule(init, new(17, -170), new ArenaBoundsCircle(19.5f));

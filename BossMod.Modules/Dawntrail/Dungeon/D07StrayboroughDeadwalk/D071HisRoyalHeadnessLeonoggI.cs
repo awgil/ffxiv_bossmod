@@ -165,6 +165,7 @@ class D071HisRoyalHeadnessLeonoggIStates : StateMachineBuilder
 {
     public D071HisRoyalHeadnessLeonoggIStates(BossModule module) : base(module)
     {
+        // TODO: Morbid Fascination and Scream never seen (two clears)
         TrivialPhase()
             .ActivateOnEnter<ArenaChange>()
             .ActivateOnEnter<MaliciousMist>()
@@ -176,7 +177,7 @@ class D071HisRoyalHeadnessLeonoggIStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 13073, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 981, NameID = 13073)]
 public class D071HisRoyalHeadnessLeonoggI(ModuleInit init) : BossModule(init, ArenaCenter, StartingBounds)
 {
     public static readonly WPos ArenaCenter = new(0, 150);

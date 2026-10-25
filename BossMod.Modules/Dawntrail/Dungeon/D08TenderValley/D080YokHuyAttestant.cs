@@ -30,16 +30,27 @@ class AncientWrath(BossModule module) : Components.GenericAOEs(module)
 {
     private DateTime _activation;
 
-    private static readonly AOEShapeRect _full = new(35, 4);
-    private static readonly AOEShapeRect _short = new(22, 4);
+    private static readonly AOEShapeRect _long = new(35, 4);
+    private static readonly AOEShapeRect _medium = new(22, 4);
+    private static readonly AOEShapeRect _short = new(12, 4);
 
-    // TODO: z -471.5 / -486.5 rows are 12 or 22 long; only known on fire, assumes 22
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (_activation == default)
             yield break;
         foreach (var s in Module.Enemies(OID.BlackenedStatue))
-            yield return new(s.Position.Z is > -474 and < -469 or > -489 and < -484 ? _short : _full, s.Position, s.Rotation, _activation);
+            yield return new(Shape(s.Position), s.Position, s.Rotation, _activation);
+    }
+
+    private static AOEShapeRect Shape(WPos statue)
+    {
+        var west = statue.X < -130;
+        return statue.Z switch
+        {
+            > -474 and < -469 => west ? _medium : _short,
+            > -489 and < -484 => west ? _short : _medium,
+            _ => _long
+        };
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
