@@ -275,7 +275,11 @@ class P2BahamutsFavorDeathstorm(BossModule module) : BossComponent(module)
                 if (actor.FindStatus(SID.Thunderstruck)?.ExpireAt.AddSeconds(0.5f) < d.Expiration)
                     return;
 
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1));
+                var deadline = d.Expiration.AddSeconds(-0.5f);
+                if (Module.FindComponent<P2BahamutsFavorWingsOfSalvation>()?.Check(slot, actor, pos.Value) == true)
+                    deadline = default;
+
+                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(pos.Value, 1), deadline);
             }
             else
                 hints.AddForbiddenZone(ShapeDistance.Circle(pos.Value, 1));

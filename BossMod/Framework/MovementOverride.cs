@@ -2,6 +2,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
@@ -31,7 +32,7 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud) : IMovementOverride, IHostedService, IDisposable
+public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, IGameConfig gameConfig) : IMovementOverride, IHostedService, IDisposable
 {
     public Vector3? DesiredDirection { get; set; }
     public Angle MisdirectionThreshold { get; set; }
@@ -92,14 +93,14 @@ public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud) : I
         _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
         _mcIsInputActiveHook = new("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
 
-        Service.GameConfig.UiControlChanged += OnConfigChanged;
+        gameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
     }
 
     async Task IHostedService.StopAsync(CancellationToken cancellationToken)
     {
         dalamud.RelinquishData("vnav.PathIsRunning");
-        Service.GameConfig.UiControlChanged -= OnConfigChanged;
+        gameConfig.UiControlChanged -= OnConfigChanged;
     }
 
     public void Dispose()
@@ -246,7 +247,7 @@ public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud) : I
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();
     private void UpdateLegacyMode()
     {
-        _legacyMode = Service.GameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
+        _legacyMode = gameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
         Service.Log($"Legacy mode is now {(_legacyMode ? "enabled" : "disabled")}");
     }
 }

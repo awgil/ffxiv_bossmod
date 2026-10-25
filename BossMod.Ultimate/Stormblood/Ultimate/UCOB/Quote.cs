@@ -198,10 +198,12 @@ class QuoteMeteorStream(BossModule module) : Components.StrictUniformStackSpread
             if (Module.FindComponent<P2Cauterize>()?.BaitOrder[slot].Order > 0)
                 return default;
 
-            if (nael.TargetID == target.InstanceID)
-                return (Arena.Center, 0);
+            var center = Arena.Center - new WDir(0, 4);
 
-            return (Arena.Center + (90 * _spreadCounter++).Degrees().ToDirection() * 5, 0);
+            if (nael.TargetID == target.InstanceID)
+                return (center, 0);
+
+            return (center + (45 + 90 * _spreadCounter++).Degrees().ToDirection() * 5, 0);
         }
 
         return default;

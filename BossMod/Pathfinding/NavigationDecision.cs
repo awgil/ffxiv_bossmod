@@ -37,7 +37,7 @@ public struct NavigationDecision
     // 3. unknown (variable) amount of delay between movement packet being sent and server deciding to update our position; can be bypassed (kind of) by forcing a position update through various means
     //  - jumping (has its own issues; player gets stuck in the air for a bit, you can't steer while jumping, etc)
     //  - sending position update packet (not an option, can't be done in the vanilla client, so it doesn't match our philosophy)
-    public static float CushionFromRTT(float rtt) => rtt + Service.Config.Get<AIHintsConfig>().AdditionalPathfindingCushion + ActorCastInfo.NPCFinishDelay;
+    public static float CushionFromRTT(float rtt) => rtt + 0.5f + ActorCastInfo.NPCFinishDelay;
 
     public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion, bool useOldRasterizer = false)
     {

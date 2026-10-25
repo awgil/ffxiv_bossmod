@@ -13,9 +13,9 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeRect _shape = new(52, 10);
 
     public static readonly WPos[] StandardBaits = [
-        new(18.149f, -9.531f),
-        new(8, 18.874f),
-        new(-17.667f, 10.398f)
+        new(19.035f, -10),
+        new(8.39f, 19.795f),
+        new(-18.532f, 10.901f)
     ];
 
     public WPos[] CurrentBaits = [];

@@ -247,7 +247,7 @@ class P3HeavensfallHypernova(BossModule module) : P2Hypernova(module)
         hints.GoalZones.Add(AIHints.GoalProximity(Arena.Center, 10, 5));
 
         var total = _predictedByEvent.Count + _sources.Count;
-        if (total < 3)
+        if (total < 2)
             // preserve at least a 1 unit gap between possible hypernova positions and pillar voidzone
             hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, default(Angle), 10, 10, 10));
     }

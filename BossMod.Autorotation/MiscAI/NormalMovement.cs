@@ -321,40 +321,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
             }
         }
 
-        // nasty hack: due to inherent precision loss when rasterizing round shapes onto a square grid, we can occasionally end up inside a single pixel surrounded on cardinals by obstacles
-        // this only happens if a module creates temporary obstacles representing voidzones, but that is a valid usecase so here we are
-        // TODO: this actually can also happen with regular pathfinding zones, but i'm worried about messing with the pathfinding logic too much
-        // (this case is special because pathfinder never moves into g<0 cells)
-        var map = CtxInactive.Map;
-        float cellG(int x, int y)
-        {
-            if (x < 0 || x >= map.Width)
-                return -1;
-            if (y < 0 || y >= map.Height)
-                return -1;
-
-            return map.PixelMaxG[map.GridToIndex(x, y)];
-        }
-
-        var (pX, pY) = map.WorldToGrid(Player.Position);
-        var playerG = cellG(pX, pY);
-        if (playerG >= 0 && playerG < map.MaxG)
-        {
-            if (cellG(pX - 1, pY) < 0 && cellG(pX + 1, pY) < 0 && cellG(pX, pY - 1) < 0 && cellG(pX, pY + 1) < 0)
-            {
-                (int, int)[] corners = [(-1, -1), (-1, +1), (+1, +1), (+1, -1)];
-                foreach (var (dx, dy) in corners)
-                {
-                    // "unblocked" corner isn't an obstacle, let's go for it
-                    if (cellG(pX + dx, pY + dy) >= 0)
-                    {
-                        Hints.ForcedMovement = new(dx, 0, dy);
-                        return;
-                    }
-                }
-            }
-        }
-
         var dir = navi.Destination.Value - Player.Position;
         var distSq = dir.LengthSq();
         if (distSq <= 0.01f)

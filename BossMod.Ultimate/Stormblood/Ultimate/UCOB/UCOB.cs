@@ -36,9 +36,9 @@ class P5MornAfah(BossModule module) : Components.StackWithCastTargets(module, AI
 }
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.Twintania, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 280, PlanLevel = 70)]
-public class UCOB(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(21))
+public class UCOB(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(22))
 {
-    public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(21);
+    public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(22);
 
     private Actor? _nael;
     private Actor? _bahamutPrime;

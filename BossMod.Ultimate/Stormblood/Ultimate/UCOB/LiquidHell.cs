@@ -140,25 +140,17 @@ class P3LiquidHell : LiquidHell
         NextCast = module.WorldState.FutureTime(8.2f);
     }
 
+    static readonly WPos[] FixedBaits = [new(9, 17), new(4.5f, 17.8f), new(-0.2f, 18), new(-4, 17.3f), new(-7.2f, 15.3f)];
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (assignment == PartyRolesConfig.Assignment.R1 && Module.Enemies(OID.Twintania).FirstOrDefault() is { } twin)
+        if (assignment == PartyRolesConfig.Assignment.R1 && Module.Enemies(OID.Twintania).FirstOrDefault() is { } twin && NumCasts < 5)
         {
-            if (NumCasts == 0)
-                hints.GoalZones.Add(AIHints.GoalProximity(new(4, 20), 10, 1));
-
-            hints.AddForbiddenZone(ShapeDistance.InvertedCone(twin.Position, 50, twin.DirectionTo(Arena.Center).ToAngle(), 45.Degrees()), DateTime.MaxValue);
-
-            if (NextCast != default)
-            {
-                hints.AddForbiddenZone(ShapeDistance.Circle(twin.Position, 18), NextCast);
-
-                foreach (var nl in Module.Enemies(OID.Neurolink))
-                    hints.AddForbiddenZone(ShapeDistance.Circle(nl.Position, 7), NextCast);
-            }
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(FixedBaits[NumCasts], new(0, 1), 0.5f, actor.Position, 0.1f), NextCast);
+            return;
         }
+
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

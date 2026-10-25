@@ -437,28 +437,6 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
             Hints.GoalZones.Add(goal);
     }
 
-    // TODO: consider moving to class definitions and autogenerating?
-    private float EffectApplicationDelay(BRD.AID aid) => aid switch
-    {
-        BRD.AID.BurstShot => 1.45f,
-        BRD.AID.RefulgentArrow => 1.45f,
-        BRD.AID.Stormbite => 1.3f,
-        BRD.AID.CausticBite => 1.3f,
-        BRD.AID.IronJaws => 0.6f,
-        BRD.AID.ApexArrow => 1.05f,
-        BRD.AID.BlastArrow => 1.65f,
-        BRD.AID.Bloodletter => 1.6f,
-        BRD.AID.HeartbreakShot => 1.65f,
-        BRD.AID.RainOfDeath => 1.65f,
-        BRD.AID.EmpyrealArrow => 1.0f,
-        BRD.AID.PitchPerfect => 0.8f,
-        BRD.AID.Sidewinder => 0.55f,
-        BRD.AID.RagingStrikes => 0.5f,
-        BRD.AID.BattleVoice => 0.6f,
-        BRD.AID.RadiantFinale => 0.6f,
-        _ => 0
-    };
-
     private int NumTargetsHitByLadonsbite(Actor primary) => Hints.NumPriorityTargetsInAOECone(Player.Position, 12, (primary.Position - Player.Position).Normalized(), 45.Degrees());
     private int NumTargetsHitByShadowbite(Actor primary) => Hints.NumPriorityTargetsInAOECircle(primary.Position, 4);
     private int NumTargetsHitByRainOfDeath(Actor primary) => Hints.NumPriorityTargetsInAOECircle(primary.Position, 8);
@@ -487,9 +465,9 @@ public sealed class VeynBRD(RotationModuleManager manager, Actor player) : Rotat
     }
 
     private bool QueueGCDAtHostile(BRD.AID aid, Actor? target, GCDPriority prio, GCDDelayStrategy strategy)
-        => strategy != GCDDelayStrategy.Delay && prio != GCDPriority.None && QueueAtHostile(aid, target, ActionQueue.Priority.High + (int)prio, strategy == GCDDelayStrategy.NoPrepull ? 0 : EffectApplicationDelay(aid));
+        => strategy != GCDDelayStrategy.Delay && prio != GCDPriority.None && QueueAtHostile(aid, target, ActionQueue.Priority.High + (int)prio, strategy == GCDDelayStrategy.NoPrepull ? 0 : ApplicationDelay.Get(aid));
     private bool QueueOGCDAtHostile(BRD.AID aid, Actor? target, OGCDPriority prio, float prioOverride, float basePrio = ActionQueue.Priority.Low)
-        => prio != OGCDPriority.None && QueueAtHostile(aid, target, float.IsNaN(prioOverride) ? basePrio + (int)prio : prioOverride, EffectApplicationDelay(aid));
+        => prio != OGCDPriority.None && QueueAtHostile(aid, target, float.IsNaN(prioOverride) ? basePrio + (int)prio : prioOverride, ApplicationDelay.Get(aid));
 
     // heuristic to determine whether currently active dots were applied under raidbuffs (assumes dots are actually active)
     // it's not easy to directly determine active dot potency

@@ -249,26 +249,20 @@ class P3MegaflareStack(BossModule module) : Components.UniformStackSpread(module
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Stacks is not ([var st, ..]))
+        if (Stacks is not ([var st, ..]) || st.ForbiddenPlayers[slot])
             return;
 
-        // avoid all stack targets
-        if (st.ForbiddenPlayers[slot])
-        {
-            foreach (var (_, player) in Raid.WithSlot().ExcludedFromMask(st.ForbiddenPlayers))
-                hints.AddForbiddenZone(ShapeDistance.Circle(player.Position, StackRadius), st.Activation);
-        }
-
         // bft: stack spot is relative south of puddles
-        else if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
+        if (Module.FindComponent<P3BlackfireTrio>() is { } bft)
         {
             // delay for one hypernova
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center + (bft.RelativeNorth + 180.Degrees()).ToDirection() * 8, _numHypernovas == 0 ? 7.5f : 2.5f), st.Activation);
+            return;
         }
 
         // GO: stack on wall on the opposite side of the twin bait
         // if the baiter has to run through a tower to get to the stack they might hit a tower player
-        else if (Module.FindComponent<P3GrandOctet>() is { Twintania: { } twin, BaitOrder: var b, DiveOrder: var d })
+        if (Module.FindComponent<P3GrandOctet>() is { Twintania: { } twin, BaitOrder: var b, DiveOrder: var d })
         {
             // player is baiting twin, don't move
             if (b[slot] == 8 && !_twinBait)
