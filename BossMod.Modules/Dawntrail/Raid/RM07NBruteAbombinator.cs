@@ -93,11 +93,20 @@ public enum TetherID : uint
     WallNear = 339, // Wall->Boss
 }
 
-// TODO: RaidwideMultiHit when available on master
-class BrutalImpact(BossModule module) : Components.RaidwideCast(module, AID.BrutalImpact);
+class BrutalImpact(BossModule module) : Components.RaidwideMultiHit(module, AID.BrutalImpact, [AID.BrutalImpactAOE], 0.2f, 1.1f, 6)
+{
+    public void SetHits(int hits)
+    {
+        if (Remaining <= 0)
+            return;
+        Remaining = hits;
+        LastHit = NextHit.AddSeconds(1.1f * (hits - 1));
+    }
+}
 class BrutalImpactRest(BossModule module) : Components.CastCounter(module, AID.BrutalImpactAOE);
 class NeoBombarianSpecial(BossModule module) : Components.RaidwideCast(module, AID.NeoBombarianSpecial);
 class RevengeOfTheVines(BossModule module) : Components.RaidwideCast(module, AID.RevengeOfTheVines);
+class RevengeOfTheVinesInstant(BossModule module) : Components.RaidwideInstant(module, AID.RevengeOfTheVinesInstant, 4.8f);
 class Powerslam(BossModule module) : Components.RaidwideCast(module, AID.Powerslam);
 class SporeSac(BossModule module) : Components.StandardAOEs(module, AID.SporeSacAOE, new AOEShapeCircle(8));
 class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(8));
@@ -289,6 +298,7 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
     {
         DeathPhase(0, SinglePhase)
             .ActivateOnEnter<ArenaChanges>()
+            .ActivateOnEnter<RevengeOfTheVinesInstant>()
             .ActivateOnEnter<Stoneringer>()
             .ActivateOnEnter<JumpSwing>()
             .ActivateOnEnter<BrutalSmash>()
@@ -341,7 +351,7 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         CastMulti(id + 0x210000, [AID.Stoneringers1, AID.Stoneringers2], 4.1f, 2);
         Cast(id + 0x220000, AID.SporeSac, 5.9f, 3);
-        Swing(id + 0x230000, [AID.BrutishSwingJump3, AID.BrutishSwingJump4, AID.BrutishSwingJump5], 4.7f, 3, 4, 3.7f);
+        Swing(id + 0x230000, [AID.BrutishSwingJump3, AID.BrutishSwingJump4, AID.BrutishSwingJump5], 4.7f, 3, 4, 3.7f, true);
         LashingLariat(id + 0x240000, 3.1f);
         Swing(id + 0x250000, [AID.BrutishSwingJump3, AID.BrutishSwingJump4, AID.BrutishSwingJump5], 1.7f, 3, 5, 3.7f);
         Slaminator(id + 0x260000, 1.1f);
@@ -353,7 +363,7 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
         Swing(id + 0x2C0000, [AID.BrutishSwingJump3, AID.BrutishSwingJump4, AID.BrutishSwingJump5], 8.7f, 3, 6, 3.7f);
         GlowerPower(id + 0x2D0000, 1.1f);
         LashingLariat(id + 0x2E0000, 0.8f);
-        Swing(id + 0x2F0000, [AID.BrutishSwingJump3, AID.BrutishSwingJump4, AID.BrutishSwingJump5], 1.6f, 3, 7, 3.7f);
+        Swing(id + 0x2F0000, [AID.BrutishSwingJump3, AID.BrutishSwingJump4, AID.BrutishSwingJump5], 1.6f, 3, 7, 3.7f, true);
         Slaminator(id + 0x300000, 3.3f);
 
         SimpleState(id + 0x310000, 120, "Until enrage")
@@ -376,10 +386,11 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
         Cast(id, AID.BrutalImpact, delay, 5)
             .ActivateOnEnter<BrutalImpact>()
             .ActivateOnEnter<BrutalImpactRest>()
-            .DeactivateOnExit<BrutalImpact>();
+            .ExecOnEnter<BrutalImpact>(c => c.SetHits(hits));
         ComponentCondition<BrutalImpactRest>(id + 0x10, 0.2f, c => c.NumCasts > 0, "Raidwide first hit")
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<BrutalImpactRest>(id + 0x20, 1.1f * (hits - 1), c => c.NumCasts >= hits, "Raidwide last hit")
+            .DeactivateOnExit<BrutalImpact>()
             .DeactivateOnExit<BrutalImpactRest>()
             .SetHint(StateMachine.StateHint.Raidwide);
     }
@@ -421,9 +432,10 @@ class RM07NBruteAbombinatorStates : StateMachineBuilder
             .DeactivateOnExit<QuarrySwamp>();
     }
 
-    private void Swing(uint id, AID[] aids, float delay, float castTime, int count, float resolve)
+    private void Swing(uint id, AID[] aids, float delay, float castTime, int count, float resolve, bool vines = false)
     {
-        CastMulti(id, aids, delay, castTime);
+        CastMulti(id, aids, delay, castTime)
+            .ExecOnEnter<RevengeOfTheVinesInstant>(c => c.Activation = Module.WorldState.FutureTime(castTime + c.Delay), vines);
         ComponentCondition<JumpSwing>(id + 0x10, resolve, c => c.NumCasts >= count, "Swing");
     }
 

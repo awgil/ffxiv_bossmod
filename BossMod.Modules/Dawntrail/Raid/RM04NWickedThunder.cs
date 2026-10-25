@@ -88,13 +88,29 @@ class WickedJolt(BossModule module) : Components.BaitAwayCast(module, AID.Wicked
 class SidewiseSpark(BossModule module) : Components.GroupedAOEs(module, [AID.SidewiseSpark1, AID.SidewiseSpark2, AID.SidewiseSpark3, AID.SidewiseSpark4], new AOEShapeCone(60, 90.Degrees()));
 class Thunderslam(BossModule module) : Components.StandardAOEs(module, AID.Thunderslam, new AOEShapeCircle(5));
 class Thunderstorm(BossModule module) : Components.SpreadFromCastTargets(module, AID.Thunderstorm, 6);
-// TODO: pass Hits=5 once RaidwideMultiHit / StackWithIcon hit count is on master
-class WickedBolt(BossModule module) : Components.StackWithIcon(module, (uint)IconID.WickedBolt, AID.WickedBolt, 5, 5.1f, 4, 8);
+class WickedBolt(BossModule module) : Components.StackWithIcon(module, (uint)IconID.WickedBolt, AID.WickedBolt, 5, 5.1f, 4, 8, 5)
+{
+    private int _hits;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action != StackAction)
+            return;
+        if (++_hits < 5)
+        {
+            for (var i = 0; i < Stacks.Count; ++i)
+                Stacks[i] = Stacks[i] with { Activation = WorldState.FutureTime(1), Hits = 5 - _hits };
+            return;
+        }
+        _hits = 0;
+        base.OnEventCast(caster, spell);
+    }
+}
 class SoaringSoulpress(BossModule module) : Components.StackWithIcon(module, (uint)IconID.SoaringSoulpress, AID.SoaringSoulpress, 6, 5.4f, 4, 8);
 class BewitchingFlight(BossModule module) : Components.StandardAOEs(module, AID.BewitchingFlightAOE, new AOEShapeRect(40, 2.5f));
 class Burst(BossModule module) : Components.StandardAOEs(module, AID.Burst, new AOEShapeRect(40, 8), 2, highlightImminent: true);
-class WickedHypercannon1(BossModule module) : Components.RaidwideCastDelay(module, AID.WickedHypercannon1, AID.WickedHypercannonAOE, 0.6f, "Raidwide x10");
-class WickedHypercannon2(BossModule module) : Components.RaidwideCastDelay(module, AID.WickedHypercannon2, AID.WickedHypercannonAOE, 0.6f, "Raidwide x10");
+class WickedHypercannon1(BossModule module) : Components.RaidwideMultiHit(module, AID.WickedHypercannon1, [AID.WickedHypercannonAOE], 0.6f, 1.06f, 10, "Line stack");
+class WickedHypercannon2(BossModule module) : Components.RaidwideMultiHit(module, AID.WickedHypercannon2, [AID.WickedHypercannonAOE], 0.6f, 1.06f, 10, "Line stack");
 
 // TODO: never cast in a replay
 class WitchHunt(BossModule module) : Components.GenericAOEs(module, AID.WitchHuntAOE)
@@ -337,7 +353,7 @@ class RM04NWickedThunderStates : StateMachineBuilder
         Cannons(id, [AID.FivefoldBlast1, AID.FivefoldBlast2], 0, 16, 5);
         Thunderstorm(id + 0x10000, 8.9f);
         WickedBolt(id + 0x20000, 2.3f);
-        StampedingThunder(id + 0x30000, 16.1f, 5);
+        StampedingThunder(id + 0x30000, 12.1f, 5);
         Hypercannon1(id + 0x40000, 4.1f);
         Hypercannon2(id + 0x50000, 10);
         Enrage(id + 0x60000);

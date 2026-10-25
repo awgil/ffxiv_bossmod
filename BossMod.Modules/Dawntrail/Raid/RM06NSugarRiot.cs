@@ -81,21 +81,30 @@ class TasteOfThunder(BossModule module) : Components.SpreadFromCastTargets(modul
 class TasteOfFire(BossModule module) : Components.StackWithCastTargets(module, AID.TasteOfFireAOE, 6, 4, 4);
 class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, new AOEShapeCircle(4));
 
-class PuddingParty(BossModule module) : Components.StackWithIcon(module, (uint)IconID.PuddingParty, AID.PuddingPartyAOE, 6, 5.1f, 4, 8)
+class PuddingParty(BossModule module) : Components.StackWithIcon(module, (uint)IconID.PuddingParty, AID.PuddingPartyAOE, 6, 5.1f, 4, 8, 5)
 {
     public int NumCasts;
     public int MaxHits = 5;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == StackAction && ++NumCasts >= MaxHits)
+        if (spell.Action != StackAction)
+            return;
+        if (++NumCasts >= MaxHits)
             Stacks.Clear();
+        else
+            for (var i = 0; i < Stacks.Count; ++i)
+                Stacks[i] = Stacks[i] with { Activation = WorldState.FutureTime(1.1f), Hits = MaxHits - NumCasts };
     }
 }
 
 class PuddingParty6 : PuddingParty
 {
-    public PuddingParty6(BossModule module) : base(module) => MaxHits = 6;
+    public PuddingParty6(BossModule module) : base(module)
+    {
+        MaxHits = 6;
+        StackHits = 6;
+    }
 }
 
 class SingleDoubleStyle(BossModule module) : Components.GenericAOEs(module)

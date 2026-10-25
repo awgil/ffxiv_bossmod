@@ -59,7 +59,7 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Stack = 41, // player
+    Surpanakha = 41, // player
     Slaughter = 57, // player
     SwiftSlaughter1 = 50, // player
     SwiftSlaughter2 = 51, // player
@@ -303,56 +303,34 @@ class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (ui
     }
 }
 
-class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, new AOEShapeCone(40, 65.Degrees()))
+class Surpanakha(BossModule module) : Components.GenericBaitAway(module, AID.Surpanakha, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
-    private bool _active;
-    private DateTime _nextHit;
+    private static readonly AOEShapeCone _shape = new(40, 65.Degrees());
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID != (uint)IconID.Surpanakha)
+            return;
+        NumCasts = 0;
+        CurrentBaits.Clear();
+        CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape, WorldState.FutureTime(8.1f)));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.PillarsOfHeaven:
-                _active = true;
-                _nextHit = WorldState.FutureTime(10.2f);
-                break;
             case AID.Surpanakha:
-                _nextHit = WorldState.FutureTime(2.2f);
+                ++NumCasts;
+                for (var i = 0; i < CurrentBaits.Count; ++i)
+                    CurrentBaits[i] = CurrentBaits[i] with { Activation = WorldState.FutureTime(NumCasts == 3 ? 14.4f : 2.2f) };
                 break;
             case AID.DragonflyAvatar:
             case AID.ScorpionAvatar:
             case AID.BeetleAvatar:
-                _active = false;
+                CurrentBaits.Clear();
                 break;
         }
-        base.OnEventCast(caster, spell);
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_active)
-            base.AddHints(slot, actor, hints);
-    }
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        if (_active)
-            hints.Add("Tankbuster (multi-hit)");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!_active)
-            return;
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (WorldState.Actors.Find(Module.PrimaryActor.TargetID) is { } tank && Raid.TryFindSlot(tank, out var tankSlot))
-            hints.AddPredictedDamage(new BitMask().WithBit(tankSlot), _nextHit, AIHints.PredictedDamageType.Tankbuster);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (_active)
-            base.DrawArenaForeground(pcSlot, pc);
     }
 }
 

@@ -82,8 +82,16 @@ public enum IconID : uint
     SpinCCW = 168, // Boss
 }
 
-// TODO: RaidwideMultiHit when available on master
-class BrutalImpact(BossModule module) : Components.RaidwideCast(module, AID.BrutalImpact);
+class BrutalImpact(BossModule module) : Components.RaidwideMultiHit(module, AID.BrutalImpact, [AID.BrutalImpact, AID.BrutalImpactRest], 0, 1.1f, 6)
+{
+    public void SetHits(int hits)
+    {
+        if (Remaining <= 0)
+            return;
+        Remaining = hits;
+        LastHit = NextHit.AddSeconds(1.1f * (hits - 1));
+    }
+}
 class BrutalImpactRest(BossModule module) : Components.CastCounter(module, AID.BrutalImpactRest);
 class KnuckleSandwich(BossModule module) : Components.CastSharedTankbuster(module, AID.KnuckleSandwich, 6);
 class MurderousMist(BossModule module) : Components.StandardAOEs(module, AID.MurderousMist, new AOEShapeCone(40, 135.Degrees()));
@@ -324,9 +332,10 @@ class RM03NBruteBomberStates : StateMachineBuilder
         Cast(id, AID.BrutalImpact, delay, 5, "Raidwide first hit")
             .ActivateOnEnter<BrutalImpact>()
             .ActivateOnEnter<BrutalImpactRest>()
-            .DeactivateOnExit<BrutalImpact>()
+            .ExecOnEnter<BrutalImpact>(c => c.SetHits(extraHits + 1))
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<BrutalImpactRest>(id + 0x10, 1.1f * extraHits, c => c.NumCasts >= extraHits, "Raidwide last hit")
+            .DeactivateOnExit<BrutalImpact>()
             .DeactivateOnExit<BrutalImpactRest>()
             .SetHint(StateMachine.StateHint.Raidwide);
     }

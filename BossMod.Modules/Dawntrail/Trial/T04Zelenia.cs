@@ -167,20 +167,31 @@ class RosebloodBloom(BossModule module) : Components.KnockbackFromCastTarget(mod
 // TODO: Quietus resolves during cutscene stun — warn on Bloom knockback instead
 class PerfumedQuietus(BossModule module) : Components.RaidwideCast(module, AID.RosebloodBloom);
 class ThornedCatharsis(BossModule module) : Components.RaidwideCast(module, AID.ThornedCatharsis);
-class ValorousAscension(BossModule module) : Components.RaidwideCast(module, AID.ValorousAscension1, "Raidwide x3");
+class ValorousAscension(BossModule module) : Components.RaidwideMultiHit(module, AID.ValorousAscension1, [AID.ValorousAscension1, AID.ValorousAscension2, AID.ValorousAscension3], 0, 0.95f, 3);
 
-class StockBreak(BossModule module) : Components.UniformStackSpread(module, 6, 0, 8, 8)
+class StockBreak(BossModule module) : Components.UniformStackSpread(module, 6, 0, 8, 8, stackHits: 4)
 {
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID == (uint)IconID.StockBreak)
-            AddStack(actor, WorldState.FutureTime(7.1f));
+            AddStack(actor, WorldState.FutureTime(8.2f));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.StockBreak4)
+        var remaining = (AID)spell.Action.ID switch
+        {
+            AID.StockBreak1 => 3,
+            AID.StockBreak2 => 2,
+            AID.StockBreak3 => 1,
+            AID.StockBreak4 => 0,
+            _ => -1
+        };
+        if (remaining == 0)
             Stacks.Clear();
+        else if (remaining > 0)
+            for (var i = 0; i < Stacks.Count; ++i)
+                Stacks[i] = Stacks[i] with { Activation = WorldState.FutureTime(1.1f), Hits = remaining };
     }
 }
 
@@ -228,13 +239,14 @@ class AlexandrianThunderIII(BossModule module) : Components.GenericAOEs(module)
     {
         if (index is < 0x04 or > 0x09)
             return;
+        var tile = (6 - (index - 0x04)) % 6;
         switch (state)
         {
             case 0x00400100:
-                _tiles[index - 0x04] = true;
+                _tiles[tile] = true;
                 break;
             case 0x00040020:
-                _tiles[index - 0x04] = false;
+                _tiles[tile] = false;
                 break;
         }
     }
@@ -381,6 +393,7 @@ class T04ZeleniaStates : StateMachineBuilder
 {
     public T04ZeleniaStates(BossModule module) : base(module)
     {
+        // TODO: enrage never reached (kill at ~6:50)
         TrivialPhase()
             .ActivateOnEnter<ArenaChanges>()
             .ActivateOnEnter<AlexandrianThunderIV>()
@@ -400,7 +413,7 @@ class T04ZeleniaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1030, NameID = 13861, Incomplete = true)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1030, NameID = 13861)]
 public class T04Zelenia(ModuleInit init) : BossModule(init, new(100, 100), DefaultArena)
 {
     public static readonly ArenaBoundsCircle DefaultArena = new(16);

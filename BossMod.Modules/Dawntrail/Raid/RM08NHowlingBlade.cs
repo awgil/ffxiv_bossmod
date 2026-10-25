@@ -127,8 +127,40 @@ class FangedCharge(BossModule module) : Components.StandardAOEs(module, AID.Fang
 class MoonbeamsBite(BossModule module) : Components.GroupedAOEs(module, [AID.MoonbeamsBite1, AID.MoonbeamsBite2, AID.MoonbeamsBite3, AID.MoonbeamsBite4], new AOEShapeRect(40, 10), 2, true);
 class ShadowchaseRoaringWind(BossModule module) : Components.GroupedAOEs(module, [AID.ShadowchaseAOE1, AID.ShadowchaseAOE2, AID.RoaringWind], new AOEShapeRect(40, 4));
 class TerrestrialTitans(BossModule module) : Components.StandardAOEs(module, AID.TerrestrialTitansAOE, new AOEShapeCircle(3));
+class TitanicPursuit(BossModule module) : Components.RaidwideCast(module, AID.TitanicPursuitAOE);
 class Towerfall(BossModule module) : Components.StandardAOEs(module, AID.Towerfall, new AOEShapeRect(30, 3));
-class RavenousSaber(BossModule module) : Components.RaidwideCast(module, AID.RavenousSaber1, "Raidwide x5");
+class RavenousSaber(BossModule module) : Components.CastCounterMulti(module, [AID.RavenousSaber1, AID.RavenousSaber2, AID.RavenousSaber3, AID.RavenousSaber4, AID.RavenousSaber5])
+{
+    private readonly List<DateTime> _hits = [];
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        if (_hits.Count > 0)
+            hints.Add($"Raidwide x{_hits.Count}");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_hits.Count > 0)
+            hints.AddPredictedDamage(Raid.WithSlot().Mask(), _hits[0], AIHints.PredictedDamageType.Raidwide, _hits.Count, _hits[^1]);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (WatchedActions.Contains(spell.Action))
+        {
+            _hits.Add(Module.CastFinishAt(spell));
+            _hits.Sort();
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if (WatchedActions.Contains(spell.Action) && _hits.Count > 0)
+            _hits.RemoveAt(0);
+    }
+}
 class WolvesReignCircle(BossModule module) : Components.GroupedAOEs(module, [AID.WolvesReignCircle1, AID.WolvesReignCircle2, AID.WolvesReignCircle3, AID.WolvesReignCircle4,
     AID.WolvesReignCircle5, AID.WolvesReignCircle6, AID.WolvesReignCircle7, AID.WolvesReignCircle8], new AOEShapeCircle(6));
 class WolvesReignRect1(BossModule module) : Components.StandardAOEs(module, AID.WolvesReignRect1, new AOEShapeRect(36, 5));
@@ -167,14 +199,19 @@ class WolvesReignCone(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class TrackingTremors(BossModule module) : Components.StackWithIcon(module, (uint)IconID.TrackingTremors, AID.TrackingTremorsAOE, 6, 6, 4, 8)
+class TrackingTremors(BossModule module) : Components.StackWithIcon(module, (uint)IconID.TrackingTremors, AID.TrackingTremorsAOE, 6, 6, 4, 8, 5)
 {
     public int NumCasts;
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == StackAction && ++NumCasts % 5 == 0)
+        if (spell.Action != StackAction)
+            return;
+        if (++NumCasts % 5 == 0)
             Stacks.Clear();
+        else
+            for (var i = 0; i < Stacks.Count; ++i)
+                Stacks[i] = Stacks[i] with { Activation = WorldState.FutureTime(1.1f), Hits = 5 - NumCasts % 5 };
     }
 }
 
@@ -251,6 +288,7 @@ class RM08NHowlingBladeStates : StateMachineBuilder
             .ActivateOnEnter<WolvesReignRect2>()
             .ActivateOnEnter<WolvesReignCone>()
             .ActivateOnEnter<TerrestrialTitans>()
+            .ActivateOnEnter<TitanicPursuit>()
             .ActivateOnEnter<Towerfall>();
     }
 
@@ -274,11 +312,11 @@ class RM08NHowlingBladeStates : StateMachineBuilder
         Condition(id + 0xA0020, 16.2f, () => AddsResolved() >= 2, "Stack / spreads")
             .DeactivateOnExit<Gust>()
             .DeactivateOnExit<Heavensearth2>();
-        ComponentCondition<RavenousSaber>(id + 0xA0030, 17.1f, c => c.NumCasts > 0, "Raidwide x5")
+        ComponentCondition<RavenousSaber>(id + 0xA0030, 21, c => c.NumCasts >= 5, "Raidwide x5")
             .ActivateOnEnter<RavenousSaber>()
             .DeactivateOnExit<RavenousSaber>()
             .SetHint(StateMachine.StateHint.Raidwide);
-        Targetable(id + 0xA0040, true, 10.3f, "Boss appears")
+        Targetable(id + 0xA0040, true, 6.4f, "Boss appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         WolvesReign(id + 0xB0000, 10.3f, false, 3);
