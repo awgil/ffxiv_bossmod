@@ -88,7 +88,7 @@ public sealed class BLU(RotationModuleManager manager, Actor player) : Castxan<A
         if (Mimic == Mimicry.DPS)
             DpsSpecific(primaryTarget);
 
-        var haveModule = Bossmods.ActiveModule?.StateMachine.ActiveState != null;
+        var haveModule = Bossmods.ActiveModule != null;
 
         // mortal flame
         if (primaryTarget is { } p && StatusDetails(p.Actor, SID.MortalFlame, Player.InstanceID).Left == 0 && Hints.PriorityTargets.Count() == 1 && haveModule)

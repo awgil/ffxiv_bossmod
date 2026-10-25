@@ -140,7 +140,6 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
                 Info.Category: BossModuleInfo.Category.Hunt,
                 PrimaryActor:
                 {
-                    InCombat: true,
                     HPRatio: <= 0.95f,
                     InstanceID: var i
                 }
