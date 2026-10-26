@@ -140,7 +140,7 @@ public sealed class MNK(RotationModuleManager manager, Actor player) : Attackxan
         ForceMinus3,
         [Option("Use ASAP unless under the effect of Form Shift")]
         ForceNoShift,
-        [Option("Use ASAP", MinLevel = 50)]
+        [Option("Use ASAP", MinLevel = 50, Effect = 20)]
         Force,
         [Option("Do not use", MinLevel = 50)]
         Delay,
