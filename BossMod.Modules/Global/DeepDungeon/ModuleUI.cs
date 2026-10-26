@@ -8,7 +8,7 @@ abstract partial class AutoClear : ZoneModule
 {
     private int DrawMap(Actor? player, int playerSlot)
     {
-        var ix = new Minimap(Palace, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
+        var ix = new Minimap(Palace, _config, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
 
         DrawBoxes(player);
 

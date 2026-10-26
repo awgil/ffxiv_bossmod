@@ -46,12 +46,17 @@ public static class ZoneModuleRegistry
 
     private static bool UnloadFrom(Assembly assembly)
     {
-        var modified = false;
+        var modified = 0;
 
         foreach (var (k, _) in _modulesByCFC.Where(k => k.Value.ModuleType.Assembly == assembly).ToList())
-            modified |= _modulesByCFC.Remove(k);
+        {
+            _modulesByCFC.Remove(k);
+            modified++;
+        }
 
-        return modified;
+        Service.PluginLog.Verbose($"[ZMM] Unloaded {modified} modules from {assembly}");
+
+        return modified > 0;
     }
 
     public static void Reload(IEnumerable<Assembly> old, IEnumerable<Assembly> @new)

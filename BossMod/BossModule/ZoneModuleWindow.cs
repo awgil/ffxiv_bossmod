@@ -40,6 +40,14 @@ public class ZoneModuleWindow : UIWindow
 
     public override void Draw()
     {
-        _zmm.ActiveModule?.DrawWindow(_rmm);
+        try
+        {
+            _zmm.ActiveModule?.DrawWindow(_rmm);
+        }
+        catch (Exception ex)
+        {
+            Service.PluginLog.Verbose($"[ZMW] {ex} thrown from {_zmm.ActiveModule!.GetType().Assembly}");
+            throw;
+        }
     }
 }

@@ -20,6 +20,7 @@ abstract partial class AutoClear : ZoneModule
             try
             {
                 _trapsCurrentZone.AddRange(_palantirListTraps.InvokeFunc(World.CurrentZone));
+                Service.Log($"collected {_trapsCurrentZone.Count} traps from palantir");
                 _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
                 _palantirError = null;
             }
@@ -44,7 +45,10 @@ abstract partial class AutoClear : ZoneModule
     {
         if (_config.DrawTraps)
             foreach (var p in _trapsCurrentFloor)
-                Service.Camera.DrawWorldCircle(p, 2, 0xFF0000FF, 2);
+            {
+                Service.Camera.DrawWorldCircleFilled(p, 2, 0x202929FF);
+                Service.Camera.DrawWorldCircle(p, 2, 0xFF2929FF, 2, occluded: false);
+            }
     }
 
     private void HandleTrap(Actor actor, ActorCastEvent ev)

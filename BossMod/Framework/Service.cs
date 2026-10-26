@@ -1,5 +1,6 @@
 ﻿using BossMod.Interfaces;
 using BossMod.ReplayVisualization;
+using BossMod.Services;
 using DalaMock.Host.Mediator;
 using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
@@ -55,6 +56,7 @@ public sealed class Service
     public static MediatorService Mediator = null!;
     public static GaugeVisualizer GaugeVisualizer = null!;
     public static ICamera Camera = null!;
+    public static ModulePackService MPS = null!;
 #pragma warning restore CA2211
 
     //public static SharpDX.Direct3D11.Device? Device = null;

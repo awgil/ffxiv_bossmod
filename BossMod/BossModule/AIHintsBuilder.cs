@@ -61,12 +61,12 @@ public sealed class AIHintsBuilder : IDisposable
         4175
     ];
 
-    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm)
+    public AIHintsBuilder(WorldState ws, BossModuleManager bmm, ZoneModuleManager zmm, Pathfinding.ObstacleMapManager obstacles)
     {
         _ws = ws;
         _bmm = bmm;
         _zmm = zmm;
-        Obstacles = new(ws);
+        Obstacles = obstacles;
         _subscriptions = new
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
@@ -79,7 +79,6 @@ public sealed class AIHintsBuilder : IDisposable
 
     public void Dispose()
     {
-        Obstacles.Dispose();
         _subscriptions.Dispose();
     }
 

@@ -5,10 +5,8 @@ using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceConten
 
 namespace BossMod.Global.DeepDungeon;
 
-public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int CurrentDestination, int PlayerSlot)
+public record class Minimap(DeepDungeonState State, AutoDDConfig Config, Angle PlayerRotation, int CurrentDestination, int PlayerSlot)
 {
-    private readonly AutoDDConfig _config = Service.Config.Get<AutoDDConfig>();
-
     enum IconID : uint
     {
         ReturnClosed = 60905,
@@ -30,7 +28,7 @@ public record class Minimap(DeepDungeonState State, Angle PlayerRotation, int Cu
         Gold = 4
     }
 
-    float Adjust(float input) => input * ImGuiHelpers.GlobalScale * _config.MinimapScale;
+    float Adjust(float input) => input * ImGuiHelpers.GlobalScale * Config.MinimapScale;
 
     public struct Size
     {

@@ -19,10 +19,12 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     record struct Line(Vector3 Start, Vector3 End, uint Color, float Thickness = 1, bool Occluded = true);
     record struct Cone(Vector3 Center, float Radius, Angle Direction, Angle HalfAngle, uint Color, float Thickness = 1, bool Occluded = true);
     record struct Circle(Vector3 Center, float Radius, uint Color, float Thickness = 1, bool Occluded = true);
+    record struct CircleFilled(Vector3 Center, float Radius, uint Color, uint? OutlineColor, float ProjectionHeight = 50);
 
     readonly List<Line> _lines = [];
     readonly List<Cone> _cones = [];
     readonly List<Circle> _circles = [];
+    readonly List<CircleFilled> _circlesFilled = [];
 
     private readonly PctContext picto = PctService.Initialize(dalamud);
 
@@ -70,10 +72,16 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
             {
                 OccludedAlpha = circle.Occluded ? 0.1f : 1
             });
+        foreach (var cf in _circlesFilled)
+            drawList.AddCircleFilled(cf.Center, cf.Radius, cf.Color, cf.OutlineColor, p: new PctDxParams()
+            {
+                ProjectionHeight = cf.ProjectionHeight
+            });
 
         _lines.Clear();
         _cones.Clear();
         _circles.Clear();
+        _circlesFilled.Clear();
     }
 
     public void DrawWorldLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
@@ -92,6 +100,11 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     public void DrawWorldCircle(Vector3 center, float radius, uint color, float thickness = 1, bool occluded = true)
     {
         _circles.Add(new(center, radius, color, thickness, occluded));
+    }
+
+    public void DrawWorldCircleFilled(Vector3 center, float radius, uint color, uint? outlineColor = null, float projectionHeight = 50)
+    {
+        _circlesFilled.Add(new(center, radius, color, outlineColor, projectionHeight));
     }
 
     public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)
