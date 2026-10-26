@@ -12,6 +12,8 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 
     private static readonly AOEShapeRect _shape = new(52, 10);
 
+    public bool Cursed { get; private set; }
+
     public static readonly WPos[] StandardBaits = [
         new(19.035f, -10),
         new(8.39f, 19.795f),
@@ -40,19 +42,25 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
 
         if (bo >= NextBaitOrder)
         {
+            // bait is imminent
             if (bo == 1 && _numHypernovas >= 1 || bo == 2 && _numHypernovas >= 4 || bo == 3)
             {
                 hints.PathfindMapBounds = UCOB.PathfindHugBorderBounds;
                 hints.AddForbiddenZone(ShapeDistance.PrecisePosition(CurrentBaits[bo - 1], new(0, 1), 0.5f, actor.Position, 0.1f), BaitOrder[slot].Deadline);
             }
             else
+            {
                 hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-2));
-        }
-        else if (bo == 0)
-        {
-            // non-baiters should move further away from any active dragons to give the baiters room, in case the next mechanic is spread
-            foreach (var caster in Casters)
-                hints.AddForbiddenZone(ShapeDistance.Rect(caster.CastInfo!.LocXZ, caster.CastInfo.Rotation, 52, 0, 13), Module.CastFinishAt(caster.CastInfo));
+
+                // hypernova drop timing is not actually consistent pull to pull, because whoever designed this mechanic is a genius
+                // thus if you drop h3 5 units away, and h4 directly under the dragon, as recommended, h4 may kill you especially at higher latency (or rather, the player would have to move before receiving the cast start event from the server to survive it, which would be fine if the cast start timings were predictable, etc etc)
+                // instead we do an awkward L shape where baiter 2 spends most of their dodge trajectory along the edge of the arena, which should hopefully be enough to not kill baiter 3
+                if (bo == 2 && _numHypernovas == 3)
+                {
+                    hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 20), BaitOrder[slot].Deadline.AddSeconds(-2));
+                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(0, 22), 9), BaitOrder[slot].Deadline.AddSeconds(-2));
+                }
+            }
         }
     }
 
@@ -124,6 +132,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
                     CurrentBaits = [StandardBaits[2], StandardBaits[1], StandardBaits[0]];
                     for (var i = 0; i < CurrentBaits.Length; i++)
                         CurrentBaits[i].X *= -1;
+                    Cursed = true;
                 }
                 else
                 {
