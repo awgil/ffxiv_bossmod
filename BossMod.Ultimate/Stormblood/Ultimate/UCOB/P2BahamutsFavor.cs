@@ -5,12 +5,24 @@ class P2HugNael(BossModule module) : BossComponent(module)
     public enum Pos
     {
         DalamudDivePreTargetable,
-        DonutChainLightning1,
-        PostChainLightning1,
+        QuoteChainLightning1,
+        Dooms1,
+        Quote2,
+        Dooms2,
+        Dooms3,
+        Divebomb,
         Standard
     }
 
     public Pos Mode = Pos.DalamudDivePreTargetable;
+
+    WPos? DesiredPositionOverride;
+    Angle? LastWings;
+
+    public override void AddGlobalHints(GlobalHints hints)
+    {
+        hints.Add($"P2HugNael mode: {Mode}");
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -22,7 +34,7 @@ class P2HugNael(BossModule module) : BossComponent(module)
         if (hints.FindEnemy(nael) is { } ne)
         {
             // we prefer to keep nael center to give casters/ranged the most options when trying to spread during mechanics
-            ne.DesiredPosition = Arena.Center;
+            ne.DesiredPosition = DesiredPositionOverride ?? Arena.Center;
 
             // at end of p2, party should target pointless nael to build gauge
             if (nael.HPMP.CurHP == 1)
@@ -37,10 +49,24 @@ class P2HugNael(BossModule module) : BossComponent(module)
                     hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius));
                 break;
 
-            // everyone stack south of nael, then chain lightning players can quickly move north
-            case Pos.DonutChainLightning1:
-                if (nael.TargetID != actor.InstanceID)
-                    hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center + new WDir(0, 5), 3, 0.2f));
+            case Pos.QuoteChainLightning1:
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center + new WDir(0, 5), 1, 0.2f));
+                break;
+
+            case Pos.Quote2:
+                var closeSpot = new WDir(0, 3);
+                if (LastWings != null)
+                    closeSpot = closeSpot.Rotate(LastWings.Value + 120.Degrees());
+
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position + closeSpot, 1, 0.2f));
+
+                // if current quote is chariot, everyone stack south
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position + new WDir(0, 9), 1, 0.2f));
+                break;
+
+            // nothing special here since there are no concurrent mechanics happening
+            case Pos.Dooms1:
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius + 0.5f, 0.1f));
                 break;
 
             // party hugs Z axis along nael so that chain lightning and fireball spreaders can spread e/w
@@ -49,6 +75,28 @@ class P2HugNael(BossModule module) : BossComponent(module)
                 hints.GoalZones.Add(p => rect(p) <= 0 ? 0.1f : 0);
                 break;
         }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.WingsOfSalvation && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+            LastWings = (spell.LocXZ - nael.Position).ToAngle();
+    }
+
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    {
+        base.OnStatusGain(actor, status);
+
+        if ((SID)status.ID == SID.Thunderstruck && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
+            DesiredPositionOverride = nael.Position;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+
+        if ((AID)spell.Action.ID == AID.ChainLightningAOE)
+            DesiredPositionOverride = null;
     }
 }
 
@@ -137,7 +185,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
 
         var dist = nael.TargetID == target.InstanceID ? nael.HitboxRadius + 0.5f : 5.5f;
 
-        var angle = FireOut ? LastWingsCast + 90.Degrees() : LastWingsCast - 60.Degrees();
+        var angle = FireOut ? LastWingsCast + 90.Degrees() : LastWingsCast + 180.Degrees();
 
         return (nael.Position + angle.ToDirection() * dist, 0);
     }

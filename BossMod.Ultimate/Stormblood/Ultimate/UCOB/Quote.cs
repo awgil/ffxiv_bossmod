@@ -101,12 +101,23 @@ class QuoteThermionicBeam(BossModule module) : Components.StrictUniformStackSpre
 {
     private readonly Quote? _quote = module.FindComponent<Quote>();
 
-    public override (WPos, float)? GetStackDestination(int order, Actor target) => (((UCOB)Module).Nael()!.Position, 1);
+    public override (WPos, float)? GetStackDestination(int order, Actor target)
+    {
+        var nael = ((UCOB)Module).Nael()!;
+
+        if (Module.FindComponent<P2HugNael>() is { } p2h)
+        {
+            if (p2h.Mode == P2HugNael.Pos.QuoteChainLightning1)
+                return (nael.Position + new WDir(0, 3), 1);
+        }
+
+        return (nael.Position, 1);
+    }
 
     public override void Update()
     {
         var stackImminent = _quote != null && _quote.PendingMechanics.Count > 0 && _quote.PendingMechanics[0] == AID.ThermionicBeam;
-        if (stackImminent && Stacks.Count == 0 && Raid.Player() is var target && target != null) // note: target is random
+        if (stackImminent && Stacks.Count == 0 && Raid.WithoutSlot().FirstOrDefault(p => ((UCOB)Module).Nael()?.TargetID != p.InstanceID) is { } target) // note: target is random
             AddStack(target, _quote!.NextActivation);
         else if (!stackImminent && Stacks.Count > 0)
             Stacks.Clear();
