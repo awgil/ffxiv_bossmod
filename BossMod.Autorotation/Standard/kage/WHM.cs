@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageRotation<KageWHM.Strategy>(manager, player)
+public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageShared<KageWHM.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -99,7 +99,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     private bool ForceST;
 
     protected override bool UsesSpellSpeed => true;
-    private bool CanCast => Hints.MaxCastTime >= SlideCast(CastTime(AID.Stone));
+    private bool CanCast => CastFits(CastTime(AID.Stone));
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
     private OffensiveStrategy PresenceOfMindStrat;
@@ -126,7 +126,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         AOEMode = Unlocked(AID.Holy) && UseAOE(strategy.AOE.Value, Hints.NumPriorityTargetsInAOECircle(Player.Position, 8), minAoETargets);
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionMnd, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionMnd);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
@@ -226,11 +226,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
     {
         if (strategy.Dot.Value == DotStrategy.Force)
             return target.Actor;
-        if (DotWorthIt(target) && (DotLeft(target.Actor) < DotRefresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && DotLeft(target.Actor) < 8))
-            return target.Actor;
-        if (strategy.Dot.Value != DotStrategy.Automatic || AOEMode || Hints.PriorityTargets.Count(e => DotLeft(e.Actor) >= DotRefresh) >= 2)
-            return null;
-        return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
+        return DotTargetFor(target, DotLeft, DotRefresh, 8, strategy.Dot.Value == DotStrategy.Automatic && !AOEMode);
     }
 
     #endregion
@@ -267,7 +263,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageR
         _ => false
     };
 
-    private float CastTime(AID aid) => SelfStatusLeft(ClassShared.SID.Swiftcast) > 0 ? 0 : ScaledCastTime(aid);
+    private float CastTime(AID aid) => HardcastTime(aid);
 
     private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
 

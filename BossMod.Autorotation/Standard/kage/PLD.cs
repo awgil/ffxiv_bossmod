@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageRotation<KagePLD.Strategy>(manager, player)
+public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageShared<KagePLD.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -102,7 +102,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
     private Actor? BestMeleeSplashTarget;
     private int NumAOETargets;
     private bool AOEMode;
-    private bool InMelee;
     private bool IsMoving;
     private List<Actor> Loose = [];
 
@@ -143,7 +142,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         NumAOETargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         if (strategy.AOE.Value == AOEStrategy.ForceST)
             NumAOETargets = NumAOETargets > 0 && target != null && TargetInAOECircle(target.Actor, Player.Position, 5) ? 1 : 0;
-        InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         IsMoving = isMoving;
         Loose = Player.InCombat && !InBossFight && strategy.AOE.Value != AOEStrategy.ForceST
             ? [.. Hints.PriorityTargets.Select(e => e.Actor).Where(a => a.InCombat && a.TargetID != Player.InstanceID && World.Party.FindSlot(a.TargetID) >= 0)]
@@ -154,7 +152,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         BestMeleeSplashTarget = BestAOETarget(target, 3, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionStr);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
@@ -217,7 +215,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         if (canHoly && DivineMightLeft > GCD && (FoFLeft > GCD || !InMelee || ComboLastMove == (AOEMode ? AID.TotalEclipse : AID.RiotBlade) || DivineMightLeft < 6))
             PushGCD(holyAction, holyTarget, FoFLeft > GCD && Player.Level < 94 ? 49 : DivineMightLeft < 6 || FoFLeft <= GCD ? 46 : 44);
 
-        // grab trash that's hitting someone else before continuing the combo; the primary target is usually already on us
         if (Loose.Where(a => !TargetInAOECircle(a, Player.Position, 5) && Player.DistanceToHitbox(a) <= 20).MinBy(Player.DistanceToHitbox) is { } stray)
         {
             if (canHoly && DivineMightLeft > GCD)
@@ -235,7 +232,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageR
         {
             if (!InMelee)
             {
-                // a hardcast stops the tank while it's still gathering a trash pack
                 if (canHoly && (DivineMightLeft > GCD || InBossFight && !IsMoving))
                     PushGCD(AID.HolySpirit, target.Actor, 20);
                 PushGCD(AID.ShieldLob, target.Actor, 19);

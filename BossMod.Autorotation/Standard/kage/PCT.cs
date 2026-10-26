@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageRotation<KagePCT.Strategy>(manager, player)
+public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageShared<KagePCT.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -122,8 +122,8 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
     private CanvasFlags Canvas;
     private CreatureFlags Creature;
 
-    private float Subtractive;
-    private float Monochrome;
+    private bool Subtractive;
+    private bool Monochrome;
     private float StarryLeft;
     private float Spectrum;
     private float Hyperphantasia;
@@ -132,7 +132,6 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
     private float RainbowBright;
     private float HammerTime;
     private float Aetherhues2;
-    private float Swiftcast;
 
     private bool AllowAoE;
     private bool AOEMode;
@@ -145,7 +144,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
     private bool LandscapeDrawn => Canvas.HasFlag(CanvasFlags.Landscape);
     private bool PortraitReady => (Creature & (CreatureFlags.MooglePortait | CreatureFlags.MadeenPortrait)) != 0;
     private float StarryIn => ReadyIn(AID.StarryMuse);
-    private bool CanCast => Swiftcast > GCD || Hints.MaxCastTime >= SlideCast(ScaledCastTime(AID.FireInRed)) && DowntimeIn > GCD + ScaledCastTime(AID.FireInRed);
+    private bool CanCast => SwiftcastUp || CastFits(ScaledCastTime(AID.FireInRed)) && DowntimeIn > GCD + ScaledCastTime(AID.FireInRed);
     private OpenerStrategy OpenerMode;
     private bool InOpener => OpenerMode != OpenerStrategy.None && CombatTime < 30;
     private bool Dying;
@@ -164,8 +163,8 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
         Canvas = gauge.CanvasFlags;
         Creature = gauge.CreatureFlags;
 
-        Subtractive = SelfStatusLeft(SID.SubtractivePalette);
-        Monochrome = SelfStatusLeft(SID.MonochromeTones);
+        Subtractive = HasSelfStatus(SID.SubtractivePalette);
+        Monochrome = HasSelfStatus(SID.MonochromeTones);
         StarryLeft = SelfStatusLeft(SID.StarryMuse);
         Spectrum = SelfStatusLeft(SID.SubtractiveSpectrum);
         (Hyperphantasia, HyperStacks) = SelfStatusDetails(SID.Hyperphantasia);
@@ -173,16 +172,15 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
         RainbowBright = SelfStatusLeft(SID.RainbowBright);
         HammerTime = SelfStatusLeft(SID.HammerTime);
         Aetherhues2 = SelfStatusLeft(SID.AetherhuesII);
-        Swiftcast = SelfStatusLeft(ClassShared.SID.Swiftcast);
 
         AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         (BestSplash, SplashCount) = BestAOETarget(target, 25, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5));
         BestLine = BestAOETarget(target, 25, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 25, 2)).Best;
-        var breakpoint = Unlocked(TraitID.EnhancedPictomancyIV) || Subtractive == 0 && Aetherhues2 == 0 ? 4 : 3;
+        var breakpoint = Unlocked(TraitID.EnhancedPictomancyIV) || !Subtractive && Aetherhues2 == 0 ? 4 : 3;
         AOEMode = Unlocked(AID.FireIIInRed) && UseAOE(strategy.AOE.Value, SplashCount, breakpoint);
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionInt, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionInt);
 
         if (!Player.InCombat && strategy.Motifs.Value != MotifStrategy.Delay)
             Motifs(true, null);
@@ -235,12 +233,12 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
         var splash = BestSplash ?? target.Actor;
         var inStarry = StarryLeft > GCD;
         var prismReserve = Starstruck > GCD ? 1 : 0;
-        var cometReady = Monochrome > 0 && Paint > 0;
+        var cometReady = Monochrome && Paint > 0;
 
         if (Starstruck > GCD)
             PushGCD(AID.StarPrism, splash, Starstruck < GCD + GCDLength * 2 ? 63 : 60);
 
-        if (inStarry && Hyperphantasia > 0 && Subtractive > 0 && HyperStacks > prismReserve + (cometReady ? 1 : 0))
+        if (inStarry && Hyperphantasia > 0 && Subtractive && HyperStacks > prismReserve + (cometReady ? 1 : 0))
             PushGCD(AOEMode ? AID.BlizzardIIInCyan : AID.BlizzardInCyan, AOEMode ? splash : target.Actor, 62, ScaledCastTime(AID.BlizzardInCyan));
 
         if (RainbowBright > GCD)
@@ -251,7 +249,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
 
         if (SwiftRainbowBeforeDowntime)
         {
-            if (Swiftcast > GCD)
+            if (SwiftcastUp)
                 PushGCD(AID.RainbowDrip, BestLine ?? target.Actor, 57);
             else
                 PushOGCD(ClassShared.AID.Swiftcast, Player, 81);
@@ -261,7 +259,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
             PushGCD(AID.HammerStamp, splash, 50);
 
         if (InOpener && OpenerMode == OpenerStrategy.ThirdGCD && CombatTime < 5 && Paint > 0 && !Canvas.HasFlag(CanvasFlags.Wing))
-            PushGCD(Monochrome > 0 ? AID.CometInBlack : AID.HolyInWhite, splash, 35);
+            PushGCD(Monochrome ? AID.CometInBlack : AID.HolyInWhite, splash, 35);
 
         if (strategy.Motifs.Value == MotifStrategy.Automatic && !Dying && StarryLeft == 0 && Hyperphantasia == 0 && Spectrum <= GCD)
             Motifs(false, target);
@@ -269,10 +267,10 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
         if (!CanCast)
             MovementGCDs(strategy, target, splash);
 
-        if (Subtractive > 0)
+        if (Subtractive)
             PushGCD(AOEMode ? AID.BlizzardIIInCyan : AID.BlizzardInCyan, AOEMode ? splash : target.Actor, 20, ScaledCastTime(AID.BlizzardInCyan));
 
-        if (strategy.Holy.Value != SpendStrategy.Delay && Monochrome == 0 && Paint > 0
+        if (strategy.Holy.Value != SpendStrategy.Delay && !Monochrome && Paint > 0
             && (strategy.Holy.Value == SpendStrategy.ASAP || Dying || AOEMode || SplashCount > 1 && Paint > 1))
             PushGCD(AID.HolyInWhite, splash, AOEMode ? 25 : 15);
 
@@ -283,16 +281,16 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
     {
         if (strategy.Hammer.Value != SpendStrategy.Delay && HammerTime > GCD && Hyperphantasia == 0)
             PushGCD(AID.HammerStamp, splash, 45);
-        if (strategy.Holy.Value != SpendStrategy.Delay && Monochrome > 0 && Paint > 0)
+        if (strategy.Holy.Value != SpendStrategy.Delay && Monochrome && Paint > 0)
             PushGCD(AID.CometInBlack, splash, 44);
         if (StarryLeft == 0 && NeedsMotif && ReadyIn(ClassShared.AID.Swiftcast) <= GCD)
             PushOGCD(ClassShared.AID.Swiftcast, Player, 80);
-        if (strategy.Holy.Value != SpendStrategy.Delay && Monochrome == 0 && Paint > 0)
+        if (strategy.Holy.Value != SpendStrategy.Delay && !Monochrome && Paint > 0)
             PushGCD(AID.HolyInWhite, splash, 43);
     }
 
     private bool SwiftRainbowBeforeDowntime => Unlocked(AID.RainbowDrip) && RainbowBright == 0 && StarryLeft == 0
-        && DowntimeIn > GCD + 1.3f && DowntimeIn < GCD + GCDLength && (Swiftcast > GCD || ReadyIn(ClassShared.AID.Swiftcast) <= GCD);
+        && DowntimeIn > GCD + 1.3f && DowntimeIn < GCD + GCDLength && (SwiftcastUp || ReadyIn(ClassShared.AID.Swiftcast) <= GCD);
 
     private bool NextCreatureGivesPortrait => Creature.HasFlag(CreatureFlags.Pom) && (!Creature.HasFlag(CreatureFlags.Wings) || Creature.HasFlag(CreatureFlags.Claw));
 
@@ -304,23 +302,23 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
         var creatureAlive = target == null || TimeToKill.WillLive(target.Actor, NextCreatureGivesPortrait || !Unlocked(AID.WingMotif) ? 8 : 16);
         var burstPrep = Unlocked(AID.StarryMuse) && StarryIn <= 20;
 
-        if (Unlocked(AID.CreatureMotif) && !CreatureDrawn && (free || creatureAlive && (burstPrep || ReadyIn(AID.LivingMuse) <= 8 || Swiftcast > GCD)))
+        if (Unlocked(AID.CreatureMotif) && !CreatureDrawn && (free || creatureAlive && (burstPrep || ReadyIn(AID.LivingMuse) <= 8 || SwiftcastUp)))
             PushGCD(AID.CreatureMotif, Player, 30, MotifCast);
 
-        if (Unlocked(AID.WeaponMotif) && !WeaponDrawn && HammerTime == 0 && (free || alive && (burstPrep || !Unlocked(AID.StarryMuse) && ReadyIn(AID.StrikingMuse) <= 8 || Swiftcast > GCD)))
+        if (Unlocked(AID.WeaponMotif) && !WeaponDrawn && HammerTime == 0 && (free || alive && (burstPrep || !Unlocked(AID.StarryMuse) && ReadyIn(AID.StrikingMuse) <= 8 || SwiftcastUp)))
             PushGCD(AID.WeaponMotif, Player, 29, MotifCast);
 
-        if (Unlocked(AID.LandscapeMotif) && !LandscapeDrawn && StarryLeft == 0 && (free || alive && (burstPrep || Swiftcast > GCD)))
+        if (Unlocked(AID.LandscapeMotif) && !LandscapeDrawn && StarryLeft == 0 && (free || alive && (burstPrep || SwiftcastUp)))
             PushGCD(AID.LandscapeMotif, Player, 28, MotifCast);
     }
 
-    private float MotifCast => Swiftcast > GCD ? 0 : ScaledCastTime(AID.CreatureMotif);
+    private float MotifCast => HardcastTime(AID.CreatureMotif);
 
     private bool UseComet(SpendStrategy strategy, int prismReserve) => strategy switch
     {
         SpendStrategy.Delay => false,
         SpendStrategy.ASAP => true,
-        _ => Dying || (StarryLeft > GCD ? Hyperphantasia > 0 && HyperStacks > prismReserve || Hyperphantasia == 0 : Subtractive == 0)
+        _ => Dying || (StarryLeft > GCD ? Hyperphantasia > 0 && HyperStacks > prismReserve || Hyperphantasia == 0 : !Subtractive)
     };
 
     private bool UseHammer(SpendStrategy strategy) => strategy switch
@@ -360,7 +358,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageR
 
     private bool UsePalette(OffensiveStrategy strategy)
     {
-        if (strategy == OffensiveStrategy.Delay || !Unlocked(AID.SubtractivePalette) || Subtractive > 0 || Monochrome > 0)
+        if (strategy == OffensiveStrategy.Delay || !Unlocked(AID.SubtractivePalette) || Subtractive || Monochrome)
             return false;
         if (strategy == OffensiveStrategy.Force)
             return Palette >= 50 || Spectrum > 0;

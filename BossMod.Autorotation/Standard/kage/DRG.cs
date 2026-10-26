@@ -4,7 +4,7 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.kage;
 
-public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageRotation<KageDRG.Strategy>(manager, player)
+public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageShared<KageDRG.Strategy>(manager, player)
 {
     public struct Strategy
     {
@@ -147,7 +147,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
 
     private bool AllowAoE;
     private bool AOEMode;
-    private bool InMelee;
     private Actor? BestLine;
 
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
@@ -204,10 +203,9 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
         var (bestLine, lineCount) = BestAOETarget(target, 10, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 10, 2));
         BestLine = bestLine;
         AOEMode = Unlocked(AID.DoomSpike) && UseAOE(strategy.AOE.Value, lineCount, 3);
-        InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
 
         if (UsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.Medium);
+            PushPotion(ActionDefinitions.IDPotionStr);
 
         if (World.Client.CountdownRemaining is > 0 and var countdown)
         {
@@ -234,7 +232,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
 
         GCDs(strategy, target);
         UpdatePositionals(strategy, target);
-        AddGoalZone(target);
+        AddMeleeGoal(target, AllowAoE && Unlocked(AID.DoomSpike) ? Hints.GoalAOERect(BestLine ?? target.Actor, 10, 2) : null);
 
         if (Player.InCombat)
             OGCDs(strategy, target);
@@ -250,20 +248,10 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
                     PushGCD(AID.PiercingTalon, target.Actor, 10);
                 break;
             case EngageStrategy.Sprint:
-                if (countdown < 10)
-                    PushOGCD(ClassShared.AID.Sprint, Player, 10);
-                if (countdown < (Player.DistanceToHitbox(target.Actor) - 3) / 7.8f + 0.5f)
-                {
-                    if (!InMelee)
-                        Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
-                    PushGCD(AID.TrueThrust, target.Actor, 10);
-                }
+                SprintPull(target, AID.TrueThrust, countdown);
                 break;
             case EngageStrategy.Facepull:
-                if (!InMelee)
-                    Hints.ForcedMovement = Player.DirectionTo(target.Actor).ToVec3();
-                else if (countdown < 1.16f)
-                    PushGCD(AID.TrueThrust, target.Actor, 10);
+                Facepull(target, AID.TrueThrust, countdown);
                 break;
         }
     }
@@ -357,7 +345,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
         if (PowerSurge == 0 && Unlocked(AID.Disembowel))
             return;
 
-        // standard opener: buffs after the 3rd GCD (Chaotic Spring); Talon pull: Lance Charge already after Spiral Blow
         if (InOpener && OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove is AID.TrueThrust or AID.RaidenThrust or AID.SpiralBlow)
         {
             if (_talonPull && ComboLastMove == AID.SpiralBlow && LanceStrat != OffensiveStrategy.Delay && CanWeave(AID.LanceCharge))
@@ -425,9 +412,11 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
 
     private Actor ChaosTarget(Enemy target) => DotEnemy?.Actor ?? target.Actor;
 
+    private bool MustMoveSoon => ForbiddenSoon(Player.Position, GCD + 0.5f);
+
     private bool UseLifeSurge(LifeSurgeStrategy strategy)
     {
-        if (strategy == LifeSurgeStrategy.Delay || LifeSurgeLeft > 0 || !CanWeave(AID.LifeSurge))
+        if (strategy == LifeSurgeStrategy.Delay || LifeSurgeLeft > 0 || !CanWeave(AID.LifeSurge) || MustMoveSoon)
             return false;
 
         bool strongNext;
@@ -472,13 +461,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageR
             AID.TrueThrust or AID.RaidenThrust => (ChaosBranch ? Positional.Rear : Positional.Flank, false),
             _ => (Positional.Any, false)
         };
-    }
-
-    private void AddGoalZone(Enemy target)
-    {
-        var (_, pos, imminent, _) = Hints.RecommendedPositional;
-        var single = Hints.GoalSingleTarget(target.Actor, imminent ? pos : Positional.Any, Player, World.Actors, 3);
-        Hints.GoalZones.Add(AllowAoE && Unlocked(AID.DoomSpike) ? GoalCombined(single, Hints.GoalAOERect(BestLine ?? target.Actor, 10, 2), 3) : single);
     }
 
     #endregion
