@@ -161,6 +161,20 @@ class BrightFlare(BossModule module) : Components.GenericAOEs(module, AID.Bright
     }
 }
 
+class LightOfAscalonHits(BossModule module) : Components.RaidwideMultiHit(module, AID.LightOfAscalonStart, [AID.TheLightOfAscalon], 10.8f, 1.38f, 6)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            Remaining = 6;
+            NextHit = WorldState.FutureTime(10.8f);
+            LastHit = NextHit.AddSeconds(1.38f * 5);
+        }
+        base.OnEventCast(caster, spell);
+    }
+}
+
 class LightOfAscalon(BossModule module) : Components.Knockback(module, AID.TheLightOfAscalon)
 {
     private const int NumHits = 7;
@@ -226,6 +240,7 @@ class T03ThordanStates : StateMachineBuilder
             .ActivateOnEnter<LightningStorm>()
             .ActivateOnEnter<BrightFlare>()
             .ActivateOnEnter<LightOfAscalon>()
+            .ActivateOnEnter<LightOfAscalonHits>()
             .ActivateOnEnter<Knights>()
             .ActivateOnEnter<Meteors>();
     }

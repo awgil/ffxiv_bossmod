@@ -11,6 +11,7 @@ public enum OID : uint
     HelperA = 0x1201, // R3.500
     HelperB = 0x1335, // R3.500
     Helper = 0x13D2, // R0.500
+    FireFloorCross = 0x1E9991, // R0.500, EventObj; clears the burning Slaughter floor
 }
 
 public enum AID : uint
@@ -58,7 +59,7 @@ public enum AID : uint
 
 public enum IconID : uint
 {
-    Stack = 41, // player
+    Surpanakha = 41, // player
     Slaughter = 57, // player
     SwiftSlaughter1 = 50, // player
     SwiftSlaughter2 = 51, // player
@@ -101,7 +102,48 @@ class PreludeToSlaughterRect(BossModule module) : Components.GenericAOEs(module,
     }
 }
 
-class SlaughterRect(BossModule module) : Components.StandardAOEs(module, AID.SlaughterRect, new AOEShapeRect(44, 4));
+class SlaughterRect(BossModule module) : Components.GenericAOEs(module, AID.SlaughterRect)
+{
+    private static readonly AOEShapeRect _shape = new(44, 4);
+    private readonly List<AOEInstance> _aoes = [];
+    private DateTime _burnEnd;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+
+    public override void Update()
+    {
+        if (_burnEnd != default && WorldState.CurrentTime > _burnEnd)
+        {
+            _aoes.Clear();
+            _burnEnd = default;
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action != WatchedAction)
+            return;
+        ++NumCasts;
+        for (var i = 0; i < _aoes.Count; ++i)
+            _aoes[i] = _aoes[i] with { Activation = default };
+        _burnEnd = WorldState.FutureTime(10);
+    }
+
+    public override void OnActorEAnim(Actor actor, uint state)
+    {
+        if ((OID)actor.OID == OID.FireFloorCross && state == 0x00010002)
+        {
+            _aoes.Clear();
+            _burnEnd = default;
+        }
+    }
+}
 class SlaughterCross(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCross, new AOEShapeRect(40, 4));
 class SlaughterCast(BossModule module) : Components.StandardAOEs(module, AID.SlaughterCast, new AOEShapeCone(40, 135.Degrees()));
 class TheRoseOfHate(BossModule module) : Components.StandardAOEs(module, AID.TheRoseOfHate, new AOEShapeRect(40, 4));
@@ -261,56 +303,34 @@ class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (ui
     }
 }
 
-class Surpanakha(BossModule module) : Components.Cleave(module, AID.Surpanakha, new AOEShapeCone(40, 65.Degrees()))
+class Surpanakha(BossModule module) : Components.GenericBaitAway(module, AID.Surpanakha, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
-    private bool _active;
-    private DateTime _nextHit;
+    private static readonly AOEShapeCone _shape = new(40, 65.Degrees());
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if (iconID != (uint)IconID.Surpanakha)
+            return;
+        NumCasts = 0;
+        CurrentBaits.Clear();
+        CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape, WorldState.FutureTime(8.1f)));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.PillarsOfHeaven:
-                _active = true;
-                _nextHit = WorldState.FutureTime(10.2f);
-                break;
             case AID.Surpanakha:
-                _nextHit = WorldState.FutureTime(2.2f);
+                ++NumCasts;
+                for (var i = 0; i < CurrentBaits.Count; ++i)
+                    CurrentBaits[i] = CurrentBaits[i] with { Activation = WorldState.FutureTime(NumCasts == 3 ? 14.4f : 2.2f) };
                 break;
             case AID.DragonflyAvatar:
             case AID.ScorpionAvatar:
             case AID.BeetleAvatar:
-                _active = false;
+                CurrentBaits.Clear();
                 break;
         }
-        base.OnEventCast(caster, spell);
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_active)
-            base.AddHints(slot, actor, hints);
-    }
-
-    public override void AddGlobalHints(GlobalHints hints)
-    {
-        if (_active)
-            hints.Add("Tankbuster (multi-hit)");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (!_active)
-            return;
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (WorldState.Actors.Find(Module.PrimaryActor.TargetID) is { } tank && Raid.TryFindSlot(tank, out var tankSlot))
-            hints.AddPredictedDamage(new BitMask().WithBit(tankSlot), _nextHit, AIHints.PredictedDamageType.Tankbuster);
-    }
-
-    public override void DrawArenaForeground(int pcSlot, Actor pc)
-    {
-        if (_active)
-            base.DrawArenaForeground(pcSlot, pc);
     }
 }
 

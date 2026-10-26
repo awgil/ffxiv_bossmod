@@ -15,15 +15,15 @@ class Hints(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        var tail = Module.Enemies(OID.Tail).FirstOrDefault(x => x.IsTargetable && x.FindStatus(SID.Invincibility) == null && x.FindStatus(SID.MantleOfTheWhorl) != null);
-        var TankMimikry = actor.FindStatus(2124); //Bluemage Tank Mimikry
-        if (tail != null)
-        {
-            if ((actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || (actor.Class is Class.BLU && TankMimikry == null)) && actor.TargetID == Module.Enemies(OID.Tail).FirstOrDefault()?.InstanceID)
-                hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
-            if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && actor.TargetID == Module.PrimaryActor.InstanceID)
-                hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
-        }
+        var tankMimicry = actor.FindStatus(SID.MimicryTank) != null;
+        var magic = actor.Class.GetClassCategory() is ClassCategory.Caster or ClassCategory.Healer || actor.Class is Class.BLU && !tankMimicry;
+        var target = WorldState.Actors.Find(actor.TargetID);
+        if (target == null)
+            return;
+        if (magic && (OID)target.OID == OID.Tail && target.FindStatus(SID.MantleOfTheWhorl) != null)
+            hints.Add("Attack the head! (Attacking the tail will reflect damage onto you)");
+        if (actor.Class.GetClassCategory() is ClassCategory.PhysRanged && (OID)target.OID == OID.Boss && target.FindStatus(SID.VeilOfTheWhorl) != null)
+            hints.Add("Attack the tail! (Attacking the head will reflect damage onto you)");
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

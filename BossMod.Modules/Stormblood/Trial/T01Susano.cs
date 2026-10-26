@@ -25,6 +25,7 @@ public enum AID : uint
     AmeNoMurakumoRaidwide = 8226, // SusanoBig->self, no cast, range 40+R circle
     Stormsplitter = 8227, // Boss->self/player, 5.0s cast, range 20+R width 4 rect
     Ukehi = 8230, // Boss->self, 4.0s cast, range 40+R circle
+    UkehiFollowUp = 8231, // Boss->self, no cast, range 40+R circle, extra raidwide after some casts
     Seasplitter = 8232, // AmaNoIwato->self, 3.0s cast, range 21+R width 40 rect
     Seasplitter2 = 8233, // AmaNoIwato->self, no cast, range 7+R width 40 rect
     Seasplitter3 = 8234, // AmaNoIwato->self, no cast, range 7+R width 40 rect
@@ -58,14 +59,15 @@ class Seasplitter(BossModule module) : Components.GenericAOEs(module, AID.Seaspl
 {
     private readonly List<AOEInstance> _aoes = [];
 
-    private static readonly AOEShapeRect _shape = new(21.5f, 20);
+    private const float SafeStrip = 0.6f;
+    private static readonly AOEShapeRect _shape = new(21.5f - SafeStrip, 20);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
+            _aoes.Add(new(_shape, caster.Position + SafeStrip * spell.Rotation.ToDirection(), spell.Rotation, Module.CastFinishAt(spell)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -79,7 +81,21 @@ class Seasplitter(BossModule module) : Components.GenericAOEs(module, AID.Seaspl
 }
 
 class Stormsplitter(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeRect(23.5f, 2), (uint)IconID.Stormsplitter, AID.Stormsplitter, 5.1f, damageType: AIHints.PredictedDamageType.Tankbuster);
-class SheerForce(BossModule module) : Components.RaidwideInstant(module, AID.SheerForce, 0);
+class SheerForce(BossModule module) : Components.RaidwideInstant(module, AID.SheerForce, 4)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.AmeNoMurakumoEnrage)
+            Activation = WorldState.FutureTime(Delay);
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        base.OnEventCast(caster, spell);
+        if (spell.Action == WatchedAction && NumCasts % 2 == 1)
+            Activation = WorldState.FutureTime(5);
+    }
+}
 class SusanoAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID.SusanoBig, (uint)OID.AmaNoIwato, (uint)OID.AmaNoIwatoStone, (uint)OID.AmeNoMurakumo, (uint)OID.DarkLevin], 1);
 
 class SealedGate(BossModule module) : BossComponent(module)

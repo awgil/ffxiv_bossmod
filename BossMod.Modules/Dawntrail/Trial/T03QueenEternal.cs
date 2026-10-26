@@ -539,7 +539,7 @@ class RoyalDomain(BossModule module) : Components.RaidwideCast(module, AID.Royal
 class BrutalCrown(BossModule module) : Components.StandardAOEs(module, AID.BrutalCrown, new AOEShapeDonut(5, 60));
 class DynasticDiadem(BossModule module) : Components.StandardAOEs(module, AID.DynasticDiadem, new AOEShapeDonut(6, 70));
 class RoyalBanishment(BossModule module) : Components.StandardAOEs(module, AID.RoyalBanishment, new AOEShapeCone(100, 15.Degrees()));
-class RoyalBanishmentRaidwide(BossModule module) : Components.RaidwideCast(module, AID.RoyalBanishmentVisual, "Multiple raidwides");
+class RoyalBanishmentRaidwide(BossModule module) : Components.RaidwideMultiHit(module, AID.RoyalBanishmentVisual, [AID.RoyalBanishmentRaidwide], 1, 1.7f, 5);
 class AbsoluteAuthorityRaidwide(BossModule module) : Components.RaidwideCast(module, AID.AbsoluteAuthorityRaidwide1, "Multiple raidwides");
 class AbsoluteAuthorityHits(BossModule module) : Components.RaidwideMultiHit(module, AID.AbsoluteAuthorityRaidwide1, [AID.AbsoluteAuthorityRaidwide2, AID.AbsoluteAuthorityRaidwide3, AID.AbsoluteAuthorityRaidwide4, AID.AbsoluteAuthorityRaidwide5], 6.7f, 1.2f, 11)
 {
@@ -583,7 +583,8 @@ class T03QueenEternalStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 984, NameID = 13029)] // Incomplete cleared; TODO: re-check Absolute Authority / Castellation edge cases if reports come in
+// TODO: re-check Absolute Authority / Castellation edge cases if reports come in
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 984, NameID = 13029)]
 public sealed class T03QueenEternal(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsSquare(20))
 {
     private static readonly ArenaBoundsSquare Builder = new(20);

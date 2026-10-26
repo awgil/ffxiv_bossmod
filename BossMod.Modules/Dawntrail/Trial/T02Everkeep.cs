@@ -153,12 +153,16 @@ class DutysEdge(BossModule module) : Components.GenericWildCharge(module, 4, AID
             case AID.DutysEdgeTarget:
                 Source = caster;
                 NumCasts = 0;
+                Hits = TotalHits;
+                Activation = WorldState.FutureTime(5.4f);
                 foreach (var (i, p) in Raid.WithSlot(true))
                     PlayerRoles[i] = p.InstanceID == spell.MainTargetID ? PlayerRole.Target : PlayerRole.Share;
                 break;
             case AID.DutysEdgeAOE:
                 if (++NumCasts >= TotalHits)
                     Source = null;
+                Hits = TotalHits - NumCasts;
+                Activation = WorldState.FutureTime(2.1f);
                 break;
         }
     }
