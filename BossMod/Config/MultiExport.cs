@@ -68,6 +68,8 @@ public sealed class MultiExport(Dictionary<Class, PlanDatabase.PlanList> plans) 
                 }
 
                 ImGui.SetClipboardText(Encoding.UTF8.GetString(stream.GetBuffer()));
+
+                IsOpen = false;
             }
         }
     }
@@ -76,6 +78,8 @@ public sealed class MultiExport(Dictionary<Class, PlanDatabase.PlanList> plans) 
 public sealed class MultiImport(RotationDatabase rotationDB, List<Plan> plans) : UIWindow("Multi-import", true, new(300, 500), ImGuiWindowFlags.AlwaysAutoResize)
 {
     readonly List<(Plan plan, bool selected)> _plans = [.. plans.Select(p => (p, true))];
+
+    bool _replace;
 
     public override void Draw()
     {
@@ -100,16 +104,32 @@ public sealed class MultiImport(RotationDatabase rotationDB, List<Plan> plans) :
             ImGui.Checkbox($"{plan.Class} '{plan.Name}' ({plan.Encounter.Name})", ref _plans.Ref(i).selected);
         }
 
+        ImGui.Separator();
+        ImGui.Checkbox("Replace existing plans with the same name", ref _replace);
+
         using (ImRaii.Disabled(num == 0))
             if (ImGui.Button("Import selected plans"))
             {
                 var sel = _plans.Where(p => p.selected).Select(p => p.plan).ToList();
 
                 foreach (var plan in sel)
+                {
+                    if (_replace)
+                    {
+                        var pl = rotationDB.Plans.Plans.TryGetValue(plan.Encounter, out var enc) && enc.TryGetValue(plan.Class, out var plist) ? plist.Plans.Where(p => p.Name == plan.Name).ToList() : [];
+                        foreach (var existing in pl)
+                        {
+                            Service.Log($"[Import] Replacing plan '{existing.Name}' ({existing.Guid})");
+                            rotationDB.Plans.ModifyPlan(existing, null);
+                        }
+                    }
                     rotationDB.Plans.ModifyPlan(null, plan);
+                }
 
                 foreach (var group in sel.GroupBy(p => p.Encounter.FullName))
                     Service.ShowNotification($"Imported {group.Count()} plans for encounter {group.Key}");
+
+                IsOpen = false;
             }
     }
 }
