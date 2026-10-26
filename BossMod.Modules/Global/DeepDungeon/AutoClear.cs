@@ -144,16 +144,12 @@ public abstract partial class AutoClear : ZoneModule
         base.Dispose(disposing);
     }
 
-    /*
-    // FIXME: this currently triggers during ZMM hot reload
-    // the minimap's close button isn't a real close button anyway
     public override void OnWindowClose()
     {
         _config.Enable = false;
         _config.EnableMinimap = false;
         _config.Modified.Fire();
     }
-    */
 
     protected virtual void OnCastStarted(Actor actor) { }
 

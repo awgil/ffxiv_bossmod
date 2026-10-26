@@ -364,7 +364,6 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<P2BahamutsFavorWingsOfSalvation>();
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x324, 0.8f, comp => !comp.Active, "Lightning spread", checkDelay: 0.7f) // lighting target can die early, which would trigger premature transition
             .DeactivateOnExit<P2BahamutsFavorChainLightning>()
-            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.None)
             .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show());
         // +0.4s: iceball 12
         ComponentCondition<P2BahamutsFavorFireball>(id + 0x350, 3.0f, comp => !comp.Active, "Fireball 3")
@@ -399,7 +398,8 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>();
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x601, 0.5f, comp => comp.NumDeathstorms > 2);
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x610, 2.3f, comp => !comp.Active, "Lightning spread", checkDelay: 2.3f) // lighting target can die early, which would trigger premature transition
-            .DeactivateOnExit<P2BahamutsFavorChainLightning>();
+            .DeactivateOnExit<P2BahamutsFavorChainLightning>()
+            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.None);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x611, 0.2f, comp => comp.NumCasts > 0);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x620, 1.2f, comp => comp.Casters.Count > 0); // wings of salvation 2 bait
         // +1.2s: iceball 17

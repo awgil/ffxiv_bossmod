@@ -8,26 +8,24 @@ class P2HugNael(BossModule module) : BossComponent(module)
         QuoteChainLightning1,
         Set1,
         Sets23,
-        Divebomb,
         None
     }
 
     public Pos Mode = Pos.DalamudDivePreTargetable;
 
     WPos? DesiredPositionOverride;
-    Angle? LastWings;
+    Angle LastWings = 120.Degrees();
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"P2HugNael mode: {Mode}");
+        if (Service.IsDev)
+            hints.Add($"P2HugNael mode: {Mode}");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is not { } nael)
             return;
-
-        var quote = Module.FindComponent<Quote>();
 
         if (hints.FindEnemy(nael) is { } ne)
         {
@@ -56,10 +54,9 @@ class P2HugNael(BossModule module) : BossComponent(module)
                 hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius + 0.5f, 0.1f));
                 break;
 
+            // bait around nael CW
             case Pos.Sets23:
-                var closeSpot = new WDir(0, 3);
-                if (LastWings != null)
-                    closeSpot = closeSpot.Rotate(LastWings.Value + 120.Degrees());
+                var closeSpot = new WDir(0, 3).Rotate(LastWings - 120.Degrees());
 
                 hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position + closeSpot, 1, 0.2f));
                 break;
@@ -74,7 +71,7 @@ class P2HugNael(BossModule module) : BossComponent(module)
             var len = offset.Length();
             LastWings = offset.ToAngle();
             if (len > 7.5f)
-                LastWings -= 120.Degrees();
+                LastWings += 120.Degrees();
             else if (len < 1.5f)
                 DesiredPositionOverride = nael.Position - offset.Normalized();
         }
@@ -103,7 +100,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
     private BitMask _fire;
     private BitMask _ice;
     private DateTime _activation;
-    private Angle LastWingsCast;
+    private Angle LastWings;
 
     public bool FireOut;
 
@@ -163,7 +160,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
         base.OnCastStarted(caster, spell);
 
         if ((AID)spell.Action.ID == AID.WingsOfSalvation && ((UCOB)Module).Nael() is { } nael)
-            LastWingsCast = Angle.FromDirection(spell.LocXZ - nael.Position);
+            LastWings = Angle.FromDirection(spell.LocXZ - nael.Position);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -182,7 +179,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
 
         var dist = nael.TargetID == target.InstanceID ? nael.HitboxRadius + 0.5f : 3.5f;
 
-        var angle = FireOut ? LastWingsCast + 90.Degrees() : LastWingsCast + 180.Degrees();
+        var angle = FireOut ? LastWings + 90.Degrees() : LastWings - 120.Degrees();
 
         return (nael.Position + angle.ToDirection() * dist, 0);
     }
