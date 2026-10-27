@@ -11,7 +11,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Standard / Technical Step, Devilment, Flourish, feathers)", InternalName = "Burst", MinLevel = 15)]
+        [Track("Burst (Standard / Technical Step, Devilment, Flourish, Feathers)", InternalName = "Burst", MinLevel = 15)]
         public Track<UseStrategy> Burst;
 
         [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]

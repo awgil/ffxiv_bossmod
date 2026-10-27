@@ -11,7 +11,10 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Rotation loop", MinLevel = 76, UiPriority = -5)]
+        [Track("Burst (Ikishoten, Senei, Meikyo, Shoha)", InternalName = "Burst", MinLevel = 50)]
+        public Track<UseStrategy> Burst;
+
+        [Track("Rotation Loop", MinLevel = 76, UiPriority = -5)]
         public Track<LoopStrategy> Loop;
 
         [Track("Meikyo Shisui", MinLevel = 50, Action = AID.MeikyoShisui)]
@@ -22,9 +25,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
         [Track("Tsubame-gaeshi", MinLevel = 74, Actions = [AID.KaeshiSetsugekka, AID.TendoKaeshiSetsugekka, AID.KaeshiGoken, AID.TendoKaeshiGoken])]
         public Track<TsubameStrategy> Tsubame;
-
-        [Track("Burst (Ikishoten, Senei, Meikyo, Shoha)", InternalName = "Burst", MinLevel = 50)]
-        public Track<UseStrategy> Burst;
 
         [Track("Ikishoten / Ogi Namikiri / Zanshin", MinLevel = 68, Actions = [AID.Ikishoten, AID.OgiNamikiri, AID.Zanshin])]
         public Track<UseStrategy> Ikishoten;

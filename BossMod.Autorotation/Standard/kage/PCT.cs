@@ -23,7 +23,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         [Track("Portraits", MinLevel = 30, Actions = [AID.MogOfTheAges, AID.RetributionOfTheMadeen])]
         public Track<UseStrategy> Portrait;
 
-        [Track("Hammer combo", MinLevel = 50, Actions = [AID.HammerStamp, AID.HammerBrush, AID.PolishingHammer])]
+        [Track("Hammer Combo", MinLevel = 50, Actions = [AID.HammerStamp, AID.HammerBrush, AID.PolishingHammer])]
         public Track<SpendStrategy> Hammer;
 
         [Track("Holy in White / Comet in Black", MinLevel = 80, Actions = [AID.HolyInWhite, AID.CometInBlack])]

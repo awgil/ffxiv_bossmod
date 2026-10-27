@@ -11,11 +11,11 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
+        [Track("Burst (Wildfire, Barrel Stabilizer, Tools, Reassemble, Queen)", InternalName = "Burst", MinLevel = 10)]
+        public Track<UseStrategy> Burst;
+
         [Track("Hypercharge", MinLevel = 30, Action = AID.Hypercharge)]
         public Track<HyperchargeStrategy> Hypercharge;
-
-        [Track("Burst (Wildfire, Barrel Stabilizer, tools, Reassemble, Queen)", InternalName = "Burst", MinLevel = 10)]
-        public Track<UseStrategy> Burst;
 
         [Track("Wildfire", InternalName = "WF", MinLevel = 45, Action = AID.Wildfire)]
         public Track<WildfireStrategy> Wildfire;

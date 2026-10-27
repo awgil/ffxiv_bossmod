@@ -11,11 +11,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia])]
-        public Track<DotStrategy> Dot;
-
         [Track("Burst (Phlegma, Psyche)", InternalName = "Burst", MinLevel = 26)]
         public Track<UseStrategy> Burst;
+
+        [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia])]
+        public Track<DotStrategy> Dot;
 
         [Track("Phlegma", MinLevel = 26, Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII])]
         public Track<UseStrategy> Phlegma;

@@ -23,7 +23,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         [Track("Communio", MinLevel = 90, Action = AID.Communio)]
         public Track<CommunioStrategy> Communio;
 
-        [Track("Soul gauge (Gluttony, Blood Stalk, Unveiled)", InternalName = "SoulGauge", MinLevel = 50, Actions = [AID.Gluttony, AID.BloodStalk, AID.GrimSwathe])]
+        [Track("Soul Gauge (Gluttony, Blood Stalk, Unveiled)", InternalName = "SoulGauge", MinLevel = 50, Actions = [AID.Gluttony, AID.BloodStalk, AID.GrimSwathe])]
         public Track<SoulGaugeStrategy> SoulGauge;
 
         [Track("Soul Slice / Soul Scythe", InternalName = "Slice", MinLevel = 60, Actions = [AID.SoulSlice, AID.SoulScythe])]

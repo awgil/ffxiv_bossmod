@@ -11,11 +11,11 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Dia", MinLevel = 4, Actions = [AID.Dia, AID.AeroII, AID.Aero])]
-        public Track<DotStrategy> Dot;
-
         [Track("Burst (Presence of Mind, Assize, Afflatus Misery)", InternalName = "Burst", MinLevel = 30)]
         public Track<UseStrategy> Burst;
+
+        [Track("Dia", MinLevel = 4, Actions = [AID.Dia, AID.AeroII, AID.Aero])]
+        public Track<DotStrategy> Dot;
 
         [Track("Presence of Mind", MinLevel = 30, Action = AID.PresenceOfMind)]
         public Track<UseStrategy> PresenceOfMind;
