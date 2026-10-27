@@ -5,7 +5,7 @@ namespace BossMod.Autorotation.kage;
 // OffensiveStrategy with labels, so every kage track reads the same; names and order match it so saved presets keep loading
 public enum UseStrategy
 {
-    [Option("Automatic")]
+    [Option("Use when optimal")]
     Automatic,
     [Option("Do not use")]
     Delay,
