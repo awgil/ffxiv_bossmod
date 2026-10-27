@@ -135,7 +135,13 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void OGCD(Strategy strategy, Enemy? primaryTarget)
     {
-        if (primaryTarget == null || !Player.InCombat)
+        if (!Player.InCombat)
+            return;
+
+        if (Aetherflow == 0)
+            PushOGCD(AID.Aetherflow, Player);
+
+        if (primaryTarget == null)
             return;
 
         switch (strategy.Buffs.Value)
@@ -148,9 +154,6 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
                 UsePlanned(strategy.Buffs, AID.ChainStratagem, primaryTarget);
                 break;
         }
-
-        if (Aetherflow == 0)
-            PushOGCD(AID.Aetherflow, Player);
 
         if (Aetherflow > 0 && CanWeave(AID.Aetherflow, Aetherflow))
             PushOGCD(AID.EnergyDrain, primaryTarget);

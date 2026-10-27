@@ -59,5 +59,8 @@ abstract partial class AutoClear : ZoneModule
             _config.MaxPull = maxPull;
             _config.Modified.Fire();
         }
+
+        if (ImGui.Button("Reload traps"))
+            FilterTraps();
     }
 }
