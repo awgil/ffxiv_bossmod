@@ -471,6 +471,8 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     UseGCD(BossMod.SCH.AID.Adloquium, tank, 4);
         }
 
+        // carelessly spending aetherflow stacks on the tank is a good way to get the party killed via missing mit
+        var babymode = strategy.Heal.Value == HealMode.Babysit;
         HealLowest(strategy, (target, ratio) =>
         {
             var tank = target.Role == Role.Tank;
@@ -479,16 +481,16 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                 UseOGCD(BossMod.SCH.AID.WhisperingDawn, Player, 12);
                 return;
             }
-            if (aetherflow && (tank ? ratio <= 0.6f : ratio < 0.5f))
+            if (aetherflow && (tank ? ratio <= 0.6f : ratio < 0.5f) && !babymode)
                 UseOGCD(BossMod.SCH.AID.Excogitation, target, tank ? 12 : 8);
             if (ratio <= 0.5f && gauge.FairyGauge >= 10 && pet != null && !haveSeraph && target.Position.InCircle(pet.Position, 30) && target.FindStatus(BossMod.SCH.SID.FeyUnion, World.FutureTime(1000)) == null)
                 UseOGCD(BossMod.SCH.AID.Aetherpact, target, 11);
             if (AutoMit && tank && ratio <= 0.5f)
                 UseOGCD(BossMod.SCH.AID.Protraction, target, 10);
-            if (ratio <= 0.25f && aetherflow)
+            if (ratio <= 0.25f && aetherflow && !babymode)
                 UseOGCD(BossMod.SCH.AID.Lustrate, target, 9);
 
-            var ogcdCovers = tank && aetherflow && ReadySoon(BossMod.SCH.AID.Excogitation);
+            var ogcdCovers = tank && aetherflow && !babymode && ReadySoon(BossMod.SCH.AID.Excogitation);
             if (SingledOut(ratio) && (ratio <= 0.3f || ratio <= 0.5f && !ogcdCovers))
                 UseGCD(BestActionUnlocked(BossMod.SCH.AID.Adloquium, BossMod.SCH.AID.Physick), target, 3);
         });

@@ -8,7 +8,7 @@ abstract partial class AutoClear : ZoneModule
 {
     private int DrawMap(Actor? player, int playerSlot)
     {
-        var ix = new Minimap(Palace, _config, player?.Rotation ?? default, DesiredRoom, Math.Max(0, playerSlot)).Draw();
+        var ix = new Minimap(Palace, _config, player?.Rotation ?? default, DesiredRoom.Index, Math.Max(0, playerSlot)).Draw();
 
         DrawBoxes(player);
 
@@ -33,10 +33,15 @@ abstract partial class AutoClear : ZoneModule
         var playerSlot = Array.FindIndex(Palace.Party, p => p.EntityId == player?.InstanceID);
         var targetRoom = DrawMap(player, playerSlot);
         if (targetRoom >= 0)
-            DesiredRoom = targetRoom;
+            DesiredRoom = (targetRoom, "navigating manually");
 
         using (ImRaii.Disabled(true))
-            ImGui.Text("Click on a room to set a destination.");
+        {
+            if (DesiredRoom.Reason.Length == 0)
+                ImGui.Text("Click on a room to set a destination.");
+            else
+                ImGui.Text($"Currently: {(DesiredRoom.Reason.Length == 0 ? "idle" : DesiredRoom.Reason)}");
+        }
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -59,5 +64,8 @@ abstract partial class AutoClear : ZoneModule
             _config.MaxPull = maxPull;
             _config.Modified.Fire();
         }
+
+        if (ImGui.Button("Reload traps"))
+            FilterTraps();
     }
 }
