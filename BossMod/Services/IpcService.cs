@@ -57,12 +57,12 @@ internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModule
         // true if a user preset (not the AI multibox one) has the auto-target module enabled
         Register("Rotation.IsAutoTargetActive", () => activePresetModuleTypes(false).Any(t => t.FullName == "BossMod.Autorotation.MiscAI.AutoTarget"));
 
+        Register("Rotation.ActionTweaks.IsManualQueueEnabled", () => tweaksConfig.UseManualQueue);
+        // smart targeting is only applied to actions that go through the manual queue
+        Register("Rotation.ActionTweaks.IsSmartTargetingEnabled", () => tweaksConfig.UseManualQueue && tweaksConfig.SmartTargets);
+
         Register("AI.IsEnabled", () => aiConfig.Enabled);
         Register("AI.IsAutoTargetEnabled", () => aiConfig.Enabled && !aiConfig.ForbidActions);
-
-        Register("Tweaks.IsManualQueueEnabled", () => tweaksConfig.UseManualQueue);
-        // smart targeting is only applied to actions that go through the manual queue
-        Register("Tweaks.IsSmartTargetingEnabled", () => tweaksConfig.UseManualQueue && tweaksConfig.SmartTargets);
 
         Register("Presets.ListAll", () => autorotation.Database.Presets.AllPresets.Select(p => p.Name).ToList());
         Register("Presets.Get", (string name) =>
