@@ -88,7 +88,7 @@ abstract partial class AutoClear : ZoneModule
 
     private void PickARoom(Actor player, AIHints hints)
     {
-        if (DesiredRoom.Reason == PathfindReason.Hunting && Palace.PassageActive)
+        if (DesiredRoom.Reason == PathfindReason.Hunting && (Palace.PassageActive || player.InCombat))
             DesiredRoom = default;
 
         if (DesiredRoom.Reason == PathfindReason.ClosedPassage && Palace.Rooms.Any(r => r.HasFlag(RoomFlags.Passage) && r.HasFlag(RoomFlags.Revealed)))

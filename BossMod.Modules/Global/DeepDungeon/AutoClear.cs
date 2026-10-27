@@ -34,7 +34,7 @@ public abstract partial class AutoClear : ZoneModule
 {
     public record struct GoalObject(Actor Actor, GoalType Type, float PlayerDistSq, int Tier = 0)
     {
-        public readonly bool IsTreasure => Tier > 0;
+        public readonly bool IsTreasure => Type is GoalType.Treasure or GoalType.ChestHoard;
     }
 
     public enum GoalType
