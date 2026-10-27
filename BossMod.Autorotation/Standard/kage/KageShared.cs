@@ -2,6 +2,17 @@
 
 namespace BossMod.Autorotation.kage;
 
+// OffensiveStrategy with labels, so every kage track reads the same; names and order match it so saved presets keep loading
+public enum UseStrategy
+{
+    [Option("Automatic")]
+    Automatic,
+    [Option("Do not use")]
+    Delay,
+    [Option("Use as soon as possible")]
+    Force
+}
+
 public static class TimeToKill
 {
     private const float SampleInterval = 0.5f;
@@ -161,7 +172,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     private DateTime LastCastSeen;
     private readonly Dictionary<uint, DateTime> LastUsed = [];
 
-    // tracks set to "Do not use" (or an unlabelled Delay, e.g. OffensiveStrategy) never push their actions, whatever burst, opener or any other logic wants
+    // tracks set to "Do not use" (or an unlabelled Delay) never push their actions, whatever burst, opener or any other logic wants
     private static readonly (FieldInfo Field, PropertyInfo Raw, int[] Off, uint[] Actions)[] DoNotUseTracks = FindDoNotUseTracks();
     private readonly HashSet<uint> Disabled = [];
 
@@ -307,7 +318,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
     }
 
-    protected static OffensiveStrategy WithBurst(OffensiveStrategy burst, OffensiveStrategy own) => burst == OffensiveStrategy.Automatic || own == OffensiveStrategy.Delay ? own : burst;
+    protected static UseStrategy WithBurst(UseStrategy burst, UseStrategy own) => burst == UseStrategy.Automatic || own == UseStrategy.Delay ? own : burst;
 
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 

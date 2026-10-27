@@ -15,7 +15,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         public Track<LoopStrategy> Loop;
 
         [Track("Meikyo Shisui", MinLevel = 50, Action = AID.MeikyoShisui)]
-        public Track<OffensiveStrategy> Meikyo;
+        public Track<UseStrategy> Meikyo;
 
         [Track("Higanbana", MinLevel = 30, Action = AID.Higanbana)]
         public Track<HiganbanaStrategy> Higanbana;
@@ -24,16 +24,16 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         public Track<TsubameStrategy> Tsubame;
 
         [Track("Burst (Ikishoten, Senei, Meikyo, Shoha)", InternalName = "Burst", MinLevel = 50)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Ikishoten / Ogi Namikiri / Zanshin", MinLevel = 68, Actions = [AID.Ikishoten, AID.OgiNamikiri, AID.Zanshin])]
-        public Track<OffensiveStrategy> Ikishoten;
+        public Track<UseStrategy> Ikishoten;
 
         [Track("Senei / Guren", MinLevel = 70, Actions = [AID.HissatsuSenei, AID.HissatsuGuren])]
-        public Track<OffensiveStrategy> Senei;
+        public Track<UseStrategy> Senei;
 
         [Track("Shoha", MinLevel = 80, Action = AID.Shoha)]
-        public Track<OffensiveStrategy> Shoha;
+        public Track<UseStrategy> Shoha;
 
         [Track("Shinten / Kyuten", MinLevel = 52, Actions = [AID.HissatsuShinten, AID.HissatsuKyuten])]
         public Track<KenkiStrategy> Kenki;
@@ -97,7 +97,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Pool for raid buffs and spend inside them; never overcap")]
         Automatic,
-        [Option("Spend as soon as possible")]
+        [Option("Use as soon as possible")]
         ASAP,
         [Option("Only to avoid overcapping")]
         Overcap,
@@ -171,7 +171,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         Standard,
         [Option("Kasha first, for fights with early phasing")]
         KashaFirst,
-        [Option("No pre-pull Meikyo")]
+        [Option("No opener-specific rules")]
         None
     }
 
@@ -228,13 +228,13 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     private bool MidCombo => ComboLeft > GCD && ComboLastMove is AID.Hakaze or AID.Gyofu or AID.Jinpu or AID.Shifu or AID.Fuga or AID.Fuko;
     private bool Recovering => CombatTime > 10 && (FugetsuLeft == 0 || FukaLeft == 0);
     private bool Reopening => World.CurrentTime < ReopenUntil;
-    private bool MeikyoUnavailable => MeikyoLeft == 0 && (MeikyoStrat == OffensiveStrategy.Delay || ReadyIn(AID.MeikyoShisui) > GCD);
+    private bool MeikyoUnavailable => MeikyoLeft == 0 && (MeikyoStrat == UseStrategy.Delay || ReadyIn(AID.MeikyoShisui) > GCD);
     private bool DowntimeWithin(int gcds) => DowntimeIn < GCD + GCDLength * gcds;
 
-    private OffensiveStrategy IkishotenStrat;
-    private OffensiveStrategy SeneiStrat;
-    private OffensiveStrategy MeikyoStrat;
-    private OffensiveStrategy ShohaStrat;
+    private UseStrategy IkishotenStrat;
+    private UseStrategy SeneiStrat;
+    private UseStrategy MeikyoStrat;
+    private UseStrategy ShohaStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -258,8 +258,8 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         TendoLeft = Unlocked(AID.TendoSetsugekka) ? SelfStatusLeft(SID.Tendo) : 0;
         OgiLeft = SelfStatusLeft(SID.OgiNamikiriReady);
         ZanshinLeft = Unlocked(AID.Zanshin) ? SelfStatusLeft(SID.ZanshinReady) : 0;
-        SeneiPlannedIn = SeneiStrat == OffensiveStrategy.Delay ? float.MaxValue : SeneiIn;
-        IkishotenDelayed = IkishotenStrat == OffensiveStrategy.Delay;
+        SeneiPlannedIn = SeneiStrat == UseStrategy.Delay ? float.MaxValue : SeneiIn;
+        IkishotenDelayed = IkishotenStrat == UseStrategy.Delay;
         KenkiMakesRoom = strategy.Kenki.Value == KenkiStrategy.Automatic;
         Tsubame = ReadTsubame();
 
@@ -332,7 +332,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         if (OgiRepeat)
             PushGCD(AID.KaeshiNamikiri, BestConeTarget ?? target.Actor, 85);
 
-        if (Reopening && SenCount < 3 && MeikyoLeft == 0 && TendoLeft == 0 && WorthBurst && strategy.Meikyo.Value != OffensiveStrategy.Delay
+        if (Reopening && SenCount < 3 && MeikyoLeft == 0 && TendoLeft == 0 && WorthBurst && strategy.Meikyo.Value != UseStrategy.Delay
             && Unlocked(AID.MeikyoShisui) && ReadyIn(AID.MeikyoShisui) <= GCD)
             PushAction(ActionID.MakeSpell(AID.MeikyoShisui), Player, ActionQueue.Priority.High + 90);
 
@@ -425,15 +425,15 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     private void UseOgi(in Strategy strategy, Enemy target)
     {
-        if (OgiLeft <= GCD || IkishotenStrat == OffensiveStrategy.Delay || !HaveBuffs)
+        if (OgiLeft <= GCD || IkishotenStrat == UseStrategy.Delay || !HaveBuffs)
             return;
         if (MeikyoLeft > 0 && MeikyoLeft < GCD + GCDLength * (2 + MeikyoStacks))
             return;
-        if (IkishotenStrat != OffensiveStrategy.Force && !WorthBurst && OgiLeft > 8)
+        if (IkishotenStrat != UseStrategy.Force && !WorthBurst && OgiLeft > 8)
             return;
 
         var dotLeft = DotLeft(target.Actor);
-        var use = IkishotenStrat == OffensiveStrategy.Force
+        var use = IkishotenStrat == UseStrategy.Force
             || OgiLeft <= 8
             || dotLeft > 50
             || dotLeft > 15 && (RaidBuffsLeft > GCD || !HasRaidBuffJobs)
@@ -444,7 +444,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     }
 
     private bool MeikyoBurstNow(in Strategy strategy)
-        => Unlocked(AID.TendoSetsugekka) && MeikyoLeft == 0 && MeikyoStrat != OffensiveStrategy.Delay && WorthBurst
+        => Unlocked(AID.TendoSetsugekka) && MeikyoLeft == 0 && MeikyoStrat != UseStrategy.Delay && WorthBurst
         && ReadyIn(AID.MeikyoShisui) <= GCD && DowntimeIn >= GCDLength * 3 && (SeneiSoon || HasRaidBuffJobs && RaidBuffsLeft > GCD);
 
     private bool MeikyoAoE => Unlocked(AID.Oka) && NumCircleTargets >= 4;
@@ -583,23 +583,23 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     {
         UseMeikyo(strategy, target);
 
-        if (SeneiStrat != OffensiveStrategy.Delay && Kenki >= 25 && (SeneiStrat == OffensiveStrategy.Force || (WorthBurst || BossDying) && SeneiWanted()))
+        if (SeneiStrat != UseStrategy.Delay && Kenki >= 25 && (SeneiStrat == UseStrategy.Force || (WorthBurst || BossDying) && SeneiWanted()))
         {
             var aid = !ForceST && (NumLineTargets >= 2 && Unlocked(AID.HissatsuGuren) || !Unlocked(AID.HissatsuSenei)) ? AID.HissatsuGuren : AID.HissatsuSenei;
             if (CanWeave(aid))
                 PushOGCD(aid, aid == AID.HissatsuGuren ? BestLineTarget ?? target.Actor : target.Actor, 60);
         }
 
-        if (IkishotenStrat != OffensiveStrategy.Delay && CanWeave(AID.Ikishoten) && ZanshinLeft == 0
-            && (IkishotenStrat == OffensiveStrategy.Force || (Kenki <= 50 || !KenkiMakesRoom) && WorthBurst && DowntimeIn > 10 && (!Unlocked(AID.HissatsuSenei) || SeneiJustUsed(20) || SeneiPlannedIn <= GCD + GCDLength * 2)))
+        if (IkishotenStrat != UseStrategy.Delay && CanWeave(AID.Ikishoten) && ZanshinLeft == 0
+            && (IkishotenStrat == UseStrategy.Force || (Kenki <= 50 || !KenkiMakesRoom) && WorthBurst && DowntimeIn > 10 && (!Unlocked(AID.HissatsuSenei) || SeneiJustUsed(20) || SeneiPlannedIn <= GCD + GCDLength * 2)))
             PushOGCD(AID.Ikishoten, Player, 58);
 
-        if (IkishotenStrat != OffensiveStrategy.Delay && ZanshinLeft > 0 && Kenki >= 50 && CanWeave(AID.Zanshin)
+        if (IkishotenStrat != UseStrategy.Delay && ZanshinLeft > 0 && Kenki >= 50 && CanWeave(AID.Zanshin)
             && (ZanshinLeft <= 8 || BossDying || WorthBurst && (RaidBuffsLeft > GCD || !HasRaidBuffJobs || RaidBuffsIn > ZanshinLeft)))
             PushOGCD(AID.Zanshin, BestConeTarget ?? target.Actor, 56);
 
-        if (ShohaStrat != OffensiveStrategy.Delay && Meditation >= 3 && CanWeave(AID.Shoha)
-            && (ShohaStrat == OffensiveStrategy.Force || BossDying || GrantsMeditation(NextGCD) || RaidBuffsLeft > GCD || !HasRaidBuffJobs && !SeneiSoon))
+        if (ShohaStrat != UseStrategy.Delay && Meditation >= 3 && CanWeave(AID.Shoha)
+            && (ShohaStrat == UseStrategy.Force || BossDying || GrantsMeditation(NextGCD) || RaidBuffsLeft > GCD || !HasRaidBuffJobs && !SeneiSoon))
             PushOGCD(AID.Shoha, BestLineTarget ?? target.Actor, 54);
 
         if (strategy.Kenki.Value != KenkiStrategy.Delay && ShouldSpendKenki(strategy))
@@ -649,9 +649,9 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     private void UseMeikyo(in Strategy strategy, Enemy target)
     {
-        if (MeikyoStrat == OffensiveStrategy.Delay || MeikyoLeft > 0 || !CanWeave(AID.MeikyoShisui))
+        if (MeikyoStrat == UseStrategy.Delay || MeikyoLeft > 0 || !CanWeave(AID.MeikyoShisui))
             return;
-        if (MeikyoStrat == OffensiveStrategy.Force)
+        if (MeikyoStrat == UseStrategy.Force)
         {
             PushOGCD(AID.MeikyoShisui, Player, 70);
             return;

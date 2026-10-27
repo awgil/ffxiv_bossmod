@@ -12,31 +12,31 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Lance Charge, Battle Litany, Dragonfire Dive)", InternalName = "Burst", MinLevel = 30)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Lance Charge", MinLevel = 30, Action = AID.LanceCharge)]
-        public Track<OffensiveStrategy> LanceCharge;
+        public Track<UseStrategy> LanceCharge;
 
         [Track("Battle Litany", MinLevel = 52, Action = AID.BattleLitany)]
-        public Track<OffensiveStrategy> BattleLitany;
+        public Track<UseStrategy> BattleLitany;
 
         [Track("Life Surge", MinLevel = 6, Action = AID.LifeSurge)]
         public Track<LifeSurgeStrategy> LifeSurge;
 
         [Track("Geirskogul / Nastrond", MinLevel = 60, Actions = [AID.Geirskogul, AID.Nastrond])]
-        public Track<OffensiveStrategy> Geirskogul;
+        public Track<UseStrategy> Geirskogul;
 
         [Track("Jump / High Jump", MinLevel = 30, Actions = [AID.Jump, AID.HighJump, AID.MirageDive])]
-        public Track<OffensiveStrategy> Jump;
+        public Track<UseStrategy> Jump;
 
         [Track("Dragonfire Dive", MinLevel = 50, Actions = [AID.DragonfireDive, AID.RiseOfTheDragon])]
-        public Track<OffensiveStrategy> DragonfireDive;
+        public Track<UseStrategy> DragonfireDive;
 
         [Track("Stardiver", MinLevel = 80, Actions = [AID.Stardiver, AID.Starcross])]
-        public Track<OffensiveStrategy> Stardiver;
+        public Track<UseStrategy> Stardiver;
 
         [Track("Wyrmwind Thrust", MinLevel = 90, Action = AID.WyrmwindThrust)]
-        public Track<OffensiveStrategy> Wyrmwind;
+        public Track<UseStrategy> Wyrmwind;
 
         [Track("Piercing Talon", MinLevel = 15, Action = AID.PiercingTalon)]
         public Track<TalonStrategy> Talon;
@@ -87,7 +87,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use")]
         None,
-        [Option("Use when outside melee range", Targets = ActionTargets.Hostile)]
+        [Option("Use when out of melee range", Targets = ActionTargets.Hostile)]
         GapClose
     }
 
@@ -163,9 +163,9 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
     private Enemy? DotEnemy;
     private bool TwoTargets;
 
-    private OffensiveStrategy LanceStrat;
-    private OffensiveStrategy LitanyStrat;
-    private OffensiveStrategy DiveStrat;
+    private UseStrategy LanceStrat;
+    private UseStrategy LitanyStrat;
+    private UseStrategy DiveStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -331,12 +331,12 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
         if (InOpener && OpenerMode == OpenerStrategy.DMU && CombatTime < 3)
         {
-            if (LitanyStrat != OffensiveStrategy.Delay && CanWeave(AID.BattleLitany))
+            if (LitanyStrat != UseStrategy.Delay && CanWeave(AID.BattleLitany))
                 PushOGCD(AID.BattleLitany, Player, 70);
-            if (LanceStrat != OffensiveStrategy.Delay && CanWeave(AID.LanceCharge))
+            if (LanceStrat != UseStrategy.Delay && CanWeave(AID.LanceCharge))
                 PushOGCD(AID.LanceCharge, Player, 71);
         }
-        if (InOpener && OpenerMode == OpenerStrategy.FRU && PowerSurge == 0 && strategy.Jump.Value != OffensiveStrategy.Delay && CanWeave(AID.HighJump))
+        if (InOpener && OpenerMode == OpenerStrategy.FRU && PowerSurge == 0 && strategy.Jump.Value != UseStrategy.Delay && CanWeave(AID.HighJump))
             PushOGCD(AID.HighJump, target.Actor, 72);
 
         if (strategy.Glide.Value == GlideStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
@@ -347,55 +347,55 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
         if (InOpener && OpenerMode == OpenerStrategy.Standard && CombatTime < 10 && ComboLastMove is AID.TrueThrust or AID.RaidenThrust or AID.SpiralBlow)
         {
-            if (_talonPull && ComboLastMove == AID.SpiralBlow && LanceStrat != OffensiveStrategy.Delay && CanWeave(AID.LanceCharge))
+            if (_talonPull && ComboLastMove == AID.SpiralBlow && LanceStrat != UseStrategy.Delay && CanWeave(AID.LanceCharge))
                 PushOGCD(AID.LanceCharge, Player, 79);
             return;
         }
 
-        if (LitanyStrat == OffensiveStrategy.Force || LitanyStrat == OffensiveStrategy.Automatic && worth)
+        if (LitanyStrat == UseStrategy.Force || LitanyStrat == UseStrategy.Automatic && worth)
             if (CanWeave(AID.BattleLitany))
                 PushOGCD(AID.BattleLitany, Player, 80);
 
         var fruLanceHold = InOpener && OpenerMode == OpenerStrategy.FRU && CombatTime < GCDLength * 5;
-        if (LanceStrat == OffensiveStrategy.Force || LanceStrat == OffensiveStrategy.Automatic && (worth || Dying) && !fruLanceHold)
+        if (LanceStrat == UseStrategy.Force || LanceStrat == UseStrategy.Automatic && (worth || Dying) && !fruLanceHold)
             if (CanWeave(AID.LanceCharge))
                 PushOGCD(AID.LanceCharge, Player, 79);
 
         var lineTarget = BestLongLine(target);
-        if (strategy.Geirskogul.Value != OffensiveStrategy.Delay && !InLotD && CanWeave(AID.Geirskogul)
-            && (strategy.Geirskogul.Value == OffensiveStrategy.Force || Dying || TimeToKill.WillLive(target.Actor, 10)))
+        if (strategy.Geirskogul.Value != UseStrategy.Delay && !InLotD && CanWeave(AID.Geirskogul)
+            && (strategy.Geirskogul.Value == UseStrategy.Force || Dying || TimeToKill.WillLive(target.Actor, 10)))
             PushOGCD(AID.Geirskogul, lineTarget, 78);
 
-        if ((strategy.Jump.Value == OffensiveStrategy.Force || strategy.Jump.Value == OffensiveStrategy.Automatic && TimeToKill.WillLive(target.Actor, 5)) && CanWeave(BestActionUnlocked(AID.HighJump, AID.Jump)))
+        if ((strategy.Jump.Value == UseStrategy.Force || strategy.Jump.Value == UseStrategy.Automatic && TimeToKill.WillLive(target.Actor, 5)) && CanWeave(BestActionUnlocked(AID.HighJump, AID.Jump)))
             PushOGCD(BestActionUnlocked(AID.HighJump, AID.Jump), target.Actor, 76);
 
-        if ((DiveStrat == OffensiveStrategy.Force || DiveStrat == OffensiveStrategy.Automatic && (worth || Dying) && DragonsFlight == 0) && CanWeave(AID.DragonfireDive))
+        if ((DiveStrat == UseStrategy.Force || DiveStrat == UseStrategy.Automatic && (worth || Dying) && DragonsFlight == 0) && CanWeave(AID.DragonfireDive))
             PushOGCD(AID.DragonfireDive, target.Actor, 75);
 
         if (UseLifeSurge(strategy.LifeSurge.Value))
             PushOGCD(AID.LifeSurge, Player, 77);
 
-        if (Focus == 2 && strategy.Wyrmwind.Value != OffensiveStrategy.Delay)
+        if (Focus == 2 && strategy.Wyrmwind.Value != UseStrategy.Delay)
         {
             if (NextGCD is AID.RaidenThrust or AID.DraconianFury)
                 PushOGCD(AID.WyrmwindThrust, lineTarget, 72);
-            else if (strategy.Wyrmwind.Value == OffensiveStrategy.Force || Dying || InBuffs || AOEMode || !BuffsSoon(GCD + GCDLength * 3))
+            else if (strategy.Wyrmwind.Value == UseStrategy.Force || Dying || InBuffs || AOEMode || !BuffsSoon(GCD + GCDLength * 3))
                 PushOGCD(AID.WyrmwindThrust, lineTarget, 69);
         }
 
-        if (strategy.Geirskogul.Value != OffensiveStrategy.Delay && InLotD && NastrondReady > 0)
+        if (strategy.Geirskogul.Value != UseStrategy.Delay && InLotD && NastrondReady > 0)
             Filler(AID.Nastrond, lineTarget, 54, LotD);
 
-        if ((strategy.Stardiver.Value == OffensiveStrategy.Force || strategy.Stardiver.Value == OffensiveStrategy.Automatic && InLotD && StarcrossReady == 0) && CanWeave(AID.Stardiver))
+        if ((strategy.Stardiver.Value == UseStrategy.Force || strategy.Stardiver.Value == UseStrategy.Automatic && InLotD && StarcrossReady == 0) && CanWeave(AID.Stardiver))
             Filler(AID.Stardiver, target.Actor, 53, LotD);
 
-        if (strategy.Stardiver.Value != OffensiveStrategy.Delay && StarcrossReady > 0)
+        if (strategy.Stardiver.Value != UseStrategy.Delay && StarcrossReady > 0)
             Filler(AID.Starcross, target.Actor, 52, StarcrossReady);
 
-        if (DiveStrat != OffensiveStrategy.Delay && DragonsFlight > 0)
+        if (DiveStrat != UseStrategy.Delay && DragonsFlight > 0)
             Filler(AID.RiseOfTheDragon, target.Actor, 51, DragonsFlight);
 
-        if (strategy.Jump.Value != OffensiveStrategy.Delay && DiveReady > 0)
+        if (strategy.Jump.Value != UseStrategy.Delay && DiveReady > 0)
             Filler(AID.MirageDive, target.Actor, 50, DiveReady);
 
     }
@@ -408,7 +408,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(aid, target, priority);
     }
 
-    private bool BuffsSoon(float within) => LanceStrat != OffensiveStrategy.Delay && ReadyIn(AID.LanceCharge) < within || HasRaidBuffJobs && RaidBuffsIn < within;
+    private bool BuffsSoon(float within) => LanceStrat != UseStrategy.Delay && ReadyIn(AID.LanceCharge) < within || HasRaidBuffJobs && RaidBuffsIn < within;
 
     private Actor ChaosTarget(Enemy target) => DotEnemy?.Actor ?? target.Actor;
 

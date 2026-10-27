@@ -12,19 +12,19 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Fight or Flight, Requiescat, Circle of Scorn, Intervene)", InternalName = "Burst", MinLevel = 2)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Fight or Flight", MinLevel = 2, Action = AID.FightOrFlight)]
-        public Track<OffensiveStrategy> FightOrFlight;
+        public Track<UseStrategy> FightOrFlight;
 
         [Track("Requiescat / Imperator", MinLevel = 68, Actions = [AID.Requiescat, AID.Imperator])]
-        public Track<OffensiveStrategy> Requiescat;
+        public Track<UseStrategy> Requiescat;
 
         [Track("Goring Blade", MinLevel = 54, Action = AID.GoringBlade)]
-        public Track<OffensiveStrategy> Goring;
+        public Track<UseStrategy> Goring;
 
         [Track("Circle of Scorn / Expiacion", MinLevel = 30, Actions = [AID.CircleOfScorn, AID.SpiritsWithin, AID.Expiacion])]
-        public Track<OffensiveStrategy> Spenders;
+        public Track<UseStrategy> Spenders;
 
         [Track("Intervene", MinLevel = 74, Action = AID.Intervene)]
         public Track<InterveneStrategy> Intervene;
@@ -110,9 +110,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
     private float FoFIn;
     private AID BestRequiescat => Unlocked(AID.Imperator) ? AID.Imperator : AID.Requiescat;
 
-    private OffensiveStrategy FightOrFlightStrat;
-    private OffensiveStrategy RequiescatStrat;
-    private OffensiveStrategy SpendersStrat;
+    private UseStrategy FightOrFlightStrat;
+    private UseStrategy RequiescatStrat;
+    private UseStrategy SpendersStrat;
     private InterveneStrategy InterveneStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -124,11 +124,11 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         FightOrFlightStrat = WithBurst(strategy.Burst.Value, strategy.FightOrFlight.Value);
         RequiescatStrat = WithBurst(strategy.Burst.Value, strategy.Requiescat.Value);
         SpendersStrat = WithBurst(strategy.Burst.Value, strategy.Spenders.Value);
-        InterveneStrat = strategy.Intervene.Value == InterveneStrategy.Delay ? InterveneStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
+        InterveneStrat = strategy.Intervene.Value == InterveneStrategy.Delay ? InterveneStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
-        FoFIn = FightOrFlightStrat == OffensiveStrategy.Delay ? float.MaxValue : ReadyIn(AID.FightOrFlight);
+        FoFIn = FightOrFlightStrat == UseStrategy.Delay ? float.MaxValue : ReadyIn(AID.FightOrFlight);
         RequiescatLeft = SelfStatusLeft(SID.Requiescat);
         ConfiteorLeft = SelfStatusLeft(SID.ConfiteorReady);
         GoringLeft = SelfStatusLeft(SID.GoringBladeReady);
@@ -190,8 +190,8 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         var holyTarget = holyAction == AID.HolyCircle ? Player : target.Actor;
         var canHoly = Unlocked(holyAction) && MP >= HolySpiritMP;
 
-        var requiescatSoon = FoFLeft > 0 && RequiescatStrat != OffensiveStrategy.Delay && ReadyIn(BestRequiescat) <= GCD;
-        if (strategy.Goring.Value != OffensiveStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || strategy.Goring.Value == OffensiveStrategy.Force))
+        var requiescatSoon = FoFLeft > 0 && RequiescatStrat != UseStrategy.Delay && ReadyIn(BestRequiescat) <= GCD;
+        if (strategy.Goring.Value != UseStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || strategy.Goring.Value == UseStrategy.Force))
         {
             var goringTarget = AOEMode
                 ? Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor
@@ -267,13 +267,13 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(AID.BladeOfHonor, BestSplashTarget, 65);
 
         var imperator = requiescat == AID.Imperator;
-        if (RequiescatStrat != OffensiveStrategy.Delay && CanWeave(requiescat) && Player.DistanceToHitbox(target.Actor) <= (imperator ? 25 : 3)
-            && (RequiescatStrat == OffensiveStrategy.Force || FoFLeft > 0 || FoFIn > 50))
+        if (RequiescatStrat != UseStrategy.Delay && CanWeave(requiescat) && Player.DistanceToHitbox(target.Actor) <= (imperator ? 25 : 3)
+            && (RequiescatStrat == UseStrategy.Force || FoFLeft > 0 || FoFIn > 50))
             PushOGCD(requiescat, imperator ? BestSplashTarget : target.Actor, 64);
 
-        if (SpendersStrat != OffensiveStrategy.Delay)
+        if (SpendersStrat != UseStrategy.Delay)
         {
-            var hold = SpendersStrat != OffensiveStrategy.Force && FoFLeft == 0 && FoFIn < 2.5f;
+            var hold = SpendersStrat != UseStrategy.Force && FoFLeft == 0 && FoFIn < 2.5f;
             if (!hold && CanWeave(AID.CircleOfScorn) && NumAOETargets > 0)
                 PushOGCD(AID.CircleOfScorn, Player, 60);
             var spirits = Unlocked(AID.Expiacion) ? AID.Expiacion : AID.SpiritsWithin;
@@ -293,9 +293,9 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     private bool ShouldFightOrFlight(in Strategy strategy, Actor target)
     {
-        if (!CanWeave(AID.FightOrFlight) || FightOrFlightStrat == OffensiveStrategy.Delay)
+        if (!CanWeave(AID.FightOrFlight) || FightOrFlightStrat == UseStrategy.Delay)
             return false;
-        if (FightOrFlightStrat == OffensiveStrategy.Force)
+        if (FightOrFlightStrat == UseStrategy.Force)
             return true;
         if (DowntimeIn < 10)
             return false;

@@ -12,7 +12,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Starry Muse)", InternalName = "Burst", MinLevel = 70, Action = AID.StarryMuse)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Living Muse", MinLevel = 30, Actions = [AID.PomMuse, AID.WingedMuse, AID.ClawedMuse, AID.FangedMuse])]
         public Track<MuseStrategy> Living;
@@ -21,7 +21,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<MuseStrategy> Striking;
 
         [Track("Portraits", MinLevel = 30, Actions = [AID.MogOfTheAges, AID.RetributionOfTheMadeen])]
-        public Track<OffensiveStrategy> Portrait;
+        public Track<UseStrategy> Portrait;
 
         [Track("Hammer combo", MinLevel = 50, Actions = [AID.HammerStamp, AID.HammerBrush, AID.PolishingHammer])]
         public Track<SpendStrategy> Hammer;
@@ -30,13 +30,13 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<SpendStrategy> Holy;
 
         [Track("Subtractive Palette", MinLevel = 60, Action = AID.SubtractivePalette)]
-        public Track<OffensiveStrategy> Palette;
+        public Track<UseStrategy> Palette;
 
         [Track("Motifs")]
         public Track<MotifStrategy> Motifs;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
-        public Track<OffensiveStrategy> Lucid;
+        public Track<UseStrategy> Lucid;
 
         [Track("Tempera Coat / Grassa", MinLevel = 10, Actions = [AID.TemperaCoat, AID.TemperaGrassa])]
         public Track<TemperaStrategy> Tempera;
@@ -62,7 +62,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Automatic: Starry Muse burst, movement, AoE; Comet after the Subtractive combo")]
         Automatic,
-        [Option("Spend as soon as possible")]
+        [Option("Use as soon as possible")]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -74,7 +74,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         Automatic,
         [Option("Only out of combat and in downtime")]
         Downtime,
-        [Option("Do not paint")]
+        [Option("Do not use")]
         Delay
     }
 
@@ -149,7 +149,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     private bool InOpener => OpenerMode != OpenerStrategy.None && CombatTime < 30;
     private bool Dying;
 
-    private OffensiveStrategy StarryStrat;
+    private UseStrategy StarryStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -352,26 +352,26 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         if (PortraitReady && UsePortrait(strategy.Portrait.Value) && CanWeave(AID.MogOfTheAges))
             PushOGCD(Creature.HasFlag(CreatureFlags.MadeenPortrait) ? AID.RetributionOfTheMadeen : AID.MogOfTheAges, BestLine ?? target.Actor, 55);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 6500)
+        if (strategy.Lucid.Value == UseStrategy.Force || strategy.Lucid.Value == UseStrategy.Automatic && MP <= 6500)
             PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
 
-    private bool UsePalette(OffensiveStrategy strategy)
+    private bool UsePalette(UseStrategy strategy)
     {
-        if (strategy == OffensiveStrategy.Delay || !Unlocked(AID.SubtractivePalette) || Subtractive || Monochrome)
+        if (strategy == UseStrategy.Delay || !Unlocked(AID.SubtractivePalette) || Subtractive || Monochrome)
             return false;
-        if (strategy == OffensiveStrategy.Force)
+        if (strategy == UseStrategy.Force)
             return Palette >= 50 || Spectrum > 0;
         return Spectrum > 0 || Dying && Palette >= 50
             || Palette >= 50 && StarryIn > 35
             || Palette == 100 && Aetherhues2 > 0
-            || Palette >= 50 && StarryIn < GCDLength * 1.5f && StarryStrat != OffensiveStrategy.Delay;
+            || Palette >= 50 && StarryIn < GCDLength * 1.5f && StarryStrat != UseStrategy.Delay;
     }
 
     private bool UseStarry(Enemy target) => StarryStrat switch
     {
-        OffensiveStrategy.Delay => false,
-        OffensiveStrategy.Force => true,
+        UseStrategy.Delay => false,
+        UseStrategy.Force => true,
         _ => TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 20) && DowntimeIn > 15 && GCD < 1.2f
             && (!InOpener || CombatTime > 10 || Canvas.HasFlag(CanvasFlags.Wing) || Canvas.HasFlag(CanvasFlags.Maw) || !Unlocked(AID.WingMotif))
     };
@@ -396,7 +396,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             return true;
         if (LivingMuseAID is AID.WingedMuse or AID.FangedMuse && PortraitReady)
             return false;
-        if (!Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || TrashAoE)
+        if (!Unlocked(AID.StarryMuse) || StarryStrat == UseStrategy.Delay || TrashAoE)
             return true;
         return StarryLeft > 0 || RaidBuffsLeft > GCD || StarryIn > 40;
     }
@@ -410,16 +410,16 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             case MuseStrategy.ASAP:
                 return true;
         }
-        if (!Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || MaxChargesIn(AID.StrikingMuse) <= GCD + 3 || Dying)
+        if (!Unlocked(AID.StarryMuse) || StarryStrat == UseStrategy.Delay || MaxChargesIn(AID.StrikingMuse) <= GCD + 3 || Dying)
             return true;
         return StarryLeft > 0 || StarryIn is < 10 or > 60;
     }
 
-    private bool UsePortrait(OffensiveStrategy strategy) => strategy switch
+    private bool UsePortrait(UseStrategy strategy) => strategy switch
     {
-        OffensiveStrategy.Delay => false,
-        OffensiveStrategy.Force => true,
-        _ => Dying || StarryLeft > 0 || StarryIn >= 60 || !Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || TrashAoE
+        UseStrategy.Delay => false,
+        UseStrategy.Force => true,
+        _ => Dying || StarryLeft > 0 || StarryIn >= 60 || !Unlocked(AID.StarryMuse) || StarryStrat == UseStrategy.Delay || TrashAoE
     };
 
     private bool TrashAoE => AOEMode && Bossmods.ActiveModule == null;

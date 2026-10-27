@@ -12,16 +12,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Serpent's Ire, Reawaken)", InternalName = "Burst", MinLevel = 86)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
         public Track<ReawakenStrategy> Reawaken;
 
         [Track("Serpent's Ire", MinLevel = 86, Action = AID.SerpentsIre)]
-        public Track<OffensiveStrategy> Ire;
+        public Track<UseStrategy> Ire;
 
         [Track("Vicewinder / Vicepit", MinLevel = 65, Actions = [AID.Vicewinder, AID.Vicepit])]
-        public Track<OffensiveStrategy> Twinblade;
+        public Track<UseStrategy> Twinblade;
 
         [Track("Uncoiled Fury", MinLevel = 82, Action = AID.UncoiledFury)]
         public Track<UncoiledStrategy> Uncoiled;
@@ -59,7 +59,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Spend as soon as possible (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
+        [Option("Use as soon as possible (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
         ASAP,
         [Option("Spend between combos, but always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
@@ -89,7 +89,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Only to engage at the pull (see Engage)")]
         None,
-        [Option("Use when outside melee range", Targets = ActionTargets.Hostile)]
+        [Option("Use when out of melee range", Targets = ActionTargets.Hostile)]
         GapClose
     }
 
@@ -178,12 +178,12 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
 
     private ReawakenStrategy ReawakenStrat;
-    private OffensiveStrategy IreStrat;
+    private UseStrategy IreStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        ReawakenStrat = strategy.Reawaken.Value == ReawakenStrategy.Delay ? ReawakenStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => ReawakenStrategy.Delay, OffensiveStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
+        ReawakenStrat = strategy.Reawaken.Value == ReawakenStrategy.Delay ? ReawakenStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => ReawakenStrategy.Delay, UseStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
         IreStrat = WithBurst(strategy.Burst.Value, strategy.Ire.Value);
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
@@ -250,8 +250,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
         IreWanted = IreStrat switch
         {
-            OffensiveStrategy.Force => true,
-            OffensiveStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
+            UseStrategy.Force => true,
+            UseStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
             _ => false
         };
 
@@ -421,7 +421,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     private bool HoldForIre => IreWanted && InBossFight && IreIn <= 10 && !HoldIreForBuffs && Swiftscaled > GCDLength * 4 && Instinct > GCDLength * 4;
     // like MCH's Wildfire: the estimate drops buffs 10s after they're overdue, so this holds ~22s at most; no pooling while held
-    private bool HoldIreForBuffs => IreStrat == OffensiveStrategy.Automatic && HasRaidBuffJobs && !(OpenerMode != OpenerStrategy.None && CombatTime < 30)
+    private bool HoldIreForBuffs => IreStrat == UseStrategy.Automatic && HasRaidBuffJobs && !(OpenerMode != OpenerStrategy.None && CombatTime < 30)
         && IreIn <= GCD && RaidBuffsLeft == 0 && RaidBuffsIn < 12;
 
     private bool ShouldTwinblade(in Strategy strategy, AID aid)
@@ -431,9 +431,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
         switch (strategy.Twinblade.Value)
         {
-            case OffensiveStrategy.Force:
+            case UseStrategy.Force:
                 return true;
-            case OffensiveStrategy.Delay:
+            case UseStrategy.Delay:
                 return false;
         }
 
@@ -534,7 +534,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         if (SwiftskinsVenom > 0)
             PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (IreWanted && !HoldIreForBuffs && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
+        if (IreWanted && !HoldIreForBuffs && (Coil < CoilMax || IreStrat == UseStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
         if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)

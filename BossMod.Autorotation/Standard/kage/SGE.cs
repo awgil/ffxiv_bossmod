@@ -15,13 +15,13 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         public Track<DotStrategy> Dot;
 
         [Track("Burst (Phlegma, Psyche)", InternalName = "Burst", MinLevel = 26)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Phlegma", MinLevel = 26, Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII])]
-        public Track<OffensiveStrategy> Phlegma;
+        public Track<UseStrategy> Phlegma;
 
         [Track("Psyche", MinLevel = 92, Action = AID.Psyche)]
-        public Track<OffensiveStrategy> Psyche;
+        public Track<UseStrategy> Psyche;
 
         [Track("Toxikon", MinLevel = 66, Actions = [AID.Toxikon, AID.ToxikonII])]
         public Track<ToxikonStrategy> Toxikon;
@@ -33,16 +33,16 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         public Track<KardiaStrategy> Kardia;
 
         [Track("Soteria", MinLevel = 35, Action = AID.Soteria)]
-        public Track<OffensiveStrategy> Soteria;
+        public Track<UseStrategy> Soteria;
 
         [Track("Rhizomata", MinLevel = 74, Action = AID.Rhizomata)]
-        public Track<OffensiveStrategy> Rhizomata;
+        public Track<UseStrategy> Rhizomata;
 
         [Track("Druochole (Addersgall overcap)", MinLevel = 45, Action = AID.Druochole)]
         public Track<DruocholeStrategy> Druochole;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
-        public Track<OffensiveStrategy> Lucid;
+        public Track<UseStrategy> Lucid;
 
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
@@ -65,7 +65,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Use while moving and on 2+ targets")]
         Automatic,
-        [Option("Spend as soon as possible")]
+        [Option("Use as soon as possible")]
         ASAP,
         [Option("Only while moving")]
         Movement,
@@ -136,8 +136,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     protected override bool UsesSpellSpeed => true;
     private bool CanCast => CastFits(ScaledCastTime(AID.Dosis));
 
-    private OffensiveStrategy PhlegmaStrat;
-    private OffensiveStrategy PsycheStrat;
+    private UseStrategy PhlegmaStrat;
+    private UseStrategy PsycheStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
@@ -256,9 +256,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             return false;
         switch (PhlegmaStrat)
         {
-            case OffensiveStrategy.Force:
+            case UseStrategy.Force:
                 return true;
-            case OffensiveStrategy.Delay:
+            case UseStrategy.Delay:
                 return false;
         }
         var buffsSoon = Player.InCombat && InBossFight && RaidBuffsLeft <= GCD && RaidBuffsIn < 10;
@@ -282,12 +282,12 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (PsycheStrat != OffensiveStrategy.Delay && CanWeave(AID.Psyche)
-            && (PsycheStrat == OffensiveStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
+        if (PsycheStrat != UseStrategy.Delay && CanWeave(AID.Psyche)
+            && (PsycheStrat == UseStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
                 && (RaidBuffsLeft > 0 || RaidBuffsIn > 10 || !InBossFight)))
             PushOGCD(AID.Psyche, target.Actor, 50);
 
-        if (strategy.Rhizomata.Value == OffensiveStrategy.Force || strategy.Rhizomata.Value == OffensiveStrategy.Automatic && Gall <= 1)
+        if (strategy.Rhizomata.Value == UseStrategy.Force || strategy.Rhizomata.Value == UseStrategy.Automatic && Gall <= 1)
             if (CanWeave(AID.Rhizomata))
                 PushOGCD(AID.Rhizomata, Player, 40);
 
@@ -299,11 +299,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(AID.Druochole, healTarget, 35);
         }
 
-        if (strategy.Soteria.Value == OffensiveStrategy.Force || strategy.Soteria.Value == OffensiveStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
+        if (strategy.Soteria.Value == UseStrategy.Force || strategy.Soteria.Value == UseStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
             if (CanWeave(AID.Soteria))
                 PushOGCD(AID.Soteria, Player, 30);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
+        if (strategy.Lucid.Value == UseStrategy.Force || strategy.Lucid.Value == UseStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }

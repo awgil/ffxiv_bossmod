@@ -12,22 +12,22 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Ley Lines, Amplifier, Manafont, Polyglot)", InternalName = "Burst", MinLevel = 30)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Ley Lines", MinLevel = 52, Action = AID.LeyLines)]
         public Track<LeyLinesStrategy> LeyLines;
 
         [Track("Manafont", MinLevel = 30, Action = AID.Manafont)]
-        public Track<OffensiveStrategy> Manafont;
+        public Track<UseStrategy> Manafont;
 
         [Track("Amplifier", MinLevel = 86, Action = AID.Amplifier)]
-        public Track<OffensiveStrategy> Amplifier;
+        public Track<UseStrategy> Amplifier;
 
         [Track("Polyglot", MinLevel = 70, Actions = [AID.Xenoglossy, AID.Foul])]
         public Track<PolyglotStrategy> Polyglot;
 
         [Track("Thunder", MinLevel = 6, Actions = [AID.HighThunder, AID.Thunder3, AID.Thunder1, AID.HighThunder2, AID.Thunder4, AID.Thunder2])]
-        public Track<OffensiveStrategy> Thunder;
+        public Track<UseStrategy> Thunder;
 
         [Track("Triplecast / Swiftcast (movement)", MinLevel = 18, Actions = [AID.Triplecast, ClassShared.AID.Swiftcast])]
         public Track<MovementStrategy> Movement;
@@ -100,7 +100,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         Standard,
         [Option("Flare opener (Despair before Manafont, Flare for a second Flare Star)", MinLevel = 100)]
         Flare,
-        [Option("No pre-pull cast")]
+        [Option("No opener-specific rules")]
         None
     }
 
@@ -151,17 +151,17 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     private DateTime NoTargetSince;
     private LeyLinesStrategy LeyLinesStrat;
-    private OffensiveStrategy AmplifierStrat;
-    private OffensiveStrategy ManafontStrat;
+    private UseStrategy AmplifierStrat;
+    private UseStrategy ManafontStrat;
     private PolyglotStrategy PolyglotStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        LeyLinesStrat = strategy.LeyLines.Value == LeyLinesStrategy.Delay ? LeyLinesStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => LeyLinesStrategy.Delay, OffensiveStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
+        LeyLinesStrat = strategy.LeyLines.Value == LeyLinesStrategy.Delay ? LeyLinesStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => LeyLinesStrategy.Delay, UseStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
         AmplifierStrat = WithBurst(strategy.Burst.Value, strategy.Amplifier.Value);
         ManafontStrat = WithBurst(strategy.Burst.Value, strategy.Manafont.Value);
-        PolyglotStrat = strategy.Polyglot.Value == PolyglotStrategy.Delay ? PolyglotStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => PolyglotStrategy.Overcap, OffensiveStrategy.Force => PolyglotStrategy.ASAP, _ => strategy.Polyglot.Value };
+        PolyglotStrat = strategy.Polyglot.Value == PolyglotStrategy.Delay ? PolyglotStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => PolyglotStrategy.Overcap, UseStrategy.Force => PolyglotStrategy.ASAP, _ => strategy.Polyglot.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         OpenerMode = strategy.Opener.Value == OpenerStrategy.Flare && !Unlocked(AID.FlareStar) ? OpenerStrategy.Standard : strategy.Opener.Value;
 
@@ -177,7 +177,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         ThunderheadLeft = ProcLeft(SID.Thunderhead);
         Instant = SelfStatusLeft(SID.Triplecast) > GCD || SwiftcastUp;
         InLeyLines = SelfStatusLeft(SID.CircleOfPower) > 0;
-        ManafontIn = ManafontStrat != OffensiveStrategy.Delay && Player.InCombat ? ReadyIn(AID.Manafont) : float.MaxValue;
+        ManafontIn = ManafontStrat != UseStrategy.Delay && Player.InCombat ? ReadyIn(AID.Manafont) : float.MaxValue;
         NumAOETargets = target == null ? 0 : Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5);
         AOEMode = Unlocked(AID.Fire2) && UseAOE(strategy.AOE.Value, NumAOETargets, 2);
 
@@ -242,10 +242,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         }
 
         var thunderAt = InOpener ? (InLeyLines ? 7.5f : 5) : AOEMode && NumAOETargets == 2 ? 30 : 3;
-        if (strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == OffensiveStrategy.Force || ThunderLeft(target.Actor) < thunderAt && DowntimeIn > 20 && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
+        if (strategy.Thunder.Value != UseStrategy.Delay && ThunderheadLeft > GCD && (strategy.Thunder.Value == UseStrategy.Force || ThunderLeft(target.Actor) < thunderAt && DowntimeIn > 20 && !target.ForbidDOTs && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 12)))
             PushGCD(ThunderAction, target.Actor, 65);
 
-        if (strategy.Thunder.Value == OffensiveStrategy.Automatic && !AOEMode && ThunderheadLeft > GCD && DowntimeIn > 20
+        if (strategy.Thunder.Value == UseStrategy.Automatic && !AOEMode && ThunderheadLeft > GCD && DowntimeIn > 20
             && Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && ThunderLeft(e.Actor) < 3).MaxBy(e => e.Actor.HPMP.CurHP) is { } second)
             PushGCD(ThunderAction, second.Actor, 64);
 
@@ -364,7 +364,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         else if (InIce)
         {
             AoEExitIce = Unlocked(AID.Blizzard4) ? Hearts >= 3 || MP >= 5000 && Unlocked(AID.Flare)
-                : Unlocked(AID.Flare) || !Unlocked(AID.Freeze) || strategy.Thunder.Value == OffensiveStrategy.Delay || target.ForbidDOTs ? MPFull
+                : Unlocked(AID.Flare) || !Unlocked(AID.Freeze) || strategy.Thunder.Value == UseStrategy.Delay || target.ForbidDOTs ? MPFull
                 : MPFull && NeedThunderhead(target);
             var iceSpell = NumAOETargets == 2 && Unlocked(AID.Blizzard4) ? AID.Blizzard4 : Unlocked(AID.Freeze) ? AID.Freeze : iceAoE;
             if (Unlocked(AID.Blizzard4))
@@ -391,7 +391,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     private bool NeedThunderhead(Enemy target) => ThunderheadLeft == 0 && ThunderLeft(target.Actor) < 10 && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 15);
 
-    private bool MovementThunder(in Strategy strategy, Enemy target) => strategy.Thunder.Value != OffensiveStrategy.Delay && ThunderheadLeft > GCD && !target.ForbidDOTs;
+    private bool MovementThunder(in Strategy strategy, Enemy target) => strategy.Thunder.Value != UseStrategy.Delay && ThunderheadLeft > GCD && !target.ForbidDOTs;
 
     #endregion
 
@@ -399,7 +399,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (ManafontStrat != OffensiveStrategy.Delay && InFire && (CanWeave(AID.Manafont) || GCD == 0 && ReadyIn(AID.Manafont) <= 0) && (ManafontStrat == OffensiveStrategy.Force || (AOEMode ? AoEFireMPOut : FireMPOut) && AstralSoul < 6 || OpenerManafont))
+        if (ManafontStrat != UseStrategy.Delay && InFire && (CanWeave(AID.Manafont) || GCD == 0 && ReadyIn(AID.Manafont) <= 0) && (ManafontStrat == UseStrategy.Force || (AOEMode ? AoEFireMPOut : FireMPOut) && AstralSoul < 6 || OpenerManafont))
             PushOGCD(AID.Manafont, Player, 70);
 
         if (CanUseTranspose)
@@ -428,7 +428,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         if (!AOEMode && FlareOpenerFinish && InFire && AstralSoul >= 3 && !Instant && MP - FireCost < 2400 && CanWeave(AID.Triplecast))
             PushOGCD(AID.Triplecast, Player, 67);
 
-        if (AmplifierStrat != OffensiveStrategy.Delay && (InFire || InIce) && CanWeave(AID.Amplifier) && (AmplifierStrat == OffensiveStrategy.Force || Polyglot < MaxPolyglot))
+        if (AmplifierStrat != UseStrategy.Delay && (InFire || InIce) && CanWeave(AID.Amplifier) && (AmplifierStrat == UseStrategy.Force || Polyglot < MaxPolyglot))
             PushOGCD(AID.Amplifier, Player, 60);
 
         if (LeyLinesStrat != LeyLinesStrategy.Delay && CanWeave(AID.LeyLines) && !InLeyLines && SelfStatusLeft(SID.LeyLines) == 0

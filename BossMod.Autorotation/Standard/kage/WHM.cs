@@ -15,25 +15,25 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         public Track<DotStrategy> Dot;
 
         [Track("Burst (Presence of Mind, Assize, Afflatus Misery)", InternalName = "Burst", MinLevel = 30)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Presence of Mind", MinLevel = 30, Action = AID.PresenceOfMind)]
-        public Track<OffensiveStrategy> PresenceOfMind;
+        public Track<UseStrategy> PresenceOfMind;
 
         [Track("Glare IV", MinLevel = 92, Action = AID.GlareIV)]
-        public Track<OffensiveStrategy> GlareIV;
+        public Track<UseStrategy> GlareIV;
 
         [Track("Assize", MinLevel = 56, Action = AID.Assize)]
-        public Track<OffensiveStrategy> Assize;
+        public Track<UseStrategy> Assize;
 
         [Track("Afflatus Misery", MinLevel = 74, Action = AID.AfflatusMisery)]
         public Track<MiseryStrategy> Misery;
 
         [Track("Lilies (overcap / downtime / cleave)", MinLevel = 74, Actions = [AID.AfflatusRapture, AID.AfflatusSolace])]
-        public Track<OffensiveStrategy> Lilies;
+        public Track<UseStrategy> Lilies;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
-        public Track<OffensiveStrategy> Lucid;
+        public Track<UseStrategy> Lucid;
 
         [Track("Potion")]
         public Track<PotionStrategy> Potion;
@@ -48,7 +48,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         Standard,
         [Option("Double Misery opener (Rapture x3 in the first buffs for a second Misery)", MinLevel = 76)]
         DoubleMisery,
-        [Option("No pre-pull cast")]
+        [Option("No opener-specific rules")]
         None
     }
 
@@ -102,8 +102,8 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
     private bool CanCast => CastFits(CastTime(AID.Stone));
     private float LilyCapIn => Lily >= 3 ? 0 : NextLily + (2 - Lily) * 20;
 
-    private OffensiveStrategy PresenceOfMindStrat;
-    private OffensiveStrategy AssizeStrat;
+    private UseStrategy PresenceOfMindStrat;
+    private UseStrategy AssizeStrat;
     private MiseryStrategy MiseryStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -111,7 +111,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         PresenceOfMindStrat = WithBurst(strategy.Burst.Value, strategy.PresenceOfMind.Value);
         AssizeStrat = WithBurst(strategy.Burst.Value, strategy.Assize.Value);
-        MiseryStrat = strategy.Misery.Value == MiseryStrategy.Delay ? MiseryStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => MiseryStrategy.Delay, OffensiveStrategy.Force => MiseryStrategy.ASAP, _ => strategy.Misery.Value };
+        MiseryStrat = strategy.Misery.Value == MiseryStrategy.Delay ? MiseryStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => MiseryStrategy.Delay, UseStrategy.Force => MiseryStrategy.ASAP, _ => strategy.Misery.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
@@ -163,13 +163,13 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         if (ShouldMisery(strategy, target, misery))
             PushGCD(AID.AfflatusMisery, misery, 45);
 
-        if (SacredSight > 0 && strategy.GlareIV.Value != OffensiveStrategy.Delay
-            && (strategy.GlareIV.Value == OffensiveStrategy.Force || !CanCast || RaidBuffsLeft > GCD || !HasRaidBuffJobs || SacredSightLeft < GCD + GCDLength * SacredSight + 1 || DowntimeIn < GCDLength * (SacredSight + 1)))
+        if (SacredSight > 0 && strategy.GlareIV.Value != UseStrategy.Delay
+            && (strategy.GlareIV.Value == UseStrategy.Force || !CanCast || RaidBuffsLeft > GCD || !HasRaidBuffJobs || SacredSightLeft < GCD + GCDLength * SacredSight + 1 || DowntimeIn < GCDLength * (SacredSight + 1)))
             PushGCD(AID.GlareIV, splash.Actor, 40);
 
         var setReachesMisery = TimeToKill.WillLive(target.Actor, GCD + GCDLength * (3 - BloodLily) + 1);
         if (Player.InCombat && CanSpendLily(strategy)
-            && (strategy.Lilies.Value == OffensiveStrategy.Force || setReachesMisery && (LilyCapIn < GCD + 8 || !ForceST && Hints.NumPriorityTargetsInAOECircle(misery.Position, 5) >= 2)))
+            && (strategy.Lilies.Value == UseStrategy.Force || setReachesMisery && (LilyCapIn < GCD + 8 || !ForceST && Hints.NumPriorityTargetsInAOECircle(misery.Position, 5) >= 2)))
             PushGCD(LilySpell, Player, 35);
 
         if (Player.InCombat && CanSpendLily(strategy) && BloodLily > 0 && Lily >= 3 - BloodLily && setReachesMisery && !TimeToKill.WillLive(target.Actor, 20))
@@ -200,7 +200,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     private AID LilySpell => Unlocked(AID.AfflatusRapture) ? AID.AfflatusRapture : AID.AfflatusSolace;
 
-    private bool CanSpendLily(in Strategy strategy) => strategy.Lilies.Value != OffensiveStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery);
+    private bool CanSpendLily(in Strategy strategy) => strategy.Lilies.Value != UseStrategy.Delay && Lily > 0 && BloodLily < 3 && Unlocked(AID.AfflatusMisery);
 
     private bool ShouldMisery(in Strategy strategy, Enemy target, Actor misery)
     {
@@ -235,15 +235,15 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (PresenceOfMindStrat != OffensiveStrategy.Delay && CanWeave(AID.PresenceOfMind)
-            && (PresenceOfMindStrat == OffensiveStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + 1 || RaidBuffsIn > 30)))
+        if (PresenceOfMindStrat != UseStrategy.Delay && CanWeave(AID.PresenceOfMind)
+            && (PresenceOfMindStrat == UseStrategy.Force || DowntimeIn > 15 && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 15) && (!HasRaidBuffJobs || RaidBuffsLeft > 0 || RaidBuffsIn <= GCD + 1 || RaidBuffsIn > 30)))
             PushOGCD(AID.PresenceOfMind, Player, 50);
 
-        if (AssizeStrat != OffensiveStrategy.Delay && CanWeave(AID.Assize)
-            && (AssizeStrat == OffensiveStrategy.Force || AssizeHits(target) && !(CombatTime < 30 && HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn < 12)))
+        if (AssizeStrat != UseStrategy.Delay && CanWeave(AID.Assize)
+            && (AssizeStrat == UseStrategy.Force || AssizeHits(target) && !(CombatTime < 30 && HasRaidBuffJobs && RaidBuffsLeft == 0 && RaidBuffsIn < 12)))
             PushOGCD(AID.Assize, Player, 40);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 8000)
+        if (strategy.Lucid.Value == UseStrategy.Force || strategy.Lucid.Value == UseStrategy.Automatic && MP <= 8000)
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }

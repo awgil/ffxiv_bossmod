@@ -15,16 +15,16 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         public Track<HyperchargeStrategy> Hypercharge;
 
         [Track("Burst (Wildfire, Barrel Stabilizer, tools, Reassemble, Queen)", InternalName = "Burst", MinLevel = 10)]
-        public Track<OffensiveStrategy> Burst;
+        public Track<UseStrategy> Burst;
 
         [Track("Wildfire", InternalName = "WF", MinLevel = 45, Action = AID.Wildfire)]
         public Track<WildfireStrategy> Wildfire;
 
         [Track("Barrel Stabilizer", MinLevel = 66, Action = AID.BarrelStabilizer)]
-        public Track<OffensiveStrategy> Stabilizer;
+        public Track<UseStrategy> Stabilizer;
 
         [Track("Tools", Actions = [AID.Drill, AID.HotShot, AID.AirAnchor, AID.ChainSaw, AID.Excavator, AID.Bioblaster, AID.FullMetalField])]
-        public Track<OffensiveStrategy> Tools;
+        public Track<UseStrategy> Tools;
 
         [Track("Reassemble", MinLevel = 10, Action = AID.Reassemble)]
         public Track<ReassembleStrategy> Reassemble;
@@ -91,7 +91,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Spend as soon as possible", Targets = ActionTargets.Hostile)]
+        [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         ASAP,
         [Option("Only to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
@@ -166,19 +166,19 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     private float BurstIn => InBurst ? 0 : ReadyIn(AID.Wildfire);
 
     private WildfireStrategy WildfireStrat;
-    private OffensiveStrategy StabilizerStrat;
-    private OffensiveStrategy ToolsStrat;
+    private UseStrategy StabilizerStrat;
+    private UseStrategy ToolsStrat;
     private ReassembleStrategy ReassembleStrat;
     private QueenStrategy QueenStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        WildfireStrat = strategy.Wildfire.Value == WildfireStrategy.Delay ? WildfireStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => WildfireStrategy.Delay, OffensiveStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
+        WildfireStrat = strategy.Wildfire.Value == WildfireStrategy.Delay ? WildfireStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => WildfireStrategy.Delay, UseStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
         StabilizerStrat = WithBurst(strategy.Burst.Value, strategy.Stabilizer.Value);
         ToolsStrat = WithBurst(strategy.Burst.Value, strategy.Tools.Value);
-        ReassembleStrat = strategy.Reassemble.Value == ReassembleStrategy.Delay ? ReassembleStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
-        QueenStrat = strategy.Queen.Value == QueenStrategy.Delay ? QueenStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => QueenStrategy.Delay, OffensiveStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
+        ReassembleStrat = strategy.Reassemble.Value == ReassembleStrategy.Delay ? ReassembleStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
+        QueenStrat = strategy.Queen.Value == QueenStrategy.Delay ? QueenStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => QueenStrategy.Delay, UseStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
 
         OpenerMode = strategy.Opener.Value switch
         {
@@ -255,9 +255,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     private void NormalGCD(in Strategy strategy, Enemy target)
     {
         var tools = ToolsStrat;
-        if (tools != OffensiveStrategy.Delay && target.Priority != Enemy.PriorityPointless)
+        if (tools != UseStrategy.Delay && target.Priority != Enemy.PriorityPointless)
         {
-            var bonus = tools == OffensiveStrategy.Force ? 100 : 0;
+            var bonus = tools == UseStrategy.Force ? 100 : 0;
 
             if (FMFLeft > GCD && UseFullMetalField())
                 PushGCD(AID.FullMetalField, BestSplashTarget ?? target.Actor, 16 + bonus);
@@ -265,7 +265,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
             if (ExcavatorLeft > GCD)
                 PushGCD(AID.Excavator, BestSplashTarget ?? target.Actor, 15 + bonus);
 
-            var saveTools = LowTarget && tools != OffensiveStrategy.Force;
+            var saveTools = LowTarget && tools != UseStrategy.Force;
             if (GCDReady(AID.ChainSaw) && !saveTools)
                 PushGCD(AID.ChainSaw, BestSawTarget ?? target.Actor, 14 + bonus, faceTarget: true);
 
@@ -387,7 +387,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         if (strategy.Charges.Value == ChargeStrategy.Automatic && ChargesToSpendBeforeOverheat)
             return false;
 
-        var toolsDelayed = ToolsStrat == OffensiveStrategy.Delay;
+        var toolsDelayed = ToolsStrat == UseStrategy.Delay;
         var drillIn = ReadyIn(AID.Wildfire) <= GCD + GCDLength ? float.MaxValue
             : UseBioblaster ? MathF.Max(ReadyIn(AID.Bioblaster), StatusDetails(target, SID.Bioblaster, Player.InstanceID, 15).Left)
             : SkipDrill ? float.MaxValue
@@ -445,8 +445,8 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
             return false;
         return StabilizerStrat switch
         {
-            OffensiveStrategy.Force => true,
-            OffensiveStrategy.Automatic => !dying && WildfireTargetWorthIt(target) && (!Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) <= 20),
+            UseStrategy.Force => true,
+            UseStrategy.Automatic => !dying && WildfireTargetWorthIt(target) && (!Unlocked(AID.Wildfire) || ReadyIn(AID.Wildfire) <= 20),
             _ => false
         };
     }
