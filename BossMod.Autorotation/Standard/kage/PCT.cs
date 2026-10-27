@@ -12,7 +12,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Starry Muse)", InternalName = "Burst", MinLevel = 70, Action = AID.StarryMuse)]
-        public Track<UseStrategy> Burst;
+        public Track<StarryStrategy> Burst;
 
         [Track("Living Muse", MinLevel = 30, Actions = [AID.PomMuse, AID.WingedMuse, AID.ClawedMuse, AID.FangedMuse])]
         public Track<MuseStrategy> Living;
@@ -21,7 +21,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<MuseStrategy> Striking;
 
         [Track("Portraits", MinLevel = 30, Actions = [AID.MogOfTheAges, AID.RetributionOfTheMadeen])]
-        public Track<UseStrategy> Portrait;
+        public Track<PortraitStrategy> Portrait;
 
         [Track("Hammer Combo", MinLevel = 50, Actions = [AID.HammerStamp, AID.HammerBrush, AID.PolishingHammer])]
         public Track<SpendStrategy> Hammer;
@@ -30,29 +30,69 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<SpendStrategy> Holy;
 
         [Track("Subtractive Palette", MinLevel = 60, Action = AID.SubtractivePalette)]
-        public Track<UseStrategy> Palette;
+        public Track<PaletteStrategy> Palette;
 
         [Track("Motifs")]
         public Track<MotifStrategy> Motifs;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
-        public Track<UseStrategy> Lucid;
+        public Track<LucidStrategy> Lucid;
 
         [Track("Tempera Coat / Grassa", MinLevel = 10, Actions = [AID.TemperaCoat, AID.TemperaGrassa])]
         public Track<TemperaStrategy> Tempera;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049237)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 90, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
+    public enum StarryStrategy
+    {
+        [Option("Use on cooldown when the burst is worth it; not right before downtime")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum PortraitStrategy
+    {
+        [Option("Use in Starry Muse, or when Starry Muse is 60s+ away")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum PaletteStrategy
+    {
+        [Option("Use at 50+ Palette when Starry Muse is 35s+ away or about to start; never overcap")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum LucidStrategy
+    {
+        [Option("Use at 6500 MP or less")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
     public enum MuseStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use with Starry Muse; never overcap")]
         Automatic,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -60,9 +100,9 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum SpendStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use in Starry Muse, while moving and in AoE; Comet after the Subtractive combo")]
         Automatic,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -70,7 +110,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum MotifStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Paint out of combat, in downtime and between bursts")]
         Automatic,
         [Option("Only out of combat and in downtime")]
         Downtime,
@@ -80,7 +120,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum TemperaStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Coat + Grassa (party shield) before raidwides")]
         Automatic,
         [Option("Only Tempera Coat (self), no Grassa")]
         Self,
@@ -96,7 +136,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         AlignWithBurst,
         [Option("Use before the pull and with raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
@@ -154,7 +194,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        StarryStrat = strategy.Burst.Value;
+        StarryStrat = (UseStrategy)strategy.Burst.Value;
         OpenerMode = Unlocked(AID.StarrySkyMotif) && Unlocked(AID.RainbowDrip) ? strategy.Opener.Value : OpenerStrategy.None;
 
         var gauge = World.Client.GetGauge<PictomancerGauge>();
@@ -337,7 +377,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     {
         var splash = BestSplash ?? target.Actor;
 
-        if (UsePalette(strategy.Palette.Value) && CanWeave(AID.SubtractivePalette))
+        if (UsePalette((UseStrategy)strategy.Palette.Value) && CanWeave(AID.SubtractivePalette))
             PushOGCD(AID.SubtractivePalette, Player, 70);
 
         if (LandscapeDrawn && UseStarry(target) && CanWeave(AID.StarryMuse))
@@ -349,10 +389,10 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         if (WeaponDrawn && HammerTime == 0 && UseStriking(strategy.Striking.Value) && CanWeave(AID.StrikingMuse))
             PushOGCD(AID.StrikingMuse, Player, 58);
 
-        if (PortraitReady && UsePortrait(strategy.Portrait.Value) && CanWeave(AID.MogOfTheAges))
+        if (PortraitReady && UsePortrait((UseStrategy)strategy.Portrait.Value) && CanWeave(AID.MogOfTheAges))
             PushOGCD(Creature.HasFlag(CreatureFlags.MadeenPortrait) ? AID.RetributionOfTheMadeen : AID.MogOfTheAges, BestLine ?? target.Actor, 55);
 
-        if (strategy.Lucid.Value == UseStrategy.Force || strategy.Lucid.Value == UseStrategy.Automatic && MP <= 6500)
+        if ((UseStrategy)strategy.Lucid.Value == UseStrategy.Force || (UseStrategy)strategy.Lucid.Value == UseStrategy.Automatic && MP <= 6500)
             PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
 

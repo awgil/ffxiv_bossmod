@@ -12,19 +12,19 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Fight or Flight, Requiescat, Circle of Scorn, Intervene)", InternalName = "Burst", MinLevel = 2)]
-        public Track<UseStrategy> Burst;
+        public Track<BurstStrategy> Burst;
 
         [Track("Fight or Flight", MinLevel = 2, Action = AID.FightOrFlight)]
-        public Track<UseStrategy> FightOrFlight;
+        public Track<FightOrFlightStrategy> FightOrFlight;
 
         [Track("Requiescat / Imperator", MinLevel = 68, Actions = [AID.Requiescat, AID.Imperator])]
-        public Track<UseStrategy> Requiescat;
+        public Track<RequiescatStrategy> Requiescat;
 
         [Track("Goring Blade", MinLevel = 54, Action = AID.GoringBlade)]
-        public Track<UseStrategy> Goring;
+        public Track<GoringStrategy> Goring;
 
         [Track("Circle of Scorn / Expiacion", MinLevel = 30, Actions = [AID.CircleOfScorn, AID.SpiritsWithin, AID.Expiacion])]
-        public Track<UseStrategy> Spenders;
+        public Track<SpendersStrategy> Spenders;
 
         [Track("Intervene", MinLevel = 74, Action = AID.Intervene)]
         public Track<InterveneStrategy> Intervene;
@@ -32,16 +32,56 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         [Track("Sheltron (Oath overcap)", MinLevel = 35, Actions = [AID.Sheltron, AID.HolySheltron])]
         public Track<SheltronStrategy> Sheltron;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049234)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 2, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
+    public enum FightOrFlightStrategy
+    {
+        [Option("Use on cooldown in melee; not right before downtime or on targets about to die")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum RequiescatStrategy
+    {
+        [Option("Use in Fight or Flight, or when Fight or Flight is 50s+ away")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum GoringStrategy
+    {
+        [Option("Use outside Requiescat")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum SpendersStrategy
+    {
+        [Option("Use on cooldown, held for Fight or Flight when it is about to come up")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
     public enum InterveneStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use in Fight or Flight; never overcap")]
         Automatic,
         [Option("Also use as a gap closer", Targets = ActionTargets.Hostile)]
         GapClose,
@@ -51,7 +91,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum SheltronStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Spend Oath at 95+ while being hit")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -63,7 +103,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         Manual,
         [Option("Use with Fight or Flight")]
         AlignWithBurst,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
@@ -121,10 +161,10 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             return;
 
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        FightOrFlightStrat = WithBurst(strategy.Burst.Value, strategy.FightOrFlight.Value);
-        RequiescatStrat = WithBurst(strategy.Burst.Value, strategy.Requiescat.Value);
-        SpendersStrat = WithBurst(strategy.Burst.Value, strategy.Spenders.Value);
-        InterveneStrat = strategy.Intervene.Value == InterveneStrategy.Delay ? InterveneStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
+        FightOrFlightStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.FightOrFlight.Value);
+        RequiescatStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Requiescat.Value);
+        SpendersStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Spenders.Value);
+        InterveneStrat = strategy.Intervene.Value == InterveneStrategy.Delay ? InterveneStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);
@@ -191,7 +231,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         var canHoly = Unlocked(holyAction) && MP >= HolySpiritMP;
 
         var requiescatSoon = FoFLeft > 0 && RequiescatStrat != UseStrategy.Delay && ReadyIn(BestRequiescat) <= GCD;
-        if (strategy.Goring.Value != UseStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || strategy.Goring.Value == UseStrategy.Force))
+        if ((UseStrategy)strategy.Goring.Value != UseStrategy.Delay && GoringLeft > GCD && (RequiescatLeft == 0 && !requiescatSoon || (UseStrategy)strategy.Goring.Value == UseStrategy.Force))
         {
             var goringTarget = AOEMode
                 ? Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 3).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor

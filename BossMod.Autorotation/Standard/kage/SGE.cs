@@ -12,16 +12,16 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Phlegma, Psyche)", InternalName = "Burst", MinLevel = 26)]
-        public Track<UseStrategy> Burst;
+        public Track<BurstStrategy> Burst;
 
         [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia])]
         public Track<DotStrategy> Dot;
 
         [Track("Phlegma", MinLevel = 26, Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII])]
-        public Track<UseStrategy> Phlegma;
+        public Track<PhlegmaStrategy> Phlegma;
 
         [Track("Psyche", MinLevel = 92, Action = AID.Psyche)]
-        public Track<UseStrategy> Psyche;
+        public Track<PsycheStrategy> Psyche;
 
         [Track("Toxikon", MinLevel = 66, Actions = [AID.Toxikon, AID.ToxikonII])]
         public Track<ToxikonStrategy> Toxikon;
@@ -33,27 +33,67 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         public Track<KardiaStrategy> Kardia;
 
         [Track("Soteria", MinLevel = 35, Action = AID.Soteria)]
-        public Track<UseStrategy> Soteria;
+        public Track<OffensiveStrategy> Soteria;
 
         [Track("Rhizomata", MinLevel = 74, Action = AID.Rhizomata)]
-        public Track<UseStrategy> Rhizomata;
+        public Track<RhizomataStrategy> Rhizomata;
 
         [Track("Druochole (Addersgall overcap)", MinLevel = 45, Action = AID.Druochole)]
         public Track<DruocholeStrategy> Druochole;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
-        public Track<UseStrategy> Lucid;
+        public Track<LucidStrategy> Lucid;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049238)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 30, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
+    public enum PhlegmaStrategy
+    {
+        [Option("Spend charges in raid buffs and on 3+ targets; never overcap")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum PsycheStrategy
+    {
+        [Option("Use with raid buffs, or when they are 10s+ away")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum RhizomataStrategy
+    {
+        [Option("Use at 1 Addersgall or less")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum LucidStrategy
+    {
+        [Option("Use at 6500 MP or less (8500 before a raidwide or with someone dead)")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
     public enum DotStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Keep up on up to two targets; Eukrasian Dyskrasia on 3+")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
@@ -63,9 +103,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum ToxikonStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use while moving and on 2+ targets")]
         Automatic,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         ASAP,
         [Option("Only while moving")]
         Movement,
@@ -75,9 +115,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum PneumaStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use on 2+ targets unless a raidwide is coming")]
         Automatic,
-        [Option("Use as soon as possible (when not moving)")]
+        [Option("Use ASAP (when not moving)")]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -95,7 +135,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum DruocholeStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use on the lowest HP ally to avoid overcapping")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -107,7 +147,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         Manual,
         [Option("Use before the pull and with raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
@@ -142,8 +182,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        PhlegmaStrat = WithBurst(strategy.Burst.Value, strategy.Phlegma.Value);
-        PsycheStrat = WithBurst(strategy.Burst.Value, strategy.Psyche.Value);
+        PhlegmaStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Phlegma.Value);
+        PsycheStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Psyche.Value);
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SageGauge>();
@@ -287,7 +327,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
                 && (RaidBuffsLeft > 0 || RaidBuffsIn > 10 || !InBossFight)))
             PushOGCD(AID.Psyche, target.Actor, 50);
 
-        if (strategy.Rhizomata.Value == UseStrategy.Force || strategy.Rhizomata.Value == UseStrategy.Automatic && Gall <= 1)
+        if ((UseStrategy)strategy.Rhizomata.Value == UseStrategy.Force || (UseStrategy)strategy.Rhizomata.Value == UseStrategy.Automatic && Gall <= 1)
             if (CanWeave(AID.Rhizomata))
                 PushOGCD(AID.Rhizomata, Player, 40);
 
@@ -299,11 +339,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(AID.Druochole, healTarget, 35);
         }
 
-        if (strategy.Soteria.Value == UseStrategy.Force || strategy.Soteria.Value == UseStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
+        if ((UseStrategy)strategy.Soteria.Value == UseStrategy.Force || (UseStrategy)strategy.Soteria.Value == UseStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
             if (CanWeave(AID.Soteria))
                 PushOGCD(AID.Soteria, Player, 30);
 
-        if (strategy.Lucid.Value == UseStrategy.Force || strategy.Lucid.Value == UseStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
+        if ((UseStrategy)strategy.Lucid.Value == UseStrategy.Force || (UseStrategy)strategy.Lucid.Value == UseStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }

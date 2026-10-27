@@ -12,16 +12,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Serpent's Ire, Reawaken)", InternalName = "Burst", MinLevel = 86)]
-        public Track<UseStrategy> Burst;
+        public Track<BurstStrategy> Burst;
 
         [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
         public Track<ReawakenStrategy> Reawaken;
 
         [Track("Serpent's Ire", MinLevel = 86, Action = AID.SerpentsIre)]
-        public Track<UseStrategy> Ire;
+        public Track<IreStrategy> Ire;
 
         [Track("Vicewinder / Vicepit", MinLevel = 65, Actions = [AID.Vicewinder, AID.Vicepit])]
-        public Track<UseStrategy> Twinblade;
+        public Track<TwinbladeStrategy> Twinblade;
 
         [Track("Uncoiled Fury", MinLevel = 82, Action = AID.UncoiledFury)]
         public Track<UncoiledStrategy> Uncoiled;
@@ -38,18 +38,38 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         [Track("Engage")]
         public Track<EngageStrategy> Engage;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049235)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 96, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
+    public enum IreStrategy
+    {
+        [Option("Use on cooldown when the burst is worth it; waits up to ~12s for raid buffs")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum TwinbladeStrategy
+    {
+        [Option("Use on cooldown in melee, held shortly before Serpent's Ire")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
     public enum ReawakenStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use with Serpent's Ire and raid buffs; saved for the boss")]
         Automatic,
-        [Option("Use as soon as possible", MinLevel = 90)]
+        [Option("Use ASAP", MinLevel = 90)]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -57,9 +77,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum UncoiledStrategy
     {
-        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use as soon as possible (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
+        [Option("Use ASAP (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
         ASAP,
         [Option("Always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
@@ -79,7 +99,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum TrueNorthStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use when the next positional is wrong")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -111,7 +131,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         AlignWithBurst,
         [Option("Use before the pull and with raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
@@ -183,8 +203,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        ReawakenStrat = strategy.Reawaken.Value == ReawakenStrategy.Delay ? ReawakenStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => ReawakenStrategy.Delay, UseStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
-        IreStrat = WithBurst(strategy.Burst.Value, strategy.Ire.Value);
+        ReawakenStrat = strategy.Reawaken.Value == ReawakenStrategy.Delay ? ReawakenStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => ReawakenStrategy.Delay, BurstStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
+        IreStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Ire.Value);
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
@@ -429,7 +449,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         if (!GCDReady(aid) || Dread != 0 || Reawakened > 0 || Anguine > 0 || TwinWeavesPending)
             return false;
 
-        switch (strategy.Twinblade.Value)
+        switch ((UseStrategy)strategy.Twinblade.Value)
         {
             case UseStrategy.Force:
                 return true;

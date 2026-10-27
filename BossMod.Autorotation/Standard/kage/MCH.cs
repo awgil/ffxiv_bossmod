@@ -12,7 +12,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Wildfire, Barrel Stabilizer, Tools, Reassemble, Queen)", InternalName = "Burst", MinLevel = 10)]
-        public Track<UseStrategy> Burst;
+        public Track<BurstStrategy> Burst;
 
         [Track("Hypercharge", MinLevel = 30, Action = AID.Hypercharge)]
         public Track<HyperchargeStrategy> Hypercharge;
@@ -21,10 +21,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         public Track<WildfireStrategy> Wildfire;
 
         [Track("Barrel Stabilizer", MinLevel = 66, Action = AID.BarrelStabilizer)]
-        public Track<UseStrategy> Stabilizer;
+        public Track<StabilizerStrategy> Stabilizer;
 
         [Track("Tools", Actions = [AID.Drill, AID.HotShot, AID.AirAnchor, AID.ChainSaw, AID.Excavator, AID.Bioblaster, AID.FullMetalField])]
-        public Track<UseStrategy> Tools;
+        public Track<ToolsStrategy> Tools;
 
         [Track("Reassemble", MinLevel = 10, Action = AID.Reassemble)]
         public Track<ReassembleStrategy> Reassemble;
@@ -38,18 +38,38 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         [Track("Flamethrower", MinLevel = 70, Action = AID.Flamethrower)]
         public Track<FlamethrowerStrategy> Flamethrower;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049235)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 90, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
+    public enum StabilizerStrategy
+    {
+        [Option("Use when Wildfire is ready within 20s")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum ToolsStrategy
+    {
+        [Option("Use on cooldown; Drill held for the burst, tools saved when the target is about to die")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
     public enum HyperchargeStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use between tools; save Heat for Wildfire")]
         Automatic,
-        [Option("Use as soon as possible", Effect = 10, MinLevel = 30)]
+        [Option("Use ASAP", Effect = 10, MinLevel = 30)]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -57,9 +77,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum WildfireStrategy
     {
-        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
+        [Option("Use after entering Overheat; saved for the boss", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use as soon as possible", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
+        [Option("Use ASAP", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
         Force,
         [Option("Do not use")]
         Delay
@@ -67,7 +87,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum ReassembleStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use on tools")]
         Automatic,
         [Option("Also use on AoE fillers")]
         Any,
@@ -77,7 +97,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum QueenStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Summon with raid buffs; between them only to avoid overcapping")]
         Automatic,
         [Option("Summon at 50+ Battery")]
         Fifty,
@@ -89,9 +109,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum ChargeStrategy
     {
-        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
+        [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         ASAP,
         [Option("Only to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
@@ -101,7 +121,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum FlamethrowerStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use in AoE while standing still")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -115,7 +135,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         AlignWithBurst,
         [Option("Use before the pull and with raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
@@ -174,11 +194,11 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        WildfireStrat = strategy.Wildfire.Value == WildfireStrategy.Delay ? WildfireStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => WildfireStrategy.Delay, UseStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
-        StabilizerStrat = WithBurst(strategy.Burst.Value, strategy.Stabilizer.Value);
-        ToolsStrat = WithBurst(strategy.Burst.Value, strategy.Tools.Value);
-        ReassembleStrat = strategy.Reassemble.Value == ReassembleStrategy.Delay ? ReassembleStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
-        QueenStrat = strategy.Queen.Value == QueenStrategy.Delay ? QueenStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => QueenStrategy.Delay, UseStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
+        WildfireStrat = strategy.Wildfire.Value == WildfireStrategy.Delay ? WildfireStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => WildfireStrategy.Delay, BurstStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
+        StabilizerStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Stabilizer.Value);
+        ToolsStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Tools.Value);
+        ReassembleStrat = strategy.Reassemble.Value == ReassembleStrategy.Delay ? ReassembleStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
+        QueenStrat = strategy.Queen.Value == QueenStrategy.Delay ? QueenStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => QueenStrategy.Delay, BurstStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
 
         OpenerMode = strategy.Opener.Value switch
         {

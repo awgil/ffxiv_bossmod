@@ -12,19 +12,19 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Standard / Technical Step, Devilment, Flourish, Feathers)", InternalName = "Burst", MinLevel = 15)]
-        public Track<UseStrategy> Burst;
+        public Track<BurstStrategy> Burst;
 
         [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]
-        public Track<UseStrategy> Technical;
+        public Track<TechnicalStrategy> Technical;
 
         [Track("Standard Step / Finishing Move", MinLevel = 15, Actions = [AID.StandardStep, AID.DoubleStandardFinish, AID.FinishingMove])]
-        public Track<UseStrategy> Standard;
+        public Track<StandardStrategy> Standard;
 
         [Track("Devilment", MinLevel = 62, Action = AID.Devilment)]
-        public Track<UseStrategy> Devilment;
+        public Track<DevilmentStrategy> Devilment;
 
         [Track("Flourish", MinLevel = 72, Action = AID.Flourish)]
-        public Track<UseStrategy> Flourish;
+        public Track<FlourishStrategy> Flourish;
 
         [Track("Feathers", MinLevel = 30, Actions = [AID.FanDance, AID.FanDanceII])]
         public Track<FeatherStrategy> Feathers;
@@ -38,18 +38,58 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         [Track("Peloton", MinLevel = 20, Action = AID.Peloton)]
         public Track<PelotonStrategy> Peloton;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049235)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 15, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
+    public enum TechnicalStrategy
+    {
+        [Option("Use on cooldown; not right before downtime")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum StandardStrategy
+    {
+        [Option("Use on cooldown, without delaying Technical Step")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum DevilmentStrategy
+    {
+        [Option("Use with Technical Finish")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
+    public enum FlourishStrategy
+    {
+        [Option("Use in Technical Finish, or when Technical Step is 50s+ away")]
+        Automatic,
+        [Option("Do not use")]
+        Delay,
+        [Option("Use ASAP")]
+        Force
+    }
+
     public enum FeatherStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Spend in Technical Finish; never overcap")]
         Automatic,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         ASAP,
         [Option("Only to avoid overcapping")]
         Overcap,
@@ -69,7 +109,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum WaltzStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use when you or 3+ nearby allies are low")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -77,7 +117,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum PelotonStrategy
     {
-        [Option("Use when optimal")]
+        [Option("Use in the last 10s of the countdown, outside of dance steps")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -89,7 +129,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         Manual,
         [Option("Use before the pull and with Technical Step")]
         AlignWithBurst,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
@@ -148,11 +188,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        TechnicalStrat = WithBurst(strategy.Burst.Value, strategy.Technical.Value);
-        DevilmentStrat = WithBurst(strategy.Burst.Value, strategy.Devilment.Value);
-        FlourishStrat = WithBurst(strategy.Burst.Value, strategy.Flourish.Value);
-        StandardStrat = WithBurst(strategy.Burst.Value, strategy.Standard.Value);
-        FeathersStrat = strategy.Feathers.Value == FeatherStrategy.Delay ? FeatherStrategy.Delay : strategy.Burst.Value switch { UseStrategy.Delay => FeatherStrategy.Overcap, _ => strategy.Feathers.Value };
+        TechnicalStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Technical.Value);
+        DevilmentStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Devilment.Value);
+        FlourishStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Flourish.Value);
+        StandardStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Standard.Value);
+        FeathersStrat = strategy.Feathers.Value == FeatherStrategy.Delay ? FeatherStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => FeatherStrategy.Overcap, _ => strategy.Feathers.Value };
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;

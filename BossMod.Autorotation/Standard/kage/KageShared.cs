@@ -2,14 +2,21 @@
 
 namespace BossMod.Autorotation.kage;
 
-// OffensiveStrategy with labels, so every kage track reads the same; names and order match it so saved presets keep loading
+// every on/off track enum (OffensiveStrategy, BurstStrategy, the per-track ones) has these names in this order: saved presets keep loading, and the rotations cast them to this
 public enum UseStrategy
 {
-    [Option("Use when optimal")]
     Automatic,
-    [Option("Do not use")]
     Delay,
-    [Option("Use as soon as possible")]
+    Force
+}
+
+public enum BurstStrategy
+{
+    [Option("Each skill follows its own setting")]
+    Automatic,
+    [Option("Hold the burst")]
+    Delay,
+    [Option("Use the burst ASAP")]
     Force
 }
 
@@ -318,7 +325,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
     }
 
-    protected static UseStrategy WithBurst(UseStrategy burst, UseStrategy own) => burst == UseStrategy.Automatic || own == UseStrategy.Delay ? own : burst;
+    protected static UseStrategy WithBurst(BurstStrategy burst, UseStrategy own) => burst == BurstStrategy.Automatic || own == UseStrategy.Delay ? own : (UseStrategy)burst;
 
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 
