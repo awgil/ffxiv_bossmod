@@ -68,24 +68,24 @@ abstract partial class AutoClear : ZoneModule
         if (slot < 0)
             return;
 
-        var destRoom = _floorRects[Palace.Progress.Tileset][DesiredRoom];
-        if (destRoom.Contains(player.Position) || DesiredRoom == 0)
+        var destRoom = _floorRects[Palace.Progress.Tileset][DesiredRoom.Index];
+        if (destRoom.Contains(player.Position) || DesiredRoom.Index == 0)
         {
-            DesiredRoom = 0;
+            DesiredRoom = (0, "");
             return;
         }
 
         // player is in a hallway/bridge near destination room, move closer
-        if (PlayerRoom == DesiredRoom)
+        if (PlayerRoom == DesiredRoom.Index)
         {
             hints.GoalZones.Add(p => p.InRect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X) ? 10 : 0);
             return;
         }
 
-        var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom);
+        var path = new FloorPathfind(Palace.Rooms).Pathfind(PlayerRoom, DesiredRoom.Index);
         if (path.Count == 0)
         {
-            Service.Log($"no path from {PlayerRoom} to {DesiredRoom}, doing nothing");
+            Service.Log($"no path from {PlayerRoom} to {DesiredRoom.Index}, doing nothing");
             return;
         }
 
