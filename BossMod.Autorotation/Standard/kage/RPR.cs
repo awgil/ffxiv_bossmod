@@ -65,7 +65,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum EnshroudStrategy
     {
-        [Option("Double Enshroud in burst, single Enshroud at odd minutes, avoid overcapping Shroud")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible, but don't overwrite Soul Reaver, Executioner or Perfectio")]
         ForceSafe,
@@ -79,7 +79,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum CommunioStrategy
     {
-        [Option("Use on the last Lemure Shroud", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use at 2 Lemure Shroud left", Targets = ActionTargets.Hostile)]
         At2,
@@ -95,9 +95,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SoulGaugeStrategy
     {
-        [Option("Gluttony on cooldown, Blood Stalk / Unveiled when Gluttony is far or gauge is full")]
+        [Option("Use when optimal")]
         Automatic,
-        [Option("Use when optimal, but use Gluttony before Plentiful Harvest", MinLevel = 76)]
+        [Option("Use Gluttony before Plentiful Harvest", MinLevel = 76)]
         GluttonyFirst,
         [Option("Hold Gluttony; Blood Stalk / Unveiled only to avoid overcapping")]
         HoldGluttony,
@@ -113,7 +113,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SliceStrategy
     {
-        [Option("Use at 50 Soul or less, or to avoid overcapping charges")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Pool charges for raid buffs; otherwise only use to avoid overcapping charges")]
         Pool,
@@ -125,9 +125,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum DeathsDesignStrategy
     {
-        [Option("Keep it up and stack ~30s before the burst")]
+        [Option("Use when optimal")]
         Automatic,
-        [Option("Use when optimal; at full Soul with Gluttony coming up, use Shadow of Death instead of Unveiled + Gibbet/Gallows to keep Gluttony aligned", MinLevel = 76)]
+        [Option("Keep Gluttony aligned: at full Soul with Gluttony coming up, use Shadow of Death instead of Unveiled + Gibbet/Gallows", MinLevel = 76)]
         KeepGluttonyAligned,
         [Option("Use Shadow of Death as soon as possible", Targets = ActionTargets.Hostile)]
         Force,
@@ -139,7 +139,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum PerfectioStrategy
     {
-        [Option("Use right after Communio", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Hold as a ranged GCD for melee downtime; still used before it expires, before the boss leaves or the target dies", Targets = ActionTargets.Hostile)]
         Ranged,
@@ -149,9 +149,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum HarvestMoonStrategy
     {
-        [Option("Use out of melee range, when moving at the end of Enshroud, or as the last GCD before downtime or a kill", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use when optimal, and also during raid buffs", Targets = ActionTargets.Hostile)]
+        [Option("Also use during raid buffs", Targets = ActionTargets.Hostile)]
         Burst,
         [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         Force,
@@ -161,7 +161,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum HarpeStrategy
     {
-        [Option("Pre-pull, and out of melee range when not moving or Enhanced Harpe is up", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Only with Enhanced Harpe (and pre-pull)", Targets = ActionTargets.Hostile)]
         EnhancedOnly,
@@ -171,7 +171,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SoulsowStrategy
     {
-        [Option("Out of combat, and during downtime with no target while standing still")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Only out of combat")]
         OutOfCombat,
@@ -181,11 +181,11 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum TrueNorthStrategy
     {
-        [Option("Use when the next positional is wrong")]
+        [Option("Use when optimal")]
         Automatic,
-        [Option("Use when the next positional is wrong, but keep a charge for Gluttony")]
+        [Option("Keep a charge for Gluttony")]
         PoolGluttony,
-        [Option("Keep a charge for Gluttony, and spend Soul gauge / Soul Slice while True North is up to cover more positionals")]
+        [Option("Keep a charge for Gluttony, and spend Soul Gauge / Soul Slice while True North is up to cover more positionals")]
         Bundle,
         [Option("Do not use")]
         Delay
@@ -203,7 +203,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum CrestStrategy
     {
-        [Option("Use before raidwides, or when targeted while solo")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay
