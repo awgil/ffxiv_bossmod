@@ -33,14 +33,14 @@ abstract partial class AutoClear : ZoneModule
         var playerSlot = Array.FindIndex(Palace.Party, p => p.EntityId == player?.InstanceID);
         var targetRoom = DrawMap(player, playerSlot);
         if (targetRoom >= 0)
-            DesiredRoom = (targetRoom, "navigating manually");
+            DesiredRoom = (targetRoom, PathfindReason.Manual);
 
         using (ImRaii.Disabled(true))
         {
-            if (DesiredRoom.Reason.Length == 0)
+            if (DesiredRoom.Reason == PathfindReason.Nothing)
                 ImGui.Text("Click on a room to set a destination.");
             else
-                ImGui.Text($"Currently: {(DesiredRoom.Reason.Length == 0 ? "idle" : DesiredRoom.Reason)}");
+                ImGui.Text($"Currently: {ReasonReadable(DesiredRoom.Reason)}");
         }
 
         ImGui.Spacing();
@@ -69,6 +69,9 @@ abstract partial class AutoClear : ZoneModule
         }
 
         if (ImGui.Button("Reload traps"))
+        {
+            _trapsCurrentZone.Clear();
             FilterTraps();
+        }
     }
 }

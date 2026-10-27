@@ -62,30 +62,60 @@ internal class FloorPathfind(ReadOnlySpan<RoomFlags> Map)
 
 abstract partial class AutoClear : ZoneModule
 {
+    enum PathfindReason
+    {
+        Nothing,
+        ClosedPassage,
+        Everything,
+        Hunting,
+        OpenPassage,
+        Hoard,
+        Manual
+    }
+
+    static string ReasonReadable(PathfindReason r) => r switch
+    {
+        PathfindReason.ClosedPassage => "revealing passage",
+        PathfindReason.Everything => "revealing the map",
+        PathfindReason.Hunting => "hunting mobs for progress",
+        PathfindReason.OpenPassage => "heading for passage",
+        PathfindReason.Hoard => "heading for hoard",
+        PathfindReason.Manual => "navigating manually",
+        _ => ""
+    };
+
+    private (int Index, PathfindReason Reason) DesiredRoom;
+
     private void PickARoom(Actor player, AIHints hints)
     {
+        if (DesiredRoom.Reason == PathfindReason.Hunting && Palace.PassageActive)
+            DesiredRoom = default;
+
+        if (DesiredRoom.Reason == PathfindReason.ClosedPassage && Palace.Rooms.Any(r => r.HasFlag(RoomFlags.Passage) && r.HasFlag(RoomFlags.Revealed)))
+            DesiredRoom = default;
+
         if (DesiredRoom.Index > 0)
             return;
 
         if (Palace.PassageActive && !player.InCombat)
-            DesiredRoom = (Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage)), "heading for passage");
-
-        var unrevealedPassage = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage) && !d.HasFlag(RoomFlags.Revealed));
-        if (unrevealedPassage > 0)
-            DesiredRoom = (unrevealedPassage, "revealing passage room");
+            DesiredRoom = (Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage)), PathfindReason.OpenPassage);
 
         if (_config.FullClear)
         {
             var unexplored = Array.FindIndex(Palace.Rooms, r => r != RoomFlags.None && !r.HasFlag(RoomFlags.Revealed));
             if (unexplored > 0)
-                DesiredRoom = (unexplored, "revealing the map");
+                DesiredRoom = (unexplored, PathfindReason.Everything);
         }
 
         if (!Palace.PassageActive && !player.InCombat && hints.PotentialTargets.MinBy(t => (t.Actor.Position - player.Position).LengthSq()) is { } closestMob)
-            DesiredRoom = (FindClosestRoom(closestMob.Actor.Position).Index, $"hunting {closestMob.Actor.Name} for progress");
+            DesiredRoom = (FindClosestRoom(closestMob.Actor.Position).Index, PathfindReason.Hunting);
+
+        var unrevealedPassage = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage) && !d.HasFlag(RoomFlags.Revealed));
+        if (unrevealedPassage > 0)
+            DesiredRoom = (unrevealedPassage, PathfindReason.ClosedPassage);
 
         if (Palace.Progress.HoardCurrentFloor && World.Actors.FirstOrDefault(a => a.OID == (uint)OID.BandedCofferIndicator) is { } hoard)
-            DesiredRoom = (FindClosestRoom(hoard.Position).Index, "revealing the hoard");
+            DesiredRoom = (FindClosestRoom(hoard.Position).Index, PathfindReason.Hoard);
     }
 
     private void HandleFloorPathfind(Actor player, AIHints hints)
@@ -97,14 +127,16 @@ abstract partial class AutoClear : ZoneModule
         var destRoom = _floorRects[Palace.Progress.Tileset][DesiredRoom.Index];
         if (destRoom.Contains(player.Position) || DesiredRoom.Index == 0)
         {
-            DesiredRoom = (0, "");
+            DesiredRoom = default;
             return;
         }
+
+        var goalWeight = player.InCombat ? 1 : 0.01f;
 
         // player is in a hallway/bridge near destination room, move closer
         if (PlayerRoom == DesiredRoom.Index)
         {
-            hints.GoalZones.Add(p => p.InRect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X) ? 10 : 0);
+            hints.GoalZones.Add(p => p.InRect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X) ? goalWeight : 0);
             return;
         }
 
@@ -134,7 +166,7 @@ abstract partial class AutoClear : ZoneModule
                 return 0;
 
             if (p.InRect(srcBox.Pos, srcToDest.ToAngle(), srcToDestLen, srcToDestLen, rectWidth))
-                return 1;
+                return goalWeight;
             return 0;
         });
     }

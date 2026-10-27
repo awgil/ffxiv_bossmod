@@ -32,9 +32,9 @@ enum SID : uint
 
 public abstract partial class AutoClear : ZoneModule
 {
-    public record struct GoalObject(Actor Actor, GoalType Type, float PlayerDistSq)
+    public record struct GoalObject(Actor Actor, GoalType Type, float PlayerDistSq, int Tier = 0)
     {
-        public readonly bool IsTreasure => Type is GoalType.ChestHoard or GoalType.ChestBronze or GoalType.ChestSilver or GoalType.ChestGold;
+        public readonly bool IsTreasure => Tier > 0;
     }
 
     public enum GoalType
@@ -42,9 +42,7 @@ public abstract partial class AutoClear : ZoneModule
         ChestHoard,
         Hoard,
         Passage,
-        ChestBronze,
-        ChestSilver,
-        ChestGold
+        Treasure,
     }
 
     public readonly int LevelCap;
@@ -89,7 +87,6 @@ public abstract partial class AutoClear : ZoneModule
     private GoalObject? MostInterestingObject;
 
     private int Kills;
-    private (int Index, string Reason) DesiredRoom;
     private bool BetweenFloors = true;
 
     protected struct PlayerImmuneState
@@ -108,6 +105,8 @@ public abstract partial class AutoClear : ZoneModule
     protected DeepDungeonState Palace => World.DeepDungeon;
 
     private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
+
+    const float TrapRadius = 1.7f;
 
     protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
@@ -261,7 +260,7 @@ public abstract partial class AutoClear : ZoneModule
         HintDisabled.Clear();
         LOS.Clear();
         Walls.Clear();
-        DesiredRoom = (0, "");
+        DesiredRoom = default;
         Kills = 0;
         Array.Fill(_playerImmunes, default);
         _lastChestContentsGold = null;
@@ -365,7 +364,7 @@ public abstract partial class AutoClear : ZoneModule
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.InCircle(player.Position, 30)).Select(f => ShapeDistance.Circle(f, 2)).ToList();
+            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.InCircle(player.Position, 30)).Select(f => ShapeDistance.Circle(f, TrapRadius)).ToList();
             if (tshape.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(tshape));
         }
@@ -374,7 +373,7 @@ public abstract partial class AutoClear : ZoneModule
 
         var numAggro = hints.PotentialTargets.Count(t => t.Actor.AggroPlayer && !t.Actor.IsDeadOrDestroyed);
 
-        (PlayerRoomBox, PlayerRoom) = FindClosestRoom(player.Position);
+        (PlayerRoom, PlayerRoomBox) = FindClosestRoom(player.Position);
 
         // allow navigating when at max pull, i.e. so we can walk our dog to the nearest chest
         var canNavigate = numAggro <= _config.MaxPull;
@@ -426,39 +425,39 @@ public abstract partial class AutoClear : ZoneModule
                     if (_config.OpenTreasure)
                     {
                         if (oid == OID.GoldCoffer && a.IsTargetable)
-                            InterestingObjects.Add(new(a, GoalType.ChestGold, dist));
+                            InterestingObjects.Add(new(a, GoalType.Treasure, dist, 3));
 
                         if (oid == OID.SilverCoffer && OpenSilver && a.IsTargetable)
-                            InterestingObjects.Add(new(a, GoalType.ChestSilver, dist));
+                            InterestingObjects.Add(new(a, GoalType.Treasure, dist, 2));
 
                         if (BronzeChestIDs.Contains(a.OID) && !a.IsOpenTreasure)
-                            InterestingObjects.Add(new(a, GoalType.ChestBronze, dist));
+                            InterestingObjects.Add(new(a, GoalType.Treasure, dist, 1));
                     }
                 }
 
                 if (oid == OID.BandedCofferIndicator && Palace.Progress.HoardCurrentFloor)
                     InterestingObjects.Add(new(a, GoalType.Hoard, dist));
 
-                if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive)
+                if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive && !player.InCombat)
                     InterestingObjects.Add(new(a, GoalType.Passage, dist));
             }
 
             if (RevealedTrapOIDs.Contains(a.OID))
-                hints.AddForbiddenZone(ShapeDistance.Circle(a.Position, 2));
+                hints.AddForbiddenZone(ShapeDistance.Circle(a.Position, TrapRadius));
         }
 
         PickARoom(player, hints);
 
         InterestingObjects.SortBy(o => (o.Type, o.PlayerDistSq));
 
-        if (_lastChestContentsGold is PomanderID p && InterestingObjects.FirstOrNull(p => p.Type == GoalType.ChestGold) is { } goldOvercap)
+        if (_lastChestContentsGold is PomanderID p && InterestingObjects.FirstOrNull(p => p.Type == GoalType.Treasure && p.Tier == 3) is { } goldOvercap)
         {
             _chestContentsGold[goldOvercap.Actor.InstanceID] = p;
             _lastChestContentsGold = null;
             return;
         }
 
-        if (_lastChestMagicite && InterestingObjects.FirstOrNull(p => p.Type == GoalType.ChestSilver) is { } silverOvercap)
+        if (_lastChestMagicite && InterestingObjects.FirstOrNull(p => p.Type == GoalType.Treasure && p.Tier == 2) is { } silverOvercap)
         {
             _chestContentsSilver[silverOvercap.Actor.InstanceID] = 1;
             _lastChestMagicite = false;
@@ -468,28 +467,34 @@ public abstract partial class AutoClear : ZoneModule
         var neatObject = InterestingObjects.FirstOrNull();
         MostInterestingObject = neatObject;
 
-        switch (neatObject)
+        var goalWeight = player.InCombat ? 1 : 0.01f;
+
+        if (canNavigate)
         {
-            case { Type: GoalType.Passage, Actor: var c }:
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 2, 0.5f));
-                // give pathfinder a little help lmao
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 25, 0.25f));
-                break;
+            switch (neatObject)
+            {
+                case { Type: GoalType.Passage, Actor: var c }:
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 2, goalWeight));
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 25, goalWeight));
+                    break;
 
-            case { Type: GoalType.Hoard, Actor: var h }:
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(h.Position, 2, 10));
-                break;
+                case { Type: GoalType.Hoard, Actor: var h }:
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(h.Position, 2, 10));
+                    break;
 
-            case { IsTreasure: true, Actor: var d }:
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(d.Position, 25));
-                hints.InteractWithTarget = d;
-                break;
+                case { IsTreasure: true, Actor: var d }:
+                    hints.GoalZones.Add(AIHints.GoalSingleTarget(d.Position, 25, goalWeight));
+                    hints.InteractWithTarget = d;
+                    break;
+            }
         }
+
+        var passageRevealed = Palace.Rooms.Any(r => r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Passage) && r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Revealed));
 
         var canTarget = _config.AutoClear switch
         {
-            AutoDDConfig.ClearBehavior.Passage => !Palace.PassageActive,
-            AutoDDConfig.ClearBehavior.Leveling => player.Level < LevelCap || !Palace.PassageActive,
+            AutoDDConfig.ClearBehavior.Passage => passageRevealed && !Palace.PassageActive,
+            AutoDDConfig.ClearBehavior.Leveling => player.Level < LevelCap || passageRevealed && !Palace.PassageActive,
             AutoDDConfig.ClearBehavior.All => true,
             _ => false
         };
@@ -504,8 +509,8 @@ public abstract partial class AutoClear : ZoneModule
             else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.PendingHPRaw is > 0 and < 10)
                 pp.ForcePriority(0);
 
-            // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
-            else if (canTarget && numAggro <= _config.MaxPull && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)) && pp.Actor.Visibility != Visibility.Blocked)
+            // if player does not have a target, pick one
+            else if (canTarget && (numAggro < _config.MaxPull || _config.MaxPull == 0 && numAggro == 0) && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)) && IsInThisRoomOrAdjacent(pp.Actor) && !pp.Actor.AggroPlayer)
                 pp.ShouldBeTargeted = true;
         }
     }

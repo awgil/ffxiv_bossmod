@@ -139,7 +139,7 @@ abstract partial class AutoClear : ZoneModule
 
     private float DistanceBox2D(WPos p, RoomBox rect) => DistanceBox2D(p, (rect.Position - rect.Scale).XZ(), (rect.Position + rect.Scale).XZ());
 
-    private (RoomBox Room, int Index) FindClosestRoom(WPos p) => _floorRects[Palace.Progress.Tileset].Select((box, i) => (box, i)).MinBy(r => DistanceBox2D(p, r.box));
+    private (int Index, RoomBox Room) FindClosestRoom(WPos p) => _floorRects[Palace.Progress.Tileset].Index().Where(i => Palace.Rooms[i.Index] != RoomFlags.None).MinBy(r => DistanceBox2D(p, r.Item));
 
     private bool IsRoomAdjacent(int i, int j)
     {
@@ -159,7 +159,7 @@ abstract partial class AutoClear : ZoneModule
 
     private bool IsInThisRoomOrAdjacent(WPos p)
     {
-        var (_, r) = FindClosestRoom(p);
+        var (r, _) = FindClosestRoom(p);
         return PlayerRoom == r || IsRoomAdjacent(r, PlayerRoom);
     }
 
