@@ -341,7 +341,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
             PushGCD(AID.DanceOfTheDawn, splash, 47);
         if (LastDanceLeft > GCD && FinishingMoveLeft > GCD)
             PushGCD(AID.LastDance, splash, 46);
-        if (StandardAllowed(strategy, targetAlive) && FinishingMoveLeft > GCD && LastDanceLeft == 0 && GCDReady(AID.FinishingMove) && EnemyIn15)
+        if (StandardAllowed(strategy, targetAlive) && FinishingMoveLeft > GCD && LastDanceLeft == 0 && (GCDReady(AID.FinishingMove) || StandardStrat == UseStrategy.Force && ReadyIn(AID.FinishingMove) <= StepWindow(StandardStrat)) && EnemyIn15)
             PushGCD(AID.FinishingMove, Player, 45);
         if (StandardAllowed(strategy, targetAlive) && NeedToStandard(strategy))
             PushGCD(AID.StandardStep, Player, 44);
@@ -405,9 +405,12 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     private bool StandardAllowed(in Strategy strategy, bool targetAlive)
         => StandardStrat != UseStrategy.Delay && (targetAlive || StandardStrat == UseStrategy.Force);
 
+    // step cooldowns drift off the GCD; a forced step holds the GCD for it instead of letting a filler push it back a whole GCD
+    private float StepWindow(UseStrategy strat) => GCD + (strat == UseStrategy.Force ? GCDLength : 0.5f);
+
     private bool ShouldTechnical(in Strategy strategy, bool targetAlive)
     {
-        if (ReadyIn(AID.TechnicalStep) > GCD + 0.5f || FlourishingFinishLeft > 0)
+        if (ReadyIn(AID.TechnicalStep) > StepWindow(TechnicalStrat) || FlourishingFinishLeft > 0)
             return false;
         return TechnicalStrat switch
         {
@@ -440,7 +443,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     private bool NeedToStandard(in Strategy strategy)
     {
-        if (ReadyIn(AID.StandardStep) > GCD + 0.5f || FinishingMoveLeft > 0)
+        if (ReadyIn(AID.StandardStep) > StepWindow(StandardStrat) || FinishingMoveLeft > 0)
             return false;
         if (StandardStrat == UseStrategy.Force)
             return true;
