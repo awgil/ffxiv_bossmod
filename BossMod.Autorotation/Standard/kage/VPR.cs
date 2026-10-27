@@ -87,7 +87,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SlitherStrategy
     {
-        [Option("Do not use")]
+        [Option("Only to engage at the pull (see Engage)")]
         None,
         [Option("Use when outside melee range", Targets = ActionTargets.Hostile)]
         GapClose
