@@ -62,6 +62,32 @@ internal class FloorPathfind(ReadOnlySpan<RoomFlags> Map)
 
 abstract partial class AutoClear : ZoneModule
 {
+    private void PickARoom(Actor player, AIHints hints)
+    {
+        if (DesiredRoom.Index > 0)
+            return;
+
+        if (Palace.PassageActive && !player.InCombat)
+            DesiredRoom = (Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage)), "heading for passage");
+
+        var unrevealedPassage = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage) && !d.HasFlag(RoomFlags.Revealed));
+        if (unrevealedPassage > 0)
+            DesiredRoom = (unrevealedPassage, "revealing passage room");
+
+        if (_config.FullClear)
+        {
+            var unexplored = Array.FindIndex(Palace.Rooms, r => r != RoomFlags.None && !r.HasFlag(RoomFlags.Revealed));
+            if (unexplored > 0)
+                DesiredRoom = (unexplored, "revealing the map");
+        }
+
+        if (!Palace.PassageActive && !player.InCombat && hints.PotentialTargets.MinBy(t => (t.Actor.Position - player.Position).LengthSq()) is { } closestMob)
+            DesiredRoom = (FindClosestRoom(closestMob.Actor.Position).Index, $"hunting {closestMob.Actor.Name} for progress");
+
+        if (Palace.Progress.HoardCurrentFloor && World.Actors.FirstOrDefault(a => a.OID == (uint)OID.BandedCofferIndicator) is { } hoard)
+            DesiredRoom = (FindClosestRoom(hoard.Position).Index, "revealing the hoard");
+    }
+
     private void HandleFloorPathfind(Actor player, AIHints hints)
     {
         var slot = Array.FindIndex(Palace.Party, p => p.EntityId == player.InstanceID);

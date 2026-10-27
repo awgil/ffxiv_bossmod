@@ -162,7 +162,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.SatelliteBeam, true, castAnimLock: 3.70f); // animLock=3.700s?
+        d.RegisterSpell(AID.SatelliteBeam, true, castAnimLock: 3.70f, positionLock: 4.5f); // animLock=3.700s?
         d.RegisterSpell(AID.SplitShot, true);
         d.RegisterSpell(AID.SlugShot, true);
         d.RegisterSpell(AID.HotShot, true);

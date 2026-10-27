@@ -110,7 +110,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.VermilionScourge, castAnimLock: 8.10f); // animLock=8.100s?
+        d.RegisterSpell(AID.VermilionScourge, castAnimLock: 8.10f, positionLock: 6.87f); // animLock=8.100s?
         d.RegisterSpell(AID.Riposte);
         d.RegisterSpell(AID.EnchantedRiposte);
         d.RegisterSpell(AID.Jolt);

@@ -116,7 +116,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.WorldSwallower);
+        d.RegisterSpell(AID.WorldSwallower, castAnimLock: 3.70f, positionLock: 3.67f);
         d.RegisterSpell(AID.SteelFangs);
         d.RegisterSpell(AID.HuntersSting);
         d.RegisterSpell(AID.ReavingFangs);

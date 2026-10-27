@@ -28,12 +28,13 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Minimap scale")]
     [PropertySlider(0.2f, 3)]
     public float MinimapScale = 1.0f;
-    [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from PalacePal data. (Traps revealed by a Pomander of Sight will always be avoided regardless of this setting.)")]
+    [PropertyDisplay("Try to avoid traps", tooltip: "Avoid known trap locations sourced from Palantir data. (Traps revealed by a Pomander of Sight will always be avoided.)")]
     public bool TrapHints = true;
     [PropertyDisplay("Draw potential trap locations in game world")]
     public bool DrawTraps = false;
-    [PropertyDisplay("Automatically navigate to Cairn of Passage")]
-    public bool AutoPassage = true;
+
+    [PropertyDisplay("Open chests")]
+    public bool OpenTreasure = true;
 
     [PropertyDisplay("Automatic mob targeting behavior")]
     public ClearBehavior AutoClear = ClearBehavior.Leveling;
@@ -46,17 +47,6 @@ public class AutoDDConfig : ConfigNode
     public int MaxPull = 0;
     [PropertyDisplay("Try to use terrain to LOS attacks", tooltip: "This feature is currently very inconsistent and will likely get you killed. Enabling it is not recommended.")]
     public bool AutoLOS = false;
-
-    [PropertyDisplay("Automatically navigate to coffers")]
-    public bool AutoMoveTreasure = true;
-    [PropertyDisplay("Prioritize opening coffers over Cairn of Passage")]
-    public bool OpenChestsFirst = false;
-    [PropertyDisplay("Open gold coffers")]
-    public bool GoldCoffer = true;
-    [PropertyDisplay("Open silver coffers")]
-    public bool SilverCoffer = true;
-    [PropertyDisplay("Open bronze coffers")]
-    public bool BronzeCoffer = true;
 
     [PropertyDisplay("Reveal all rooms before proceeding to next floor")]
     public bool FullClear = false;
