@@ -238,7 +238,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         IkishotenStrat = WithBurst(strategy.Burst.Value, strategy.Ikishoten.Value);
         SeneiStrat = WithBurst(strategy.Burst.Value, strategy.Senei.Value);
         MeikyoStrat = WithBurst(strategy.Burst.Value, strategy.Meikyo.Value);

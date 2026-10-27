@@ -318,11 +318,11 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         TrackCasts();
 
         CircleStrat = WithBurst(strategy.Burst.Value, strategy.ArcaneCircle.Value);
-        EnshroudStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => EnshroudStrategy.Delay, OffensiveStrategy.Force => EnshroudStrategy.Force, _ => strategy.Enshroud.Value };
+        EnshroudStrat = strategy.Enshroud.Value == EnshroudStrategy.Delay ? EnshroudStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => EnshroudStrategy.Delay, OffensiveStrategy.Force => EnshroudStrategy.Force, _ => strategy.Enshroud.Value };
         GaugeStrat = strategy.SoulGauge.Value == SoulGaugeStrategy.Delay ? SoulGaugeStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => SoulGaugeStrategy.HoldGluttony, OffensiveStrategy.Force => SoulGaugeStrategy.ForceGluttony, _ => strategy.SoulGauge.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         AOEStrat = strategy.AOE.Value;
@@ -460,13 +460,13 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private void PushOpenerStep(Enemy target)
     {
         var step = OpenerSteps![OpenerStep];
-        if (step == Step.HarvestMoon && !HasSoulsow)
+        var aid = StepAction(step, target.Actor);
+        if (step == Step.HarvestMoon && !HasSoulsow || IsDisabled(aid))
         {
             ++OpenerStep;
             return;
         }
 
-        var aid = StepAction(step, target.Actor);
         if (ActionDefinitions.Instance.Spell(aid) is not { } def)
             return;
 

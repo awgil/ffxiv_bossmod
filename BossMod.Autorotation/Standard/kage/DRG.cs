@@ -169,7 +169,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         LanceStrat = WithBurst(strategy.Burst.Value, strategy.LanceCharge.Value);
         LitanyStrat = WithBurst(strategy.Burst.Value, strategy.BattleLitany.Value);
         DiveStrat = WithBurst(strategy.Burst.Value, strategy.DragonfireDive.Value);

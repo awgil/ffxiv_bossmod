@@ -1,4 +1,6 @@
-﻿namespace BossMod.Autorotation.kage;
+﻿using System.Reflection;
+
+namespace BossMod.Autorotation.kage;
 
 public static class TimeToKill
 {
@@ -159,6 +161,10 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     private DateTime LastCastSeen;
     private readonly Dictionary<uint, DateTime> LastUsed = [];
 
+    // tracks set to "Do not use" (or an unlabelled Delay, e.g. OffensiveStrategy) never push their actions, whatever burst, opener or any other logic wants
+    private static readonly (FieldInfo Field, PropertyInfo Raw, int[] Off, uint[] Actions)[] DoNotUseTracks = FindDoNotUseTracks();
+    private readonly HashSet<uint> Disabled = [];
+
     protected virtual bool UsesSpellSpeed => false;
     protected float GCDLength => ActionSpeed.GCDRounded(UsesSpellSpeed ? World.Client.PlayerStats.SpellSpeed : World.Client.PlayerStats.SkillSpeed, World.Client.PlayerStats.Haste, Player.Level);
     protected float CombatTime => Player.InCombat ? (float)(World.CurrentTime - Manager.CombatStart).TotalSeconds : 0;
@@ -169,8 +175,14 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     protected bool PotionPrepull => World.Client.CountdownRemaining is > 0 and < 2;
     protected bool PotionWithRaidBuffs => PotionPrepull || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5);
 
-    protected AIHints.Enemy? SelectTarget(Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange, AOEStrategy aoe = AOEStrategy.AOE)
+    protected AIHints.Enemy? SelectTarget(in TStrategy strategy, Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange, AOEStrategy aoe = AOEStrategy.AOE)
     {
+        Disabled.Clear();
+        object values = strategy;
+        foreach (var (field, raw, off, actions) in DoNotUseTracks)
+            if (raw.GetValue(field.GetValue(values)) is StrategyValueTrack v && off.Contains(v.Option))
+                Disabled.UnionWith(actions);
+
         AnimLockDelay = estimatedAnimLockDelay;
         NextGCDAction = default;
         NextGCDPriority = 0;
@@ -210,6 +222,23 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
         InMelee = target != null && Player.DistanceToHitbox(target.Actor) <= 3;
         return target;
     }
+
+    private static (FieldInfo, PropertyInfo, int[], uint[])[] FindDoNotUseTracks()
+    {
+        List<(FieldInfo, PropertyInfo, int[], uint[])> res = [];
+        foreach (var field in typeof(TStrategy).GetFields())
+        {
+            if (!field.FieldType.IsGenericType || field.FieldType.GetGenericTypeDefinition() != typeof(Track<>) || field.FieldType.GenericTypeArguments[0] is not { IsEnum: true } options)
+                continue;
+            var actions = field.GetCustomAttribute<TrackAttribute>()?.ActionIDs.Select(a => a.ID).ToArray() ?? [];
+            var off = options.GetFields(BindingFlags.Public | BindingFlags.Static).Where(o => (o.GetCustomAttribute<OptionAttribute>()?.DisplayName ?? o.Name) is "Do not use" or "Delay").Select(o => Convert.ToInt32(o.GetValue(null))).ToArray();
+            if (actions.Length > 0 && off.Length > 0)
+                res.Add((field, field.FieldType.GetProperty(nameof(Track<int>.Raw))!, off, actions));
+        }
+        return [.. res];
+    }
+
+    protected bool IsDisabled<AID>(AID aid) where AID : Enum => Disabled.Contains(ActionID.MakeSpell(aid).ID);
 
     protected float SinceUsed<AID>(AID aid) where AID : Enum => LastUsed.TryGetValue(ActionID.MakeSpell(aid).ID, out var t) ? (float)(World.CurrentTime - t).TotalSeconds : float.MaxValue;
     protected bool JustUsed<AID>(AID aid, float within = 3) where AID : Enum => SinceUsed(aid) < within;
@@ -278,7 +307,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
     }
 
-    protected static OffensiveStrategy WithBurst(OffensiveStrategy burst, OffensiveStrategy own) => burst == OffensiveStrategy.Automatic ? own : burst;
+    protected static OffensiveStrategy WithBurst(OffensiveStrategy burst, OffensiveStrategy own) => burst == OffensiveStrategy.Automatic || own == OffensiveStrategy.Delay ? own : burst;
 
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 
@@ -336,7 +365,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
 
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)
     {
-        if (action.ID == 0 || World.CurrentTime < CountdownLockout || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
+        if (action.ID == 0 || Disabled.Contains(action.ID) || World.CurrentTime < CountdownLockout || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
             return false;
         var targetPos = def.AllowedTargets.HasFlag(ActionTargets.Area) ? (def.Range == 0 ? Player.PosRot.XYZ() : target?.PosRot.XYZ() ?? default) : default;
         Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facing);

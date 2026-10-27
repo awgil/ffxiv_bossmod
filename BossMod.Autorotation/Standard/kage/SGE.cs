@@ -141,7 +141,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         PhlegmaStrat = WithBurst(strategy.Burst.Value, strategy.Phlegma.Value);
         PsycheStrat = WithBurst(strategy.Burst.Value, strategy.Psyche.Value);
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;

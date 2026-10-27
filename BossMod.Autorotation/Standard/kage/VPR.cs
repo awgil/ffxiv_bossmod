@@ -182,8 +182,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        ReawakenStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => ReawakenStrategy.Delay, OffensiveStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        ReawakenStrat = strategy.Reawaken.Value == ReawakenStrategy.Delay ? ReawakenStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => ReawakenStrategy.Delay, OffensiveStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
         IreStrat = WithBurst(strategy.Burst.Value, strategy.Ire.Value);
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 

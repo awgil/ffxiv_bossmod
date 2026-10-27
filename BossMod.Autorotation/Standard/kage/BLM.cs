@@ -157,11 +157,11 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        LeyLinesStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => LeyLinesStrategy.Delay, OffensiveStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        LeyLinesStrat = strategy.LeyLines.Value == LeyLinesStrategy.Delay ? LeyLinesStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => LeyLinesStrategy.Delay, OffensiveStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
         AmplifierStrat = WithBurst(strategy.Burst.Value, strategy.Amplifier.Value);
         ManafontStrat = WithBurst(strategy.Burst.Value, strategy.Manafont.Value);
-        PolyglotStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => PolyglotStrategy.Overcap, OffensiveStrategy.Force => PolyglotStrategy.ASAP, _ => strategy.Polyglot.Value };
+        PolyglotStrat = strategy.Polyglot.Value == PolyglotStrategy.Delay ? PolyglotStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => PolyglotStrategy.Overcap, OffensiveStrategy.Force => PolyglotStrategy.ASAP, _ => strategy.Polyglot.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         OpenerMode = strategy.Opener.Value == OpenerStrategy.Flare && !Unlocked(AID.FlareStar) ? OpenerStrategy.Standard : strategy.Opener.Value;
 

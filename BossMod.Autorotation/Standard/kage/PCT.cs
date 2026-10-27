@@ -153,7 +153,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         StarryStrat = strategy.Burst.Value;
         OpenerMode = Unlocked(AID.StarrySkyMotif) && Unlocked(AID.RainbowDrip) ? strategy.Opener.Value : OpenerStrategy.None;
 

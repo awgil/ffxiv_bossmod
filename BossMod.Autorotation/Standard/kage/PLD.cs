@@ -120,11 +120,11 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         if (Player.FindStatus(PassageOfArmsSID, Player.InstanceID) != null)
             return;
 
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         FightOrFlightStrat = WithBurst(strategy.Burst.Value, strategy.FightOrFlight.Value);
         RequiescatStrat = WithBurst(strategy.Burst.Value, strategy.Requiescat.Value);
         SpendersStrat = WithBurst(strategy.Burst.Value, strategy.Spenders.Value);
-        InterveneStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
+        InterveneStrat = strategy.Intervene.Value == InterveneStrategy.Delay ? InterveneStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);

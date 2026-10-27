@@ -173,12 +173,12 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        WildfireStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => WildfireStrategy.Delay, OffensiveStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        WildfireStrat = strategy.Wildfire.Value == WildfireStrategy.Delay ? WildfireStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => WildfireStrategy.Delay, OffensiveStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
         StabilizerStrat = WithBurst(strategy.Burst.Value, strategy.Stabilizer.Value);
         ToolsStrat = WithBurst(strategy.Burst.Value, strategy.Tools.Value);
-        ReassembleStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
-        QueenStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => QueenStrategy.Delay, OffensiveStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
+        ReassembleStrat = strategy.Reassemble.Value == ReassembleStrategy.Delay ? ReassembleStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
+        QueenStrat = strategy.Queen.Value == QueenStrategy.Delay ? QueenStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => QueenStrategy.Delay, OffensiveStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
 
         OpenerMode = strategy.Opener.Value switch
         {

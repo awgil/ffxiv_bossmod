@@ -147,12 +147,12 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         TechnicalStrat = WithBurst(strategy.Burst.Value, strategy.Technical.Value);
         DevilmentStrat = WithBurst(strategy.Burst.Value, strategy.Devilment.Value);
         FlourishStrat = WithBurst(strategy.Burst.Value, strategy.Flourish.Value);
         StandardStrat = WithBurst(strategy.Burst.Value, strategy.Standard.Value);
-        FeathersStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => FeatherStrategy.Overcap, _ => strategy.Feathers.Value };
+        FeathersStrat = strategy.Feathers.Value == FeatherStrategy.Delay ? FeatherStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => FeatherStrategy.Overcap, _ => strategy.Feathers.Value };
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;

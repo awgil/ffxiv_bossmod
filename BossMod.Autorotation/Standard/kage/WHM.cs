@@ -108,10 +108,10 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         PresenceOfMindStrat = WithBurst(strategy.Burst.Value, strategy.PresenceOfMind.Value);
         AssizeStrat = WithBurst(strategy.Burst.Value, strategy.Assize.Value);
-        MiseryStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => MiseryStrategy.Delay, OffensiveStrategy.Force => MiseryStrategy.ASAP, _ => strategy.Misery.Value };
+        MiseryStrat = strategy.Misery.Value == MiseryStrategy.Delay ? MiseryStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => MiseryStrategy.Delay, OffensiveStrategy.Force => MiseryStrategy.ASAP, _ => strategy.Misery.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
