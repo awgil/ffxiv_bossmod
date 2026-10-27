@@ -323,7 +323,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         CircleStrat = WithBurst(strategy.Burst.Value, strategy.ArcaneCircle.Value);
         EnshroudStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => EnshroudStrategy.Delay, OffensiveStrategy.Force => EnshroudStrategy.Force, _ => strategy.Enshroud.Value };
-        GaugeStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => SoulGaugeStrategy.HoldGluttony, OffensiveStrategy.Force => SoulGaugeStrategy.ForceGluttony, _ => strategy.SoulGauge.Value };
+        GaugeStrat = strategy.SoulGauge.Value == SoulGaugeStrategy.Delay ? SoulGaugeStrategy.Delay : strategy.Burst.Value switch { OffensiveStrategy.Delay => SoulGaugeStrategy.HoldGluttony, OffensiveStrategy.Force => SoulGaugeStrategy.ForceGluttony, _ => strategy.SoulGauge.Value };
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         AOEStrat = strategy.AOE.Value;
 
