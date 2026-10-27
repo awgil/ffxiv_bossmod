@@ -60,7 +60,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum SpendStrategy
     {
-        [Option("Automatic: Starry Muse burst, movement, AoE; Comet after the Subtractive combo")]
+        [Option("Use when optimal: Starry Muse burst, movement, AoE; Comet after the Subtractive combo")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,

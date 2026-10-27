@@ -97,7 +97,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Gluttony on cooldown, Blood Stalk / Unveiled when Gluttony is far or gauge is full")]
         Automatic,
-        [Option("Automatic, but use Gluttony before Plentiful Harvest", MinLevel = 76)]
+        [Option("Use when optimal, but use Gluttony before Plentiful Harvest", MinLevel = 76)]
         GluttonyFirst,
         [Option("Hold Gluttony; Blood Stalk / Unveiled only to avoid overcapping")]
         HoldGluttony,
@@ -127,7 +127,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Keep it up and stack ~30s before the burst")]
         Automatic,
-        [Option("Automatic; at full Soul with Gluttony coming up, use Shadow of Death instead of Unveiled + Gibbet/Gallows to keep Gluttony aligned", MinLevel = 76)]
+        [Option("Use when optimal; at full Soul with Gluttony coming up, use Shadow of Death instead of Unveiled + Gibbet/Gallows to keep Gluttony aligned", MinLevel = 76)]
         KeepGluttonyAligned,
         [Option("Use Shadow of Death as soon as possible", Targets = ActionTargets.Hostile)]
         Force,
@@ -151,7 +151,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Use out of melee range, when moving at the end of Enshroud, or as the last GCD before downtime or a kill", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Automatic, and also use during raid buffs", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal, and also during raid buffs", Targets = ActionTargets.Hostile)]
         Burst,
         [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         Force,

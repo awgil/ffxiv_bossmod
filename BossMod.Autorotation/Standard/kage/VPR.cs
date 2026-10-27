@@ -117,7 +117,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum OpenerStrategy
     {
-        [Option("Automatic (FRU / DMU openers in those fights)")]
+        [Option("Use the best opener for the fight (FRU / DMU openers in those fights)")]
         Automatic,
         [Option("Standard opener")]
         Standard,
