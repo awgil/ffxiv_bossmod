@@ -22,7 +22,7 @@ internal sealed class AutoBitmapService(
 ) : IHostedService
 {
     private readonly DeveloperConfig config = Service.Config.Get<DeveloperConfig>();
-    private bool Paused;
+    public bool Paused;
     private Exception? LastException;
 
     private readonly ICallGateSubscriber<bool> isReady = dalamud.GetIpcSubscriber<bool>("vnavmesh.Nav.IsReady");

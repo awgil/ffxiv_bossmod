@@ -72,7 +72,7 @@ public abstract partial class AutoClear : ZoneModule
     private bool _lastChestMagicite;
 
     private int Kills;
-    private int DesiredRoom;
+    private (int Index, string Reason) DesiredRoom;
     private bool BetweenFloors = true;
 
     protected struct PlayerImmuneState
@@ -244,7 +244,7 @@ public abstract partial class AutoClear : ZoneModule
         HintDisabled.Clear();
         LOS.Clear();
         Walls.Clear();
-        DesiredRoom = 0;
+        DesiredRoom = (0, "");
         Kills = 0;
         Array.Fill(_playerImmunes, default);
         _lastChestContentsGold = null;
@@ -432,13 +432,19 @@ public abstract partial class AutoClear : ZoneModule
         var fullClear = false;
         if (_config.FullClear)
         {
-            var unexplored = Array.FindIndex(Palace.Rooms, d => (byte)d > 0 && !d.HasFlag(RoomFlags.Revealed));
+            var unexplored = Array.FindIndex(Palace.Rooms, d => d != RoomFlags.None && !d.HasFlag(RoomFlags.Revealed));
             if (unexplored > 0)
             {
-                DesiredRoom = unexplored;
+                DesiredRoom = (unexplored, "revealing the map");
                 fullClear = true;
             }
         }
+
+        /*
+        var pass = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage) && !d.HasFlag(RoomFlags.Revealed));
+        if (pass > 0)
+            DesiredRoom = (pass, "revealing the passage");
+        */
 
         if (coffer != null)
         {
@@ -469,8 +475,8 @@ public abstract partial class AutoClear : ZoneModule
 
         if (!player.InCombat && _config.AutoPassage && Palace.PassageActive)
         {
-            if (DesiredRoom == 0)
-                DesiredRoom = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage));
+            if (DesiredRoom.Index == 0)
+                DesiredRoom = (Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage)), "heading for passage");
 
             if (passage is Actor c && !fullClear)
             {
@@ -515,7 +521,7 @@ public abstract partial class AutoClear : ZoneModule
                 pp.Priority = 0;
 
             // if player does not have a target, prioritize everything so that AI picks one - skip dangerous enemies
-            else if (canTarget && numAggro < _config.MaxPull && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)) && pp.Actor.Visibility != Visibility.Blocked)
+            else if (canTarget && numAggro <= _config.MaxPull && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)) && pp.Actor.Visibility != Visibility.Blocked)
                 pp.ShouldBeTargeted = true;
         }
     }
