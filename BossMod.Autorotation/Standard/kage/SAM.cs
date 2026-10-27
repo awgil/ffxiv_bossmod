@@ -75,7 +75,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum HiganbanaStrategy
     {
-        [Option("Refresh every minute with the burst; only on targets that live 48s+")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         Force,
@@ -85,7 +85,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum TsubameStrategy
     {
-        [Option("Hold Kaeshi: Setsugekka for the next burst; never let it expire")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -95,7 +95,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum KenkiStrategy
     {
-        [Option("Pool for raid buffs and spend inside them; never overcap")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -107,7 +107,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum DashStrategy
     {
-        [Option("Close gaps, and spend spare Kenki inside raid buffs", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Only to close gaps", Targets = ActionTargets.Hostile)]
         GapClose,
@@ -117,7 +117,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum YatenStrategy
     {
-        [Option("Backstep out of an incoming AoE when the landing spot is safe, then Enhanced Enpi")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -125,7 +125,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum TrueNorthStrategy
     {
-        [Option("Use when the next positional is wrong")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -141,7 +141,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum MeditateStrategy
     {
-        [Option("Use during downtime while standing still")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

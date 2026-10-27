@@ -54,7 +54,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum DotStrategy
     {
-        [Option("Keep up on up to two targets")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
@@ -66,7 +66,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum MiseryStrategy
     {
-        [Option("Use with raid buffs; right away on 2+ targets or to avoid overcapping")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         ASAP,

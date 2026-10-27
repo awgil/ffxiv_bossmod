@@ -47,7 +47,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum HyperchargeStrategy
     {
-        [Option("Use between tools; save Heat for Wildfire")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible", Effect = 10, MinLevel = 30)]
         ASAP,
@@ -57,7 +57,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum WildfireStrategy
     {
-        [Option("Use after entering Overheat; saved for the boss", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use as soon as possible", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
         Force,
@@ -67,9 +67,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum ReassembleStrategy
     {
-        [Option("Use on tools")]
+        [Option("Use when optimal")]
         Automatic,
-        [Option("Use on tools and AoE fillers")]
+        [Option("Also use on AoE fillers")]
         Any,
         [Option("Do not use")]
         Delay
@@ -77,7 +77,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum QueenStrategy
     {
-        [Option("Summon with raid buffs; between them only to avoid overcapping")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Summon at 50+ Battery")]
         Fifty,
@@ -89,7 +89,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum ChargeStrategy
     {
-        [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use as soon as possible", Targets = ActionTargets.Hostile)]
         ASAP,
@@ -101,7 +101,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum FlamethrowerStrategy
     {
-        [Option("Use in AoE while standing still")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

@@ -59,7 +59,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum LifeSurgeStrategy
     {
-        [Option("Use on Heavens' Thrust / Drakesbane in burst; never overcap")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use on the next strong GCD")]
         ASAP,
@@ -77,7 +77,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum TrueNorthStrategy
     {
-        [Option("Use when the next positional is wrong")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

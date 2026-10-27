@@ -47,7 +47,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum ReawakenStrategy
     {
-        [Option("Use with Serpent's Ire and raid buffs; saved for the boss")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible", MinLevel = 90)]
         ASAP,
@@ -57,11 +57,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
+        [Option("Use when optimal", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use as soon as possible (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
         ASAP,
-        [Option("Spend between combos, but always keep one for movement", Targets = ActionTargets.Hostile)]
+        [Option("Always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
         [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
@@ -79,7 +79,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum TrueNorthStrategy
     {
-        [Option("Use when the next positional is wrong")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

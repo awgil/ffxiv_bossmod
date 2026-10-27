@@ -47,7 +47,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum FeatherStrategy
     {
-        [Option("Spend in Technical Finish; never overcap")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -69,7 +69,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum WaltzStrategy
     {
-        [Option("Use when you or 3+ nearby allies are low")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -77,7 +77,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum PelotonStrategy
     {
-        [Option("Use in the last 10s of the countdown, outside of dance steps")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

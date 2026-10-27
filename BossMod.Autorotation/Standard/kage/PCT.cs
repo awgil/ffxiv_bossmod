@@ -50,7 +50,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum MuseStrategy
     {
-        [Option("Use with Starry Muse; never overcap")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -60,7 +60,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum SpendStrategy
     {
-        [Option("Use when optimal: Starry Muse burst, movement, AoE; Comet after the Subtractive combo")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -70,7 +70,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum MotifStrategy
     {
-        [Option("Paint out of combat, in downtime and between bursts")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Only out of combat and in downtime")]
         Downtime,
@@ -80,9 +80,9 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum TemperaStrategy
     {
-        [Option("Coat + Grassa (party shield) before raidwides")]
+        [Option("Use when optimal")]
         Automatic,
-        [Option("Tempera Coat only (self) before raidwides")]
+        [Option("Only Tempera Coat (self), no Grassa")]
         Self,
         [Option("Do not use")]
         Delay

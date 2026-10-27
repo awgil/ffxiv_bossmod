@@ -53,7 +53,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum DotStrategy
     {
-        [Option("Keep up on up to two targets; Eukrasian Dyskrasia on 3+")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
@@ -63,7 +63,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum ToxikonStrategy
     {
-        [Option("Use while moving and on 2+ targets")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -75,7 +75,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum PneumaStrategy
     {
-        [Option("Use on 2+ targets unless a raidwide is coming")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible (when not moving)")]
         ASAP,
@@ -95,7 +95,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum DruocholeStrategy
     {
-        [Option("Use on the lowest HP ally to avoid overcapping")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

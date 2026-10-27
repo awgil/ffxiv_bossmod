@@ -44,7 +44,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum LeyLinesStrategy
     {
-        [Option("Use with raid buffs while standing still; saved for the boss")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -54,7 +54,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum PolyglotStrategy
     {
-        [Option("Spend in Astral Fire with raid buffs, keep one for movement; never overcap")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use as soon as possible")]
         ASAP,
@@ -66,7 +66,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum MovementStrategy
     {
-        [Option("Use Triplecast, then Swiftcast, for movement")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Use Triplecast, then Swiftcast, as soon as possible")]
         ASAP,
@@ -76,7 +76,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum ManawardStrategy
     {
-        [Option("Use before raidwides")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay

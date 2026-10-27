@@ -41,7 +41,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum InterveneStrategy
     {
-        [Option("Use in Fight or Flight; never overcap")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Also use as a gap closer", Targets = ActionTargets.Hostile)]
         GapClose,
@@ -51,7 +51,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum SheltronStrategy
     {
-        [Option("Spend Oath at 95+ while being hit")]
+        [Option("Use when optimal")]
         Automatic,
         [Option("Do not use")]
         Delay
