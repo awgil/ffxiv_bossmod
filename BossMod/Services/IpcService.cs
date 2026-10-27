@@ -1,3 +1,4 @@
+using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Pathfinding;
 using Dalamud.Plugin;
@@ -14,6 +15,8 @@ internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModule
 {
     private Action _stopActions = () => { };
     private readonly ConfigRoot config = Service.Config;
+    private readonly AIConfig aiConfig = Service.Config.Get<AIConfig>();
+    private readonly ActionTweaksConfig tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -42,6 +45,24 @@ internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModule
         });
 
         Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));
+
+        // module types from all active presets; the AI-managed multibox preset is only included if requested
+        IEnumerable<Type> activePresetModuleTypes(bool includeMultibox) => autorotation.Presets
+            .Where(p => includeMultibox || p.Name != "VBM Multibox")
+            .SelectMany(p => p.Modules)
+            .Select(m => m.Type);
+        Register("Rotation.GetActiveModuleTypes", () => activePresetModuleTypes(true).Select(t => t.FullName ?? t.Name).ToList());
+        // true if any active preset contains a module that isn't a MiscAI helper (i.e. an actual rotation or utility module)
+        Register("Rotation.IsAutorotationActive", () => activePresetModuleTypes(true).Any(t => t.Namespace != "BossMod.Autorotation.MiscAI"));
+        // true if a user preset (not the AI multibox one) has the auto-target module enabled
+        Register("Rotation.IsAutoTargetActive", () => activePresetModuleTypes(false).Any(t => t.FullName == "BossMod.Autorotation.MiscAI.AutoTarget"));
+
+        Register("AI.IsEnabled", () => aiConfig.Enabled);
+        Register("AI.IsAutoTargetEnabled", () => aiConfig.Enabled && !aiConfig.ForbidActions);
+
+        Register("Tweaks.IsManualQueueEnabled", () => tweaksConfig.UseManualQueue);
+        // smart targeting is only applied to actions that go through the manual queue
+        Register("Tweaks.IsSmartTargetingEnabled", () => tweaksConfig.UseManualQueue && tweaksConfig.SmartTargets);
 
         Register("Presets.ListAll", () => autorotation.Database.Presets.AllPresets.Select(p => p.Name).ToList());
         Register("Presets.Get", (string name) =>
