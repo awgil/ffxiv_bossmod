@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModuleManager autorotation, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
+internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModuleManager autorotation, IMovementOverride movement, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
 {
     private Action _stopActions = () => { };
     private readonly ConfigRoot config = Service.Config;
@@ -56,6 +56,8 @@ internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModule
 
         Register("Rotation.ActionTweaks.IsManualQueueEnabled", () => tweaksConfig.UseManualQueue);
         Register("Rotation.ActionTweaks.IsSmartTargetingEnabled", () => tweaksConfig.UseManualQueue && tweaksConfig.SmartTargets);
+        Register("Rotation.ActionTweaks.IsPreventMovingWhileCastingEnabled", () => tweaksConfig.PreventMovingWhileCasting);
+        Register("Rotation.ActionTweaks.IsMoveEscapeHatchHeld", movement.IsForceUnblocked);
 
         Register("AI.IsEnabled", () => aiConfig.Enabled);
         Register("AI.IsAutoTargetEnabled", () => aiConfig.Enabled && !aiConfig.ForbidActions);
