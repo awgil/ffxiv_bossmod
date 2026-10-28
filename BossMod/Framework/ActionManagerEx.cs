@@ -1,5 +1,6 @@
 ﻿using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -35,7 +36,10 @@ namespace BossMod;
 public sealed unsafe class ActionManagerEx(
     WorldState ws,
     AIHints hints,
-    MovementOverride movement
+    MovementOverride movement,
+    IPluginLog logger,
+    ICondition condition,
+    ConfigRoot configRoot
 ) : IAmex, IHostedService, IDisposable
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
@@ -53,7 +57,7 @@ public sealed unsafe class ActionManagerEx(
     public Event<ClientActionRequest> ActionRequestExecuted { get; } = new();
     public Event<ulong, ActorCastEvent> ActionEffectReceived { get; } = new();
 
-    public ActionTweaksConfig Config { get; } = Service.Config.Get<ActionTweaksConfig>();
+    public ActionTweaksConfig Config { get; } = configRoot.Get<ActionTweaksConfig>();
     public ActionQueue.Entry AutoQueue { get; private set; }
     public bool MoveMightInterruptCast { get; private set; } // if true, moving now might cause cast interruption (for current or queued cast)
     private ActionManager* _inst;
@@ -90,7 +94,7 @@ public sealed unsafe class ActionManagerEx(
     {
         _inst = ActionManager.Instance();
 
-        Service.Log($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
+        logger.Debug($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
@@ -158,7 +162,7 @@ public sealed unsafe class ActionManagerEx(
 
     public void FaceDirection(Angle direction)
     {
-        Service.Log($"face direction requested: {direction}");
+        logger.Debug($"face direction requested: {direction}");
         var player = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (player != null)
         {
@@ -479,12 +483,12 @@ public sealed unsafe class ActionManagerEx(
             }
             else if (_dismountTweak.IsMountPreventingAction(actionAdj))
             {
-                Service.Log("[AMEx] Trying to dismount...");
+                logger.Debug("[AMEx] Trying to dismount...");
                 autoDismount = _dismountTweak.AutoDismountEnabled;
             }
             else
             {
-                Service.Log($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
+                logger.Info($"[AMEx] Can't execute prio {AutoQueue.Priority} action {AutoQueue.Action} (=> {actionAdj}) @ {targetID:X}: status {status} '{Service.LuminaRow<Lumina.Excel.Sheets.LogMessage>(status)?.Text}'");
                 blockMovementCast = blockMovementStillness = false;
             }
         }
@@ -501,7 +505,7 @@ public sealed unsafe class ActionManagerEx(
 
         movement.MovementBlocked = blockMovementCast || blockMovementStillness;
 
-        if (!GameMain.IsInPvPArea() && !Service.Condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
+        if (!GameMain.IsInPvPArea() && !condition.Any(ConditionFlag.DutyRecorderPlayback, ConditionFlag.InThisState89))
         {
             var autosEnabled = UIState.Instance()->WeaponState.AutoAttackState.IsAutoAttacking;
             if (_autoAutosTweak.GetDesiredState(autosEnabled, ws.Party.Player()?.TargetID ?? 0) != autosEnabled)
@@ -771,7 +775,7 @@ public sealed unsafe class ActionManagerEx(
             // TODO: reconsider the condition:
             // - do we want to do non-anim-lock related things (eg unblock movement override) when we get action with 'force anim lock' flag?
             if (currAnimLock != prevAnimLock)
-                Service.Log($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
+                logger.Info($"[AMEx] Animation lock updated by non-player-initiated action: #{header->SourceSequence} {casterID:X} {info.Action} {prevAnimLock:f3} -> {currAnimLock:f3}");
             return;
         }
 
@@ -781,7 +785,7 @@ public sealed unsafe class ActionManagerEx(
         // animation lock delay update
         var animLockReduction = _animLockTweak.Apply(header->SourceSequence, prevAnimLock, _inst->AnimationLock, packetAnimLock, header->AnimationLock, out var animLockDelay);
         _inst->AnimationLock -= animLockReduction;
-        Service.Log($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
+        logger.Debug($"[AMEx] AEP #{header->SourceSequence} {prevAnimLock:f3} {info.Action} -> ALock={currAnimLock:f3} (delayed by {animLockDelay:f3}) -> {_inst->AnimationLock:f3}), Flags={header->Flags:X}, CTR={CastTimeRemaining:f3}, GCD={GCD():f3}");
     }
 
     private void HandleActionRequest(ActionID action, uint seq, ulong targetID, Vector3 targetPos, Angle prevRot, Angle currRot)
@@ -802,7 +806,7 @@ public sealed unsafe class ActionManagerEx(
 
         var (castElapsed, castTotal) = _inst->CastSpellId != 0 ? (_inst->CastTimeElapsed, _inst->CastTimeTotal) : (0, 0);
         var (recastElapsed, recastTotal) = recast != null ? (recast->Elapsed, recast->Total) : (0, 0);
-        Service.Log($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
+        logger.Debug($"[AMEx] UAL #{seq} {action} @ {targetID:X} / {Utils.Vec3String(targetPos)}, ALock={_inst->AnimationLock:f3}, CTR={CastTimeRemaining:f3}, CD={recastElapsed:f3}/{recastTotal:f3}, GCD={GCD():f3}");
         ActionRequestExecuted.Fire(new(action, targetID, targetPos, seq, _inst->AnimationLock, castElapsed, castTotal, recastElapsed, recastTotal));
     }
 
@@ -812,7 +816,7 @@ public sealed unsafe class ActionManagerEx(
     {
         if (value && !_autoAutosTweak.GetDesiredState(true, TargetSystem.Instance()->GetTargetObjectId()))
         {
-            Service.Log($"[AMEx] Prevented starting autoattacks");
+            logger.Debug($"[AMEx] Prevented starting autoattacks");
             return true;
         }
         return _setAutoAttackStateHook.Original(self, value, sendPacket, isInstant);
