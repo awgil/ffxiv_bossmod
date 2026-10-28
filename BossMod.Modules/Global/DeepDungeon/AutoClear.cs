@@ -106,7 +106,7 @@ public abstract partial class AutoClear : ZoneModule
 
     private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
 
-    const float TrapRadius = 1.7f;
+    const float TrapRadius = 1.75f;
 
     protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
@@ -351,9 +351,6 @@ public abstract partial class AutoClear : ZoneModule
 
     protected virtual void CalculateExtraHints(int playerSlot, Actor player, AIHints hints) { }
 
-    private RoomBox PlayerRoomBox;
-    private int PlayerRoom;
-
     public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
     {
         if (Palace.IsBossFloor || BetweenFloors)
@@ -364,7 +361,7 @@ public abstract partial class AutoClear : ZoneModule
 
         if (_config.TrapHints && _trapsHidden)
         {
-            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.InCircle(player.Position, 30)).Select(f => ShapeDistance.Circle(f, TrapRadius)).ToList();
+            var tshape = _trapsCurrentFloor.Select(t => new WPos(t.X, t.Z)).Where(f => f.AlmostEqual(player.Position, 30)).Select(f => ShapeDistance.Circle(f, TrapRadius)).ToList();
             if (tshape.Count > 0)
                 hints.AddForbiddenZone(ShapeDistance.Union(tshape));
         }
@@ -464,14 +461,13 @@ public abstract partial class AutoClear : ZoneModule
             return;
         }
 
-        var neatObject = InterestingObjects.FirstOrNull();
-        MostInterestingObject = neatObject;
+        MostInterestingObject = InterestingObjects.FirstOrNull();
 
         var goalWeight = player.InCombat ? 1 : 0.01f;
 
         if (canNavigate)
         {
-            switch (neatObject)
+            switch (MostInterestingObject)
             {
                 case { Type: GoalType.Passage, Actor: var c }:
                     hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 2, goalWeight));
@@ -509,9 +505,15 @@ public abstract partial class AutoClear : ZoneModule
             else if (pp.Actor.FindStatus(SID.AutoHealPenalty) != null && pp.Actor.PendingHPRaw is > 0 and < 10)
                 pp.ForcePriority(0);
 
-            // if player does not have a target, pick one
+            // if not at max pull size, prioritize mobs
             else if (canTarget && (numAggro < _config.MaxPull || _config.MaxPull == 0 && numAggro == 0) && !pp.Actor.Statuses.Any(s => IsDangerousOutOfCombatStatus(s.ID)) && IsInThisRoomOrAdjacent(pp.Actor) && !pp.Actor.AggroPlayer)
-                pp.ShouldBeTargeted = true;
+            {
+                // passive mobs shouldn't be prioritized over aggro'd ones
+                if (player.InCombat)
+                    pp.Priority = 0;
+                else
+                    pp.ShouldBeTargeted = true;
+            }
         }
     }
 

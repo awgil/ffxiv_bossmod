@@ -196,7 +196,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.Sprint);
 
         // Tank
-        d.RegisterSpell(AID.ShieldWall, instantAnimLock: 1.93f, positionLock: 1.84f);
+        d.RegisterSpell(AID.ShieldWall, instantAnimLock: 1.93f, positionLock: 1.83f);
         d.RegisterSpell(AID.Stronghold, instantAnimLock: 3.86f, positionLock: 3.77f);
         d.RegisterSpell(AID.Rampart);
         d.RegisterSpell(AID.LowBlow);
@@ -207,7 +207,7 @@ public sealed class Definitions : Defs
 
         // Healer
         d.RegisterSpell(AID.HealingWind, castAnimLock: 2.10f, positionLock: 2);
-        d.RegisterSpell(AID.BreathOfTheEarth, castAnimLock: 5.13f, positionLock: 5.04f);
+        d.RegisterSpell(AID.BreathOfTheEarth, castAnimLock: 5.13f, positionLock: 5.03f);
         d.RegisterSpell(AID.Repose); // animLock=???
         d.RegisterSpell(AID.Esuna);
         d.RegisterSpell(AID.Rescue);

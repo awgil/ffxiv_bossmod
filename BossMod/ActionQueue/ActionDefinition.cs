@@ -85,7 +85,12 @@ public sealed record class ActionDefinition(ActionID ID)
     public bool IsRoleAction; // unlocked conditions are different for these
     public float InstantAnimLock = 0.6f; // animation lock if ability is instant-cast
     public float CastAnimLock = 0.1f; // animation lock if ability is non-instant
-    public float PositionLock = 0; // how long this action freezes the user in place
+
+    // how long this action freezes the user in place
+    // TODO: this can be read from the .tmb file; the path is in the Key field of the ActionTimeline row pointed to by this action's AnimationEnd
+    // the C125 (Animation Lock) track in Actor 0's timeline has a Duration value listed in terms of animation keyframes (1/30th of a second)
+    // reading tmb files looks like a massive pain in the ass and lumina doesn't support it so i just added the relevant values manually
+    public float PositionLock;
     public ConditionDelegate? AllowExecute; // optional condition, if it returns false, action is not executed
     public SmartTargetDelegate? SmartTarget; // optional target transformation for 'smart targeting' feature
     public TransformAngleDelegate? TransformAngle; // optional facing angle transformation
@@ -507,11 +512,17 @@ public sealed class ActionDefinitions
 
     private void RegisterDeepDungeon(ActionID id)
     {
+        var posLock = id.Type switch
+        {
+            ActionType.Pomander => 1,
+            ActionType.Magicite => 85 / 30f,
+            _ => 0
+        };
         _definitions[id] = new(id)
         {
             AllowedTargets = ActionTargets.Self,
             InstantAnimLock = 2.1f,
-            PositionLock = 1
+            PositionLock = posLock
         };
     }
 

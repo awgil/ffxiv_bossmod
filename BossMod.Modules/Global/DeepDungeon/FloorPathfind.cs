@@ -84,6 +84,9 @@ abstract partial class AutoClear : ZoneModule
         _ => ""
     };
 
+    private RoomBox PlayerRoomBox;
+    private int PlayerRoom;
+
     private (int Index, PathfindReason Reason) DesiredRoom;
 
     private void PickARoom(Actor player, AIHints hints)
