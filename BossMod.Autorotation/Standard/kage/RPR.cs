@@ -15,7 +15,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         public Track<BurstStrategy> Burst;
 
         [Track("Arcane Circle", MinLevel = 72, Action = AID.ArcaneCircle)]
-        public Track<CircleStrategy> ArcaneCircle;
+        public Track<OffensiveStrategy> ArcaneCircle;
 
         [Track("Enshroud", MinLevel = 80, Action = AID.Enshroud)]
         public Track<EnshroudStrategy> Enshroud;
@@ -61,16 +61,6 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         [Track("Opener", MinLevel = 90, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
-    }
-
-    public enum CircleStrategy
-    {
-        [Option("Use after Shadow of Death when the burst is worth it; not right before downtime")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
     }
 
     public enum HarvestStrategy

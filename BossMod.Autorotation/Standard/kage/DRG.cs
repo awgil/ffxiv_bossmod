@@ -15,10 +15,10 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         public Track<BurstStrategy> Burst;
 
         [Track("Lance Charge", MinLevel = 30, Action = AID.LanceCharge)]
-        public Track<LanceChargeStrategy> LanceCharge;
+        public Track<OffensiveStrategy> LanceCharge;
 
         [Track("Battle Litany", MinLevel = 52, Action = AID.BattleLitany)]
-        public Track<BattleLitanyStrategy> BattleLitany;
+        public Track<OffensiveStrategy> BattleLitany;
 
         [Track("Life Surge", MinLevel = 6, Action = AID.LifeSurge)]
         public Track<LifeSurgeStrategy> LifeSurge;
@@ -55,26 +55,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
         [Track("Opener", MinLevel = 100, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
-    }
-
-    public enum LanceChargeStrategy
-    {
-        [Option("Use on cooldown when the burst is worth it; not right before downtime")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum BattleLitanyStrategy
-    {
-        [Option("Use on cooldown when the burst is worth it; not right before downtime")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
     }
 
     public enum GeirskogulStrategy

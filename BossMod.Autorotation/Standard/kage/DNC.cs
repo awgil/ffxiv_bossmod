@@ -15,10 +15,10 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         public Track<BurstStrategy> Burst;
 
         [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]
-        public Track<TechnicalStrategy> Technical;
+        public Track<OffensiveStrategy> Technical;
 
         [Track("Standard Step / Finishing Move", MinLevel = 15, Actions = [AID.StandardStep, AID.DoubleStandardFinish, AID.FinishingMove])]
-        public Track<StandardStrategy> Standard;
+        public Track<OffensiveStrategy> Standard;
 
         [Track("Devilment", MinLevel = 62, Action = AID.Devilment)]
         public Track<DevilmentStrategy> Devilment;
@@ -43,26 +43,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
         [Track("Opener", MinLevel = 15, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
-    }
-
-    public enum TechnicalStrategy
-    {
-        [Option("Use on cooldown; not right before downtime")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum StandardStrategy
-    {
-        [Option("Use on cooldown, without delaying Technical Step")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
     }
 
     public enum DevilmentStrategy

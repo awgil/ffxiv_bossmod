@@ -24,7 +24,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         public Track<StabilizerStrategy> Stabilizer;
 
         [Track("Tools", Actions = [AID.Drill, AID.HotShot, AID.AirAnchor, AID.ChainSaw, AID.Excavator, AID.Bioblaster, AID.FullMetalField])]
-        public Track<ToolsStrategy> Tools;
+        public Track<OffensiveStrategy> Tools;
 
         [Track("Reassemble", MinLevel = 10, Action = AID.Reassemble)]
         public Track<ReassembleStrategy> Reassemble;
@@ -48,16 +48,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     public enum StabilizerStrategy
     {
         [Option("Use when Wildfire is ready within 20s")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum ToolsStrategy
-    {
-        [Option("Use on cooldown; Drill held for the burst, tools saved when the target is about to die")]
         Automatic,
         [Option("Do not use")]
         Delay,

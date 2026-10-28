@@ -12,7 +12,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<AOEStrategy> AOE;
 
         [Track("Burst (Starry Muse)", InternalName = "Burst", MinLevel = 70, Action = AID.StarryMuse)]
-        public Track<StarryStrategy> Burst;
+        public Track<OffensiveStrategy> Burst;
 
         [Track("Living Muse", MinLevel = 30, Actions = [AID.PomMuse, AID.WingedMuse, AID.ClawedMuse, AID.FangedMuse])]
         public Track<MuseStrategy> Living;
@@ -46,16 +46,6 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
         [Track("Opener", MinLevel = 90, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
-    }
-
-    public enum StarryStrategy
-    {
-        [Option("Use on cooldown when the burst is worth it; not right before downtime")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
     }
 
     public enum PortraitStrategy

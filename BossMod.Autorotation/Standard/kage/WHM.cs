@@ -24,7 +24,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         public Track<GlareIVStrategy> GlareIV;
 
         [Track("Assize", MinLevel = 56, Action = AID.Assize)]
-        public Track<AssizeStrategy> Assize;
+        public Track<OffensiveStrategy> Assize;
 
         [Track("Afflatus Misery", MinLevel = 74, Action = AID.AfflatusMisery)]
         public Track<MiseryStrategy> Misery;
@@ -55,16 +55,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
     public enum GlareIVStrategy
     {
         [Option("Spend Sacred Sight in raid buffs, while moving, or before it runs out")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum AssizeStrategy
-    {
-        [Option("Use on cooldown when it hits; waits for raid buffs in the opener")]
         Automatic,
         [Option("Do not use")]
         Delay,

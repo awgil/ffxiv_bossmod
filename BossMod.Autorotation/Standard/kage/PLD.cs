@@ -15,7 +15,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         public Track<BurstStrategy> Burst;
 
         [Track("Fight or Flight", MinLevel = 2, Action = AID.FightOrFlight)]
-        public Track<FightOrFlightStrategy> FightOrFlight;
+        public Track<OffensiveStrategy> FightOrFlight;
 
         [Track("Requiescat / Imperator", MinLevel = 68, Actions = [AID.Requiescat, AID.Imperator])]
         public Track<RequiescatStrategy> Requiescat;
@@ -24,7 +24,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         public Track<GoringStrategy> Goring;
 
         [Track("Circle of Scorn / Expiacion", MinLevel = 30, Actions = [AID.CircleOfScorn, AID.SpiritsWithin, AID.Expiacion])]
-        public Track<SpendersStrategy> Spenders;
+        public Track<OffensiveStrategy> Spenders;
 
         [Track("Intervene", MinLevel = 74, Action = AID.Intervene)]
         public Track<InterveneStrategy> Intervene;
@@ -37,16 +37,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
         [Track("Opener", MinLevel = 2, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
-    }
-
-    public enum FightOrFlightStrategy
-    {
-        [Option("Use on cooldown in melee; not right before downtime or on targets about to die")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
     }
 
     public enum RequiescatStrategy
@@ -62,16 +52,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
     public enum GoringStrategy
     {
         [Option("Use outside Requiescat")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum SpendersStrategy
-    {
-        [Option("Use on cooldown, held for Fight or Flight when it is about to come up")]
         Automatic,
         [Option("Do not use")]
         Delay,
