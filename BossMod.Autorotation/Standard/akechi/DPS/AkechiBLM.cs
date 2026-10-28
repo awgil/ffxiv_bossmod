@@ -12,6 +12,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     public enum EnderStrategy { Automatic, OnlyDespair, OnlyFlare, ForceDespair, ForceFlare }
     public enum PolyglotStrategy { AutoSpendAll, AutoHold1, AutoHold2, AutoHold3, XenoSpendAll, XenoHold1, XenoHold2, XenoHold3, FoulSpendAll, FoulHold1, FoulHold2, FoulHold3, ForceAny, ForceXeno, ForceFoul, Delay }
     public enum CommonStrategy { Automatic, Force, ForceWeave, Delay }
+    public enum TriplecastStrategy { Automatic, Force, ForceWeave, Delay, KeepOne }
     public enum TPUSStrategy { Allow, OOConly, Forbid }
     public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyGCDsNoScathe, OnlyOGCDs, OnlyScathe, Forbid }
     public enum CastingOption { Forbid, Allow }
@@ -82,11 +83,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CommonStrategy.Delay, "Delay Manafont", 0, 0, ActionTargets.Self, 30)
             .AddAssociatedActions(AID.Manafont);
 
-        res.Define(Track.Triplecast).As<CommonStrategy>("3xCast", "Triplecast", 195)
-            .AddOption(CommonStrategy.Automatic, "Automatically use Triplecast when any charges available to instant-cast Blizzard III after Fire Phase (e.g. Despair->Transpose->Triplecast->B3 etc.)", 0, 0, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.Force, "Force Triplecast ASAP", 0, 15, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.ForceWeave, "Force Triplecast in next possible weave slot", 0, 15, ActionTargets.Self, 66)
-            .AddOption(CommonStrategy.Delay, "Delay Triplecast", 0, 0, ActionTargets.Self, 66)
+        res.Define(Track.Triplecast).As<TriplecastStrategy>("3xCast", "Triplecast", 195)
+            .AddOption(TriplecastStrategy.Automatic, "Automatically use Triplecast to instant-cast Blizzard III after Fire Phase (e.g. Despair->Transpose->Triplecast->B3 etc.) - uses both charges", 0, 0, ActionTargets.Self, 66)
+            .AddOption(TriplecastStrategy.KeepOne, "Automatically use Triplecast to instant-cast Blizzard III after Fire Phase (e.g. Despair->Transpose->Triplecast->B3 etc.) - keeps one charge for movement", 0, 0, ActionTargets.Self, 66)
+            .AddOption(TriplecastStrategy.Force, "Force Triplecast ASAP", 0, 15, ActionTargets.Self, 66)
+            .AddOption(TriplecastStrategy.ForceWeave, "Force Triplecast in next possible weave slot", 0, 15, ActionTargets.Self, 66)
+            .AddOption(TriplecastStrategy.Delay, "Delay Triplecast", 0, 0, ActionTargets.Self, 66)
             .AddAssociatedActions(AID.Triplecast);
 
         res.Define(Track.Swiftcast).As<CommonStrategy>("Swift", "Swiftcast", 195)
@@ -160,6 +162,12 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private bool HasTriplecast => HasStatus(SID.Triplecast);
     private bool HasInstantCast => HasSwiftcast || HasTriplecast;
     private bool CanTriplecast => Unlocked(AID.Triplecast) && ReadyIn(AID.Triplecast) <= 0.5f && !HasTriplecast;
+    private bool TriplecastForBlizzard(StrategyValues strategy) => strategy.Option(Track.Triplecast).As<TriplecastStrategy>() switch
+    {
+        TriplecastStrategy.Automatic => CanTriplecast,
+        TriplecastStrategy.KeepOne => CanTriplecast && Cooldown(AID.Triplecast) < 0.6f,
+        _ => false
+    };
     private bool FullMP => MP >= MaxMP * 0.96f;
     private bool FireReady => (MaxHearts == 0 || Hearts == MaxHearts) && FullMP;
     private int FireCost => Hearts > 0 ? 800 : 1600;
@@ -347,8 +355,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private void QueueSwapToIce(StrategyValues strategy, Actor? target)
     {
         var sc = strategy.Option(Track.Swiftcast).As<CommonStrategy>();
-        var tc = strategy.Option(Track.Triplecast).As<CommonStrategy>();
-        var instantReady = HasInstantCast || sc == CommonStrategy.Automatic && CanSwiftcast || tc == CommonStrategy.Automatic && CanTriplecast;
+        var instantReady = HasInstantCast || sc == CommonStrategy.Automatic && CanSwiftcast || TriplecastForBlizzard(strategy);
         var transpose = ActionReady(AID.Transpose) && (instantReady || !Unlocked(AID.Blizzard3));
         if (transpose)
             QueueOGCD(AID.Transpose, Player, OGCDPriority.VeryHigh);
@@ -374,10 +381,9 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     private void QueueInstantForBlizzard(StrategyValues strategy)
     {
         var sc = strategy.Option(Track.Swiftcast).As<CommonStrategy>();
-        var tc = strategy.Option(Track.Triplecast).As<CommonStrategy>();
         if (!HasInstantCast && Player.InCombat && sc == CommonStrategy.Automatic && CanSwiftcast)
             QueueOGCD(AID.Swiftcast, Player, OGCDPriority.ToGCDPriority + 560);
-        else if (!HasInstantCast && Player.InCombat && tc == CommonStrategy.Automatic && CanTriplecast)
+        else if (!HasInstantCast && Player.InCombat && TriplecastForBlizzard(strategy))
             QueueOGCD(AID.Triplecast, Player, OGCDPriority.ToGCDPriority + 560);
     }
     private void QueueAOE(StrategyValues strategy, Actor? target)
@@ -545,10 +551,10 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
         if (swiftcast && CanSwiftcast && !HasSwiftcast)
             QueueOGCD(AID.Swiftcast, Player, swiftcastPriority);
 
-        var (triplecast, triplecastPriority) = strategy.Option(Track.Triplecast).As<CommonStrategy>() switch
+        var (triplecast, triplecastPriority) = strategy.Option(Track.Triplecast).As<TriplecastStrategy>() switch
         {
-            CommonStrategy.Force => (true, OGCDPriority.Forced),
-            CommonStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Forced),
+            TriplecastStrategy.Force => (true, OGCDPriority.Forced),
+            TriplecastStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Forced),
             _ => (false, OGCDPriority.None)
         };
         if (triplecast && CanTriplecast)
