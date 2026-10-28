@@ -20,8 +20,11 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         [Track("Communio", MinLevel = 90, Action = AID.Communio)]
         public Track<CommunioStrategy> Communio;
 
-        [Track("Gluttony / Blood Stalk", InternalName = "SoulGauge", MinLevel = 50, Actions = [AID.Gluttony, AID.BloodStalk, AID.GrimSwathe])]
-        public Track<SoulGaugeStrategy> SoulGauge;
+        [Track("Gluttony", InternalName = "SoulGauge", MinLevel = 76, Action = AID.Gluttony)]
+        public Track<GluttonyStrategy> Gluttony;
+
+        [Track("Blood Stalk / Grim Swathe", MinLevel = 50, Actions = [AID.BloodStalk, AID.GrimSwathe])]
+        public Track<BloodStalkStrategy> BloodStalk;
 
         [Track("Soul Slice / Soul Scythe", InternalName = "Slice", MinLevel = 60, Actions = [AID.SoulSlice, AID.SoulScythe])]
         public Track<SliceStrategy> Slice;
@@ -45,7 +48,10 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         public Track<SoulsowStrategy> Soulsow;
 
         [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
-        public Track<TrueNorthStrategy> TrueNorth;
+        public Track<OffensiveStrategy> TrueNorth;
+
+        [Track("True North for Gluttony", MinLevel = 76)]
+        public Track<TrueNorthPoolStrategy> TrueNorthPool;
 
         [Track("Hell's Ingress", MinLevel = 20, Action = AID.HellsIngress)]
         public Track<IngressStrategy> Ingress;
@@ -62,7 +68,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum HarvestStrategy
     {
-        [Option("Use right after Communio, or before Immortal Sacrifice runs out")]
+        [Option("Use right after Communio")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -72,11 +78,11 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum EnshroudStrategy
     {
-        [Option("Double Enshroud during Arcane Circle, single Enshroud at odd minutes; never overcap Shroud")]
+        [Option("Double at 2 min, single at odd minutes")]
         Automatic,
-        [Option("Use ASAP, but don't overwrite Soul Reaver, Executioner or Perfectio")]
+        [Option("Use ASAP without overwriting procs")]
         ForceSafe,
-        [Option("Only use with Ideal Host; never spend Shroud gauge", MinLevel = 100)]
+        [Option("Only with Ideal Host", MinLevel = 100)]
         IdealHostOnly,
         [Option("Use ASAP")]
         Force,
@@ -100,19 +106,25 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         Delay
     }
 
-    public enum SoulGaugeStrategy
+    public enum GluttonyStrategy
     {
-        [Option("Gluttony on cooldown, Blood Stalk / Unveiled when Gluttony is far or gauge is full")]
+        [Option("Use on cooldown")]
         Automatic,
-        [Option("Use Gluttony before Plentiful Harvest", MinLevel = 76)]
+        [Option("Use before Plentiful Harvest", MinLevel = 88)]
         GluttonyFirst,
-        [Option("Hold Gluttony; Blood Stalk / Unveiled only to avoid overcapping")]
-        HoldGluttony,
-        [Option("Use Gluttony ASAP, ignoring timers and stacks; no other spenders", Targets = ActionTargets.Hostile, MinLevel = 76)]
-        ForceGluttony,
-        [Option("Use Blood Stalk / Unveiled ASAP, ignoring timers and stacks; no Gluttony", Targets = ActionTargets.Hostile)]
-        ForceStalk,
-        [Option("Use Gluttony and Blood Stalk / Unveiled ASAP", Targets = ActionTargets.Hostile)]
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
+        Force,
+        [Option("Do not use")]
+        Delay
+    }
+
+    public enum BloodStalkStrategy
+    {
+        [Option("Use when Gluttony isn't close")]
+        Automatic,
+        [Option("Only to avoid overcapping")]
+        Overcap,
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         Force,
         [Option("Do not use")]
         Delay
@@ -120,9 +132,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SliceStrategy
     {
-        [Option("Use at 50 Soul or less, or to avoid overcapping charges")]
+        [Option("Use at 50 Soul or less")]
         Automatic,
-        [Option("Pool charges for raid buffs; otherwise only use to avoid overcapping charges")]
+        [Option("Pool charges for raid buffs")]
         Pool,
         [Option("Use ASAP, even if it overcaps Soul", Targets = ActionTargets.Hostile)]
         Force,
@@ -132,9 +144,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum DeathsDesignStrategy
     {
-        [Option("Keep it up and stack ~30s before the burst")]
+        [Option("Keep it up, stack before the burst")]
         Automatic,
-        [Option("Keep Gluttony aligned: Shadow of Death instead of Unveiled at full Soul", MinLevel = 76)]
+        [Option("Keep Gluttony aligned", MinLevel = 76)]
         KeepGluttonyAligned,
         [Option("Use Shadow of Death ASAP", Targets = ActionTargets.Hostile)]
         Force,
@@ -148,7 +160,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Use right after Communio", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Hold for melee downtime; never let it expire", Targets = ActionTargets.Hostile)]
+        [Option("Hold for melee downtime", Targets = ActionTargets.Hostile)]
         Ranged,
         [Option("Do not use")]
         Delay
@@ -156,7 +168,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum HarvestMoonStrategy
     {
-        [Option("Use out of melee range, moving at the end of Enshroud, or before downtime / a kill", Targets = ActionTargets.Hostile)]
+        [Option("Use out of melee or before downtime", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Also use during raid buffs", Targets = ActionTargets.Hostile)]
         Burst,
@@ -168,7 +180,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum HarpeStrategy
     {
-        [Option("Pre-pull, and out of melee range when not moving or Enhanced Harpe is up", Targets = ActionTargets.Hostile)]
+        [Option("Pre-pull and out of melee range", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Only with Enhanced Harpe (and pre-pull)", Targets = ActionTargets.Hostile)]
         EnhancedOnly,
@@ -178,7 +190,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SoulsowStrategy
     {
-        [Option("Out of combat, and during downtime with no target while standing still")]
+        [Option("Out of combat and in downtime")]
         Automatic,
         [Option("Only out of combat")]
         OutOfCombat,
@@ -186,23 +198,21 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         Delay
     }
 
-    public enum TrueNorthStrategy
+    public enum TrueNorthPoolStrategy
     {
-        [Option("Use when the next positional is wrong")]
-        Automatic,
+        [Option("Do not keep a charge")]
+        None,
         [Option("Keep a charge for Gluttony")]
         PoolGluttony,
-        [Option("Keep a charge for Gluttony; spend gauge under True North")]
-        Bundle,
-        [Option("Do not use")]
-        Delay
+        [Option("Keep a charge, spend gauge during it")]
+        Bundle
     }
 
     public enum IngressStrategy
     {
         [Option("Do not use")]
         Manual,
-        [Option("Dash out of an incoming AoE, to the safe spot closest to the target")]
+        [Option("Dash out of incoming AoEs")]
         Dodge,
         [Option("Dash towards the specified position", Targets = ActionTargets.Area, Context = StrategyContext.Plan)]
         Position
@@ -210,7 +220,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum CrestStrategy
     {
-        [Option("Use before raidwides, or when targeted while solo")]
+        [Option("Before raidwides or when targeted solo")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -228,7 +238,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum OpenerStrategy
     {
-        [Option("Standard opener (Arcane Circle on the 2nd GCD at 100; simpler sequence at 90)")]
+        [Option("Standard (Arcane Circle on the 2nd GCD)")]
         Standard,
         [Option("No opener-specific rules")]
         None
@@ -290,7 +300,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     private UseStrategy CircleStrat;
     private EnshroudStrategy EnshroudStrat;
-    private SoulGaugeStrategy GaugeStrat;
+    private GluttonyStrategy GluttonyStrat;
+    private BloodStalkStrategy StalkStrat;
     private bool WantEnshroud;
     private bool WorthBurst;
     private bool AvoidGluttonyDrift;
@@ -330,7 +341,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         CircleStrat = (UseStrategy)strategy.ArcaneCircle.Value;
         EnshroudStrat = strategy.Enshroud.Value;
-        GaugeStrat = strategy.SoulGauge.Value;
+        GluttonyStrat = strategy.Gluttony.Value;
+        StalkStrat = strategy.BloodStalk.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         AOEStrat = strategy.AOE.Value;
 
@@ -367,7 +379,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
         AvoidGluttonyDrift = strategy.DeathsDesign.Value == DeathsDesignStrategy.KeepGluttonyAligned && target != null && Soul == 100 && ReadyIn(AID.Gluttony) < 2 && TargetDDLeft < 25 && !SoulReaver && !Enshrouded;
-        SpendUnderTrueNorth = strategy.TrueNorth.Value == TrueNorthStrategy.Bundle && SelfStatusLeft(ClassShared.SID.TrueNorth) > GCD + GCDLength;
+        SpendUnderTrueNorth = strategy.TrueNorthPool.Value == TrueNorthPoolStrategy.Bundle && SelfStatusLeft(ClassShared.SID.TrueNorth) > GCD + GCDLength;
 
         if (UsePotion(strategy))
             PushPotion(ActionDefinitions.IDPotionStr);
@@ -854,22 +866,17 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         if (!GluttonyReady || ShroudOvercapping)
             return;
 
-        var gluttonyTarget = ResolveTarget(strategy.SoulGauge) ?? BestSplashTarget ?? target.Actor;
-        switch (GaugeStrat)
+        var gluttonyTarget = ResolveTarget(strategy.Gluttony) ?? BestSplashTarget ?? target.Actor;
+        if (GluttonyStrat == GluttonyStrategy.Force)
         {
-            case SoulGaugeStrategy.ForceGluttony:
-            case SoulGaugeStrategy.Force:
-                PushOGCD(AID.Gluttony, gluttonyTarget, 64);
-                return;
-            case SoulGaugeStrategy.Automatic:
-            case SoulGaugeStrategy.GluttonyFirst:
-                break;
-            default:
-                return;
+            PushOGCD(AID.Gluttony, gluttonyTarget, 64);
+            return;
         }
+        if (GluttonyStrat == GluttonyStrategy.Delay)
+            return;
 
         var burst = InPostBurst && !PostPerfectioCombo;
-        var normal = !Enshrouded && !SoulReaver && IdealHostLeft == 0 && !PerfectioPending && (!HasImmortal || GaugeStrat == SoulGaugeStrategy.GluttonyFirst)
+        var normal = !Enshrouded && !SoulReaver && IdealHostLeft == 0 && !PerfectioPending && (!HasImmortal || GluttonyStrat == GluttonyStrategy.GluttonyFirst)
             && !ComboExpiring(3) && !InPostBurst;
         if ((burst || normal) && TargetDDLeft > GCD + GCDLength * 2)
             PushOGCD(AID.Gluttony, gluttonyTarget, 64);
@@ -877,10 +884,10 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     private void UseBloodStalk(in Strategy strategy, Enemy target)
     {
-        if (Soul < 50 || Enshrouded || GaugeStrat is SoulGaugeStrategy.Delay or SoulGaugeStrategy.ForceGluttony)
+        if (Soul < 50 || Enshrouded || StalkStrat == BloodStalkStrategy.Delay)
             return;
 
-        var forced = GaugeStrat is SoulGaugeStrategy.ForceStalk or SoulGaugeStrategy.Force;
+        var forced = StalkStrat == BloodStalkStrategy.Force;
         if (!forced)
         {
             if (ShroudOvercapping || !InNormalRotation || ComboExpiring(3) || AvoidGluttonyDrift || TargetDDLeft <= GCD + GCDLength)
@@ -889,13 +896,13 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
                 return;
 
             var gluttonyFar = ReadyIn(AID.Gluttony) > GCDLength * (AOEMode ? 5 : 4);
-            var spend = !Unlocked(AID.Gluttony) || Soul == 100
-                || GaugeStrat != SoulGaugeStrategy.HoldGluttony && (gluttonyFar || SpendUnderTrueNorth && ReadyIn(AID.Gluttony) > GCDLength * 2);
+            var spend = Soul == 100
+                || StalkStrat == BloodStalkStrategy.Automatic && (!Unlocked(AID.Gluttony) || gluttonyFar || SpendUnderTrueNorth && ReadyIn(AID.Gluttony) > GCDLength * 2);
             if (!spend)
                 return;
         }
 
-        var stalkTarget = ResolveTarget(strategy.SoulGauge);
+        var stalkTarget = ResolveTarget(strategy.BloodStalk);
         var unveiled = Unlocked(AID.UnveiledGibbet) && (EnhancedGibbetLeft > 0 || EnhancedGallowsLeft > 0);
         if (stalkTarget == null && Unlocked(AID.GrimSwathe) && ConeAt(unveiled ? 4 : 3))
             PushOGCD(AID.GrimSwathe, BestConeTarget ?? target.Actor, 62);
@@ -953,11 +960,10 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     #region Positionals
 
-    private bool AllowTrueNorth(in Strategy strategy) => strategy.TrueNorth.Value switch
+    private bool AllowTrueNorth(in Strategy strategy) => strategy.TrueNorthPool.Value switch
     {
-        TrueNorthStrategy.Automatic => true,
-        TrueNorthStrategy.PoolGluttony or TrueNorthStrategy.Bundle => Executioner || SoulReaverStacks >= 2 || MaxChargesIn(ClassShared.AID.TrueNorth) <= GCD || MaxChargesIn(ClassShared.AID.TrueNorth) < ReadyIn(AID.Gluttony),
-        _ => false
+        TrueNorthPoolStrategy.None => true,
+        _ => Executioner || SoulReaverStacks >= 2 || MaxChargesIn(ClassShared.AID.TrueNorth) <= GCD || MaxChargesIn(ClassShared.AID.TrueNorth) < ReadyIn(AID.Gluttony),
     };
 
     private void UpdatePositionals(in Strategy strategy, Enemy target)
@@ -970,7 +976,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
                 : CurrentPositional(target.Actor) == Positional.Rear ? Positional.Rear : Positional.Flank;
             imminent = SoulReaver;
         }
-        RecommendPositional(target, pos, imminent, InMelee && AllowTrueNorth(strategy));
+        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value, InMelee && AllowTrueNorth(strategy));
     }
 
     #endregion

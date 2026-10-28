@@ -41,7 +41,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum PresenceOfMindStrategy
     {
-        [Option("Use with raid buffs, or when they are 30s+ away; not right before downtime")]
+        [Option("With raid buffs, or if they're 30s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -51,7 +51,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum GlareIVStrategy
     {
-        [Option("Spend Sacred Sight during raid buffs, while moving, or before it runs out")]
+        [Option("Spend in raid buffs or while moving")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -61,7 +61,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum LiliesStrategy
     {
-        [Option("Spend to avoid overcapping or on 2+ targets if Misery will land; finish a Blood Lily before the target dies")]
+        [Option("Spend at cap or on 2+ targets")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -81,9 +81,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum OpenerStrategy
     {
-        [Option("Early Dia refresh opener (Glare III at -2.3s)")]
+        [Option("Early Dia refresh opener")]
         Standard,
-        [Option("Double Misery opener (Rapture x3 in the first buffs for a second Misery)", MinLevel = 76)]
+        [Option("Double Misery opener", MinLevel = 76)]
         DoubleMisery,
         [Option("No opener-specific rules")]
         None
@@ -95,7 +95,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
-        [Option("Refresh on the current target now (for a short plan window)")]
+        [Option("Refresh on the current target now")]
         Force,
         [Option("Do not use")]
         Delay
@@ -103,7 +103,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum MiseryStrategy
     {
-        [Option("Use with raid buffs; right away on 2+ targets or to avoid overcapping")]
+        [Option("Use with raid buffs, or on 2+ targets")]
         Automatic,
         [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         ASAP,
@@ -115,7 +115,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate

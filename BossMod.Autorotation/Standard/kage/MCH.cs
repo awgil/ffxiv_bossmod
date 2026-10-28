@@ -54,7 +54,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum HyperchargeStrategy
     {
-        [Option("Use between tools; save Heat for Wildfire")]
+        [Option("Use between tools")]
         Automatic,
         [Option("Use ASAP", Effect = 10, MinLevel = 30)]
         ASAP,
@@ -64,7 +64,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum WildfireStrategy
     {
-        [Option("Use after entering Overheat; saved for the boss", Targets = ActionTargets.Hostile)]
+        [Option("Use after entering Overheat", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use ASAP", Cooldown = 120, Effect = 10, Targets = ActionTargets.Hostile, MinLevel = 45)]
         Force,
@@ -84,7 +84,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum QueenStrategy
     {
-        [Option("Summon with raid buffs; between them only to avoid overcapping")]
+        [Option("Summon with raid buffs")]
         Automatic,
         [Option("Summon at 50+ Battery")]
         Fifty,
@@ -96,7 +96,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum ChargeStrategy
     {
-        [Option("Spend during Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
+        [Option("Spend during Overheat and raid buffs", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         ASAP,
@@ -118,9 +118,9 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Barrel Stabilizer")]
+        [Option("Use pre-pull and with Barrel Stabilizer")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate

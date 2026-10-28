@@ -27,7 +27,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         public Track<SnapStrategy> Snap;
 
         [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
-        public Track<TrueNorthStrategy> TrueNorth;
+        public Track<OffensiveStrategy> TrueNorth;
 
         [Track("Slither", MinLevel = 40, Action = AID.Slither)]
         public Track<SlitherStrategy> Slither;
@@ -44,7 +44,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum IreStrategy
     {
-        [Option("Use on targets that live 10s+ (the boss in boss fights); waits up to ~12s for raid buffs")]
+        [Option("Use on targets that live 10s+")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -54,7 +54,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum TwinbladeStrategy
     {
-        [Option("Use on cooldown in melee, held shortly before Serpent's Ire")]
+        [Option("Use on cooldown in melee")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -64,7 +64,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum ReawakenStrategy
     {
-        [Option("Use with Serpent's Ire and raid buffs; saved for the boss")]
+        [Option("Use with Serpent's Ire and raid buffs")]
         Automatic,
         [Option("Use ASAP", MinLevel = 90)]
         ASAP,
@@ -74,13 +74,13 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, keep one", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use ASAP (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
+        [Option("Use ASAP (outside combos)", Targets = ActionTargets.Hostile)]
         ASAP,
         [Option("Always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
-        [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
+        [Option("Out of melee, or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
         [Option("Do not use")]
         Delay
@@ -88,18 +88,10 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SnapStrategy
     {
-        [Option("Use when out of melee range with no Rattling Coils", Targets = ActionTargets.Hostile)]
+        [Option("Use out of melee without Rattling Coils", Targets = ActionTargets.Hostile)]
         Ranged,
         [Option("Do not use")]
         Never
-    }
-
-    public enum TrueNorthStrategy
-    {
-        [Option("Use when the next positional is wrong")]
-        Automatic,
-        [Option("Do not use")]
-        Delay
     }
 
     public enum SlitherStrategy
@@ -112,7 +104,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum EngageStrategy
     {
-        [Option("Slither in, or open at the pull if already in melee")]
+        [Option("Slither in at the pull")]
         Slither,
         [Option("Sprint into melee range")]
         Sprint,
@@ -124,9 +116,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Serpent's Ire")]
+        [Option("Use pre-pull and with Serpent's Ire")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -134,13 +126,13 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum OpenerStrategy
     {
-        [Option("Use the best opener for the fight (FRU / DMU openers in those fights)")]
+        [Option("Pick by fight (FRU / DMU openers)")]
         Automatic,
         [Option("Standard opener")]
         Standard,
-        [Option("Vicewinder first, Swiftskin's Coil first (FRU)")]
+        [Option("FRU: Swiftskin's Coil first")]
         FRU,
-        [Option("Vicewinder first, Hunter's Coil first (DMU)")]
+        [Option("DMU: Hunter's Coil first")]
         DMU,
         [Option("No opener-specific rules")]
         None
@@ -561,7 +553,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     private void UpdatePositionals(in Strategy strategy, Enemy target)
     {
         var (pos, imminent) = NextPositional(target.Actor);
-        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && InMelee);
+        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value, InMelee);
     }
 
     private void AddGoalZone(Enemy target)

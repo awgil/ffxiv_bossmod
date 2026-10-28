@@ -26,8 +26,11 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         [Track("Thunder", MinLevel = 6, Actions = [AID.HighThunder, AID.Thunder3, AID.Thunder1, AID.HighThunder2, AID.Thunder4, AID.Thunder2])]
         public Track<ThunderStrategy> Thunder;
 
-        [Track("Triplecast / Swiftcast", MinLevel = 18, Actions = [AID.Triplecast, ClassShared.AID.Swiftcast])]
-        public Track<MovementStrategy> Movement;
+        [Track("Triplecast", InternalName = "Movement", MinLevel = 66, Action = AID.Triplecast)]
+        public Track<InstantStrategy> Triplecast;
+
+        [Track("Swiftcast", MinLevel = 18, Action = ClassShared.AID.Swiftcast)]
+        public Track<InstantStrategy> Swiftcast;
 
         [Track("Manaward", MinLevel = 30, Action = AID.Manaward)]
         public Track<ManawardStrategy> Manaward;
@@ -51,7 +54,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum AmplifierStrategy
     {
-        [Option("Use in Astral Fire or Umbral Ice unless Polyglot is full")]
+        [Option("Use unless Polyglot is full")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -61,7 +64,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum ThunderStrategy
     {
-        [Option("Refresh before it runs out on targets worth a DoT; also while moving")]
+        [Option("Refresh on targets worth a DoT")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -71,7 +74,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum LeyLinesStrategy
     {
-        [Option("Use with raid buffs while standing still; saved for the boss")]
+        [Option("Use with raid buffs while standing still")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,
@@ -81,7 +84,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum PolyglotStrategy
     {
-        [Option("Spend in Astral Fire during raid buffs, keep one for movement; never overcap")]
+        [Option("Spend in Astral Fire during raid buffs")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,
@@ -91,11 +94,11 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         Delay
     }
 
-    public enum MovementStrategy
+    public enum InstantStrategy
     {
-        [Option("Use Triplecast, then Swiftcast, for movement")]
+        [Option("Use for movement and the rotation")]
         Automatic,
-        [Option("Use Triplecast, then Swiftcast, ASAP")]
+        [Option("Use ASAP")]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -113,9 +116,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Ley Lines")]
+        [Option("Use pre-pull and with Ley Lines")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -125,7 +128,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Standard opener (Fire III at -4s)")]
         Standard,
-        [Option("Flare opener (Despair before Manafont, Flare for a second Flare Star)", MinLevel = 100)]
+        [Option("Flare opener (second Flare Star)", MinLevel = 100)]
         Flare,
         [Option("No opener-specific rules")]
         None
@@ -462,13 +465,13 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
             && (LeyLinesStrat == LeyLinesStrategy.ASAP || ShouldLeyLines(target.Actor)))
             PushOGCD(AID.LeyLines, Player, 55);
 
-        if (strategy.Movement.Value == MovementStrategy.ASAP && !Instant
-            || strategy.Movement.Value == MovementStrategy.Automatic && CantCast && !Instant
-            && (Polyglot == 0 || Player.Level < 80 || PolyglotStrat == PolyglotStrategy.Delay) && !MovementThunder(strategy, target) && !(InFire && FirestarterLeft > 0 && !AOEMode))
+        if (!Instant)
         {
-            if (!InLeyLines && CanWeave(AID.Triplecast))
+            var moving = CantCast && (Polyglot == 0 || Player.Level < 80 || PolyglotStrat == PolyglotStrategy.Delay) && !MovementThunder(strategy, target) && !(InFire && FirestarterLeft > 0 && !AOEMode);
+            var triple = strategy.Triplecast.Value == InstantStrategy.ASAP || strategy.Triplecast.Value == InstantStrategy.Automatic && moving && !InLeyLines;
+            if (triple && CanWeave(AID.Triplecast))
                 PushOGCD(AID.Triplecast, Player, 50);
-            else if (CanWeave(ClassShared.AID.Swiftcast))
+            else if ((strategy.Swiftcast.Value == InstantStrategy.ASAP || strategy.Swiftcast.Value == InstantStrategy.Automatic && moving) && CanWeave(ClassShared.AID.Swiftcast))
                 PushOGCD(ClassShared.AID.Swiftcast, Player, 49);
         }
 

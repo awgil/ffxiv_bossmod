@@ -39,7 +39,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         public Track<TalonStrategy> Talon;
 
         [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
-        public Track<TrueNorthStrategy> TrueNorth;
+        public Track<OffensiveStrategy> TrueNorth;
 
         [Track("Winged Glide", MinLevel = 45, Action = AID.WingedGlide)]
         public Track<GlideStrategy> Glide;
@@ -56,7 +56,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum GeirskogulStrategy
     {
-        [Option("Geirskogul outside Life of the Dragon on targets that live 10s+; Nastrond during it")]
+        [Option("Use on targets that live 10s+")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -66,7 +66,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum DiveStrategy
     {
-        [Option("Use on targets that live 15s+ (the boss in boss fights); not right before downtime")]
+        [Option("Use on targets that live 15s+")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -76,7 +76,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum WyrmwindStrategy
     {
-        [Option("Use at 2 Firstminds' Focus; held for buffs that are about to come up")]
+        [Option("Use at 2 Firstminds' Focus")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -86,7 +86,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum LifeSurgeStrategy
     {
-        [Option("Use on Heavens' Thrust / Drakesbane during buffs, or when buffs are 40s+ away; never overcap")]
+        [Option("Use on Heavens' Thrust / Drakesbane")]
         Automatic,
         [Option("Use on the next strong GCD")]
         ASAP,
@@ -100,14 +100,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         Ranged,
         [Option("Do not use")]
         Never
-    }
-
-    public enum TrueNorthStrategy
-    {
-        [Option("Use when the next positional is wrong")]
-        Automatic,
-        [Option("Do not use")]
-        Delay
     }
 
     public enum GlideStrategy
@@ -132,9 +124,9 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Lance Charge")]
+        [Option("Use pre-pull and with Lance Charge")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -142,13 +134,13 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum OpenerStrategy
     {
-        [Option("Use the best opener for the fight (FRU / DMU openers in those fights)")]
+        [Option("Pick by fight (FRU / DMU openers)")]
         Automatic,
         [Option("Standard opener")]
         Standard,
-        [Option("High Jump first, Lance Charge after Drakesbane (FRU)")]
+        [Option("FRU: High Jump first, late Lance Charge")]
         FRU,
-        [Option("Lance Charge + Battle Litany before the first GCD (DMU)")]
+        [Option("DMU: buffs before the first GCD")]
         DMU,
         [Option("No opener-specific rules")]
         None
@@ -472,7 +464,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         var (pos, imminent) = NextPositional();
         if (DotEnemy != null && NextGCD is AID.SpiralBlow or AID.Disembowel or AID.ChaoticSpring or AID.ChaosThrust or AID.WheelingThrust)
             target = DotEnemy;
-        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && InMelee);
+        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value, InMelee);
     }
 
     private (Positional, bool) NextPositional()

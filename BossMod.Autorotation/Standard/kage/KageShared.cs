@@ -301,7 +301,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
         return dir < -0.7071068f ? Positional.Rear : dir < 0.7071068f ? Positional.Flank : Positional.Front;
     }
 
-    protected void RecommendPositional(AIHints.Enemy target, Positional pos, bool imminent, bool useTrueNorth)
+    protected void RecommendPositional(AIHints.Enemy target, Positional pos, bool imminent, OffensiveStrategy trueNorth, bool allowAuto)
     {
         var actor = target.Actor;
         if (!HasPositionals(actor) || actor.TargetID == Player.InstanceID && actor.CastInfo == null && !actor.IsStrikingDummy || target.Priority < 0)
@@ -311,7 +311,9 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
         var correct = tn || pos == Positional.Any || CurrentPositional(actor) == pos;
         Hints.RecommendedPositional = (actor, pos, imminent && !tn, correct);
 
-        if (useTrueNorth && imminent && !correct)
+        if (trueNorth == OffensiveStrategy.Force && SelfStatusLeft(ClassShared.SID.TrueNorth) == 0)
+            PushOGCD(ClassShared.AID.TrueNorth, Player, 20);
+        else if (trueNorth == OffensiveStrategy.Automatic && allowAuto && imminent && !correct)
             PushOGCD(ClassShared.AID.TrueNorth, Player, 20, GCD - 0.8f);
     }
 

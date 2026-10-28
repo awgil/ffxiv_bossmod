@@ -50,7 +50,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum PortraitStrategy
     {
-        [Option("Use during Starry Muse, or when Starry Muse is 60s+ away")]
+        [Option("During Starry Muse, or if it's 60s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -60,7 +60,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum PaletteStrategy
     {
-        [Option("Use at 50+ Palette when Starry Muse is 35s+ away or about to start; never overcap")]
+        [Option("Use at 50+, aligned with Starry Muse")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -80,7 +80,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum MuseStrategy
     {
-        [Option("Use with Starry Muse; never overcap")]
+        [Option("Use with Starry Muse")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,
@@ -90,7 +90,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum SpendStrategy
     {
-        [Option("Use during Starry Muse, while moving and in AoE; Comet after the Subtractive combo")]
+        [Option("Use in Starry Muse, AoE or when moving")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,
@@ -100,7 +100,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum MotifStrategy
     {
-        [Option("Paint out of combat, in downtime and between bursts")]
+        [Option("Paint in downtime and between bursts")]
         Automatic,
         [Option("Only out of combat and in downtime")]
         Downtime,
@@ -110,7 +110,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum TemperaStrategy
     {
-        [Option("Coat + Grassa (party shield) before raidwides")]
+        [Option("Coat + Grassa before raidwides")]
         Automatic,
         [Option("Only Tempera Coat (self), no Grassa")]
         Self,
@@ -122,9 +122,9 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Starry Muse")]
+        [Option("Use pre-pull and with Starry Muse")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -134,7 +134,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Starry Muse after the 2nd GCD")]
         SecondGCD,
-        [Option("Starry Muse after the 3rd GCD (Holy / Comet before the Wing motif)")]
+        [Option("Starry Muse after the 3rd GCD")]
         ThirdGCD,
         [Option("No opener-specific rules")]
         None

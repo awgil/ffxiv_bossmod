@@ -54,7 +54,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum FlourishStrategy
     {
-        [Option("Use during Technical Finish, or when Technical Step is 50s+ away")]
+        [Option("During Technical, or if it's 50s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -64,7 +64,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum FeatherStrategy
     {
-        [Option("Spend during Technical Finish; never overcap")]
+        [Option("Spend during Technical Finish")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,
@@ -94,7 +94,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum PelotonStrategy
     {
-        [Option("Use in the last 10s of the countdown, outside of dance steps")]
+        [Option("Use in the last 10s of the countdown")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -104,7 +104,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Technical Step")]
+        [Option("Use pre-pull and with Technical Step")]
         AlignWithBurst,
         [Option("Use ASAP")]
         Immediate
@@ -116,7 +116,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         Standard15,
         [Option("7s Standard Step")]
         Standard7,
-        [Option("30s Technical (Standard at -30, Technical at -7)", MinLevel = 70)]
+        [Option("30s Technical (Standard at -30)", MinLevel = 70)]
         Technical30,
         [Option("7s Technical Step", MinLevel = 70)]
         Technical7,

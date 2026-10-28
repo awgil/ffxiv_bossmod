@@ -50,7 +50,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum PhlegmaStrategy
     {
-        [Option("Spend charges during raid buffs and on 3+ targets; never overcap")]
+        [Option("Spend in raid buffs and on 3+ targets")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -60,7 +60,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum PsycheStrategy
     {
-        [Option("Use with raid buffs, or when they are 10s+ away")]
+        [Option("With raid buffs, or if they're 10s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -80,7 +80,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum LucidStrategy
     {
-        [Option("Use at 6500 MP or less (8500 before a raidwide or with someone dead)")]
+        [Option("Use at 6500 MP or less")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -90,7 +90,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum DotStrategy
     {
-        [Option("Keep up on up to two targets; Eukrasian Dyskrasia on 3+")]
+        [Option("Keep up on up to two targets")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
@@ -112,7 +112,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum PneumaStrategy
     {
-        [Option("Use on 2+ targets unless a raidwide is coming")]
+        [Option("On 2+ targets, not before raidwides")]
         Automatic,
         [Option("Use ASAP (when not moving)")]
         ASAP,
@@ -132,7 +132,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum DruocholeStrategy
     {
-        [Option("Use on the lowest HP ally to avoid overcapping")]
+        [Option("Use on the lowest HP ally at cap")]
         Automatic,
         [Option("Do not use")]
         Delay
@@ -142,7 +142,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Use pre-pull and with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -150,9 +150,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum OpenerStrategy
     {
-        [Option("Toxikon opener (Eukrasia at -5s, Toxikon at -1.5s)")]
+        [Option("Toxikon opener")]
         Toxikon,
-        [Option("Pneuma opener (Eukrasia at -5s, Pneuma at -1.5s)", MinLevel = 90)]
+        [Option("Pneuma opener", MinLevel = 90)]
         Pneuma,
         [Option("Dosis at -1.5s, no Eukrasia")]
         None

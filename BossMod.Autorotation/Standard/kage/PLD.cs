@@ -38,7 +38,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum RequiescatStrategy
     {
-        [Option("Use during Fight or Flight, or when Fight or Flight is 50s+ away")]
+        [Option("In Fight or Flight, or if it's 50s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -58,7 +58,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum InterveneStrategy
     {
-        [Option("Use during Fight or Flight; never overcap")]
+        [Option("Use during Fight or Flight")]
         Automatic,
         [Option("Also use as a gap closer", Targets = ActionTargets.Hostile)]
         GapClose,
