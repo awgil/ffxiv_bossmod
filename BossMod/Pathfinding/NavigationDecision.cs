@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Numerics.Tensors;
+using System.Threading.Tasks;
 
 namespace BossMod.Pathfinding;
 
@@ -49,7 +50,7 @@ public struct NavigationDecision
             if (useOldRasterizer)
                 RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
             else
-                RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+                RasterizeForbiddenZones(ctx.Map, playerPosition, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
         }
         if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
@@ -83,7 +84,7 @@ public struct NavigationDecision
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, rtt, spaceCushion));
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float rtt, float cushion)
+    public static void RasterizeForbiddenZones(Map map, WPos playerPos, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, List<float> gScratch, BitArray dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new List<(Sdf distance, float g)>(zones.Count);
@@ -116,7 +117,8 @@ public struct NavigationDecision
 
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         var ipx = map.Width * map.Height;
-        var realMaxG = map.PixelMaxG.Take(ipx).Max();
+        var maxGSpan = map.PixelMaxG.AsSpan()[..ipx];
+        var realMaxG = TensorPrimitives.Max(maxGSpan);
         if (realMaxG < float.MaxValue)
         {
             for (var i = 0; i < ipx; i++)
@@ -125,6 +127,43 @@ public struct NavigationDecision
                     map.PixelMaxG[i] = float.MaxValue;
                     map.PixelPriority[i] = 0;
                 }
+        }
+
+        if (maxGSpan.Count(float.MaxValue) <= 1)
+            return;
+
+        var (pX, pY) = map.WorldToGrid(playerPos);
+        var pix = map.GridToIndex(pX, pY);
+        var playerG = map.PixelMaxG[pix];
+
+        float pixG(int x, int y)
+        {
+            if (x < 0 || x >= map.Width)
+                return -1;
+            if (y < 0 || y >= map.Height)
+                return -1;
+
+            return map.PixelMaxG[map.GridToIndex(x, y)];
+        }
+
+        var pN = pixG(pX, pY - 1);
+        var pE = pixG(pX + 1, pY);
+        var pW = pixG(pX - 1, pY);
+        var pS = pixG(pX, pY + 1);
+
+        if (pN < playerG && pE < playerG && pW < playerG && pS < playerG)
+        {
+            var neighbourG = playerG;
+            if (pN >= 0)
+                neighbourG = MathF.Min(pN, neighbourG);
+            if (pE >= 0)
+                neighbourG = MathF.Min(pE, neighbourG);
+            if (pW >= 0)
+                neighbourG = MathF.Min(pW, neighbourG);
+            if (pS >= 0)
+                neighbourG = MathF.Min(pS, neighbourG);
+
+            map.PixelMaxG[pix] = neighbourG;
         }
     }
 

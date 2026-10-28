@@ -34,7 +34,6 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
     public override HostedPluginOptions ConfigureOptions() => new() { UseMediatorService = true };
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
-        // runs first to initialize registries
         containerBuilder.RegisterSingletonSelfAndInterfaces<ModulePackService>();
 
         ConfigureExtra(containerBuilder);
@@ -92,17 +91,17 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
             Service.IsDev = dalamud.IsDev;
 
-            Service.MPS = scope.Resolve<ModulePackService>();
             Service.Config = scope.Resolve<ConfigRoot>();
             Service.LuminaGameData = scope.Resolve<IDataManager>().GameData;
             Service.Mediator = scope.Resolve<MediatorService>();
             Service.GaugeVisualizer = scope.Resolve<ReplayVisualization.GaugeVisualizer>();
-            Service.Camera = scope.Resolve<ICamera>();
             Service.UiBuilder = scope.Resolve<IUiBuilder>();
             Service.PluginInterface = dalamud;
 
             // register builtin config nodes
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
+
+            Service.Camera = scope.Resolve<ICamera>();
 
             Service.WindowSystem = scope.Resolve<IWindowSystemFactory>().Create("vbm");
         });

@@ -107,7 +107,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.DoomOfTheLiving, castAnimLock: 3.70f); // animLock=3.700s?
+        d.RegisterSpell(AID.DoomOfTheLiving, castAnimLock: 3.70f, positionLock: 3.67f); // animLock=3.700s?
         d.RegisterSpell(AID.Hakaze);
         d.RegisterSpell(AID.Jinpu);
         d.RegisterSpell(AID.ThirdEye);

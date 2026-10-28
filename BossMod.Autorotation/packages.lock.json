@@ -459,6 +459,11 @@
         "resolved": "10.0.4",
         "contentHash": "xXo5NcIPeMUMfpo9Efl/3Rgomjb/Jfa3Aa0BgSfqYctN4YpwjPzvIrnD9JTwoKqe3pFtLF9vmtMl892+wwZ6EA=="
       },
+      "System.Numerics.Tensors": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "88DUO9lZZ/PfBwO51YKTd5TdVb+Cl31kd6imLKHUZxNXjnPU2V4mHIVT4f8rVK3T+sXXfDbHInzclnOHrK4azw=="
+      },
       "bossmod": {
         "type": "Project",
         "dependencies": {
@@ -468,7 +473,8 @@
           "DalamudPackager": "[15.0.0, )",
           "Microsoft.Extensions.Caching.Memory": "[10.0.12, )",
           "Pictomancy": "[1.0.10, )",
-          "System.Data.Sqlite": "[2.0.4, )"
+          "System.Data.Sqlite": "[2.0.4, )",
+          "System.Numerics.Tensors": "[10.0.14, )"
         }
       }
     }

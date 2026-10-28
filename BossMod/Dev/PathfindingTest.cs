@@ -102,7 +102,7 @@ class PathfindingTest : TestWindow
         zones.SortBy(z => z.activation);
 
         if (_useNewRasterizer)
-            NavigationDecision.RasterizeForbiddenZones(map, zones, now, sg, sb, _ping, _cushion);
+            NavigationDecision.RasterizeForbiddenZones(map, new(_startingPos), zones, now, sg, sb, _ping, _cushion);
         else
             NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, sg, sb, _ping, _cushion);
 

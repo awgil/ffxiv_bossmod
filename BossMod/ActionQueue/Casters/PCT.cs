@@ -113,7 +113,7 @@ public sealed class Definitions : Defs
     private readonly PCTConfig _config = Service.Config.Get<PCTConfig>();
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.ChromaticFantasy);
+        d.RegisterSpell(AID.ChromaticFantasy, castAnimLock: 8.10f, positionLock: 6.87f);
         d.RegisterSpell(AID.FireInRed);
         d.RegisterSpell(AID.AeroInGreen);
         d.RegisterSpell(AID.TemperaCoat);

@@ -37,7 +37,10 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         Transfiguration = 565,
         ItemPenalty = 1094,
         Transfiguration2 = 4708,
+
+        PotionRehabilitation = 648,
         Anointed = 4587,
+        LamiaRehabilitation = 3492,
     }
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
@@ -232,10 +235,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
             return false;
 
         // external heals
+        // TODO: add lamia rehabitilation? not gonna lie, it fucking sucks, it's like 5% max hp per tick
         if (World.Actors.Any(w => w.OID == (uint)OID.Unei) || Player.FindStatus(SID.Anointed) != null)
             return false;
 
         var ratio = Player.ClassCategory is ClassCategory.Tank ? 0.4f : 0.6f;
-        return Player.PendingHPRatio < ratio && Player.FindStatus(648) == null && Player.InCombat;
+        return Player.PendingHPRatio < ratio && Player.FindStatus(SID.PotionRehabilitation) == null && Player.InCombat;
     }
 }

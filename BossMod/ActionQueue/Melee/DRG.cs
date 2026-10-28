@@ -104,7 +104,7 @@ public sealed class Definitions : Defs
 
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f); // animLock=3.700s?
+        d.RegisterSpell(AID.DragonsongDive, castAnimLock: 3.70f, positionLock: 3.67f); // animLock=3.700s?
         d.RegisterSpell(AID.TrueThrust);
         d.RegisterSpell(AID.VorpalThrust);
         d.RegisterSpell(AID.LifeSurge);
@@ -112,7 +112,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.Disembowel);
         d.RegisterSpell(AID.FullThrust);
         d.RegisterSpell(AID.LanceCharge);
-        d.RegisterSpell(AID.Jump, instantAnimLock: 0.80f); // animLock=0.800s?
+        d.RegisterSpell(AID.Jump, instantAnimLock: 0.80f, positionLock: 0.33f); // animLock=0.800s?
         d.RegisterSpell(AID.ElusiveJump, instantAnimLock: 0.80f); // animLock=0.800s?
         d.RegisterSpell(AID.DoomSpike);
         d.RegisterSpell(AID.WingedGlide); // animLock=???
@@ -127,7 +127,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.MirageDive);
         d.RegisterSpell(AID.Nastrond);
         d.RegisterSpell(AID.CoerthanTorment);
-        d.RegisterSpell(AID.HighJump, instantAnimLock: 0.80f); // animLock=0.800s?
+        d.RegisterSpell(AID.HighJump, instantAnimLock: 0.80f, positionLock: 0.33f); // animLock=0.800s?
         d.RegisterSpell(AID.RaidenThrust);
         d.RegisterSpell(AID.Stardiver, instantAnimLock: 1.50f); // animLock=1.500s?
         d.RegisterSpell(AID.DraconianFury);
@@ -170,16 +170,5 @@ public sealed class Definitions : Defs
             d.Spell(AID.WingedGlide)!.AllowExecute = ActionPredicate.AllowDashToTarget;
 
         d.Spell(AID.ElusiveJump)!.AllowExecute = ActionPredicate.AllowDashFixed(15, backwards: true);
-
-        // FIXME: add position lock value to ActionQueue.Entry instead
-        d.Spell(AID.Jump)!.AllowExecute =
-            d.Spell(AID.HighJump)!.AllowExecute = (ws, player, action, hints) =>
-            {
-                var cfg = Service.Config.Get<ActionTweaksConfig>();
-                if (!cfg.DashSafety || !cfg.DashSafetyExtra)
-                    return true;
-
-                return !hints.ForbiddenZones.Any(d => d.shape.Check(player.Position));
-            };
     }
 }

@@ -15,6 +15,7 @@ namespace BossMod.Services;
 internal sealed class SlashCommandService(
     ICommandManager commandManager,
     MediatorService mediator,
+    AutoBitmapService bitmaps,
     ObstacleMapManager obstacles,
     AIHints hintsGlobal,
     IAmex amex,
@@ -46,7 +47,11 @@ internal sealed class SlashCommandService(
             GC.Collect();
         });
 
-        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", obstacles.ClearGenerated);
+        _slashCmd.AddSubcommand("clear-maps").SetSimpleHandler("clear all generated bitmaps (for pathfinding)", () =>
+        {
+            obstacles.ClearGenerated();
+            bitmaps.Paused = false;
+        });
 
         _slashCmd.AddSubcommand("macro").SetSimpleHandler("enables VBM action queue inside macros (by default, any actions used in macros bypass the queue)", () =>
         {

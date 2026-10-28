@@ -196,8 +196,8 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.Sprint);
 
         // Tank
-        d.RegisterSpell(AID.ShieldWall, instantAnimLock: 1.93f);
-        d.RegisterSpell(AID.Stronghold, instantAnimLock: 3.86f);
+        d.RegisterSpell(AID.ShieldWall, instantAnimLock: 1.93f, positionLock: 1.83f);
+        d.RegisterSpell(AID.Stronghold, instantAnimLock: 3.86f, positionLock: 3.77f);
         d.RegisterSpell(AID.Rampart);
         d.RegisterSpell(AID.LowBlow);
         d.RegisterSpell(AID.Provoke);
@@ -206,31 +206,31 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.Shirk);
 
         // Healer
-        d.RegisterSpell(AID.HealingWind, castAnimLock: 2.10f);
-        d.RegisterSpell(AID.BreathOfTheEarth, castAnimLock: 5.13f);
+        d.RegisterSpell(AID.HealingWind, castAnimLock: 2.10f, positionLock: 2);
+        d.RegisterSpell(AID.BreathOfTheEarth, castAnimLock: 5.13f, positionLock: 5.03f);
         d.RegisterSpell(AID.Repose); // animLock=???
         d.RegisterSpell(AID.Esuna);
         d.RegisterSpell(AID.Rescue);
 
         // Melee
-        d.RegisterSpell(AID.Braver, castAnimLock: 3.86f);
-        d.RegisterSpell(AID.Bladedance, castAnimLock: 3.86f);
+        d.RegisterSpell(AID.Braver, castAnimLock: 3.86f, positionLock: 2.2f);
+        d.RegisterSpell(AID.Bladedance, castAnimLock: 3.86f, positionLock: 3.77f);
         d.RegisterSpell(AID.LegSweep);
         d.RegisterSpell(AID.Bloodbath);
         d.RegisterSpell(AID.Feint);
         d.RegisterSpell(AID.TrueNorth);
 
         // PhysRanged
-        d.RegisterSpell(AID.BigShot, true, castAnimLock: 3.10f);
-        d.RegisterSpell(AID.Desperado, true, castAnimLock: 3.10f);
+        d.RegisterSpell(AID.BigShot, true, castAnimLock: 3.10f, positionLock: 3.77f);
+        d.RegisterSpell(AID.Desperado, true, castAnimLock: 3.10f, positionLock: 3.77f);
         d.RegisterSpell(AID.LegGraze, true);
         d.RegisterSpell(AID.FootGraze, true);
         d.RegisterSpell(AID.Peloton, true);
         d.RegisterSpell(AID.HeadGraze, true);
 
         // Caster
-        d.RegisterSpell(AID.Skyshard, castAnimLock: 3.10f);
-        d.RegisterSpell(AID.Starstorm, castAnimLock: 5.10f);
+        d.RegisterSpell(AID.Skyshard, castAnimLock: 3.10f, positionLock: 3);
+        d.RegisterSpell(AID.Starstorm, castAnimLock: 5.10f, positionLock: 5);
         d.RegisterSpell(AID.Addle);
         d.RegisterSpell(AID.Sleep); // animLock=???
 
@@ -301,7 +301,10 @@ public sealed class Definitions : Defs
         #region Phantom actions
         foreach (var action in typeof(PhantomID).GetEnumValues())
             if ((uint)action > 0)
-                d.RegisterSpell((PhantomID)action);
+            {
+                var pid = (PhantomID)action;
+                d.RegisterSpell(pid, positionLock: pid == PhantomID.OccultJump ? 1.67f : 0);
+            }
         #endregion
 
         Customize(d);
@@ -351,8 +354,5 @@ public sealed class Definitions : Defs
 
         d.Spell(PhantomID.StepForth)!.AllowExecute = ActionPredicate.AllowDashToPosition;
         d.Spell(PhantomID.StepForth)!.TransformAngle = (ws, _, _) => _config.AlignDashToCamera ? ws.Client.CameraAzimuth + 180.Degrees() : null;
-
-        // Occult Jump has a ridiculous position lock of almost 2.5s
-        d.Spell(PhantomID.OccultJump)!.AllowExecute = (_, player, _, hints) => !hints.ForbiddenZones.Any(z => z.shape.Check(player.Position));
     }
 }

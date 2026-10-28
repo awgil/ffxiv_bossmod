@@ -169,7 +169,7 @@ public sealed class Definitions : Defs
     private readonly WHMConfig _config = Service.Config.Get<WHMConfig>();
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f); // animLock=8.100s?
+        d.RegisterSpell(AID.PulseOfLife, castAnimLock: 8.10f, positionLock: 8); // animLock=8.100s?
         d.RegisterSpell(AID.Stone);
         d.RegisterSpell(AID.Cure);
         d.RegisterSpell(AID.Aero);

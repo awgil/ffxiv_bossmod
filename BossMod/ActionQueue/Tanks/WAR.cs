@@ -128,7 +128,7 @@ public sealed class Definitions : Defs
 
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.LandWaker, instantAnimLock: 3.86f);
+        d.RegisterSpell(AID.LandWaker, instantAnimLock: 3.86f, positionLock: 3.77f);
         d.RegisterSpell(AID.HeavySwing);
         d.RegisterSpell(AID.Maim);
         d.RegisterSpell(AID.Berserk);

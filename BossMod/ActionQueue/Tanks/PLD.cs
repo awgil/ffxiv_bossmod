@@ -104,7 +104,7 @@ public sealed class Definitions : Defs
 
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f);
+        d.RegisterSpell(AID.LastBastion, instantAnimLock: 3.86f, positionLock: 3.77f);
         d.RegisterSpell(AID.FastBlade);
         d.RegisterSpell(AID.FightOrFlight);
         d.RegisterSpell(AID.RiotBlade);
