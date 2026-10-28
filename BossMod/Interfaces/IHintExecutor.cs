@@ -1,5 +1,4 @@
-﻿using BossMod.Services;
-using FFXIVClientStructs.FFXIV.Client.Game.Event;
+﻿using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 
 namespace BossMod.Interfaces;
@@ -11,7 +10,7 @@ public interface IHintExecutor
 
 internal sealed class MockHintExecutor : IHintExecutor;
 
-internal sealed class HintExecutor(WorldState ws, IMovementOverride movementOverride, IAmex amex, AIHints hints) : IHintExecutor
+internal sealed class HintExecutor(WorldState ws, MovementOverride movementOverride, ActionManagerEx amex, AIHints hints) : IHintExecutor
 {
     private DateTime _throttleJump;
     private DateTime _throttleInteract;

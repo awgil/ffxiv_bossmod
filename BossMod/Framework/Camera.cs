@@ -22,12 +22,12 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     record struct Circle(Vector3 Center, float Radius, uint Color, float Thickness = 1, bool Occluded = true);
     record struct CircleFilled(Vector3 Center, float Radius, uint Color, uint? OutlineColor, bool Occluded = true, float ProjectionHeight = 0);
 
-    readonly List<Line> _lines = [];
-    readonly List<Cone> _cones = [];
-    readonly List<Circle> _circles = [];
-    readonly List<CircleFilled> _circlesFilled = [];
-
     private readonly PctContext picto = PctService.Initialize(dalamud);
+
+    private readonly List<Line> _lines = [];
+    private readonly List<Cone> _cones = [];
+    private readonly List<Circle> _circles = [];
+    private readonly List<CircleFilled> _circlesFilled = [];
 
     public unsafe void Update()
     {

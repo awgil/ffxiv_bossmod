@@ -2,6 +2,7 @@
 using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -25,7 +26,18 @@ using System.Threading;
 namespace BossMod;
 
 // utility that updates a world state to correspond to game state
-sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, PingService ping, MovementOverride movement) : IWorldStateGameSync, IHostedService
+sealed unsafe class WorldStateGameSync(
+    WorldState ws,
+    ConfigRoot configRoot,
+    Camera camera,
+    ActionManagerEx amex,
+    PingService ping,
+    MovementOverride movement,
+    ISigScanner sigScanner,
+    IClientState clientState,
+    IPluginLog logger,
+    ICondition condition
+) : IWorldStateGameSync, IHostedService
 {
     private const int ObjectTableSize = 819; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;
@@ -46,7 +58,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
     private readonly Network.PacketInterceptor _interceptor = new();
     private readonly Network.PacketDecoderGame _decoder = new();
 
-    private readonly AIHintsConfig _solverConfig = Service.Config.Get<AIHintsConfig>();
+    private readonly AIHintsConfig _solverConfig = configRoot.Get<AIHintsConfig>();
     private readonly EventSubscriptions _subscriptions = new();
 
 #nullable disable
@@ -103,7 +115,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
         _interceptor.ServerIPCReceived += ServerIPCReceived;
         _interceptor.ClientIPCSent += ClientIPCSent;
 
-        _netConfig = Service.Config.GetAndSubscribe<ReplayManagementConfig>(config =>
+        _netConfig = configRoot.GetAndSubscribe<ReplayManagementConfig>(config =>
         {
             _interceptor.ActiveRecv = config.RecordServerPackets || config.DumpServerPackets;
             _interceptor.ActiveSend = config.DumpClientPackets;
@@ -125,7 +137,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
 
         _processMapEffectHook = new("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 8B FA 41 0F B7 E8", ProcessMapEffectDetour);
 
-        var mapEffectAddrs = Service.SigScanner.ScanAllText("40 55 41 57 48 83 EC ?? 48 83 B9");
+        var mapEffectAddrs = sigScanner.ScanAllText("40 55 41 57 48 83 EC ?? 48 83 B9");
         if (mapEffectAddrs.Length != 3)
             throw new InvalidOperationException($"expected 3 matches for multi-MapEffect handlers, but got {mapEffectAddrs.Length}");
 
@@ -192,11 +204,11 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
             ),
             prevFramePerf,
             GaugeData(),
-            Service.Camera.CameraAzimuth.Radians()
+            camera.CameraAzimuth.Radians()
         ));
-        if (ws.CurrentZone != Service.ClientState.TerritoryType || ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
+        if (ws.CurrentZone != clientState.TerritoryType || ws.CurrentCFCID != GameMain.Instance()->CurrentContentFinderConditionId)
         {
-            ws.Execute(new WorldState.OpZoneChange((ushort)Service.ClientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
+            ws.Execute(new WorldState.OpZoneChange((ushort)clientState.TerritoryType, GameMain.Instance()->CurrentContentFinderConditionId));
         }
 
         var isPVP = GameMain.IsInPvPArea();
@@ -212,9 +224,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
             ws.Execute(new NetworkState.OpRTT(rtt));
 
         foreach (var op in _globalOps)
-        {
             ws.Execute(op);
-        }
         _globalOps.Clear();
 
         _playerEnmity.Clear();
@@ -240,7 +250,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
         if (mods != ws.ReplayState.ModifierKeys)
             ws.Execute(new ReplayState.OpModifierKeysChange(mods));
 
-        var prc = Service.Config.Get<PartyRolesConfig>();
+        var prc = configRoot.Get<PartyRolesConfig>();
         var roleAssignments = Utils.GenArrayI(PartyState.MaxPartySize, i => prc[ws.Party.Members[i].ContentId]);
         if (!MemoryExtensions.SequenceEqual(roleAssignments.AsSpan(), ws.ReplayState.RoleAssignments.AsSpan()))
             ws.Execute(new ReplayState.OpRoleAssignmentsChange(roleAssignments));
@@ -292,7 +302,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
 
             if (obj != null && (obj->EntityId & 0xFF000000) == 0xFF000000)
             {
-                Service.PluginLog.Verbose($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
+                logger.Verbose($"[WorldState] Skipping bad object #{i} with id {obj->EntityId:X}");
                 obj = null;
             }
 
@@ -302,7 +312,6 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
             {
                 _actorsByIndex[i] = null;
                 RemoveActor(actor);
-                actor = null;
             }
         }
 
@@ -315,13 +324,13 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
                 continue;
 
             if (actor != ws.Actors.Find(obj->EntityId))
-                Service.Log($"[WorldState] Actor position mismatch for #{i} {actor}");
+                logger.Warning($"[WorldState] Actor position mismatch for #{i} {actor}");
 
             UpdateActor(obj, i, actor);
         }
 
         foreach (var (id, ops) in _actorOps)
-            Service.Log($"[WorldState] {ops.Count} actor events for unknown entity {id:X}");
+            logger.Warning($"[WorldState] {ops.Count} actor events for unknown entity {id:X}");
         _actorOps.Clear();
     }
 
@@ -530,7 +539,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
 
     private void UpdateParty()
     {
-        var replay = Service.Condition[ConditionFlag.DutyRecorderPlayback];
+        var replay = condition[ConditionFlag.DutyRecorderPlayback];
         var group = GroupManager.Instance()->GetGroup(replay);
 
         // update party members
@@ -569,7 +578,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null && !pc->IsCharacter())
         {
-            Service.Log($"[WSG] Object #0 is not a character, this should never happen");
+            logger.Error($"[WSG] Object #0 is not a character, this should never happen");
             pc = null;
         }
 
@@ -579,18 +588,18 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
             var ui = UIState.Instance();
             if (ui->PlayerState.IsLoaded)
             {
-                var inCutscene = Service.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Service.Condition[ConditionFlag.WatchingCutscene78] || Service.Condition[ConditionFlag.Occupied33] || Service.Condition[ConditionFlag.BetweenAreas] || Service.Condition[ConditionFlag.OccupiedInQuestEvent];
+                var inCutscene = condition[ConditionFlag.OccupiedInCutSceneEvent] || condition[ConditionFlag.WatchingCutscene78] || condition[ConditionFlag.Occupied33] || condition[ConditionFlag.BetweenAreas] || condition[ConditionFlag.OccupiedInQuestEvent];
                 player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene);
                 if (pc != null && (pc->ContentId != player.ContentId || pc->EntityId != player.InstanceId))
-                    Service.Log($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') but different from playerstate ({player})");
+                    logger.Warning($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') but different from playerstate ({player})");
             }
             else
             {
                 // player not logged in, just do some sanity checks
                 if (pc != null)
-                    Service.Log($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') while player is not logged in");
+                    logger.Warning($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') while player is not logged in");
                 if (group->MemberCount > 0)
-                    Service.Log($"[WGS] Group is non-empty while player is not logged in");
+                    logger.Warning($"[WGS] Group is non-empty while player is not logged in");
             }
         }
         else
@@ -694,7 +703,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
                 if (slot > 0)
                     UpdatePartySlot(slot, new PartyState.Member(0, actor.InstanceID, false));
                 else
-                    Service.Log($"[WorldState] Failed to find empty slot for allied NPC {actor.InstanceID:X}");
+                    logger.Warning($"[WorldState] Failed to find empty slot for allied NPC {actor.InstanceID:X}");
             }
         }
     }
@@ -725,8 +734,8 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
             ws.Execute(new PartyState.OpModify(freeSlot, m));
         else
         {
-            Service.Log($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X} ({ws.Actors.Find(m.InstanceId)})");
-            Service.Log($"[WorldState] Current slots: {string.Join(", ", ws.Party.Members.Select(m => ws.Actors.Find(m.InstanceId)?.ToString() ?? "<unknown>"))}");
+            logger.Warning($"[WorldState] Failed to find empty slot for party member {m.ContentId:X}:{m.InstanceId:X} ({ws.Actors.Find(m.InstanceId)})");
+            logger.Info($"[WorldState] Current slots: {string.Join(", ", ws.Party.Members.Select(m => ws.Actors.Find(m.InstanceId)?.ToString() ?? "<unknown>"))}");
         }
     }
 
@@ -774,7 +783,7 @@ sealed unsafe class WorldStateGameSync(WorldState ws, ActionManagerEx amex, Ping
         }
 
         // TODO: use CS?
-        var isFlying = Service.Condition.Any(ConditionFlag.InFlight, ConditionFlag.Diving);
+        var isFlying = condition.Any(ConditionFlag.InFlight, ConditionFlag.Diving);
         if (isFlying != ws.Client.Flying)
             ws.Execute(new ClientState.OpFlyingChange(isFlying));
 

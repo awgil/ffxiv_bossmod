@@ -26,10 +26,13 @@ internal sealed class TickService(
     IPluginLog logger,
     IClientState clientState,
     IFileDialogManager fileDialogManager,
+    ICamera camera,
+    IGameGui gameGui,
     IAmex amex,
     IMovementOverride movementOverride,
     IWorldStateGameSync wsSync,
     IHintExecutor hintExecutor,
+    ConfigRoot configRoot,
     BossModuleManager bossmod,
     RotationDatabase rotationDB,
     RotationModuleManager rotation,
@@ -54,7 +57,7 @@ internal sealed class TickService(
 #nullable restore
 
     private TimeSpan _prevUpdateTime;
-    private readonly DtrConfig _uiConfig = Service.Config.Get<DtrConfig>();
+    private readonly DtrConfig _uiConfig = configRoot.Get<DtrConfig>();
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -70,17 +73,17 @@ internal sealed class TickService(
         _wndChangelog = new();
 
         if (Service.IsMock)
-            Service.Config.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
+            configRoot.Get<ReplayManagementConfig>().ShowUI = _wndReplay.IsOpen = true;
 
         devWindow.FirstOrDefault()?.IsOpen = true;
 
-        if (Service.Config.Get<DeveloperConfig>().DebugWindowOpen)
+        if (configRoot.Get<DeveloperConfig>().DebugWindowOpen)
             debugWindow.FirstOrDefault()?.IsOpen = true;
 
         Version cutoff = new(7, 5, 1, 13);
-        if (Service.Config.PreviousAssemblyVersion < cutoff && Service.Config.AssemblyVersion >= cutoff)
+        if (configRoot.PreviousAssemblyVersion < cutoff && configRoot.AssemblyVersion >= cutoff)
         {
-            Service.Log($"Removing potentially broken bitmaps from {hintsBuilder.Obstacles.UserRoot.FullName}");
+            logger.Info($"Removing potentially broken bitmaps from {hintsBuilder.Obstacles.UserRoot.FullName}");
             hintsBuilder.Obstacles.ClearGenerated();
         }
 
@@ -120,17 +123,17 @@ internal sealed class TickService(
         var tsStart = DateTime.Now;
         var moveImminent = movementOverride.IsMoveRequested() && (!amex.Config.PreventMovingWhileCasting || movementOverride.IsForceUnblocked());
 
-        Service.Camera.Update();
+        camera.Update();
         wsSync.Update(_prevUpdateTime);
         bossmod.Update();
         zonemod.ActiveModule?.Update();
         hintsBuilder.Update(hintsGlobal, PartyState.PlayerSlot, moveImminent);
         amex.QueueManualActions();
-        rotation.Update(amex.AnimationLockDelayEstimate, movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
+        rotation.Update(amex.AnimationLockDelayEstimate, movementOverride.IsMoving(), condition[ConditionFlag.DutyRecorderPlayback]);
         amex.FinishActionGather();
         wsSync.UpdateReplayState(rotation, movementOverride, hintsGlobal);
 
-        var uiHidden = _uiConfig.HideWithGameUi && (Service.GameGui.GameUiHidden || Service.Condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene));
+        var uiHidden = _uiConfig.HideWithGameUi && (gameGui.GameUiHidden || condition.Any(ConditionFlag.OccupiedInCutSceneEvent, ConditionFlag.WatchingCutscene78, ConditionFlag.WatchingCutscene));
         if (!uiHidden)
         {
             Service.WindowSystem.Draw();
@@ -159,14 +162,14 @@ internal sealed class TickService(
 
     void OpenUi() => OpenConfigUI();
 
-    private static void MigratePlans(string pluginConfigDir)
+    private void MigratePlans(string pluginConfigDir)
     {
         var source = Path.Join(pluginConfigDir, "autorot");
 
         // no autorot dir means fresh install
         if (!Path.Exists(source))
         {
-            Service.PluginLog.Verbose($"[Migrator] No configs, nothing to do.");
+            logger.Verbose($"[Migrator] No configs, nothing to do.");
             return;
         }
 
@@ -174,7 +177,7 @@ internal sealed class TickService(
 
         if (File.Exists(Path.Join(destination, ".migrate-ok")))
         {
-            Service.PluginLog.Verbose($"[Migrator] Nothing to do.");
+            logger.Verbose($"[Migrator] Nothing to do.");
             return;
         }
 
@@ -182,7 +185,7 @@ internal sealed class TickService(
 
         File.Create(Path.Join(destination, ".migrate-ok"));
 
-        Service.Log($"[Migrator] Done.");
+        logger.Info($"[Migrator] Done.");
     }
 
     protected override void Dispose(bool disposing)

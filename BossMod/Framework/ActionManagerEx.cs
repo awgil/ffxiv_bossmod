@@ -32,7 +32,11 @@ namespace BossMod;
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
 // 7. auto cancel cast utility
 // TODO: should not be public!
-public sealed unsafe class ActionManagerEx(WorldState ws, AIHints hints, MovementOverride movement) : IAmex, IHostedService
+public sealed unsafe class ActionManagerEx(
+    WorldState ws,
+    AIHints hints,
+    MovementOverride movement
+) : IAmex, IHostedService, IDisposable
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
     public ActionID CastAction => new((ActionType)_inst->CastActionType, _inst->CastActionId);
