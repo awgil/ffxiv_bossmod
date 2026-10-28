@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace BossMod;
 
@@ -479,4 +480,16 @@ public static partial class Utils
             CopyRecursive(subsource, subtarget);
         }
     }
+
+    public static IDisposable GetGlobalLock()
+    {
+        var m = new Mutex(false, "Global\\vbm-sync");
+        m.WaitOne();
+        return new OnDispose(m.ReleaseMutex);
+    }
+}
+
+public sealed class OnDispose(Action action) : IDisposable
+{
+    void IDisposable.Dispose() => action();
 }
