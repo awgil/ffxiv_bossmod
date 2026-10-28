@@ -1,6 +1,8 @@
+using BossMod.AI;
 using BossMod.Autorotation;
 using BossMod.Pathfinding;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
 using System.IO;
 using System.Text.Json;
@@ -10,10 +12,19 @@ using System.Threading.Tasks;
 
 namespace BossMod.Services;
 
-internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModuleManager autorotation, ObstacleMapManager obstacles, JsonSerializerOptions serOptions) : IHostedService
+internal sealed class IpcService(
+    IDalamudPluginInterface dalamud,
+    RotationModuleManager autorotation,
+    ObstacleMapManager obstacles,
+    MovementOverride movement,
+    IPluginLog logger,
+    ConfigRoot config,
+    JsonSerializerOptions serOptions
+) : IHostedService
 {
     private Action _stopActions = () => { };
-    private readonly ConfigRoot config = Service.Config;
+    private readonly AIConfig aiConfig = config.Get<AIConfig>();
+    private readonly ActionTweaksConfig tweaksConfig = config.Get<ActionTweaksConfig>();
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -42,6 +53,22 @@ internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModule
         });
 
         Register("Rotation.ActionQueue.HasEntries", () => autorotation.Hints.ActionsToExecute.Entries.Any(x => !x.Manual));
+
+        IEnumerable<Type> activeAutorotModules(bool includeMultibox) => autorotation.Presets
+            .Where(p => includeMultibox || p.Name != "VBM Multibox")
+            .SelectMany(p => p.Modules)
+            .Select(m => m.Type);
+        Register("Rotation.GetActiveModules", () => activeAutorotModules(true).Select(t => t.FullName ?? t.Name).ToList());
+        Register("Rotation.IsAutorotationActive", () => activeAutorotModules(true).Any(t => t.Namespace != "BossMod.Autorotation.MiscAI"));
+        Register("Rotation.IsAutoTargetActive", () => activeAutorotModules(false).Any(t => t.FullName == "BossMod.Autorotation.MiscAI.AutoTarget"));
+
+        Register("Rotation.ActionTweaks.IsManualQueueEnabled", () => tweaksConfig.UseManualQueue);
+        Register("Rotation.ActionTweaks.IsSmartTargetingEnabled", () => tweaksConfig.UseManualQueue && tweaksConfig.SmartTargets);
+        Register("Rotation.ActionTweaks.IsPreventMovingWhileCastingEnabled", () => tweaksConfig.PreventMovingWhileCasting);
+        Register("Rotation.ActionTweaks.IsMoveEscapeHatchHeld", movement.IsForceUnblocked);
+
+        Register("AI.IsEnabled", () => aiConfig.Enabled);
+        Register("AI.IsAutoTargetEnabled", () => aiConfig.Enabled && !aiConfig.ForbidActions);
 
         Register("Presets.ListAll", () => autorotation.Database.Presets.AllPresets.Select(p => p.Name).ToList());
         Register("Presets.Get", (string name) =>
@@ -134,7 +161,7 @@ internal sealed class IpcService(IDalamudPluginInterface dalamud, RotationModule
                 var p = autorotation.Database.Presets.FindPresetByName(name);
                 if (p == null)
                 {
-                    Service.Log($"Presets.SetActiveList: input contained unrecognized preset name {name} - giving up");
+                    logger.Info($"Presets.SetActiveList: input contained unrecognized preset name {name} - giving up");
                     return false;
                 }
                 presets.Add(p);
