@@ -388,7 +388,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(Unlocked(AID.Flare) ? AID.Flare : fireAoE, target.Actor, 45);
             if (AoEFireMPOut && (!CanUseTranspose || AoECastSwap) && !ManafontReady)
                 PushGCD(iceAoE, target.Actor, 20);
-            if (AoEFireMPOut && AstralSoul < 6 && CanUseTranspose && !AoECastSwap && !ManafontReady && Polyglot > 0 && Unlocked(AID.Foul))
+            if (AoEFireMPOut && AstralSoul < 6 && CanUseTranspose && !AoECastSwap && !ManafontReady && Polyglot > 0 && Unlocked(AID.Foul) && PolyglotStrat != PolyglotStrategy.Overcap)
                 PushGCD(AID.Foul, target.Actor, 30);
         }
         else if (InIce)
