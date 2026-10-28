@@ -121,7 +121,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.TechneMakre, castAnimLock: 8.10f); // animLock=8.100s?
+        d.RegisterSpell(AID.TechneMakre, castAnimLock: 8.10f, positionLock: 8); // animLock=8.100s?
         d.RegisterSpell(AID.Dosis);
         d.RegisterSpell(AID.Diagnosis);
         d.RegisterSpell(AID.KardiaEnd);

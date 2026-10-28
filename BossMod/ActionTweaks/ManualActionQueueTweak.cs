@@ -72,9 +72,6 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
 
     public bool Enabled => _config.UseManualQueue;
 
-    // placeholder for position lock value
-    const float FIXME = 0;
-
     public bool Push(ActionID action, ulong targetId, float castTime, bool allowTargetOverride, Func<(ulong, Vector3?)> getAreaTarget, Func<ulong> targetNearest)
     {
         if (!Enabled)
@@ -103,7 +100,7 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         if (index < 0)
         {
             Service.Log($"[MAO] Queueing {action} @ {target}");
-            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime, FIXME));
+            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime, def.PositionLock));
             return true;
         }
 
@@ -112,14 +109,14 @@ public sealed class ManualActionQueueTweak(WorldState ws, AIHints hints)
         {
             Service.Log($"[MAO] Replacing queued {e.Action} with {action} @ {target}");
             _queue.RemoveAt(index);
-            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime, FIXME));
+            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime, def.PositionLock));
         }
         else
         {
             Service.Log($"[MAO] Entering emergency mode for {e.Action}");
             // spamming oGCD - enter emergency mode
             _queue.Clear();
-            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime, FIXME));
+            _queue.Add(new(action, target, targetPos, angleOverride, def, expireAt, castTime, def.PositionLock));
             _emergencyMode = true;
         }
         return true;

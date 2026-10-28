@@ -341,8 +341,9 @@ public sealed class ObstacleMapManager : IDisposable
 
                 using var stream = File.OpenRead(fullPath);
                 // make y bounds permissive for jumping + bits of terrain that are slightly lower than the rasterized mesh
-                var min = new Vector3(actualMin.X, actualMin.Y - 1, actualMin.Z);
+                var min = new Vector3(actualMin.X, actualMin.Y - 4, actualMin.Z);
                 var max = new Vector3(actualMax.X, actualMax.Y + 6, actualMax.Z);
+                Service.Log($"generating mesh with bounds {actualMin} <-> {actualMax}");
                 var vw = Math.Min(60, (int)(max.X - min.X));
                 var vh = Math.Min(60, (int)(max.Z - min.Z));
                 var entry = new ObstacleMapDatabase.Entry(min, max, new(actualMin.XZ()), vw, vh, filename);

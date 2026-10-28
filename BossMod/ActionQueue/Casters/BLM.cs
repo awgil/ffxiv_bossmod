@@ -108,7 +108,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.Meteor, castAnimLock: 8.10f); // animLock=8.100s?
+        d.RegisterSpell(AID.Meteor, castAnimLock: 8.10f, positionLock: 6.87f); // animLock=8.100s?
         d.RegisterSpell(AID.Blizzard1);
         d.RegisterSpell(AID.Fire1);
         d.RegisterSpell(AID.Transpose);

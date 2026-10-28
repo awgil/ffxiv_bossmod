@@ -6,30 +6,26 @@ class P2HugNael(BossModule module) : BossComponent(module)
     {
         DalamudDivePreTargetable,
         QuoteChainLightning1,
-        Dooms1,
-        Quote2,
-        Dooms2,
-        Dooms3,
-        Divebomb,
-        Standard
+        Set1,
+        Sets23,
+        None
     }
 
     public Pos Mode = Pos.DalamudDivePreTargetable;
 
     WPos? DesiredPositionOverride;
-    Angle? LastWings;
+    Angle LastWings = 120.Degrees();
 
     public override void AddGlobalHints(GlobalHints hints)
     {
-        hints.Add($"P2HugNael mode: {Mode}");
+        if (Service.IsDev)
+            hints.Add($"P2HugNael mode: {Mode}");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is not { } nael)
             return;
-
-        var quote = Module.FindComponent<Quote>();
 
         if (hints.FindEnemy(nael) is { } ne)
         {
@@ -50,29 +46,19 @@ class P2HugNael(BossModule module) : BossComponent(module)
                 break;
 
             case Pos.QuoteChainLightning1:
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center + new WDir(0, 5), 1, 0.2f));
-                break;
-
-            case Pos.Quote2:
-                var closeSpot = new WDir(0, 3);
-                if (LastWings != null)
-                    closeSpot = closeSpot.Rotate(LastWings.Value + 120.Degrees());
-
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position + closeSpot, 1, 0.2f));
-
-                // if current quote is chariot, everyone stack south
-                hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position + new WDir(0, 9), 1, 0.2f));
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center + new WDir(0, 5), 1, 0.1f));
                 break;
 
             // nothing special here since there are no concurrent mechanics happening
-            case Pos.Dooms1:
+            case Pos.Set1:
                 hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position, nael.HitboxRadius + 0.5f, 0.1f));
                 break;
 
-            // party hugs Z axis along nael so that chain lightning and fireball spreaders can spread e/w
-            case Pos.Standard:
-                var rect = ShapeDistance.Rect(nael.Position, 0.Degrees(), nael.HitboxRadius + 3.5f, nael.HitboxRadius + 3.5f, 2);
-                hints.GoalZones.Add(p => rect(p) <= 0 ? 0.1f : 0);
+            // bait around nael CW
+            case Pos.Sets23:
+                var closeSpot = new WDir(0, 3).Rotate(LastWings - 120.Degrees());
+
+                hints.GoalZones.Add(AIHints.GoalSingleTarget(nael.Position + closeSpot, 1, 0.2f));
                 break;
         }
     }
@@ -80,7 +66,15 @@ class P2HugNael(BossModule module) : BossComponent(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WingsOfSalvation && Module.Enemies(OID.NaelDeusDarnus).FirstOrDefault() is { } nael)
-            LastWings = (spell.LocXZ - nael.Position).ToAngle();
+        {
+            var offset = spell.LocXZ - nael.Position;
+            var len = offset.Length();
+            LastWings = offset.ToAngle();
+            if (len > 7.5f)
+                LastWings += 120.Degrees();
+            else if (len < 1.5f)
+                DesiredPositionOverride = nael.Position - offset.Normalized();
+        }
     }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
@@ -106,7 +100,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
     private BitMask _fire;
     private BitMask _ice;
     private DateTime _activation;
-    private Angle LastWingsCast;
+    private Angle LastWings;
 
     public bool FireOut;
 
@@ -166,7 +160,7 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
         base.OnCastStarted(caster, spell);
 
         if ((AID)spell.Action.ID == AID.WingsOfSalvation && ((UCOB)Module).Nael() is { } nael)
-            LastWingsCast = Angle.FromDirection(spell.LocXZ - nael.Position);
+            LastWings = Angle.FromDirection(spell.LocXZ - nael.Position);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -183,9 +177,9 @@ class P2BahamutsFavorFireball(BossModule module) : Components.StrictUniformStack
     {
         var nael = ((UCOB)Module).Nael()!;
 
-        var dist = nael.TargetID == target.InstanceID ? nael.HitboxRadius + 0.5f : 5.5f;
+        var dist = nael.TargetID == target.InstanceID ? nael.HitboxRadius + 0.5f : 3.5f;
 
-        var angle = FireOut ? LastWingsCast + 90.Degrees() : LastWingsCast + 180.Degrees();
+        var angle = FireOut ? LastWings + 90.Degrees() : LastWings - 120.Degrees();
 
         return (nael.Position + angle.ToDirection() * dist, 0);
     }
@@ -197,7 +191,9 @@ class P2BahamutsFavorChainLightning : Components.StrictUniformStackSpread
     private BitMask _pendingTargets;
     private DateTime _expectedStatuses;
 
-    public bool FirstSet;
+    private int _numSalvations;
+
+    public int SetNumber;
     Angle RelativeSouth;
 
     public P2BahamutsFavorChainLightning(BossModule module) : base(module, 0, 5, alwaysShowSpreads: true)
@@ -222,7 +218,10 @@ class P2BahamutsFavorChainLightning : Components.StrictUniformStackSpread
         base.OnCastStarted(caster, spell);
 
         if ((AID)spell.Action.ID == AID.WingsOfSalvation && ((UCOB)Module).Nael() is { } nael)
+        {
+            _numSalvations++;
             RelativeSouth = (spell.LocXZ - nael.Position).ToAngle();
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -245,8 +244,12 @@ class P2BahamutsFavorChainLightning : Components.StrictUniformStackSpread
         var nael = ((UCOB)Module).Nael()!;
         var sign = order == 0 ? -1 : 1;
 
-        if (FirstSet)
+        if (SetNumber == 1)
             return (nael.Position + (135 * sign).Degrees().ToDirection() * 5, 1);
+
+        // stay in position to bait final salvation puddle
+        if (SetNumber == 3 && _numSalvations < 3)
+            return default;
 
         // during later sets, a wings puddle is active during this mechanic, so we have to ensure tank is dodging it
         if (nael.TargetID == target.InstanceID)

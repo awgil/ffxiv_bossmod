@@ -75,7 +75,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
         {
             if (ShouldTarget.CompareTo(other.ShouldTarget) is var i && i != 0)
                 return i;
-            if (Priority.CompareTo(other.Priority) is var j && j != 0)
+            if (Math.Max(0, Priority).CompareTo(Math.Max(0, other.Priority)) is var j && j != 0)
                 return j;
             if (InvDistance.CompareTo(other.InvDistance) is var k && k != 0)
                 return k;

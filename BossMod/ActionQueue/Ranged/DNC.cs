@@ -125,7 +125,7 @@ public sealed class Definitions : Defs
     private readonly DNCConfig _config = Service.Config.Get<DNCConfig>();
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.CrimsonLotus, true, castAnimLock: 3.70f); // animLock=???, castAnimLock=3.700
+        d.RegisterSpell(AID.CrimsonLotus, true, castAnimLock: 3.70f, positionLock: 4.5f); // animLock=???, castAnimLock=3.700
         d.RegisterSpell(AID.Cascade, true);
         d.RegisterSpell(AID.Fountain, true);
         d.RegisterSpell(AID.SingleStandardFinish, true);

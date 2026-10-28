@@ -179,7 +179,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f);
+        d.RegisterSpell(AID.GunmetalSoul, instantAnimLock: 3.86f, positionLock: 3.77f);
         d.RegisterSpell(AID.KeenEdge);
         d.RegisterSpell(AID.NoMercy);
         d.RegisterSpell(AID.BrutalShell);

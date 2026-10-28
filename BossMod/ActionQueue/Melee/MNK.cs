@@ -121,7 +121,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f);
+        d.RegisterSpell(AID.FinalHeaven, castAnimLock: 3.70f, positionLock: 3.67f);
         d.RegisterSpell(AID.Bootshine);
         d.RegisterSpell(AID.TrueStrike);
         d.RegisterSpell(AID.SnapPunch);

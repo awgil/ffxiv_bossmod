@@ -116,7 +116,7 @@ public sealed class Definitions : Defs
 {
     public override void Define(ActionDefinitions d)
     {
-        d.RegisterSpell(AID.SagittariusArrow, true, castAnimLock: 3.70f); // animLock=3.700s?
+        d.RegisterSpell(AID.SagittariusArrow, true, castAnimLock: 3.70f, positionLock: 4.5f); // animLock=3.700s?
         d.RegisterSpell(AID.HeavyShot, true);
         d.RegisterSpell(AID.StraightShot, true);
         d.RegisterSpell(AID.RagingStrikes, true);
