@@ -8,68 +8,50 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 {
     public struct Strategy
     {
+        [Track(UiPriority = 500)]
         public Track<Targeting> Targeting;
+        [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]
+        [Track("Technical Step", MinLevel = 70, Action = AID.TechnicalStep, UiPriority = 100)]
         public Track<OffensiveStrategy> Technical;
 
-        [Track("Standard Step / Finishing Move", MinLevel = 15, Actions = [AID.StandardStep, AID.DoubleStandardFinish, AID.FinishingMove])]
+        [Track("Devilment", MinLevel = 62, Action = AID.Devilment, UiPriority = 99)]
+        public Track<OffensiveStrategy> Devilment;
+
+        [Track("Standard Step / Finishing Move", MinLevel = 15, Actions = [AID.StandardStep, AID.FinishingMove], UiPriority = 98)]
         public Track<OffensiveStrategy> Standard;
 
-        [Track("Devilment", MinLevel = 62, Action = AID.Devilment)]
-        public Track<DevilmentStrategy> Devilment;
+        [Track("Flourish", MinLevel = 72, Action = AID.Flourish, UiPriority = 97)]
+        public Track<OffensiveStrategy> Flourish;
 
-        [Track("Flourish", MinLevel = 72, Action = AID.Flourish)]
-        public Track<FlourishStrategy> Flourish;
-
-        [Track("Fan Dance", MinLevel = 30, Actions = [AID.FanDance, AID.FanDanceII])]
+        [Track("Fan Dance", MinLevel = 30, Actions = [AID.FanDance, AID.FanDanceII], UiPriority = 96)]
         public Track<FeatherStrategy> Feathers;
 
-        [Track("Dance Partner", MinLevel = 60, Action = AID.ClosedPosition)]
+        [Track("Dance Partner", MinLevel = 60, Action = AID.ClosedPosition, UiPriority = 95)]
         public Track<PartnerStrategy> Partner;
 
-        [Track("Curing Waltz", MinLevel = 52, Action = AID.CuringWaltz)]
+        [Track("Curing Waltz", MinLevel = 52, Action = AID.CuringWaltz, UiPriority = 94)]
         public Track<WaltzStrategy> Waltz;
 
-        [Track("Peloton", MinLevel = 20, Action = AID.Peloton)]
+        [Track("Peloton", MinLevel = 20, Action = AID.Peloton, UiPriority = 93)]
         public Track<PelotonStrategy> Peloton;
 
-        [Track("Potion", Item = 1049235)]
+        [Track("Potion", Item = 1049235, UiPriority = 92)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 15, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
-    public enum DevilmentStrategy
-    {
-        [Option("Use with Technical Finish")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum FlourishStrategy
-    {
-        [Option("During Technical, or if it's 50s+ away")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
     public enum FeatherStrategy
     {
         [Option("Spend during Technical Finish")]
         Automatic,
-        [Option("Use ASAP")]
-        ASAP,
         [Option("Only to avoid overcapping")]
         Overcap,
+        [Option("Use ASAP")]
+        ASAP,
         [Option("Do not use")]
         Delay
     }
@@ -80,7 +62,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         Automatic,
         [Option("Do not change the partner")]
         Manual,
-        [Option("Keep on the selected party member", Targets = ActionTargets.Party, Context = StrategyContext.Plan)]
+        [Option("Keep on the selected party member", Targets = ActionTargets.Party)]
         SelectTarget
     }
 
@@ -104,8 +86,10 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use pre-pull and with Technical Step")]
+        [Option("Optimal: with Technical Step")]
         AlignWithBurst,
+        [Option("Follow party raid buffs")]
+        AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
     }
@@ -120,7 +104,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         Technical30,
         [Option("7s Technical Step", MinLevel = 70)]
         Technical7,
-        [Option("No opener-specific rules")]
+        [Option("No pre-pull or opener rules")]
         None
     }
 
@@ -156,19 +140,19 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     private AID ComboLastMove => (AID)World.Client.ComboState.Action;
     private bool Dancing => StandardStepLeft > 0 || TechStepLeft > 0;
 
-    private UseStrategy TechnicalStrat;
-    private UseStrategy DevilmentStrat;
-    private UseStrategy FlourishStrat;
-    private UseStrategy StandardStrat;
+    private OffensiveStrategy TechnicalStrat;
+    private OffensiveStrategy DevilmentStrat;
+    private OffensiveStrategy FlourishStrat;
+    private OffensiveStrategy StandardStrat;
     private FeatherStrategy FeathersStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        TechnicalStrat = (UseStrategy)strategy.Technical.Value;
-        DevilmentStrat = (UseStrategy)strategy.Devilment.Value;
-        FlourishStrat = (UseStrategy)strategy.Flourish.Value;
-        StandardStrat = (UseStrategy)strategy.Standard.Value;
+        TechnicalStrat = strategy.Technical.Value;
+        DevilmentStrat = strategy.Devilment.Value;
+        FlourishStrat = strategy.Flourish.Value;
+        StandardStrat = strategy.Standard.Value;
         FeathersStrat = strategy.Feathers.Value;
 
         var gauge = World.Client.GetGauge<DancerGauge>();
@@ -218,7 +202,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
         if (target == null)
         {
-            if (TechnicalStrat == UseStrategy.Force && ShouldTechnical(strategy, false))
+            if (TechnicalStrat == OffensiveStrategy.Force && ShouldTechnical(strategy, false))
                 PushGCD(AID.TechnicalStep, Player, 50);
             return;
         }
@@ -318,7 +302,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
             PushGCD(AID.DanceOfTheDawn, splash, 47);
         if (LastDanceLeft > GCD && FinishingMoveLeft > GCD)
             PushGCD(AID.LastDance, splash, 46);
-        if (StandardAllowed(strategy, targetAlive) && FinishingMoveLeft > GCD && LastDanceLeft == 0 && (GCDReady(AID.FinishingMove) || StandardStrat == UseStrategy.Force && ReadyIn(AID.FinishingMove) <= StepWindow(StandardStrat)) && EnemyIn15)
+        if (StandardAllowed(strategy, targetAlive) && FinishingMoveLeft > GCD && LastDanceLeft == 0 && (GCDReady(AID.FinishingMove) || StandardStrat == OffensiveStrategy.Force && ReadyIn(AID.FinishingMove) <= StepWindow(StandardStrat)) && EnemyIn15)
             PushGCD(AID.FinishingMove, Player, 45);
         if (StandardAllowed(strategy, targetAlive) && NeedToStandard(strategy))
             PushGCD(AID.StandardStep, Player, 44);
@@ -380,10 +364,10 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     private AID Symmetry => AOEMode && Unlocked(AID.RisingWindmill) ? AID.RisingWindmill : AID.ReverseCascade;
 
     private bool StandardAllowed(in Strategy strategy, bool targetAlive)
-        => StandardStrat != UseStrategy.Delay && (targetAlive || StandardStrat == UseStrategy.Force);
+        => StandardStrat != OffensiveStrategy.Delay && (targetAlive || StandardStrat == OffensiveStrategy.Force);
 
     // step cooldowns drift off the GCD; a forced step holds the GCD for it instead of letting a filler push it back a whole GCD
-    private float StepWindow(UseStrategy strat) => GCD + (strat == UseStrategy.Force ? GCDLength : 0.5f);
+    private float StepWindow(OffensiveStrategy strat) => GCD + (strat == OffensiveStrategy.Force ? GCDLength : 0.5f);
 
     private bool ShouldTechnical(in Strategy strategy, bool targetAlive)
     {
@@ -391,18 +375,18 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
             return false;
         return TechnicalStrat switch
         {
-            UseStrategy.Force => true,
-            UseStrategy.Delay => false,
-            _ => targetAlive && (StandardStrat == UseStrategy.Delay || !GCDReady(AID.StandardStep) || StandardDelaysTechnical) && DowntimeIn > GCD + 7
+            OffensiveStrategy.Force => true,
+            OffensiveStrategy.Delay => false,
+            _ => targetAlive && (StandardStrat == OffensiveStrategy.Delay || !GCDReady(AID.StandardStep) || StandardDelaysTechnical) && DowntimeIn > GCD + 7
         };
     }
 
     // a Standard dance takes ~5s until the next GCD, starting it closer to Technical than that drifts Technical
-    private bool StandardDelaysTechnical => Unlocked(AID.TechnicalStep) && TechnicalStrat != UseStrategy.Delay && TechFinishLeft == 0 && ReadyIn(AID.TechnicalStep) < GCD + 4.5f;
+    private bool StandardDelaysTechnical => Unlocked(AID.TechnicalStep) && TechnicalStrat != OffensiveStrategy.Delay && TechFinishLeft == 0 && ReadyIn(AID.TechnicalStep) < GCD + 4.5f;
 
     private bool ShouldLastDance(in Strategy strategy)
     {
-        if (TechnicalStrat == UseStrategy.Delay)
+        if (TechnicalStrat == OffensiveStrategy.Delay)
             return true;
         var techIn = ReadyIn(AID.TechnicalStep);
         return !(InBossFight && techIn is > 0 and < 20 && LastDanceLeft > techIn + GCDLength + 7);
@@ -410,7 +394,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     private bool NeedToFinish(in Strategy strategy)
     {
-        if (StandardStrat == UseStrategy.Force)
+        if (StandardStrat == OffensiveStrategy.Force)
             return true;
         if (LastDanceLeft > GCD)
             return false;
@@ -422,7 +406,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     {
         if (ReadyIn(AID.StandardStep) > StepWindow(StandardStrat) || FinishingMoveLeft > 0)
             return false;
-        if (StandardStrat == UseStrategy.Force)
+        if (StandardStrat == OffensiveStrategy.Force)
             return true;
         if (Unlocked(AID.FinishingMove) && TechFinishLeft > GCD)
             return false;
@@ -431,7 +415,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         if (DowntimeIn < GCD + 4)
             return false;
         var flourishIn = ReadyIn(AID.Flourish);
-        return !Unlocked(AID.Flourish) || FlourishStrat == UseStrategy.Delay || flourishIn == 0 || flourishIn > 5;
+        return !Unlocked(AID.Flourish) || FlourishStrat == OffensiveStrategy.Delay || flourishIn == 0 || flourishIn > 5;
     }
 
     #endregion
@@ -474,27 +458,27 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
             return false;
         return DevilmentStrat switch
         {
-            UseStrategy.Force => true,
-            UseStrategy.Delay => false,
-            _ => TechFinishLeft > 0 || TechnicalJustUsed || !Unlocked(AID.TechnicalStep) || TechnicalStrat == UseStrategy.Delay
+            OffensiveStrategy.Force => true,
+            OffensiveStrategy.Delay => false,
+            _ => TechFinishLeft > 0 || TechnicalJustUsed || !Unlocked(AID.TechnicalStep) || TechnicalStrat == OffensiveStrategy.Delay
         };
     }
 
     private bool TechnicalJustUsed => Unlocked(AID.TechnicalStep) && ReadyIn(AID.TechnicalStep) > 105 && TechStepLeft == 0;
 
-    private bool DevilmentFirst => DevilmentStrat != UseStrategy.Delay && Unlocked(AID.Devilment) && ReadyIn(AID.Devilment) <= GCD && (TechFinishLeft > 0 || TechnicalJustUsed);
+    private bool DevilmentFirst => DevilmentStrat != OffensiveStrategy.Delay && Unlocked(AID.Devilment) && ReadyIn(AID.Devilment) <= GCD && (TechFinishLeft > 0 || TechnicalJustUsed);
 
     private bool ShouldFlourish(in Strategy strategy)
     {
         if (!CanWeave(AID.Flourish))
             return false;
-        if (FlourishStrat == UseStrategy.Force)
+        if (FlourishStrat == OffensiveStrategy.Force)
             return true;
-        if (FlourishStrat == UseStrategy.Delay)
+        if (FlourishStrat == OffensiveStrategy.Delay)
             return false;
         if (ThreefoldLeft > 0 || FourfoldLeft > 0 || SelfStatusLeft(SID.FlourishingSymmetry) > 0 || SelfStatusLeft(SID.FlourishingFlow) > 0 || FinishingMoveLeft > 0 || DevilmentFirst || Feathers > 3 && FeathersStrat != FeatherStrategy.Delay)
             return false;
-        return TechFinishLeft > 0 || TechnicalStrat == UseStrategy.Delay || ReadyIn(AID.TechnicalStep) >= 50;
+        return TechFinishLeft > 0 || TechnicalStrat == OffensiveStrategy.Delay || ReadyIn(AID.TechnicalStep) >= 50;
     }
 
     private bool ShouldSpendFeather(in Strategy strategy, Enemy target)
@@ -503,7 +487,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
             return false;
         if (FeathersStrat == FeatherStrategy.ASAP)
             return true;
-        var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0 || FlourishStrat != UseStrategy.Delay && Unlocked(AID.Flourish) && ReadyIn(AID.Flourish) <= GCD);
+        var overcap = Feathers > 3 && (SymmetryLeft > 0 || FlowLeft > 0 || FlourishStrat != OffensiveStrategy.Delay && Unlocked(AID.Flourish) && ReadyIn(AID.Flourish) <= GCD);
         if (FeathersStrat == FeatherStrategy.Overcap)
             return overcap;
         if (!TimeToKill.WillLive(target.Actor, 5) || !Unlocked(AID.TechnicalStep))
@@ -637,10 +621,13 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && Unlocked(AID.TechnicalStep) && (TechStepLeft > 0 || ReadyIn(AID.TechnicalStep) < 3),
+        PotionStrategy.AlignWithBurst => PotionBurst || PotionBeforeKill,
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs(PotionBurst) || PotionBeforeKill,
         PotionStrategy.Immediate => true,
         _ => false
     };
+
+    private bool PotionBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.TechnicalStep) && TechnicalStrat != OffensiveStrategy.Delay ? TechStepLeft > 0 || ReadyIn(AID.TechnicalStep) < 3 : RaidBuffsLeft > 0 || RaidBuffsIn < 5);
 
     #endregion
 }

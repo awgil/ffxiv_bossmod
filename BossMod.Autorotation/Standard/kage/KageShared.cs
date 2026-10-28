@@ -2,14 +2,6 @@
 
 namespace BossMod.Autorotation.kage;
 
-// every on/off track enum (OffensiveStrategy and the per-track ones) has these names in this order: saved presets keep loading, and the rotations cast them to this
-public enum UseStrategy
-{
-    Automatic,
-    Delay,
-    Force
-}
-
 public static class TimeToKill
 {
     private const float SampleInterval = 0.5f;
@@ -181,7 +173,10 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     protected bool NoRaidBuffs => RaidBuffsIn > 9000 && RaidBuffsLeft == 0;
     protected bool HasRaidBuffJobs => InBossFight && !NoRaidBuffs;
     protected bool PotionPrepull => World.Client.CountdownRemaining is > 0 and < 2;
-    protected bool PotionWithRaidBuffs => PotionPrepull || Player.InCombat && (RaidBuffsLeft > 0 || RaidBuffsIn < 5);
+    protected bool PotionWithRaidBuffs(bool openerPot) => CombatTime < 30 ? openerPot : RaidBuffsLeft > 0 || RaidBuffsIn < 5;
+    // a door boss's first phase also looks like a kill here
+    protected bool PotionBeforeKill => CombatTime > 60 && Bossmods.ActiveModule?.PrimaryActor is { IsTargetable: true, IsDeadOrDestroyed: false } boss
+        && TimeToKill.Estimate(boss) is { } ttk && ttk is >= 10 and <= 30 && RaidBuffsIn > ttk;
 
     protected AIHints.Enemy? SelectTarget(in TStrategy strategy, Targeting targeting, ref Actor? primaryTarget, float estimatedAnimLockDelay, float autoRange, AOEStrategy aoe = AOEStrategy.AOE)
     {
@@ -319,6 +314,11 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
 
     protected bool RaidwideWithin(float seconds) => StateTimeline.Raidwides(Bossmods.ActiveModule, World, Hints).Any(t => t >= World.CurrentTime && t <= World.FutureTime(seconds));
 
+    // solo: anything targeting us counts, since nothing predicts trash autos
+    protected bool DamageIncoming(float seconds) => RaidwideWithin(seconds)
+        || Hints.PredictedDamage.Any(d => d.Players[0] && d.Activation <= World.FutureTime(seconds))
+        || !World.Party.WithoutSlot(excludeAlliance: true).Skip(1).Any() && Hints.PotentialTargets.Any(e => e.Actor.TargetID == Player.InstanceID);
+
     protected bool DotWorthIt(AIHints.Enemy e)
     {
         if (e.ForbidDOTs || e.Priority < 0 && !TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, e.Actor) || DowntimeIn < 15)
@@ -330,7 +330,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     {
         if (DotWorthIt(target) && (dotLeft(target.Actor) < refresh || RaidBuffsLeft > GCD && RaidBuffsLeft < GCD + GCDLength && dotLeft(target.Actor) < buffRefresh))
             return target.Actor;
-        if (!spread || Hints.PriorityTargets.Count(e => dotLeft(e.Actor) >= refresh) >= 2)
+        if (!spread)
             return null;
         return Hints.PriorityTargets.Where(e => e != target && Player.DistanceToHitbox(e.Actor) <= range && DotWorthIt(e) && dotLeft(e.Actor) < refresh).MaxBy(e => e.Actor.HPMP.CurHP)?.Actor;
     }
@@ -371,9 +371,9 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
     protected bool CastFits(float castTime) => Hints.MaxCastTime >= SlideCast(castTime);
 
-    protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null)
+    protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null, bool ignoreDisabled = false)
     {
-        if (action.ID == 0 || Disabled.Contains(action.ID) || World.CurrentTime < CountdownLockout || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
+        if (action.ID == 0 || !ignoreDisabled && Disabled.Contains(action.ID) || World.CurrentTime < CountdownLockout || !ActionUnlocked(action) || ActionDefinitions.Instance[action] is not { } def || def.Range != 0 && target == null)
             return false;
         var targetPos = def.AllowedTargets.HasFlag(ActionTargets.Area) ? (def.Range == 0 ? Player.PosRot.XYZ() : target?.PosRot.XYZ() ?? default) : default;
         Hints.ActionsToExecute.Push(action, def.Range == 0 ? Player : target, priority, delay: delay, castTime: castTime, targetPos: targetPos, facingAngle: facing);
@@ -391,6 +391,13 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
         => PushAction(ActionID.MakeSpell(aid), target, ActionQueue.Priority.Low + priority, delay);
 
     protected void PushPotion(ActionID potion) => Hints.ActionsToExecute.Push(potion, Player, ActionQueue.Priority.Medium);
+
+    // a targeted dash during a pending knockback keeps you in place
+    protected void CancelKnockback<AID>(AID dash, Actor? target) where AID : Enum
+    {
+        if (Player.PendingKnockbacks.Count > 0 && !JustUsed(dash, 2))
+            PushAction(ActionID.MakeSpell(dash), target, ActionQueue.Priority.VeryHigh);
+    }
 
     protected static bool UseAOE(AOEStrategy strategy, int targets, int minTargets) => strategy switch
     {

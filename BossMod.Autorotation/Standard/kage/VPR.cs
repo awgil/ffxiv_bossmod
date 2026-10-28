@@ -8,80 +8,52 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 {
     public struct Strategy
     {
+        [Track(UiPriority = 500)]
         public Track<Targeting> Targeting;
+        [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
-        public Track<ReawakenStrategy> Reawaken;
+        [Track("Serpent's Ire", MinLevel = 86, Action = AID.SerpentsIre, UiPriority = 100)]
+        public Track<OffensiveStrategy> Ire;
 
-        [Track("Serpent's Ire", MinLevel = 86, Action = AID.SerpentsIre)]
-        public Track<IreStrategy> Ire;
+        [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros], UiPriority = 99)]
+        public Track<OffensiveStrategy> Reawaken;
 
-        [Track("Vicewinder / Vicepit", MinLevel = 65, Actions = [AID.Vicewinder, AID.Vicepit])]
-        public Track<TwinbladeStrategy> Twinblade;
+        [Track("Vicewinder / Vicepit", MinLevel = 65, Actions = [AID.Vicewinder, AID.Vicepit], UiPriority = 98)]
+        public Track<OffensiveStrategy> Twinblade;
 
-        [Track("Uncoiled Fury", MinLevel = 82, Action = AID.UncoiledFury)]
+        [Track("Uncoiled Fury", MinLevel = 82, Action = AID.UncoiledFury, UiPriority = 97)]
         public Track<UncoiledStrategy> Uncoiled;
 
-        [Track("Writhing Snap", MinLevel = 15, Action = AID.WrithingSnap)]
+        [Track("Writhing Snap", MinLevel = 15, Action = AID.WrithingSnap, UiPriority = 96)]
         public Track<SnapStrategy> Snap;
 
-        [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
+        [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth, UiPriority = 95)]
         public Track<OffensiveStrategy> TrueNorth;
 
-        [Track("Slither", MinLevel = 40, Action = AID.Slither)]
+        [Track("Slither", MinLevel = 40, Action = AID.Slither, UiPriority = 94)]
         public Track<SlitherStrategy> Slither;
 
-        [Track("Engage")]
+        [Track("Engage", UiPriority = 93)]
         public Track<EngageStrategy> Engage;
 
-        [Track("Potion", Item = 1049235)]
+        [Track("Potion", Item = 1049235, UiPriority = 92)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 96, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
-    public enum IreStrategy
-    {
-        [Option("Use on targets that live 10s+")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum TwinbladeStrategy
-    {
-        [Option("Use on cooldown in melee")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum ReawakenStrategy
-    {
-        [Option("Use with Serpent's Ire and raid buffs")]
-        Automatic,
-        [Option("Use ASAP", MinLevel = 90)]
-        ASAP,
-        [Option("Do not use")]
-        Delay
-    }
-
     public enum UncoiledStrategy
     {
         [Option("Spend between combos, keep one", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Use ASAP (outside combos)", Targets = ActionTargets.Hostile)]
-        ASAP,
         [Option("Always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
         [Option("Out of melee, or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
+        [Option("Use ASAP (outside combos)", Targets = ActionTargets.Hostile)]
+        ASAP,
         [Option("Do not use")]
         Delay
     }
@@ -96,29 +68,35 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum SlitherStrategy
     {
-        [Option("Only to engage at the pull (see Engage)")]
+        [Option("Do not use")]
         None,
         [Option("Use when out of melee range", Targets = ActionTargets.Hostile)]
-        GapClose
+        GapClose,
+        [Option("Use to cancel knockback", Targets = ActionTargets.Party | ActionTargets.Hostile)]
+        Knockback,
+        [Option("Close gaps and cancel knockback", Targets = ActionTargets.Hostile)]
+        Both
     }
 
     public enum EngageStrategy
     {
-        [Option("Slither in at the pull")]
+        [Option("Slither to target")]
         Slither,
         [Option("Sprint into melee range")]
         Sprint,
         [Option("Walk in and open at the pull")]
-        Facepull
+        Facepull,
+        [Option("Do not move before the pull")]
+        Manual
     }
 
     public enum PotionStrategy
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use pre-pull and with Serpent's Ire")]
+        [Option("Optimal: with Serpent's Ire")]
         AlignWithBurst,
-        [Option("Use pre-pull and with raid buffs")]
+        [Option("Follow party raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -186,14 +164,14 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     private float IreIn => ReadyIn(AID.SerpentsIre);
     private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
 
-    private ReawakenStrategy ReawakenStrat;
-    private UseStrategy IreStrat;
+    private OffensiveStrategy ReawakenStrat;
+    private OffensiveStrategy IreStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         ReawakenStrat = strategy.Reawaken.Value;
-        IreStrat = (UseStrategy)strategy.Ire.Value;
+        IreStrat = strategy.Ire.Value;
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
@@ -259,8 +237,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
         IreWanted = IreStrat switch
         {
-            UseStrategy.Force => true,
-            UseStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
+            OffensiveStrategy.Force => true,
+            OffensiveStrategy.Automatic => target.Priority != Enemy.PriorityPointless && (Coil < CoilMax || strategy.Uncoiled.Value != UncoiledStrategy.Delay) && TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10),
             _ => false
         };
 
@@ -279,14 +257,21 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         switch (engage)
         {
             case EngageStrategy.Slither:
-                if (InMelee ? countdown < 1.16f : countdown < 0.7f)
-                    PushGCD(InMelee ? first : AID.Slither, target.Actor, 10);
+                if (InMelee && countdown < 1.16f)
+                    PushGCD(first, target.Actor, 10);
+                // Engage picks Slither on its own; the Slither track's "Do not use" is for combat
+                else if (!InMelee && countdown < 0.7f)
+                    PushAction(ActionID.MakeSpell(AID.Slither), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
                 break;
             case EngageStrategy.Sprint:
                 SprintPull(target, first, countdown);
                 break;
             case EngageStrategy.Facepull:
                 Facepull(target, first, countdown);
+                break;
+            case EngageStrategy.Manual:
+                if (InMelee && countdown < 1.16f)
+                    PushGCD(first, target.Actor, 10);
                 break;
         }
     }
@@ -430,7 +415,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     private bool HoldForIre => IreWanted && InBossFight && IreIn <= 10 && !HoldIreForBuffs && Swiftscaled > GCDLength * 4 && Instinct > GCDLength * 4;
     // like MCH's Wildfire: the estimate drops buffs 10s after they're overdue, so this holds ~22s at most; no pooling while held
-    private bool HoldIreForBuffs => IreStrat == UseStrategy.Automatic && HasRaidBuffJobs && !(OpenerMode != OpenerStrategy.None && CombatTime < 30)
+    private bool HoldIreForBuffs => IreStrat == OffensiveStrategy.Automatic && HasRaidBuffJobs && !(OpenerMode != OpenerStrategy.None && CombatTime < 30)
         && IreIn <= GCD && RaidBuffsLeft == 0 && RaidBuffsIn < 12;
 
     private bool ShouldTwinblade(in Strategy strategy, AID aid)
@@ -438,11 +423,11 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         if (!GCDReady(aid) || Dread != 0 || Reawakened > 0 || Anguine > 0 || TwinWeavesPending)
             return false;
 
-        switch ((UseStrategy)strategy.Twinblade.Value)
+        switch (strategy.Twinblade.Value)
         {
-            case UseStrategy.Force:
+            case OffensiveStrategy.Force:
                 return true;
-            case UseStrategy.Delay:
+            case OffensiveStrategy.Delay:
                 return false;
         }
 
@@ -485,9 +470,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
         switch (ReawakenStrat)
         {
-            case ReawakenStrategy.Delay:
+            case OffensiveStrategy.Delay:
                 return false;
-            case ReawakenStrategy.ASAP:
+            case OffensiveStrategy.Force:
                 return true;
         }
 
@@ -543,11 +528,13 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         if (SwiftskinsVenom > 0)
             PushExpiringOGCD(AID.TwinbloodBite, target.Actor, 55);
 
-        if (IreWanted && !HoldIreForBuffs && (Coil < CoilMax || IreStrat == UseStrategy.Force) && CanWeave(AID.SerpentsIre))
+        if (IreWanted && !HoldIreForBuffs && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
-        if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
+        if (strategy.Slither.Value is SlitherStrategy.GapClose or SlitherStrategy.Both && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
             PushOGCD(AID.Slither, ResolveTarget(strategy.Slither) ?? target.Actor, 30);
+        if (strategy.Slither.Value is SlitherStrategy.Knockback or SlitherStrategy.Both)
+            CancelKnockback(AID.Slither, ResolveTarget(strategy.Slither) ?? target.Actor);
     }
 
     private void UpdatePositionals(in Strategy strategy, Enemy target)
@@ -593,12 +580,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.Reawaken) ? ReawakenReady > 0 && ReawakenReady <= 30 - GCDLength && Reawakened == 0
-            : Unlocked(AID.SerpentsIre) ? IreIn < 6 && !HoldIreForBuffs : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
-        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
+        PotionStrategy.AlignWithBurst => PotionBurst || PotionBeforeKill,
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs(PotionBurst) || PotionBeforeKill,
         PotionStrategy.Immediate => true,
         _ => false
     };
+
+    private bool PotionBurst => Player.InCombat && (IreStrat == OffensiveStrategy.Delay ? RaidBuffsLeft > 0 || RaidBuffsIn < 5
+        : Unlocked(AID.Reawaken) ? ReawakenReady > 0 && ReawakenReady <= 30 - 1.5f * GCDLength && Reawakened == 0
+        : Unlocked(AID.SerpentsIre) ? IreIn < 6 && !HoldIreForBuffs : RaidBuffsLeft > 0 || RaidBuffsIn < 5);
 
     private Actor BestSplash(Enemy primary, float range)
         => BestAOETarget(primary, range, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best ?? primary.Actor;

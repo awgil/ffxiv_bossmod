@@ -8,92 +8,59 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 {
     public struct Strategy
     {
+        [Track(UiPriority = 500)]
         public Track<Targeting> Targeting;
+        [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia])]
+        [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia], UiPriority = 100)]
         public Track<DotStrategy> Dot;
 
-        [Track("Phlegma", MinLevel = 26, Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII])]
-        public Track<PhlegmaStrategy> Phlegma;
+        [Track("Phlegma", MinLevel = 26, Actions = [AID.Phlegma, AID.PhlegmaII, AID.PhlegmaIII], UiPriority = 99)]
+        public Track<OffensiveStrategy> Phlegma;
 
-        [Track("Psyche", MinLevel = 92, Action = AID.Psyche)]
-        public Track<PsycheStrategy> Psyche;
+        [Track("Psyche", MinLevel = 92, Action = AID.Psyche, UiPriority = 98)]
+        public Track<OffensiveStrategy> Psyche;
 
-        [Track("Toxikon", MinLevel = 66, Actions = [AID.Toxikon, AID.ToxikonII])]
+        [Track("Toxikon", MinLevel = 66, Actions = [AID.Toxikon, AID.ToxikonII], UiPriority = 97)]
         public Track<ToxikonStrategy> Toxikon;
 
-        [Track("Pneuma", MinLevel = 90, Action = AID.Pneuma)]
-        public Track<PneumaStrategy> Pneuma;
+        [Track("Pneuma", MinLevel = 90, Action = AID.Pneuma, UiPriority = 96)]
+        public Track<OffensiveStrategy> Pneuma;
 
-        [Track("Kardia", MinLevel = 4, Action = AID.Kardia)]
+        [Track("Kardia", MinLevel = 4, Action = AID.Kardia, UiPriority = 95)]
         public Track<KardiaStrategy> Kardia;
 
-        [Track("Soteria", MinLevel = 35, Action = AID.Soteria)]
+        [Track("Soteria", MinLevel = 35, Action = AID.Soteria, UiPriority = 94)]
         public Track<OffensiveStrategy> Soteria;
 
-        [Track("Rhizomata", MinLevel = 74, Action = AID.Rhizomata)]
-        public Track<RhizomataStrategy> Rhizomata;
+        [Track("Rhizomata", MinLevel = 74, Action = AID.Rhizomata, UiPriority = 93)]
+        public Track<OffensiveStrategy> Rhizomata;
 
-        [Track("Druochole", MinLevel = 45, Action = AID.Druochole)]
+        [Track("Druochole", MinLevel = 45, Action = AID.Druochole, UiPriority = 92)]
         public Track<DruocholeStrategy> Druochole;
 
-        [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
-        public Track<LucidStrategy> Lucid;
+        [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming, UiPriority = 91)]
+        public Track<OffensiveStrategy> Lucid;
 
-        [Track("Potion", Item = 1049238)]
+        [Track("Icarus", MinLevel = 40, Action = AID.Icarus, UiPriority = 90.5f)]
+        public Track<IcarusStrategy> Icarus;
+
+        [Track("Potion", Item = 1049238, UiPriority = 90)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 30, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
-    public enum PhlegmaStrategy
-    {
-        [Option("Spend in raid buffs and on 3+ targets")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum PsycheStrategy
-    {
-        [Option("With raid buffs, or if they're 10s+ away")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum RhizomataStrategy
-    {
-        [Option("Use at 1 Addersgall or less")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
-    public enum LucidStrategy
-    {
-        [Option("Use at 6500 MP or less")]
-        Automatic,
-        [Option("Do not use")]
-        Delay,
-        [Option("Use ASAP")]
-        Force
-    }
-
     public enum DotStrategy
     {
-        [Option("Keep up on up to two targets")]
+        [Option("Keep up on every enemy")]
         Automatic,
         [Option("Only on the current target")]
         TargetOnly,
+        [Option("Refresh on the current target now", Context = StrategyContext.Plan)]
+        Force,
         [Option("Do not use")]
         Delay
     }
@@ -102,19 +69,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Use while moving and on 2+ targets")]
         Automatic,
-        [Option("Use ASAP")]
-        ASAP,
         [Option("Only while moving")]
         Movement,
-        [Option("Do not use")]
-        Delay
-    }
-
-    public enum PneumaStrategy
-    {
-        [Option("On 2+ targets, not before raidwides")]
-        Automatic,
-        [Option("Use ASAP (when not moving)")]
+        [Option("Use ASAP")]
         ASAP,
         [Option("Do not use")]
         Delay
@@ -138,11 +95,19 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         Delay
     }
 
+    public enum IcarusStrategy
+    {
+        [Option("Do not use")]
+        None,
+        [Option("Use to cancel knockback", Targets = ActionTargets.Party | ActionTargets.Hostile)]
+        Knockback
+    }
+
     public enum PotionStrategy
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use pre-pull and with raid buffs")]
+        [Option("Optimal: pre-pull, then with raid buffs")]
         AlignWithRaidBuffs,
         [Option("Use ASAP")]
         Immediate
@@ -154,13 +119,13 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         Toxikon,
         [Option("Pneuma opener", MinLevel = 90)]
         Pneuma,
-        [Option("Dosis at -1.5s, no Eukrasia")]
+        [Option("No pre-pull or opener rules")]
         None
     }
 
     public static RotationModuleDefinition Definition()
     {
-        return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healer", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
+        return new RotationModuleDefinition("Kage SGE", "Sage", "Standard rotation (Kage)|Healers", "Kagekazu", RotationModuleQuality.Ok, BitMask.Build(Class.SGE), 100).WithStrategies<Strategy>();
     }
 
     private int Gall;
@@ -173,14 +138,14 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     protected override bool UsesSpellSpeed => true;
     private bool CanCast => CastFits(ScaledCastTime(AID.Dosis));
 
-    private UseStrategy PhlegmaStrat;
-    private UseStrategy PsycheStrat;
+    private OffensiveStrategy PhlegmaStrat;
+    private OffensiveStrategy PsycheStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        PhlegmaStrat = (UseStrategy)strategy.Phlegma.Value;
-        PsycheStrat = (UseStrategy)strategy.Psyche.Value;
+        PhlegmaStrat = strategy.Phlegma.Value;
+        PsycheStrat = strategy.Psyche.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SageGauge>();
@@ -211,7 +176,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
                 else if (countdown < 1.5f)
                     PushGCD(precast, target.Actor, 10);
             }
-            else if (target != null && countdown < CastTime(AID.Dosis) + 0.2f)
+            else if (target != null && strategy.Opener.Value != OpenerStrategy.None && countdown < CastTime(AID.Dosis) + 0.2f)
                 PushGCD(AID.Dosis, target.Actor, 10);
             return;
         }
@@ -254,8 +219,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(AID.Phlegma, target.Actor, 40);
         }
 
-        if (CanCast && Player.InCombat && GCDReady(AID.Pneuma) && (strategy.Pneuma.Value == PneumaStrategy.ASAP
-            || strategy.Pneuma.Value == PneumaStrategy.Automatic && !RaidwideWithin(20) && !ForceST && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2))
+        if (CanCast && Player.InCombat && GCDReady(AID.Pneuma) && (strategy.Pneuma.Value == OffensiveStrategy.Force
+            || strategy.Pneuma.Value == OffensiveStrategy.Automatic && !RaidwideWithin(20) && !ForceST && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2))
             PushGCD(AID.Pneuma, target.Actor, 35);
 
         if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.ASAP)
@@ -285,7 +250,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     private bool NeedsDot(Enemy e) => DotWorthIt(e) && DotLeft(e.Actor) < DotRefresh;
 
     private Actor? DotTarget(in Strategy strategy, Enemy target)
-        => DotTargetFor(target, DotLeft, DotRefresh, CombatTime < 40 ? 12 : 8, strategy.Dot.Value == DotStrategy.Automatic);
+    {
+        if (strategy.Dot.Value == DotStrategy.Force)
+            return JustUsed(AID.EukrasianDosisIII, 5) || JustUsed(AID.EukrasianDosisII, 5) || JustUsed(AID.EukrasianDosis, 5) ? null : target.Actor;
+        return DotTargetFor(target, DotLeft, DotRefresh, CombatTime < 40 ? 12 : 8, strategy.Dot.Value == DotStrategy.Automatic);
+    }
 
     private bool ShouldPhlegma(in Strategy strategy, Enemy target)
     {
@@ -293,9 +262,9 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             return false;
         switch (PhlegmaStrat)
         {
-            case UseStrategy.Force:
+            case OffensiveStrategy.Force:
                 return true;
-            case UseStrategy.Delay:
+            case OffensiveStrategy.Delay:
                 return false;
         }
         var buffsSoon = Player.InCombat && InBossFight && RaidBuffsLeft <= GCD && RaidBuffsIn < 10;
@@ -319,12 +288,15 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     private void OGCDs(in Strategy strategy, Enemy target)
     {
-        if (PsycheStrat != UseStrategy.Delay && CanWeave(AID.Psyche)
-            && (PsycheStrat == UseStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
+        if (strategy.Icarus.Value == IcarusStrategy.Knockback)
+            CancelKnockback(AID.Icarus, ResolveTarget(strategy.Icarus) ?? target.Actor);
+
+        if (PsycheStrat != OffensiveStrategy.Delay && CanWeave(AID.Psyche)
+            && (PsycheStrat == OffensiveStrategy.Force || DowntimeIn > 2 && (target.Priority != Enemy.PriorityPointless || TimeToKill.IsBossTier(Bossmods.ActiveModule, Hints, target.Actor))
                 && (RaidBuffsLeft > 0 || RaidBuffsIn > 10 || !InBossFight)))
             PushOGCD(AID.Psyche, target.Actor, 50);
 
-        if ((UseStrategy)strategy.Rhizomata.Value == UseStrategy.Force || (UseStrategy)strategy.Rhizomata.Value == UseStrategy.Automatic && Gall <= 1)
+        if (strategy.Rhizomata.Value == OffensiveStrategy.Force || strategy.Rhizomata.Value == OffensiveStrategy.Automatic && Gall <= 1)
             if (CanWeave(AID.Rhizomata))
                 PushOGCD(AID.Rhizomata, Player, 40);
 
@@ -336,11 +308,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(AID.Druochole, healTarget, 35);
         }
 
-        if ((UseStrategy)strategy.Soteria.Value == UseStrategy.Force || (UseStrategy)strategy.Soteria.Value == UseStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
+        if (strategy.Soteria.Value == OffensiveStrategy.Force || strategy.Soteria.Value == OffensiveStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
             if (CanWeave(AID.Soteria))
                 PushOGCD(AID.Soteria, Player, 30);
 
-        if ((UseStrategy)strategy.Lucid.Value == UseStrategy.Force || (UseStrategy)strategy.Lucid.Value == UseStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
+        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
             if (CanWeave(ClassShared.AID.LucidDreaming))
                 PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
@@ -380,7 +352,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs(PotionPrepull) || PotionBeforeKill,
         PotionStrategy.Immediate => true,
         _ => false
     };
