@@ -61,7 +61,6 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
     private AID BestST => Unlocked(AID.Broil1) ? BestBroil : BestRuin;
     private AID BestAOE => Unlocked(AID.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
 
-
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
         if (strategy.HoldEverything() || Player.IsDead)
