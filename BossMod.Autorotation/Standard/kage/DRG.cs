@@ -11,9 +11,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Lance Charge, Battle Litany, Dragonfire Dive)", InternalName = "Burst", MinLevel = 30)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Lance Charge", MinLevel = 30, Action = AID.LanceCharge)]
         public Track<OffensiveStrategy> LanceCharge;
 
@@ -200,9 +197,9 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        LanceStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.LanceCharge.Value);
-        LitanyStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.BattleLitany.Value);
-        DiveStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.DragonfireDive.Value);
+        LanceStrat = (UseStrategy)strategy.LanceCharge.Value;
+        LitanyStrat = (UseStrategy)strategy.BattleLitany.Value;
+        DiveStrat = (UseStrategy)strategy.DragonfireDive.Value;
         OpenerMode = !Unlocked(AID.Drakesbane) ? OpenerStrategy.None : strategy.Opener.Value switch
         {
             OpenerStrategy.Automatic => World.CurrentZone switch

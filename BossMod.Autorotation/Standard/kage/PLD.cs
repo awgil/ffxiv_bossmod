@@ -11,9 +11,6 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Fight or Flight, Requiescat, Circle of Scorn, Intervene)", InternalName = "Burst", MinLevel = 2)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Fight or Flight", MinLevel = 2, Action = AID.FightOrFlight)]
         public Track<OffensiveStrategy> FightOrFlight;
 
@@ -141,10 +138,10 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             return;
 
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        FightOrFlightStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.FightOrFlight.Value);
-        RequiescatStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Requiescat.Value);
-        SpendersStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Spenders.Value);
-        InterveneStrat = strategy.Intervene.Value == InterveneStrategy.Delay ? InterveneStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => InterveneStrategy.Delay, _ => strategy.Intervene.Value };
+        FightOrFlightStrat = (UseStrategy)strategy.FightOrFlight.Value;
+        RequiescatStrat = (UseStrategy)strategy.Requiescat.Value;
+        SpendersStrat = (UseStrategy)strategy.Spenders.Value;
+        InterveneStrat = strategy.Intervene.Value;
 
         Oath = World.Client.GetGauge<PaladinGauge>().OathGauge;
         FoFLeft = SelfStatusLeft(SID.FightOrFlight);

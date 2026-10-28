@@ -11,9 +11,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Ikishoten, Senei, Meikyo, Shoha)", InternalName = "Burst", MinLevel = 50)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Rotation Loop", MinLevel = 76, UiPriority = -5)]
         public Track<LoopStrategy> Loop;
 
@@ -279,10 +276,10 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        IkishotenStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Ikishoten.Value);
-        SeneiStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Senei.Value);
-        MeikyoStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Meikyo.Value);
-        ShohaStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Shoha.Value);
+        IkishotenStrat = (UseStrategy)strategy.Ikishoten.Value;
+        SeneiStrat = (UseStrategy)strategy.Senei.Value;
+        MeikyoStrat = (UseStrategy)strategy.Meikyo.Value;
+        ShohaStrat = (UseStrategy)strategy.Shoha.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SamuraiGauge>();

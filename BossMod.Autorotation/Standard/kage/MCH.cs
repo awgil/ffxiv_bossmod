@@ -11,9 +11,6 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Wildfire, Barrel Stabilizer, Tools, Reassemble, Queen)", InternalName = "Burst", MinLevel = 10)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Hypercharge", MinLevel = 30, Action = AID.Hypercharge)]
         public Track<HyperchargeStrategy> Hypercharge;
 
@@ -184,11 +181,11 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        WildfireStrat = strategy.Wildfire.Value == WildfireStrategy.Delay ? WildfireStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => WildfireStrategy.Delay, BurstStrategy.Force => WildfireStrategy.Force, _ => strategy.Wildfire.Value };
-        StabilizerStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Stabilizer.Value);
-        ToolsStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Tools.Value);
-        ReassembleStrat = strategy.Reassemble.Value == ReassembleStrategy.Delay ? ReassembleStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => ReassembleStrategy.Delay, _ => strategy.Reassemble.Value };
-        QueenStrat = strategy.Queen.Value == QueenStrategy.Delay ? QueenStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => QueenStrategy.Delay, BurstStrategy.Force => QueenStrategy.Fifty, _ => strategy.Queen.Value };
+        WildfireStrat = strategy.Wildfire.Value;
+        StabilizerStrat = (UseStrategy)strategy.Stabilizer.Value;
+        ToolsStrat = (UseStrategy)strategy.Tools.Value;
+        ReassembleStrat = strategy.Reassemble.Value;
+        QueenStrat = strategy.Queen.Value;
 
         OpenerMode = strategy.Opener.Value switch
         {

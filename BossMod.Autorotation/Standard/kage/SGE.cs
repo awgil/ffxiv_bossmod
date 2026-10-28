@@ -11,9 +11,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Phlegma, Psyche)", InternalName = "Burst", MinLevel = 26)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Eukrasian Dosis", MinLevel = 30, Actions = [AID.Eukrasia, AID.EukrasianDosis, AID.EukrasianDosisII, AID.EukrasianDosisIII, AID.EukrasianDyskrasia])]
         public Track<DotStrategy> Dot;
 
@@ -182,8 +179,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        PhlegmaStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Phlegma.Value);
-        PsycheStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Psyche.Value);
+        PhlegmaStrat = (UseStrategy)strategy.Phlegma.Value;
+        PsycheStrat = (UseStrategy)strategy.Psyche.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SageGauge>();

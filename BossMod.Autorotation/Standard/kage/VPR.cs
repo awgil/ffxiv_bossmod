@@ -11,9 +11,6 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Serpent's Ire, Reawaken)", InternalName = "Burst", MinLevel = 86)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
         public Track<ReawakenStrategy> Reawaken;
 
@@ -203,8 +200,8 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        ReawakenStrat = strategy.Reawaken.Value == ReawakenStrategy.Delay ? ReawakenStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => ReawakenStrategy.Delay, BurstStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
-        IreStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Ire.Value);
+        ReawakenStrat = strategy.Reawaken.Value;
+        IreStrat = (UseStrategy)strategy.Ire.Value;
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch

@@ -11,8 +11,8 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Starry Muse)", InternalName = "Burst", MinLevel = 70, Action = AID.StarryMuse)]
-        public Track<OffensiveStrategy> Burst;
+        [Track("Starry Muse", InternalName = "Burst", MinLevel = 70, Action = AID.StarryMuse)]
+        public Track<OffensiveStrategy> Starry;
 
         [Track("Living Muse", MinLevel = 30, Actions = [AID.PomMuse, AID.WingedMuse, AID.ClawedMuse, AID.FangedMuse])]
         public Track<MuseStrategy> Living;
@@ -184,7 +184,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        StarryStrat = (UseStrategy)strategy.Burst.Value;
+        StarryStrat = (UseStrategy)strategy.Starry.Value;
         OpenerMode = Unlocked(AID.StarrySkyMotif) && Unlocked(AID.RainbowDrip) ? strategy.Opener.Value : OpenerStrategy.None;
 
         var gauge = World.Client.GetGauge<PictomancerGauge>();

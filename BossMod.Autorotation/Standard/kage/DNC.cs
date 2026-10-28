@@ -11,9 +11,6 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Standard / Technical Step, Devilment, Flourish, Feathers)", InternalName = "Burst", MinLevel = 15)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Technical Step", MinLevel = 70, Actions = [AID.TechnicalStep, AID.QuadrupleTechnicalFinish])]
         public Track<OffensiveStrategy> Technical;
 
@@ -168,11 +165,11 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        TechnicalStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Technical.Value);
-        DevilmentStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Devilment.Value);
-        FlourishStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Flourish.Value);
-        StandardStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Standard.Value);
-        FeathersStrat = strategy.Feathers.Value == FeatherStrategy.Delay ? FeatherStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => FeatherStrategy.Overcap, _ => strategy.Feathers.Value };
+        TechnicalStrat = (UseStrategy)strategy.Technical.Value;
+        DevilmentStrat = (UseStrategy)strategy.Devilment.Value;
+        FlourishStrat = (UseStrategy)strategy.Flourish.Value;
+        StandardStrat = (UseStrategy)strategy.Standard.Value;
+        FeathersStrat = strategy.Feathers.Value;
 
         var gauge = World.Client.GetGauge<DancerGauge>();
         Feathers = gauge.Feathers;

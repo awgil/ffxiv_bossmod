@@ -11,9 +11,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Ley Lines, Amplifier, Manafont, Polyglot)", InternalName = "Burst", MinLevel = 30)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Ley Lines", MinLevel = 52, Action = AID.LeyLines)]
         public Track<LeyLinesStrategy> LeyLines;
 
@@ -188,10 +185,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        LeyLinesStrat = strategy.LeyLines.Value == LeyLinesStrategy.Delay ? LeyLinesStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => LeyLinesStrategy.Delay, BurstStrategy.Force => LeyLinesStrategy.ASAP, _ => strategy.LeyLines.Value };
-        AmplifierStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Amplifier.Value);
-        ManafontStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Manafont.Value);
-        PolyglotStrat = strategy.Polyglot.Value == PolyglotStrategy.Delay ? PolyglotStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => PolyglotStrategy.Overcap, BurstStrategy.Force => PolyglotStrategy.ASAP, _ => strategy.Polyglot.Value };
+        LeyLinesStrat = strategy.LeyLines.Value;
+        AmplifierStrat = (UseStrategy)strategy.Amplifier.Value;
+        ManafontStrat = (UseStrategy)strategy.Manafont.Value;
+        PolyglotStrat = strategy.Polyglot.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         OpenerMode = strategy.Opener.Value == OpenerStrategy.Flare && !Unlocked(AID.FlareStar) ? OpenerStrategy.Standard : strategy.Opener.Value;
 

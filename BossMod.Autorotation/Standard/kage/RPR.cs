@@ -11,9 +11,6 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Arcane Circle, Enshroud, Gluttony)", InternalName = "Burst", MinLevel = 72)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Arcane Circle", MinLevel = 72, Action = AID.ArcaneCircle)]
         public Track<OffensiveStrategy> ArcaneCircle;
 
@@ -331,9 +328,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
         TrackCasts();
 
-        CircleStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.ArcaneCircle.Value);
-        EnshroudStrat = strategy.Enshroud.Value == EnshroudStrategy.Delay ? EnshroudStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => EnshroudStrategy.Delay, BurstStrategy.Force => EnshroudStrategy.Force, _ => strategy.Enshroud.Value };
-        GaugeStrat = strategy.SoulGauge.Value == SoulGaugeStrategy.Delay ? SoulGaugeStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => SoulGaugeStrategy.HoldGluttony, BurstStrategy.Force => SoulGaugeStrategy.ForceGluttony, _ => strategy.SoulGauge.Value };
+        CircleStrat = (UseStrategy)strategy.ArcaneCircle.Value;
+        EnshroudStrat = strategy.Enshroud.Value;
+        GaugeStrat = strategy.SoulGauge.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         AOEStrat = strategy.AOE.Value;
 

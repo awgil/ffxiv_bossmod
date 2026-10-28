@@ -11,9 +11,6 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         public Track<Targeting> Targeting;
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Presence of Mind, Assize, Afflatus Misery)", InternalName = "Burst", MinLevel = 30)]
-        public Track<BurstStrategy> Burst;
-
         [Track("Dia", MinLevel = 4, Actions = [AID.Dia, AID.AeroII, AID.Aero])]
         public Track<DotStrategy> Dot;
 
@@ -149,9 +146,9 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
-        PresenceOfMindStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.PresenceOfMind.Value);
-        AssizeStrat = WithBurst(strategy.Burst.Value, (UseStrategy)strategy.Assize.Value);
-        MiseryStrat = strategy.Misery.Value == MiseryStrategy.Delay ? MiseryStrategy.Delay : strategy.Burst.Value switch { BurstStrategy.Delay => MiseryStrategy.Delay, BurstStrategy.Force => MiseryStrategy.ASAP, _ => strategy.Misery.Value };
+        PresenceOfMindStrat = (UseStrategy)strategy.PresenceOfMind.Value;
+        AssizeStrat = (UseStrategy)strategy.Assize.Value;
+        MiseryStrat = strategy.Misery.Value;
         ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<WhiteMageGauge>();
