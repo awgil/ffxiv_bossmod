@@ -41,11 +41,11 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(AOEStrategy.ForceBuffsBreak, "Force buffs combo loop (TrueThrust->Disembowel->ChaosThrust->WheelingThrust->Drakesbane) regardless of targets nearby - will break current combo loop if in one")
             .AddOption(AOEStrategy.ForceAOEBreak, "Force AoE rotation (DoomSpike->SonicThrust->CoerthanTorment) regardless of targets nearby - will break current combo loop if in one")
             .AddAssociatedActions(
-                AID.TrueThrust, AID.RaidenThrust, AID.DoomSpike, AID.DraconianFury, //1
-                AID.VorpalThrust, AID.LanceBarrage, AID.Disembowel, AID.SpiralBlow, AID.SonicThrust, //2
-                AID.FullThrust, AID.HeavensThrust, AID.ChaosThrust, AID.ChaoticSpring, AID.CoerthanTorment, //3
-                AID.WheelingThrust, AID.FangAndClaw, //4
-                AID.Drakesbane); //5
+                AID.TrueThrust, AID.RaidenThrust, AID.DoomSpike, AID.DraconianFury,
+                AID.VorpalThrust, AID.LanceBarrage, AID.Disembowel, AID.SpiralBlow, AID.SonicThrust,
+                AID.FullThrust, AID.HeavensThrust, AID.ChaosThrust, AID.ChaoticSpring, AID.CoerthanTorment,
+                AID.WheelingThrust, AID.FangAndClaw,
+                AID.Drakesbane);
 
         res.Define(Track.Dives).As<DivesStrategy>("Dives", "Dive Action Range", 199)
             .AddOption(DivesStrategy.InMelee, "Allow Stardiver & Dragonfire Dive when in melee range of target")
@@ -143,7 +143,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CommonStrategy.Delay, "Delay Geirskogul", 0, 0, ActionTargets.None, 60)
             .AddAssociatedActions(AID.Geirskogul);
 
-        res.Define(Track.Stardiver).As<CommonStrategy>("S.diver", "Stardiver", 194)
+        res.Define(Track.Stardiver).As<CommonStrategy>("S.diver", "Stardiver", 193)
             .AddOption(CommonStrategy.Automatic, "Automatically use Stardiver")
             .AddOption(CommonStrategy.HasLC, "Automatically use Stardiver if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasBL, "Automatically use Stardiver if Battle Litany buff is currently active", 50, 0, ActionTargets.Hostile)
@@ -153,7 +153,7 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
             .AddOption(CommonStrategy.Delay, "Delay Stardiver", 0, 0, ActionTargets.None, 80)
             .AddAssociatedActions(AID.Stardiver);
 
-        res.Define(Track.Jump).As<CommonStrategy>("Jump", uiPriority: 193)
+        res.Define(Track.Jump).As<CommonStrategy>("Jump", uiPriority: 194)
             .AddOption(CommonStrategy.Automatic, "Automatically use Jump")
             .AddOption(CommonStrategy.HasLC, "Automatically use Jump if Lance Charge buff is currently active", 30, 0, ActionTargets.Hostile)
             .AddOption(CommonStrategy.HasBL, "Automatically use Jump if Battle Litany buff is currently active", 30, 0, ActionTargets.Hostile)
@@ -170,633 +170,377 @@ public sealed class AkechiDRG(RotationModuleManager manager, Actor player) : Ake
         return res;
     }
 
-    private bool WantAOE;
-    private bool AutoTarget;
-    private float ChaosLeft;
-    private int NumAOETargets;
-    private Enemy? BestAOETarget;
-    private Enemy? BestAOETargets;
-    private Enemy? BestDOTTarget;
-    private Enemy? BestDOTTargets;
+    private enum Route { Both, Power, Chaos, Damage, Buffs, AOE }
 
     private DragoonGauge Gauge => World.Client.GetGauge<DragoonGauge>();
-    private float PowerLeft => Status(SID.PowerSurge, 30);
-    private bool NeedPower => PowerLeft <= SkSGCDLength * 2;
-    private bool HasPower => PowerLeft > GCD;
     private bool HasLOTD => Gauge.LotdTimer > GCD;
-    private bool HasLC => LCcd is >= 40 and <= 60;
-    private bool HasBL => BLcd is >= 100 and <= 120;
-    private float BLcd => Cooldown(AID.BattleLitany);
-    private float LCcd => Cooldown(AID.LanceCharge);
-    private static SID[] GetDotStatus() => [SID.ChaosThrust, SID.ChaoticSpring];
-    private float ChaosRemaining(Actor? target)
-        => target == null ? float.MaxValue
-            : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 6);
-    private bool WantDOT
-        => AutoTarget && Unlocked(AID.ChaosThrust) &&
-        ComboLastMove is AID.Disembowel or AID.SpiralBlow &&
-        TargetsInAOECircle(3f, 2);
+    private (float Left, bool Active, bool Needed) PS => Status(SID.PowerSurge, 30) is var left ? (left, left > GCD, left <= SkSGCDLength * 2) : default;
+    private (float CD, bool Active) LC => Cooldown(AID.LanceCharge) is var cd ? (cd, cd is >= 40 and <= 60) : default;
+    private (float CD, bool Active) BL => Cooldown(AID.BattleLitany) is var cd ? (cd, cd is >= 100 and <= 120) : default;
+    private float LSCD => Cooldown(AID.LifeSurge);
+    private float MDLeft => Status(SID.DiveReady, 15);
+    private bool BuffsImminent => Unlocked(AID.LanceCharge) && LC.CD is > 0 and <= 2.5f || Unlocked(AID.BattleLitany) && BL.CD is > 0 and <= 2.5f;
+    private bool Buffed => PS.Active && LC.Active && HasLOTD;
 
     private AID BestJump => Unlocked(AID.HighJump) ? AID.HighJump : AID.Jump;
-    private AID BestTrue => (Unlocked(AID.RaidenThrust) && HasStatus(SID.DraconianFire)) ? AID.RaidenThrust : AID.TrueThrust;
+    private AID BestTrue => Unlocked(AID.RaidenThrust) && HasStatus(SID.DraconianFire) ? AID.RaidenThrust : AID.TrueThrust;
     private AID BestDisembowel => Unlocked(AID.SpiralBlow) ? AID.SpiralBlow : Unlocked(AID.Disembowel) ? AID.Disembowel : AID.TrueThrust;
     private AID BestChaos => Unlocked(AID.ChaoticSpring) ? AID.ChaoticSpring : Unlocked(AID.ChaosThrust) ? AID.ChaosThrust : AID.TrueThrust;
-    private AID BestWheeling => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust;
     private AID BestVorpal => Unlocked(AID.LanceBarrage) ? AID.LanceBarrage : Unlocked(AID.VorpalThrust) ? AID.VorpalThrust : AID.TrueThrust;
     private AID BestHeavens => Unlocked(AID.HeavensThrust) ? AID.HeavensThrust : Unlocked(AID.FullThrust) ? AID.FullThrust : AID.TrueThrust;
-    private AID BestFang => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust;
     private AID BestDrakesbane => Unlocked(AID.Drakesbane) ? AID.Drakesbane : AID.TrueThrust;
 
-    //full complete single-target rotation with some tweaks
-    //- dotOnly cares only about target's Chaotic Spring debuff
-    //- buffOnly cares only about player's Power Surge buff
-    //- allowAOE tells whether we should finish or break AOE combo if in one
-    private AID FullST(bool dotOnly, bool buffOnly, bool allowAOE)
-    {
-        var wantChaos = ChaosLeft <= SkSGCDLength * 4; //we want to reapply Chaotic Spring if its remaining duration is less than or equal to 4 GCDs (or 10s)
-        var wantPower = PowerLeft <= SkSGCDLength * 6; //we want to reapply Power Surge if its remaining duration is less than or equal to 6 GCDs (or 15s)
-        var wantDisembowel =
-            Unlocked(AID.ChaosThrust) //we have Chaotic Spring
-                ? (dotOnly ? wantChaos //if only caring about Chaotic Spring debuff, focus on that
-                    : buffOnly ? wantPower //if only caring about Power Surge buff, focus on that
-                    : (wantPower || wantChaos)) //if caring about both, use either
-                : (Unlocked(AID.FullThrust) ? PowerLeft <= SkSGCDLength * 3 //without dot, we focus primarily on Power Surge - if we have Full Thrust - 3 GCDs
-            : NeedPower); //else - 2 GCDs
+    private bool AutoTarget;
+    private bool WantAOE;
+    private bool CleaveDOT;
+    private int AOETargets;
+    private float ChaosLeft;
+    private Actor? AOETarget;
+    private Actor? DOTTarget;
+    private Actor? SpearTarget;
+    private Actor? SplashTarget;
 
-        return ComboLastMove switch
-        {
-            //finish AOE if allowed
-            AID.SonicThrust when allowAOE => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : BestTrue,
-            AID.DoomSpike or AID.DraconianFury when allowAOE => Unlocked(AID.SonicThrust) ? AID.SonicThrust : BestTrue,
-
-            //else, ST handling
-            AID.TrueThrust or AID.RaidenThrust => wantDisembowel ? BestDisembowel : BestVorpal,
-            _ => ContinueSTCombo(ComboLastMove),
-        };
-    }
-
-    //continuation of full single-target combo
-    private AID ContinueSTCombo(AID last) => last switch
-    {
-        AID.WheelingThrust or AID.FangAndClaw => BestDrakesbane,
-        AID.FullThrust or AID.HeavensThrust => BestFang,
-        AID.ChaosThrust or AID.ChaoticSpring => BestWheeling,
-        AID.VorpalThrust or AID.LanceBarrage => BestHeavens,
-        AID.Disembowel or AID.SpiralBlow => BestChaos,
-        _ => BestTrue,
-    };
-
-    //continuation of full AOE combo
-    private AID ContinueAOECombo(AID last) => last switch
-    {
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
-        AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : NeedPower ? LowLevelAOE : AID.DoomSpike,
-        _ => !Unlocked(AID.SonicThrust) ? LowLevelAOE : HasStatus(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike,
-    };
-
-    private AID FullSTFinishBoth => FullST(false, false, true);
-    private AID FullSTFinishCS => FullST(true, false, true);
-    private AID FullSTFinishPS => FullST(false, true, true);
-    private AID FullSTBreakBoth => FullST(false, false, false);
-    private AID FullSTBreakCS => FullST(true, false, false);
-    private AID FullSTBreakPS => FullST(false, true, false);
-    private AID BuffsSTFinish => ComboLastMove switch
-    {
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : BestTrue,
-        AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : BestTrue,
-        AID.TrueThrust or AID.RaidenThrust => BestDisembowel,
-        _ => ContinueSTCombo(ComboLastMove),
-    };
-    private AID BuffsSTBreak => ComboLastMove switch
-    {
-        AID.TrueThrust or AID.RaidenThrust => BestDisembowel,
-        _ => ContinueSTCombo(ComboLastMove),
-    };
-    private AID NormalSTFinish => ComboLastMove switch
-    {
-        AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : BestTrue,
-        AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : BestTrue,
-        AID.TrueThrust or AID.RaidenThrust => BestVorpal,
-        _ => ContinueSTCombo(ComboLastMove),
-    };
-    private AID NormalSTBreak => ComboLastMove switch
-    {
-        AID.TrueThrust or AID.RaidenThrust => BestVorpal,
-        _ => ContinueSTCombo(ComboLastMove),
-    };
-    private AID FullAOEFinish => ComboLastMove switch
-    {
-        // finish ST combo if possible
-        AID.WheelingThrust or AID.FangAndClaw => BestDrakesbane,
-        AID.FullThrust or AID.HeavensThrust => BestFang,
-        AID.ChaosThrust or AID.ChaoticSpring => BestWheeling,
-        AID.VorpalThrust or AID.LanceBarrage => BestHeavens,
-        AID.Disembowel or AID.SpiralBlow => BestChaos,
-
-        AID.TrueThrust or AID.RaidenThrust =>
-            Unlocked(AID.Disembowel) &&
-            (Unlocked(AID.ChaosThrust)
-                ? (PowerLeft <= SkSGCDLength * 6 || ChaosLeft <= SkSGCDLength * 4)
-                : (Unlocked(AID.FullThrust)
-                    ? PowerLeft <= SkSGCDLength * 3
-                    : NeedPower))
-                ? BestDisembowel
-                : BestVorpal,
-
-        _ => ContinueAOECombo(ComboLastMove),
-    };
-    private AID FullAOEBreak => ContinueAOECombo(ComboLastMove);
-    private AID AutoFinish => WantAOE ? FullAOEFinish : WantDOT ? BuffsSTFinish : FullSTFinishBoth;
-    private AID AutoBreak => WantAOE ? FullAOEBreak : WantDOT ? BuffsSTBreak : FullSTBreakBoth;
-
-    //until we unlock Sonic Thrust, we cannot generate Power Surge from AOE
-    //so we use True Thrust -> Disembowel for the buff then immediately switch to Doom Spike spam
-    private AID LowLevelAOE => ComboLastMove switch
-    {
-        AID.DoomSpike => NeedPower ? AID.TrueThrust : AID.DoomSpike,
-        AID.Disembowel => AID.DoomSpike,
-        AID.TrueThrust => AID.Disembowel,
-        _ => NeedPower ? AID.TrueThrust : AID.DoomSpike,
-    };
-
-    private (Positional, bool) GetBestPositional(StrategyValues strategy, Enemy? primaryTarget)
-    {
-        if (NumAOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || primaryTarget == null)
-            return (Positional.Any, false);
-
-        if (!Unlocked(AID.FangAndClaw))
-            return (Positional.Rear, ComboLastMove == AID.Disembowel);
-
-        (Positional, bool) PredictNextPositional(int StepsBeforeReloop)
-        {
-            var buffed = CanFitSkSGCD(ChaosLeft, StepsBeforeReloop + 3) && CanFitSkSGCD(PowerLeft, StepsBeforeReloop + 2);
-            return (buffed ? Positional.Flank : Positional.Rear, false);
-        }
-
-        return ComboLastMove switch
-        {
-            AID.ChaosThrust => Unlocked(AID.WheelingThrust) ? (Positional.Rear, true) : PredictNextPositional(0),
-            AID.Disembowel or AID.SpiralBlow or AID.ChaoticSpring => (Positional.Rear, true),
-            AID.TrueThrust or AID.RaidenThrust => PredictNextPositional(-1),
-            AID.VorpalThrust or AID.LanceBarrage => (Positional.Flank, false),
-            AID.HeavensThrust or AID.FullThrust => (Positional.Flank, true),
-            AID.WheelingThrust or AID.FangAndClaw => PredictNextPositional(Unlocked(AID.Drakesbane) ? 1 : 0),
-            _ => PredictNextPositional(0)
-        };
-    }
-
-    private bool ShouldSpear(Actor? target) => InCombat(target) && In15y(target);
-    private bool ShouldDive(StrategyValues strategy, Actor? target)
-    {
-        var dd = strategy.Option(Track.DragonfireDive).As<CommonStrategy>();
-        var sd = strategy.Option(Track.Stardiver).As<CommonStrategy>();
-
-        //planned forced usage of either or - don't check here
-        if (dd is CommonStrategy.Force or CommonStrategy.ForceWeave ||
-            sd is CommonStrategy.Force or CommonStrategy.ForceWeave)
-            return true;
-
-        var d = strategy.Option(Track.Dives).As<DivesStrategy>();
-        var dontMove = d is DivesStrategy.InAnyNotMoving or DivesStrategy.InMeleeNotMoving;
-
-        return InCombat(target) && (!dontMove || !IsMoving) && d switch
-        {
-            DivesStrategy.InMelee or DivesStrategy.InMeleeNotMoving => In3y(target),
-            DivesStrategy.InAny or DivesStrategy.InAnyNotMoving => In20y(target),
-            _ => false,
-        };
-    }
-
-    private void QueueBuff(BuffsStrategy strategy, Actor? target, AID action, bool together, int extra = 0, bool otherCondition = true)
-    {
-        if (strategy == BuffsStrategy.Delay || !ActionReady(action))
-            return;
-
-        var conditions =
-                otherCondition &&
-                HasPower && //has Power Surge buff - this is pretty much mandatory
-                In3y(target) && //close to target - dont waste it by being far
-                InCombat(target); //dont use out of combat
-
-        var (condition, prio) = strategy switch
-        {
-            BuffsStrategy.Automatic => (conditions, OGCDPriority.Severe),
-            BuffsStrategy.Together => (conditions && together, OGCDPriority.Severe),
-            BuffsStrategy.Force => (true, OGCDPriority.ToGCDPriority),
-            _ => (false, OGCDPriority.None)
-        };
-
-        if (condition)
-            QueueOGCD(action, Player, prio + extra);
-    }
-    private void QueueCommonOGCD(CommonStrategy strategy, Actor? target, AID action, bool optimal, bool allBuffs, int extra = 0)
-    {
-        var (condition, prio) = strategy switch
-        {
-            CommonStrategy.Automatic => (HasPower && InCombat(target) && ActionReady(action) && CanWeaveIn && optimal, OGCDPriority.High),
-            CommonStrategy.Force => (ActionReady(action), OGCDPriority.ToGCDPriority),
-            CommonStrategy.ForceWeave => (ActionReady(action) && CanWeaveIn, OGCDPriority.Max + 2),
-            CommonStrategy.HasLC => (HasPower && HasLC && InCombat(target) && ActionReady(action), OGCDPriority.High),
-            CommonStrategy.HasBL => (HasPower && HasBL && InCombat(target) && ActionReady(action), OGCDPriority.High),
-            CommonStrategy.HasAll => (HasPower && allBuffs && InCombat(target) && ActionReady(action), OGCDPriority.High),
-            _ => (false, OGCDPriority.None)
-        };
-        if (condition)
-            QueueOGCD(action, target, prio + extra);
-    }
-
-    private (bool, OGCDPriority) ShouldUseLifeSurge(StrategyValues strategy, Actor? target)
-    {
-        var lsRange = In3y(target);
-        var enhanced = Unlocked(TraitID.EnhancedLifeSurge);
-        var ready = enhanced ? Cooldown(AID.LifeSurge) < 40.6f : ReadyIn(AID.LifeSurge) < 0.6f;
-
-        if (!Unlocked(AID.LifeSurge) || HasStatus(SID.LifeSurge) || !ready)
-            return (false, OGCDPriority.None);
-
-        var actionClose =
-            ComboLastMove is AID.VorpalThrust or AID.LanceBarrage ||
-            (Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw);
-
-        var close =
-            (!Unlocked(AID.FullThrust)
-                ? (!Unlocked(AID.Disembowel) || !NeedPower) && ComboLastMove is AID.TrueThrust
-            : WantAOE
-                ? (Unlocked(AID.CoerthanTorment)
-                    ? ComboLastMove is AID.SonicThrust
-                    : Unlocked(AID.SonicThrust)
-                        ? ComboLastMove is AID.DoomSpike
-                        : Unlocked(AID.DoomSpike) && !NeedPower)
-            : (((HasLC && HasLOTD || !enhanced) && actionClose) ||
-               (HasLC && HasLOTD && HasBL &&
-                (actionClose ||
-                 ((Status(SID.BattleLitany) is <= 5f and not 0 ||
-                   Cooldown(AID.LifeSurge) < 0.6f)
-                  && ComboLastMove is not AID.Drakesbane && !NeedPower)))));
-
-        var condition = close && InCombat(target) && HasPower && lsRange;
-        return strategy.Option(Track.LifeSurge).As<SurgeStrategy>() switch
-        {
-            SurgeStrategy.Automatic => (condition, ChangePriority(600, 605, convert: false)),
-            SurgeStrategy.WhenBuffed => (condition, ChangePriority(600, 605, lsRange)),
-            SurgeStrategy.Force => (ready, OGCDPriority.Severe + 2000),
-            SurgeStrategy.ForceWeave => (ready && CanWeaveIn, OGCDPriority.Severe),
-            SurgeStrategy.ForceNextOpti => (close, OGCDPriority.Severe + 2000),
-            SurgeStrategy.ForceNextOptiWeave => (close && CanWeaveIn, OGCDPriority.Severe),
-            _ => (false, OGCDPriority.None),
-        };
-    }
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-
-        AutoTarget = strategy.AutoTarget();
-        var manualTargets = Hints.NumPriorityTargetsInAOERect(Player.Position, Player.Rotation.ToDirection(), 10, 2);
-        var mainTarget = primaryTarget?.Actor;
         var aoe = strategy.Option(Track.AOE);
-        var aoeStrat = aoe.As<AOEStrategy>();
-        WantAOE =
-            AutoTarget &&
-            Unlocked(AID.DoomSpike) &&
-            (NumAOETargets >= 3 || aoeStrat is AOEStrategy.ForceAOEFinish or AOEStrategy.ForceAOEBreak);
-        ChaosLeft = MathF.Max(
-            StatusDetails(mainTarget, SID.ChaosThrust, Player.InstanceID).Left,
-            StatusDetails(mainTarget, SID.ChaoticSpring, Player.InstanceID).Left);
-        var buffed1m =
-            Unlocked(TraitID.LifeOfTheDragon) ? HasPower && HasLC && HasLOTD :
-            Unlocked(AID.LanceCharge) ? HasPower && HasLC :
-            (!Unlocked(AID.Disembowel) || HasPower);
-        var buffed2m =
-            Unlocked(TraitID.LifeOfTheDragon) ? HasPower && HasLC && HasBL && HasLOTD :
-            Unlocked(AID.BattleLitany) ? HasPower && HasLC && HasBL :
-            Unlocked(AID.LanceCharge) ? HasPower && HasLC :
-            (!Unlocked(AID.Disembowel) || HasPower);
-        var bursting = InOddWindow(AID.BattleLitany) ? buffed1m : buffed2m;
+        AutoTarget = strategy.AutoTarget();
+        (var bestLine, AOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
+        WantAOE = Unlocked(AID.DoomSpike) && (aoe.As<AOEStrategy>() is AOEStrategy.ForceAOEFinish or AOEStrategy.ForceAOEBreak || AutoTarget && AOETargets >= 3);
+        CleaveDOT = AutoTarget && !WantAOE && Unlocked(AID.ChaosThrust) && TargetsInAOECircle(3f, 2);
+        ChaosLeft = ChaosOn(PrimaryTarget);
+        var (bestSpear, spearTargets) = GetBestTarget(primaryTarget, 15, Is15yRectTarget);
+        var (bestSplash, splashTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
+        SpearTarget = AutoTarget && spearTargets > 1 ? bestSpear?.Actor : PrimaryTarget;
+        SplashTarget = AutoTarget && splashTargets > 1 ? bestSplash?.Actor : PrimaryTarget;
+        AOETarget = AOETargetChoice(PrimaryTarget, (WantAOE ? bestLine : primaryTarget)?.Actor, aoe, strategy);
+        DOTTarget = AOETargetChoice(PrimaryTarget, (CleaveDOT ? GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3).Best : primaryTarget)?.Actor, aoe, strategy);
 
-        (BestAOETargets, NumAOETargets) = GetBestTarget(primaryTarget, 10, Is10yRectTarget);
-        BestAOETarget = WantAOE ? BestAOETargets : primaryTarget;
-        (BestDOTTargets, ChaosLeft) = GetDOTTarget(primaryTarget, ChaosRemaining, 2, 3);
-        BestDOTTarget = WantDOT ? BestDOTTargets : primaryTarget;
-        var (BestSpearTargets, NumSpearTargets) = GetBestTarget(primaryTarget, 15, LineTargetCheck(15));
-        var BestSpearTarget = AutoTarget && Unlocked(AID.Geirskogul) && NumSpearTargets > 1 ? BestSpearTargets : primaryTarget;
-        var (BestDiveTargets, NumDiveTargets) = GetBestTarget(primaryTarget, 20, IsSplashTarget);
-        var BestDiveTarget = AutoTarget && Unlocked(AID.DragonfireDive) && NumDiveTargets > 1 ? BestDiveTargets : primaryTarget;
-        var allowedDiveTarget =
-            ShouldDive(strategy, BestDiveTarget?.Actor) ? BestDiveTarget?.Actor :
-            ShouldDive(strategy, mainTarget) ? mainTarget : null;
-
-        if (strategy.HoldEverything() || CountdownRemaining > 0.7)
+        if (strategy.HoldEverything())
             return;
 
-        Actor? SpearTarget(StrategyValues.OptionRef strat) => AOETargetChoice(mainTarget, BestSpearTarget?.Actor, strat, strategy);
-        Actor? DiveTarget(StrategyValues.OptionRef strat) => AOETargetChoice(mainTarget, allowedDiveTarget, strat, strategy);
-
-        //standard rotation
-        var stTarget = SingleTargetChoice(mainTarget, aoe);
-        var ttTarget = AOETargetChoice(mainTarget, BestDOTTarget?.Actor, aoe, strategy);
-        var aoesTarget = AOETargetChoice(mainTarget, BestAOETarget?.Actor, aoe, strategy);
-        var calculateTarget = AutoTarget ? (WantAOE ? aoesTarget : WantDOT ? ttTarget : stTarget) : stTarget;
-        var calculateRange = AutoTarget ? (WantAOE ? In10y(aoesTarget) : WantDOT ? In3y(ttTarget) : In3y(stTarget)) : In3y(stTarget);
-        var finishTarget = ComboLastMove switch
+        if (strategy.AllowBuffs())
         {
-            AID.SonicThrust or AID.DoomSpike or AID.DraconianFury => aoesTarget, //AOE
-            AID.SpiralBlow or AID.Disembowel => ttTarget, //DOT
-            AID.Drakesbane or AID.CoerthanTorment => calculateTarget, //now we can enter any
-            _ => stTarget //ST actions
-        };
-        var (aoeAction, aoeTarget) = aoeStrat switch
-        {
-            AOEStrategy.AutoFinish => (AutoFinish, finishTarget),
-            AOEStrategy.ForceSTFinish => (FullSTFinishBoth, stTarget),
-            AOEStrategy.ForceSTFinishPS => (FullSTFinishPS, ttTarget),
-            AOEStrategy.ForceSTFinishCS => (FullSTFinishCS, ttTarget),
-            AOEStrategy.ForceBuffsFinish => (BuffsSTFinish, finishTarget),
-            AOEStrategy.ForceNormalFinish => (NormalSTFinish, finishTarget),
-            AOEStrategy.ForceAOEFinish => (FullAOEFinish, finishTarget),
-            AOEStrategy.AutoBreak => (AutoBreak, calculateTarget),
-            AOEStrategy.ForceSTBreak => (FullSTBreakBoth, ttTarget),
-            AOEStrategy.ForceSTBreakPS => (FullSTBreakPS, stTarget),
-            AOEStrategy.ForceSTBreakCS => (FullSTBreakCS, ttTarget),
-            AOEStrategy.ForceBuffsBreak => (BuffsSTBreak, ttTarget),
-            AOEStrategy.ForceNormalBreak => (NormalSTBreak, stTarget),
-            AOEStrategy.ForceAOEBreak => (FullAOEBreak, aoesTarget),
-            _ => (AID.None, null)
-        };
-        if (calculateRange)
-            QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
-
-        //abilities
-        if (!strategy.HoldAbilities())
-        {
-            //cooldowns
-            if (!strategy.HoldCDs())
-            {
-                //buffs
-                if (!strategy.HoldBuffs())
-                {
-
-                    //Lance Charge
-                    QueueBuff
-                        (
-                            strategy.Option(Track.LanceCharge).As<BuffsStrategy>(),
-                            mainTarget,
-                            AID.LanceCharge,
-                            !Unlocked(AID.BattleLitany) || BLcd is > 30 or < 1,
-                            2
-                        );
-
-                    //Battle Litany
-                    QueueBuff
-                        (
-                            strategy.Option(Track.BattleLitany).As<BuffsStrategy>(),
-                            mainTarget,
-                            AID.BattleLitany,
-                            HasLC,
-                            1,
-                            CombatTimer >= 30 || LCcd < 58
-                        );
-
-                    //Life Surge
-                    var (lsCondition, lsPrio) = ShouldUseLifeSurge(strategy, mainTarget);
-                    if (lsCondition)
-                        QueueOGCD(AID.LifeSurge, Player, lsPrio);
-                }
-
-                //Geirskogul
-                var gsk = strategy.Option(Track.Geirskogul);
-                var gskStrat = gsk.As<CommonStrategy>();
-                var gskTarget = SpearTarget(gsk);
-                QueueCommonOGCD
-                    (
-                        gskStrat,
-                        gskTarget,
-                        AID.Geirskogul,
-                        ShouldSpear(gskTarget) && (InOddWindow(AID.BattleLitany) ? HasLC : HasLC && HasBL),
-                        HasLC && HasBL,
-                        150
-                    );
-
-                //Jump
-                var jump = strategy.Option(Track.Jump);
-                var jumpStrat = jump.As<CommonStrategy>();
-                var jumpTarget = SingleTargetChoice(mainTarget, jump);
-                QueueCommonOGCD
-                    (
-                        jumpStrat,
-                        jumpTarget,
-                        BestJump,
-                        buffed1m || buffed2m || LCcd is < 43 and > 13,
-                        buffed2m,
-                        6
-                    );
-
-                //Dragonfire Dive
-                var dd = strategy.Option(Track.DragonfireDive);
-                var ddStrat = dd.As<CommonStrategy>();
-                var ddTarget = DiveTarget(dd);
-                QueueCommonOGCD
-                    (
-                        ddStrat,
-                        ddTarget,
-                        AID.DragonfireDive,
-                        ShouldDive(strategy, ddTarget) && buffed2m,
-                        buffed2m,
-                        4
-                    );
-
-                //Stardiver
-                var sd = strategy.Option(Track.Stardiver);
-                var sdStrat = sd.As<CommonStrategy>();
-                var sdTarget = DiveTarget(sd);
-                QueueCommonOGCD
-                    (
-                        sdStrat,
-                        sdTarget,
-                        AID.Stardiver,
-                        ShouldDive(strategy, sdTarget) && bursting && !ShouldUseLifeSurge(strategy, mainTarget).Item1 &&
-                            (SkSGCDLength <= 2.1f || CanWeaveIn),
-                        buffed2m,
-                        1
-                    );
-
-                //True North
-                if (CanTrueNorth)
-                {
-                    var tn = strategy.Option(Track.TrueNorth);
-                    var tnStrat = tn.As<TrueNorthStrategy>();
-                    var condition = InCombat(mainTarget) && !WantAOE && In3y(mainTarget) && NextPositionalImminent && !NextPositionalCorrect;
-                    var needRear = !IsOnRear(mainTarget!) && ((Unlocked(AID.ChaosThrust) && ComboLastMove is AID.Disembowel or AID.SpiralBlow) || (Unlocked(AID.WheelingThrust) && ComboLastMove is AID.ChaosThrust or AID.ChaoticSpring));
-                    var needFlank = !IsOnFlank(mainTarget!) && Unlocked(AID.FangAndClaw) && ComboLastMove is AID.HeavensThrust or AID.FullThrust;
-                    var (tnCondition, tnPrio) = tnStrat switch
-                    {
-                        TrueNorthStrategy.Automatic => (condition && CanLateWeaveIn, OGCDPriority.Average + 6),
-                        TrueNorthStrategy.Send => (condition && GCD < 1.25f, ChangePriority(highPrio: 406)),
-                        TrueNorthStrategy.ASAP => (condition, OGCDPriority.ToGCDPriority),
-                        TrueNorthStrategy.Flank => (condition && CanLateWeaveIn && needFlank, OGCDPriority.Average + 5),
-                        TrueNorthStrategy.Rear => (condition && CanLateWeaveIn && needRear, OGCDPriority.Average + 5),
-                        TrueNorthStrategy.Force => (!HasStatus(SID.TrueNorth), OGCDPriority.ToGCDPriority),
-                        _ => (false, OGCDPriority.None)
-                    };
-                    if (tnCondition)
-                        QueueOGCD(AID.TrueNorth, Player, tnPrio);
-                }
-
-                //Starcross
-                var sc = strategy.Option(Track.Starcross);
-                var scStrat = sc.As<OGCDStrategy>();
-                var scTarget = AOETargetChoice(mainTarget, BestDiveTarget?.Actor, sc, strategy); //no need for Dive check here since this is a ranged ability
-                var scCondition =
-                    ShouldUseOGCD
-                    (
-                        scStrat,
-                        scTarget,
-                        Unlocked(AID.Starcross) && HasStatus(SID.StarcrossReady),
-                        InCombat(scTarget) && In20y(scTarget) && CanWeaveIn
-                    );
-                if (scCondition)
-                    QueueOGCD(AID.Starcross, scTarget, OGCDPrio(scStrat, OGCDPriority.Average + 5));
-
-                //Nastrond
-                var nast = strategy.Option(Track.Nastrond);
-                var nastStrat = nast.As<OGCDStrategy>();
-                var nastTarget = SpearTarget(nast);
-                var nastCondition =
-                    ShouldUseOGCD
-                    (
-                        nastStrat,
-                        nastTarget,
-                        Unlocked(AID.Nastrond) && HasStatus(SID.NastrondReady),
-                        ShouldSpear(nastTarget) && CanWeaveIn
-                    );
-                if (nastCondition)
-                    QueueOGCD(AID.Nastrond, nastTarget, OGCDPrio(nastStrat, OGCDPriority.Average + 4));
-
-                //Rise of the Dragon
-                var rotd = strategy.Option(Track.RiseOfTheDragon);
-                var rotdStrat = rotd.As<OGCDStrategy>();
-                var rotdTarget = AOETargetChoice(mainTarget, BestDiveTarget?.Actor, rotd, strategy); //no need for Dive check here since this is a ranged ability
-                var rotdCondition =
-                    ShouldUseOGCD
-                    (
-                        rotdStrat,
-                        rotdTarget,
-                        Unlocked(AID.RiseOfTheDragon) && HasStatus(SID.DragonsFlight),
-                        InCombat(rotdTarget) && In20y(rotdTarget) && CanWeaveIn
-                    );
-                if (rotdCondition)
-                    QueueOGCD(AID.RiseOfTheDragon, rotdTarget, OGCDPrio(rotdStrat, OGCDPriority.Average + 3));
-
-                //Mirage Dive
-                var md = strategy.Option(Track.MirageDive);
-                var mdStrat = md.As<FlexStrategy>();
-                var mdTarget = SingleTargetChoice(mainTarget, md);
-                var mdStatus = Status(SID.DiveReady);
-                var mdMinimum = InCombat(mdTarget) && In20y(mdTarget) && HasStatus(SID.DiveReady);
-                var (mdCondition, mdPrio) = mdStrat switch
-                {
-                    FlexStrategy.ASAP => (mdMinimum && CanWeaveIn, OGCDPriority.Average + 1),
-                    FlexStrategy.Late => (mdMinimum && mdStatus <= 3f, ChangePriority(599, 749, In15y(mdTarget))),
-                    FlexStrategy.LateOrBuffed => (mdMinimum && (mdStatus is <= 3f and not 0 || bursting), mdStatus is <= 3f and not 0 ? ChangePriority(401, 603) : ChangePriority(401, 603, convert: false)),
-                    _ => (false, OGCDPriority.None),
-                };
-                if (mdCondition)
-                    QueueOGCD(AID.MirageDive, mdTarget, mdPrio);
-
-                //Elusive Jump
-                if (ActionReady(AID.ElusiveJump))
-                {
-                    var elusive = strategy.Option(Track.ElusiveJump).As<ElusiveDirection>();
-                    var angle = elusive switch
-                    {
-                        ElusiveDirection.CharacterForward => Player.Rotation,
-                        ElusiveDirection.CameraForward => World.Client.CameraAzimuth,
-                        ElusiveDirection.CameraBackward => World.Client.CameraAzimuth + 180.Degrees(),
-                        _ => Player.Rotation + 180.Degrees()
-                    };
-                    if (elusive != ElusiveDirection.None)
-                        QueueOGCD(AID.ElusiveJump, Player, OGCDPriority.Max + 1, facingAngle: angle);
-                }
-
-                //pots
-                if (strategy.Potion() switch
-                {
-                    PotionStrategy.AlignWithBuffs => Player.InCombat && LCcd <= 2 && BLcd <= 3,
-                    PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 3 || RaidBuffsLeft > GCD),
-                    PotionStrategy.Immediate => true,
-                    _ => false
-                })
-                    Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.High);
-            }
-
-            //gauge
-            if (!strategy.HoldGauge())
-            {
-                //Wyrmwind Thrust
-                var wt = strategy.Option(Track.WyrmwindThrust);
-                var wtStrat = wt.As<FlexStrategy>();
-                var wtTarget = SpearTarget(wt);
-                var wtMinimum = ShouldSpear(wtTarget) && Gauge.FirstmindsFocusCount == 2;
-                var (wtCondition, wtPrio) = wtStrat switch
-                {
-                    FlexStrategy.ASAP => (wtMinimum && CanWeaveIn, OGCDPriority.Average + 2),
-                    FlexStrategy.Late => (wtMinimum && HasStatus(SID.DraconianFire), ChangePriority(402, 603, In15y(wtTarget))),
-                    FlexStrategy.LateOrBuffed => (wtMinimum && (HasStatus(SID.DraconianFire) || bursting), HasStatus(SID.DraconianFire) ? ChangePriority(402, 603, In15y(wtTarget)) : ChangePriority(402, 603, In15y(wtTarget), false)),
-                    _ => (false, OGCDPriority.None)
-                };
-                if (wtCondition)
-                    QueueOGCD(AID.WyrmwindThrust, wtTarget, wtPrio);
-            }
+            QueueLanceCharge(strategy);
+            QueueBattleLitany(strategy);
+            QueueLifeSurge(strategy);
         }
-
-        //Piercing Talon
-        if (Unlocked(AID.PiercingTalon))
+        if (strategy.AllowCDs())
         {
-            var pt = strategy.Option(Track.PiercingTalon);
-            var ptStrat = pt.As<PiercingTalonStrategy>();
-            var ptTarget = SingleTargetChoice(mainTarget, pt);
-            var prio = Status(SID.EnhancedPiercingTalon) is <= 3f and not 0f ? GCDPriority.Low + 1 : GCDPriority.Low;
-            var (ptCondition, ptPrio) = ptStrat switch
-            {
-                PiercingTalonStrategy.AllowEX => (InCombat(ptTarget) && HasStatus(SID.EnhancedPiercingTalon), GCDPriority.Low),
-                PiercingTalonStrategy.Allow => (InCombat(ptTarget) && !In3y(ptTarget), GCDPriority.Low),
-                PiercingTalonStrategy.Allow5 => (InCombat(ptTarget) && (HasStatus(SID.EnhancedPiercingTalon) ? !In3y(ptTarget) : !In5y(ptTarget)), GCDPriority.Low),
-                PiercingTalonStrategy.Allow10 => (InCombat(ptTarget) && (HasStatus(SID.EnhancedPiercingTalon) ? !In3y(ptTarget) : !In10y(ptTarget)), GCDPriority.Low),
-                PiercingTalonStrategy.ForceEX => (HasStatus(SID.EnhancedPiercingTalon), GCDPriority.Low + 1),
-                PiercingTalonStrategy.Force => (true, GCDPriority.Low + 1),
-                _ => (false, GCDPriority.None)
-            };
-            if (ptCondition)
-                QueueGCD(AID.PiercingTalon, ptTarget, ptPrio);
+            QueueGeirskogul(strategy);
+            QueueHighJump(strategy);
+            QueueDragonfireDive(strategy);
+            QueueStardiver(strategy);
+            QueueFollowUp(strategy, Track.Starcross, AID.Starcross, SID.StarcrossReady, SplashTarget, 20, OGCDPriority.Average + 5);
+            QueueFollowUp(strategy, Track.Nastrond, AID.Nastrond, SID.NastrondReady, SpearTarget, 15, OGCDPriority.Average + 4);
+            QueueFollowUp(strategy, Track.RiseOfTheDragon, AID.RiseOfTheDragon, SID.DragonsFlight, SplashTarget, 20, OGCDPriority.Average + 3);
+            QueueMirageDive(strategy);
+            QueueTrueNorth(strategy);
+            QueueElusiveJump(strategy);
         }
+        if (strategy.AllowGauge())
+            QueueWyrmwindThrust(strategy);
+        if (strategy.AllowAbilities())
+            QueuePotion(strategy, ActionDefinitions.IDPotionStr, LC.CD <= 2 && BL.CD <= 3);
+        QueuePiercingTalon(strategy);
+        QueueCombo(strategy);
 
-        //targeting
-        //TODO: improve
-        if (strategy.AutoHardTargeting())
-        {
-            if (WantDOT)
-            {
-                if (ttTarget != null &&
-                    aoeStrat is AOEStrategy.AutoBreak or
-                    AOEStrategy.AutoFinish or
-                    AOEStrategy.ForceBuffsBreak or
-                    AOEStrategy.ForceBuffsFinish)
-                {
-                    Hints.ForcedTarget = ttTarget;
-                }
-            }
-        }
-        else if (AutoTarget)
-        {
+        var spreadDOT = strategy.AutoHardTargeting() && CleaveDOT && ComboLastMove is AID.Disembowel or AID.SpiralBlow && DOTTarget != null;
+        if (spreadDOT)
+            Hints.ForcedTarget = DOTTarget;
+        else if (AutoTarget && !strategy.AutoHardTargeting())
             GetNextTarget(strategy, ref primaryTarget, 3);
-        }
+        var positional = GetBestPositional(primaryTarget);
+        UpdatePositionals(primaryTarget, ref positional);
+        if (PrimaryTarget != null)
+            GoalZoneCombined(strategy, 3, Hints.GoalAOERect(PrimaryTarget, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
+    }
 
-        //positionals
-        var pos = GetBestPositional(strategy, primaryTarget);
-        UpdatePositionals(primaryTarget, ref pos);
-
-        if (mainTarget != null)
+    private (bool Condition, OGCDPriority Priority) ShouldBuff(BuffsStrategy buff, bool together, bool optimal)
+    {
+        var ready = optimal && PS.Active && InCombat(PrimaryTarget) && In3y(PrimaryTarget);
+        return buff switch
         {
-            GoalZoneCombined(3, Hints.GoalAOERect(mainTarget, 10, 2), AID.DoomSpike, minAoe: 3, maximumActionRange: 20);
-        }
+            BuffsStrategy.Automatic => (ready, OGCDPriority.Severe),
+            BuffsStrategy.Together => (ready && together, OGCDPriority.Severe),
+            BuffsStrategy.Force => (true, OGCDPriority.ToGCDPriority),
+            BuffsStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.ToGCDPriority),
+            _ => (false, OGCDPriority.None)
+        };
+    }
+    private void QueueLanceCharge(StrategyValues strategy)
+    {
+        var lc = strategy.Option(Track.LanceCharge).As<BuffsStrategy>();
+        var (condition, priority) = ShouldBuff(lc, !Unlocked(AID.BattleLitany) || BL.CD is > 30 or < 1, true);
+        if (condition && ActionReady(AID.LanceCharge))
+            QueueOGCD(AID.LanceCharge, Player, priority + 2);
+    }
+    private void QueueBattleLitany(StrategyValues strategy)
+    {
+        var bl = strategy.Option(Track.BattleLitany).As<BuffsStrategy>();
+        var (condition, priority) = ShouldBuff(bl, LC.Active, CombatTimer >= 30 || LC.CD < 58);
+        if (condition && ActionReady(AID.BattleLitany))
+            QueueOGCD(AID.BattleLitany, Player, priority + 1);
+    }
+    private void QueueLifeSurge(StrategyValues strategy)
+    {
+        var fullCharges = LSCD < 0.6f;
+        var ready = Unlocked(AID.LifeSurge) && !HasStatus(SID.LifeSurge) && ReadyIn(AID.LifeSurge) < 0.6f;
+        var aoeBigHit = Unlocked(AID.CoerthanTorment) ? ComboLastMove is AID.SonicThrust : ComboLastMove is AID.DoomSpike or AID.DraconianFury;
+        var stBigHit = ComboLastMove is AID.VorpalThrust or AID.LanceBarrage
+            || Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust or AID.FangAndClaw
+            || !Unlocked(AID.FullThrust) && ComboLastMove is AID.TrueThrust && !PS.Needed;
+        var bigHitNext = WantAOE ? aoeBigHit : CleaveDOT ? Unlocked(AID.Drakesbane) && ComboLastMove is AID.WheelingThrust : stBigHit;
+        var keepForEven = !Unlocked(AID.BattleLitany) || BL.Active || LSCD + 40 <= BL.CD;
+        var window = !Unlocked(AID.LanceCharge) || LC.Active && keepForEven || fullCharges && LC.CD > 10;
+        var inRange = WantAOE ? In10y(PrimaryTarget) : In3y(PrimaryTarget);
+        var optimal = bigHitNext && window && PS.Active && InCombat(PrimaryTarget) && inRange;
+        var (condition, priority) = strategy.Option(Track.LifeSurge).As<SurgeStrategy>() switch
+        {
+            SurgeStrategy.Automatic => (optimal, ChangePriority(600, 605, convert: false)),
+            SurgeStrategy.WhenBuffed => (optimal, ChangePriority(600, 605, inRange)),
+            SurgeStrategy.Force => (true, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe)),
+            SurgeStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Severe),
+            SurgeStrategy.ForceNextOpti => (bigHitNext, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe)),
+            SurgeStrategy.ForceNextOptiWeave => (bigHitNext && CanWeaveIn, OGCDPriority.Severe),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition && ready)
+            QueueOGCD(AID.LifeSurge, Player, priority);
+    }
+    private void QueueCommonOGCD(CommonStrategy common, Actor? target, AID action, bool optimal, int extra)
+    {
+        var engaged = PS.Active && InCombat(target);
+        var (condition, priority) = common switch
+        {
+            CommonStrategy.Automatic => (engaged && optimal && CanWeaveIn, OGCDPriority.High),
+            CommonStrategy.HasLC => (engaged && LC.Active, OGCDPriority.High),
+            CommonStrategy.HasBL => (engaged && BL.Active, OGCDPriority.High),
+            CommonStrategy.HasAll => (engaged && LC.Active && BL.Active && (action == AID.Geirskogul || HasLOTD), OGCDPriority.High),
+            CommonStrategy.Force => (true, OGCDPriority.ToGCDPriority),
+            CommonStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Max + 2),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition && ActionReady(action))
+            QueueOGCD(action, target, priority + extra);
+    }
+    private void QueueGeirskogul(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Geirskogul);
+        var target = AOETargetChoice(PrimaryTarget, SpearTarget, track, strategy);
+        QueueCommonOGCD(track.As<CommonStrategy>(), target, AID.Geirskogul, In15y(target) && !BuffsImminent, 150);
+    }
+    private void QueueHighJump(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Jump);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        QueueCommonOGCD(track.As<CommonStrategy>(), target, BestJump, In20y(target) && !BuffsImminent, 6);
+    }
+    private void QueueDragonfireDive(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.DragonfireDive);
+        var target = AOETargetChoice(PrimaryTarget, ShouldDive(strategy, SplashTarget) ? SplashTarget : PrimaryTarget, track, strategy);
+        QueueCommonOGCD(track.As<CommonStrategy>(), target, AID.DragonfireDive, ShouldDive(strategy, target) && !BuffsImminent, 4);
+    }
+    private void QueueStardiver(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Stardiver);
+        var target = AOETargetChoice(PrimaryTarget, ShouldDive(strategy, SplashTarget) ? SplashTarget : PrimaryTarget, track, strategy);
+        QueueCommonOGCD(track.As<CommonStrategy>(), target, AID.Stardiver, ShouldDive(strategy, target) && HasLOTD && GCD >= 1.5f, 1);
+    }
+    private void QueueFollowUp(StrategyValues strategy, Track track, AID action, SID ready, Actor? autoTarget, float range, OGCDPriority priority)
+    {
+        var option = strategy.Option(track);
+        var followUp = option.As<OGCDStrategy>();
+        var target = AOETargetChoice(PrimaryTarget, autoTarget, option, strategy);
+        if (ShouldUseOGCD(followUp, target, Unlocked(action) && HasStatus(ready), InCombat(target) && DistanceFrom(target, range) && CanWeaveIn))
+            QueueOGCD(action, target, OGCDPrio(followUp, priority));
+    }
+    private void QueueMirageDive(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.MirageDive);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var expiring = MDLeft is > 0 and <= 3f;
+        var ready = MDLeft > 0 && InCombat(target) && In20y(target);
+        var (condition, priority) = track.As<FlexStrategy>() switch
+        {
+            FlexStrategy.ASAP => (ready && CanWeaveIn, OGCDPriority.Average + 1),
+            FlexStrategy.Late => (ready && expiring, ChangePriority(599, 749, In15y(target))),
+            FlexStrategy.LateOrBuffed => (ready && (expiring || Buffed), ChangePriority(401, 603, convert: expiring)),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition)
+            QueueOGCD(AID.MirageDive, target, priority);
+    }
+    private void QueueTrueNorth(StrategyValues strategy)
+    {
+        var optimal = InCombat(PrimaryTarget) && !WantAOE && In3y(PrimaryTarget) && NextPositionalImminent && !NextPositionalCorrect;
+        var needRear = !IsOnRear(PrimaryTarget) && ComboLastMove is AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring;
+        var needFlank = !IsOnFlank(PrimaryTarget) && ComboLastMove is AID.HeavensThrust or AID.FullThrust;
+        var (condition, priority) = strategy.Option(Track.TrueNorth).As<TrueNorthStrategy>() switch
+        {
+            TrueNorthStrategy.Automatic => (optimal && CanLateWeaveIn, OGCDPriority.Average + 6),
+            TrueNorthStrategy.Send => (optimal && GCD < 1.25f, ChangePriority(highPrio: 406)),
+            TrueNorthStrategy.ASAP => (optimal, OGCDPriority.ToGCDPriority),
+            TrueNorthStrategy.Rear => (optimal && CanLateWeaveIn && needRear, OGCDPriority.Average + 5),
+            TrueNorthStrategy.Flank => (optimal && CanLateWeaveIn && needFlank, OGCDPriority.Average + 5),
+            TrueNorthStrategy.Force => (!HasStatus(SID.TrueNorth), OGCDPriority.ToGCDPriority),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition && CanTrueNorth)
+            QueueOGCD(AID.TrueNorth, Player, priority);
+    }
+    private void QueueElusiveJump(StrategyValues strategy)
+    {
+        var elusive = strategy.Option(Track.ElusiveJump).As<ElusiveDirection>();
+        var angle = elusive switch
+        {
+            ElusiveDirection.CharacterForward => Player.Rotation,
+            ElusiveDirection.CameraForward => World.Client.CameraAzimuth,
+            ElusiveDirection.CameraBackward => World.Client.CameraAzimuth + 180.Degrees(),
+            _ => Player.Rotation + 180.Degrees()
+        };
+        if (elusive != ElusiveDirection.None && ActionReady(AID.ElusiveJump))
+            QueueOGCD(AID.ElusiveJump, Player, OGCDPriority.Max + 1, facingAngle: angle);
+    }
+    private void QueueWyrmwindThrust(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.WyrmwindThrust);
+        var target = AOETargetChoice(PrimaryTarget, SpearTarget, track, strategy);
+        var raidenNext = HasStatus(SID.DraconianFire);
+        var ready = Gauge.FirstmindsFocusCount == 2 && InCombat(target) && In15y(target);
+        var (condition, priority) = track.As<FlexStrategy>() switch
+        {
+            FlexStrategy.ASAP => (ready && CanWeaveIn, OGCDPriority.Average + 2),
+            FlexStrategy.Late => (ready && raidenNext, ChangePriority(402, 603, In15y(target))),
+            FlexStrategy.LateOrBuffed => (ready && (raidenNext || Buffed), ChangePriority(402, 603, In15y(target), raidenNext)),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition)
+            QueueOGCD(AID.WyrmwindThrust, target, priority);
+    }
+
+    private void QueuePiercingTalon(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.PiercingTalon);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var enhanced = HasStatus(SID.EnhancedPiercingTalon);
+        var engaged = InCombat(target);
+        var prepull = enhanced && NoPrepullWithin(0.85f) && !In3y(target) && In20y(target);
+        var (condition, priority) = track.As<PiercingTalonStrategy>() switch
+        {
+            PiercingTalonStrategy.AllowEX => (engaged && enhanced || prepull, GCDPriority.Low),
+            PiercingTalonStrategy.Allow => (engaged && !In3y(target) || prepull, GCDPriority.Low),
+            PiercingTalonStrategy.Allow5 => (engaged && (enhanced ? !In3y(target) : !In5y(target)) || prepull, GCDPriority.Low),
+            PiercingTalonStrategy.Allow10 => (engaged && (enhanced ? !In3y(target) : !In10y(target)) || prepull, GCDPriority.Low),
+            PiercingTalonStrategy.ForceEX => (enhanced, GCDPriority.Low + 1),
+            PiercingTalonStrategy.Force => (true, GCDPriority.Low + 1),
+            _ => (false, GCDPriority.None)
+        };
+        if (condition && Unlocked(AID.PiercingTalon))
+            QueueGCD(AID.PiercingTalon, target, priority);
+    }
+    private void QueueCombo(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.AOE);
+        var aoe = track.As<AOEStrategy>();
+        var action = NextCombo(ComboRoute(aoe), aoe <= AOEStrategy.ForceAOEFinish);
+        var aoeAction = action is AID.DoomSpike or AID.DraconianFury or AID.SonicThrust or AID.CoerthanTorment;
+        var target = aoeAction ? AOETarget : ComboLastMove is AID.Disembowel or AID.SpiralBlow ? DOTTarget : SingleTargetChoice(PrimaryTarget, track);
+        if ((aoeAction ? In10y(target) : In3y(target)) && CountdownRemaining is not > 0.7f)
+            QueueGCD(action, target, GCDPriority.Low);
+    }
+    private Route ComboRoute(AOEStrategy aoe) => aoe switch
+    {
+        AOEStrategy.AutoFinish or AOEStrategy.AutoBreak => WantAOE ? Route.AOE : CleaveDOT ? Route.Buffs : Route.Both,
+        AOEStrategy.ForceSTFinishPS or AOEStrategy.ForceSTBreakPS => Route.Power,
+        AOEStrategy.ForceSTFinishCS or AOEStrategy.ForceSTBreakCS => Route.Chaos,
+        AOEStrategy.ForceNormalFinish or AOEStrategy.ForceNormalBreak => Route.Damage,
+        AOEStrategy.ForceBuffsFinish or AOEStrategy.ForceBuffsBreak => Route.Buffs,
+        AOEStrategy.ForceAOEFinish or AOEStrategy.ForceAOEBreak => Route.AOE,
+        _ => Route.Both
+    };
+    private AID NextCombo(Route route, bool finish)
+    {
+        var inAOECombo = ComboLastMove is AID.DoomSpike or AID.DraconianFury or AID.SonicThrust;
+        var inSTCombo = ComboLastMove is AID.TrueThrust or AID.RaidenThrust or AID.VorpalThrust or AID.LanceBarrage or AID.FullThrust or AID.HeavensThrust
+            or AID.FangAndClaw or AID.WheelingThrust or AID.Disembowel or AID.SpiralBlow or AID.ChaosThrust or AID.ChaoticSpring;
+        return route == Route.AOE
+            ? finish && inSTCombo ? NextST(Route.Both) : NextAOE()
+            : finish && inAOECombo ? FinishAOE() : NextST(route);
+    }
+    private AID NextST(Route route) => ComboLastMove switch
+    {
+        AID.TrueThrust or AID.RaidenThrust => ChaosRoute(route) ? BestDisembowel : BestVorpal,
+        AID.Disembowel or AID.SpiralBlow => BestChaos,
+        AID.ChaosThrust or AID.ChaoticSpring => Unlocked(AID.WheelingThrust) ? AID.WheelingThrust : AID.TrueThrust,
+        AID.VorpalThrust or AID.LanceBarrage => BestHeavens,
+        AID.FullThrust or AID.HeavensThrust => Unlocked(AID.FangAndClaw) ? AID.FangAndClaw : AID.TrueThrust,
+        AID.WheelingThrust or AID.FangAndClaw => BestDrakesbane,
+        _ => BestTrue
+    };
+    private bool ChaosRoute(Route route)
+    {
+        var refreshChaos = ChaosLeft <= SkSGCDLength * 4;
+        var refreshPower = PS.Left <= SkSGCDLength * 6;
+        var refresh = route switch
+        {
+            Route.Power => refreshPower,
+            Route.Chaos => refreshChaos,
+            Route.Buffs => true,
+            Route.Damage => false,
+            _ => refreshPower || refreshChaos
+        };
+        var lowLevel = Unlocked(AID.FullThrust) ? PS.Left <= SkSGCDLength * 3 : PS.Needed;
+        return Unlocked(AID.Disembowel) && (route is Route.Buffs or Route.Damage || Unlocked(AID.ChaosThrust) ? refresh : lowLevel);
+    }
+    private AID FinishAOE() => ComboLastMove == AID.SonicThrust
+        ? Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : BestTrue
+        : Unlocked(AID.SonicThrust) ? AID.SonicThrust : BestTrue;
+    private AID NextAOE()
+    {
+        var lowLevel = ComboLastMove switch
+        {
+            AID.Disembowel => AID.DoomSpike,
+            AID.TrueThrust => AID.Disembowel,
+            _ => PS.Needed ? AID.TrueThrust : AID.DoomSpike
+        };
+        return ComboLastMove switch
+        {
+            AID.SonicThrust => Unlocked(AID.CoerthanTorment) ? AID.CoerthanTorment : AID.DoomSpike,
+            AID.DoomSpike or AID.DraconianFury => Unlocked(AID.SonicThrust) ? AID.SonicThrust : PS.Needed ? lowLevel : AID.DoomSpike,
+            _ => !Unlocked(AID.SonicThrust) ? lowLevel : HasStatus(SID.DraconianFire) ? AID.DraconianFury : AID.DoomSpike
+        };
+    }
+
+    private float ChaosOn(Actor? target) => MathF.Max(StatusDetails(target, SID.ChaosThrust, Player.InstanceID).Left, StatusDetails(target, SID.ChaoticSpring, Player.InstanceID).Left);
+    private float ChaosRemaining(Actor? target) => target == null ? float.MaxValue : ChaosOn(target) is var left && left > 6 ? left : 0;
+    private bool ShouldDive(StrategyValues strategy, Actor? target)
+    {
+        var dives = strategy.Option(Track.Dives).As<DivesStrategy>();
+        var standing = dives is not (DivesStrategy.InAnyNotMoving or DivesStrategy.InMeleeNotMoving) || !IsMoving;
+        var inRange = dives switch
+        {
+            DivesStrategy.InMelee or DivesStrategy.InMeleeNotMoving => In3y(target),
+            DivesStrategy.InAny or DivesStrategy.InAnyNotMoving => In20y(target) && DashSafe(target),
+            _ => false
+        };
+        return InCombat(target) && standing && inRange;
+    }
+    private (Positional, bool) GetBestPositional(Enemy? target)
+    {
+        (Positional, bool) Predict(int stepsBeforeReloop) => (CanFitSkSGCD(ChaosLeft, stepsBeforeReloop + 3) && CanFitSkSGCD(PS.Left, stepsBeforeReloop + 2) ? Positional.Flank : Positional.Rear, false);
+        var none = AOETargets > 2 && Unlocked(AID.DoomSpike) || !Unlocked(AID.ChaosThrust) || target == null;
+        return none ? (Positional.Any, false)
+            : !Unlocked(AID.FangAndClaw) ? (Positional.Rear, ComboLastMove == AID.Disembowel)
+            : ComboLastMove switch
+            {
+                AID.ChaosThrust => Unlocked(AID.WheelingThrust) ? (Positional.Rear, true) : Predict(0),
+                AID.Disembowel or AID.SpiralBlow or AID.ChaoticSpring => (Positional.Rear, true),
+                AID.TrueThrust or AID.RaidenThrust => Predict(-1),
+                AID.VorpalThrust or AID.LanceBarrage => (Positional.Flank, false),
+                AID.HeavensThrust or AID.FullThrust => (Positional.Flank, true),
+                AID.WheelingThrust or AID.FangAndClaw => Predict(Unlocked(AID.Drakesbane) ? 1 : 0),
+                _ => Predict(0)
+            };
     }
 }
-
