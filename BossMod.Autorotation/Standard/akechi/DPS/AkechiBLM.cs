@@ -12,7 +12,7 @@ public sealed class AkechiBLM(RotationModuleManager manager, Actor player) : Ake
     public enum EnderStrategy { Automatic, OnlyDespair, OnlyFlare, ForceDespair, ForceFlare }
     public enum PolyglotStrategy { AutoSpendAll, AutoHold1, AutoHold2, AutoHold3, XenoSpendAll, XenoHold1, XenoHold2, XenoHold3, FoulSpendAll, FoulHold1, FoulHold2, FoulHold3, ForceAny, ForceXeno, ForceFoul, Delay }
     public enum CommonStrategy { Automatic, Force, ForceWeave, Delay }
-    public enum TriplecastStrategy { Automatic, Force, ForceWeave, Delay, KeepOne }
+    public enum TriplecastStrategy { Automatic, KeepOne, Force, ForceWeave, Delay }
     public enum TPUSStrategy { Allow, OOConly, Forbid }
     public enum MovementStrategy { Allow, AllowNoScathe, OnlyGCDs, OnlyGCDsNoScathe, OnlyOGCDs, OnlyScathe, Forbid }
     public enum CastingOption { Forbid, Allow }
