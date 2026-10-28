@@ -70,6 +70,7 @@ abstract partial class AutoClear : ZoneModule
         Hunting,
         OpenPassage,
         Hoard,
+        Candelabra,
         Manual
     }
 
@@ -80,6 +81,7 @@ abstract partial class AutoClear : ZoneModule
         PathfindReason.Hunting => "hunting mobs for progress",
         PathfindReason.OpenPassage => "heading for passage",
         PathfindReason.Hoard => "heading for hoard",
+        PathfindReason.Candelabra => "heading for candelabra",
         PathfindReason.Manual => "navigating manually",
         _ => ""
     };
@@ -116,6 +118,11 @@ abstract partial class AutoClear : ZoneModule
         var unrevealedPassage = Array.FindIndex(Palace.Rooms, d => d.HasFlag(RoomFlags.Passage) && !d.HasFlag(RoomFlags.Revealed));
         if (unrevealedPassage > 0)
             DesiredRoom = (unrevealedPassage, PathfindReason.ClosedPassage);
+
+        // TODO: figure out if content director has a flag for the candelabra disappearing
+        var unrevealedDevo = Array.FindIndex(Palace.Rooms, d => d.HasFlag((RoomFlags)0x100) && !d.HasFlag(RoomFlags.Revealed));
+        if (unrevealedDevo > 0)
+            DesiredRoom = (unrevealedDevo, PathfindReason.Candelabra);
 
         if (Palace.Progress.HoardCurrentFloor && World.Actors.FirstOrDefault(a => a.OID == (uint)OID.BandedCofferIndicator) is { } hoard)
             DesiredRoom = (FindClosestRoom(hoard.Position).Index, PathfindReason.Hoard);
