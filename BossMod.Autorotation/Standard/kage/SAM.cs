@@ -35,10 +35,10 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         [Track("Shinten / Kyuten", MinLevel = 52, Actions = [AID.HissatsuShinten, AID.HissatsuKyuten])]
         public Track<KenkiStrategy> Kenki;
 
-        [Track("Gyoten (dash)", MinLevel = 54, Action = AID.HissatsuGyoten)]
+        [Track("Gyoten", MinLevel = 54, Action = AID.HissatsuGyoten)]
         public Track<DashStrategy> Dash;
 
-        [Track("Yaten (backstep)", MinLevel = 56, Action = AID.HissatsuYaten)]
+        [Track("Yaten", MinLevel = 56, Action = AID.HissatsuYaten)]
         public Track<YatenStrategy> Yaten;
 
         [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
@@ -72,7 +72,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum IkishotenStrategy
     {
-        [Option("Ikishoten with Senei in the burst; Ogi Namikiri in raid buffs or before it runs out")]
+        [Option("Ikishoten with Senei during the burst; Ogi Namikiri during raid buffs or before it runs out")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -82,7 +82,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum SeneiStrategy
     {
-        [Option("Use in the burst at 25+ Kenki")]
+        [Option("Use during the burst at 25+ Kenki")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -92,7 +92,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     public enum ShohaStrategy
     {
-        [Option("Use at 3 Meditation in raid buffs, or when it would overcap")]
+        [Option("Use at 3 Meditation during raid buffs, or when it would overcap")]
         Automatic,
         [Option("Do not use")]
         Delay,

@@ -26,10 +26,10 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
         [Track("Reassemble", MinLevel = 10, Action = AID.Reassemble)]
         public Track<ReassembleStrategy> Reassemble;
 
-        [Track("Queen", MinLevel = 40, Actions = [AID.AutomatonQueen, AID.RookAutoturret, AID.QueenOverdrive, AID.RookOverdrive])]
+        [Track("Automaton Queen", MinLevel = 40, Actions = [AID.AutomatonQueen, AID.RookAutoturret, AID.QueenOverdrive, AID.RookOverdrive])]
         public Track<QueenStrategy> Queen;
 
-        [Track("Gauss Round / Ricochet", MinLevel = 15, Actions = [AID.GaussRound, AID.Ricochet, AID.DoubleCheck, AID.Checkmate])]
+        [Track("Double Check / Checkmate", MinLevel = 15, Actions = [AID.GaussRound, AID.Ricochet, AID.DoubleCheck, AID.Checkmate])]
         public Track<ChargeStrategy> Charges;
 
         [Track("Flamethrower", MinLevel = 70, Action = AID.Flamethrower)]
@@ -96,7 +96,7 @@ public sealed class KageMCH(RotationModuleManager manager, Actor player) : KageS
 
     public enum ChargeStrategy
     {
-        [Option("Spend in Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
+        [Option("Spend during Overheat and raid buffs; never overcap", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         ASAP,

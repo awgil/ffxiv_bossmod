@@ -44,7 +44,7 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum IreStrategy
     {
-        [Option("Use on cooldown when the burst is worth it; waits up to ~12s for raid buffs")]
+        [Option("Use on targets that live 10s+ (the boss in boss fights); waits up to ~12s for raid buffs")]
         Automatic,
         [Option("Do not use")]
         Delay,

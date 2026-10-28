@@ -26,7 +26,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
         [Track("Afflatus Misery", MinLevel = 74, Action = AID.AfflatusMisery)]
         public Track<MiseryStrategy> Misery;
 
-        [Track("Lilies (overcap / downtime / cleave)", MinLevel = 74, Actions = [AID.AfflatusRapture, AID.AfflatusSolace])]
+        [Track("Afflatus Solace / Rapture", MinLevel = 74, Actions = [AID.AfflatusRapture, AID.AfflatusSolace])]
         public Track<LiliesStrategy> Lilies;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
@@ -51,7 +51,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum GlareIVStrategy
     {
-        [Option("Spend Sacred Sight in raid buffs, while moving, or before it runs out")]
+        [Option("Spend Sacred Sight during raid buffs, while moving, or before it runs out")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -61,7 +61,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
 
     public enum LiliesStrategy
     {
-        [Option("Spend to avoid overcapping or on 2+ targets, when the Blood Lily will be used")]
+        [Option("Spend to avoid overcapping or on 2+ targets if Misery will land; finish a Blood Lily before the target dies")]
         Automatic,
         [Option("Do not use")]
         Delay,

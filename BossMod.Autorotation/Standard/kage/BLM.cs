@@ -26,7 +26,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         [Track("Thunder", MinLevel = 6, Actions = [AID.HighThunder, AID.Thunder3, AID.Thunder1, AID.HighThunder2, AID.Thunder4, AID.Thunder2])]
         public Track<ThunderStrategy> Thunder;
 
-        [Track("Triplecast / Swiftcast (movement)", MinLevel = 18, Actions = [AID.Triplecast, ClassShared.AID.Swiftcast])]
+        [Track("Triplecast / Swiftcast", MinLevel = 18, Actions = [AID.Triplecast, ClassShared.AID.Swiftcast])]
         public Track<MovementStrategy> Movement;
 
         [Track("Manaward", MinLevel = 30, Action = AID.Manaward)]
@@ -81,7 +81,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
 
     public enum PolyglotStrategy
     {
-        [Option("Spend in Astral Fire with raid buffs, keep one for movement; never overcap")]
+        [Option("Spend in Astral Fire during raid buffs, keep one for movement; never overcap")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,

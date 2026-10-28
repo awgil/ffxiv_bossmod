@@ -20,7 +20,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         [Track("Communio", MinLevel = 90, Action = AID.Communio)]
         public Track<CommunioStrategy> Communio;
 
-        [Track("Soul Gauge (Gluttony, Blood Stalk, Unveiled)", InternalName = "SoulGauge", MinLevel = 50, Actions = [AID.Gluttony, AID.BloodStalk, AID.GrimSwathe])]
+        [Track("Gluttony / Blood Stalk", InternalName = "SoulGauge", MinLevel = 50, Actions = [AID.Gluttony, AID.BloodStalk, AID.GrimSwathe])]
         public Track<SoulGaugeStrategy> SoulGauge;
 
         [Track("Soul Slice / Soul Scythe", InternalName = "Slice", MinLevel = 60, Actions = [AID.SoulSlice, AID.SoulScythe])]
@@ -72,7 +72,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum EnshroudStrategy
     {
-        [Option("Double Enshroud in burst, single Enshroud at odd minutes, avoid overcapping Shroud")]
+        [Option("Double Enshroud during Arcane Circle, single Enshroud at odd minutes; never overcap Shroud")]
         Automatic,
         [Option("Use ASAP, but don't overwrite Soul Reaver, Executioner or Perfectio")]
         ForceSafe,
@@ -134,7 +134,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Keep it up and stack ~30s before the burst")]
         Automatic,
-        [Option("Keep Gluttony aligned: at full Soul with Gluttony coming up, use Shadow of Death instead of Unveiled + Gibbet/Gallows", MinLevel = 76)]
+        [Option("Keep Gluttony aligned: Shadow of Death instead of Unveiled at full Soul", MinLevel = 76)]
         KeepGluttonyAligned,
         [Option("Use Shadow of Death ASAP", Targets = ActionTargets.Hostile)]
         Force,
@@ -148,7 +148,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Use right after Communio", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Hold as a ranged GCD for melee downtime; still used before it expires, before the boss leaves or the target dies", Targets = ActionTargets.Hostile)]
+        [Option("Hold for melee downtime; never let it expire", Targets = ActionTargets.Hostile)]
         Ranged,
         [Option("Do not use")]
         Delay
@@ -156,7 +156,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     public enum HarvestMoonStrategy
     {
-        [Option("Use out of melee range, when moving at the end of Enshroud, or as the last GCD before downtime or a kill", Targets = ActionTargets.Hostile)]
+        [Option("Use out of melee range, moving at the end of Enshroud, or before downtime / a kill", Targets = ActionTargets.Hostile)]
         Automatic,
         [Option("Also use during raid buffs", Targets = ActionTargets.Hostile)]
         Burst,
@@ -192,7 +192,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         Automatic,
         [Option("Keep a charge for Gluttony")]
         PoolGluttony,
-        [Option("Keep a charge for Gluttony, and spend Soul Gauge / Soul Slice while True North is up to cover more positionals")]
+        [Option("Keep a charge for Gluttony; spend gauge under True North")]
         Bundle,
         [Option("Do not use")]
         Delay
@@ -220,7 +220,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use with Arcane Circle (right before it in the opener, right after it from the 4 minute window on)")]
+        [Option("Use with Arcane Circle")]
         AlignWithBurst,
         [Option("Use ASAP")]
         Immediate

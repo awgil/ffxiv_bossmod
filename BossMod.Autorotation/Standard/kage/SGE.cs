@@ -23,7 +23,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         [Track("Toxikon", MinLevel = 66, Actions = [AID.Toxikon, AID.ToxikonII])]
         public Track<ToxikonStrategy> Toxikon;
 
-        [Track("Pneuma (damage)", MinLevel = 90, Action = AID.Pneuma)]
+        [Track("Pneuma", MinLevel = 90, Action = AID.Pneuma)]
         public Track<PneumaStrategy> Pneuma;
 
         [Track("Kardia", MinLevel = 4, Action = AID.Kardia)]
@@ -35,7 +35,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         [Track("Rhizomata", MinLevel = 74, Action = AID.Rhizomata)]
         public Track<RhizomataStrategy> Rhizomata;
 
-        [Track("Druochole (Addersgall overcap)", MinLevel = 45, Action = AID.Druochole)]
+        [Track("Druochole", MinLevel = 45, Action = AID.Druochole)]
         public Track<DruocholeStrategy> Druochole;
 
         [Track("Lucid Dreaming", MinLevel = 14, Action = ClassShared.AID.LucidDreaming)]
@@ -50,7 +50,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
 
     public enum PhlegmaStrategy
     {
-        [Option("Spend charges in raid buffs and on 3+ targets; never overcap")]
+        [Option("Spend charges during raid buffs and on 3+ targets; never overcap")]
         Automatic,
         [Option("Do not use")]
         Delay,

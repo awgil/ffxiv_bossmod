@@ -66,7 +66,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum DiveStrategy
     {
-        [Option("Use in the burst when it is worth it; not right before downtime")]
+        [Option("Use on targets that live 15s+ (the boss in boss fights); not right before downtime")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -86,7 +86,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public enum LifeSurgeStrategy
     {
-        [Option("Use on Heavens' Thrust / Drakesbane in burst; never overcap")]
+        [Option("Use on Heavens' Thrust / Drakesbane during buffs, or when buffs are 40s+ away; never overcap")]
         Automatic,
         [Option("Use on the next strong GCD")]
         ASAP,

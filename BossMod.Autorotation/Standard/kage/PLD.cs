@@ -26,7 +26,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         [Track("Intervene", MinLevel = 74, Action = AID.Intervene)]
         public Track<InterveneStrategy> Intervene;
 
-        [Track("Sheltron (Oath overcap)", MinLevel = 35, Actions = [AID.Sheltron, AID.HolySheltron])]
+        [Track("Sheltron", MinLevel = 35, Actions = [AID.Sheltron, AID.HolySheltron])]
         public Track<SheltronStrategy> Sheltron;
 
         [Track("Potion", Item = 1049234)]
@@ -38,7 +38,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum RequiescatStrategy
     {
-        [Option("Use in Fight or Flight, or when Fight or Flight is 50s+ away")]
+        [Option("Use during Fight or Flight, or when Fight or Flight is 50s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -58,7 +58,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     public enum InterveneStrategy
     {
-        [Option("Use in Fight or Flight; never overcap")]
+        [Option("Use during Fight or Flight; never overcap")]
         Automatic,
         [Option("Also use as a gap closer", Targets = ActionTargets.Hostile)]
         GapClose,

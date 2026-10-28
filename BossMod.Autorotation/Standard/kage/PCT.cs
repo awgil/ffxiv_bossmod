@@ -50,7 +50,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum PortraitStrategy
     {
-        [Option("Use in Starry Muse, or when Starry Muse is 60s+ away")]
+        [Option("Use during Starry Muse, or when Starry Muse is 60s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -90,7 +90,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
 
     public enum SpendStrategy
     {
-        [Option("Use in Starry Muse, while moving and in AoE; Comet after the Subtractive combo")]
+        [Option("Use during Starry Muse, while moving and in AoE; Comet after the Subtractive combo")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,

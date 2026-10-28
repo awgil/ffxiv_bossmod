@@ -23,7 +23,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
         [Track("Flourish", MinLevel = 72, Action = AID.Flourish)]
         public Track<FlourishStrategy> Flourish;
 
-        [Track("Feathers", MinLevel = 30, Actions = [AID.FanDance, AID.FanDanceII])]
+        [Track("Fan Dance", MinLevel = 30, Actions = [AID.FanDance, AID.FanDanceII])]
         public Track<FeatherStrategy> Feathers;
 
         [Track("Dance Partner", MinLevel = 60, Action = AID.ClosedPosition)]
@@ -54,7 +54,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum FlourishStrategy
     {
-        [Option("Use in Technical Finish, or when Technical Step is 50s+ away")]
+        [Option("Use during Technical Finish, or when Technical Step is 50s+ away")]
         Automatic,
         [Option("Do not use")]
         Delay,
@@ -64,7 +64,7 @@ public sealed class KageDNC(RotationModuleManager manager, Actor player) : KageS
 
     public enum FeatherStrategy
     {
-        [Option("Spend in Technical Finish; never overcap")]
+        [Option("Spend during Technical Finish; never overcap")]
         Automatic,
         [Option("Use ASAP")]
         ASAP,
