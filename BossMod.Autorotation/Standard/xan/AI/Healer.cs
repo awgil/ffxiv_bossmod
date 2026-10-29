@@ -9,7 +9,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
     {
         [Option("Heal everyone")]
         Enabled,
-        [Option("Babysit specific target (default: current main tank)", Targets = ActionTargets.Self | ActionTargets.Party)]
+        [Option("Babysit specific target (default: current main tank)", Targets = ActionTargets.Self | ActionTargets.Party | ActionTargets.Hostile)] // if a hostile is selected, we use that actor's target
         Babysit,
         [Option("Don't heal")]
         Disabled
@@ -659,11 +659,27 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
 
     private IEnumerable<Actor> LightParty => _lightParty;
 
-    private int ResolveHealTarget(in Strategy strategy) => strategy.Heal.TrackRaw.Target switch
+    private int ResolveHealTarget(in Strategy strategy)
     {
-        StrategyTarget.Automatic => World.Actors.Find(Player.TargetID) is { } t ? World.Party.FindSlot(t.TargetID) : -1,
-        _ => World.Party.FindSlot(Manager.ResolveTargetOverride(strategy.Heal.TrackRaw.Target, strategy.Heal.TrackRaw.TargetParam)?.InstanceID ?? 0)
-    };
+        var track = strategy.Heal.TrackRaw;
+
+        switch (track.Target)
+        {
+            // target of our target
+            case StrategyTarget.Automatic:
+                return World.Actors.Find(Player.TargetID) is { } t ? World.Party.FindSlot(t.TargetID) : -1;
+
+            // target of a specific target (e.g. main tank during some adds phase)
+            case StrategyTarget.EnemyByOID:
+            case StrategyTarget.EnemyWithHighestPriority:
+                var enemy = Manager.ResolveTargetOverride(track.Target, track.TargetParam);
+                return enemy == null ? -1 : World.Party.FindSlot(enemy.TargetID);
+
+            // party member
+            default:
+                return World.Party.FindSlot(Manager.ResolveTargetOverride(strategy.Heal.TrackRaw.Target, strategy.Heal.TrackRaw.TargetParam)?.InstanceID ?? 0);
+        }
+    }
 
     private void HealLowest(in Strategy strategy, Action<Actor, float> healFun)
     {

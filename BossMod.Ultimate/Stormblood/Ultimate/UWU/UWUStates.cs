@@ -9,19 +9,24 @@ class UWUStates : StateMachineBuilder
         _module = module;
         SimplePhase(0, Phase1Garuda, "P1: Garuda")
             .ActivateOnEnter<BossPositioning>()
+            .ActivateOnEnter<PartyPositioning>()
+            .ActivateOnEnter<BeyondLimits>()
             .ActivateOnEnter<P1Plumes>()
             .ActivateOnEnter<P1Gigastorm>()
             .ActivateOnEnter<P1SpinyShield>()
             .ActivateOnEnter<P1GreatWhirlwind>() // TODO: not sure about this...
             .Raw.Update = () => Module.PrimaryActor is { HPMP.CurHP: <= 1, IsTargetable: false };
         SimplePhase(1, Phase2Ifrit, "P2: Ifrit")
+            .ActivateOnEnter<P1FeatherRain>()
             .ActivateOnEnter<P2Nails>()
             .ActivateOnEnter<P2InfernalFetters>()
             .ActivateOnEnter<P2SearingWind>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => (_module.Ifrit()?.HPMP.CurHP <= 1 && !(_module.Ifrit()?.IsTargetable ?? true));
+            .Raw.Update = () => _module.Ifrit() is { HPMP.CurHP: <= 1, IsTargetable: false };
         SimplePhase(2, Phase3Titan, "P3: Titan")
+            .ActivateOnEnter<PartyPositioning>()
             .ActivateOnEnter<P3Geocrush2>()
+            .ActivateOnEnter<P3Sludge>()
             .Raw.Update = () => (_module.Titan()?.HPMP.CurHP <= 1 && !(_module.Titan()?.IsTargetable ?? true));
         SimplePhase(3, Phase4LahabreaUltima, "P4: Lahabrea + Ultima")
             .Raw.Update = () => (_module.Ultima()?.CastInfo?.IsSpell(AID.UltimateSuppression) ?? false);
@@ -143,6 +148,10 @@ class UWUStates : StateMachineBuilder
     {
         ComponentCondition<P1Plumes>(id, delay, comp => comp.Active, "Adds");
         P1Slipstream(id + 0x10, 7.8f)
+            .ExecOnEnter<BossPositioning>(p =>
+            {
+                p.DesiredPosition = p.Module.PrimaryActor.Position;
+            })
             .ActivateOnEnter<P1EyeOfTheStorm>() // starts ~0.9s after cast start
             .ActivateOnEnter<P1Mesohigh>(); // tethers appear ~0.9s after cast start
         ComponentCondition<P1Downburst>(id + 0x20, 3.5f, comp => comp.NumCasts > 0, "Cleave + Mesohigh")
@@ -192,17 +201,9 @@ class UWUStates : StateMachineBuilder
     private void P2CrimsonCycloneRadiantPlumeHellfire(uint id, float delay)
     {
         ComponentCondition<P2CrimsonCyclone>(id, delay, comp => comp.CastsPredicted)
-            .ActivateOnEnter<P2Preposition>()
             .ActivateOnEnter<P2CrimsonCyclone>()
             .ActivateOnEnter<P2RadiantPlume>() // casts starts at the same time as charge (2.1s)
-            .ExecOnExit<P2Preposition>(p => p.Step = 2)
-            .OnExit(() =>
-            {
-                // in case we killed mid cast
-                // checking for existence first so we don't get transition errors
-                if (Module.FindComponent<P1FeatherRain>() != null)
-                    Module.DeactivateComponent<P1FeatherRain>();
-            });
+            .DeactivateOnExit<P1FeatherRain>();
         ComponentCondition<P2CrimsonCyclone>(id + 0x10, 5.1f, comp => comp.NumCasts > 0, "Charge")
             .DeactivateOnExit<P2CrimsonCyclone>();
         ComponentCondition<P2RadiantPlume>(id + 0x20, 1, comp => comp.NumCasts > 0, "Plumes")
@@ -215,7 +216,6 @@ class UWUStates : StateMachineBuilder
                 p.DesiredPosition = Module.Arena.Center;
                 p.DesiredRotation = 0.Degrees();
             })
-            .DeactivateOnExit<P2Preposition>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x200, _module.Ifrit, AID.Hellfire, 0.1f, 3, true, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -247,7 +247,8 @@ class UWUStates : StateMachineBuilder
         ActorCastEnd(id + 0x111, _module.Ifrit, 2.5f, true);
         ComponentCondition<P2Eruption1>(id + 0x120, 6.5f, comp => comp.NumCasts >= 8)
             .DeactivateOnExit<P2Eruption1>();
-        ComponentCondition<P2SearingWind>(id + 0x130, 5.8f, comp => !comp.Active, "Searing wind end");
+        ComponentCondition<P2SearingWind>(id + 0x130, 5.8f, comp => !comp.Active, "Searing wind end")
+            .ExecOnExit<BossPositioning>(p => p.P2MoveToIntercard());
 
         ActorTargetable(id + 0x200, _module.Ifrit, false, 5.1f, "Disappear");
         ActorTargetable(id + 0x201, _module.Ifrit, true, 4.3f, "Reappear");
@@ -257,16 +258,17 @@ class UWUStates : StateMachineBuilder
 
     private void P2InfernoHowlEruptionCrimsonCyclone(uint id, float delay)
     {
-        ActorCast(id, _module.Ifrit, AID.InfernoHowl, delay, 2, true, "Searing wind 1 start");
-        ActorCastStart(id + 0x10, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits")
-            .ActivateOnEnter<P2Eruption>(); // activate early to show bait hints
+        ActorCastStart(id, _module.Ifrit, AID.InfernoHowl, delay, true)
+            .ActivateOnEnter<P2Eruption2>();
+        ActorCastEnd(id + 1, _module.Ifrit, 2, true, "Searing wind 1 start");
+        ActorCastStart(id + 0x10, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits");
         ActorCastEnd(id + 0x21, _module.Ifrit, 2.5f, true);
         // +0.3s: searing wind 1
         ComponentCondition<P2CrimsonCyclone>(id + 0x30, 2.5f, comp => comp.CastsPredicted)
             .ActivateOnEnter<P2CrimsonCyclone>();
         // +3.8s: searing wind 2
-        ComponentCondition<P2Eruption>(id + 0x40, 4, comp => comp.NumCasts >= 8)
-            .DeactivateOnExit<P2Eruption>();
+        ComponentCondition<P2Eruption2>(id + 0x40, 4, comp => comp.NumCasts >= 8)
+            .DeactivateOnExit<P2Eruption2>();
         ComponentCondition<P2CrimsonCyclone>(id + 0x50, 1.0f, comp => comp.NumCasts > 0, "Charges")
             .DeactivateOnExit<P2CrimsonCyclone>();
 
@@ -345,7 +347,8 @@ class UWUStates : StateMachineBuilder
 
     private State P3GeocrushSide(uint id, float delay)
     {
-        ActorTargetable(id, _module.Titan, false, delay, "Disappear");
+        ActorTargetable(id, _module.Titan, false, delay, "Disappear")
+            .ActivateOnEnter<P3GeocrushBury>();
         ActorCast(id + 1, _module.Titan, AID.Geocrush2, 2.2f, 3, true, "Proximity");
         return ActorTargetable(id + 3, _module.Titan, true, 2.4f, "Reappear");
     }
@@ -365,7 +368,13 @@ class UWUStates : StateMachineBuilder
         ActorCast(id, _module.Titan, AID.Geocrush1, delay, 3, true, "Proximity")
             .ActivateOnEnter<P3Geocrush1>()
             .DeactivateOnExit<P3Geocrush1>();
-        ActorTargetable(id + 0x10, _module.Titan, true, 2.4f, "Titan appears");
+        ActorTargetable(id + 0x10, _module.Titan, true, 2.4f, "Titan appears")
+            .ExecOnExit<BossPositioning>(p =>
+            {
+                p.Boss = _module.Titan()!;
+                p.DesiredPosition = _module.Arena.Center;
+                p.DesiredRotation = 0.Degrees();
+            });
         ActorCast(id + 0x20, _module.Titan, AID.EarthenFury, 0.1f, 3, true, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
     }
@@ -374,6 +383,7 @@ class UWUStates : StateMachineBuilder
     {
         P3WeightOfTheLandFirst(id, delay, "Puddles x2");
         P3GeocrushSide(id + 0x1000, 3)
+            .ExecOnExit<BossPositioning>(p => p.Clear())
             .DeactivateOnExit<P3WeightOfTheLand>(); // note: weight of the land typically ends ~0.3s after cast start, but sometimes slightly earlier
     }
 
@@ -426,7 +436,9 @@ class UWUStates : StateMachineBuilder
 
     private void P3Geocrush3(uint id, float delay)
     {
-        P3GeocrushSide(id, delay);
+        P3GeocrushSide(id, delay)
+            .ActivateOnEnter<P3SingleGaol>()
+            .ActivateOnEnter<P3GraniteImpact>();
         // +0.1s: rock throw
         // +5.0s: fetters
         // +7.1s: gaol targetable

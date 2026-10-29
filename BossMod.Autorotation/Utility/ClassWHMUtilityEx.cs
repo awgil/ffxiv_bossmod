@@ -50,14 +50,18 @@ public sealed class ClassWHMUtilityEx(RotationModuleManager manager, Actor playe
 
         var healTargets = targets.Where(t =>
         {
+            if (!t.IsTargetable)
+                return false;
+
             var predictedPlusRegen = (float)t.PendingHPClamped;
             if (t.FindStatus(medicaStatus, World.FutureTime(15)) is { } medica)
             {
-                var medicaLeft = (float)(medica.ExpireAt - World.CurrentTime).TotalSeconds;
+                // pretend medica will last until deadline, since we can just recast it if we end up having a ton of time
+                var remainingRegenTicks = MathF.Floor(deadline / 3);
 
-                var remainingRegenTicks = MathF.Floor(MathF.Min(deadline, medicaLeft) / 3);
+                predictedPlusRegen += t.HPMP.MaxHP * 0.12f * remainingRegenTicks;
 
-                predictedPlusRegen += t.HPMP.MaxHP * 0.05f * remainingRegenTicks;
+                //Service.Log($"{t.Name} {t.PendingHPClamped} will be at {predictedPlusRegen} ({predictedPlusRegen / t.HPMP.MaxHP * 100}%) HP in {deadline} seconds after {remainingRegenTicks} ticks");
             }
 
             return predictedPlusRegen < t.HPMP.MaxHP;

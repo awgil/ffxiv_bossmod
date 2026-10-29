@@ -368,6 +368,12 @@ public abstract class BossModule : IDisposable
     {
         foreach (var enemy in hints.PotentialTargets.Where(a => a.Actor is { IsDeadOrDestroyed: false, CastInfo: null } && a.CanMove))
         {
+            if (enemy.DesiredPosition is { } pos && (pos - enemy.Actor.Position).LengthSq() > 0.25f)
+            {
+                Arena.AddLine(enemy.Actor.Position, pos, ArenaColor.Object);
+                Arena.AddCircle(pos, 0.5f, ArenaColor.Object);
+            }
+
             if (WorldState.Actors.Find(enemy.Actor.TargetID) is { } target)
             {
                 var toTarget = target.Position - enemy.Actor.Position;

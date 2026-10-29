@@ -1,4 +1,5 @@
-﻿namespace BossMod.Stormblood.Ultimate.UWU;
+﻿
+namespace BossMod.Stormblood.Ultimate.UWU;
 
 class P3Geocrush1(BossModule module) : Components.StandardAOEs(module, AID.Geocrush1, new AOEShapeCircle(18));
 
@@ -58,4 +59,49 @@ class P3Geocrush2(BossModule module) : Components.GenericAOEs(module, AID.Geocru
     //        _numFramesStill = 0;
     //    }
     //}
+}
+
+class P3GeocrushBury(BossModule module) : Components.GenericAOEs(module, AID.Bury)
+{
+    readonly List<AOEInstance> _predicted = [];
+
+    public WPos? LastBoulder;
+
+    // assuming proximity is true north
+    static readonly WDir[] BombOffsets = [
+        new(-5, +5),
+        new(+5, +5),
+        new(-5, +12),
+        new(+5, +12),
+        new(-11, +11),
+        new(+11, +11)
+    ];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            _predicted.RemoveAll(p => p.Origin.AlmostEqual(caster.Position, 1));
+            if (_predicted.Count == 1)
+            {
+                ref var last = ref _predicted.Ref(0);
+                LastBoulder = last.Origin;
+                last.Activation = WorldState.FutureTime(8);
+                last.Risky = false;
+            }
+        }
+
+        if ((AID)spell.Action.ID == AID.Burst && _predicted.Count == 1)
+            _predicted.Ref(0).Risky = true;
+
+        if ((AID)spell.Action.ID == AID.Geocrush2)
+        {
+            var toN = (caster.Position - Arena.Center).ToAngle() - 180.Degrees();
+
+            foreach (var off in BombOffsets)
+                _predicted.Add(new(new AOEShapeCircle(4.3f), Arena.Center + off.Rotate(toN), default, WorldState.FutureTime(5.5f)));
+        }
+    }
 }

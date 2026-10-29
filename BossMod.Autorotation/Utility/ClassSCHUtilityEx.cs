@@ -59,7 +59,7 @@ public sealed class ClassSCHUtilityEx(RotationModuleManager manager, Actor playe
 
         var playersEnum = strategy.Shield.TrackRaw.Target == StrategyTarget.Automatic ? World.Party.WithoutSlot() : Manager.ResolvePartyMembers(strategy.Shield.TrackRaw.Target, strategy.Shield.TrackRaw.TargetParam);
 
-        var shieldPlayers = playersEnum.Where(p => !(p.FindStatus(SCH.SID.Galvanize, World.FutureTime(30))?.ExpireAt > entryEnd)).ToList();
+        var shieldPlayers = playersEnum.Where(p => p.IsTargetable && !(p.FindStatus(SCH.SID.Galvanize, World.FutureTime(30))?.ExpireAt > entryEnd)).ToList();
 
         // use succor to hit multiple allies
         // TODO: option to force adlo? not sure if it would ever be practical though

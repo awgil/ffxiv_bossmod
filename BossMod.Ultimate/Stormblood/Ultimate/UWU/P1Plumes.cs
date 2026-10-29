@@ -87,6 +87,7 @@ class P1Friction(BossModule module) : Components.StackWithCastTargets(module, AI
 }
 
 // in at least 1 pull, bubble lasts 23 seconds 
+// TODO: rewrite to use status gain/lose event, we can occasionally cleanse too early here
 class P1SpinyShield(BossModule module) : BossComponent(module)
 {
     public BitMask Forbidden;

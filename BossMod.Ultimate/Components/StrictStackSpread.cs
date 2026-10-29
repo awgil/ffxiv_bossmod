@@ -82,7 +82,7 @@ public abstract class StrictStackSpread : GenericStackSpread
     }
 }
 
-public abstract class StrictUniformStackSpread(BossModule module, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true) : StrictStackSpread(module, alwaysShowSpreads, raidwideOnResolve)
+public abstract class StrictUniformStackSpread(BossModule module, float stackRadius, float spreadRadius, int minStackSize = 2, int maxStackSize = int.MaxValue, bool alwaysShowSpreads = false, bool raidwideOnResolve = true, bool includeDeadTargets = false) : StrictStackSpread(module, alwaysShowSpreads, raidwideOnResolve, includeDeadTargets)
 {
     public float StackRadius = stackRadius;
     public float SpreadRadius = spreadRadius;

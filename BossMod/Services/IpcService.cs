@@ -16,7 +16,7 @@ internal sealed class IpcService(
     IDalamudPluginInterface dalamud,
     RotationModuleManager autorotation,
     ObstacleMapManager obstacles,
-    MovementOverride movement,
+    IMovementOverride movement,
     IPluginLog logger,
     ConfigRoot config,
     JsonSerializerOptions serOptions

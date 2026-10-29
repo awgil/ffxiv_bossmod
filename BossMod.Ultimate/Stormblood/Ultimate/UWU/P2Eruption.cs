@@ -121,3 +121,24 @@ class P2Eruption1 : P2Eruption
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(destination, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
     }
 }
+
+class P2Eruption2(BossModule module) : P2Eruption(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2))
+            return;
+
+        if (Module.FindComponent<BossPositioning>() is not { DesiredRotation: { } relNorth })
+            return;
+
+        if (NumCastsStarted >= 8)
+            return;
+
+        var desiredOffset = (relNorth - (135 - 30 * (NumCastsStarted / 2)).Degrees()).ToDirection() * 18;
+
+        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Arena.Center + desiredOffset, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
+    }
+}
