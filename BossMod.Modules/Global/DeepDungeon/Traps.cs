@@ -46,8 +46,8 @@ abstract partial class AutoClear : ZoneModule
         if (_config.DrawTraps)
             foreach (var p in _trapsCurrentFloor)
             {
-                Service.Camera.DrawWorldCircleFilled(p, 2, 0x402929FF, projectionHeight: 0);
-                Service.Camera.DrawWorldCircle(p, 2, 0xFF2929FF, 2, occluded: false);
+                Service.Camera.DrawWorldCircleFilled(p, TrapRadius, 0x402929FF, occluded: false);
+                Service.Camera.DrawWorldCircle(p, TrapRadius, 0xFF2929FF, 2, occluded: false);
             }
     }
 

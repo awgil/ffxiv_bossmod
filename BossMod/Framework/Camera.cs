@@ -15,11 +15,12 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     public float CameraAzimuth { get; private set; } // facing north = 0, facing west = pi/4, facing south = +-pi/2, facing east = -pi/4
     public float CameraAltitude; // facing horizontally = 0, facing down = pi/4, facing up = -pi/4
     public Vector2 ViewportSize;
+    private readonly DtrConfig _uiConfig = Service.Config.Get<DtrConfig>();
 
     record struct Line(Vector3 Start, Vector3 End, uint Color, float Thickness = 1, bool Occluded = true);
     record struct Cone(Vector3 Center, float Radius, Angle Direction, Angle HalfAngle, uint Color, float Thickness = 1, bool Occluded = true);
     record struct Circle(Vector3 Center, float Radius, uint Color, float Thickness = 1, bool Occluded = true);
-    record struct CircleFilled(Vector3 Center, float Radius, uint Color, uint? OutlineColor, float ProjectionHeight = 50);
+    record struct CircleFilled(Vector3 Center, float Radius, uint Color, uint? OutlineColor, bool Occluded = true, float ProjectionHeight = 0);
 
     readonly List<Line> _lines = [];
     readonly List<Cone> _cones = [];
@@ -57,24 +58,27 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         if (drawList == null)
             return;
 
+        var occludeAlpha = _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1;
+
         foreach (var line in _lines)
             drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, new PctDxParams()
             {
-                OccludedAlpha = line.Occluded ? 0.1f : 1
+                OccludedAlpha = line.Occluded ? occludeAlpha : 1
             });
         foreach (var cone in _cones)
             drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Thickness, p: new PctDxParams()
             {
-                OccludedAlpha = cone.Occluded ? 0.1f : 1
+                OccludedAlpha = cone.Occluded ? occludeAlpha : 1
             });
         foreach (var circle in _circles)
             drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Thickness, p: new PctDxParams()
             {
-                OccludedAlpha = circle.Occluded ? 0.1f : 1
+                OccludedAlpha = circle.Occluded ? occludeAlpha : 1
             });
         foreach (var cf in _circlesFilled)
             drawList.AddCircleFilled(cf.Center, cf.Radius, cf.Color, cf.OutlineColor, p: new PctDxParams()
             {
+                OccludedAlpha = cf.Occluded ? occludeAlpha : 1,
                 ProjectionHeight = cf.ProjectionHeight
             });
 
@@ -102,9 +106,9 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         _circles.Add(new(center, radius, color, thickness, occluded));
     }
 
-    public void DrawWorldCircleFilled(Vector3 center, float radius, uint color, uint? outlineColor = null, float projectionHeight = 50)
+    public void DrawWorldCircleFilled(Vector3 center, float radius, uint color, uint? outlineColor = null, bool occluded = true, float projectionHeight = 0)
     {
-        _circlesFilled.Add(new(center, radius, color, outlineColor, projectionHeight));
+        _circlesFilled.Add(new(center, radius, color, outlineColor, occluded, projectionHeight));
     }
 
     public void DrawWorldSphere(Vector3 center, float radius, uint color, float thickness = 1)
