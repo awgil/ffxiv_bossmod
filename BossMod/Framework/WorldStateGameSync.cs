@@ -888,7 +888,7 @@ sealed unsafe class WorldStateGameSync(
                 ws.Execute(new ClientState.OpInventoryChange(itemId, count));
         }
 
-        if (_needInventoryUpdate)
+        if (_needInventoryUpdate && clientState.IsLoggedIn)
         {
             var im = InventoryManager.Instance();
             // update tracked items
