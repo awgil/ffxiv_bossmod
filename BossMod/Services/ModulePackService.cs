@@ -4,7 +4,6 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -34,14 +33,11 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
                 return typeof(Lumina.GameData).Assembly;
             if (assemblyName.Name == "Lumina.Excel")
                 return typeof(Lumina.Excel.Sheets.Action).Assembly;
-            if (assemblyName.Name == "System.Data.SQLite")
-                return typeof(SQLiteBlob).Assembly;
 
             return base.Load(assemblyName);
         }
     }
 
-    // one context per filepath - this is because AssemblyLoadContext doesn't support unloading individual assemblies, and we don't want to force everything to hot reload when one file changes
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
     private readonly SensibleFileWatcher _watcher = new(filter: "*.dll", includeSubdirectories: true);
     private readonly EventSubscriptions _modified = new();

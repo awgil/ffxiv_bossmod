@@ -481,15 +481,18 @@ public static partial class Utils
         }
     }
 
+    sealed class OnDispose(Action action) : IDisposable
+    {
+        public void Dispose()
+        {
+            action();
+        }
+    }
+
     public static IDisposable GetGlobalLock()
     {
         var m = new Mutex(false, "Global\\vbm-sync");
         m.WaitOne();
         return new OnDispose(m.ReleaseMutex);
     }
-}
-
-public sealed class OnDispose(Action action) : IDisposable
-{
-    void IDisposable.Dispose() => action();
 }

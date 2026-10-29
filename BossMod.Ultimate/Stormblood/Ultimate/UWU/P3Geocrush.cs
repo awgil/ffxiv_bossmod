@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Stormblood.Ultimate.UWU;
+﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
 class P3Geocrush1(BossModule module) : Components.StandardAOEs(module, AID.Geocrush1, new AOEShapeCircle(18));
 

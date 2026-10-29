@@ -27,13 +27,13 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P3Geocrush2>()
             .ActivateOnEnter<P3Sludge>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => (_module.Titan()?.HPMP.CurHP <= 1 && !(_module.Titan()?.IsTargetable ?? true));
+            .Raw.Update = () => _module.Titan() is { HPMP.CurHP: <= 1, IsTargetable: false };
         SimplePhase(3, Phase4LahabreaUltima, "P4: Lahabrea + Ultima")
             .ActivateOnEnter<P3WeightOfTheLand>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
-            .Raw.Update = () => (_module.Ultima()?.CastInfo?.IsSpell(AID.UltimateSuppression) ?? false);
+            .Raw.Update = () => _module.Ultima() is { CastInfo: { } info } && info.IsSpell(AID.UltimateSuppression);
         SimplePhase(4, Phase5Ultima, "P4: Ultima - suppression to enrage")
-            .Raw.Update = () => (_module.Ultima()?.IsDead ?? false);
+            .Raw.Update = () => _module.Ultima() is { IsDead: true };
     }
 
     private void Phase1Garuda(uint id)
