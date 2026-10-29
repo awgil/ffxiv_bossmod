@@ -16,7 +16,9 @@ class BeyondLimits : Components.GenericAOEs
             Assignments = new PartyRolesConfig.Assignment[8];
     }
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_position).Where(_ => !WorldState.Actors.Any(a => a.CastInfo?.IsSpell(AID.FeatherRain) == true)).Select(p => new AOEInstance(new AOEShapeCircle(1), p, Inverted: slot == _soaker));
+    bool IsActive => !WorldState.Actors.Any(a => a.CastInfo is { } ci && (ci.IsSpell(AID.FeatherRain) || ci.IsSpell(AID.WeightOfTheLandAOE)));
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => IsActive ? Utils.ZeroOrOne(_position).Select(p => new AOEInstance(new AOEShapeCircle(1), p, Inverted: slot == _soaker)) : [];
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
@@ -38,6 +40,12 @@ class BeyondLimits : Components.GenericAOEs
                     break;
             }
         }
+    }
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.BeyondLimits)
+            _position = actor.Position;
     }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)

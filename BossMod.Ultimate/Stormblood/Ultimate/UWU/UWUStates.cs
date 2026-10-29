@@ -24,11 +24,13 @@ class UWUStates : StateMachineBuilder
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => _module.Ifrit() is { HPMP.CurHP: <= 1, IsTargetable: false };
         SimplePhase(2, Phase3Titan, "P3: Titan")
-            .ActivateOnEnter<PartyPositioning>()
             .ActivateOnEnter<P3Geocrush2>()
             .ActivateOnEnter<P3Sludge>()
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => (_module.Titan()?.HPMP.CurHP <= 1 && !(_module.Titan()?.IsTargetable ?? true));
         SimplePhase(3, Phase4LahabreaUltima, "P4: Lahabrea + Ultima")
+            .ActivateOnEnter<P3WeightOfTheLand>()
+            .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .Raw.Update = () => (_module.Ultima()?.CastInfo?.IsSpell(AID.UltimateSuppression) ?? false);
         SimplePhase(4, Phase5Ultima, "P4: Ultima - suppression to enrage")
             .Raw.Update = () => (_module.Ultima()?.IsDead ?? false);
@@ -106,11 +108,13 @@ class UWUStates : StateMachineBuilder
     private void P1GarudaFeatherRainRaidwide(uint id, float delay, AID raidwide, string name = "Feathers")
     {
         ActorTargetable(id, _module.Garuda, false, delay, "Disappear")
-            .ActivateOnEnter<P1FeatherRain>();
+            .ActivateOnEnter<P1FeatherRain>()
+            .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P1FeatherRain>(id + 1, 1.6f, comp => comp.CastsActive);
         ComponentCondition<P1FeatherRain>(id + 2, 1, comp => !comp.CastsActive, name)
             .DeactivateOnExit<P1FeatherRain>();
         ActorTargetable(id + 3, _module.Garuda, true, 1.7f, "Reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd)
             .ExecOnEnter<BossPositioning>(p => p.DesiredPosition = Module.Arena.Center);
 
         ActorCast(id + 0x10, _module.Garuda, raidwide, 0.1f, 3, true, "Raidwide")
@@ -348,9 +352,11 @@ class UWUStates : StateMachineBuilder
     private State P3GeocrushSide(uint id, float delay)
     {
         ActorTargetable(id, _module.Titan, false, delay, "Disappear")
-            .ActivateOnEnter<P3GeocrushBury>();
+            .ActivateOnEnter<P3GeocrushBury>()
+            .SetHint(StateMachine.StateHint.DowntimeStart);
         ActorCast(id + 1, _module.Titan, AID.Geocrush2, 2.2f, 3, true, "Proximity");
-        return ActorTargetable(id + 3, _module.Titan, true, 2.4f, "Reappear");
+        return ActorTargetable(id + 3, _module.Titan, true, 2.4f, "Reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 
     private State P3Tumult(uint id, float delay, uint numHits)
@@ -369,6 +375,7 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P3Geocrush1>()
             .DeactivateOnExit<P3Geocrush1>();
         ActorTargetable(id + 0x10, _module.Titan, true, 2.4f, "Titan appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd)
             .ExecOnExit<BossPositioning>(p =>
             {
                 p.Boss = _module.Titan()!;
@@ -392,9 +399,11 @@ class UWUStates : StateMachineBuilder
         ActorCast(id, _module.Titan, AID.Upheaval, delay, 4, true, "Knockback")
             .ActivateOnEnter<P3Upheaval>()
             .ActivateOnEnter<P3Burst>() // bombs appear ~0.2s after cast start
-            .DeactivateOnExit<P3Upheaval>();
+            .DeactivateOnExit<P3Upheaval>()
+            .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P3Gaols>(id + 0x10, 2.1f, comp => comp.CurState == P3Gaols.State.TargetSelection)
-            .ActivateOnEnter<P3Gaols>();
+            .ActivateOnEnter<P3Gaols>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P3Burst>(id + 0x11, 0.4f, comp => comp.NumCasts > 0)
             .DeactivateOnExit<P3Burst>();
 
@@ -475,18 +484,23 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P4Freefire>()
             .DeactivateOnExit<P4Freefire>();
         ComponentCondition<P4MagitekBits>(id + 0x1000, 2.2f, comp => comp.Active, "Caster LB")
-            .ActivateOnEnter<P4MagitekBits>();
+            .ActivateOnEnter<P4MagitekBits>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P4Blight>(id + 0x2000, 11.5f, comp => comp.NumCasts > 0, "Heal LB", 10) // note: timing variance is extreme (up to 16s), 11.5 is minimal seen
             .ActivateOnEnter<P4Blight>()
             .DeactivateOnExit<P4Blight>();
         ActorTargetable(id + 0x3000, _module.Lahabrea, true, 9.1f, "Melee LB")
             .DeactivateOnExit<P4MagitekBits>(); // long since gone
-        ActorCast(id + 0x4000, _module.Ultima, AID.Ultima, 18, 5, true, "Tank LB");
+        ActorCast(id + 0x4000, _module.Ultima, AID.Ultima, 18, 5, true, "Tank LB")
+            .DeactivateOnExit<P3WeightOfTheLand>()
+            .DeactivateOnExit<BeyondLimits>()
+            .SetHint(StateMachine.StateHint.DowntimeStart);
     }
 
     private void P4BeforePredation(uint id, float delay)
     {
-        ActorTargetable(id, _module.Ultima, true, 39.7f, "Ultima appears");
+        ActorTargetable(id, _module.Ultima, true, 39.7f, "Ultima appears")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.Ultima, AID.TankPurge, 0.1f, 4, true, "Raidwide")
             .ActivateOnEnter<P4ViscousAetheroplasmApply>() // show MT hint early
             .SetHint(StateMachine.StateHint.Raidwide);
@@ -501,7 +515,8 @@ class UWUStates : StateMachineBuilder
     private void P4Predation(uint id, float delay)
     {
         ActorCast(id, _module.Ultima, AID.UltimatePredation, delay, 3, true);
-        ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (predation)");
+        ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (predation)")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<P4UltimatePredation>(id + 0x20, 2.2f, comp => comp.CurState == P4UltimatePredation.State.Predicted)
             .ActivateOnEnter<P4UltimatePredation>()
@@ -527,7 +542,8 @@ class UWUStates : StateMachineBuilder
 
     private void P4BeforeAnnihilation(uint id, float delay)
     {
-        ActorTargetable(id, _module.Ultima, true, delay, "Reappear");
+        ActorTargetable(id, _module.Ultima, true, delay, "Reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.Ultima, AID.PrepareIfrit, 3.2f, 2, true);
 
         ActorCastStart(id + 0x1000, _module.Ifrit, AID.Eruption, 4.3f, false, "Eruption baits")
@@ -587,11 +603,13 @@ class UWUStates : StateMachineBuilder
     private void P4Annihilation(uint id, float delay)
     {
         ActorCast(id, _module.Ultima, AID.UltimateAnnihilation, delay, 3, true);
-        ActorTargetable(id + 0x10, _module.Ultima, false, 4.5f, "Disappear (annihilation)");
+        ActorTargetable(id + 0x10, _module.Ultima, false, 4.5f, "Disappear (annihilation)")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ActorTargetable(id + 0x20, _module.Ultima, true, 4.3f, "Reappear")
             .ActivateOnEnter<P3WeightOfTheLand>() // first set starts at the same time as boss becomes targetable
-            .ActivateOnEnter<P4FlamingCrush>();
+            .ActivateOnEnter<P4FlamingCrush>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P4FlamingCrush>(id + 0x21, 0, comp => comp.Active); // icon appears at the same time as or slightly after boss becomes targetable
 
         ComponentCondition<P4FlamingCrush>(id + 0x30, 5.1f, comp => !comp.Active, "Stack")
@@ -634,8 +652,10 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P1FeatherRain>(id + 0x74, 1.8f, comp => comp.NumCasts > 0)
             .DeactivateOnExit<P1FeatherRain>();
 
-        ActorTargetable(id + 0x80, _module.Ultima, false, 2.3f, "Disappear");
-        ActorTargetable(id + 0x81, _module.Ultima, true, 4.3f, "Reappear");
+        ActorTargetable(id + 0x80, _module.Ultima, false, 2.3f, "Disappear")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+        ActorTargetable(id + 0x81, _module.Ultima, true, 4.3f, "Reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
 
         ComponentCondition<P2SearingWind>(id + 0x90, 2.3f, comp => !comp.Active)
             .ActivateOnEnter<P1EyeOfTheStorm>() // cast starts ~1.9s before searing wind resolve
@@ -738,7 +758,8 @@ class UWUStates : StateMachineBuilder
     private void P5Suppression(uint id, float delay)
     {
         ActorCast(id, _module.Ultima, AID.UltimateSuppression, delay, 3, true);
-        ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (suppression)");
+        ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (suppression)")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ActorCast(id + 0x20, _module.Ifrit, AID.Eruption, 4.4f, 2.5f, false)
             .ActivateOnEnter<P2Eruption>()
@@ -805,7 +826,8 @@ class UWUStates : StateMachineBuilder
 
     private void P5Ultima(uint id, float delay)
     {
-        ActorTargetable(id, _module.Ultima, true, delay, "Reappear");
+        ActorTargetable(id, _module.Ultima, true, delay, "Reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.Ultima, AID.Ultima, 0.1f, 5, true, "Tank LB3")
             .SetHint(StateMachine.StateHint.Raidwide);
     }

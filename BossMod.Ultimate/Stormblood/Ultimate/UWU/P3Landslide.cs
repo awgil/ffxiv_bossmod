@@ -51,6 +51,14 @@ class Landslide(BossModule module) : Components.GenericAOEs(module)
                 PredictedActivation = WorldState.FutureTime(2); // used if boss wasn't awakened when it should've been
         }
     }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (_casters.Count > 0)
+            hints.GoalZonesEnabled = false;
+    }
 }
 
 class P3Landslide(BossModule module) : Landslide(module);

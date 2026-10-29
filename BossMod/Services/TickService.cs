@@ -153,6 +153,7 @@ internal sealed class TickService(
     void OnLogout(int type, int code)
     {
         bossmod.ForceUnload($"logout type={type}, code={code}");
+        wsSync.RefreshInventory();
     }
 
     void OpenConfigUI(string tab = "")

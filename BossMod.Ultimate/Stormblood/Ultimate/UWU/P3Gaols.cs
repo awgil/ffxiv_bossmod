@@ -11,7 +11,6 @@ class P3Gaols(BossModule module) : Components.GenericAOEs(module)
     readonly List<Actor> TargetsOrdered = [];
 
     int _numLandslides;
-
     DateTime _fettersAt;
 
     private static readonly AOEShapeCircle _freefireShape = new(6);
@@ -47,7 +46,12 @@ class P3Gaols(BossModule module) : Components.GenericAOEs(module)
         var pos = Arena.Center + toBoss.Normalized() * (6.7f * (-myOrder + 1));
 
         hints.GoalZones.Add(AIHints.GoalProximity(pos, 10, 10));
-        if (_numLandslides > 0)
+        if (_numLandslides == 0)
+        {
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(pos, toBoss.Normalized().OrthoR(), 5, 5, 3), _fettersAt);
+            hints.GoalZones.Add(AIHints.GoalProximity(pos, 10, 10));
+        }
+        else
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(pos, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f), _fettersAt);
     }
 

@@ -37,7 +37,7 @@ sealed unsafe class WorldStateGameSync(
     IClientState clientState,
     IPluginLog logger,
     ICondition condition
-) : IWorldStateGameSync, IHostedService
+) : IWorldStateGameSync, IHostedService, IDisposable
 {
     private const int ObjectTableSize = 819; // should match CS; note that different ranges are used for different purposes - consider splitting?..
     private const uint InvalidEntityId = 0xE0000000;
@@ -164,6 +164,11 @@ sealed unsafe class WorldStateGameSync(
     }
 
     System.Threading.Tasks.Task IHostedService.StopAsync(CancellationToken cancellationToken) => System.Threading.Tasks.Task.CompletedTask;
+
+    void IWorldStateGameSync.RefreshInventory()
+    {
+        _needInventoryUpdate = true;
+    }
 
     public void Dispose()
     {

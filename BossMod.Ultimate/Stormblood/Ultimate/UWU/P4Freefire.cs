@@ -5,7 +5,7 @@ class P4Freefire(BossModule module) : Components.GenericAOEs(module, AID.Freefir
     private readonly List<Actor> _casters = [];
     private DateTime _activation;
 
-    private static readonly AOEShape _shape = new AOEShapeCircle(15); // TODO: verify falloff
+    private static readonly AOEShape _shape = new AOEShapeCircle(17); // TODO: verify falloff
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {

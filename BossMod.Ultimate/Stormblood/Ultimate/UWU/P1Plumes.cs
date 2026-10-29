@@ -140,7 +140,7 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
             return;
 
         if (Forbidden[slot])
-            hints.AddForbiddenZone(ShapeDistance.Circle(e, 6), Deadline);
+            hints.AddForbiddenZone(ShapeDistance.Circle(e, 6));
         else
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(e, 6), Deadline);
     }

@@ -42,8 +42,7 @@ class P2Nails(BossModule module) : BossComponent(module)
 
                 if (n.FindStatus(1544)?.Extra >= 2)
                     e.Priority = 1;
-                // TODO tweak...the puddles can kill the nails pretty easily if they're too low
-                else if (n.PendingHPRatio < 0.5f)
+                else if (n.PendingHPRatio < 0.6f)
                     e.Priority = AIHints.Enemy.PriorityForbidden;
             }
         }

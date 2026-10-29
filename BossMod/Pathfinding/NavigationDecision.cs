@@ -129,12 +129,17 @@ public struct NavigationDecision
                 }
         }
 
+        // PrecisePosition unblocks exactly one cell
         if (maxGSpan.Count(float.MaxValue) <= 1)
             return;
 
         var (pX, pY) = map.WorldToGrid(playerPos);
         var pix = map.GridToIndex(pX, pY);
         var playerG = map.PixelMaxG[pix];
+
+        // only run the unblock code if the player is actually not safe here
+        if (playerG > map.MaxG)
+            return;
 
         float pixG(int x, int y)
         {
