@@ -254,8 +254,10 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P2SearingWind>(id + 0x130, 5.8f, comp => !comp.Active, "Searing wind end")
             .ExecOnExit<BossPositioning>(p => p.P2MoveToIntercard());
 
-        ActorTargetable(id + 0x200, _module.Ifrit, false, 5.1f, "Disappear");
-        ActorTargetable(id + 0x201, _module.Ifrit, true, 4.3f, "Reappear");
+        ActorTargetable(id + 0x200, _module.Ifrit, false, 5.1f, "Disappear")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
+        ActorTargetable(id + 0x201, _module.Ifrit, true, 4.3f, "Reappear")
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x210, _module.Ifrit, AID.Hellfire, 0.1f, 3, true, "Raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
     }
@@ -285,7 +287,8 @@ class UWUStates : StateMachineBuilder
             .DeactivateOnExit<P2FlamingCrush>();
         // +1.7s: searing wind 5 (1st target) / 2 (2nd target)
 
-        ActorTargetable(id + 0x2000, _module.Ifrit, false, 4.1f, "Disappear");
+        ActorTargetable(id + 0x2000, _module.Ifrit, false, 4.1f, "Disappear")
+            .SetHint(StateMachine.StateHint.DowntimeStart);
         ComponentCondition<P2CrimsonCyclone>(id + 0x2001, 2.3f, comp => comp.CastsPredicted)
             .ActivateOnEnter<P2CrimsonCyclone>();
         // +2.2s: PATE 1E43 on 4 ifrits
@@ -294,7 +297,8 @@ class UWUStates : StateMachineBuilder
         // +9.6s: searing wind 4 (2nd target)
         // +15.6s: searing wind 5 (2nd target)
         ActorTargetable(id + 0x2100, _module.Ifrit, true, 13.5f, "Awakened charges + Reappear")
-            .DeactivateOnExit<P2CrimsonCyclone>();
+            .DeactivateOnExit<P2CrimsonCyclone>()
+            .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 
     private void Phase3Titan(uint id)
