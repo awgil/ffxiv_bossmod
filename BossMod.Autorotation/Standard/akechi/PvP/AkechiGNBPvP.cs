@@ -88,72 +88,83 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
-    private void ExecuteCommons(AID action, StrategyValues.OptionRef track, Actor? primaryTarget)
-    {
-        if (ActionReady(action) && track.As<CommonStrategy>() switch
-        {
-            CommonStrategy.Buff => HasStatus(SID.NoMercy),
-            CommonStrategy.ASAP => true,
-            _ => false
-        })
-            QueueGCD(action, primaryTarget, GCDPriority.High);
-    }
+    private static readonly (SID Status, AID Action)[] Continuations =
+    [
+        (SID.ReadyToRazePvP, AID.FatedBrandPvP),
+        (SID.ReadyToBlastPvP, AID.HypervelocityPvP),
+        (SID.ReadyToRipPvP, AID.JugularRipPvP),
+        (SID.ReadyToTearPvP, AID.AbdomenTearPvP),
+        (SID.ReadyToGougePvP, AID.EyeGougePvP)
+    ];
+
+    private bool HasNoMercy => HasStatus(SID.NoMercyPvP);
+    private bool InRushRange => Player.DistanceToHitbox(PrimaryTarget) <= 5.99f && Hints.NumPriorityTargetsInAOECircle(Player.Position, 6) > 0;
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || IsGuarded(Player))
             return;
 
-        var strat = strategy.Option(Track.Targeting).As<TargetingStrategy>();
-        var auto = strat == TargetingStrategy.Auto;
-        var focus = strat == TargetingStrategy.FocusTargetsTarget;
-        var mainTarget = primaryTarget?.Actor;
-        var gauge = World.Client.GetGauge<GunbreakerGauge>();
-        var GunStep = gauge.AmmoComboStep;
-        var hasNM = HasStatus(SID.NoMercyPvP);
-        var targetsOk = Hints.NumPriorityTargetsInAOECircle(Player.Position, 6) > 0;
-        var rangeOk = Player.DistanceToHitbox(mainTarget) <= 5.99f;
+        var targeting = strategy.Option(Track.Targeting).As<TargetingStrategy>();
+        if (targeting != TargetingStrategy.Manual)
+            GetPvPTarget(5, targeting == TargetingStrategy.FocusTargetsTarget);
 
-        if (auto)
-        {
-            GetPvPTarget(5, false);
-        }
-        if (focus)
-        {
-            GetPvPTarget(5, true);
-        }
+        QueueCorundum(strategy);
+        QueueRoleAction(strategy);
+        QueueLimitBreak(strategy);
+        QueueTerminalTrigger(strategy);
+        QueueRoughDivide(strategy);
 
-        if (ActionReady(AID.HeartOfCorundumPvP) && strategy.Option(Track.Corundum).As<CorundumStrategy>() switch
+        if (In5y(PrimaryTarget) && HasLOS(PrimaryTarget))
         {
-            CorundumStrategy.Auto => (Player.PendingHPRatio is <= 0.8f and not 0.0f && EnemiesTargetingPlayer >= 2) || Player.PendingHPRatio is < 0.5f and not 0.0f,
-            CorundumStrategy.Two => Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 2,
-            CorundumStrategy.Three => Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 3,
-            CorundumStrategy.Four => Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 4,
-            CorundumStrategy.Eighty => Player.PendingHPRatio is <= 0.8f and not 0.0f,
-            CorundumStrategy.Seventy => Player.PendingHPRatio is <= 0.7f and not 0.0f,
-            CorundumStrategy.Sixty => Player.PendingHPRatio is <= 0.6f and not 0.0f,
-            CorundumStrategy.Fifty => Player.PendingHPRatio is <= 0.5f and not 0.0f,
-            CorundumStrategy.Fourty => Player.PendingHPRatio is <= 0.4f and not 0.0f,
-            CorundumStrategy.Thirty => Player.PendingHPRatio is <= 0.3f and not 0.0f,
+            QueueCommon(AID.GnashingFangPvP, strategy.Option(Track.GnashingFang));
+            QueueCommon(AID.FatedCirclePvP, strategy.Option(Track.FatedCircle));
+            QueueBlastingZone(strategy);
+            QueueCombo();
+            QueueContinuations();
+        }
+    }
+
+    private void QueueCorundum(StrategyValues strategy)
+    {
+        var condition = strategy.Option(Track.Corundum).As<CorundumStrategy>() switch
+        {
+            CorundumStrategy.Auto => HPAtOrBelow(0.8f) && EnemiesTargetingPlayer >= 2 || HPBelow(0.5f),
+            CorundumStrategy.Two => HPBelow(1f) && EnemiesTargetingPlayer >= 2,
+            CorundumStrategy.Three => HPBelow(1f) && EnemiesTargetingPlayer >= 3,
+            CorundumStrategy.Four => HPBelow(1f) && EnemiesTargetingPlayer >= 4,
+            CorundumStrategy.Eighty => HPAtOrBelow(0.8f),
+            CorundumStrategy.Seventy => HPAtOrBelow(0.7f),
+            CorundumStrategy.Sixty => HPAtOrBelow(0.6f),
+            CorundumStrategy.Fifty => HPAtOrBelow(0.5f),
+            CorundumStrategy.Fourty => HPAtOrBelow(0.4f),
+            CorundumStrategy.Thirty => HPAtOrBelow(0.3f),
             _ => false
-        })
+        };
+        if (condition && ActionReady(AID.HeartOfCorundumPvP))
             QueueGCD(AID.HeartOfCorundumPvP, Player, GCDPriority.Max);
-
-        var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+    }
+    private void QueueRoleAction(StrategyValues strategy)
+    {
+        var (condition, action, target) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
         {
-            RoleActionStrategy.Rampage => (HasStatus(SID.RampageEquippedPvP) && ActionReady(AID.RampagePvP) && Hints.PriorityTargets.Any(h => h.Actor.IsDeadOrDestroyed && !h.Actor.IsFriendlyNPC && !h.Actor.IsAlly && h.Actor.DistanceToHitbox(Player) <= 10) && In10y(mainTarget), AID.RampagePvP, Player),
-            RoleActionStrategy.Rampart => (HasStatus(SID.RampartEquippedPvP) && ActionReady(AID.RampartPvP) && ((Player.PendingHPRatio is < 1.0f and not 0.0f && EnemiesTargetingPlayer >= 2) || Player.PendingHPRatio is < 0.5f and not 0.0f), AID.RampartPvP, Player),
-            RoleActionStrategy.FullSwing => (HasStatus(SID.FullSwingEquippedPvP) && ActionReady(AID.FullSwingPvP) && In5y(mainTarget), AID.FullSwingPvP, mainTarget),
+            RoleActionStrategy.Rampage => (HasStatus(SID.RampageEquippedPvP) && Hints.NumPriorityTargetsInAOECircle(Player.Position, 10) > 0 && In10y(PrimaryTarget), AID.RampagePvP, Player),
+            RoleActionStrategy.Rampart => (HasStatus(SID.RampartEquippedPvP) && (HPBelow(1f) && EnemiesTargetingPlayer >= 2 || HPBelow(0.5f)), AID.RampartPvP, Player),
+            RoleActionStrategy.FullSwing => (HasStatus(SID.FullSwingEquippedPvP) && In5y(PrimaryTarget), AID.FullSwingPvP, PrimaryTarget),
             _ => (false, AID.None, null)
         };
-        if (roleCondition)
-            QueueGCD(roleAction, roleTarget, GCDPriority.VeryHigh + 1);
-
-        if (World.Party.LimitBreakLevel >= 1 && rangeOk && targetsOk && strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Allow)
+        if (condition && ActionReady(action))
+            QueueGCD(action, target, GCDPriority.VeryHigh + 1);
+    }
+    private void QueueLimitBreak(StrategyValues strategy)
+    {
+        if (World.Party.LimitBreakLevel >= 1 && InRushRange && strategy.Option(Track.LimitBreak).As<LBStrategy>() == LBStrategy.Allow)
             QueueGCD(AID.RelentlessRushPvP, Player, GCDPriority.VeryHigh + 1);
-
-        var stacks = Stacks(SID.RelentlessShrapnelPvP, on: mainTarget);
-        if (HasStatus(SID.RelentlessRushPvP) && rangeOk && targetsOk && strategy.Option(Track.TerminalTrigger).As<TriggerStrategy>() switch
+    }
+    private void QueueTerminalTrigger(StrategyValues strategy)
+    {
+        var stacks = Stacks(SID.RelentlessShrapnelPvP, on: PrimaryTarget);
+        var condition = strategy.Option(Track.TerminalTrigger).As<TriggerStrategy>() switch
         {
             TriggerStrategy.Five => stacks >= 5,
             TriggerStrategy.Four => stacks >= 4,
@@ -161,61 +172,69 @@ public sealed class AkechiGNBPvP(RotationModuleManager manager, Actor player) : 
             TriggerStrategy.Two => stacks >= 2,
             TriggerStrategy.One => stacks >= 1,
             _ => false
-        })
+        };
+        if (condition && HasStatus(SID.RelentlessRushPvP) && InRushRange)
             QueueGCD(AID.TerminalTriggerPvP, Player, GCDPriority.VeryHigh);
-
-        if (Cooldown(AID.RoughDividePvP) < 14.6f && strategy.Option(Track.RoughDivide).As<DivideStrategy>() switch
+    }
+    private void QueueRoughDivide(StrategyValues strategy)
+    {
+        var cooldown = Cooldown(AID.RoughDividePvP);
+        var condition = strategy.Option(Track.RoughDivide).As<DivideStrategy>() switch
         {
-            DivideStrategy.Auto => !hasNM,
-            DivideStrategy.AutoMelee => !hasNM && In5y(mainTarget),
+            DivideStrategy.Auto => !HasNoMercy,
+            DivideStrategy.AutoMelee => !HasNoMercy && In5y(PrimaryTarget),
             _ => false
-        })
-            QueueOGCD(AID.RoughDividePvP, mainTarget, Cooldown(AID.RoughDividePvP) < 0.6f ? OGCDPriority.High + 2001 : OGCDPriority.High);
-
-        if (In5y(mainTarget) && HasLOS(mainTarget))
+        };
+        if (condition && cooldown < 14.6f)
+            QueueOGCD(AID.RoughDividePvP, PrimaryTarget, cooldown < 0.6f ? OGCDPrio(OGCDStrategy.Force, OGCDPriority.High + 1) : OGCDPriority.High);
+    }
+    private void QueueCommon(AID action, StrategyValues.OptionRef track)
+    {
+        var condition = track.As<CommonStrategy>() switch
         {
-            ExecuteCommons(AID.GnashingFangPvP, strategy.Option(Track.GnashingFang), mainTarget);
-            ExecuteCommons(AID.FatedCirclePvP, strategy.Option(Track.GnashingFang), mainTarget);
-
-            if (ActionReady(AID.BlastingZonePvP) && strategy.Option(Track.Zone).As<ZoneStrategy>() switch
+            CommonStrategy.Buff => HasNoMercy,
+            CommonStrategy.ASAP => true,
+            _ => false
+        };
+        if (condition && ActionReady(action))
+            QueueGCD(action, PrimaryTarget, GCDPriority.High);
+    }
+    private void QueueBlastingZone(StrategyValues strategy)
+    {
+        var halfHP = PrimaryTarget?.PendingHPRatio < 0.5f;
+        var condition = strategy.Option(Track.Zone).As<ZoneStrategy>() switch
+        {
+            ZoneStrategy.Buff => HasNoMercy,
+            ZoneStrategy.HalfHPP => halfHP,
+            ZoneStrategy.BuffOrHalfHPP => HasNoMercy || halfHP,
+            ZoneStrategy.BuffAndHalfHPP => HasNoMercy && halfHP,
+            ZoneStrategy.ASAP => true,
+            _ => false
+        };
+        if (condition && ActionReady(AID.BlastingZonePvP))
+            QueueOGCD(AID.BlastingZonePvP, PrimaryTarget, OGCDPriority.High - 1);
+    }
+    private void QueueCombo()
+    {
+        var (action, priority) = World.Client.GetGauge<GunbreakerGauge>().AmmoComboStep switch
+        {
+            0 => (ComboLastMove switch
             {
-                ZoneStrategy.Buff => hasNM,
-                ZoneStrategy.HalfHPP => mainTarget?.PendingHPRatio < 0.5f,
-                ZoneStrategy.BuffOrHalfHPP => hasNM || mainTarget?.PendingHPRatio < 0.5f,
-                ZoneStrategy.BuffAndHalfHPP => hasNM && mainTarget?.PendingHPRatio < 0.5f,
-                ZoneStrategy.ASAP => true,
-                _ => false
-            })
-                QueueOGCD(AID.BlastingZonePvP, mainTarget, OGCDPriority.High - 1);
-
-            var (gunCondition, gunAction, gunPriority) = gauge.AmmoComboStep switch
-            {
-                0 => (GunStep == 0, ComboLastMove switch
-                {
-                    AID.SolidBarrelPvP => AID.BurstStrikePvP,
-                    AID.BrutalShellPvP => AID.SolidBarrelPvP,
-                    AID.KeenEdgePvP => AID.BrutalShellPvP,
-                    _ => AID.KeenEdgePvP,
-                }, GCDPriority.Low),
-                1 => (GunStep == 1, AID.SavageClawPvP, GCDPriority.BelowAverage),
-                2 => (GunStep == 2, AID.WickedTalonPvP, GCDPriority.BelowAverage),
-                _ => (false, AID.None, GCDPriority.None)
-            };
-            if (gunCondition)
-                QueueGCD(gunAction, mainTarget, gunPriority);
-
-            foreach (var (status, action) in new[]
-            {
-                (SID.ReadyToRazePvP,  AID.FatedBrandPvP),
-                (SID.ReadyToBlastPvP, AID.HypervelocityPvP),
-                (SID.ReadyToRipPvP,   AID.JugularRipPvP),
-                (SID.ReadyToTearPvP,  AID.AbdomenTearPvP),
-                (SID.ReadyToGougePvP, AID.EyeGougePvP),
-            })
-            {
-                if (HasStatus(status))
-                    QueueOGCD(action, mainTarget, ChangePriority(highPrio: (int)OGCDPriority.High, convert: true));
-            }
-        }
+                AID.SolidBarrelPvP => AID.BurstStrikePvP,
+                AID.BrutalShellPvP => AID.SolidBarrelPvP,
+                AID.KeenEdgePvP => AID.BrutalShellPvP,
+                _ => AID.KeenEdgePvP
+            }, GCDPriority.Low),
+            1 => (AID.SavageClawPvP, GCDPriority.BelowAverage),
+            2 => (AID.WickedTalonPvP, GCDPriority.BelowAverage),
+            _ => (AID.None, GCDPriority.None)
+        };
+        QueueGCD(action, PrimaryTarget, priority);
+    }
+    private void QueueContinuations()
+    {
+        foreach (var (status, action) in Continuations)
+            if (HasStatus(status))
+                QueueOGCD(action, PrimaryTarget, ChangePriority(highPrio: (int)OGCDPriority.High));
     }
 }

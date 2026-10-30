@@ -4,7 +4,6 @@ using static BossMod.AIHints;
 
 namespace BossMod.Autorotation.akechi;
 
-//TODO: cleanup this file - it works ok now (i think?), but it's a fucking mess to look at
 public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : AkechiTools<AID, TraitID>(manager, player)
 {
     public enum Track { AOE = SharedTrack.Count, Opener, Heat, Battery, Reassemble, Hypercharge, Drill, Wildfire, BarrelStabilizer, AirAnchor, ChainSaw, GaussRound, DoubleCheck, Ricochet, Checkmate, Flamethrower, Excavator, FullMetalField }
@@ -104,546 +103,302 @@ public sealed class AkechiMCH(RotationModuleManager manager, Actor player) : Ake
         return res;
     }
 
-    private int Heat;
-    private int Battery;
-    private bool OverheatActive;
-    private bool MinionActive;
-    private bool WantAOE;
-    private bool ShouldUseRangedAOE;
-    private bool ShouldUseSaw;
-    private bool ShouldFlamethrower;
-    private int NumConeTargets;
-    private int NumSplashTargets;
-    private int NumChainSawTargets;
-    private int NumFlamethrowerTargets;
-    private Enemy? BestConeTargets;
-    private Enemy? BestSplashTargets;
-    private Enemy? BestChainSawTargets;
-    private Enemy? BestConeTarget;
-    private Enemy? BestSplashTarget;
-    private Enemy? BestChainSawTarget;
-    private Enemy? BestFlamethrowerTarget;
-    private bool ForceAOE;
-
-    public float RAleft => Status(SID.Reassembled);
-    public float HCleft => Status(SID.Hypercharged);
-    public float WFleft => Status(SID.WildfirePlayer);
-    public float EVleft => Status(SID.ExcavatorReady);
-    public float FMFleft => Status(SID.FullMetalMachinist);
-    public float FTleft => Status(SID.Flamethrower);
-    public float BScd => Cooldown(AID.BarrelStabilizer);
-    public float Drillcd => Cooldown(AID.Drill);
-    public float AAcd => Unlocked(AID.AirAnchor) ? Cooldown(AID.AirAnchor) : Cooldown(AID.HotShot);
-    public float CScd => Cooldown(AID.ChainSaw);
-    public bool Drillsafe => !Unlocked(AID.Drill) || Drillcd > 7.6f;
-    public bool AAsafe => !Unlocked(AID.AirAnchor) || AAcd > 7.6f;
-    public bool CSsafe => !Unlocked(AID.ChainSaw) || CScd > 7.6f;
-    public bool EVsafe => !Unlocked(AID.Excavator) || EVleft == 0;
-    public bool FMFsafe => !Unlocked(AID.FullMetalField) || FMFleft == 0;
-    public bool CanHC => ActionReady(AID.Hypercharge) && (Heat >= 50 || HCleft > GCD);
-    public bool CanHB => Unlocked(AID.HeatBlast) && OverheatActive;
-    public bool CanSummon => Unlocked(AID.RookAutoturret) && Battery >= 50 && !MinionActive;
-    public bool CanWF => ActionReady(AID.Wildfire);
-    public bool CanBS => ActionReady(AID.BarrelStabilizer);
-    public bool CanRA => Unlocked(AID.Reassemble) && Cooldown(AID.Reassemble) <= 57f && !OverheatActive && RAleft == 0;
-    public bool CanDrill => Unlocked(AID.Drill) && (Unlocked(TraitID.EnhancedMultiweapon) ? Cooldown(AID.Drill) < 0.5f + (SkSGCDLength * 8) : Cooldown(AID.Drill) < 0.5f);
-    public bool CanBB => ActionReady(AID.Bioblaster);
-    public bool CanAA => ActionReady(BestAirAnchor);
-    public bool CanCS => ActionReady(AID.ChainSaw);
-    public bool CanEV => Unlocked(AID.Excavator) && EVleft > 0;
-    public bool CanFMF => Unlocked(AID.FullMetalField) && FMFleft > 0;
-    public bool CanFT => ActionReady(AID.Flamethrower) && !OverheatActive && FTleft == 0 && NumFlamethrowerTargets > 2;
-
-    private AID AutoFinish => ComboLastMove switch
-    {
-        AID.SlugShot or AID.HeatedSlugShot => BestCleanShot,
-        AID.SplitShot or AID.HeatedSplitShot => BestSlugShot,
-        AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => AutoBreak,
-    };
-    private AID ST => ComboLastMove switch
-    {
-        AID.SlugShot or AID.HeatedSlugShot => BestCleanShot,
-        AID.SplitShot or AID.HeatedSplitShot => BestSlugShot,
-        AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => BestSplitShot,
-    };
-    private AID AutoBreak => WantAOE ? BestSpreadShot : ST;
-    private AID AOEFinish => ComboLastMove switch
-    {
-        AID.SlugShot or AID.HeatedSlugShot => BestCleanShot,
-        AID.SplitShot or AID.HeatedSplitShot => BestSlugShot,
-        AID.CleanShot or AID.HeatedCleanShot or AID.Scattergun or AID.SpreadShot or _ => BestSpreadShot,
-    };
-
-    //private bool BreakCombo => ComboLastMove == AID.HeatedSlugShot ? NumConeTargets > 3 : ComboLastMove == AID.HeatedSplitShot ? NumConeTargets > 2 : NumConeTargets > 1;
+    private MachinistGauge Gauge => World.Client.GetGauge<MachinistGauge>();
+    private int Heat => Gauge.Heat;
+    private int Battery => Gauge.Battery;
+    private bool QueenActive => Gauge.SummonTimeRemaining != 0;
+    private bool Overheated => HasStatus(SID.Overheated);
+    private bool Reassembled => HasStatus(SID.Reassembled);
+    private (float CD, float Left) WF => (Cooldown(AID.Wildfire), Status(SID.WildfirePlayer, 10));
+    private float BSCD => Cooldown(AID.BarrelStabilizer);
+    private float DrillCD => Cooldown(AID.Drill);
+    private float AACD => Cooldown(BestAirAnchor);
+    private float CSCD => Cooldown(AID.ChainSaw);
+    private float EVLeft => Status(SID.ExcavatorReady, 30);
+    private float FMFLeft => Status(SID.FullMetalMachinist, 30);
+    private float FTLeft => Status(SID.Flamethrower, 10);
+    private bool AnchorAndSawBusy => (!Unlocked(AID.AirAnchor) || AACD > 7.6f) && (!Unlocked(AID.ChainSaw) || CSCD > 7.6f);
+    private bool ToolsBusy => AnchorAndSawBusy && (!Unlocked(AID.Drill) || DrillCD > 7.6f) && EVLeft == 0 && FMFLeft == 0;
+    private bool PauseForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && FTLeft > 0;
 
     private AID BestSplitShot => Unlocked(AID.HeatedSplitShot) ? AID.HeatedSplitShot : AID.SplitShot;
     private AID BestSlugShot => Unlocked(AID.HeatedSlugShot) ? AID.HeatedSlugShot : AID.SlugShot;
     private AID BestCleanShot => Unlocked(AID.HeatedCleanShot) ? AID.HeatedCleanShot : AID.CleanShot;
-    private AID BestDrill => NumConeTargets > 1 && Unlocked(AID.Bioblaster) ? AID.Bioblaster : AID.Drill;
-    private AID BestHeat => NumConeTargets > 3 ? AID.AutoCrossbow : BestHeatBlast;
     private AID BestSpreadShot => Unlocked(AID.Scattergun) ? AID.Scattergun : AID.SpreadShot;
-    private AID BestHeatBlast => Unlocked(AID.BlazingShot) ? AID.BlazingShot : Unlocked(AID.HeatBlast) ? AID.HeatBlast : ST;
-    private AID BestGauss => Unlocked(AID.DoubleCheck) ? AID.DoubleCheck : AID.GaussRound;
-    private AID BestRicochet => Unlocked(AID.Checkmate) ? AID.Checkmate : AID.Ricochet;
     private AID BestAirAnchor => Unlocked(AID.AirAnchor) ? AID.AirAnchor : AID.HotShot;
+    private AID BestHeatBlast => Unlocked(AID.BlazingShot) ? AID.BlazingShot : Unlocked(AID.HeatBlast) ? AID.HeatBlast : BestSplitShot;
+    private AID BestQueen => Unlocked(AID.AutomatonQueen) ? AID.AutomatonQueen : AID.RookAutoturret;
+    private AID BestOverdrive => Unlocked(AID.QueenOverdrive) ? AID.QueenOverdrive : AID.RookOverdrive;
 
-    #region Buffs
+    private bool WantAOE;
+    private int ConeTargets;
+    private int FlamethrowerTargets;
+    private Actor? BestConeTarget;
+    private Actor? ConeTarget;
+    private Actor? SplashTarget;
+    private Actor? SawTarget;
 
-    private (bool, OGCDPriority) ShouldUseWildfire(WildfireStrategy strategy, Actor? target)
+    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        var condition =
-            CanWF &&
-            InCombat(target) &&
-            ((CombatTimer < 60 && FMFleft > 0 && AAsafe && CSsafe && EVleft == 0) || //opener - after all tools except FMF
-            (CombatTimer >= 60 && FMFleft == 0 && AAsafe && CSsafe && EVleft == 0) || //2m burst - after all tools
-            LastActionUsed(AID.Hypercharge) || //if we just used Hypercharge
-            OverheatActive); //last resort - send during Overheat
-        return strategy switch
+        var auto = strategy.AutoTarget();
+        var forceAOE = strategy.Option(Track.AOE).As<AOEStrategy>() is AOEStrategy.ForceAOEFinish or AOEStrategy.ForceAOEBreak;
+        (var bestCone, ConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
+        var (bestSplash, splashTargets) = auto ? GetBestTarget(primaryTarget, 25, IsSplashTarget) : (primaryTarget, 0);
+        var (bestSaw, sawTargets) = auto ? GetBestTarget(primaryTarget, 25, Is25yRectTarget) : (primaryTarget, 0);
+        FlamethrowerTargets = Hints.NumPriorityTargetsInAOECone(Player.Position, 12, Player.Rotation.ToDirection(), 45.Degrees());
+        WantAOE = Unlocked(AID.SpreadShot) && (forceAOE || (auto ? ConeTargets > 2 : FlamethrowerTargets > 1));
+        BestConeTarget = bestCone?.Actor;
+        ConeTarget = WantAOE ? BestConeTarget : PrimaryTarget;
+        SplashTarget = Unlocked(AID.Ricochet) && splashTargets > 1 ? bestSplash?.Actor : PrimaryTarget;
+        SawTarget = Unlocked(AID.ChainSaw) && sawTargets > 1 ? bestSaw?.Actor : PrimaryTarget;
+        var channeling = PauseForFlamethrower && LastActionUsed(AID.Flamethrower) && strategy.Option(Track.Flamethrower).As<AllowOrForbid>() != AllowOrForbid.Forbid;
+
+        if (strategy.HoldEverything() || channeling)
+            return;
+
+        QueueOpener(strategy);
+        if (strategy.AllowBuffs())
         {
-            WildfireStrategy.Automatic => (condition, ChangePriority(-200, 999)),
-            WildfireStrategy.AlignWithBurst => (BScd > 90 && condition, ChangePriority(-200, 999)),
-            WildfireStrategy.End => (HasStatus(SID.WildfirePlayer), OGCDPriority.Max),
-            WildfireStrategy.Force => (CanWF, OGCDPriority.Forced),
-            WildfireStrategy.ForceWeave => (CanWF && CanWeaveIn, OGCDPriority.Forced),
-            WildfireStrategy.Delay or _ => (false, OGCDPriority.None),
-        };
+            QueueWildfire(strategy);
+            QueueBarrelStabilizer(strategy);
+            QueueReassemble(strategy);
+        }
+        if (strategy.AllowCDs())
+        {
+            QueueTool(strategy, Track.AirAnchor, BestAirAnchor, null, ActionReady(BestAirAnchor), true, GCDPriority.ExtremelyHigh + 10);
+            QueueTool(strategy, Track.ChainSaw, AID.ChainSaw, SawTarget, ActionReady(AID.ChainSaw), true, GCDPriority.ExtremelyHigh + 2);
+            QueueTool(strategy, Track.Excavator, AID.Excavator, SplashTarget, Unlocked(AID.Excavator) && EVLeft > 0, !Overheated, GCDPriority.ExtremelyHigh + 5);
+            QueueTool(strategy, Track.FullMetalField, AID.FullMetalField, SplashTarget, Unlocked(AID.FullMetalField) && FMFLeft > 0, EVLeft == 0 && AnchorAndSawBusy, GCDPriority.High + 1);
+            QueueDrill(strategy);
+            QueueCharges(strategy, AID.GaussRound, AID.DoubleCheck, Track.GaussRound, Track.DoubleCheck, Unlocked(AID.DoubleCheck) ? SplashTarget : PrimaryTarget);
+            QueueCharges(strategy, AID.Ricochet, AID.Checkmate, Track.Ricochet, Track.Checkmate, SplashTarget);
+            QueueFlamethrower(strategy);
+        }
+        if (strategy.AllowGauge())
+        {
+            QueueHypercharge(strategy);
+            QueueBattery(strategy);
+        }
+        if (strategy.AllowAbilities())
+        {
+            QueueHeat(strategy);
+            if (CountdownRemaining is not > 1.99f)
+                QueuePotion(strategy, ActionDefinitions.IDPotionDex, BSCD <= 6f, ActionQueue.Priority.Medium);
+        }
+        QueueCombo(strategy);
+
+        if (primaryTarget != null)
+            GoalZoneCombined(strategy, 25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), AID.SpreadShot, Overheated && Unlocked(AID.AutoCrossbow) ? 4 : 2);
     }
-    private (bool, OGCDPriority) ShouldUseBarrelStabilizer(OGCDStrategy strategy, Actor? target)
+
+    private AID OpenerTool(StrategyValues strategy) => strategy.Option(Track.Opener).As<OpenerOption>() switch
     {
-        if (!CanBS)
-            return (false, OGCDPriority.None);
-        return strategy switch
+        OpenerOption.ChainSaw when Unlocked(AID.ChainSaw) => AID.ChainSaw,
+        OpenerOption.Drill when Unlocked(AID.Drill) => AID.Drill,
+        _ => BestAirAnchor
+    };
+    private void QueueOpener(StrategyValues strategy)
+    {
+        var pulling = !Player.InCombat && In25y(PrimaryTarget);
+        var toolTime = CountdownRemaining is { } countdown ? countdown < 1.15f : Reassembled || !ActionReady(AID.Reassemble);
+        if (pulling && CountdownRemaining is not >= 5f && !Reassembled && ActionReady(AID.Reassemble))
+            QueueOGCD(AID.Reassemble, Player, OGCDPriority.Max);
+        if (pulling && toolTime)
+            QueueGCD(OpenerTool(strategy), PrimaryTarget, GCDPriority.Max);
+    }
+    private void QueueCombo(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.AOE);
+        var next = ComboLastMove switch
         {
-            OGCDStrategy.Automatic => (CanWeaveIn, OGCDPriority.Max - 1),
+            AID.SplitShot or AID.HeatedSplitShot => BestSlugShot,
+            AID.SlugShot or AID.HeatedSlugShot => BestCleanShot,
+            _ => AID.None
+        };
+        var single = next != AID.None ? next : BestSplitShot;
+        var action = track.As<AOEStrategy>() switch
+        {
+            AOEStrategy.AutoFinish => next != AID.None ? next : WantAOE ? BestSpreadShot : BestSplitShot,
+            AOEStrategy.AutoBreak => WantAOE ? BestSpreadShot : single,
+            AOEStrategy.ForceST => single,
+            AOEStrategy.ForceAOEFinish => next != AID.None ? next : BestSpreadShot,
+            AOEStrategy.ForceAOEBreak => BestSpreadShot,
+            _ => AID.None
+        };
+        var target = action == BestSpreadShot ? AOETargetChoice(PrimaryTarget, BestConeTarget, track, strategy) : SingleTargetChoice(PrimaryTarget, track);
+        var priority = CombatTimer > 90 && ComboTimer is < 8f and not 0 ? GCDPriority.High + 1 : GCDPriority.Low;
+        if (!Overheated && CountdownRemaining is not > 0f)
+            QueueGCD(action, target, priority);
+    }
+    private void QueueWildfire(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Wildfire);
+        var wildfire = track.As<WildfireStrategy>();
+        var ready = ActionReady(AID.Wildfire);
+        var toolsUsed = (CombatTimer < 60 ? FMFLeft > 0 : FMFLeft == 0) && AnchorAndSawBusy && EVLeft == 0;
+        var optimal = ready && InCombat(PrimaryTarget) && (toolsUsed || LastActionUsed(AID.Hypercharge) || Overheated);
+        var (condition, priority) = wildfire switch
+        {
+            WildfireStrategy.Automatic => (optimal, ChangePriority(-200, 999)),
+            WildfireStrategy.AlignWithBurst => (optimal && BSCD > 90, ChangePriority(-200, 999)),
+            WildfireStrategy.Force => (ready, OGCDPriority.Forced),
+            WildfireStrategy.ForceWeave => (ready && CanWeaveIn, OGCDPriority.Forced),
+            WildfireStrategy.End => (WF.Left > 0, OGCDPriority.Max),
+            _ => (false, OGCDPriority.None)
+        };
+        var detonate = wildfire == WildfireStrategy.End;
+        if (condition)
+            QueueOGCD(detonate ? AID.Detonator : AID.Wildfire, detonate ? Player : SingleTargetChoice(PrimaryTarget, track), priority);
+    }
+    private void QueueBarrelStabilizer(StrategyValues strategy)
+    {
+        var (condition, priority) = strategy.Option(Track.BarrelStabilizer).As<OGCDStrategy>() switch
+        {
+            OGCDStrategy.Automatic => (InCombat(PrimaryTarget) && CanWeaveIn, OGCDPriority.Max - 1),
             OGCDStrategy.AnyWeave => (CanWeaveIn, OGCDPriority.Forced),
             OGCDStrategy.EarlyWeave => (CanEarlyWeaveIn, OGCDPriority.Forced),
             OGCDStrategy.LateWeave => (CanLateWeaveIn, OGCDPriority.Forced),
             OGCDStrategy.Force => (true, OGCDPriority.Forced),
-            OGCDStrategy.Delay or _ => (false, OGCDPriority.None),
+            _ => (false, OGCDPriority.None)
         };
+        if (condition && ActionReady(AID.BarrelStabilizer))
+            QueueOGCD(AID.BarrelStabilizer, Player, priority);
     }
-    private (bool, OGCDPriority) ShouldUseReassemble(ReassembleStrategy strategy, Actor? target)
+    private void QueueReassemble(StrategyValues strategy)
     {
-        if (!CanRA)
-            return (false, OGCDPriority.None);
-        var opti = Player.InCombat && CanWeaveIn && EVleft > GCD || (BScd is < 110 and > 90 && !OverheatActive && NextGCD is AID.Drill);
-        var any = Player.InCombat && CanWeaveIn && (AAcd <= GCD || CScd <= GCD || EVleft > GCD || NextGCD == AID.Drill);
-        var risk = Cooldown(AID.Reassemble) < 15 && any;
-        return strategy switch
+        var charges = Cooldown(AID.Reassemble);
+        var ready = Unlocked(AID.Reassemble) && charges <= 57f && !Overheated && !Reassembled;
+        var weave = Player.InCombat && CanWeaveIn;
+        var toolNext = AACD <= GCD || CSCD <= GCD || EVLeft > GCD || NextGCD == AID.Drill;
+        var optimal = weave && EVLeft > GCD || BSCD is < 110 and > 90 && !Overheated && NextGCD == AID.Drill;
+        var (condition, priority) = strategy.Option(Track.Reassemble).As<ReassembleStrategy>() switch
         {
-            ReassembleStrategy.Automatic => (opti || risk, OGCDPriority.High),
-            ReassembleStrategy.Any => (any || risk, OGCDPriority.High),
-            ReassembleStrategy.HoldOne => (Cooldown(AID.Reassemble) < 20 && any, OGCDPriority.High),
-            ReassembleStrategy.Force or ReassembleStrategy.ForceWeave => (true, OGCDPriority.Forced),
-            ReassembleStrategy.Delay or _ => (false, OGCDPriority.None),
+            ReassembleStrategy.Automatic => (optimal || weave && toolNext && charges < 15, OGCDPriority.High),
+            ReassembleStrategy.Any => (weave && toolNext, OGCDPriority.High),
+            ReassembleStrategy.HoldOne => (weave && toolNext && charges < 20, OGCDPriority.High),
+            ReassembleStrategy.Force => (true, OGCDPriority.Forced),
+            ReassembleStrategy.ForceWeave => (CanWeaveIn, OGCDPriority.Forced),
+            _ => (false, OGCDPriority.None)
         };
+        if (condition && ready)
+            QueueOGCD(AID.Reassemble, Player, priority);
     }
-    #endregion
-
-    #region Tools
-    private void Opener(OpenerOption opt, Actor? target)
+    private void QueueTool(StrategyValues strategy, Track track, AID action, Actor? splashTarget, bool ready, bool optimal, GCDPriority priority)
     {
-        if (CountdownRemaining == null || CombatTimer == 0 || !Player.InCombat)
-        {
-            var openerAction = opt switch
-            {
-                OpenerOption.ChainSaw => AID.ChainSaw,
-                OpenerOption.Drill => AID.Drill,
-                _ => AID.AirAnchor,
-            };
-            QueueGCD(openerAction, target, GCDPriority.Max);
-            return;
-        }
-        if (CountdownRemaining > 0)
-        {
-            if (CountdownRemaining < 1.15f)
-            {
-                if (opt == OpenerOption.AirAnchor || (opt == OpenerOption.ChainSaw && !Unlocked(AID.ChainSaw)) || (opt == OpenerOption.Drill && !Unlocked(AID.Drill)))
-                    QueueGCD(BestAirAnchor, target, GCDPriority.VerySevere);
-                if (opt == OpenerOption.Drill)
-                    QueueGCD(AID.Drill, target, GCDPriority.VerySevere);
-            }
-
-            if (CountdownRemaining < 1.05f && opt == OpenerOption.ChainSaw)
-                QueueGCD(AID.ChainSaw, target, GCDPriority.VerySevere);
-
-            return;
-        }
+        var option = strategy.Option(track);
+        var tool = option.As<GCDStrategy>();
+        var target = splashTarget != null ? AOETargetChoice(PrimaryTarget, splashTarget, option, strategy) : SingleTargetChoice(PrimaryTarget, option);
+        if (ShouldUseGCD(tool, target, ready, InCombat(PrimaryTarget) && optimal))
+            QueueGCD(action, target, tool == GCDStrategy.Force ? GCDPriority.Forced : priority);
     }
-    private (bool, GCDPriority) ShouldUseAirAnchor(GCDStrategy strategy, Actor? target) => strategy switch
+    private void QueueDrill(StrategyValues strategy)
     {
-        GCDStrategy.Automatic => (InCombat(target) && CanAA, GCDPriority.ExtremelyHigh + 10),
-        GCDStrategy.Force => (CanAA, GCDPriority.Forced),
-        GCDStrategy.Delay or _ => (false, GCDPriority.None),
-    };
-    private (bool, GCDPriority) ShouldUseDrill(DrillStrategy strategy, Actor? target)
-    {
-        var st = InCombat(target) && CanDrill && (ActionReady(AID.Drill) || !OverheatActive);
-        var aoe = InCombat(target) && CanBB && In12y(target) && ActionReady(AID.Bioblaster);
-        var prio = Cooldown(AID.Drill) <= GCD ? GCDPriority.ExtremelyHigh + 9 : CanFitSkSGCD(WFleft) && FMFleft == 0 ? GCDPriority.High + 2 : GCDPriority.High;
-        return strategy switch
+        var track = strategy.Option(Track.Drill);
+        var drill = track.As<DrillStrategy>();
+        var drillReady = Unlocked(AID.Drill) && DrillCD < 0.5f + (Unlocked(TraitID.EnhancedMultiweapon) ? SkSGCDLength * 8 : 0);
+        var bioblasterReady = ActionReady(AID.Bioblaster);
+        var engaged = InCombat(PrimaryTarget);
+        var optimal = WantAOE ? engaged && bioblasterReady && In12y(PrimaryTarget) : engaged && drillReady && (ActionReady(AID.Drill) || !Overheated);
+        var automatic = DrillCD <= GCD ? GCDPriority.ExtremelyHigh + 9 : CanFitSkSGCD(WF.Left) && FMFLeft == 0 ? GCDPriority.High + 2 : GCDPriority.High;
+        var (condition, priority) = drill switch
         {
-            DrillStrategy.Automatic or DrillStrategy.OnlyDrill or DrillStrategy.OnlyBioblaster => (WantAOE ? aoe : st, prio),
-            DrillStrategy.ForceDrill => (CanDrill, GCDPriority.Forced),
-            DrillStrategy.ForceBioblaster => (CanBB, GCDPriority.Forced),
-            DrillStrategy.Delay or _ => (false, GCDPriority.None),
+            DrillStrategy.Automatic or DrillStrategy.OnlyDrill or DrillStrategy.OnlyBioblaster => (optimal, automatic),
+            DrillStrategy.ForceDrill => (drillReady, GCDPriority.Forced),
+            DrillStrategy.ForceBioblaster => (bioblasterReady, GCDPriority.Forced),
+            _ => (false, GCDPriority.None)
         };
-    }
-    private (bool, GCDPriority) ShouldUseChainSaw(GCDStrategy strategy, Actor? target) => strategy switch
-    {
-        GCDStrategy.Automatic => (InCombat(target) && CanCS, GCDPriority.ExtremelyHigh + 2),
-        GCDStrategy.Force => (CanCS, GCDPriority.Forced),
-        GCDStrategy.Delay or _ => (false, GCDPriority.None),
-    };
-    private (bool, GCDPriority) ShouldUseExcavator(GCDStrategy strategy, Actor? target) => strategy switch
-    {
-        GCDStrategy.Automatic => (InCombat(target) && !OverheatActive && CanEV, GCDPriority.ExtremelyHigh + 5),
-        GCDStrategy.Force => (CanEV, GCDPriority.Forced),
-        GCDStrategy.Delay or _ => (false, GCDPriority.None),
-    };
-    private (bool, GCDPriority) ShouldUseFullMetalField(GCDStrategy strategy, Actor? target) => strategy switch
-    {
-        GCDStrategy.Automatic => (InCombat(target) && CanFMF && EVleft == 0 && AAsafe && CSsafe, GCDPriority.High + 1),
-        GCDStrategy.Force => (CanFMF, GCDPriority.Forced),
-        GCDStrategy.Delay or _ => (false, GCDPriority.None),
-    };
-    #endregion
-
-    #region Gauge
-    private (bool, OGCDPriority) ShouldUseHypercharge(HyperchargeStrategy strategy, Actor? target)
-    {
-        if (!CanHC || RAleft > 0 || OverheatActive || target == null)
-            return (false, OGCDPriority.None);
-        var ok = AAsafe && CSsafe && Drillsafe && FMFsafe && EVsafe;
-        var odd = LastActionUsed(AID.Excavator) || (CScd > 50 && EVleft == 0);
-        var even = LastActionUsed(AID.FullMetalField) || (BScd > 90 && FMFleft == 0);
-        var off = !Unlocked(AID.Wildfire) || (Unlocked(AID.Wildfire) && (Cooldown(AID.Wildfire) > 40 || (Cooldown(AID.Wildfire) <= 2f && FMFleft == 0) || WFleft > 0));
-        var risk = Heat == 100 && ((Unlocked(BestAirAnchor) && AAcd > GCD) || (Unlocked(AID.ChainSaw) && CScd > GCD) || (Unlocked(AID.Drill) && Drillcd > GCD) || (Unlocked(AID.Excavator) && EVleft == 0) || (Unlocked(AID.FullMetalField) && FMFleft == 0));
-        var ct = (CombatTimer <= 30 || ComboTimer == 0 || (ComboLastMove is AID.HeatedCleanShot or AID.Scattergun)) ? ComboTimer >= 0 : ComboTimer >= 7.6f;
-        return strategy switch
+        var action = drill switch
         {
-            HyperchargeStrategy.Automatic => ((ok && ct && (odd || even || off || risk)), OGCDPriority.Severe + 1),
+            DrillStrategy.Automatic => ConeTargets > 2 && Unlocked(AID.Bioblaster) ? AID.Bioblaster : AID.Drill,
+            DrillStrategy.OnlyBioblaster or DrillStrategy.ForceBioblaster => AID.Bioblaster,
+            _ => AID.Drill
+        };
+        var target = action == AID.Bioblaster ? AOETargetChoice(PrimaryTarget, ConeTarget, track, strategy) : SingleTargetChoice(PrimaryTarget, track);
+        if (condition)
+            QueueGCD(action, target, priority);
+    }
+    private void QueueCharges(StrategyValues strategy, AID basic, AID upgraded, Track basicTrack, Track upgradedTrack, Actor? autoTarget)
+    {
+        var isUpgraded = Unlocked(upgraded);
+        var action = isUpgraded ? upgraded : basic;
+        var option = strategy.Option(isUpgraded ? upgradedTrack : basicTrack);
+        var charges = option.As<OGCDStrategy>();
+        var cooldown = Cooldown(action);
+        var dying = PrimaryTarget?.PendingHPRatio < 0.05f;
+        var window = WF.Left > 0 || RaidBuffsLeft > 0 || Overheated || dying || !Unlocked(AID.Wildfire) || WF.CD > 1f || cooldown <= 0.6f;
+        var priority = RaidBuffsLeft > 0 || WF.Left > 0 && Overheated || dying || cooldown <= 0.6f ? OGCDPriority.High
+            : (WF.CD > 90 ? cooldown <= 30.6f : cooldown <= 60.6f) ? OGCDPriority.Average
+            : OGCDPriority.Low;
+        if (ShouldUseOGCD(charges, PrimaryTarget, Unlocked(basic), InCombat(PrimaryTarget) && CanWeaveIn && In25y(PrimaryTarget) && cooldown <= 30.6f && window))
+            QueueOGCD(action, AOETargetChoice(PrimaryTarget, autoTarget, option, strategy), OGCDPrio(charges, priority));
+    }
+    private void QueueFlamethrower(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Flamethrower);
+        var worthIt = FlamethrowerTargets >= 3 || FlamethrowerTargets == 2 && RaidBuffsLeft > GCD;
+        var (condition, priority) = track.As<AllowOrForbid>() switch
+        {
+            AllowOrForbid.Allow => (worthIt && InCombat(PrimaryTarget) && In12y(PrimaryTarget), GCDPriority.ModeratelyLow),
+            AllowOrForbid.Force => (true, GCDPriority.Forced),
+            _ => (false, GCDPriority.None)
+        };
+        if (condition && ActionReady(AID.Flamethrower) && !Overheated && FTLeft == 0)
+            QueueGCD(AID.Flamethrower, AOETargetChoice(PrimaryTarget, ConeTarget, track, strategy), priority);
+    }
+    private void QueueHypercharge(StrategyValues strategy)
+    {
+        var ready = ActionReady(AID.Hypercharge) && (Heat >= 50 || Status(SID.Hypercharged) > GCD) && !Reassembled && !Overheated && InCombat(PrimaryTarget);
+        var afterOddTools = LastActionUsed(AID.Excavator) || CSCD > 50 && EVLeft == 0;
+        var afterEvenTools = LastActionUsed(AID.FullMetalField) || BSCD > 90 && FMFLeft == 0;
+        var offWildfire = !Unlocked(AID.Wildfire) || WF.CD > 40 || WF.CD <= 2f && FMFLeft == 0 || WF.Left > 0;
+        var toolOnCooldown = Unlocked(BestAirAnchor) && AACD > GCD || Unlocked(AID.ChainSaw) && CSCD > GCD || Unlocked(AID.Drill) && DrillCD > GCD || Unlocked(AID.Excavator) && EVLeft == 0 || Unlocked(AID.FullMetalField) && FMFLeft == 0;
+        var overcap = Heat == 100 && toolOnCooldown;
+        var comboSafe = CombatTimer <= 30 || ComboTimer == 0 || ComboLastMove is AID.HeatedCleanShot or AID.Scattergun || ComboTimer >= 7.6f;
+        var (condition, priority) = strategy.Option(Track.Hypercharge).As<HyperchargeStrategy>() switch
+        {
+            HyperchargeStrategy.Automatic => (ToolsBusy && comboSafe && (afterOddTools || afterEvenTools || offWildfire || overcap), OGCDPriority.Severe + 1),
             HyperchargeStrategy.ASAP => (true, OGCDPriority.Forced),
             HyperchargeStrategy.Full => (Heat == 100, OGCDPriority.Forced),
-            HyperchargeStrategy.Delay or _ => (false, OGCDPriority.None),
+            _ => (false, OGCDPriority.None)
         };
+        if (ready && condition)
+            QueueOGCD(AID.Hypercharge, Player, priority);
     }
-    private bool ShouldUseHeat(HeatOption strategy, Actor? target)
+    private void QueueBattery(StrategyValues strategy)
     {
-        if (!CanHB)
-            return false;
-        return strategy switch
+        var battery = strategy.Option(Track.Battery).As<BatteryStrategy>();
+        var canSummon = Unlocked(AID.RookAutoturret) && Battery >= 50 && !QueenActive && Player.InCombat;
+        var afterExcavator = LastActionUsed(AID.Excavator) || CSCD > 50 && EVLeft == 0;
+        var afterAnchor = LastActionUsed(BestAirAnchor) || AACD > 36;
+        var opener = CombatTimer < 90 && (CombatTimer < 30 ? afterExcavator : Battery >= 90);
+        var overcap = Battery >= 90 && (AACD <= GCD || CSCD <= GCD || EVLeft > GCD) || Battery == 100 && ComboLastMove is AID.SlugShot or AID.HeatedSlugShot;
+        var later = CombatTimer >= 90 && (BSCD > 45 && (afterAnchor || afterExcavator) || overcap);
+        var condition = battery switch
         {
-            HeatOption.Automatic => InCombat(target) && (WantAOE ? In12y(target) : In25y(target)),
-            HeatOption.OnlyHeatBlast => In25y(target),
-            HeatOption.OnlyAutoCrossbow => In12y(target),
-            _ => false,
+            BatteryStrategy.Automatic => canSummon && (opener || later),
+            BatteryStrategy.Fifty => canSummon,
+            BatteryStrategy.Hundred => canSummon && overcap,
+            BatteryStrategy.RaidBuffs => canSummon && (RaidBuffsLeft > GCD || RaidBuffsIn < 5),
+            BatteryStrategy.End => QueenActive,
+            _ => false
         };
+        var end = battery == BatteryStrategy.End;
+        if (condition)
+            QueueOGCD(end ? BestOverdrive : BestQueen, Player, end ? OGCDPriority.Critical : OGCDPriority.Severe);
     }
-    private bool ShouldUseBattery(BatteryStrategy strategy)
+    private void QueueHeat(StrategyValues strategy)
     {
-        var afterEV = LastActionUsed(AID.Excavator) || (CScd > 50 && EVleft == 0);
-        var afterAA = LastActionUsed(BestAirAnchor) || AAcd > 36;
-        var start = CombatTimer < 90 && (CombatTimer < 30 ? afterEV : Battery >= 90);
-        var risk = (Battery >= 90 && (Cooldown(BestAirAnchor) <= GCD || CScd <= GCD || EVleft > GCD)) || (Battery == 100 && ComboLastMove is AID.SlugShot or AID.HeatedSlugShot);
-        var rest = CombatTimer >= 90 && ((BScd is > 45 && (afterAA || afterEV)) || risk);
-        return strategy switch
+        var track = strategy.Option(Track.Heat);
+        var crossbow = Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast;
+        var autoCrossbow = ConeTargets >= 6 && Unlocked(AID.AutoCrossbow);
+        var (condition, action, target) = track.As<HeatOption>() switch
         {
-            BatteryStrategy.Automatic => CanSummon && (start || rest),
-            BatteryStrategy.Fifty => CanSummon,
-            BatteryStrategy.Hundred => CanSummon && risk,
-            BatteryStrategy.RaidBuffs => CanSummon && (RaidBuffsLeft > GCD || RaidBuffsIn < 5000),
-            BatteryStrategy.End => MinionActive,
-            BatteryStrategy.Delay or _ => false
+            HeatOption.Automatic => (InCombat(PrimaryTarget) && (WantAOE ? In12y(PrimaryTarget) : In25y(PrimaryTarget)), autoCrossbow ? AID.AutoCrossbow : BestHeatBlast, AOETargetChoice(PrimaryTarget, autoCrossbow ? BestConeTarget : PrimaryTarget, track, strategy)),
+            HeatOption.OnlyHeatBlast => (In25y(PrimaryTarget), BestHeatBlast, SingleTargetChoice(PrimaryTarget, track)),
+            HeatOption.OnlyAutoCrossbow => (In12y(PrimaryTarget), crossbow, AOETargetChoice(PrimaryTarget, BestConeTarget, track, strategy)),
+            _ => (false, AID.None, null)
         };
-    }
-    #endregion
-
-    #region Other
-    private (bool, OGCDPriority) ShouldUseOGCD(OGCDStrategy strategy, Actor? target, bool unlocked, float cooldown)
-    {
-        if (!unlocked)
-            return (false, OGCDPriority.None);
-
-        var condition =
-            CanWeaveIn &&
-            In25y(target) &&
-            cooldown <= 30.6f &&
-            (WFleft > 0 || //Wildfire active
-            RaidBuffsLeft > 0 || //raid buffs active
-            OverheatActive || //Overheat active
-            target?.PendingHPRatio < 0.05f || //target low HP
-            ((!Unlocked(AID.Wildfire) || Cooldown(AID.Wildfire) > 1f) || cooldown <= 0.6f) || //hold for Wildfire window if we have less than max charges
-            Cooldown(AID.Wildfire) > 90); //spend all in 2m window, else hold 1
-
-        var prio = CMDCPriority(cooldown, target);
-
-        return strategy switch
-        {
-            OGCDStrategy.Automatic => (condition, prio),
-            OGCDStrategy.AnyWeave => (CanWeaveIn, prio + 900),
-            OGCDStrategy.EarlyWeave => (CanEarlyWeaveIn, prio + 900),
-            OGCDStrategy.LateWeave => (CanLateWeaveIn, prio + 900),
-            OGCDStrategy.Force => (true, prio + 900),
-            _ => (false, OGCDPriority.None),
-        };
-    }
-    private (bool, OGCDPriority) ShouldUseDoubleCheck(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, Unlocked(AID.GaussRound), Cooldown(BestGauss));
-    private (bool, OGCDPriority) ShouldUseCheckmate(OGCDStrategy strategy, Actor? target) => ShouldUseOGCD(strategy, target, Unlocked(AID.Ricochet), Cooldown(BestRicochet));
-    private OGCDPriority CMDCPriority(float cooldown, Actor? target)
-    {
-        //max prio
-        if (RaidBuffsLeft > 0 || //raid buffs active
-            (WFleft > 0 && OverheatActive) || //2m active
-            target?.PendingHPRatio < 0.05f || //send all before death
-            cooldown <= 0.6f) //overcap
-            return OGCDPriority.High;
-
-        //high prio
-        if (Cooldown(AID.Wildfire) > 90 ? cooldown <= 30.6f : cooldown <= 60.6f)
-            return OGCDPriority.Average;
-
-        return OGCDPriority.Low;
-    }
-
-    private bool ShouldUseFlamethrower(AllowOrForbid strategy, Actor? target)
-    {
-        if (!CanFT)
-            return false;
-        return strategy switch
-        {
-            AllowOrForbid.Allow => InCombat(target) && ShouldFlamethrower && In12y(target),
-            AllowOrForbid.Force => true,
-            AllowOrForbid.Forbid or _ => false,
-        };
-    }
-    private bool StopForFlamethrower => Service.Config.Get<MCHConfig>().PauseForFlamethrower && FTleft > 0;
-    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
-    {
-        PotionStrategy.AlignWithBuffs => Player.InCombat && BScd <= 6f,
-        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
-        PotionStrategy.Immediate => true,
-        _ => false
-    };
-    #endregion
-
-    public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
-    {
-        #region Variables
-        var gauge = World.Client.GetGauge<MachinistGauge>();
-        Heat = gauge.Heat;
-        Battery = gauge.Battery;
-        OverheatActive = Player.FindStatus(SID.Overheated) != null;
-        MinionActive = gauge.SummonTimeRemaining != 0;
-        (BestConeTargets, NumConeTargets) = GetBestTarget(primaryTarget, 12, Is12yConeTarget);
-        (BestSplashTargets, NumSplashTargets) = !strategy.ManualTarget() ? GetBestTarget(primaryTarget, 25, IsSplashTarget) : (primaryTarget, 0);
-        (BestChainSawTargets, NumChainSawTargets) = !strategy.ManualTarget() ? GetBestTarget(primaryTarget, 25, Is25yRectTarget) : (primaryTarget, 0);
-        NumFlamethrowerTargets = Hints.NumPriorityTargetsInAOECone(Player.Position, 12, Player.Rotation.ToDirection(), 45.Degrees());
-        var mainTarget = primaryTarget?.Actor;
-        WantAOE = Unlocked(AID.SpreadShot) && (strategy.AutoTarget() ? (NumConeTargets > 1 || ForceAOE) : strategy.ManualTarget() ? (NumFlamethrowerTargets > 1 || ForceAOE) : mainTarget != null);
-        ShouldUseRangedAOE = Unlocked(AID.Ricochet) && NumSplashTargets > 1;
-        ShouldUseSaw = Unlocked(AID.ChainSaw) && NumChainSawTargets > 1;
-        ShouldFlamethrower = Unlocked(AID.Flamethrower) && NumFlamethrowerTargets == 2;
-        BestConeTarget = WantAOE ? BestConeTargets : primaryTarget;
-        BestSplashTarget = ShouldUseRangedAOE ? BestSplashTargets : primaryTarget;
-        BestChainSawTarget = ShouldUseSaw ? BestChainSawTargets : primaryTarget;
-        BestFlamethrowerTarget = ShouldFlamethrower ? BestConeTarget : primaryTarget;
-
-        #region Strategy Definitions
-        var opener = strategy.Option(Track.Opener);
-        var openerOpt = opener.As<OpenerOption>();
-        var assemble = strategy.Option(Track.Reassemble);
-        var assembleStrat = assemble.As<ReassembleStrategy>();
-        var gauss = strategy.Option(Track.GaussRound);
-        var gaussStrat = gauss.As<OGCDStrategy>();
-        var dc = strategy.Option(Track.DoubleCheck);
-        var dcStrat = dc.As<OGCDStrategy>();
-        var ricochet = strategy.Option(Track.Ricochet);
-        var ricochetStrat = ricochet.As<OGCDStrategy>();
-        var cm = strategy.Option(Track.Checkmate);
-        var cmStrat = cm.As<OGCDStrategy>();
-        var ft = strategy.Option(Track.Flamethrower);
-        var ftStrat = ft.As<AllowOrForbid>();
-        var ev = strategy.Option(Track.Excavator);
-        var evStrat = ev.As<GCDStrategy>();
-        var fmf = strategy.Option(Track.FullMetalField);
-        var fmfStrat = fmf.As<GCDStrategy>();
-        var cs = strategy.Option(Track.ChainSaw);
-        var csStrat = cs.As<GCDStrategy>();
-        var aa = strategy.Option(Track.AirAnchor);
-        var aaStrat = aa.As<GCDStrategy>();
-        var drill = strategy.Option(Track.Drill);
-        var drillStrat = drill.As<DrillStrategy>();
-        var hsp = strategy.Option(Track.Heat);
-        var hspOpt = hsp.As<HeatOption>();
-        var hc = strategy.Option(Track.Hypercharge);
-        var hcStrat = hc.As<HyperchargeStrategy>();
-        var battery = strategy.Option(Track.Battery);
-        var batteryStrat = battery.As<BatteryStrategy>();
-        var wf = strategy.Option(Track.Wildfire);
-        var wfStrat = wf.As<WildfireStrategy>();
-        var bs = strategy.Option(Track.BarrelStabilizer);
-        var bsStrat = bs.As<OGCDStrategy>();
-        #endregion
-
-        #endregion
-
-        #region Full Rotation Execution
-
-        if (strategy.HoldEverything())
-            return;
-
-        #region Opener / Other
-        //Stop all for Flamethrower
-        if (StopForFlamethrower &&
-            strategy.Option(Track.Flamethrower).As<AllowOrForbid>() != AllowOrForbid.Forbid &&
-            LastActionUsed(AID.Flamethrower))
-            return;
-
-        if (CountdownRemaining == null || CombatTimer == 0)
-        {
-            if (!Player.InCombat && In25y(mainTarget))
-            {
-                if (RAleft == 0 && ActionReady(AID.Reassemble)) //RA first
-                    QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
-                if (RAleft > 0)
-                    Opener(openerOpt, mainTarget);
-            }
-        }
-        if (CountdownRemaining > 0)
-        {
-            if (CountdownRemaining < 5 && RAleft == 0 && ActionReady(AID.Reassemble))
-                QueueGCD(AID.Reassemble, Player, GCDPriority.Max);
-            if (ShouldUsePotion(strategy) && CountdownRemaining <= 1.99f)
-                Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
-            if (CountdownRemaining < 1.15f)
-                Opener(openerOpt, mainTarget);
-            if (CountdownRemaining > 0)
-                return;
-        }
-        if (ShouldUsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionDex, Player, ActionQueue.Priority.Medium);
-
-        #endregion
-
-        #region Standard Rotation
-        if (!OverheatActive)
-        {
-            var aoe = strategy.Option(Track.AOE);
-            var aoeStrat = aoe.As<AOEStrategy>();
-            var aoesTarget = AOETargetChoice(mainTarget, BestConeTarget?.Actor, aoe, strategy);
-            var stTarget = SingleTargetChoice(mainTarget, aoe);
-            var bestTarget = WantAOE ? aoesTarget : stTarget;
-            ForceAOE = aoeStrat is AOEStrategy.ForceAOEFinish or AOEStrategy.ForceAOEBreak;
-            var (aoeAction, aoeTarget) = aoeStrat switch
-            {
-                AOEStrategy.AutoFinish => (AutoFinish, bestTarget),
-                AOEStrategy.AutoBreak => (AutoBreak, bestTarget),
-                AOEStrategy.ForceST => (ST, stTarget),
-                AOEStrategy.ForceAOEFinish => (AOEFinish, aoesTarget),
-                AOEStrategy.ForceAOEBreak => (BestSpreadShot, aoesTarget),
-                _ => (AID.None, null)
-            };
-            QueueGCD(aoeAction, aoeTarget, CombatTimer > 90 && ComboTimer is < 8f and not 0 ? GCDPriority.High + 1 : GCDPriority.Low);
-        }
-        #endregion
-
-        #region Cooldowns
-        if (!strategy.HoldAbilities())
-        {
-            if (!strategy.HoldCDs())
-            {
-                if (!strategy.HoldBuffs())
-                {
-                    var (wfCondition, wfPrio) = ShouldUseWildfire(wfStrat, mainTarget);
-                    if (wfCondition)
-                    {
-                        if (wfStrat == WildfireStrategy.End)
-                            QueueOGCD(AID.Detonator, Player, wfPrio);
-                        else
-                            QueueOGCD(AID.Wildfire, SingleTargetChoice(mainTarget, wf), wfPrio);
-                    }
-
-                    var (bsCondition, bsPrio) = ShouldUseBarrelStabilizer(bsStrat, mainTarget);
-                    if (bsCondition)
-                        QueueOGCD(AID.BarrelStabilizer, Player, bsPrio);
-
-                    var (raCondition, raPrio) = ShouldUseReassemble(assembleStrat, mainTarget);
-                    if (raCondition)
-                        QueueOGCD(AID.Reassemble, Player, raPrio);
-                }
-                var (aaCondition, aaPrio) = ShouldUseAirAnchor(aaStrat, mainTarget);
-                if (aaCondition)
-                    QueueGCD(BestAirAnchor, SingleTargetChoice(mainTarget, aa) ?? mainTarget, aaPrio);
-
-                var (csCondition, csPrio) = ShouldUseChainSaw(csStrat, mainTarget);
-                if (csCondition)
-                    QueueGCD(AID.ChainSaw, AOETargetChoice(mainTarget, BestChainSawTarget?.Actor, cs, strategy) ?? BestChainSawTarget?.Actor, csPrio);
-
-                var (drillCondition, drillPrio) = ShouldUseDrill(drillStrat, mainTarget);
-                if (drillCondition)
-                {
-                    if (drillStrat is DrillStrategy.Automatic)
-                        QueueGCD(BestDrill, WantAOE ? AOETargetChoice(mainTarget, BestConeTarget?.Actor, drill, strategy) : SingleTargetChoice(mainTarget, drill), drillPrio);
-                    if (drillStrat is DrillStrategy.OnlyDrill or DrillStrategy.ForceDrill)
-                        QueueGCD(AID.Drill, SingleTargetChoice(mainTarget, drill), drillPrio);
-                    if (drillStrat is DrillStrategy.OnlyBioblaster or DrillStrategy.ForceBioblaster)
-                        QueueGCD(AID.Bioblaster, AOETargetChoice(mainTarget, BestConeTarget?.Actor, drill, strategy), drillPrio);
-                }
-
-                var (evCondition, evPrio) = ShouldUseExcavator(evStrat, mainTarget);
-                if (evCondition)
-                    QueueGCD(AID.Excavator, AOETargetChoice(mainTarget, BestSplashTarget?.Actor, ev, strategy), evStrat is GCDStrategy.Force ? GCDPriority.Forced : evPrio);
-
-                var (fmfCondition, fmfPrio) = ShouldUseFullMetalField(fmfStrat, mainTarget);
-                if (fmfCondition)
-                    QueueGCD(AID.FullMetalField, AOETargetChoice(mainTarget, BestSplashTarget?.Actor, fmf, strategy), fmfStrat is GCDStrategy.Force ? GCDPriority.Forced : fmfPrio);
-
-                var (dcCondition, dcPrio) = ShouldUseDoubleCheck(dcStrat, mainTarget);
-                var (grCondition, grPrio) = ShouldUseDoubleCheck(gaussStrat, mainTarget);
-                if (Unlocked(AID.DoubleCheck) ? dcCondition : grCondition)
-                    QueueOGCD(BestGauss, AOETargetChoice(mainTarget, Unlocked(AID.DoubleCheck) ? BestSplashTarget?.Actor : mainTarget, Unlocked(AID.DoubleCheck) ? dc : gauss, strategy), Unlocked(AID.DoubleCheck) ? dcPrio : grPrio);
-                var (cmCondition, cmPrio) = ShouldUseCheckmate(cmStrat, mainTarget);
-                var (ricochetCondition, ricoPrio) = ShouldUseCheckmate(ricochetStrat, mainTarget);
-                if (Unlocked(AID.Checkmate) ? cmCondition : ricochetCondition)
-                    QueueOGCD(BestRicochet, AOETargetChoice(mainTarget, BestSplashTarget?.Actor, Unlocked(AID.Checkmate) ? cm : ricochet, strategy), Unlocked(AID.Checkmate) ? cmPrio : ricoPrio);
-
-                if (ShouldUseFlamethrower(ftStrat, mainTarget))
-                    QueueGCD(AID.Flamethrower, AOETargetChoice(mainTarget, BestFlamethrowerTarget?.Actor, ft, strategy), ftStrat is AllowOrForbid.Force ? GCDPriority.Forced : GCDPriority.ModeratelyLow);
-            }
-            if (!strategy.HoldGauge())
-            {
-                var (hcCondition, hcPrio) = ShouldUseHypercharge(hcStrat, mainTarget);
-                if (hcCondition)
-                    QueueOGCD(AID.Hypercharge, Player, hcPrio);
-                if (ShouldUseBattery(batteryStrat))
-                {
-                    if (batteryStrat is BatteryStrategy.Automatic or BatteryStrategy.Fifty or BatteryStrategy.Hundred)
-                        QueueOGCD(Unlocked(AID.AutomatonQueen) ? AID.AutomatonQueen : AID.RookAutoturret, Player, OGCDPriority.Severe);
-
-                    if (batteryStrat == BatteryStrategy.End)
-                        QueueOGCD(Unlocked(AID.QueenOverdrive) ? AID.QueenOverdrive : AID.RookOverdrive, Player, OGCDPriority.Critical);
-                }
-            }
-            if (ShouldUseHeat(hspOpt, mainTarget))
-            {
-                if (hspOpt == HeatOption.Automatic)
-                    QueueGCD(BestHeat, AOETargetChoice(mainTarget, mainTarget, hsp, strategy), GCDPriority.High);
-                if (hspOpt == HeatOption.OnlyHeatBlast)
-                    QueueGCD(BestHeatBlast, SingleTargetChoice(mainTarget, hsp), GCDPriority.High);
-                if (hspOpt == HeatOption.OnlyAutoCrossbow)
-                    QueueGCD(Unlocked(AID.AutoCrossbow) ? AID.AutoCrossbow : BestHeatBlast, AOETargetChoice(mainTarget, BestConeTarget?.Actor, hsp, strategy), GCDPriority.High);
-            }
-        }
-        #endregion
-        #endregion
-
-        #region AI
-        if (primaryTarget != null)
-        {
-            var aoebreakpoint = OverheatActive && Unlocked(AID.AutoCrossbow) ? 4 : 2;
-            GoalZoneCombined(25, Hints.GoalAOECone(primaryTarget.Actor, 12, 60.Degrees()), AID.SpreadShot, aoebreakpoint);
-        }
-        #endregion
+        if (condition && Overheated && Unlocked(AID.HeatBlast))
+            QueueGCD(action, target, GCDPriority.High);
     }
 }

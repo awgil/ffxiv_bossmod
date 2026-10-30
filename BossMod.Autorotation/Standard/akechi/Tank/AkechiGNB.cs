@@ -160,402 +160,359 @@ public sealed class AkechiGNB(RotationModuleManager manager, Actor player) : Ake
         return res;
     }
 
-    private float NMstatus;
-    private float SBstatus;
-    private float Rstatus;
-    private int NumSplashTargets;
-    private Enemy? BestSplashTargets;
-    private Enemy? BestSplashTarget;
-    private Enemy? BestDOTTarget;
-    private bool ForceAOE;
-    private bool WantAOE;
-
     private GunbreakerGauge Gauge => World.Client.GetGauge<GunbreakerGauge>();
-    private byte Ammo => Gauge.Ammo; //cartridges
-    private byte GunComboStep => Gauge.AmmoComboStep; //Gauge combo - GF & Reign
-    private float NMcd => Cooldown(AID.NoMercy);
-    private float BFcd => Cooldown(AID.Bloodfest);
-    private bool HasNM => NMcd is >= 40f and <= 60;
-    private bool HasBF => HasStatus(SID.Bloodfest);
-    private bool HasReign => HasStatus(SID.ReadyToReign);
+    private int Ammo => Gauge.Ammo;
+    private int GunComboStep => Gauge.AmmoComboStep;
+    private (float CD, float Left, bool Active) NM => Cooldown(AID.NoMercy) is var cd ? (cd, Status(SID.NoMercy, 20f), cd is >= 40f and <= 60) : default;
+    private (float CD, float Left, bool Active) BF => Status(SID.Bloodfest, 30f) is var left ? (Cooldown(AID.Bloodfest), left, left > 0) : default;
+    private (float Left, bool Active) Reign => Status(SID.ReadyToReign, 30f) is var left ? (left, left > 0) : default;
+    private float SBLeft => Status(SID.ReadyToBreak, 30f);
+
     private bool HasBlast => Unlocked(AID.Hypervelocity) && HasStatus(SID.ReadyToBlast) && !LastActionUsed(AID.Hypervelocity);
     private bool HasRaze => Unlocked(AID.FatedBrand) && HasStatus(SID.ReadyToRaze) && !LastActionUsed(AID.FatedBrand);
     private bool HasRip => HasStatus(SID.ReadyToRip) && !LastActionUsed(AID.JugularRip);
     private bool HasTear => HasStatus(SID.ReadyToTear) && !LastActionUsed(AID.AbdomenTear);
     private bool HasGouge => HasStatus(SID.ReadyToGouge) && !LastActionUsed(AID.EyeGouge);
+
     private bool Slow => SkSGCDLength >= 2.5f;
-    private bool Fast => SkSGCDLength < 2.5f;
-    private int MaxCartridges
-            => Unlocked(TraitID.CartridgeChargeII) ? HasStatus(SID.Bloodfest) ? 6 : 3 //3 max base, 6 max buffed
-            : Unlocked(TraitID.CartridgeCharge) ? HasStatus(SID.Bloodfest) ? 4 : 2 //2 max base, 4 max buffed
-            : 0; //none without first trait
+    private int MaxCartridges => Unlocked(TraitID.CartridgeChargeII) ? (BF.Active ? 6 : 3) : Unlocked(TraitID.CartridgeCharge) ? (BF.Active ? 4 : 2) : 0;
+    private bool FullCartridges => Ammo == MaxCartridges;
+    private AID BestFatedCircle => Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike;
+    private bool BurstReady => CombatTimer >= 30 || (Unlocked(AID.Bloodfest) ? ComboLastMove is AID.BrutalShell : ComboLastMove is AID.SolidBarrel);
 
-    private AID ContinueST(AID last, bool overcap) => last switch
-    {
-        AID.BrutalShell =>
-            overcap && Ammo == MaxCartridges && Unlocked(AID.BurstStrike) ? AID.BurstStrike
-            : Unlocked(AID.SolidBarrel) ? AID.SolidBarrel
-            : AID.KeenEdge,
-
-        AID.KeenEdge => Unlocked(AID.BrutalShell) ? AID.BrutalShell : AID.KeenEdge,
-        _ => AID.KeenEdge,
-    };
-    private AID ContinueAOE(AID last, bool overcap)
-        => overcap && Ammo == MaxCartridges ? (Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike)
-            : last == AID.DemonSlice ? (Unlocked(AID.DemonSlaughter) ? AID.DemonSlaughter : AID.DemonSlice)
-            : AID.DemonSlice;
-
-    private AID ContinueSTNoOvercap(AID last) => ContinueST(last, overcap: false);
-    private AID ContinueSTWithOvercap(AID last) => ContinueST(last, overcap: true);
-    private AID ContinueAOENoOvercap(AID last) => ContinueAOE(last, overcap: false);
-    private AID ContinueAOEWithOvercap(AID last) => ContinueAOE(last, overcap: true);
-
-    private AID Finish(bool overcap,
-        Func<AID, AID> with,
-        Func<AID, AID> without)
-    {
-        var gnash = ComboLastMove switch
-        {
-            AID.GnashingFang => AID.SavageClaw,
-            AID.SavageClaw => AID.WickedTalon,
-            AID.ReignOfBeasts => AID.NobleBlood,
-            AID.NobleBlood => AID.LionHeart,
-            _ => AID.None,
-        };
-        return gnash != AID.None ? gnash //finish Gauge combos first
-            : overcap ? with(ComboLastMove) //finish combo with overcap protection
-            : without(ComboLastMove); //just finish combo
-    }
-    private AID STFinish(bool overcap) => Finish(overcap, ContinueSTWithOvercap, ContinueSTNoOvercap);
-    private AID AOEFinish(bool overcap) => Finish(overcap, ContinueAOEWithOvercap, ContinueAOENoOvercap);
-
-    //we dont care about finishing combos with these methods, so we just send it
-    private AID STBreak(bool overcap) => overcap ? ContinueSTWithOvercap(ComboLastMove) : ContinueSTNoOvercap(ComboLastMove);
-    private AID AOEBreak(bool overcap) => overcap ? ContinueAOEWithOvercap(ComboLastMove) : ContinueAOENoOvercap(ComboLastMove);
-
-    private bool ShouldUsePotion(StrategyValues strategy) => strategy.Potion() switch
-    {
-        PotionStrategy.AlignWithBuffs => Player.InCombat && BFcd <= 4f,
-        PotionStrategy.AlignWithRaidBuffs => Player.InCombat && RaidBuffsLeft > 0,
-        PotionStrategy.Immediate => true,
-        _ => false
-    };
-
-    private OGCDPriority ContinuationPrio()
-    {
-        var prio = ChangePriority(200, 749);
-        //standard procs
-        if (HasRip || HasTear || HasGouge)
-            return prio;
-
-        //these require some tinkering because of the synergy with No Mercy & SkS
-        if (HasBlast || HasRaze)
-        {
-            //if slow, send after NM - else just send it
-            return Slow ? prio : prio + 500;
-        }
-        return OGCDPriority.None;
-    }
-    private OGCDPriority SkSPrio(OGCDPriority slow, OGCDPriority notslow) => Slow ? slow : Fast ? notslow : OGCDPriority.None;
-    private OGCDPriority BowPrio => SkSPrio(OGCDPriority.High, OGCDPriority.ModeratelyHigh);
-    private OGCDPriority ZonePrio => SkSPrio(OGCDPriority.ModeratelyHigh, OGCDPriority.High);
+    private bool ForceAOE;
+    private bool WantAOE;
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        NMstatus = Status(SID.NoMercy, 20f);
-        SBstatus = Status(SID.ReadyToBreak, 30f);
-        Rstatus = Status(SID.ReadyToReign, 30f);
-        (BestSplashTargets, NumSplashTargets) = GetBestTarget(primaryTarget, 3, IsSplashTarget);
-        BestSplashTarget = Unlocked(AID.ReignOfBeasts) && NumSplashTargets > 1 ? BestSplashTargets : primaryTarget;
-        BestDOTTarget = Hints.PriorityTargets.Where(x => Player.DistanceToHitbox(x.Actor) <= 3.5f).OrderByDescending(x => (float)x.Actor.HPMP.CurHP / x.Actor.HPMP.MaxHP).FirstOrDefault();
-        var aoe = strategy.Option(Track.AOE);
-        var aoeStrat = aoe.As<AOEStrategy>();
-        ForceAOE = aoeStrat is AOEStrategy.ForceAOEFinishWithoutOvercap or AOEStrategy.ForceAOEBreakWithoutOvercap or AOEStrategy.ForceAOEFinishWithOvercap or AOEStrategy.ForceAOEBreakWithOvercap;
-        WantAOE = TargetsInAOECircle(5f, 2) || ForceAOE;
-        var open = (CombatTimer < 30 && (Unlocked(AID.ReignOfBeasts) ? ComboLastMove is AID.BrutalShell : ComboLastMove is AID.SolidBarrel)) || CombatTimer >= 30;
-        var mainTarget = primaryTarget?.Actor;
+        ForceAOE = strategy.Option(Track.AOE).As<AOEStrategy>() is AOEStrategy.ForceAOEFinishWithOvercap or AOEStrategy.ForceAOEFinishWithoutOvercap or AOEStrategy.ForceAOEBreakWithOvercap or AOEStrategy.ForceAOEBreakWithoutOvercap;
+        WantAOE = ForceAOE || TargetsInAOECircle(5f, 3);
 
         if (strategy.HoldEverything())
             return;
 
-        if (!strategy.HoldCDs())
+        if (strategy.AllowBuffs())
         {
-            if (!strategy.HoldBuffs())
-            {
-                //Bloodfest
-                if (ActionReady(AID.Bloodfest))
-                {
-                    var bf = strategy.Option(Track.Bloodfest);
-                    var bfStrat = bf.As<BloodfestStrategy>();
-                    var bfTarget = SingleTargetChoice(mainTarget, bf);
-                    var (bfCondition, bfPrio) = bfStrat switch
-                    {
-                        BloodfestStrategy.Automatic => (InCombat(bfTarget), OGCDPriority.Severe + 1),
-                        BloodfestStrategy.Together => (InCombat(bfTarget) && (HasNM || NMcd <= SkSGCDLength), OGCDPriority.Severe + 1),
-                        BloodfestStrategy.Force => (true, OGCDPriority.Severe + 1 + 2000),
-                        BloodfestStrategy.ForceW => (CanWeaveIn, OGCDPriority.Severe + 1 + 1000),
-                        _ => (false, OGCDPriority.None),
-                    };
-                    if (bfCondition)
-                        QueueOGCD(AID.Bloodfest, bfTarget, bfPrio);
-                }
-
-                //No Mercy
-                if (ActionReady(AID.NoMercy))
-                {
-                    var nm = strategy.Option(Track.NoMercy);
-                    var nmStrat = nm.As<NoMercyStrategy>();
-                    var slow = Slow && CanWeaveIn;
-                    var fast = Fast && CanQuarterWeaveIn;
-                    var speed = slow || fast;
-                    var lv1to89 = speed && Ammo >= 1;
-                    var lv90plus = speed && Ammo >= 2;
-                    var cartCheck = Unlocked(AID.DoubleDown) ? lv90plus : lv1to89;
-                    var burst = cartCheck &&
-                            ((!Unlocked(AID.DoubleDown) || Ammo > 2 && Cooldown(AID.DoubleDown) <= 4) ||
-                            (!Unlocked(AID.GnashingFang) || Ammo > 1 && Cooldown(AID.GnashingFang) <= 32));
-                    var together = cartCheck && (HasBF || BFcd > 45);
-                    var common = InCombat(mainTarget) && In5y(mainTarget) && open;
-
-                    var (nmCondition, nmPrio) = nmStrat switch
-                    {
-                        NoMercyStrategy.Automatic => (common, OGCDPriority.Severe),
-                        NoMercyStrategy.BurstReady => (common && burst, OGCDPriority.Severe),
-                        NoMercyStrategy.Together => (common && together, OGCDPriority.Severe),
-                        NoMercyStrategy.Force => (true, OGCDPriority.Severe + 2000),
-                        NoMercyStrategy.ForceW => (CanWeaveIn, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.ForceQW => (CanQuarterWeaveIn, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.Force1 => (Ammo == 1, OGCDPriority.Severe + 2000),
-                        NoMercyStrategy.Force1W => (CanWeaveIn && Ammo == 1, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.Force1QW => (CanQuarterWeaveIn && Ammo == 1, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.Force2 => (Ammo == 2, OGCDPriority.Severe + 2000),
-                        NoMercyStrategy.Force2W => (CanWeaveIn && Ammo == 2, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.Force2QW => (CanQuarterWeaveIn && Ammo == 2, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.Force3 => (Ammo == 3, OGCDPriority.Severe + 2000),
-                        NoMercyStrategy.Force3W => (CanWeaveIn && Ammo == 3, OGCDPriority.Severe + 1000),
-                        NoMercyStrategy.Force3QW => (CanQuarterWeaveIn && Ammo == 3, OGCDPriority.Severe + 1000),
-                        _ => (false, OGCDPriority.None),
-                    };
-                    if (nmCondition)
-                        QueueOGCD(AID.NoMercy, Player, nmPrio + 2);
-                }
-            }
-
-            if (!strategy.HoldGauge())
-            {
-                //Gnashing Fang + combo
-                if (Unlocked(AID.GnashingFang))
-                {
-                    var gf = strategy.Option(Track.GnashingFang);
-                    var gfStrat = gf.As<GnashingStrategy>();
-                    var gfTarget = SingleTargetChoice(mainTarget, gf);
-                    var gfMinimum = gfTarget != null && In3y(gfTarget) && Ammo >= 1 && Cooldown(AID.GnashingFang) < 30.6f && GunComboStep == 0;
-                    var canfit = ActualComboTimer >= SkSGCDLength * 4 || ActualComboTimer == 0; //dont use if combo timer will expire (or if combo timer is 0, just send)
-                    var st = gfMinimum && !TargetsInAOECircle(5f, 4);
-                    var burst = st && HasNM && !HasReign; //if Lv100 & not opener, we send after Reign combo
-                    var filler = st && NMcd > 7 && canfit;
-                    var overcap = st && Cooldown(AID.GnashingFang) < 0.6f && NMcd > 7;
-                    var (gfCondition, gfAction, gfPrio) = gfStrat switch
-                    {
-                        GnashingStrategy.Automatic => (burst || filler || overcap, AID.GnashingFang, overcap ? GCDPriority.SlightlyHigh + 9 : burst ? GCDPriority.SlightlyHigh + 7 : GCDPriority.SlightlyHigh),
-                        GnashingStrategy.ForceGnash => (gfMinimum, AID.GnashingFang, GCDPriority.Forced),
-                        GnashingStrategy.ForceGnash1 => (gfMinimum && Ammo == 1, AID.GnashingFang, GCDPriority.Forced),
-                        GnashingStrategy.ForceGnash2 => (gfMinimum && Ammo == 2, AID.GnashingFang, GCDPriority.Forced),
-                        GnashingStrategy.ForceGnash3 => (gfMinimum && Ammo == 3, AID.GnashingFang, GCDPriority.Forced),
-                        GnashingStrategy.ForceClaw => (GunComboStep == 1 && In3y(gfTarget), AID.SavageClaw, GCDPriority.Forced),
-                        GnashingStrategy.ForceTalon => (GunComboStep == 2 && In3y(gfTarget), AID.WickedTalon, GCDPriority.Forced),
-                        _ => (false, AID.None, GCDPriority.None),
-                    };
-                    if (gfCondition)
-                        QueueGCD(gfAction, gfTarget, gfPrio);
-                }
-
-                //Double Down
-                if (ActionReady(AID.DoubleDown) && Ammo >= 2)
-                {
-                    var dd = strategy.Option(Track.DoubleDown);
-                    var ddStrat = dd.As<DoubleDownStrategy>();
-                    var (ddCondition, ddPrio) = ddStrat switch
-                    {
-                        DoubleDownStrategy.Automatic => (InCombat(mainTarget) && In5y(mainTarget) && HasNM, GCDPriority.SlightlyHigh + 6),
-                        DoubleDownStrategy.Force => (true, GCDPriority.Forced),
-                        DoubleDownStrategy.Force3 => (Ammo == 3, GCDPriority.Forced),
-                        _ => (false, GCDPriority.None),
-                    };
-                    if (ddCondition)
-                        QueueGCD(AID.DoubleDown, Player, ddPrio);
-                }
-
-                //Burst Strike & Fated Fircle
-                if (Unlocked(AID.BurstStrike) && Ammo >= 1)
-                {
-                    var carts = strategy.Option(Track.Cartridges);
-                    var cartsStrat = carts.As<CartridgeStrategy>();
-                    var onlybs = cartsStrat == CartridgeStrategy.OnlyBS;
-                    var onlyfc = cartsStrat == CartridgeStrategy.OnlyFC;
-                    var fc = Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike;
-                    var targetsNearby = TargetsInAOECircle(5f, 2);
-                    var bsTarget = SingleTargetChoice(mainTarget, carts);
-                    var useAOE = ForceAOE || targetsNearby;
-                    var lv30to71 = !Unlocked(AID.FatedCircle) && (!TargetsInAOECircle(5f, 3) && In3y(mainTarget)); //Before Lv72 - if more than 2 targets are present, we skip Burst Strike entirely
-                    var lv72plus = Unlocked(AID.FatedCircle) && (targetsNearby ? In5y(mainTarget) : In3y(mainTarget)); //After Lv72 - if more than 1 target is present, we choose Fated Circle over Burst Strike
-                    var (bsfcCondition, bsfcAction, bsfcTarget, bsfcPrio) = cartsStrat switch
-                    {
-                        CartridgeStrategy.Automatic or CartridgeStrategy.OnlyBS or CartridgeStrategy.OnlyFC
-                            => ((InCombat(mainTarget) && (Unlocked(AID.FatedCircle) ? lv72plus : lv30to71) && GunComboStep == 0 &&
-                            (HasNM || //if we have No Mercy, spend as much as possible after all combos (if we can)
-                            open && Unlocked(AID.ReignOfBeasts) && NMcd < 1 || //if Lv100 & No Mercy is imminent, use Burst Strike to buff Hypervelocity (BS/FC>NM>HV/FB)
-                            (Ammo > 3 && Status(SID.Bloodfest) is <= 20 and not 0 && !HasNM))), //if we have extra Bloodfest carts after NM, spend them asap
-                            onlyfc ? fc : onlybs ? AID.BurstStrike : (useAOE ? Unlocked(AID.FatedCircle) ? AID.FatedCircle : AID.BurstStrike : AID.BurstStrike),
-                            useAOE ? Player : bsTarget,
-                            GCDPriority.SlightlyHigh + 2),
-                        CartridgeStrategy.ForceBS => (true, AID.BurstStrike, bsTarget, GCDPriority.Forced),
-                        CartridgeStrategy.ForceBS1 => (true && Ammo == 1, AID.BurstStrike, bsTarget, GCDPriority.Forced),
-                        CartridgeStrategy.ForceBS2 => (true && Ammo == 2, AID.BurstStrike, bsTarget, GCDPriority.Forced),
-                        CartridgeStrategy.ForceBS3 => (true && Ammo == 3, AID.BurstStrike, bsTarget, GCDPriority.Forced),
-                        CartridgeStrategy.ForceFC => (Unlocked(AID.FatedCircle), fc, Player, GCDPriority.Forced),
-                        CartridgeStrategy.ForceFC1 => (Unlocked(AID.FatedCircle) && Ammo == 1, fc, Player, GCDPriority.Forced),
-                        CartridgeStrategy.ForceFC2 => (Unlocked(AID.FatedCircle) && Ammo == 2, fc, Player, GCDPriority.Forced),
-                        CartridgeStrategy.ForceFC3 => (Unlocked(AID.FatedCircle) && Ammo == 3, fc, Player, GCDPriority.Forced),
-                        _ => (false, AID.None, null, GCDPriority.None)
-                    };
-                    if (bsfcCondition)
-                        QueueGCD(bsfcAction, bsfcTarget, bsfcPrio);
-                }
-            }
-
-            //Sonic Break
-            if (Unlocked(AID.SonicBreak) && HasStatus(SID.ReadyToBreak))
-            {
-                var sb = strategy.Option(Track.SonicBreak);
-                var sbStrat = sb.As<SonicBreakStrategy>();
-                var sbTarget = AOETargetChoice(mainTarget, BestDOTTarget?.Actor, sb, strategy);
-                var (sbCondition, sbPrio) = sbStrat switch
-                {
-                    SonicBreakStrategy.Automatic => (InCombat(sbTarget) && In3y(sbTarget), GCDPriority.SlightlyHigh + 5),
-                    SonicBreakStrategy.Force => (true, GCDPriority.Forced),
-                    SonicBreakStrategy.Early => (HasNM, GCDPriority.SlightlyHigh + 10),
-                    SonicBreakStrategy.Late => (SBstatus is <= 12.500f and not 0, GCDPriority.SlightlyHigh + 10),
-                    _ => (false, GCDPriority.None)
-                };
-                if (sbCondition)
-                    QueueGCD(AID.SonicBreak, sbTarget, sbPrio);
-            }
-
-            //Zone
-            if (Unlocked(AID.DangerZone))
-            {
-                var zone = strategy.Option(Track.Zone);
-                var zoneStrat = zone.As<OGCDStrategy>();
-                var zoneAction = Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
-                if (ShouldUseOGCD(zoneStrat, mainTarget, ActionReady(zoneAction),
-                    InCombat(mainTarget) && In3y(mainTarget) && CanWeaveIn && NMcd is <= 58f and > 15f))
-                    QueueOGCD(zoneAction, SingleTargetChoice(mainTarget, zone), OGCDPrio(zoneStrat, ZonePrio));
-            }
-
-            //Bow Shock
-            if (ActionReady(AID.BowShock))
-            {
-                var bowStrat = strategy.Option(Track.BowShock).As<OGCDStrategy>();
-                if (ShouldUseOGCD(bowStrat, mainTarget, ActionReady(AID.BowShock),
-                    InCombat(mainTarget) && In5y(mainTarget) && CanWeaveIn && NMcd is <= 58f and > 39.5f))
-                    QueueOGCD(AID.BowShock, Player, OGCDPrio(bowStrat, BowPrio));
-            }
+            QueueBloodfest(strategy);
+            QueueNoMercy(strategy);
+        }
+        if (strategy.AllowCDs() && strategy.AllowGauge())
+        {
+            QueueGnashingFang(strategy);
+            QueueDoubleDown(strategy);
+            QueueCartridges(strategy);
+        }
+        if (strategy.AllowCDs())
+        {
+            QueueSonicBreak(strategy);
+            QueueZone(strategy);
+            QueueBowShock(strategy);
         }
 
-        //Reign of Beasts + combo
-        if (Unlocked(AID.ReignOfBeasts))
-        {
-            var r = strategy.Option(Track.Reign);
-            var rStrat = r.As<ReignStrategy>();
-            var rTarget = AOETargetChoice(mainTarget, BestSplashTarget?.Actor, r, strategy);
-            var hold = strategy.HoldCDs();
-            var (rCondition, rAction, rPrio) = rStrat switch
-            {
-                ReignStrategy.Automatic => (
-                    InCombat(rTarget) && In3y(rTarget) && !hold && ((HasReign && (Rstatus is <= 2.5f and not 0 || (HasNM && GunComboStep == 0))) || GunComboStep is 3 or 4),
-                    GunComboStep == 4 ? AID.LionHeart : GunComboStep == 3 ? AID.NobleBlood : AID.ReignOfBeasts,
-                    NMstatus is <= 8 and not 0 || HasReign ? GCDPriority.SlightlyHigh + 8 : GCDPriority.SlightlyHigh + 4
-                    ),
-                ReignStrategy.ForceReign => (HasReign, AID.ReignOfBeasts, GCDPriority.Forced),
-                ReignStrategy.ForceNoble => (GunComboStep == 3, AID.NobleBlood, GCDPriority.Forced),
-                ReignStrategy.ForceLion => (GunComboStep == 4, AID.LionHeart, GCDPriority.Forced),
-                _ => (false, AID.None, GCDPriority.None),
-            };
-            if (rCondition)
-                QueueGCD(rAction, rTarget, rPrio);
-        }
-
-        //GF combo in filler
-        QueueGCD(GunComboStep is 2 ? AID.WickedTalon : GunComboStep is 1 ? AID.SavageClaw : AID.None, mainTarget, GCDPriority.SlightlyHigh + 3);
-
-        //Continuation procs
-        //Hypervelocity, Fated Brand, Jugular Rip, Abdomen Tear, & Eye Gouge
-        if (Unlocked(AID.Continuation))
-        {
-            var c = strategy.Option(Track.Continuation);
-            var cStrat = c.As<ContinuationStrategy>();
-            var cTarget = SingleTargetChoice(mainTarget, c);
-            var cMinimum = InCombat(cTarget) && (((HasBlast || HasRaze) && ((NMcd > 1 && GCD >= 0.6f) || GCD < 0.6f)) || HasRip || HasTear || HasGouge);
-            var cAction = HasGouge ? AID.EyeGouge : HasTear ? AID.AbdomenTear : HasRip ? AID.JugularRip : HasRaze ? AID.FatedBrand : HasBlast ? AID.Hypervelocity : AID.Continuation;
-            var (cCondition, cPrio) = cStrat switch
-            {
-                ContinuationStrategy.Automatic or ContinuationStrategy.Early => (cMinimum, ContinuationPrio()),
-                ContinuationStrategy.Late => (cMinimum && GCD <= 1.25f, ContinuationPrio()),
-                _ => (false, OGCDPriority.None),
-            };
-            if (cCondition)
-                QueueOGCD(cAction, cTarget, cPrio);
-        }
-
-        //Lightning Shot
-        if (Unlocked(AID.LightningShot))
-        {
-            var ls = strategy.Option(Track.LightningShot);
-            var lsStrat = ls.As<LightningShotStrategy>();
-            var lsTarget = SingleTargetChoice(mainTarget, ls);
-            var (lsCondition, lsPrio) = lsStrat switch
-            {
-                LightningShotStrategy.OpenerFar => ((Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD && !In3y(lsTarget), GCDPriority.Forced),
-                LightningShotStrategy.OpenerForce => ((Player.InCombat || World.Client.CountdownRemaining < 0.8f) && IsFirstGCD, GCDPriority.Forced),
-                LightningShotStrategy.Force => (true, GCDPriority.Forced),
-                LightningShotStrategy.Allow => (WantAOE ? !In5y(lsTarget) : !In3y(lsTarget), GCDPriority.Low + 2),
-                _ => (false, GCDPriority.None),
-            };
-        }
-
-        //Strength Pot
-        if (ShouldUsePotion(strategy))
-            Hints.ActionsToExecute.Push(ActionDefinitions.IDPotionStr, Player, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, 0, GCD - 0.9f);
-
-        var justusedST =
-            ComboLastMove is
-                AID.KeenEdge or AID.BrutalShell or //st
-                AID.GnashingFang or AID.SavageClaw or AID.ReignOfBeasts or AID.NobleBlood; //Gauge
-        var justusedAOE = ComboLastMove is AID.DemonSlice;
-        var stTarget = SingleTargetChoice(mainTarget, aoe);
-        var autoTarget = !WantAOE || justusedST ? stTarget : Player;
-        var (aoeAction, aoeTarget) = aoeStrat switch
-        {
-            AOEStrategy.AutoFinishWithOvercap => (WantAOE ? AOEFinish(true) : STFinish(true), autoTarget),
-            AOEStrategy.AutoFinishWithoutOvercap => (WantAOE ? AOEFinish(false) : STFinish(false), autoTarget),
-            AOEStrategy.AutoBreakWithOvercap => (WantAOE ? AOEBreak(true) : STBreak(true), autoTarget),
-            AOEStrategy.AutoBreakWithoutOvercap => (WantAOE ? AOEBreak(false) : STBreak(false), autoTarget),
-            AOEStrategy.ForceSTFinishWithOvercap => (STFinish(true), justusedAOE ? Player : stTarget),
-            AOEStrategy.ForceSTFinishWithoutOvercap => (STFinish(false), justusedAOE ? Player : stTarget),
-            AOEStrategy.ForceAOEFinishWithOvercap => (AOEFinish(true), justusedST ? stTarget : Player),
-            AOEStrategy.ForceAOEFinishWithoutOvercap => (AOEFinish(false), justusedST ? stTarget : Player),
-            AOEStrategy.ForceSTBreakWithOvercap => (STBreak(true), stTarget),
-            AOEStrategy.ForceSTBreakWithoutOvercap => (STBreak(false), stTarget),
-            AOEStrategy.ForceAOEBreakWithOvercap => (AOEBreak(true), Player),
-            AOEStrategy.ForceAOEBreakWithoutOvercap => (AOEBreak(false), Player),
-            _ => (AID.None, null),
-        };
-
-        if ((WantAOE ? In5y(aoeTarget) : In3y(aoeTarget)) && aoeTarget != null)
-            QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
+        QueueReign(strategy, !strategy.AllowCDs());
+        QueueGnashingCombo();
+        QueueContinuation(strategy);
+        QueueLightningShot(strategy);
+        QueuePotion(strategy, ActionDefinitions.IDPotionStr, BF.CD <= 4f, ActionQueue.Priority.VeryHigh + (int)OGCDPriority.VeryCritical, GCD - 0.9f);
+        QueueCombo(strategy);
 
         GetNextTarget(strategy, ref primaryTarget, 3);
-        GoalZoneCombined(3, Hints.GoalAOECircle(5), AID.DemonSlice, 2, maximumActionRange: 20);
+        GoalZoneCombined(strategy, 3, Hints.GoalAOECircle(5), AID.DemonSlice, Ammo > 0 && Unlocked(AID.FatedCircle) ? 2 : 3, maximumActionRange: 20);
     }
+
+    private void QueueBloodfest(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Bloodfest);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var (condition, priority) = track.As<BloodfestStrategy>() switch
+        {
+            BloodfestStrategy.Automatic => (InCombat(target), OGCDPriority.Severe + 1),
+            BloodfestStrategy.Together => (InCombat(target) && (NM.Active || NM.CD <= SkSGCDLength), OGCDPriority.Severe + 1),
+            BloodfestStrategy.Force => (true, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe + 1)),
+            BloodfestStrategy.ForceW => (CanWeaveIn, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe + 1)),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition && ActionReady(AID.Bloodfest))
+            QueueOGCD(AID.Bloodfest, target, priority);
+    }
+    private void QueueNoMercy(StrategyValues strategy)
+    {
+        var weave = Slow ? CanWeaveIn : CanQuarterWeaveIn;
+        var cartridges = weave && Ammo >= (Unlocked(AID.DoubleDown) ? 2 : 1);
+        var burst = cartridges && (!Unlocked(AID.DoubleDown) || Ammo > 2 && Cooldown(AID.DoubleDown) <= 4 || !Unlocked(AID.GnashingFang) || Ammo > 1 && Cooldown(AID.GnashingFang) <= 32);
+        var together = cartridges && (BF.Active || BF.CD > 45);
+        var common = InCombat(PrimaryTarget) && In5y(PrimaryTarget) && BurstReady;
+
+        var (condition, priority) = strategy.Option(Track.NoMercy).As<NoMercyStrategy>() switch
+        {
+            NoMercyStrategy.Automatic => (common, OGCDPriority.Severe),
+            NoMercyStrategy.BurstReady => (common && burst, OGCDPriority.Severe),
+            NoMercyStrategy.Together => (common && together, OGCDPriority.Severe),
+            NoMercyStrategy.Force => (true, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe)),
+            NoMercyStrategy.ForceW => (CanWeaveIn, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.ForceQW => (CanQuarterWeaveIn, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.Force1 => (Ammo == 1, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe)),
+            NoMercyStrategy.Force1W => (CanWeaveIn && Ammo == 1, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.Force1QW => (CanQuarterWeaveIn && Ammo == 1, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.Force2 => (Ammo == 2, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe)),
+            NoMercyStrategy.Force2W => (CanWeaveIn && Ammo == 2, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.Force2QW => (CanQuarterWeaveIn && Ammo == 2, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.Force3 => (Ammo == 3, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Severe)),
+            NoMercyStrategy.Force3W => (CanWeaveIn && Ammo == 3, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            NoMercyStrategy.Force3QW => (CanQuarterWeaveIn && Ammo == 3, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Severe)),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition && ActionReady(AID.NoMercy))
+            QueueOGCD(AID.NoMercy, Player, priority + 2);
+    }
+    private void QueueZone(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Zone);
+        var zone = track.As<OGCDStrategy>();
+        var action = Unlocked(AID.BlastingZone) ? AID.BlastingZone : AID.DangerZone;
+        if (Unlocked(AID.DangerZone) && ShouldUseOGCD(zone, PrimaryTarget, ActionReady(action), InCombat(PrimaryTarget) && In3y(PrimaryTarget) && CanWeaveIn && NM.CD is <= 58f and > 15f))
+            QueueOGCD(action, SingleTargetChoice(PrimaryTarget, track), OGCDPrio(zone, Slow ? OGCDPriority.ModeratelyHigh : OGCDPriority.High));
+    }
+    private void QueueBowShock(StrategyValues strategy)
+    {
+        var bow = strategy.Option(Track.BowShock).As<OGCDStrategy>();
+        if (ShouldUseOGCD(bow, PrimaryTarget, ActionReady(AID.BowShock), InCombat(PrimaryTarget) && In5y(PrimaryTarget) && CanWeaveIn && NM.CD is <= 58f and > 39.5f))
+            QueueOGCD(AID.BowShock, Player, OGCDPrio(bow, Slow ? OGCDPriority.High : OGCDPriority.ModeratelyHigh));
+    }
+    private void QueueContinuation(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Continuation);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var blastOrRaze = (HasBlast || HasRaze) && (NM.CD > 1 || GCD < 0.6f);
+        var procReady = InCombat(target) && (blastOrRaze || HasRip || HasTear || HasGouge);
+        var timing = track.As<ContinuationStrategy>() switch
+        {
+            ContinuationStrategy.Late => GCD <= 1.25f,
+            _ => true
+        };
+        var action = HasGouge ? AID.EyeGouge
+            : HasTear ? AID.AbdomenTear
+            : HasRip ? AID.JugularRip
+            : HasRaze ? AID.FatedBrand
+            : HasBlast ? AID.Hypervelocity
+            : AID.Continuation;
+        if (procReady && timing && Unlocked(AID.Continuation))
+            QueueOGCD(action, target, ContinuationPriority);
+    }
+    private OGCDPriority ContinuationPriority
+    {
+        get
+        {
+            var priority = ChangePriority(200, 749);
+            return HasRip || HasTear || HasGouge ? priority
+                : HasBlast || HasRaze ? (Slow ? priority : priority + 500)
+                : OGCDPriority.None;
+        }
+    }
+    private void QueueGnashingFang(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.GnashingFang);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var cooldown = Cooldown(AID.GnashingFang);
+        var ready = In3y(target) && Ammo >= 1 && cooldown < 30.6f && GunComboStep == 0;
+        var canFit = ActualComboTimer >= SkSGCDLength * 4 || ActualComboTimer == 0;
+        var singleTarget = ready && !TargetsInAOECircle(5f, 3);
+        var burst = singleTarget && NM.Active && !Reign.Active;
+        var filler = singleTarget && NM.CD > 7 && canFit;
+        var overcap = singleTarget && cooldown < 0.6f && NM.CD > 7;
+        var autoPriority = overcap ? GCDPriority.SlightlyHigh + 9 : burst ? GCDPriority.SlightlyHigh + 7 : GCDPriority.SlightlyHigh;
+
+        var (condition, action, priority) = track.As<GnashingStrategy>() switch
+        {
+            GnashingStrategy.Automatic => (burst || filler || overcap, AID.GnashingFang, autoPriority),
+            GnashingStrategy.ForceGnash => (ready, AID.GnashingFang, GCDPriority.Forced),
+            GnashingStrategy.ForceGnash1 => (ready && Ammo == 1, AID.GnashingFang, GCDPriority.Forced),
+            GnashingStrategy.ForceGnash2 => (ready && Ammo == 2, AID.GnashingFang, GCDPriority.Forced),
+            GnashingStrategy.ForceGnash3 => (ready && Ammo == 3, AID.GnashingFang, GCDPriority.Forced),
+            GnashingStrategy.ForceClaw => (GunComboStep == 1 && In3y(target), AID.SavageClaw, GCDPriority.Forced),
+            GnashingStrategy.ForceTalon => (GunComboStep == 2 && In3y(target), AID.WickedTalon, GCDPriority.Forced),
+            _ => (false, AID.None, GCDPriority.None)
+        };
+        if (condition && Unlocked(AID.GnashingFang))
+            QueueGCD(action, target, priority);
+    }
+    private void QueueDoubleDown(StrategyValues strategy)
+    {
+        var (condition, priority) = strategy.Option(Track.DoubleDown).As<DoubleDownStrategy>() switch
+        {
+            DoubleDownStrategy.Automatic => (InCombat(PrimaryTarget) && In5y(PrimaryTarget) && NM.Active, GCDPriority.SlightlyHigh + 6),
+            DoubleDownStrategy.Force => (true, GCDPriority.Forced),
+            DoubleDownStrategy.Force3 => (Ammo == 3, GCDPriority.Forced),
+            _ => (false, GCDPriority.None)
+        };
+        if (condition && Ammo >= 2 && ActionReady(AID.DoubleDown))
+            QueueGCD(AID.DoubleDown, Player, priority);
+    }
+    private void QueueSonicBreak(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.SonicBreak);
+        var sb = track.As<SonicBreakStrategy>();
+        var ready = sb != SonicBreakStrategy.Delay && Unlocked(AID.SonicBreak) && HasStatus(SID.ReadyToBreak);
+        var target = ready ? AOETargetChoice(PrimaryTarget, HighestHPTarget(3.5f)?.Actor, track, strategy) : null;
+        var (condition, priority) = sb switch
+        {
+            SonicBreakStrategy.Automatic => (InCombat(target) && In3y(target) && (!NM.Active || !TargetsInAOECircle(5f, 3) || SBLeft <= 10.5f), GCDPriority.SlightlyHigh + 5),
+            SonicBreakStrategy.Early => (NM.Active, GCDPriority.SlightlyHigh + 10),
+            SonicBreakStrategy.Late => (SBLeft is > 0 and <= 12.5f, GCDPriority.SlightlyHigh + 10),
+            _ => (true, GCDPriority.Forced)
+        };
+        if (ready && condition)
+            QueueGCD(AID.SonicBreak, target, priority);
+    }
+    private Enemy? HighestHPTarget(float range)
+    {
+        Enemy? best = null;
+        var bestRatio = float.MinValue;
+        var enemies = Hints.PotentialTargets;
+        for (var i = 0; i < enemies.Count && enemies[i].Priority == Hints.HighestPotentialTargetPriority; ++i)
+        {
+            var actor = enemies[i].Actor;
+            var ratio = (float)actor.HPMP.CurHP / actor.HPMP.MaxHP;
+            if (DistanceFrom(actor, range) && ratio > bestRatio)
+                (best, bestRatio) = (enemies[i], ratio);
+        }
+        return best;
+    }
+    private void QueueReign(StrategyValues strategy, bool holdCooldowns)
+    {
+        var track = strategy.Option(Track.Reign);
+        var reign = track.As<ReignStrategy>();
+        if (reign == ReignStrategy.Delay || !Unlocked(AID.ReignOfBeasts) || !Reign.Active && GunComboStep is not (3 or 4))
+            return;
+
+        var splash = GetBestTarget(PrimaryEnemy, 3, IsSplashTarget);
+        var target = AOETargetChoice(PrimaryTarget, (splash.Targets > 1 ? splash.Best : PrimaryEnemy)?.Actor, track, strategy);
+        var reignNow = Reign.Active && (Reign.Left is > 0 and <= 2.5f || NM.Active && GunComboStep == 0);
+        var autoAction = GunComboStep switch
+        {
+            4 => AID.LionHeart,
+            3 => AID.NobleBlood,
+            _ => AID.ReignOfBeasts
+        };
+        var autoPriority = NM.Left is > 0 and <= 8 || Reign.Active ? GCDPriority.SlightlyHigh + 8 : GCDPriority.SlightlyHigh + 4;
+
+        var (condition, action, priority) = reign switch
+        {
+            ReignStrategy.Automatic => (InCombat(target) && In3y(target) && !holdCooldowns && (reignNow || GunComboStep is 3 or 4), autoAction, autoPriority),
+            ReignStrategy.ForceReign => (Reign.Active, AID.ReignOfBeasts, GCDPriority.Forced),
+            ReignStrategy.ForceNoble => (GunComboStep == 3, AID.NobleBlood, GCDPriority.Forced),
+            _ => (GunComboStep == 4, AID.LionHeart, GCDPriority.Forced)
+        };
+        if (condition)
+            QueueGCD(action, target, priority);
+    }
+    private void QueueCartridges(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Cartridges);
+        var carts = track.As<CartridgeStrategy>();
+        var fatedCircle = Unlocked(AID.FatedCircle);
+        var nearby = TargetsInAOECircle(5f, 2);
+        var stTarget = SingleTargetChoice(PrimaryTarget, track);
+        var inRange = fatedCircle ? (nearby ? In5y(PrimaryTarget) : In3y(PrimaryTarget)) : In3y(PrimaryTarget) && !TargetsInAOECircle(5f, 3);
+        var spend = NM.Active
+            || BurstReady && Unlocked(AID.ReignOfBeasts) && NM.CD < 1
+            || Ammo > 3 && BF.Left is > 0 and <= 20 && !NM.Active;
+        var automatic = InCombat(PrimaryTarget) && inRange && GunComboStep == 0 && spend;
+        var autoAction = carts switch
+        {
+            CartridgeStrategy.OnlyFC => BestFatedCircle,
+            CartridgeStrategy.OnlyBS => AID.BurstStrike,
+            _ => ForceAOE || nearby ? BestFatedCircle : AID.BurstStrike
+        };
+        var autoTarget = autoAction == AID.FatedCircle ? Player : stTarget;
+
+        var (condition, action, target, priority) = carts switch
+        {
+            CartridgeStrategy.Automatic or CartridgeStrategy.OnlyBS or CartridgeStrategy.OnlyFC => (automatic, autoAction, autoTarget, GCDPriority.SlightlyHigh + 2),
+            CartridgeStrategy.ForceBS => (true, AID.BurstStrike, stTarget, GCDPriority.Forced),
+            CartridgeStrategy.ForceBS1 => (Ammo == 1, AID.BurstStrike, stTarget, GCDPriority.Forced),
+            CartridgeStrategy.ForceBS2 => (Ammo == 2, AID.BurstStrike, stTarget, GCDPriority.Forced),
+            CartridgeStrategy.ForceBS3 => (Ammo == 3, AID.BurstStrike, stTarget, GCDPriority.Forced),
+            CartridgeStrategy.ForceFC => (fatedCircle, AID.FatedCircle, Player, GCDPriority.Forced),
+            CartridgeStrategy.ForceFC1 => (fatedCircle && Ammo == 1, AID.FatedCircle, Player, GCDPriority.Forced),
+            CartridgeStrategy.ForceFC2 => (fatedCircle && Ammo == 2, AID.FatedCircle, Player, GCDPriority.Forced),
+            CartridgeStrategy.ForceFC3 => (fatedCircle && Ammo == 3, AID.FatedCircle, Player, GCDPriority.Forced),
+            _ => (false, AID.None, null, GCDPriority.None)
+        };
+        if (condition && Ammo >= 1 && Unlocked(AID.BurstStrike))
+            QueueGCD(action, target, priority);
+    }
+
+    private void QueueGnashingCombo()
+    {
+        var action = GunComboStep switch
+        {
+            1 => AID.SavageClaw,
+            2 => AID.WickedTalon,
+            _ => AID.None
+        };
+        if (action != AID.None)
+            QueueGCD(action, PrimaryTarget, GCDPriority.SlightlyHigh + 3);
+    }
+    private void QueueLightningShot(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.LightningShot);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var prepull = NoPrepullWithin(0.7f);
+        var (condition, priority) = track.As<LightningShotStrategy>() switch
+        {
+            LightningShotStrategy.OpenerFar => (prepull && !In3y(target), GCDPriority.Forced),
+            LightningShotStrategy.OpenerForce => (prepull, GCDPriority.Forced),
+            LightningShotStrategy.Force => (true, GCDPriority.Forced),
+            LightningShotStrategy.Allow => ((Player.InCombat || prepull) && (WantAOE ? !In5y(target) : !In3y(target)), GCDPriority.Low + 2),
+            _ => (false, GCDPriority.None)
+        };
+        if (condition && Unlocked(AID.LightningShot))
+            QueueGCD(AID.LightningShot, target, priority);
+    }
+    private void QueueCombo(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.AOE);
+        var justUsedST = ComboLastMove is AID.KeenEdge or AID.BrutalShell or AID.GnashingFang or AID.SavageClaw or AID.ReignOfBeasts or AID.NobleBlood;
+        var justUsedAOE = ComboLastMove is AID.DemonSlice;
+        var stTarget = SingleTargetChoice(PrimaryTarget, track);
+        var autoTarget = !WantAOE || justUsedST ? stTarget : Player;
+
+        var (action, target) = track.As<AOEStrategy>() switch
+        {
+            AOEStrategy.AutoFinishWithOvercap => (Finish(WantAOE ? NextAOE(true) : NextST(true)), autoTarget),
+            AOEStrategy.AutoFinishWithoutOvercap => (Finish(WantAOE ? NextAOE(false) : NextST(false)), autoTarget),
+            AOEStrategy.AutoBreakWithOvercap => (WantAOE ? NextAOE(true) : NextST(true), autoTarget),
+            AOEStrategy.AutoBreakWithoutOvercap => (WantAOE ? NextAOE(false) : NextST(false), autoTarget),
+            AOEStrategy.ForceSTFinishWithOvercap => (Finish(NextST(true)), justUsedAOE ? Player : stTarget),
+            AOEStrategy.ForceSTFinishWithoutOvercap => (Finish(NextST(false)), justUsedAOE ? Player : stTarget),
+            AOEStrategy.ForceAOEFinishWithOvercap => (Finish(NextAOE(true)), justUsedST ? stTarget : Player),
+            AOEStrategy.ForceAOEFinishWithoutOvercap => (Finish(NextAOE(false)), justUsedST ? stTarget : Player),
+            AOEStrategy.ForceSTBreakWithOvercap => (NextST(true), stTarget),
+            AOEStrategy.ForceSTBreakWithoutOvercap => (NextST(false), stTarget),
+            AOEStrategy.ForceAOEBreakWithOvercap => (NextAOE(true), Player),
+            AOEStrategy.ForceAOEBreakWithoutOvercap => (NextAOE(false), Player),
+            _ => (AID.None, null)
+        };
+        if (target != null && (WantAOE ? In5y(target) : In3y(target)) && CountdownRemaining is not > 0.7f)
+            QueueGCD(action, target, GCDPriority.Low);
+    }
+    private AID NextST(bool overcap) => ComboLastMove switch
+    {
+        AID.BrutalShell => overcap && FullCartridges && Unlocked(AID.BurstStrike) ? AID.BurstStrike : Unlocked(AID.SolidBarrel) ? AID.SolidBarrel : AID.KeenEdge,
+        AID.KeenEdge => Unlocked(AID.BrutalShell) ? AID.BrutalShell : AID.KeenEdge,
+        _ => AID.KeenEdge
+    };
+    private AID NextAOE(bool overcap)
+        => overcap && FullCartridges && ComboLastMove == AID.DemonSlice ? BestFatedCircle
+        : ComboLastMove == AID.DemonSlice && Unlocked(AID.DemonSlaughter) ? AID.DemonSlaughter
+        : AID.DemonSlice;
+    private AID Finish(AID next) => ComboLastMove switch
+    {
+        AID.GnashingFang => AID.SavageClaw,
+        AID.SavageClaw => AID.WickedTalon,
+        AID.ReignOfBeasts => AID.NobleBlood,
+        AID.NobleBlood => AID.LionHeart,
+        _ => next
+    };
 }
