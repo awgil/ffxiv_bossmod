@@ -35,13 +35,7 @@ class Repose(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        static bool SleepProof(Actor a)
-        {
-            if (a.Statuses.Any(x => x.ID is 1967 or 1968))
-                return true;
-
-            return a.PendingStatuses.Any(s => s.StatusId == 3);
-        }
+        static bool SleepProof(Actor a) => a.Statuses.Any(x => x.ID is 1967 or 1968) || a.PendingStatuses.Any(s => s.StatusId == 3);
 
         if (WorldState.Actors.FirstOrDefault(x => x.IsTargetable && !x.IsAlly && x.OID != (uint)OID.Boss && !SleepProof(x)) is Actor e)
             hints.ActionsToExecute.Push(ActionID.MakeSpell(WHM.AID.Repose), e, ActionQueue.Priority.VeryHigh, castTime: 2.5f);
@@ -56,7 +50,7 @@ class SophrosyneStates : StateMachineBuilder
             .ActivateOnEnter<HolyBlur>()
             .ActivateOnEnter<Focus>()
             .ActivateOnEnter<Repose>()
-            .Raw.Update = () => module.Enemies(OID.BossP2).Any(x => x.IsTargetable) || module.WorldState.CurrentCFCID != 673;
+            .Raw.Update = () => module.Enemies(OID.BossP2).Any(x => x.IsTargetable);
         TrivialPhase(1)
             .ActivateOnEnter<SanctifiedAero>()
             .ActivateOnEnter<SanctifiedStone>()
@@ -65,12 +59,14 @@ class SophrosyneStates : StateMachineBuilder
             .ActivateOnEnter<ForceOfRestraint>()
             .ActivateOnEnter<SanctifiedHoly1>()
             .ActivateOnEnter<SanctifiedHoly2>()
-            .Raw.Update = () => module.Enemies(OID.BossP2).All(x => x.IsDeadOrDestroyed) || module.WorldState.CurrentCFCID != 673;
+            .Raw.Update = () => module.Enemies(OID.BossP2).All(x => x.IsDeadOrDestroyed);
     }
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68808, NameID = 8777)]
-public class Sophrosyne(ModuleInit init) : BossModule(init, new(-651.8f, -127.25f), new ArenaBoundsCircle(20))
+public class Sophrosyne(ModuleInit init) : BossModule(init, new(-651.91f, -127.134f), new ArenaBoundsCircle(19.5f))
 {
+    protected override bool CheckPull() => PrimaryActor.InCombat;
+
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 }
