@@ -22,7 +22,7 @@ public sealed class DtrConfig : ConfigNode
 
     //[PageStart("In-game overlay")]
     //[PropertyDisplay("Target melee range indicator")]
-    public bool ShowMeleeRing = false;
+    public bool ShowMeleeRing;
 
     //[PropertyDisplay("Highlight current slice", depends: nameof(ShowMeleeRing))]
     public bool HighlightSlice = true;

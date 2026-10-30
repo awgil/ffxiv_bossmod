@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace BossMod;
@@ -11,8 +12,13 @@ public sealed class ReplayState
     public PartyRolesConfig.Assignment[] RoleAssignments = Utils.MakeArray(PartyState.MaxPartySize, PartyRolesConfig.Assignment.Unassigned);
     public WDir MoveInput;
     public readonly List<SimpleEntry> ManualActions = [];
+    public readonly List<EnemyPriority> Priorities = [];
 
     public readonly record struct SimpleEntry(ActionID Action, ulong Target, float Priority, float CastTime, Vector3 TargetPos);
+    public readonly record struct EnemyPriority(ulong InstanceID, int Priority, List<(int Value, string Reason)> Trace)
+    {
+        public EnemyPriority(AIHints.Enemy enemy) : this(enemy.Actor.InstanceID, enemy.Priority, enemy.PrioHistory) { }
+    }
 
     public IEnumerable<WorldState.Operation> CompareToInitial()
     {
@@ -26,6 +32,8 @@ public sealed class ReplayState
             yield return new OpMoveInputChange(MoveInput);
         if (ManualActions.Count > 0)
             yield return new OpManualActionsChange(ManualActions);
+        if (Priorities.Count > 0)
+            yield return new OpPrioritiesChange(Priorities);
     }
 
     public Event<OpActivePresetsChange> ActivePresetsChanged = new();
@@ -109,5 +117,33 @@ public sealed class ReplayState
             foreach (var entry in Entries)
                 output.Emit(entry.Action).EmitActor(entry.Target).Emit(entry.Priority).Emit(entry.CastTime).Emit(entry.TargetPos);
         }
+    }
+
+    public Event<OpPrioritiesChange> PrioritiesChanged = new();
+    public sealed record class OpPrioritiesChange(List<EnemyPriority> Entries) : WorldState.Operation
+    {
+        protected override void Exec(WorldState ws)
+        {
+            ws.ReplayState.Priorities.Clear();
+            ws.ReplayState.Priorities.AddRange(Entries);
+            ws.ReplayState.PrioritiesChanged.Fire(this);
+        }
+
+        public override void Write(ReplayRecorder.Output output)
+        {
+            output.EmitFourCC("RPRI"u8).Emit(Entries.Count);
+            foreach (var entry in Entries)
+            {
+                output.EmitActor(entry.InstanceID).Emit(entry.Priority).Emit(entry.Trace.Count);
+                foreach (var (val, reason) in entry.Trace)
+                    output.Emit(val).Emit(reason);
+            }
+        }
+    }
+
+    public sealed class PriorityComparer : IEqualityComparer<EnemyPriority>
+    {
+        public bool Equals(EnemyPriority x, EnemyPriority y) => x.InstanceID == y.InstanceID && x.Priority == y.Priority;
+        public int GetHashCode([DisallowNull] EnemyPriority obj) => (obj.InstanceID, obj.Priority).GetHashCode();
     }
 }

@@ -266,6 +266,10 @@ sealed unsafe class WorldStateGameSync(
         var manual = hints.ActionsToExecute.Entries.Where(e => e.Manual).Select(e => new ReplayState.SimpleEntry(e.Action, e.Target?.InstanceID ?? 0xE0000000, e.Priority, e.CastTime, e.TargetPos)).ToList();
         if (!MemoryExtensions.SequenceEqual(manual.AsSpan(), ws.ReplayState.ManualActions.AsSpan()))
             ws.Execute(new ReplayState.OpManualActionsChange(manual));
+
+        var prios = hints.PotentialTargets.Select(e => new ReplayState.EnemyPriority(e)).ToList();
+        if (!MemoryExtensions.SequenceEqual(prios.AsSpan(), ws.ReplayState.Priorities.AsSpan(), new ReplayState.PriorityComparer()))
+            ws.Execute(new ReplayState.OpPrioritiesChange(prios));
     }
 
     private void UpdateWaymarks()
