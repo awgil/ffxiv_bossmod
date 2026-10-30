@@ -115,6 +115,9 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
 
     public override void Execute(StrategyValues strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
+        if (Hints.TagMobsAtRange)
+            FateUtils.TagTrash(World, Player, Hints);
+
         // do nothing if we're already being moved by some other module (i.e. quest battle pathfinding)
         if (Hints.ForcedMovement != null)
             return;
@@ -284,6 +287,8 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 // TODO: instead of hardcoding, is it possible to reuse goal zones for this purpose?
                 // it would allow greeding AOE actions as well, but requires modification to NavigationDecision to avoid duplicating work
                 var effectiveRange = Player.Role is Role.Tank or Role.Melee ? MeleeRange : CasterRange;
+                // trash fate pulls need to leave melee of the pack far enough to tag the next add, and no farther
+                effectiveRange = MathF.Max(effectiveRange, FateUtils.TrashPullLeash(Manager, World, Player, Hints, rangeReference));
                 var toDestination = navi.Destination.Value - rangeReference.Position;
                 var maxRange = Player.HitboxRadius + rangeReference.HitboxRadius + effectiveRange - GreedTolerance;
                 var range = toDestination.Length();
