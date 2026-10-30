@@ -13,7 +13,7 @@ class P2Nails(BossModule module) : BossComponent(module)
     {
         Arena.Actors(_nails, ArenaColor.Enemy);
         foreach (var n in _nails.Where(n => !n.IsDead))
-            Arena.AddCircle(n.Position, 1, ArenaColor.Object);
+            Arena.AddCircle(n.Position, n.HitboxRadius, ArenaColor.Object);
     }
 
     public override void OnActorCreated(Actor actor)
