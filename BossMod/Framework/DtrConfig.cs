@@ -20,6 +20,20 @@ public sealed class DtrConfig : ConfigNode
     [PropertySlider(0, 1)]
     public float OcclusionAlpha = 0.1f;
 
+    //[PageStart("In-game overlay")]
+    //[PropertyDisplay("Target melee range indicator")]
+    public bool ShowMeleeRing = false;
+
+    //[PropertyDisplay("Highlight current slice", depends: nameof(ShowMeleeRing))]
+    public bool HighlightSlice = true;
+
+    [PropertyDisplay("Ring color: rear")]
+    public Color RearColor = Color.FromRGBA(0x35DC8BFF);
+    [PropertyDisplay("Ring color: flank")]
+    public Color FlankColor = Color.FromRGBA(0xCFC851FF);
+    [PropertyDisplay("Ring color: front")]
+    public Color FrontColor = Color.FromRGBA(0xE60014FF);
+
     public enum DtrStatus
     {
         [PropertyDisplay("Disabled")]

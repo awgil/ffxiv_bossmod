@@ -93,15 +93,15 @@ public class DebugObjects
         if (selected != null)
         {
             var h = new Vector3(0, Utils.GameObjectInternal(selected)->Height, 0);
-            Service.Camera.DrawWorldLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff, occluded: false);
-            Service.Camera.DrawWorldCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
-            Service.Camera.DrawWorldCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
-            Service.Camera.DrawWorldCircle(selected.Position + h * 2, selected.HitboxRadius, 0xff00ff00);
+            Service.Camera.AddLine(Service.ObjectTable.LocalPlayer?.Position ?? default, selected.Position, 0xff0000ff, occluded: false);
+            Service.Camera.AddCircle(selected.Position, selected.HitboxRadius, 0xff00ff00);
+            Service.Camera.AddCircle(selected.Position + h, selected.HitboxRadius, 0xff00ff00);
+            Service.Camera.AddCircle(selected.Position + h * 2, selected.HitboxRadius, 0xff00ff00);
             var numSegments = CurveApprox.CalculateCircleSegments(selected.HitboxRadius, 360.Degrees(), 1);
             for (var i = 0; i < numSegments; ++i)
             {
                 var p = selected.Position + selected.HitboxRadius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
-                Service.Camera.DrawWorldLine(p - h, p + h, 0xff00ff00);
+                Service.Camera.AddLine(p - h, p + h, 0xff00ff00);
             }
         }
     }

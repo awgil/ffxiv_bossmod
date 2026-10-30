@@ -48,7 +48,7 @@ abstract partial class AutoClear : ZoneModule
         ImGui.Spacing();
 
         if (Service.IsDev && MostInterestingObject is { } obj)
-            Service.Camera.DrawWorldLine(player?.PosRot.XYZ() ?? default, obj.Actor.PosRot.XYZ(), ArenaColor.Danger, 2, false);
+            Service.Camera.AddLine(player?.PosRot.XYZ() ?? default, obj.Actor.PosRot.XYZ(), ArenaColor.Danger, 2, false);
 
         if (_palantirError != null)
         {
