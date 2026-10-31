@@ -152,7 +152,7 @@ public enum SID : uint
     ViscousAetheroplasm = 1532, // UltimaWeapon->player, extra=0x0
     ThermalLow = 1525, // SpinyPlume/Garuda->player, extra=1-2
     //ThermalHigh = 1526, // GarudaSister/Garuda->player, extra=0x0
-    //ThermalHigh = 380, // none->player, extra=0x0
+    ThermalHigh = 380, // none->player, extra=0x0
     //Sleep = 1510, // SatinPlume->player, extra=0x0
     //AccursedFlame = 1527, // none->player, extra=0x0
     Fetters = 292, // none->player, extra=0x0

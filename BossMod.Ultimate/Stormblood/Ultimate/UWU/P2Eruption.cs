@@ -13,7 +13,7 @@ class P2Eruption(BossModule module) : Components.StandardAOEs(module, AID.Erupti
         {
             var source = ((UWU)Module).Ifrit();
             if (source != null)
-                _baiters = Raid.WithSlot().WhereActor(a => a.Class.IsDD()).SortedByRange(source.Position).TakeLast(2).Mask();
+                _baiters = Raid.WithSlot().WhereActor(a => a.FindStatus(SID.SearingWind) == null).SortedByRange(source.Position).TakeLast(2).Mask();
         }
     }
 
@@ -99,26 +99,33 @@ class P2Eruption1 : P2Eruption
 
         var sign = myOrder == 0 ? -1 : 1;
 
-        WPos destination = default;
+        var start = nails.RelativeNorth + (sign * 67.5f).Degrees();
+        var s2 = Arena.Center + start.ToDirection() * 12;
+        var s3 = start + (90 * -sign).Degrees();
+
+        var myStart = s2 - s3.ToDirection() * 12.5f;
+        var myEnd = s2 + s3.ToDirection() * 12.5f;
+
+        float progress = -1;
 
         switch (NumCastsStarted)
         {
             case < 2:
-                destination = Arena.Center + (nails.RelativeNorth + (120 * sign).Degrees()).ToDirection() * 18;
+                progress = 0;
                 break;
             case < 4:
-                destination = Arena.Center + (nails.RelativeNorth + (90 * sign).Degrees()).ToDirection() * 16.25f;
+                progress = 0.33f;
                 break;
             case < 6:
-                destination = Arena.Center + (nails.RelativeNorth + (56 * sign).Degrees()).ToDirection() * 14.25f;
+                progress = 0.67f;
                 break;
             case < 8:
-                destination = Arena.Center + (nails.RelativeNorth + (22.5f * sign).Degrees()).ToDirection() * 18.5f;
+                progress = 1;
                 break;
         }
 
-        if (destination != default)
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(destination, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
+        if (progress >= 0)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(WPos.Lerp(myStart, myEnd, progress), new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
     }
 }
 

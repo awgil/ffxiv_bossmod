@@ -141,11 +141,11 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P1WickedWheel>()
             .DeactivateOnExit<P1MistralSongAdds>();
         ActorCastEnd(id + 2, _module.Garuda, 0.5f, true)
-            .DeactivateOnExit<P1EyeOfTheStorm>() // finishes ~0.2s before
-            .DeactivateOnExit<P1WickedWheel>();
+            .DeactivateOnExit<P1EyeOfTheStorm>(); // finishes ~0.2s before
 
         P1SistersFeatherRain(id + 0x10, 1.6f);
-        ComponentCondition<P1GreatWhirlwind>(id + 0x20, 1.5f, comp => comp.Casters.Count == 0, "Whirlwind");
+        ComponentCondition<P1GreatWhirlwind>(id + 0x20, 1.5f, comp => comp.Casters.Count == 0, "Whirlwind")
+            .DeactivateOnExit<P1WickedWheel>();
     }
 
     private void P1Adds2(uint id, float delay)
