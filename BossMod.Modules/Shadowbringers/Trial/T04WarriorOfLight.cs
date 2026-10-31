@@ -373,7 +373,7 @@ class AbsoluteFireIce(BossModule module) : Components.StayMove(module)
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Pyretic)
-            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, status.ExpireAt, 1));
+            SetState(Raid.FindSlot(actor.InstanceID), new(Requirement.Stay, WorldState.CurrentTime, 1));
     }
 
     public override void OnStatusLose(Actor actor, in ActorStatus status)
