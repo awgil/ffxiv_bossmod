@@ -553,9 +553,13 @@ sealed unsafe class WorldStateGameSync(
 
         // update party members
         var playerMember = UpdatePartyPlayer(replay, group);
-        UpdatePartyNormal(group, playerMember);
-        UpdatePartyAlliance(group);
-        UpdatePartyNPCs();
+        // game object #0 can be null during duty recorder init, the player object is just "somewhere else", so we don't get a content ID and then the player gets slots 0 and 1
+        if (playerMember > 0)
+        {
+            UpdatePartyNormal(group, playerMember);
+            UpdatePartyAlliance(group);
+            UpdatePartyNPCs();
+        }
 
         // update limit break
         var lb = LimitBreakController.Instance();
@@ -593,8 +597,8 @@ sealed unsafe class WorldStateGameSync(
 
         if (!recorderPlaybackMode)
         {
-            // in normal mode, the primary data source is playerstate
             var ui = UIState.Instance();
+            // in normal mode, the primary data source is playerstate
             if (ui->PlayerState.IsLoaded)
             {
                 var inCutscene = condition[ConditionFlag.OccupiedInCutSceneEvent] || condition[ConditionFlag.WatchingCutscene78] || condition[ConditionFlag.Occupied33] || condition[ConditionFlag.BetweenAreas] || condition[ConditionFlag.OccupiedInQuestEvent];
@@ -626,6 +630,7 @@ sealed unsafe class WorldStateGameSync(
         if (member != null)
             player.InCutscene |= (member->Flags & 0x10) != 0;
         UpdatePartySlot(PartyState.PlayerSlot, player);
+
         return member == null ? player.ContentId : member->ContentId;
     }
 
