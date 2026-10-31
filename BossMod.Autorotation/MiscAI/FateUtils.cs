@@ -16,7 +16,7 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
             .AddOption(Flag.Disabled, "Do nothing");
 
         res.Define(Track.Collect).As<Flag>("Collect")
-            .AddOption(Flag.Enabled, "Try to collect FATE items instead of engaging in combat")
+            .AddOption(Flag.Enabled, "Collect pickups in hand-in FATEs")
             .AddOption(Flag.Disabled, "Do nothing");
 
         res.Define(Track.Sync).As<AIHints.FateSync>("Sync")
