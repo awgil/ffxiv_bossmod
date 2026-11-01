@@ -293,7 +293,7 @@ class ThinIceHint(BossModule module) : Components.Knockback(module, ignoreImmune
         var inDanger = aoes.Any(a => a.Check(actor.Position));
         if (!inDanger)
         {
-            hints.ForcedMovement = default;
+            hints.GoalZonesEnabled = false;
             return;
         }
 
@@ -313,7 +313,8 @@ class ThinIceHint(BossModule module) : Components.Knockback(module, ignoreImmune
                 bestDir = dir;
             }
         }
-        hints.ForcedMovement = bestDir != default ? bestDir.ToVec3(actor.PosRot.Y) : default;
+        if (bestDir != default)
+            hints.GoalZones.Add(AIHints.GoalProximity(actor.Position + dist * bestDir, 2, 80));
     }
 }
 
@@ -416,11 +417,8 @@ class LuminousRush(BossModule module) : BossComponent(module)
         if (LocalLuminous(actor) is not { } src)
             return;
 
-        hints.ForcedTarget = src;
-        // bypass normal move here because autorot will keep taking you off the tether
-        var offset = src.Position - actor.Position;
-        var arrive = MathF.Max(0.25f, src.HitboxRadius - actor.HitboxRadius);
-        hints.ForcedMovement = offset.LengthSq() > arrive * arrive ? offset.ToVec3(actor.PosRot.Y) : default;
+        // high weight because autorot will keep taking you off the tether
+        hints.GoalZones.Add(AIHints.GoalProximity(src.Position, 25, 1000));
     }
 }
 
