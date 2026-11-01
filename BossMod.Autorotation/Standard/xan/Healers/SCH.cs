@@ -105,7 +105,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining <= GetCastTime(AID.Broil1))
+            if (CountdownRemaining <= GetCastTime(AID.Broil1) + ApplicationDelay.Get(AID.Broil4))
                 PushGCD(AID.Broil1, primaryTarget);
 
             return;

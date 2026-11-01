@@ -117,7 +117,7 @@ class P3Gaols(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P3Sludge(BossModule module) : Components.VoidzoneAtCastTarget(module, 6.3f, AID.FreefireGaol, OID.GaolSludge, 0.9f, activationDelay: 2);
+class P3Sludge(BossModule module) : Components.VoidzoneAtCastTarget(module, 6, AID.FreefireGaol, OID.GaolSludge, 0.9f, activationDelay: 1.5f);
 
 class P3SingleGaol(BossModule module) : Components.Adds(module, (uint)OID.GraniteGaol, 1, true);
 

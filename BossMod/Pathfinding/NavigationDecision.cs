@@ -52,7 +52,7 @@ public struct NavigationDecision
             else
                 RasterizeForbiddenZones(ctx.Map, playerPosition, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
         }
-        if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
+        if (hints.GoalZones.Count > 0)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
         else if (spaceCushion > 0)
             AddCushion(ctx.Map);
@@ -79,7 +79,6 @@ public struct NavigationDecision
             Portals = [.. hints.Portals],
             ForbiddenZones = [.. hints.ForbiddenZones],
             GoalZones = [.. hints.GoalZones],
-            GoalZonesEnabled = hints.GoalZonesEnabled
         };
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, rtt, spaceCushion));
     }
