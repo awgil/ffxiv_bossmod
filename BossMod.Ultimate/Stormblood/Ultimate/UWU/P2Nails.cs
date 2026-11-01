@@ -39,11 +39,7 @@ class P2Nails(BossModule module) : BossComponent(module)
             if (hints.FindEnemy(n) is { } e)
             {
                 e.ForbidDOTs = true;
-
-                if (n.FindStatus(1544)?.Extra >= 2)
-                    e.Priority = 1;
-                else if (n.PendingHPRatio < 0.6f)
-                    e.Priority = AIHints.Enemy.PriorityForbidden;
+                e.Priority = n.PendingHPRatio > 0.5f || n.FindStatus(1544)?.Extra >= 2 ? 1 : AIHints.Enemy.PriorityForbidden;
             }
         }
     }

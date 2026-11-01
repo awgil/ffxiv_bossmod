@@ -49,9 +49,22 @@ class PartyPositioning : BossComponent
 {
     public PartyPositioning(BossModule module) : base(module)
     {
+        Boss = Module.PrimaryActor;
         KeepOnPhaseChange = true;
         _lastTitan = module.Arena.Center;
     }
+
+    public Actor? Boss;
+    public (WPos, float)? DesiredPosition
+    {
+        get;
+        set
+        {
+            field = value;
+            Priority = 0.1f;
+        }
+    }
+    public float Priority = 0.1f;
 
     int _numGeocrushes;
     int _numUltimas;
@@ -95,8 +108,18 @@ class PartyPositioning : BossComponent
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var uwu = (UWU)Module;
+        if (DesiredPosition != null)
+        {
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(DesiredPosition.Value.Item1, DesiredPosition.Value.Item2, Priority));
+            return;
+        }
 
+        if (Boss is not { } boss)
+            return;
+
+        hints.GoalZones.Add(AIHints.GoalSingleTarget(boss.Position, boss.HitboxRadius + actor.HitboxRadius + 3, 0.1f));
+
+        /*
         switch (Module.StateMachine.ActivePhaseIndex)
         {
             // garuda
@@ -145,5 +168,6 @@ class PartyPositioning : BossComponent
                     hints.GoalZones.Add(AIHints.GoalSingleTarget(new(100, 90), ultima.HitboxRadius + 3 + actor.HitboxRadius));
                 break;
         }
+        */
     }
 }

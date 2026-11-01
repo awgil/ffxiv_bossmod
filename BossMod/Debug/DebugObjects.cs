@@ -40,6 +40,7 @@ public class DebugObjects
                 var character = obj as ICharacter;
                 var internalChara = Utils.CharacterInternal(character);
 
+                _tree.LeafNode($"Address: 0x{(nint)internalObj:X}");
                 _tree.LeafNode($"Unique ID: {uniqueID:X}");
                 _tree.LeafNode($"Gimmick ID: {Utils.ReadField<uint>(internalObj, 0x7C):X}");
                 _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");

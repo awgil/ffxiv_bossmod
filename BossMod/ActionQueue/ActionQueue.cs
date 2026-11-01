@@ -61,7 +61,7 @@ public sealed class ActionQueue
             if (!def.IsUnlocked(ws, player))
                 continue;
 
-            if (candidate.CastTime + candidate.PositionLock > hints.MaxCastTime)
+            if (candidate.CastTime + candidate.PositionLock > hints.EffectiveMaxCastTime)
                 continue; // this action can't be finished in time, look for something else
 
             var startDelay = Math.Max(Math.Max(candidate.Delay, animationLock), def.ReadyIn(cooldowns, ws.Client.DutyActions));

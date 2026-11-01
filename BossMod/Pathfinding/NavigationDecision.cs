@@ -52,7 +52,13 @@ public struct NavigationDecision
             else
                 RasterizeForbiddenZones(ctx.Map, playerPosition, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
         }
-        if (hints.GoalZones.Count > 0)
+
+        var emergencyMode = false;
+        var (pX, pZ) = ctx.Map.WorldToGrid(playerPosition);
+        if (pX >= 0 && pX < ctx.Map.Width && pZ >= 0 && pZ < ctx.Map.Height)
+            emergencyMode = ctx.Map.PixelMaxG[ctx.Map.GridToIndex(pX, pZ)] == 0;
+
+        if (hints.GoalZones.Count > 0 && !emergencyMode)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
         else if (spaceCushion > 0)
             AddCushion(ctx.Map);
@@ -128,6 +134,7 @@ public struct NavigationDecision
                 }
         }
 
+        /*
         // PrecisePosition unblocks exactly one cell
         if (maxGSpan.Count(float.MaxValue) <= 1)
             return;
@@ -169,6 +176,7 @@ public struct NavigationDecision
 
             map.PixelMaxG[pix] = neighbourG;
         }
+        */
     }
 
     public static void RasterizeForbiddenZone(Map map, in Sdf sdf, float g, Span<float> gScratch, BitArray dScratch, float cushion)

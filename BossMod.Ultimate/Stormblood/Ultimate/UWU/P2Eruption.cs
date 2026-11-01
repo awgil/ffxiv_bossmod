@@ -149,3 +149,14 @@ class P2Eruption2(BossModule module) : P2Eruption(module)
         hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Arena.Center + desiredOffset, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
     }
 }
+
+class P4Eruption(BossModule module) : P2Eruption(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (NumCastsStarted == 0 && assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R1 && ((UWU)Module).Ultima() is { } ult)
+            hints.AddForbiddenZone(ShapeDistance.Circle(ult.Position, ult.HitboxRadius + 8));
+    }
+}

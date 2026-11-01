@@ -38,6 +38,8 @@ public sealed class ActorState : IEnumerable<Actor>
         foreach (var act in this)
         {
             yield return new OpCreate(act.InstanceID, act.OID, act.SpawnIndex, act.LayoutID, act.Name, act.NameID, act.Type, act.Class, act.Level, act.PosRot, act.HitboxRadius, act.HPMP, act.IsTargetable, act.IsAlly, act.OwnerID, act.FateID);
+            if (act.RawRotation != null)
+                yield return new OpRawRotation(act.InstanceID, act.RawRotation);
             if (act.IsDead)
                 yield return new OpDead(act.InstanceID, true);
             if (act.InCombat)
@@ -242,6 +244,24 @@ public sealed class ActorState : IEnumerable<Actor>
             ws.Actors.Moved.Fire(actor);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("MOVE"u8).Emit(InstanceID, "X8").Emit(PosRot.XYZ()).Emit(PosRot.W.Radians());
+    }
+
+    public Event<Actor> RawRotationChanged = new();
+    public sealed record class OpRawRotation(ulong InstanceID, float? Rotation) : Operation(InstanceID)
+    {
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.RawRotation = Rotation;
+            ws.Actors.RawRotationChanged.Fire(actor);
+        }
+
+        public override void Write(ReplayRecorder.Output output)
+        {
+            if (Rotation is { } rot)
+                output.EmitFourCC("ARO+"u8).Emit(InstanceID, "X8").Emit(rot);
+            else
+                output.EmitFourCC("ARO-"u8).Emit(InstanceID, "X8");
+        }
     }
 
     public Event<Actor> SizeChanged = new();

@@ -207,6 +207,10 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P2CrimsonCyclone>(id, delay, comp => comp.CastsPredicted)
             .ActivateOnEnter<P2CrimsonCyclone>()
             .ActivateOnEnter<P2RadiantPlume>() // casts starts at the same time as charge (2.1s)
+            .ExecOnEnter<PartyPositioning>(p =>
+            {
+                p.DesiredPosition = (Module.Arena.Center, 1);
+            })
             .DeactivateOnExit<P1FeatherRain>();
         ComponentCondition<P2CrimsonCyclone>(id + 0x10, 5.1f, comp => comp.NumCasts > 0, "Charge")
             .DeactivateOnExit<P2CrimsonCyclone>();
@@ -219,6 +223,11 @@ class UWUStates : StateMachineBuilder
                 p.Boss = _module.Ifrit();
                 p.DesiredPosition = Module.Arena.Center;
                 p.DesiredRotation = 0.Degrees();
+            })
+            .ExecOnExit<PartyPositioning>(p =>
+            {
+                p.DesiredPosition = null;
+                p.Boss = _module.Ifrit();
             })
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x200, _module.Ifrit, AID.Hellfire, 0.1f, 3, true, "Raidwide")
@@ -235,9 +244,12 @@ class UWUStates : StateMachineBuilder
     private void P2Incinerate(uint id, float delay)
     {
         ComponentCondition<P2Incinerate>(id, delay, comp => comp.NumCasts > 0, "Incinerate 1")
-            .ActivateOnEnter<P2Incinerate>();
-        ComponentCondition<P2Incinerate>(id + 1, 3.1f, comp => comp.NumCasts > 1, "Incinerate 2");
+            .ActivateOnEnter<P2Incinerate>()
+            .ExecOnEnter<P2Incinerate>(p => p.NextExpected = p.Module.WorldState.FutureTime(delay));
+        ComponentCondition<P2Incinerate>(id + 1, 3.1f, comp => comp.NumCasts > 1, "Incinerate 2")
+            .ExecOnEnter<P2Incinerate>(p => p.NextExpected = p.Module.WorldState.FutureTime(3.1f));
         ComponentCondition<P2Incinerate>(id + 2, 4.1f, comp => comp.NumCasts > 2, "Incinerate 3")
+            .ExecOnEnter<P2Incinerate>(p => p.NextExpected = p.Module.WorldState.FutureTime(4.1f))
             .DeactivateOnExit<P2Incinerate>();
     }
 
@@ -322,10 +334,12 @@ class UWUStates : StateMachineBuilder
     {
         ComponentCondition<P3RockBuster>(id, delay, comp => comp.NumCasts > 0, "Cleave 1")
             .ActivateOnEnter<P3RockBuster>()
+            .ExecOnEnter<P3RockBuster>(b => b.NextExpected = b.Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P3RockBuster>()
             .SetHint(StateMachine.StateHint.Tankbuster);
         ComponentCondition<P3MountainBuster>(id + 1, longDelay ? 4.1f : 3.1f, comp => comp.NumCasts > 0, "Cleave 2")
             .ActivateOnEnter<P3MountainBuster>()
+            .ExecOnEnter<P3MountainBuster>(b => b.NextExpected = b.Module.WorldState.FutureTime(longDelay ? 4.1f : 3.1f))
             .DeactivateOnExit<P3MountainBuster>()
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
@@ -340,23 +354,25 @@ class UWUStates : StateMachineBuilder
 
     private State P3LandslideNormal(uint id, float delay, string name = "Landslide")
     {
-        return ActorCast(id, _module.Titan, AID.LandslideBoss, delay, 2.2f, true, name)
-            .ActivateOnEnter<P3Landslide>()
+        ActorCastStart(id, _module.Titan, AID.LandslideBoss, delay, true)
+            .ActivateOnEnter<P3Landslide>();
+        return ActorCastEnd(id + 1, _module.Titan, 2.2f, true, name)
             .DeactivateOnExit<P3Landslide>();
     }
 
     private State P3LandslideAwakened(uint id, float delay)
     {
-        ActorCastMulti(id, _module.Titan, [AID.LandslideBoss, AID.LandslideBossAwakened], delay, 2.2f, true, "Landslide (awakened)")
+        ActorCastStartMulti(id, _module.Titan, [AID.LandslideBoss, AID.LandslideBossAwakened], delay, true, "Landslide (awakened)")
             .ActivateOnEnter<P3Landslide>();
+        ActorCastEnd(id + 1, _module.Titan, 2.2f, true, "Landslide (awakened)");
         return ComponentCondition<P3Landslide>(id + 0x10, 2, comp => comp.Awakened ? comp.NumCasts >= 10 : (comp.NumCasts >= 5 && Module.WorldState.CurrentTime >= comp.PredictedActivation), "Landslide second hit")
             .DeactivateOnExit<P3Landslide>();
     }
 
-    private State P3GeocrushSide(uint id, float delay)
+    private State P3GeocrushSide(uint id, float delay, bool withBury)
     {
         ActorTargetable(id, _module.Titan, false, delay, "Disappear")
-            .ActivateOnEnter<P3GeocrushBury>()
+            .ActivateOnEnter<P3GeocrushBury>(withBury)
             .SetHint(StateMachine.StateHint.DowntimeStart);
         ActorCast(id + 1, _module.Titan, AID.Geocrush2, 2.2f, 3, true, "Proximity");
         return ActorTargetable(id + 3, _module.Titan, true, 2.4f, "Reappear")
@@ -380,9 +396,13 @@ class UWUStates : StateMachineBuilder
             .DeactivateOnExit<P3Geocrush1>();
         ActorTargetable(id + 0x10, _module.Titan, true, 2.4f, "Titan appears")
             .SetHint(StateMachine.StateHint.DowntimeEnd)
+            .ExecOnEnter<PartyPositioning>(p =>
+            {
+                p.Boss = _module.Titan();
+            })
             .ExecOnExit<BossPositioning>(p =>
             {
-                p.Boss = _module.Titan()!;
+                p.Boss = _module.Titan();
                 p.DesiredPosition = _module.Arena.Center;
                 p.DesiredRotation = 0.Degrees();
             });
@@ -393,7 +413,7 @@ class UWUStates : StateMachineBuilder
     private void P3WeightOfTheLandGeocrush(uint id, float delay)
     {
         P3WeightOfTheLandFirst(id, delay, "Puddles x2");
-        P3GeocrushSide(id + 0x1000, 3)
+        P3GeocrushSide(id + 0x1000, 3, true)
             .ExecOnExit<BossPositioning>(p => p.Clear())
             .DeactivateOnExit<P3WeightOfTheLand>(); // note: weight of the land typically ends ~0.3s after cast start, but sometimes slightly earlier
     }
@@ -428,7 +448,8 @@ class UWUStates : StateMachineBuilder
 
         // titan normally awakens here...
         P3LandslideAwakened(id + 0x1000, 2.8f)
-            .DeactivateOnExit<P3WeightOfTheLand>(); // note: weight of the land typically ends ~0.3s after cast start
+            .DeactivateOnExit<P3WeightOfTheLand>() // note: weight of the land typically ends ~0.3s after cast start
+            .DeactivateOnExit<P3GeocrushBury>();
     }
 
     private void P3TripleWeightOfTheLandLandslideAwakenedBombs(uint id, float delay)
@@ -449,7 +470,7 @@ class UWUStates : StateMachineBuilder
 
     private void P3Geocrush3(uint id, float delay)
     {
-        P3GeocrushSide(id, delay)
+        P3GeocrushSide(id, delay, false)
             .ActivateOnEnter<P3SingleGaol>()
             .ActivateOnEnter<P3GraniteImpact>();
         // +0.1s: rock throw
@@ -486,6 +507,7 @@ class UWUStates : StateMachineBuilder
     {
         ComponentCondition<P4Freefire>(id, delay, comp => comp.NumCasts > 0, "Proximity")
             .ActivateOnEnter<P4Freefire>()
+            .ExecOnEnter<PartyPositioning>(p => p.Boss = _module.Lahabrea())
             .DeactivateOnExit<P4Freefire>();
         ComponentCondition<P4MagitekBits>(id + 0x1000, 2.2f, comp => comp.Active, "Caster LB")
             .ActivateOnEnter<P4MagitekBits>()
@@ -498,6 +520,7 @@ class UWUStates : StateMachineBuilder
         ActorCast(id + 0x4000, _module.Ultima, AID.Ultima, 18, 5, true, "Tank LB")
             .DeactivateOnExit<P3WeightOfTheLand>()
             .DeactivateOnExit<BeyondLimits>()
+            .ExecOnExit<PartyPositioning>(p => p.Boss = _module.Ultima())
             .SetHint(StateMachine.StateHint.DowntimeStart);
     }
 
@@ -507,6 +530,11 @@ class UWUStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ActorCast(id + 0x10, _module.Ultima, AID.TankPurge, 0.1f, 4, true, "Raidwide")
             .ActivateOnEnter<P4ViscousAetheroplasmApply>() // show MT hint early
+            .ExecOnEnter<P4ViscousAetheroplasmApply>(p =>
+            {
+                p.NextExpected = p.Module.WorldState.FutureTime(6.2f);
+                p.Iteration = 1;
+            })
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<P4ViscousAetheroplasmApply>(id + 0x20, 2.2f, comp => comp.NumCasts > 0, "Aetheroplasm apply")
             .ActivateOnEnter<P4ViscousAetheroplasmResolve>() // activate early to let component determine aetheroplasm target
@@ -539,7 +567,12 @@ class UWUStates : StateMachineBuilder
 
         // PATE happens ~1.5s earlier
         ComponentCondition<P1FeatherRain>(id + 0x51, 4.3f, comp => comp.CastsActive)
-            .ActivateOnEnter<P1FeatherRain>();
+            .ActivateOnEnter<P1FeatherRain>()
+            .ExecOnEnter<PartyPositioning>(p =>
+            {
+                p.DesiredPosition = (new(100, 93.3f), 3);
+                p.Priority = 10;
+            });
         ComponentCondition<P1FeatherRain>(id + 0x52, 1, comp => !comp.CastsActive, "Feathers")
             .DeactivateOnExit<P1FeatherRain>();
     }
@@ -551,18 +584,20 @@ class UWUStates : StateMachineBuilder
         ActorCast(id + 0x10, _module.Ultima, AID.PrepareIfrit, 3.2f, 2, true);
 
         ActorCastStart(id + 0x1000, _module.Ifrit, AID.Eruption, 4.3f, false, "Eruption baits")
-            .ActivateOnEnter<P2Eruption>(); // activate early to show bait hints
+            .ActivateOnEnter<P4Bury>()
+            .ActivateOnEnter<P4Eruption>(); // activate early to show bait hints
         ActorCastEnd(id + 0x1001, _module.Ifrit, 2.5f, false);
         ActorCast(id + 0x1010, _module.Ultima, AID.PrepareTitan, 2.4f, 2, true);
-        ComponentCondition<P2Eruption>(id + 0x1020, 2.1f, comp => comp.NumCasts >= 8)
+        ComponentCondition<P4Eruption>(id + 0x1020, 2.1f, comp => comp.NumCasts >= 8)
             .ActivateOnEnter<P2InfernalFetters>() // ~1s after previous cast end
-            .DeactivateOnExit<P2Eruption>();
+            .DeactivateOnExit<P4Eruption>();
 
         ActorCast(id + 0x2000, _module.Ultima, AID.RadiantPlumeUltima, 1.1f, 3.2f, true)
             .ActivateOnEnter<P2RadiantPlume>();
         ComponentCondition<P2RadiantPlume>(id + 0x2010, 0.8f, comp => comp.NumCasts > 0, "Outer plumes")
             .ActivateOnEnter<P3Burst>() // first bomb appears ~0.1s after cast end
-            .DeactivateOnExit<P2RadiantPlume>();
+            .DeactivateOnExit<P2RadiantPlume>()
+            .ExecOnExit<PartyPositioning>(p => p.DesiredPosition = (new(100, 83), 3));
 
         ActorCastStart(id + 0x3000, _module.Titan, AID.LandslideBossAwakened, 1.4f, false);
         ActorCastStart(id + 0x3001, _module.Ultima, AID.LandslideUltima, 0.6f, true)
@@ -571,12 +606,19 @@ class UWUStates : StateMachineBuilder
         ActorCastEnd(id + 0x3003, _module.Ultima, 0.6f, true);
         ComponentCondition<Landslide>(id + 0x3004, 1.4f, comp => !comp.CastsActive, "Landslides last")
             .ActivateOnEnter<P4ViscousAetheroplasmApply>() // activate early to show hint for MT
+            .ExecOnEnter<P4ViscousAetheroplasmApply>(p =>
+            {
+                p.NextExpected = p.Module.WorldState.FutureTime(7.3f);
+                p.Iteration = 2;
+            })
             .DeactivateOnExit<Landslide>();
 
         // note: there are tumults during these casts; first cast happens ~1.3s after next cast start, 7 total
         ActorCast(id + 0x4000, _module.Ultima, AID.PrepareGaruda, 1.8f, 2, true);
         ComponentCondition<P4ViscousAetheroplasmApply>(id + 0x4010, 2.1f, comp => comp.NumCasts > 0, "Aetheroplasm apply")
             .ActivateOnEnter<P4ViscousAetheroplasmResolve>()
+            .ExecOnEnter<P4ViscousAetheroplasmResolve>(p => p.EnableHints = false)
+            .ExecOnExit<PartyPositioning>(p => p.DesiredPosition = (new(100, 93.3f), 1)) // drop feather rain on A marker
             .DeactivateOnExit<P4ViscousAetheroplasmApply>();
 
         ComponentCondition<WickedWheel>(id + 0x5000, 2.1f, comp => comp.Sources.Count > 0)

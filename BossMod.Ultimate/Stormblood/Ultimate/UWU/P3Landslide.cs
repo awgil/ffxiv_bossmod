@@ -8,7 +8,7 @@ class Landslide(BossModule module) : Components.GenericAOEs(module)
     public bool Awakened { get; private set; }
     public DateTime PredictedActivation;
     protected Actor? PredictedSource;
-    private readonly List<Actor> _casters = [];
+    protected readonly List<Actor> _casters = [];
 
     public static readonly AOEShapeRect ShapeBoss = new(44.55f, 3, 4.55f);
     public static readonly AOEShapeRect ShapeHelper = new(40.5f, 3, 0.5f); // difference is only in hitbox radius
@@ -53,7 +53,21 @@ class Landslide(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class P3Landslide(BossModule module) : Landslide(module);
+class P3Landslide(BossModule module) : Landslide(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // stay on hitbox, going into the boss gives us unfavorable odds
+        if (NumCasts == 0 && PredictedSource == null && _casters.Count == 0 && ((UWU)Module).Titan() is { } tit && tit.TargetID != actor.InstanceID)
+        {
+            var src = tit.Position;
+            var r = tit.HitboxRadius + 3 + actor.HitboxRadius;
+            hints.GoalZones.Add(p => p.InDonut(src, r - 1, r) ? 0.1f : 0);
+        }
+    }
+}
 
 class P4Landslide(BossModule module) : Landslide(module)
 {
