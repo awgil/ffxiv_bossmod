@@ -293,10 +293,31 @@ public abstract class BossModule : IDisposable
         foreach (var comp in _components)
             comp.AddAIHints(slot, actor, assignment, hints);
         CalculateModuleAIHints(slot, actor, assignment, hints);
+
         if (!WindowConfig.AllowAutomaticActions)
             hints.ActionsToExecute.Clear();
         if (!WindowConfig.AllowAutomaticInteract)
             hints.InteractWithTarget = null;
+
+        // always clear low level hints; these are executed unconditionally, regardless of autorot state, and can confuse users
+        // if the module wants the player to go somewhere or target something it should set appropriate hints instead
+        if (hints.ForcedMovement is { } move && move != new Vector3(0))
+        {
+            Service.PluginLog.Warning($"Module {GetType()} sets ForcedMovement to a non-zero value; this is not supported!");
+            hints.ForcedMovement = null;
+        }
+
+        if (hints.ForcedTarget != null)
+        {
+            Service.PluginLog.Warning($"Module {GetType()} forces a target; this is not supported!");
+            hints.ForcedTarget = null;
+        }
+
+        if (hints.ForcedFocusTarget != null)
+        {
+            Service.PluginLog.Warning($"Module {GetType()} forces a focus target; this is not supported!");
+            hints.ForcedFocusTarget = null;
+        }
     }
 
     public void ReportError(BossComponent? comp, string message)
