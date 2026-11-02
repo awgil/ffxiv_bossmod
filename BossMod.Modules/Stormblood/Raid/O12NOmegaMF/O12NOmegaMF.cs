@@ -309,8 +309,8 @@ class PacketFilter(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var oid = _attack == Attack.M ? OID.Boss : _attack == Attack.F ? OID.OmegaF : 0;
-        if (oid != 0)
-            hints.ForcedTarget = Module.Enemies(oid).FirstOrDefault(a => !a.IsDead);
+        if (oid != 0 && hints.FindEnemy(Module.Enemies(oid).FirstOrDefault(a => !a.IsDead)) is { } enemy)
+            enemy.ShouldBeTargeted = true;
     }
 }
 

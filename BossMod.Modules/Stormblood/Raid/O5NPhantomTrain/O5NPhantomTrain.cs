@@ -572,7 +572,7 @@ public class O5NPhantomTrain(ModuleInit init) : BossModule(init, MainCenter, Mai
         // drop when we're occupied (and thus interacting)
         // nothing can cancel it at this point unless user error
         if (_occupied && !backOnCart)
-            hints.ForcedMovement = default;
+            hints.GoalZonesEnabled = false;
     }
 
     public override Actor? GetDefaultTarget(int slot)
