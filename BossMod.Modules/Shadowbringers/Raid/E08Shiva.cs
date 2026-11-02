@@ -292,10 +292,7 @@ class ThinIceHint(BossModule module) : Components.Knockback(module, ignoreImmune
         var aoes = Module.Components.OfType<Components.GenericAOEs>().SelectMany(c => c.ActiveAOEs(slot, actor)).Where(a => a.Risky).ToList();
         var inDanger = aoes.Any(a => a.Check(actor.Position));
         if (!inDanger)
-        {
-            hints.GoalZonesEnabled = false;
             return;
-        }
 
         WDir bestDir = default;
         var bestScore = float.MinValue;
