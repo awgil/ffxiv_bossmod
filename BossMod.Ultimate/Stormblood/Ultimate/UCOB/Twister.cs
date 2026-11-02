@@ -51,10 +51,7 @@ class Twister(BossModule module, AID cast, float delay) : Components.CastTwister
 
         // pathfinder...please stop cutting across imminent danger zones to get to your goal........just get away...........
         if (PredictedPositions.Any(p => actor.Position.InCircle(p, PredictionRadius)))
-        {
-            hints.GoalZonesEnabled = false;
             hints.AllowDash = false;
-        }
     }
 }
 

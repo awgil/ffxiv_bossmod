@@ -35,8 +35,6 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
             _hook.Enable();
     }
 
-    public void Dispose() => _hook.Dispose();
-
     public static T FnPtr(string signature)
     {
         var @base = Process.GetCurrentProcess().MainModule!.BaseAddress;
@@ -44,4 +42,6 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
         Service.Log($"Located {typeof(T)} @ +0x{addr - @base:X}");
         return Marshal.GetDelegateForFunctionPointer<T>(addr);
     }
+
+    public void Dispose() => _hook.Dispose();
 }

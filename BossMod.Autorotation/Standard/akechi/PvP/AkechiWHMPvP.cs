@@ -77,126 +77,156 @@ public sealed class AkechiWHMPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
-    public bool IsReady(AID aid) => Cooldown(aid) <= 0.2f;
+    private static readonly uint[] MiracleBlockers = [(uint)GNB.SID.RelentlessRushPvP, 3162, 3039, 1302, 1301, 1300, 1978, (uint)ClassShared.SID.GuardPvP];
+
+    private bool AutoTarget;
+    private (Enemy? Best, int Targets) LineTargets;
+    private Actor? SplashTarget;
+    private Actor? SeraphTarget;
+
+    private bool IsReady(AID aid) => Cooldown(aid) <= 0.2f;
+    private Actor? Retarget(Actor? target) => AutoTarget ? target : PrimaryTarget;
+    private float DebuffsLeft => Utils.MaxAll(
+        StatusDetails(Player, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,
+        StatusDetails(Player, ClassShared.SID.HeavyPvP, Player.InstanceID, 5).Left,
+        StatusDetails(Player, ClassShared.SID.BindPvP, Player.InstanceID, 5).Left,
+        StatusDetails(Player, ClassShared.SID.SilencePvP, Player.InstanceID, 5).Left,
+        StatusDetails(Player, ClassShared.SID.DeepFreezePvP, Player.InstanceID, 5).Left,
+        StatusDetails(Player, SID.MiracleOfNaturePvP, Player.InstanceID, 5).Left);
+    private Actor? LowestHPAlly(bool includeSelf)
+    {
+        Actor? best = null;
+        foreach (var ally in World.Party.WithoutSlot(excludeNPCs: true))
+            if ((includeSelf || ally != Player) && ally.HPMP.CurHP != ally.HPMP.MaxHP && (best == null || ally.PendingHPRatio < best.PendingHPRatio))
+                best = ally;
+        return best;
+    }
+    private bool CanMiracle(Actor? target)
+    {
+        var blocked = target == null || target.NameID != 0 || target.MountId != 0;
+        if (target != null)
+            foreach (var status in MiracleBlockers)
+                blocked |= target.FindStatus(status) != null;
+        return !blocked;
+    }
+
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || IsGuarded(Player))
             return;
 
-        var strat = strategy.Option(Track.Targeting).As<TargetingStrategy>();
-        var auto = strat == TargetingStrategy.Auto;
-        var focus = strat == TargetingStrategy.FocusTargetsTarget;
-        var mainTarget = primaryTarget?.Actor;
-        var (lineTarget, lineTargets) = GetBestTarget(primaryTarget, 40, LineTargetCheck(40));
-        Actor? Retarget(Actor? newTarget) => auto ? newTarget : mainTarget;
-        var bestLineTarget = Retarget(lineTarget?.Actor);
-        var bestSplashTarget = Retarget(GetBestTarget(primaryTarget, 25, IsSplashTarget).Best?.Actor);
-        var bestSeraphStrikeTarget = Retarget(GetBestTarget(primaryTarget, 25, Is10ySplashTarget).Best?.Actor);
-
-        if (auto)
+        var targeting = strategy.Option(Track.Targeting).As<TargetingStrategy>();
+        AutoTarget = targeting == TargetingStrategy.Auto;
+        LineTargets = GetBestTarget(primaryTarget, 40, LineTargetCheck(40));
+        SplashTarget = Retarget(GetBestTarget(primaryTarget, 25, IsSplashTarget).Best?.Actor);
+        SeraphTarget = Retarget(GetBestTarget(primaryTarget, 25, Is10ySplashTarget).Best?.Actor);
+        if (targeting != TargetingStrategy.Manual)
+            GetPvPTarget(25, targeting == TargetingStrategy.FocusTargetsTarget);
+        QueueRoleAction(strategy);
+        QueueAquaveil(strategy);
+        QueueCure(strategy);
+        if (HasLOS(PrimaryTarget))
         {
-            GetPvPTarget(25, false);
+            QueueLimitBreak(strategy);
+            QueueMiracleOfNature(strategy);
+            QueueSeraphStrike(strategy);
+            QueueAfflatusMisery(strategy);
+            QueueGlare();
         }
-        if (focus)
+    }
+
+    private void QueueLimitBreak(StrategyValues strategy)
+    {
+        var target = Retarget(LineTargets.Best?.Actor);
+        var condition = strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
         {
-            GetPvPTarget(25, true);
-        }
-
-        if (HasLOS(mainTarget))
+            LBStrategy.Any => LineTargets.Targets > 0,
+            LBStrategy.Two => LineTargets.Targets > 1,
+            LBStrategy.Three => LineTargets.Targets > 2,
+            _ => false
+        };
+        if (condition && World.Party.LimitBreakLevel >= 1 && DistanceFrom(target, 40f))
+            QueueGCD(AID.AfflatusPurgationPvP, target, GCDPriority.Max);
+    }
+    private void QueueRoleAction(StrategyValues strategy)
+    {
+        var (condition, action, target) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
         {
-            var lb = strategy.Option(Track.LimitBreak).As<LBStrategy>();
-            if (DistanceFrom(bestLineTarget, 40f) && World.Party.LimitBreakLevel >= 1 && lb switch
-            {
-                LBStrategy.Any => lineTargets > 0,
-                LBStrategy.Two => lineTargets > 1,
-                LBStrategy.Three => lineTargets > 2,
-                _ => false
-            })
-                QueueGCD(AID.AfflatusPurgationPvP, bestLineTarget, GCDPriority.Max);
-
-            var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
-            {
-                RoleActionStrategy.Haelan => (HasStatus(SID.HaelanEquippedPvP) && MP >= 2000 && Player.PendingHPRatio < 0.7f, AID.HaelanPvP, Player),
-                RoleActionStrategy.Stoneskin2 => (HasStatus(SID.StoneskinEquippedPvP) && IsReady(AID.StoneskinIIPvP) && (Player.PendingHPRatio < 0.8f || EnemiesTargetingPlayer >= 2), AID.StoneskinIIPvP, Player),
-                RoleActionStrategy.Diabrosis => (In25y(bestSeraphStrikeTarget) && HasStatus(SID.DiabrosisEquippedPvP) && IsReady(AID.DiabrosisPvP), AID.DiabrosisPvP, bestSeraphStrikeTarget),
-                _ => (false, AID.None, null)
-            };
-            if (roleCondition)
-                QueueGCD(roleAction, roleTarget, GCDPriority.Critical);
-
-            var debuffsUp = Utils.MaxAll(
-                StatusDetails(Player, ClassShared.SID.StunPvP, Player.InstanceID, 5).Left,
-                StatusDetails(Player, ClassShared.SID.HeavyPvP, Player.InstanceID, 5).Left,
-                StatusDetails(Player, ClassShared.SID.BindPvP, Player.InstanceID, 5).Left,
-                StatusDetails(Player, ClassShared.SID.SilencePvP, Player.InstanceID, 5).Left,
-                StatusDetails(Player, ClassShared.SID.DeepFreezePvP, Player.InstanceID, 5).Left,
-                StatusDetails(Player, SID.MiracleOfNaturePvP, Player.InstanceID, 5).Left);
-
-            //self only
-            //TODO: add party stuff? 
-            if (IsReady(AID.AquaveilPvP) && strategy.Option(Track.Aquaveil).As<AquaveilStrategy>() switch
-            {
-                AquaveilStrategy.Auto => Player.PendingHPRatio < 1.0f && EnemiesTargetingPlayer >= 2,
-                AquaveilStrategy.Two => EnemiesTargetingPlayer >= 2,
-                AquaveilStrategy.Three => EnemiesTargetingPlayer >= 3,
-                AquaveilStrategy.Four => EnemiesTargetingPlayer >= 4,
-                AquaveilStrategy.LessThanFull => Player.PendingHPRatio < 1.0f,
-                AquaveilStrategy.LessThan75 => Player.PendingHPRatio < 0.75f,
-                AquaveilStrategy.LessThan50 => Player.PendingHPRatio < 0.5f,
-                AquaveilStrategy.DebuffOnly => debuffsUp > 0.5f,
-                _ => false
-            })
-                QueueGCD(AID.AquaveilPvP, Player, GCDPriority.VeryHigh + 1);
-
-            var healtarget = strategy.Option(Track.CureTarget).As<CureTargetStrategy>() switch
-            {
-                CureTargetStrategy.Self => Player,
-                CureTargetStrategy.Party => auto ? World.Party.WithoutSlot(excludeNPCs: true).Exclude(Player).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => a.PendingHPRatio).FirstOrDefault() : mainTarget,
-                CureTargetStrategy.SelfOrParty => auto ? World.Party.WithoutSlot(excludeNPCs: true).Where(a => a.HPMP.CurHP != a.HPMP.MaxHP).OrderBy(a => a.PendingHPRatio).FirstOrDefault() : mainTarget ?? Player,
-                _ => null
-            };
-            if (DistanceFrom(healtarget, 30f) && (Cooldown(AID.CureIIPvP) < 12.6f || HasStatus(SID.CureIIIReadyPvP)) && strategy.Option(Track.Cure).As<CureStrategy>() switch
-            {
-                CureStrategy.Eighty => healtarget?.PendingHPRatio < 0.8f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
-                CureStrategy.Seventy => healtarget?.PendingHPRatio < 0.7f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
-                CureStrategy.Sixty => healtarget?.PendingHPRatio < 0.6f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
-                CureStrategy.Fifty => healtarget?.PendingHPRatio < 0.5f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
-                CureStrategy.Fourty => healtarget?.PendingHPRatio < 0.4f && healtarget.HPMP.CurHP != healtarget.HPMP.MaxHP,
-                _ => false
-            })
-                QueueGCD(HasStatus(SID.CureIIIReadyPvP) ? AID.CureIIIPvP : AID.CureIIPvP, healtarget, GCDPriority.VeryHigh);
-
-            if (IsReady(AID.MiracleOfNaturePvP) &&
-                In10y(mainTarget) &&
-                mainTarget?.NameID == 0 && //doesn't work on NPCs or striking dummies
-                mainTarget?.MountId == 0 && //doesn't work on mounted players
-                mainTarget?.FindStatus(GNB.SID.RelentlessRushPvP) == null && //doesn't work on Relentless Rush
-                mainTarget?.FindStatus(3162) == null && //doesn't work on Honing Dance
-                mainTarget?.FindStatus(3039) == null && //don't use on invulnerable DRKs
-                mainTarget?.FindStatus(1302) == null && //don't use on invulnerable PLDs
-                mainTarget?.FindStatus(1301) == null && mainTarget?.FindStatus(1300) == null && //don't use on any enemies with PLD:Cover
-                mainTarget?.FindStatus(1978) == null && //don't use on any tanks with Rampart active
-                mainTarget?.FindStatus(ClassShared.SID.GuardPvP) == null && //don't use on any enemies with Guard active
-                strategy.Option(Track.MiracleOfNature).As<CommonStrategy>() == CommonStrategy.Allow)
-                QueueGCD(AID.MiracleOfNaturePvP, mainTarget, GCDPriority.Average);
-
-            if (IsReady(AID.SeraphStrikePvP) && strategy.Option(Track.SeraphStrike).As<SeraphStrategy>() switch
-            {
-                SeraphStrategy.Five => In5y(bestSeraphStrikeTarget),
-                SeraphStrategy.Ten => In10y(bestSeraphStrikeTarget),
-                SeraphStrategy.Fifteen => In15y(bestSeraphStrikeTarget),
-                SeraphStrategy.Twenty => In20y(bestSeraphStrikeTarget),
-                _ => false
-            })
-                QueueGCD(AID.SeraphStrikePvP, bestSeraphStrikeTarget, GCDPriority.Average);
-
-            if (In25y(mainTarget))
-            {
-                if (IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
-                    QueueGCD(AID.AfflatusMiseryPvP, bestSplashTarget, GCDPriority.Average);
-
-                QueueGCD(HasStatus(SID.SacredSightPvP) ? AID.GlareIVPvP : AID.GlareIIIPvP, HasStatus(SID.SacredSightPvP) ? bestSplashTarget : mainTarget, GCDPriority.Low);
-            }
-        }
+            RoleActionStrategy.Haelan => (HasStatus(SID.HaelanEquippedPvP) && MP >= 2000 && Player.PendingHPRatio < 0.7f, AID.HaelanPvP, Player),
+            RoleActionStrategy.Stoneskin2 => (HasStatus(SID.StoneskinEquippedPvP) && IsReady(AID.StoneskinIIPvP) && (Player.PendingHPRatio < 0.8f || EnemiesTargetingPlayer >= 2), AID.StoneskinIIPvP, Player),
+            RoleActionStrategy.Diabrosis => (HasStatus(SID.DiabrosisEquippedPvP) && IsReady(AID.DiabrosisPvP) && In25y(SeraphTarget) && HasLOS(SeraphTarget), AID.DiabrosisPvP, SeraphTarget),
+            _ => (false, AID.None, null)
+        };
+        if (condition)
+            QueueGCD(action, target, GCDPriority.Critical);
+    }
+    private void QueueAquaveil(StrategyValues strategy)
+    {
+        var condition = strategy.Option(Track.Aquaveil).As<AquaveilStrategy>() switch
+        {
+            AquaveilStrategy.Auto => Player.PendingHPRatio < 1f && EnemiesTargetingPlayer >= 2,
+            AquaveilStrategy.Two => EnemiesTargetingPlayer >= 2,
+            AquaveilStrategy.Three => EnemiesTargetingPlayer >= 3,
+            AquaveilStrategy.Four => EnemiesTargetingPlayer >= 4,
+            AquaveilStrategy.LessThanFull => Player.PendingHPRatio < 1f,
+            AquaveilStrategy.LessThan75 => Player.PendingHPRatio < 0.75f,
+            AquaveilStrategy.LessThan50 => Player.PendingHPRatio < 0.5f,
+            AquaveilStrategy.DebuffOnly => DebuffsLeft > 0.5f,
+            _ => false
+        };
+        if (condition && IsReady(AID.AquaveilPvP))
+            QueueGCD(AID.AquaveilPvP, Player, GCDPriority.VeryHigh + 1);
+    }
+    private void QueueCure(StrategyValues strategy)
+    {
+        var target = strategy.Option(Track.CureTarget).As<CureTargetStrategy>() switch
+        {
+            CureTargetStrategy.Self => Player,
+            CureTargetStrategy.Party => AutoTarget ? LowestHPAlly(false) : PrimaryTarget,
+            CureTargetStrategy.SelfOrParty => AutoTarget ? LowestHPAlly(true) : PrimaryTarget ?? Player,
+            _ => null
+        };
+        var threshold = strategy.Option(Track.Cure).As<CureStrategy>() switch
+        {
+            CureStrategy.Eighty => 0.8f,
+            CureStrategy.Seventy => 0.7f,
+            CureStrategy.Sixty => 0.6f,
+            CureStrategy.Fifty => 0.5f,
+            CureStrategy.Fourty => 0.4f,
+            _ => 0f
+        };
+        var cureIII = HasStatus(SID.CureIIIReadyPvP);
+        var condition = target != null && target.PendingHPRatio < threshold && target.HPMP.CurHP != target.HPMP.MaxHP && DistanceFrom(target, 30f);
+        if (condition && (Cooldown(AID.CureIIPvP) < 12.6f || cureIII))
+            QueueGCD(cureIII ? AID.CureIIIPvP : AID.CureIIPvP, target, GCDPriority.VeryHigh);
+    }
+    private void QueueMiracleOfNature(StrategyValues strategy)
+    {
+        if (IsReady(AID.MiracleOfNaturePvP) && In10y(PrimaryTarget) && CanMiracle(PrimaryTarget) && strategy.Option(Track.MiracleOfNature).As<CommonStrategy>() == CommonStrategy.Allow)
+            QueueGCD(AID.MiracleOfNaturePvP, PrimaryTarget, GCDPriority.Average);
+    }
+    private void QueueSeraphStrike(StrategyValues strategy)
+    {
+        var condition = strategy.Option(Track.SeraphStrike).As<SeraphStrategy>() switch
+        {
+            SeraphStrategy.Five => In5y(SeraphTarget),
+            SeraphStrategy.Ten => In10y(SeraphTarget),
+            SeraphStrategy.Fifteen => In15y(SeraphTarget),
+            SeraphStrategy.Twenty => In20y(SeraphTarget),
+            _ => false
+        };
+        if (condition && IsReady(AID.SeraphStrikePvP))
+            QueueGCD(AID.SeraphStrikePvP, SeraphTarget, GCDPriority.Average);
+    }
+    private void QueueAfflatusMisery(StrategyValues strategy)
+    {
+        if (In25y(PrimaryTarget) && IsReady(AID.AfflatusMiseryPvP) && strategy.Option(Track.AfflatusMisery).As<CommonStrategy>() == CommonStrategy.Allow)
+            QueueGCD(AID.AfflatusMiseryPvP, SplashTarget, GCDPriority.Average);
+    }
+    private void QueueGlare()
+    {
+        var sacredSight = HasStatus(SID.SacredSightPvP);
+        if (In25y(PrimaryTarget))
+            QueueGCD(sacredSight ? AID.GlareIVPvP : AID.GlareIIIPvP, sacredSight ? SplashTarget : PrimaryTarget, GCDPriority.Low);
     }
 }

@@ -5,7 +5,7 @@ class P1Plumes(BossModule module) : BossComponent(module)
 {
     private readonly List<(Actor Plume, DateTime Spawn)> _plumes = [];
 
-    public bool Active => _plumes.Any(p => p.Plume.IsTargetable);
+    public bool Active => _plumes.Any(p => p.Plume.IsTargetable || p.Plume.OID == (uint)OID.RazorPlume);
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -87,16 +87,32 @@ class P1Friction(BossModule module) : Components.StackWithCastTargets(module, AI
 }
 
 // in at least 1 pull, bubble lasts 23 seconds 
-class P1SpinyShield(BossModule module) : BossComponent(module)
+// TODO: rewrite to use status gain/lose event, we can occasionally cleanse too early here
+class P1SpinyShield : BossComponent
 {
     public BitMask Forbidden;
 
-    int _numFriction;
+    int NumFrictions;
+    int NumStorm1s;
+    int NumStorm2s;
     WPos? _pending;
     Actor? _bubble;
 
     public DateTime Deadline = DateTime.MaxValue;
-    DateTime _bubbleExpire;
+
+    private readonly int[] CleanseOrder = Utils.MakeArray(3, -1);
+
+    private DateTime _nextCleanse;
+    private int _nextCleanseSlot;
+
+    private readonly UWUConfig _config = Service.Config.Get<UWUConfig>();
+
+    public P1SpinyShield(BossModule module) : base(module)
+    {
+        foreach (var (slot, group) in _config.P1Friction.Resolve(Raid))
+            if (group >= 0)
+                CleanseOrder[group] = slot;
+    }
 
     WPos? Bubble => _bubble?.Position ?? _pending;
 
@@ -139,58 +155,58 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
             return;
 
         if (Forbidden[slot])
-            hints.AddForbiddenZone(ShapeDistance.Circle(e, 6), Deadline);
+            hints.AddForbiddenZone(ShapeDistance.Circle(e, 6));
         else
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(e, 6), Deadline);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
+        // Gigastorm = spiny plume spawn, designated target (probably OT) should stay out
         if ((AID)spell.Action.ID == AID.Gigastorm)
         {
             _pending = caster.Position;
             Forbidden = Raid.WithSlot().WhereActor(a => a.FindStatus(SID.ThermalLow, DateTime.MaxValue) != null).Mask();
         }
 
-        if ((AID)spell.Action.ID == AID.MistralShriek)
-            Forbidden.Reset();
-
-        if ((AID)spell.Action.ID == AID.Friction)
+        if ((AID)spell.Action.ID == AID.SuperCyclone2)
         {
-            _numFriction++;
-            if (_numFriction == 2)
+            NumStorm2s++;
+
+            // first Cyclone2 cast: predetermined soakers should move back out of the bubble
+            if (NumStorm2s == 1)
             {
-                var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
-                if (assignments.Length > 0)
-                    Forbidden.Clear(assignments[(int)PartyRolesConfig.Assignment.M1]);
+                Forbidden |= BitMask.Build(CleanseOrder);
+            }
+            else if (NumStorm2s < 3 || _config.P1FastAwaken)
+            {
+                _nextCleanse = WorldState.FutureTime(2);
+                _nextCleanseSlot = CleanseOrder.BoundSafeAt(NumStorm2s - 1, -1);
             }
         }
+
+        if ((AID)spell.Action.ID == AID.SuperCyclone1)
+        {
+            NumStorm1s++;
+
+            // immediate party cleanse is triggered after friction 1, at this point everyone should step out to keep their next stack
+            if (NumStorm1s == 5)
+                Forbidden = new(0xFF);
+        }
+
+        if ((AID)spell.Action.ID == AID.Friction)
+            NumFrictions++;
     }
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
-        if ((AID)spell.Action.ID == AID.Friction)
-        {
-            Forbidden.Reset();
-            Deadline = Module.CastFinishAt(spell);
+        // don't do anything for StatusGain triggered on OT when component activates
+        if (NumFrictions == 0)
+            return;
 
-            var assignments = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
-            if (assignments.Length == 0)
-            {
-                ReportError($"Don't know who should leave for friction, doing nothing");
-                return;
-            }
-
-            if (_numFriction == 0)
-            {
-                Forbidden.Set(assignments[(int)PartyRolesConfig.Assignment.MT]);
-                Forbidden.Set(assignments[(int)PartyRolesConfig.Assignment.M1]);
-                Forbidden.Set(assignments[(int)PartyRolesConfig.Assignment.M2]);
-            }
-
-            if (_numFriction == 1)
-                Forbidden = new(0xff);
-        }
+        // friction 2: first cleanse pops as soon as they gain the status; the other two pop on a fixed delay
+        if ((SID)status.ID == SID.ThermalLow && status.Extra == 2 && Raid.TryFindSlot(actor.InstanceID, out var slot) && slot == CleanseOrder[0])
+            Forbidden.Clear(slot);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -199,7 +215,6 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
         {
             _bubble = actor;
             _pending = null;
-            _bubbleExpire = WorldState.FutureTime(22.9f);
         }
     }
 
@@ -208,14 +223,15 @@ class P1SpinyShield(BossModule module) : BossComponent(module)
         if (_bubble?.EventState == 7)
             _bubble = null;
 
-        if (_bubbleExpire > WorldState.CurrentTime)
-        {
-            var ass = Service.Config.Get<PartyRolesConfig>().SlotsPerAssignment(Raid);
-            if (ass.Length == 0)
-                return;
+        // first target cleanse as soon as whole party is safe
+        if (Forbidden.NumSetBits() == 1 && NumFrictions == 0 && Raid.WithSlot().ExcludedFromMask(Forbidden).All(a => a.Item2.FindStatus(SID.ThermalHigh) != null))
+            Forbidden.Reset();
 
-            if (_bubbleExpire < WorldState.FutureTime(3))
-                Forbidden.Clear(ass[(int)PartyRolesConfig.Assignment.M2]);
+        if (_nextCleanse != default && WorldState.CurrentTime >= _nextCleanse)
+        {
+            Forbidden.Clear(_nextCleanseSlot);
+            _nextCleanse = default;
+            _nextCleanseSlot = -1;
         }
     }
 }

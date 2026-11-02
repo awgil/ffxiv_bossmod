@@ -86,7 +86,7 @@ public sealed class WHM(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining < GetCastTime(AID.Stone))
+            if (CountdownRemaining < GetCastTime(AID.Stone) + ApplicationDelay.Get(AID.GlareIV))
                 PushGCD(AID.Stone, primaryTarget);
 
             return;

@@ -8,122 +8,109 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 {
     public struct Strategy
     {
+        [Track(UiPriority = 500)]
         public Track<Targeting> Targeting;
+        [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Serpent's Ire, Reawaken)", InternalName = "Burst", MinLevel = 86)]
-        public Track<OffensiveStrategy> Burst;
-
-        [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros])]
-        public Track<ReawakenStrategy> Reawaken;
-
-        [Track("Serpent's Ire", MinLevel = 86, Action = AID.SerpentsIre)]
+        [Track("Serpent's Ire", MinLevel = 86, Action = AID.SerpentsIre, UiPriority = 100)]
         public Track<OffensiveStrategy> Ire;
 
-        [Track("Vicewinder / Vicepit", MinLevel = 65, Actions = [AID.Vicewinder, AID.Vicepit])]
+        [Track("Reawaken", MinLevel = 90, Actions = [AID.Reawaken, AID.FirstGeneration, AID.SecondGeneration, AID.ThirdGeneration, AID.FourthGeneration, AID.Ouroboros], UiPriority = 99)]
+        public Track<OffensiveStrategy> Reawaken;
+
+        [Track("Vicewinder / Vicepit", MinLevel = 65, Actions = [AID.Vicewinder, AID.Vicepit], UiPriority = 98)]
         public Track<OffensiveStrategy> Twinblade;
 
-        [Track("Uncoiled Fury", MinLevel = 82, Action = AID.UncoiledFury)]
+        [Track("Uncoiled Fury", MinLevel = 82, Action = AID.UncoiledFury, UiPriority = 97)]
         public Track<UncoiledStrategy> Uncoiled;
 
-        [Track("Writhing Snap", MinLevel = 15, Action = AID.WrithingSnap)]
+        [Track("Writhing Snap", MinLevel = 15, Action = AID.WrithingSnap, UiPriority = 96)]
         public Track<SnapStrategy> Snap;
 
-        [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
-        public Track<TrueNorthStrategy> TrueNorth;
+        [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth, UiPriority = 95)]
+        public Track<OffensiveStrategy> TrueNorth;
 
-        [Track("Slither", MinLevel = 40, Action = AID.Slither)]
+        [Track("Slither", MinLevel = 40, Action = AID.Slither, UiPriority = 94)]
         public Track<SlitherStrategy> Slither;
 
-        [Track("Engage")]
+        [Track("Engage", UiPriority = 93)]
         public Track<EngageStrategy> Engage;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049235, UiPriority = 92)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 96, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
     }
 
-    public enum ReawakenStrategy
-    {
-        [Option("Use with Serpent's Ire and raid buffs; saved for the boss")]
-        Automatic,
-        [Option("Use as soon as possible", MinLevel = 90)]
-        ASAP,
-        [Option("Do not use")]
-        Delay
-    }
-
     public enum UncoiledStrategy
     {
-        [Option("Spend between combos, keep one for movement; never overcap", Targets = ActionTargets.Hostile)]
+        [Option("Spend between combos, keep one", Targets = ActionTargets.Hostile)]
         Automatic,
-        [Option("Spend as soon as possible (outside Reawaken / Dread combos)", Targets = ActionTargets.Hostile)]
-        ASAP,
-        [Option("Spend between combos, but always keep one for movement", Targets = ActionTargets.Hostile)]
+        [Option("Always keep one for movement", Targets = ActionTargets.Hostile)]
         HoldOne,
-        [Option("Only out of melee range or to avoid overcapping", Targets = ActionTargets.Hostile)]
+        [Option("Out of melee, or to avoid overcapping", Targets = ActionTargets.Hostile)]
         Overcap,
+        [Option("Use ASAP (outside combos)", Targets = ActionTargets.Hostile)]
+        ASAP,
         [Option("Do not use")]
         Delay
     }
 
     public enum SnapStrategy
     {
-        [Option("Use when out of melee range with no Rattling Coils", Targets = ActionTargets.Hostile)]
+        [Option("Use out of melee without Rattling Coils", Targets = ActionTargets.Hostile)]
         Ranged,
         [Option("Do not use")]
         Never
-    }
-
-    public enum TrueNorthStrategy
-    {
-        [Option("Use when the next positional is wrong")]
-        Automatic,
-        [Option("Do not use")]
-        Delay
     }
 
     public enum SlitherStrategy
     {
         [Option("Do not use")]
         None,
-        [Option("Use when outside melee range", Targets = ActionTargets.Hostile)]
-        GapClose
+        [Option("Use when out of melee range", Targets = ActionTargets.Hostile)]
+        GapClose,
+        [Option("Use to cancel knockback", Targets = ActionTargets.Party | ActionTargets.Hostile)]
+        Knockback,
+        [Option("Close gaps and cancel knockback", Targets = ActionTargets.Hostile)]
+        Both
     }
 
     public enum EngageStrategy
     {
-        [Option("Slither in, or open at the pull if already in melee")]
+        [Option("Slither to target")]
         Slither,
         [Option("Sprint into melee range")]
         Sprint,
         [Option("Walk in and open at the pull")]
-        Facepull
+        Facepull,
+        [Option("Do not move before the pull")]
+        Manual
     }
 
     public enum PotionStrategy
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Serpent's Ire")]
+        [Option("Optimal: with Serpent's Ire")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Follow party raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
     public enum OpenerStrategy
     {
-        [Option("Automatic (FRU / DMU openers in those fights)")]
+        [Option("Pick by fight (FRU / DMU openers)")]
         Automatic,
         [Option("Standard opener")]
         Standard,
-        [Option("Vicewinder first, Swiftskin's Coil first (FRU)")]
+        [Option("FRU: Swiftskin's Coil first")]
         FRU,
-        [Option("Vicewinder first, Hunter's Coil first (DMU)")]
+        [Option("DMU: Hunter's Coil first")]
         DMU,
         [Option("No opener-specific rules")]
         None
@@ -177,14 +164,14 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
     private float IreIn => ReadyIn(AID.SerpentsIre);
     private bool VicewinderOpener => OpenerMode is OpenerStrategy.FRU or OpenerStrategy.DMU;
 
-    private ReawakenStrategy ReawakenStrat;
+    private OffensiveStrategy ReawakenStrat;
     private OffensiveStrategy IreStrat;
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        ReawakenStrat = strategy.Burst.Value switch { OffensiveStrategy.Delay => ReawakenStrategy.Delay, OffensiveStrategy.Force => ReawakenStrategy.ASAP, _ => strategy.Reawaken.Value };
-        IreStrat = WithBurst(strategy.Burst.Value, strategy.Ire.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        ReawakenStrat = strategy.Reawaken.Value;
+        IreStrat = strategy.Ire.Value;
         var forceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         OpenerMode = !Unlocked(TraitID.EnhancedSerpentsLineage) ? OpenerStrategy.None : strategy.Opener.Value switch
@@ -270,14 +257,21 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         switch (engage)
         {
             case EngageStrategy.Slither:
-                if (InMelee ? countdown < 1.16f : countdown < 0.7f)
-                    PushGCD(InMelee ? first : AID.Slither, target.Actor, 10);
+                if (InMelee && countdown < 1.16f)
+                    PushGCD(first, target.Actor, 10);
+                // Engage picks Slither on its own; the Slither track's "Do not use" is for combat
+                else if (!InMelee && countdown < 0.7f)
+                    PushAction(ActionID.MakeSpell(AID.Slither), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
                 break;
             case EngageStrategy.Sprint:
                 SprintPull(target, first, countdown);
                 break;
             case EngageStrategy.Facepull:
                 Facepull(target, first, countdown);
+                break;
+            case EngageStrategy.Manual:
+                if (InMelee && countdown < 1.16f)
+                    PushGCD(first, target.Actor, 10);
                 break;
         }
     }
@@ -476,9 +470,9 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
         switch (ReawakenStrat)
         {
-            case ReawakenStrategy.Delay:
+            case OffensiveStrategy.Delay:
                 return false;
-            case ReawakenStrategy.ASAP:
+            case OffensiveStrategy.Force:
                 return true;
         }
 
@@ -537,14 +531,16 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
         if (IreWanted && !HoldIreForBuffs && (Coil < CoilMax || IreStrat == OffensiveStrategy.Force) && CanWeave(AID.SerpentsIre))
             PushOGCD(AID.SerpentsIre, Player, 40);
 
-        if (strategy.Slither.Value == SlitherStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
+        if (strategy.Slither.Value is SlitherStrategy.GapClose or SlitherStrategy.Both && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
             PushOGCD(AID.Slither, ResolveTarget(strategy.Slither) ?? target.Actor, 30);
+        if (strategy.Slither.Value is SlitherStrategy.Knockback or SlitherStrategy.Both)
+            CancelKnockback(AID.Slither, ResolveTarget(strategy.Slither) ?? target.Actor);
     }
 
     private void UpdatePositionals(in Strategy strategy, Enemy target)
     {
         var (pos, imminent) = NextPositional(target.Actor);
-        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && InMelee);
+        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value, InMelee);
     }
 
     private void AddGoalZone(Enemy target)
@@ -584,12 +580,15 @@ public sealed class KageVPR(RotationModuleManager manager, Actor player) : KageS
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.Reawaken) ? ReawakenReady > 0 && ReawakenReady <= 30 - GCDLength && Reawakened == 0
-            : Unlocked(AID.SerpentsIre) ? IreIn < 6 && !HoldIreForBuffs : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
-        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
+        PotionStrategy.AlignWithBurst => PotionBurst || PotionBeforeKill,
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs(PotionBurst) || PotionBeforeKill,
         PotionStrategy.Immediate => true,
         _ => false
     };
+
+    private bool PotionBurst => Player.InCombat && (IreStrat == OffensiveStrategy.Delay ? RaidBuffsLeft > 0 || RaidBuffsIn < 5
+        : Unlocked(AID.Reawaken) ? ReawakenReady > 0 && ReawakenReady <= 30 - 1.5f * GCDLength && Reawakened == 0
+        : Unlocked(AID.SerpentsIre) ? IreIn < 6 && !HoldIreForBuffs : RaidBuffsLeft > 0 || RaidBuffsIn < 5);
 
     private Actor BestSplash(Enemy primary, float range)
         => BestAOETarget(primary, range, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best ?? primary.Actor;

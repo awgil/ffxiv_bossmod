@@ -13,7 +13,7 @@ class P2Eruption(BossModule module) : Components.StandardAOEs(module, AID.Erupti
         {
             var source = ((UWU)Module).Ifrit();
             if (source != null)
-                _baiters = Raid.WithSlot().WhereActor(a => a.Class.IsDD()).SortedByRange(source.Position).TakeLast(2).Mask();
+                _baiters = Raid.WithSlot().WhereActor(a => a.FindStatus(SID.SearingWind) == null).SortedByRange(source.Position).TakeLast(2).Mask();
         }
     }
 
@@ -99,25 +99,64 @@ class P2Eruption1 : P2Eruption
 
         var sign = myOrder == 0 ? -1 : 1;
 
-        WPos destination = default;
+        var start = nails.RelativeNorth + (sign * 67.5f).Degrees();
+        var s2 = Arena.Center + start.ToDirection() * 12;
+        var s3 = start + (90 * -sign).Degrees();
+
+        var myStart = s2 - s3.ToDirection() * 12.5f;
+        var myEnd = s2 + s3.ToDirection() * 12.5f;
+
+        float progress = -1;
 
         switch (NumCastsStarted)
         {
             case < 2:
-                destination = Arena.Center + (nails.RelativeNorth + (120 * sign).Degrees()).ToDirection() * 18;
+                progress = 0;
                 break;
             case < 4:
-                destination = Arena.Center + (nails.RelativeNorth + (90 * sign).Degrees()).ToDirection() * 16.25f;
+                progress = 0.33f;
                 break;
             case < 6:
-                destination = Arena.Center + (nails.RelativeNorth + (56 * sign).Degrees()).ToDirection() * 14.25f;
+                progress = 0.67f;
                 break;
             case < 8:
-                destination = Arena.Center + (nails.RelativeNorth + (22.5f * sign).Degrees()).ToDirection() * 18.5f;
+                progress = 1;
                 break;
         }
 
-        if (destination != default)
-            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(destination, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
+        if (progress >= 0)
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(WPos.Lerp(myStart, myEnd, progress), new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
+    }
+}
+
+class P2Eruption2(BossModule module) : P2Eruption(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (assignment is not (PartyRolesConfig.Assignment.R1 or PartyRolesConfig.Assignment.R2))
+            return;
+
+        if (Module.FindComponent<BossPositioning>() is not { DesiredRotation: { } relNorth })
+            return;
+
+        if (NumCastsStarted >= 8)
+            return;
+
+        var desiredOffset = (relNorth - (135 - 30 * (NumCastsStarted / 2)).Degrees()).ToDirection() * 18;
+
+        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(Arena.Center + desiredOffset, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
+    }
+}
+
+class P4Eruption(BossModule module) : P2Eruption(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (NumCastsStarted == 0 && assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R1)
+            hints.AddForbiddenZone(ShapeDistance.Circle(new(100, 80.5f), 20));
     }
 }

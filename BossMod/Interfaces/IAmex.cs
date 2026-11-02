@@ -1,13 +1,12 @@
 ﻿namespace BossMod.Services;
 
-public interface IAmex : IDisposable
+public interface IAmex
 {
     public ActionTweaksConfig Config { get; }
 
     float EffectiveAnimationLock { get; }
     float AnimationLockDelayEstimate { get; }
     float ComboTimeLeft { get; }
-    bool MoveMightInterruptCast { get; }
     bool MacroCapture { get; set; }
 
     void QueueManualActions();
@@ -23,12 +22,9 @@ internal sealed class MockAmex : IAmex
     public float EffectiveAnimationLock => 0;
     public float AnimationLockDelayEstimate => 0.02f;
     public float ComboTimeLeft => 0;
-    public bool MoveMightInterruptCast => false;
     public bool MacroCapture { get; set; }
 
     public void QueueManualActions() { }
     public void FinishActionGather() { }
     public ActionID AdjustAction(ActionID action) => action;
-
-    public void Dispose() { }
 }

@@ -130,6 +130,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ActorState.OpCreate op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpDestroy op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpMove => false,
+            ActorState.OpRawRotation => false,
             ActorState.OpSizeChange op => ShowActorSizeEvents && FilterInterestingActor(op.InstanceID, op.Timestamp, false),
             ActorState.OpHPMP => false,
             ActorState.OpTargetable op => FilterInterestingActor(op.InstanceID, op.Timestamp, false),

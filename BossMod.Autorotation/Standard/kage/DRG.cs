@@ -8,63 +8,52 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 {
     public struct Strategy
     {
+        [Track(UiPriority = 500)]
         public Track<Targeting> Targeting;
+        [Track(UiPriority = 499)]
         public Track<AOEStrategy> AOE;
 
-        [Track("Burst (Lance Charge, Battle Litany, Dragonfire Dive)", InternalName = "Burst", MinLevel = 30)]
-        public Track<OffensiveStrategy> Burst;
-
-        [Track("Lance Charge", MinLevel = 30, Action = AID.LanceCharge)]
+        [Track("Lance Charge", MinLevel = 30, Action = AID.LanceCharge, UiPriority = 100)]
         public Track<OffensiveStrategy> LanceCharge;
 
-        [Track("Battle Litany", MinLevel = 52, Action = AID.BattleLitany)]
+        [Track("Battle Litany", MinLevel = 52, Action = AID.BattleLitany, UiPriority = 99)]
         public Track<OffensiveStrategy> BattleLitany;
 
-        [Track("Life Surge", MinLevel = 6, Action = AID.LifeSurge)]
-        public Track<LifeSurgeStrategy> LifeSurge;
+        [Track("Life Surge", MinLevel = 6, Action = AID.LifeSurge, UiPriority = 98)]
+        public Track<OffensiveStrategy> LifeSurge;
 
-        [Track("Geirskogul / Nastrond", MinLevel = 60, Actions = [AID.Geirskogul, AID.Nastrond])]
+        [Track("Geirskogul / Nastrond", MinLevel = 60, Actions = [AID.Geirskogul, AID.Nastrond], UiPriority = 97)]
         public Track<OffensiveStrategy> Geirskogul;
 
-        [Track("Jump / High Jump", MinLevel = 30, Actions = [AID.Jump, AID.HighJump, AID.MirageDive])]
+        [Track("Jump / High Jump", MinLevel = 30, Actions = [AID.Jump, AID.HighJump, AID.MirageDive], UiPriority = 96)]
         public Track<OffensiveStrategy> Jump;
 
-        [Track("Dragonfire Dive", MinLevel = 50, Actions = [AID.DragonfireDive, AID.RiseOfTheDragon])]
+        [Track("Dragonfire Dive", MinLevel = 50, Actions = [AID.DragonfireDive, AID.RiseOfTheDragon], UiPriority = 95)]
         public Track<OffensiveStrategy> DragonfireDive;
 
-        [Track("Stardiver", MinLevel = 80, Actions = [AID.Stardiver, AID.Starcross])]
+        [Track("Stardiver", MinLevel = 80, Actions = [AID.Stardiver, AID.Starcross], UiPriority = 94)]
         public Track<OffensiveStrategy> Stardiver;
 
-        [Track("Wyrmwind Thrust", MinLevel = 90, Action = AID.WyrmwindThrust)]
+        [Track("Wyrmwind Thrust", MinLevel = 90, Action = AID.WyrmwindThrust, UiPriority = 93)]
         public Track<OffensiveStrategy> Wyrmwind;
 
-        [Track("Piercing Talon", MinLevel = 15, Action = AID.PiercingTalon)]
+        [Track("Piercing Talon", MinLevel = 15, Action = AID.PiercingTalon, UiPriority = 92)]
         public Track<TalonStrategy> Talon;
 
-        [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth)]
-        public Track<TrueNorthStrategy> TrueNorth;
+        [Track("True North", MinLevel = 50, Action = ClassShared.AID.TrueNorth, UiPriority = 91)]
+        public Track<OffensiveStrategy> TrueNorth;
 
-        [Track("Winged Glide", MinLevel = 45, Action = AID.WingedGlide)]
+        [Track("Winged Glide", MinLevel = 45, Action = AID.WingedGlide, UiPriority = 90)]
         public Track<GlideStrategy> Glide;
 
-        [Track("Engage")]
+        [Track("Engage", UiPriority = 89)]
         public Track<EngageStrategy> Engage;
 
-        [Track("Potion")]
+        [Track("Potion", Item = 1049234, UiPriority = 88)]
         public Track<PotionStrategy> Potion;
 
         [Track("Opener", MinLevel = 100, UiPriority = -10)]
         public Track<OpenerStrategy> Opener;
-    }
-
-    public enum LifeSurgeStrategy
-    {
-        [Option("Use on Heavens' Thrust / Drakesbane in burst; never overcap")]
-        Automatic,
-        [Option("Use on the next strong GCD")]
-        ASAP,
-        [Option("Do not use")]
-        Delay
     }
 
     public enum TalonStrategy
@@ -75,53 +64,53 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         Never
     }
 
-    public enum TrueNorthStrategy
-    {
-        [Option("Use when the next positional is wrong")]
-        Automatic,
-        [Option("Do not use")]
-        Delay
-    }
-
     public enum GlideStrategy
     {
         [Option("Do not use")]
         None,
-        [Option("Use when outside melee range", Targets = ActionTargets.Hostile)]
-        GapClose
+        [Option("Use when out of melee range", Targets = ActionTargets.Hostile)]
+        GapClose,
+        [Option("Use to cancel knockback", Targets = ActionTargets.Hostile)]
+        Knockback,
+        [Option("Close gaps and cancel knockback", Targets = ActionTargets.Hostile)]
+        Both
     }
 
     public enum EngageStrategy
     {
-        [Option("Walk in and open at the pull")]
-        Facepull,
+        [Option("Winged Glide to target")]
+        Glide,
         [Option("Sprint into melee range")]
         Sprint,
+        [Option("Walk in and open at the pull")]
+        Facepull,
         [Option("Piercing Talon at the pull, then walk in")]
-        Talon
+        Talon,
+        [Option("Do not move before the pull")]
+        Manual
     }
 
     public enum PotionStrategy
     {
         [Option("Do not use automatically")]
         Manual,
-        [Option("Use before the pull and with Lance Charge")]
+        [Option("Optimal: with Lance Charge")]
         AlignWithBurst,
-        [Option("Use before the pull and with raid buffs")]
+        [Option("Follow party raid buffs")]
         AlignWithRaidBuffs,
-        [Option("Use as soon as possible")]
+        [Option("Use ASAP")]
         Immediate
     }
 
     public enum OpenerStrategy
     {
-        [Option("Automatic (FRU / DMU openers in those fights)")]
+        [Option("Pick by fight (FRU / DMU openers)")]
         Automatic,
         [Option("Standard opener")]
         Standard,
-        [Option("High Jump first, Lance Charge after Drakesbane (FRU)")]
+        [Option("FRU: High Jump first, late Lance Charge")]
         FRU,
-        [Option("Lance Charge + Battle Litany before the first GCD (DMU)")]
+        [Option("DMU: buffs before the first GCD")]
         DMU,
         [Option("No opener-specific rules")]
         None
@@ -169,10 +158,10 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     public override void Execute(in Strategy strategy, ref Actor? primaryTarget, float estimatedAnimLockDelay, bool isMoving)
     {
-        var target = SelectTarget(strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
-        LanceStrat = WithBurst(strategy.Burst.Value, strategy.LanceCharge.Value);
-        LitanyStrat = WithBurst(strategy.Burst.Value, strategy.BattleLitany.Value);
-        DiveStrat = WithBurst(strategy.Burst.Value, strategy.DragonfireDive.Value);
+        var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 3, strategy.AOE.Value);
+        LanceStrat = strategy.LanceCharge.Value;
+        LitanyStrat = strategy.BattleLitany.Value;
+        DiveStrat = strategy.DragonfireDive.Value;
         OpenerMode = !Unlocked(AID.Drakesbane) ? OpenerStrategy.None : strategy.Opener.Value switch
         {
             OpenerStrategy.Automatic => World.CurrentZone switch
@@ -241,17 +230,29 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
     private void Engage(in Strategy strategy, Enemy target, float countdown)
     {
         _talonPull = strategy.Engage.Value == EngageStrategy.Talon;
-        switch (strategy.Engage.Value)
+        var engage = strategy.Engage.Value == EngageStrategy.Glide && !Unlocked(AID.WingedGlide) ? EngageStrategy.Facepull : strategy.Engage.Value;
+        switch (engage)
         {
+            case EngageStrategy.Glide:
+                if (InMelee && countdown < 1.16f)
+                    PushGCD(AID.TrueThrust, target.Actor, 10);
+                // Engage picks Winged Glide on its own; the Winged Glide track's "Do not use" is for combat
+                else if (!InMelee && countdown < 0.7f)
+                    PushAction(ActionID.MakeSpell(AID.WingedGlide), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
+                break;
             case EngageStrategy.Talon:
                 if (countdown < 0.85f && Unlocked(AID.PiercingTalon))
-                    PushGCD(AID.PiercingTalon, target.Actor, 10);
+                    PushAction(ActionID.MakeSpell(AID.PiercingTalon), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
                 break;
             case EngageStrategy.Sprint:
                 SprintPull(target, AID.TrueThrust, countdown);
                 break;
             case EngageStrategy.Facepull:
                 Facepull(target, AID.TrueThrust, countdown);
+                break;
+            case EngageStrategy.Manual:
+                if (InMelee && countdown < 1.16f)
+                    PushGCD(AID.TrueThrust, target.Actor, 10);
                 break;
         }
     }
@@ -339,8 +340,10 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         if (InOpener && OpenerMode == OpenerStrategy.FRU && PowerSurge == 0 && strategy.Jump.Value != OffensiveStrategy.Delay && CanWeave(AID.HighJump))
             PushOGCD(AID.HighJump, target.Actor, 72);
 
-        if (strategy.Glide.Value == GlideStrategy.GapClose && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
+        if (strategy.Glide.Value is GlideStrategy.GapClose or GlideStrategy.Both && !InMelee && Player.DistanceToHitbox(target.Actor) <= 20)
             PushOGCD(AID.WingedGlide, ResolveTarget(strategy.Glide) ?? target.Actor, 30);
+        if (strategy.Glide.Value is GlideStrategy.Knockback or GlideStrategy.Both)
+            CancelKnockback(AID.WingedGlide, ResolveTarget(strategy.Glide) ?? target.Actor);
 
         if (PowerSurge == 0 && Unlocked(AID.Disembowel))
             return;
@@ -414,9 +417,9 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     private bool MustMoveSoon => ForbiddenSoon(Player.Position, GCD + 0.5f);
 
-    private bool UseLifeSurge(LifeSurgeStrategy strategy)
+    private bool UseLifeSurge(OffensiveStrategy strategy)
     {
-        if (strategy == LifeSurgeStrategy.Delay || LifeSurgeLeft > 0 || !CanWeave(AID.LifeSurge) || MustMoveSoon)
+        if (strategy == OffensiveStrategy.Delay || LifeSurgeLeft > 0 || !CanWeave(AID.LifeSurge) || MustMoveSoon)
             return false;
 
         bool strongNext;
@@ -431,7 +434,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
         if (!strongNext)
             return false;
-        if (strategy == LifeSurgeStrategy.ASAP || Dying || !Unlocked(AID.Drakesbane) && !AOEMode)
+        if (strategy == OffensiveStrategy.Force || Dying || !Unlocked(AID.Drakesbane) && !AOEMode)
             return true;
         return InBuffs || MaxChargesIn(AID.LifeSurge) < GCDLength * 3 || !BuffsSoon(40);
     }
@@ -445,7 +448,7 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         var (pos, imminent) = NextPositional();
         if (DotEnemy != null && NextGCD is AID.SpiralBlow or AID.Disembowel or AID.ChaoticSpring or AID.ChaosThrust or AID.WheelingThrust)
             target = DotEnemy;
-        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value == TrueNorthStrategy.Automatic && InMelee);
+        RecommendPositional(target, pos, imminent, strategy.TrueNorth.Value, InMelee);
     }
 
     private (Positional, bool) NextPositional()
@@ -469,11 +472,13 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
 
     private bool UsePotion(in Strategy strategy) => strategy.Potion.Value switch
     {
-        PotionStrategy.AlignWithBurst => PotionPrepull || Player.InCombat && (Unlocked(AID.LanceCharge) ? ReadyIn(AID.LanceCharge) < 6 : RaidBuffsLeft > 0 || RaidBuffsIn < 5),
-        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs,
+        PotionStrategy.AlignWithBurst => PotionBurst || PotionBeforeKill,
+        PotionStrategy.AlignWithRaidBuffs => PotionWithRaidBuffs(PotionBurst) || PotionBeforeKill,
         PotionStrategy.Immediate => true,
         _ => false
     };
+
+    private bool PotionBurst => Player.InCombat && (Unlocked(AID.LanceCharge) && LanceStrat != OffensiveStrategy.Delay ? ReadyIn(AID.LanceCharge) < 6 : RaidBuffsLeft > 0 || RaidBuffsIn < 5);
 
     private Actor BestLongLine(Enemy primary)
         => BestAOETarget(primary, 15, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 15, 2)).Best ?? primary.Actor;

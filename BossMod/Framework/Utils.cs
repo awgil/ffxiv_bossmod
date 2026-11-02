@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace BossMod;
 
@@ -478,5 +479,20 @@ public static partial class Utils
             var subtarget = targetDir.CreateSubdirectory(subsource.Name);
             CopyRecursive(subsource, subtarget);
         }
+    }
+
+    sealed class OnDispose(Action action) : IDisposable
+    {
+        public void Dispose()
+        {
+            action();
+        }
+    }
+
+    public static IDisposable GetGlobalLock()
+    {
+        var m = new Mutex(false, "Global\\vbm-sync");
+        m.WaitOne();
+        return new OnDispose(m.ReleaseMutex);
     }
 }

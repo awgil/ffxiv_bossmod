@@ -68,12 +68,6 @@
           "SharpDX.Mathematics": "4.2.0"
         }
       },
-      "System.Data.SQLite": {
-        "type": "Direct",
-        "requested": "[2.0.4, )",
-        "resolved": "2.0.4",
-        "contentHash": "iiawN8l6QBzLZTK2BQRyq/1XmvDONghjvXoDhkkQgPTG8bRIsmIxJV1+Lc75fviNgMnjAE3wxReVJAF7P1hkoQ=="
-      },
       "System.Numerics.Tensors": {
         "type": "Direct",
         "requested": "[10.0.14, )",

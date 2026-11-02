@@ -9,7 +9,6 @@ class P2Incinerate(BossModule module) : Components.Cleave(module, AID.Incinerate
 class P3RockBuster(BossModule module) : Components.Cleave(module, AID.RockBuster, new AOEShapeCone(10.55f, 60.Degrees()), (uint)OID.Titan); // TODO: verify angle
 class P3MountainBuster(BossModule module) : Components.Cleave(module, AID.MountainBuster, new AOEShapeCone(15.55f, 45.Degrees()), (uint)OID.Titan); // TODO: verify angle
 class P3WeightOfTheLand(BossModule module) : Components.StandardAOEs(module, AID.WeightOfTheLandAOE, 6);
-class P3Upheaval(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Upheaval, 24, true);
 class P3Tumult(BossModule module) : Components.CastCounter(module, AID.Tumult);
 class P4Blight(BossModule module) : Components.CastCounter(module, AID.Blight);
 class P4HomingLasers(BossModule module) : Components.SpreadFromCastTargets(module, AID.HomingLasers, 4);
@@ -21,32 +20,6 @@ class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(mo
 class P5LightPillar(BossModule module) : Components.StandardAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
 class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AethericBoom, 10);
 
-class BossPositioning : BossComponent
-{
-    public Actor? Boss;
-    public WPos? DesiredPosition;
-    public Angle? DesiredRotation = 180.Degrees();
-
-    public BossPositioning(BossModule module) : base(module)
-    {
-        Boss = module.PrimaryActor;
-        DesiredPosition = module.Arena.Center;
-        KeepOnPhaseChange = true;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (hints.FindEnemy(Boss) is { } target)
-        {
-            target.DesiredPosition = DesiredPosition;
-            target.DesiredRotation = DesiredRotation;
-
-            if (target.Actor.PendingHPRatio < 0.02f && target.Actor.FindStatus(SID.Woken) == null)
-                target.Priority = AIHints.Enemy.PriorityForbidden;
-        }
-    }
-}
-
 [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539, PlanLevel = 70)]
 public class UWU : BossModule
 {
@@ -54,6 +27,8 @@ public class UWU : BossModule
     private readonly IReadOnlyList<Actor> _lahabrea;
     private readonly IReadOnlyList<Actor> _ultima;
     private Actor? _mainIfrit;
+
+    public static readonly ArenaBoundsSquare PathfindHugBorderBounds = new(22);
 
     public IReadOnlyList<Actor> Ifrits { get; }
 

@@ -8,7 +8,7 @@ class FlamingCrush(BossModule module) : Components.UniformStackSpread(module, 4,
     {
         if (iconID == (uint)IconID.FlamingCrush)
         {
-            AddStack(actor, default, Avoid);
+            AddStack(actor, WorldState.FutureTime(5.1f), Avoid);
         }
     }
 
@@ -33,7 +33,20 @@ class P2FlamingCrush : FlamingCrush
 }
 
 // during P4 (annihilation), everyone should stack (except maybe ranged/caster that will handle mesohigh)
-class P4FlamingCrush(BossModule module) : FlamingCrush(module) { }
+class P4FlamingCrush(BossModule module) : FlamingCrush(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        // dodge left/right together
+        if (Stacks.Count > 0)
+        {
+            var z = assignment == PartyRolesConfig.Assignment.R1 ? 99 : 97;
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(94, z), new WPos(106, z), 0.51f), Stacks[0].Activation);
+        }
+    }
+}
 
 // during P5 (suppression), everyone except mesohigh handler (typically tank) should stack
 class P5FlamingCrush : FlamingCrush

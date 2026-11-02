@@ -152,7 +152,7 @@ public enum SID : uint
     ViscousAetheroplasm = 1532, // UltimaWeapon->player, extra=0x0
     ThermalLow = 1525, // SpinyPlume/Garuda->player, extra=1-2
     //ThermalHigh = 1526, // GarudaSister/Garuda->player, extra=0x0
-    //ThermalHigh = 380, // none->player, extra=0x0
+    ThermalHigh = 380, // none->player, extra=0x0
     //Sleep = 1510, // SatinPlume->player, extra=0x0
     //AccursedFlame = 1527, // none->player, extra=0x0
     Fetters = 292, // none->player, extra=0x0
@@ -160,7 +160,7 @@ public enum SID : uint
 
     //AetheriallyCharged = 1528, // none->Garuda/Ifrit/Titan, extra=1-3
     Woken = 1529, // none->Garuda/Ifrit/Titan/UltimaWeapon, extra=0x0/0x61
-    //BeyondLimits = 1530, // none->player, extra=0x0
+    BeyondLimits = 1530, // none->player, extra=0x0
     //Woken = 1591, // none->Lahabrea, extra=0x0
     //Doom = 210, // Lahabrea->player, extra=0x0
 }

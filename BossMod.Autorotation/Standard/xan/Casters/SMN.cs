@@ -245,7 +245,7 @@ public sealed class SMN(RotationModuleManager manager, Actor player) : Castxan<A
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining <= GetCastTime(AID.Ruin1))
+            if (CountdownRemaining <= GetCastTime(AID.Ruin1) + ApplicationDelay.Get(AID.Ruin3))
                 PushGCD(AID.Ruin1, primaryTarget);
 
             return;

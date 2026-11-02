@@ -306,6 +306,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("NAME"u8)] = ParseActorRename,
             [new("CLSR"u8)] = ParseActorClassChange,
             [new("MOVE"u8)] = ParseActorMove,
+            [new("ARO+"u8)] = () => ParseActorRotationRaw(true),
+            [new("ARO-"u8)] = () => ParseActorRotationRaw(false),
             [new("ACSZ"u8)] = ParseActorSizeChange,
             [new("HP  "u8)] = ParseActorHPMP,
             [new("ATG+"u8)] = () => ParseActorTargetable(true),
@@ -391,6 +393,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("RROL"u8)] = ParseReplayRoles,
             [new("RMOV"u8)] = ParseReplayMove,
             [new("RACT"u8)] = ParseReplayActions,
+            [new("RPRI"u8)] = ParseReplayPriorities
         };
     }
 
@@ -605,6 +608,7 @@ public sealed class ReplayParserLog : IDisposable
         }
     }
 
+    private ActorState.OpRawRotation ParseActorRotationRaw(bool present) => new(_input.ReadActorID(), present ? _input.ReadFloat() : null);
     private ActorState.OpSizeChange ParseActorSizeChange() => new(_input.ReadActorID(), _input.ReadFloat());
     private ActorState.OpHPMP ParseActorHPMP() => new(_input.ReadActorID(), ReadActorHPMP());
     private ActorState.OpTargetable ParseActorTargetable(bool targetable) => new(_input.ReadActorID(), targetable);
@@ -902,7 +906,7 @@ public sealed class ReplayParserLog : IDisposable
     private ReplayState.OpManualActionsChange ParseReplayActions()
     {
         var length = _input.ReadInt();
-        List<ReplayState.SimpleEntry> entries = [];
+        List<ReplayState.SimpleEntry> entries = new(length);
         for (var i = 0; i < length; i++)
             entries.Add(new(
                 _input.ReadAction(),
@@ -911,6 +915,23 @@ public sealed class ReplayParserLog : IDisposable
                 _input.ReadFloat(),
                 _input.ReadVec3()
             ));
+        return new(entries);
+    }
+
+    private ReplayState.OpPrioritiesChange ParseReplayPriorities()
+    {
+        var length = _input.ReadInt();
+        List<ReplayState.EnemyPriority> entries = new(length);
+        for (var i = 0; i < length; i++)
+        {
+            var enemy = new ReplayState.EnemyPriority(_input.ReadActorID(), _input.ReadInt(), []);
+            var traceSize = _input.ReadInt();
+            for (var j = 0; j < traceSize; j++)
+                enemy.Trace.Add((_input.ReadInt(), _input.ReadString()));
+
+            entries.Add(enemy);
+        }
+
         return new(entries);
     }
 }

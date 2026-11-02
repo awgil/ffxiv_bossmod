@@ -140,8 +140,6 @@ public sealed class AIHints
     // other parts of the code can return small (e.g. 0.01) values to slightly (de)prioritize some positions, or large (e.g. 1000) values to effectively soft-override target position (but still utilize pathfinding)
     public List<Func<WPos, float>> GoalZones = [];
 
-    public bool GoalZonesEnabled = true;
-
     public class TempObstaclesList : List<Sdf>
     {
         public void Add(Func<WPos, float> c) => Add(Sdf.Continuous(c));
@@ -178,6 +176,11 @@ public sealed class AIHints
     // maximal time we can spend casting before we need to move
     // this is used by the action queue to skip casts that we won't be able to finish and execute lower-priority fallback actions instead
     public float MaxCastTime = float.MaxValue;
+
+    // assuming the player needs to stand still to cast (which is true except in pvp)
+    // it takes 0.2s to reach top speed (30m/s^2 acceleration, 6m/s speed), during which the player travels at half speed on average, which is equivalent to staying stationary for 0.1s and then moving at top speed
+    public float EffectiveMaxCastTime => Math.Max(0, MaxCastTime - 0.1f);
+
     public bool ForceCancelCast;
 
     // actions that we want to be executed, gathered from various sources (manual input, autorotation, planner, ai, modules, etc.)
@@ -211,7 +214,6 @@ public sealed class AIHints
         InteractWithTarget = null;
         ForbiddenZones.Clear();
         GoalZones.Clear();
-        GoalZonesEnabled = true;
         Voidzones.Clear();
         TemporaryObstacles.Clear();
         Portals.Clear();

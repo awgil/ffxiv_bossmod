@@ -124,6 +124,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SaveConfigService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<SlashCommandService>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<OverlayService>();
 
         containerBuilder.RegisterSingletonSelf<MainDebugWindow>();
 

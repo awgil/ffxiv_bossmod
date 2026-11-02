@@ -385,7 +385,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         if (castStrategy is CastStrategy.Leeway && Player.CastInfo is { } castInfo)
         {
             var effectiveCastRemaining = Math.Max(0, castInfo.RemainingTime - 0.5f);
-            if (Hints.MaxCastTime < effectiveCastRemaining)
+            if (Hints.EffectiveMaxCastTime < effectiveCastRemaining)
             {
                 Hints.ForceCancelCast = true;
                 // no leeway, cast might have been initiated by user, keep moving

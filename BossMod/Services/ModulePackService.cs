@@ -4,7 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Hosting;
-using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -33,14 +33,11 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
                 return typeof(Lumina.GameData).Assembly;
             if (assemblyName.Name == "Lumina.Excel")
                 return typeof(Lumina.Excel.Sheets.Action).Assembly;
-            if (assemblyName.Name == "System.Data.SQLite")
-                return typeof(SQLiteBlob).Assembly;
 
             return base.Load(assemblyName);
         }
     }
 
-    // one context per filepath - this is because AssemblyLoadContext doesn't support unloading individual assemblies, and we don't want to force everything to hot reload when one file changes
     private readonly Dictionary<string, LoadContext> _loadContexts = [];
     private readonly SensibleFileWatcher _watcher = new(filter: "*.dll", includeSubdirectories: true);
     private readonly EventSubscriptions _modified = new();
@@ -156,6 +153,8 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
     {
         var assemblyDir = assemblyLocation.DirectoryName;
 
+        using var _ = Utils.GetGlobalLock();
+
         Directory.CreateDirectory(ModuleDir);
 
         void copy(string filename)
@@ -164,19 +163,26 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
             var dest = Path.Join(ModuleDir, filename);
             if (File.Exists(src))
             {
-                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) >= File.GetCreationTimeUtc(src))
+                var srcVersion = Version.Parse(FileVersionInfo.GetVersionInfo(src).FileVersion ?? "0.0.0.0");
+
+                if (File.Exists(dest))
                 {
-                    logger.Debug($"{dest} is newer than our version, skipping copy");
-                    return;
+                    var destVersion = Version.Parse(FileVersionInfo.GetVersionInfo(dest).FileVersion ?? "0.0.0.0");
+
+                    if (destVersion >= srcVersion)
+                    {
+                        logger.Debug($"[Installer] {destVersion} (destination) ≥ {srcVersion} (source), skipping copy");
+                        return;
+                    }
                 }
 
-                logger.Debug($"copied {src} to {dest}");
+                logger.Debug($"[Installer] copied {src} to {dest}");
                 File.Copy(src, Path.Join(ModuleDir, filename), true);
 
                 return;
             }
 
-            logger.Warning($"{src} does not exist, cannot copy");
+            logger.Warning($"[Installer] {src} does not exist, cannot copy");
         }
 
         copy("BossMod.Autorotation.dll");

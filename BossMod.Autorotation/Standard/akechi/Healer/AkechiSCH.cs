@@ -52,110 +52,122 @@ public sealed class AkechiSCH(RotationModuleManager manager, Actor player) : Ake
         return res;
     }
 
+    private static readonly SID[] BioStatuses = [SID.Bio1, SID.Bio2, SID.Biolysis];
+
+    private int Aetherflow => World.Client.GetGauge<ScholarGauge>().Aetherflow;
     private AID BestBroil => Unlocked(AID.Broil4) ? AID.Broil4 : Unlocked(AID.Broil3) ? AID.Broil3 : Unlocked(AID.Broil2) ? AID.Broil2 : AID.Broil1;
     private AID BestRuin => Unlocked(AID.Ruin2) ? AID.Ruin2 : AID.Ruin1;
     private AID BestBio => Unlocked(AID.Biolysis) ? AID.Biolysis : Unlocked(AID.Bio2) ? AID.Bio2 : AID.Bio1;
-    private SID BestDOT => Unlocked(AID.Biolysis) ? SID.Biolysis : Unlocked(AID.Bio2) ? SID.Bio2 : SID.Bio1;
     private AID BestST => Unlocked(AID.Broil1) ? BestBroil : BestRuin;
     private AID BestAOE => Unlocked(AID.ArtOfWar2) ? AID.ArtOfWar2 : AID.ArtOfWar1;
 
-    private static SID[] GetDotStatus() => [SID.Bio1, SID.Bio2, SID.Biolysis];
-    private float BioRemaining(Actor? target) => target == null ? float.MaxValue : GetDotStatus().Select(stat => StatusDetails(target, (uint)stat, Player.InstanceID).Left).FirstOrDefault(dur => dur > 0);
-
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        var gauge = World.Client.GetGauge<ScholarGauge>();
-        var mainTarget = primaryTarget?.Actor;
-        var aetherflow = gauge.Aetherflow;
-        var CanED = Unlocked(AID.EnergyDrain) && aetherflow > 0;
-        var CanAF = ActionReady(AID.Aetherflow) && aetherflow == 0;
-        var (dotTargets, BioLeft) = GetDOTTarget(primaryTarget, BioRemaining, TargetsInAOECircle(5f, 4) ? 3 : 4);
-        var BestDOTTarget = Unlocked(AID.Bio1) ? dotTargets : primaryTarget;
-        var dotLeft = Status(BestDOT, on: dotTargets?.Actor);
-        var csLeft = Status(SID.ChainStratagem, on: mainTarget);
+        if (strategy.HoldEverything() || Player.IsDead)
+            return;
 
-        var aoe = strategy.Option(Track.AOE);
-        var aoeStrat = aoe.As<AOEStrategy>();
-        var stTarget = SingleTargetChoice(mainTarget, aoe);
-        var wantAOE = aoeStrat == AOEStrategy.ForceArtOfWar || TargetsInAOECircle(5f, 2);
-        var bestTarget = wantAOE ? Player : stTarget;
-        var (aoeAction, aoeTarget) = aoeStrat switch
-        {
-            AOEStrategy.Auto => (wantAOE ? BestAOE : (IsMoving ? BestRuin : BestST), bestTarget),
-            AOEStrategy.AutoNoRuin => (wantAOE ? BestAOE : BestST, bestTarget),
-            AOEStrategy.ForceST => (IsMoving ? BestRuin : BestST, stTarget),
-            AOEStrategy.ForceRuin => (BestRuin, stTarget),
-            AOEStrategy.ForceBroil => (BestST, stTarget),
-            AOEStrategy.ForceArtOfWar => (BestAOE, Player),
-            _ => (AID.None, null)
-        };
-        if (InCombat(aoeTarget) && aoeAction != AID.None)
-            QueueGCD(aoeAction, aoeTarget, GCDPriority.Low);
-
-        if (Unlocked(AID.Bio1))
-        {
-            var b = strategy.Option(Track.Bio);
-            var bStrat = b.As<BioStrategy>();
-            var bTarget = AOETargetChoice(mainTarget, BestDOTTarget?.Actor, b, strategy);
-            var bMinimum = Player.InCombat && bTarget != null && In25y(bTarget);
-            if (InCombat(bTarget) && In25y(bTarget) && bStrat switch
-            {
-                BioStrategy.Bio3 => BioLeft <= 3,
-                BioStrategy.Bio6 => BioLeft <= 6,
-                BioStrategy.Bio9 => BioLeft <= 9,
-                BioStrategy.Bio0 => BioLeft == 0,
-                BioStrategy.Force => true,
-                _ => false
-            })
-                QueueGCD(BestBio, bTarget, GCDPriority.Average);
-        }
-
-        if (HasStatus(SID.ImpactImminent))
-            QueueOGCD(AID.BanefulImpaction, aoeTarget, OGCDPriority.VeryHigh);
-
-        var cs = strategy.Option(Track.ChainStratagem);
-        var csStrat = cs.As<OGCDStrategy>();
-        var csTarget = SingleTargetChoice(mainTarget, cs);
-        if (ShouldUseOGCD(csStrat, csTarget, ActionReady(AID.ChainStratagem), InCombat(csTarget) && CanWeaveIn && !HasStatus(SID.ChainStratagem)))
-            QueueOGCD(AID.ChainStratagem, csTarget, OGCDPrio(csStrat, OGCDPriority.High + 1));
-
-        var afStrat = strategy.Option(Track.Aetherflow).As<OGCDStrategy>();
-        if (ShouldUseOGCD(afStrat, mainTarget, ActionReady(AID.Aetherflow), InCombat(mainTarget) && CanWeaveIn && aetherflow == 0))
-            QueueOGCD(AID.Aetherflow, Player, OGCDPrio(afStrat, OGCDPriority.High));
-
-        if (Unlocked(AID.EnergyDrain))
-        {
-            var ed = strategy.Option(Track.EnergyDrain);
-            var edStrat = ed.As<EnergyStrategy>();
-            var edTarget = SingleTargetChoice(mainTarget, ed);
-            var normal = aetherflow > 0 && InCombat(edTarget) && In25y(edTarget) && CanWeaveIn;
-            var needTimer = Cooldown(AID.Aetherflow) <= 5;
-            var need = aetherflow > 0 && needTimer;
-            var (edCondition, edPrio) = edStrat switch
-            {
-                EnergyStrategy.Use3 => (normal, OGCDPriority.Average),
-                EnergyStrategy.Use2 => (normal && ((aetherflow > 1 && !needTimer) || need), OGCDPriority.Average),
-                EnergyStrategy.Use1 => (normal && ((aetherflow > 2 && !needTimer) || need), OGCDPriority.Average),
-                EnergyStrategy.Force => (aetherflow > 0, OGCDPriority.Average + 2000),
-                EnergyStrategy.ForceWeave => (aetherflow > 0 && CanWeaveIn, OGCDPriority.Average + 1000),
-                _ => (false, OGCDPriority.None)
-            };
-            if (edCondition)
-                QueueOGCD(AID.EnergyDrain, edTarget, edPrio);
-        }
-
-        if (ActionReady(AID.LucidDreaming) && MP <= 9000 && CanWeaveIn)
-            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average - 1);
-
-        if (strategy.Potion() switch
-        {
-            PotionStrategy.AlignWithBuffs => Player.InCombat && Cooldown(AID.ChainStratagem) <= 4f,
-            PotionStrategy.AlignWithRaidBuffs => Player.InCombat && (RaidBuffsIn <= 5000 || RaidBuffsLeft > 0),
-            PotionStrategy.Immediate => true,
-            _ => false
-        })
-            QueuePotMND();
+        QueueBio(strategy);
+        QueueBanefulImpaction();
+        if (strategy.AllowBuffs())
+            QueueChainStratagem(strategy);
+        if (strategy.AllowCDs())
+            QueueAetherflow(strategy);
+        if (strategy.AllowGauge())
+            QueueEnergyDrain(strategy);
+        QueueLucidDreaming();
+        QueuePotion(strategy, ActionDefinitions.IDPotionMnd, Cooldown(AID.ChainStratagem) <= 4f);
+        QueueDamage(strategy);
 
         AnyGoalZoneCombined(25, Hints.GoalAOECircle(5), AID.ArtOfWar1, Unlocked(AID.Broil1) ? 2 : 1);
+    }
+
+    private void QueueDamage(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.AOE);
+        var aoe = track.As<AOEStrategy>();
+        var stTarget = SingleTargetChoice(PrimaryTarget, track);
+        var wantAOE = aoe == AOEStrategy.ForceArtOfWar || TargetsInAOECircle(5f, 2);
+        var instantOnly = IsMoving || Hints.MaxCastTime < GetSlidecastTime(BestST);
+        var bestTarget = wantAOE ? Player : stTarget;
+        var (action, target) = aoe switch
+        {
+            AOEStrategy.Auto => (wantAOE ? BestAOE : instantOnly ? BestRuin : BestST, bestTarget),
+            AOEStrategy.AutoNoRuin => (wantAOE ? BestAOE : BestST, bestTarget),
+            AOEStrategy.ForceST => (instantOnly ? BestRuin : BestST, stTarget),
+            AOEStrategy.ForceRuin => (BestRuin, stTarget),
+            AOEStrategy.ForceBroil => (BestST, stTarget),
+            _ => (BestAOE, Player)
+        };
+        if (PrimaryTarget != null && target != null && HasMP(action))
+            QueueGCD(action, target, GCDPriority.Low);
+    }
+    private void QueueBio(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.Bio);
+        var bio = track.As<BioStrategy>();
+        var (dotTarget, dotLeft) = GetDOTTarget(PrimaryEnemy, BioRemaining, TargetsInAOECircle(5f, 4) ? 3 : 4);
+        var target = AOETargetChoice(PrimaryTarget, dotTarget?.Actor, track, strategy);
+        var condition = bio switch
+        {
+            BioStrategy.Bio3 => dotLeft <= 3 && WorthDot(target, 12),
+            BioStrategy.Bio6 => dotLeft <= 6 && WorthDot(target, 12),
+            BioStrategy.Bio9 => dotLeft <= 9 && WorthDot(target, 12),
+            BioStrategy.Bio0 => dotLeft == 0 && WorthDot(target, 12),
+            BioStrategy.Force => true,
+            _ => false
+        };
+        if (condition && Unlocked(AID.Bio1) && In25y(target) && HasMP(BestBio))
+            QueueGCD(BestBio, target, GCDPriority.Average);
+    }
+    private float BioRemaining(Actor? target)
+    {
+        var left = target == null ? float.MaxValue : 0f;
+        if (target != null)
+            foreach (var status in BioStatuses)
+                left = left > 0 ? left : StatusDetails(target, (uint)status, Player.InstanceID).Left;
+        return left;
+    }
+    private void QueueBanefulImpaction()
+    {
+        if (HasStatus(SID.ImpactImminent))
+            QueueOGCD(AID.BanefulImpaction, GetBestTarget(PrimaryEnemy, 25, IsSplashTarget).Best?.Actor ?? PrimaryTarget, OGCDPriority.VeryHigh);
+    }
+    private void QueueChainStratagem(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.ChainStratagem);
+        var cs = track.As<OGCDStrategy>();
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        if (ShouldUseOGCD(cs, target, ActionReady(AID.ChainStratagem), InCombat(target) && CanWeaveIn && !HasStatus(SID.ChainStratagem)))
+            QueueOGCD(AID.ChainStratagem, target, OGCDPrio(cs, OGCDPriority.High + 1));
+    }
+    private void QueueAetherflow(StrategyValues strategy)
+    {
+        var af = strategy.Option(Track.Aetherflow).As<OGCDStrategy>();
+        if (ShouldUseOGCD(af, PrimaryTarget, ActionReady(AID.Aetherflow), InCombat(PrimaryTarget) && CanWeaveIn && Aetherflow == 0))
+            QueueOGCD(AID.Aetherflow, Player, OGCDPrio(af, OGCDPriority.High));
+    }
+    private void QueueEnergyDrain(StrategyValues strategy)
+    {
+        var track = strategy.Option(Track.EnergyDrain);
+        var target = SingleTargetChoice(PrimaryTarget, track);
+        var refreshSoon = Cooldown(AID.Aetherflow) <= 5;
+        var normal = Aetherflow > 0 && InCombat(target) && In25y(target) && CanWeaveIn;
+        var spendLast = Aetherflow > 0 && refreshSoon;
+        var (condition, priority) = track.As<EnergyStrategy>() switch
+        {
+            EnergyStrategy.Use3 => (normal, OGCDPriority.Average),
+            EnergyStrategy.Use2 => (normal && (Aetherflow > 1 && !refreshSoon || spendLast), OGCDPriority.Average),
+            EnergyStrategy.Use1 => (normal && (Aetherflow > 2 && !refreshSoon || spendLast), OGCDPriority.Average),
+            EnergyStrategy.Force => (Aetherflow > 0, OGCDPrio(OGCDStrategy.Force, OGCDPriority.Average)),
+            EnergyStrategy.ForceWeave => (Aetherflow > 0 && CanWeaveIn, OGCDPrio(OGCDStrategy.AnyWeave, OGCDPriority.Average)),
+            _ => (false, OGCDPriority.None)
+        };
+        if (condition && Unlocked(AID.EnergyDrain))
+            QueueOGCD(AID.EnergyDrain, target, priority);
+    }
+    private void QueueLucidDreaming()
+    {
+        if (ActionReady(AID.LucidDreaming) && MP <= 9000 && CanWeaveIn)
+            QueueOGCD(AID.LucidDreaming, Player, OGCDPriority.Average - 1);
     }
 }

@@ -80,106 +80,142 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         return res;
     }
 
+    private static readonly uint[] SpiteBlockers = [3039, 1302, 1301, 1300, 1978, 1240, (uint)ClassShared.SID.GuardPvP];
+
     private AID BestTool => HasStatus(SID.ChainSawPrimed) ? AID.ChainSawPvP : HasStatus(SID.AirAnchorPrimed) ? AID.AirAnchorPvP : HasStatus(SID.BioblasterPrimed) ? AID.BioblasterPvP : AID.DrillPvP;
+    private bool Overheated => HasStatus(SID.OverheatedPvP);
+
+    private bool AutoTarget;
+    private Actor? ConeTarget;
+
     private bool IsReady(AID aid) => Cooldown(aid) <= 0.2f;
+    private bool ToolSoon(SID primed, AID tool) => HasStatus(primed) && Cooldown(tool) <= 11f;
+    private Actor? Retarget(Actor? target) => AutoTarget ? target : PrimaryTarget;
+    private bool CanSpite(Actor target)
+    {
+        var blocked = false;
+        foreach (var status in SpiteBlockers)
+            blocked |= target.FindStatus(status) != null;
+        return !blocked && target.NameID is 0 or 541 && DistanceFrom(target, 50);
+    }
+    private Actor? FirstLivingTarget()
+    {
+        Actor? found = null;
+        foreach (var enemy in Hints.PotentialTargets)
+            if (found == null && !enemy.Actor.IsDeadOrDestroyed)
+                found = enemy.Actor;
+        return found;
+    }
 
     public override void Execution(StrategyValues strategy, Enemy? primaryTarget)
     {
-        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || Player.FindStatus(ClassShared.SID.GuardPvP) != null)
+        if (Player.IsDeadOrDestroyed || Player.MountId != 0 || IsGuarded(Player))
             return;
 
-        var strat = strategy.Option(Track.Targeting).As<TargetingStrategy>();
-        var auto = strat == TargetingStrategy.Auto;
-        var focus = strat == TargetingStrategy.FocusTargetsTarget;
-        var mainTarget = primaryTarget?.Actor;
-        Actor? Retarget(Actor? newTarget) => auto ? newTarget : mainTarget;
-        var bestConeTarget = Retarget(GetBestTarget(primaryTarget, 12, Is12yConeTarget).Best?.Actor);
-
-        if (auto)
+        var targeting = strategy.Option(Track.Targeting).As<TargetingStrategy>();
+        AutoTarget = targeting == TargetingStrategy.Auto;
+        ConeTarget = Retarget(GetBestTarget(primaryTarget, 12, Is12yConeTarget).Best?.Actor);
+        if (targeting != TargetingStrategy.Manual)
+            GetPvPTarget(5, targeting == TargetingStrategy.FocusTargetsTarget);
+        if (HasLOS(PrimaryTarget))
         {
-            GetPvPTarget(5, false);
-        }
-        if (focus)
-        {
-            GetPvPTarget(5, true);
-        }
-
-        if (HasLOS(mainTarget))
-        {
-            if (World.Party.LimitBreakLevel >= 1 && mainTarget != null && //Limit Break ready
-                DistanceFrom(mainTarget, 50) && //50y range
-                mainTarget.NameID is 0 or 541 && //guaranteed enemy player (or striking dummy)
-                mainTarget.FindStatus(3039) == null && //no DRK invuln active - no point in using if invulnerable
-                mainTarget.FindStatus(1302) == null && //no PLD invuln active - no point in using if invulnerable
-                mainTarget.FindStatus(1301) == null && mainTarget.FindStatus(1300) == null && //no PLD Cover active - resistant; look for a better target
-                mainTarget.FindStatus(1978) == null && //no Rampart active - resistant; look for a better target
-                mainTarget.FindStatus(1240) == null && //no SAM buff active - using this results in us receiving a debuff if they just so happen to survive
-                mainTarget.FindStatus(ClassShared.SID.GuardPvP) == null && //no Guard active - resistant; look for a better target
-                strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
-                {
-                    LBStrategy.ASAP => true,
-                    LBStrategy.LessThan70 => mainTarget?.PendingHPRatio < 0.7f,
-                    LBStrategy.LessThan60 => mainTarget?.PendingHPRatio < 0.6f,
-                    LBStrategy.LessThan50 => mainTarget?.PendingHPRatio < 0.5f,
-                    LBStrategy.LessThan40 => mainTarget?.PendingHPRatio < 0.4f,
-                    LBStrategy.Forbid => false,
-                    _ => false
-                })
-                QueueGCD(AID.MarksmansSpitePvP, mainTarget, GCDPriority.Max);
-
-            if (In25y(mainTarget))
+            QueueLimitBreak(strategy);
+            if (In25y(PrimaryTarget) && Overheated)
             {
-                if (HasStatus(SID.OverheatedPvP))
-                {
-                    if (IsReady(AID.WildfirePvP) && mainTarget != null && strategy.Option(Track.Wildfire).As<CommonStrategy>() == CommonStrategy.Allow)
-                        QueueGCD(AID.WildfirePvP, mainTarget, GCDPriority.High + 2);
-
-                    QueueGCD(AID.BlazingShotPvP, mainTarget, GCDPriority.Low);
-                }
-                else
-                {
-                    var (roleCondition, roleAction, roleTarget) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
-                    {
-                        RoleActionStrategy.Dervish => (HasStatus(SID.DervishEquippedPvP) && IsReady(AID.DervishPvP), AID.DervishPvP, Player),
-                        RoleActionStrategy.Bravery => (HasStatus(SID.BraveryEquippedPvP) && IsReady(AID.BraveryPvP), AID.BraveryPvP, Player),
-                        RoleActionStrategy.EagleEyeShot => (HasStatus(SID.EagleEyeShotEquippedPvP) && IsReady(AID.EagleEyeShotPvP), AID.EagleEyeShotPvP, Retarget(Hints.PotentialTargets.FirstOrDefault(x => !x.Actor.IsDeadOrDestroyed)?.Actor)),
-                        _ => (false, AID.None, null)
-                    };
-                    if (roleCondition)
-                        QueueGCD(roleAction, roleTarget, GCDPriority.VeryHigh + 1);
-
-                    if (IsReady(AID.FullMetalFieldPvP) && !HasStatus(SID.OverheatedPvP) && mainTarget != null && strategy.Option(Track.FullMetalField).As<CommonStrategy>() == CommonStrategy.Allow)
-                        QueueGCD(AID.FullMetalFieldPvP, Retarget(GetBestTarget(primaryTarget, 25, IsSplashTarget).Best?.Actor), GCDPriority.High + 5);
-
-                    var crystal = World.Actors.FirstOrDefault(x => x.OID == 0x3886); //crystal
-                    if (IsReady(AID.BishopAutoturretPvP) && mainTarget != null && strategy.Option(Track.BishopAutoturret).As<CommonStrategy>() == CommonStrategy.Allow)
-                        QueueGCD(AID.BishopAutoturretPvP, strategy.Option(Track.TurretPlacement).As<TurretPlacement>() switch
-                        {
-                            TurretPlacement.Self => Player,
-                            TurretPlacement.Target => mainTarget,
-                            TurretPlacement.Crystal => crystal,
-                            TurretPlacement.CrystalOrTarget => crystal ?? mainTarget,
-                            _ => null
-                        }, GCDPriority.High + 4);
-
-                    if (mainTarget != null && !HasStatus(SID.AnalysisPvP) && Cooldown(AID.AnalysisPvP) <= 20.6f && strategy.Option(Track.Analysis).As<AnalysisStrategy>() switch
-                    {
-                        AnalysisStrategy.Any => (HasStatus(SID.DrillPrimed) && Cooldown(AID.DrillPvP) <= 11f) || (HasStatus(SID.BioblasterPrimed) && Cooldown(AID.BioblasterPvP) <= 11f) || (HasStatus(SID.AirAnchorPrimed) && Cooldown(AID.AirAnchorPvP) <= 11f) || (HasStatus(SID.ChainSawPrimed) && Cooldown(AID.ChainSawPvP) <= 11f),
-                        AnalysisStrategy.DrillAA => (HasStatus(SID.DrillPrimed) && Cooldown(AID.DrillPvP) <= 11f) || (HasStatus(SID.AirAnchorPrimed) && Cooldown(AID.AirAnchorPvP) <= 11f),
-                        AnalysisStrategy.BBCS => (HasStatus(SID.BioblasterPrimed) && Cooldown(AID.BioblasterPvP) <= 11f) || (HasStatus(SID.ChainSawPrimed) && Cooldown(AID.ChainSawPvP) <= 11f),
-                        _ => false
-                    })
-                        QueueGCD(AID.AnalysisPvP, Player, GCDPriority.High + 3);
-
-                    if (IsReady(AID.ScattergunPvP) && In12y(mainTarget) && mainTarget != null && strategy.Option(Track.Scattergun).As<CommonStrategy>() == CommonStrategy.Allow)
-                        QueueGCD(AID.ScattergunPvP, bestConeTarget, GCDPriority.High + 1);
-
-                    if (Cooldown(BestTool) <= 10.2f && strategy.Option(Track.Tools).As<ToolsStrategy>() != ToolsStrategy.Forbid)
-                        QueueGCD(BestTool, Retarget(HasStatus(SID.ChainSawPrimed) ? Retarget(GetBestTarget(primaryTarget, 25, Is25yRectTarget).Best?.Actor) : HasStatus(SID.Bioblaster) ? bestConeTarget : mainTarget), GCDPriority.Average);
-
-                    QueueGCD(AID.BlastChargePvP, mainTarget, GCDPriority.Low);
-                }
+                QueueWildfire(strategy);
+                QueueGCD(AID.BlazingShotPvP, PrimaryTarget, GCDPriority.Low);
+            }
+            if (In25y(PrimaryTarget) && !Overheated)
+            {
+                QueueRoleAction(strategy);
+                QueueFullMetalField(strategy, primaryTarget);
+                QueueTurret(strategy);
+                QueueAnalysis(strategy);
+                QueueScattergun(strategy);
+                QueueTools(strategy, primaryTarget);
+                QueueGCD(AID.BlastChargePvP, PrimaryTarget, GCDPriority.Low);
             }
         }
+    }
+
+    private void QueueLimitBreak(StrategyValues strategy)
+    {
+        var hp = PrimaryTarget?.PendingHPRatio;
+        var condition = strategy.Option(Track.LimitBreak).As<LBStrategy>() switch
+        {
+            LBStrategy.ASAP => true,
+            LBStrategy.LessThan70 => hp < 0.7f,
+            LBStrategy.LessThan60 => hp < 0.6f,
+            LBStrategy.LessThan50 => hp < 0.5f,
+            LBStrategy.LessThan40 => hp < 0.4f,
+            _ => false
+        };
+        if (condition && World.Party.LimitBreakLevel >= 1 && PrimaryTarget != null && CanSpite(PrimaryTarget))
+            QueueGCD(AID.MarksmansSpitePvP, PrimaryTarget, GCDPriority.Max);
+    }
+    private void QueueWildfire(StrategyValues strategy)
+    {
+        if (IsReady(AID.WildfirePvP) && PrimaryTarget != null && strategy.Option(Track.Wildfire).As<CommonStrategy>() == CommonStrategy.Allow)
+            QueueGCD(AID.WildfirePvP, PrimaryTarget, GCDPriority.High + 2);
+    }
+    private void QueueRoleAction(StrategyValues strategy)
+    {
+        var (condition, action, target) = strategy.Option(Track.RoleActions).As<RoleActionStrategy>() switch
+        {
+            RoleActionStrategy.Dervish => (HasStatus(SID.DervishEquippedPvP), AID.DervishPvP, Player),
+            RoleActionStrategy.Bravery => (HasStatus(SID.BraveryEquippedPvP), AID.BraveryPvP, Player),
+            RoleActionStrategy.EagleEyeShot => (HasStatus(SID.EagleEyeShotEquippedPvP), AID.EagleEyeShotPvP, Retarget(FirstLivingTarget())),
+            _ => (false, AID.None, null)
+        };
+        if (condition && IsReady(action))
+            QueueGCD(action, target, GCDPriority.VeryHigh + 1);
+    }
+    private void QueueFullMetalField(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        if (IsReady(AID.FullMetalFieldPvP) && PrimaryTarget != null && strategy.Option(Track.FullMetalField).As<CommonStrategy>() == CommonStrategy.Allow)
+            QueueGCD(AID.FullMetalFieldPvP, Retarget(GetBestTarget(primaryTarget, 25, IsSplashTarget).Best?.Actor), GCDPriority.High + 5);
+    }
+    private void QueueTurret(StrategyValues strategy)
+    {
+        var crystal = FindActor(0x3886);
+        var target = strategy.Option(Track.TurretPlacement).As<TurretPlacement>() switch
+        {
+            TurretPlacement.Self => Player,
+            TurretPlacement.Target => PrimaryTarget,
+            TurretPlacement.Crystal => crystal,
+            TurretPlacement.CrystalOrTarget => crystal ?? PrimaryTarget,
+            _ => null
+        };
+        if (IsReady(AID.BishopAutoturretPvP) && PrimaryTarget != null && strategy.Option(Track.BishopAutoturret).As<CommonStrategy>() == CommonStrategy.Allow)
+            QueueGCD(AID.BishopAutoturretPvP, target, GCDPriority.High + 4);
+    }
+    private void QueueAnalysis(StrategyValues strategy)
+    {
+        var drill = ToolSoon(SID.DrillPrimed, AID.DrillPvP);
+        var anchor = ToolSoon(SID.AirAnchorPrimed, AID.AirAnchorPvP);
+        var bioblaster = ToolSoon(SID.BioblasterPrimed, AID.BioblasterPvP);
+        var saw = ToolSoon(SID.ChainSawPrimed, AID.ChainSawPvP);
+        var condition = strategy.Option(Track.Analysis).As<AnalysisStrategy>() switch
+        {
+            AnalysisStrategy.Any => drill || anchor || bioblaster || saw,
+            AnalysisStrategy.DrillAA => drill || anchor,
+            AnalysisStrategy.BBCS => bioblaster || saw,
+            _ => false
+        };
+        if (condition && PrimaryTarget != null && !HasStatus(SID.AnalysisPvP) && Cooldown(AID.AnalysisPvP) <= 20.6f)
+            QueueGCD(AID.AnalysisPvP, Player, GCDPriority.High + 3);
+    }
+    private void QueueScattergun(StrategyValues strategy)
+    {
+        if (IsReady(AID.ScattergunPvP) && In12y(PrimaryTarget) && strategy.Option(Track.Scattergun).As<CommonStrategy>() == CommonStrategy.Allow)
+            QueueGCD(AID.ScattergunPvP, ConeTarget, GCDPriority.High + 1);
+    }
+    private void QueueTools(StrategyValues strategy, Enemy? primaryTarget)
+    {
+        var target = HasStatus(SID.ChainSawPrimed) ? Retarget(GetBestTarget(primaryTarget, 25, Is25yRectTarget).Best?.Actor)
+            : HasStatus(SID.BioblasterPrimed) ? ConeTarget
+            : PrimaryTarget;
+        if (Cooldown(BestTool) <= 10.2f && strategy.Option(Track.Tools).As<ToolsStrategy>() != ToolsStrategy.Forbid)
+            QueueGCD(BestTool, target, GCDPriority.Average);
     }
 }

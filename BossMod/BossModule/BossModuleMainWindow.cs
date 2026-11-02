@@ -154,12 +154,12 @@ public class BossModuleMainWindow : UIWindow
         {
             var start3 = start.ToVec3(y);
             var end3 = end.ToVec3(y);
-            Service.Camera.DrawWorldLine(start3, end3, color);
+            Service.Camera.AddLine(start3, end3, color);
             var dir = Vector3.Normalize(end3 - start3);
             var arrowStart = end3 - 0.4f * dir;
             var offset = 0.07f * Vector3.Normalize(Vector3.Cross(Vector3.UnitY, dir));
-            Service.Camera.DrawWorldLine(arrowStart + offset, end3, color);
-            Service.Camera.DrawWorldLine(arrowStart - offset, end3, color);
+            Service.Camera.AddLine(arrowStart + offset, end3, color);
+            Service.Camera.AddLine(arrowStart - offset, end3, color);
         }
     }
 

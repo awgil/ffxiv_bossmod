@@ -1,25 +1,11 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-class P2Preposition(BossModule module) : BossComponent(module)
-{
-    public int Step = 1;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Step == 1)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, 1), DateTime.MaxValue);
-
-        if (Step == 2)
-            hints.GoalZones.Add(AIHints.GoalSingleTarget(Arena.Center, 5 + 3 + actor.HitboxRadius));
-    }
-}
-
 // crimson cyclone has multiple variations:
 // p2 first cast is a single charge along cardinal
 // p2 second cast is two charges along both cardinals
 // p2 third cast is four staggered charges, with different patterns depending on whether awakening happened (TODO: we can predict that very early)
 // p4 predation is a single awakened charge along intercardinal
-class CrimsonCyclone(BossModule module, float predictionDelay) : Components.GenericAOEs(module, AID.CrimsonCyclone)
+class CrimsonCyclone(BossModule module, float predictionDelay, bool predictedRisky) : Components.GenericAOEs(module, AID.CrimsonCyclone)
 {
     private readonly float _predictionDelay = predictionDelay;
     private readonly List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = []; // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
@@ -34,7 +20,7 @@ class CrimsonCyclone(BossModule module, float predictionDelay) : Components.Gene
     {
         if (_predicted.Count <= 2) // don't draw 4 predicted charges, it is pointless
             foreach (var p in _predicted)
-                yield return new(p.shape, p.pos, p.rot, p.activation, Risky: false);
+                yield return new(p.shape, p.pos, p.rot, p.activation, Risky: predictedRisky);
         foreach (var c in _casters)
             yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
     }
@@ -78,5 +64,5 @@ class CrimsonCyclone(BossModule module, float predictionDelay) : Components.Gene
     }
 }
 
-class P2CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 5.2f);
-class P4CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 8.1f);
+class P2CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 5.2f, false);
+class P4CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 8.1f, true);

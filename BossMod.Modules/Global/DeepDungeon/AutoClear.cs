@@ -316,6 +316,9 @@ public abstract partial class AutoClear : ZoneModule
         if (Palace.Party.Count(p => p.EntityId > 0) > 1)
             return false;
 
+        if (player.FindStatus(SID.ItemPenalty) != null)
+            return false;
+
         if (!_config.AutoPoms[(int)p])
             return false;
 

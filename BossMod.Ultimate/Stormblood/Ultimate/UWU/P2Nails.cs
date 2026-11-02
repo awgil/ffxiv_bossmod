@@ -13,7 +13,7 @@ class P2Nails(BossModule module) : BossComponent(module)
     {
         Arena.Actors(_nails, ArenaColor.Enemy);
         foreach (var n in _nails.Where(n => !n.IsDead))
-            Arena.AddCircle(n.Position, 1, ArenaColor.Object);
+            Arena.AddCircle(n.Position, n.HitboxRadius, ArenaColor.Object);
     }
 
     public override void OnActorCreated(Actor actor)
@@ -38,10 +38,8 @@ class P2Nails(BossModule module) : BossComponent(module)
         {
             if (hints.FindEnemy(n) is { } e)
             {
-                if (n.FindStatus(1544, DateTime.MaxValue)?.Extra >= 2)
-                    e.Priority = 1;
-                else if (n.PendingHPRatio < 0.2f)
-                    e.Priority = AIHints.Enemy.PriorityForbidden;
+                e.ForbidDOTs = true;
+                e.Priority = n.PendingHPRatio > 0.5f || n.FindStatus(1544)?.Extra >= 2 ? 1 : AIHints.Enemy.PriorityForbidden;
             }
         }
     }

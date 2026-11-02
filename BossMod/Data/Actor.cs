@@ -100,6 +100,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public int Level = level;
     public Vector4 PosRot = posRot; // W = rotation: 0 = pointing S, pi/2 = pointing E, pi = pointing N, -pi/2 = pointing W
     public Vector4 PrevPosRot = posRot; // during previous frame; can be used to calculate speed etc
+    public float? RawRotation; // non-interpolated
     public float HitboxRadius = hitboxRadius;
     public ActorHPMP HPMP = hpmp;
     public bool IsDestroyed; // set to true when actor is removed from world; object might still be alive because of other references
@@ -134,6 +135,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public WPos PrevPosition => new(PrevPosRot.X, PrevPosRot.Z);
     public WDir LastFrameMovement => Position - PrevPosition;
     public Angle Rotation => PosRot.W.Radians();
+    public Angle ActualRotation => (RawRotation ?? PosRot.W).Radians();
     public bool Omnidirectional
     {
         get;
