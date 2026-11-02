@@ -154,18 +154,14 @@ class SealOfRiotousBloom(BossModule module) : Components.GenericAOEs(module)
         switch (element)
         {
             case Element.Fire:
-                _aoes.Add(new(_circle, Arena.Center, default, activation));
-                break;
             case Element.Wind:
-                _aoes.Add(new(_donut, Arena.Center, default, activation));
+                _aoes.Add(new(element == Element.Fire ? _circle : _donut, Arena.Center, default, activation));
                 break;
             case Element.Thunder:
-                for (var i = 0; i < 4; ++i)
-                    _aoes.Add(new(_cone, Arena.Center, (i * 90).Degrees(), activation));
-                break;
             case Element.Water:
+                var offset = element == Element.Thunder ? 0 : 45;
                 for (var i = 0; i < 4; ++i)
-                    _aoes.Add(new(_cone, Arena.Center, (45 + i * 90).Degrees(), activation));
+                    _aoes.Add(new(_cone, Arena.Center, (offset + i * 90).Degrees(), activation));
                 break;
         }
         _elements.Remove(element);
@@ -242,15 +238,9 @@ class LevinblossomLance(BossModule module) : Components.GenericRotatingAOE(modul
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.LevinblossomLanceCW:
-                Sequences.Add(new(new AOEShapeRect(30, 3.5f, 30), spell.LocXZ, spell.Rotation, -28.Degrees(), Module.CastFinishAt(spell, 0.8f), 1, 5));
-                break;
-            case AID.LevinblossomLanceCCW:
-                Sequences.Add(new(new AOEShapeRect(30, 3.5f, 30), spell.LocXZ, spell.Rotation, 28.Degrees(), Module.CastFinishAt(spell, 0.8f), 1, 5));
-                break;
-        }
+        var aid = (AID)spell.Action.ID;
+        if (aid is AID.LevinblossomLanceCW or AID.LevinblossomLanceCCW)
+            Sequences.Add(new(new AOEShapeRect(30, 3.5f, 30), spell.LocXZ, spell.Rotation, aid == AID.LevinblossomLanceCW ? -28.Degrees() : 28.Degrees(), Module.CastFinishAt(spell, 0.8f), 1, 5));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

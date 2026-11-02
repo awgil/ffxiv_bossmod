@@ -224,15 +224,9 @@ class WorldlyPursuit(BossModule module) : Components.GenericRotatingAOE(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.WorldlyPursuitFirstCW:
-                Sequences.Add(new(new AOEShapeCross(60, 10), spell.LocXZ, spell.Rotation, -22.5f.Degrees(), Module.CastFinishAt(spell), 3.7f, 5, 1));
-                break;
-            case AID.WorldlyPursuitFirstCCW:
-                Sequences.Add(new(new AOEShapeCross(60, 10), spell.LocXZ, spell.Rotation, 22.5f.Degrees(), Module.CastFinishAt(spell), 3.7f, 5, 1));
-                break;
-        }
+        var aid = (AID)spell.Action.ID;
+        if (aid is AID.WorldlyPursuitFirstCW or AID.WorldlyPursuitFirstCCW)
+            Sequences.Add(new(new AOEShapeCross(60, 10), spell.LocXZ, spell.Rotation, aid == AID.WorldlyPursuitFirstCW ? -22.5f.Degrees() : 22.5f.Degrees(), Module.CastFinishAt(spell), 3.7f, 5, 1));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)

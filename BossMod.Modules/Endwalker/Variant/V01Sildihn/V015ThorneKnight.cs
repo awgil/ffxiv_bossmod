@@ -77,10 +77,8 @@ class SpringToLife(BossModule module) : Components.GenericAOEs(module)
             case AID.AmaljaaArtillery:
                 ++NumCasts;
                 var index = _carriages.FindIndex(c => c.Origin.AlmostEqual(caster.Position, 1));
-                if (index >= 0)
-                    _carriages.RemoveAt(index);
-                else if (_carriages.Count > 0)
-                    _carriages.RemoveAt(0);
+                if (index >= 0 || _carriages.Count > 0)
+                    _carriages.RemoveAt(index >= 0 ? index : 0);
                 break;
         }
     }

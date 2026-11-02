@@ -217,15 +217,9 @@ class SilverFlame(BossModule module) : Components.GenericRotatingAOE(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.SilverFlameFirstCW:
-                Sequences.Add(new(new AOEShapeRect(60, 5), caster.Position, spell.Rotation, -10.Degrees(), Module.CastFinishAt(spell), 2, 5, 5));
-                break;
-            case AID.SilverFlameFirstCCW:
-                Sequences.Add(new(new AOEShapeRect(60, 5), caster.Position, spell.Rotation, 10.Degrees(), Module.CastFinishAt(spell), 2, 5, 5));
-                break;
-        }
+        var aid = (AID)spell.Action.ID;
+        if (aid is AID.SilverFlameFirstCW or AID.SilverFlameFirstCCW)
+            Sequences.Add(new(new AOEShapeRect(60, 5), caster.Position, spell.Rotation, aid == AID.SilverFlameFirstCW ? -10.Degrees() : 10.Degrees(), Module.CastFinishAt(spell), 2, 5, 5));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

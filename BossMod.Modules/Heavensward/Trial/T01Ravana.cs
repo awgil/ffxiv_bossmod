@@ -156,8 +156,6 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
 
     private readonly List<WPos> OpenGates = [];
 
-    private bool TowardsOpenGate(WPos pos) => OpenGates.Any(g => Angle.FromDirection(pos - Module.PrimaryActor.Position).AlmostEqual(Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth.Rad));
-
     public override void Update()
     {
         foreach (var g in Module.Enemies(OID.IronGate))
@@ -165,7 +163,8 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
                 OpenGates.Add(g.Position);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => TowardsOpenGate(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+        => OpenGates.Any(g => Angle.FromDirection(pos - Module.PrimaryActor.Position).AlmostEqual(Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth.Rad));
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

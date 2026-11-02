@@ -247,10 +247,12 @@ class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.M
         var pos = TowerPos(index);
         if (pos == default)
             return;
-        if (state == 0x00020001 && Towers.Count == 0)
-            _soaked.Reset();
         if (state == 0x00020001)
+        {
+            if (Towers.Count == 0)
+                _soaked.Reset();
             Towers.Add(new(pos, 4, 2, 5, activation: WorldState.FutureTime(10)));
+        }
         else if (state == 0x00080004)
             Towers.RemoveAll(t => t.Position.AlmostEqual(pos, 1));
     }

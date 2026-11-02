@@ -25,16 +25,10 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
         if (Player.InCombat)
             UseAction(Roleplay.AID.RampartIFTC, Player, -50);
 
-        switch (ComboAction)
+        if (ComboAction is Roleplay.AID.RiotBladeIFTC or Roleplay.AID.FastBladeIFTC)
         {
-            case Roleplay.AID.RiotBladeIFTC:
-                UseAction(Roleplay.AID.FightOrFlightIFTC, Player, -50);
-                UseAction(Roleplay.AID.RageOfHaloneIFTC, primaryTarget);
-                break;
-            case Roleplay.AID.FastBladeIFTC:
-                UseAction(Roleplay.AID.FightOrFlightIFTC, Player, -50);
-                UseAction(Roleplay.AID.RiotBladeIFTC, primaryTarget);
-                break;
+            UseAction(Roleplay.AID.FightOrFlightIFTC, Player, -50);
+            UseAction(ComboAction == Roleplay.AID.RiotBladeIFTC ? Roleplay.AID.RageOfHaloneIFTC : Roleplay.AID.RiotBladeIFTC, primaryTarget);
         }
 
         UseAction(Roleplay.AID.FastBladeIFTC, primaryTarget);
@@ -45,8 +39,10 @@ class ImperialAI(WorldState ws) : UnmanagedRotation(ws, 3)
 internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 {
     private readonly ImperialAI _ai = new(ws);
+    private readonly Pathfinding.NavigationDecision.Context _sneakContext = new();
     private readonly Dictionary<ulong, (WPos Position, DateTime Time, WDir Velocity)> _motion = [];
     private bool _sneak;
+    private bool _visitedFarWreckage;
 
     public override void AddQuestAIHints(Actor player, AIHints hints)
     {
@@ -56,7 +52,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
                 // 0x3515 spots the player from ~10.1y away
                 var sight = (h.Actor.OID == 0x3515 ? 11 : 8.5f) + h.Actor.HitboxRadius;
                 hints.AddForbiddenZone(ShapeDistance.Cone(h.Actor.Position, sight, h.Actor.Rotation, 45.Degrees()));
-                hints.AddForbiddenZone(ShapeDistance.Circle(h.Actor.Position, h.Actor.HitboxRadius));
+                hints.AddForbiddenZone(ShapeDistance.Circle(h.Actor.Position, h.Actor.HitboxRadius + player.HitboxRadius + 1.5f));
 
                 // patrols walk into paths that only clear their current cone
                 var velocity = Velocity(h.Actor);
@@ -89,10 +85,15 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
     private void SneakAlongRoute(Actor player, AIHints hints)
     {
-        if (hints.ForcedMovement is not { } route || player.InCombat)
+        if (player.InCombat)
+        {
+            hints.ForcedMovement = null;
+            return;
+        }
+        if (hints.ForcedMovement is not { } route)
             return;
 
-        if (hints.InteractWithTarget is { } target && player.DistanceToHitbox(target) < 20)
+        if (hints.InteractWithTarget is { } target && target.OID != 0x1EB452 && player.DistanceToHitbox(target) < 20)
         {
             hints.ForcedMovement = null;
             return;
@@ -100,20 +101,48 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
 
         var dir = new WDir(route.X, route.Z);
         var len = dir.Length();
-        if (len < 0.5f)
+        if (len <= 0)
             return;
         var next = player.Position + dir;
         var step = dir / len;
-        for (var d = 1f; d <= Math.Min(len, 8); d += 1)
+        var distance = Math.Clamp(len, 0.5f, 8);
+        var samples = (int)Math.Ceiling(distance / 0.25f);
+        for (var i = 0; i <= samples; ++i)
         {
-            var p = player.Position + step * d;
+            var p = player.Position + step * (distance * i / samples);
             if (hints.ForbiddenZones.Any(z => z.shape.Check(p)))
             {
-                hints.ForcedMovement = null;
+                hints.ForcedMovement = Vector3.Zero;
+                if (hints.InteractWithTarget?.OID == 0x1EB452)
+                    hints.InteractWithTarget = null;
                 hints.GoalZones.Add(AIHints.GoalProximity(next, Math.Max(40, len + 10), 1));
+                if (World.Client.MoveSpeed > 0)
+                {
+                    hints.ForbiddenZones.SortBy(z => z.activation);
+                    var decision = Pathfinding.NavigationDecision.Build(_sneakContext, World.CurrentTime, hints, player.Position, World.Client.MoveSpeed, World.Network.LastRTT, 0.5f);
+                    if (decision.Destination is { } destination && !player.Position.AlmostEqual(destination, 0.1f) && SafeStep(player.Position, destination, hints))
+                        hints.ForcedMovement = (destination - player.Position).ToVec3();
+                }
                 return;
             }
         }
+    }
+
+    private bool SafeStep(WPos from, WPos to, AIHints hints)
+    {
+        var samples = Math.Max(1, (int)Math.Ceiling((to - from).Length() / 0.25f));
+        foreach (var zone in hints.ForbiddenZones.Where(z => z.activation <= World.CurrentTime))
+        {
+            var outside = !zone.shape.Check(from);
+            for (var i = 1; i <= samples; ++i)
+            {
+                var inside = zone.shape.Check(from + (to - from) * ((float)i / samples));
+                if (outside && inside)
+                    return false;
+                outside |= !inside;
+            }
+        }
+        return true;
     }
 
     private bool HasFuel => World.Party.Player()?.FindStatus(404) != null;
@@ -141,9 +170,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .Named("Combat")
             .Hints((player, hints) => hints.ForcedMovement = new(0, 0, 1))
-            .With(obj => {
-                obj.Update += () => obj.CompleteIf(World.Party.Player()?.Position.Z > -320);
-            }),
+            .With(obj => obj.Update += () => obj.CompleteIf(World.Party.Player()?.Position.Z > -320)),
 
         new QuestObjective(ws)
             .Named("Medkit")
@@ -187,7 +214,7 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
                 if (player.Position.AlmostEqual(new WPos(109, -257.263f), 2))
                     hints.WantJump = true;
             })
-            .With(obj => obj.OnNavigationComplete += () => obj.CompleteIf(true)),
+            .CompleteAtDestination(),
 
         new QuestObjective(ws)
             .Named("Fuel (near wreckage)")
@@ -199,22 +226,35 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
             .With(obj => obj.Update += () => obj.CompleteIf(HasFuel || !FuelInNearWreckage)),
 
         new QuestObjective(ws)
+            .Named("Approach recovery pouch")
+            .WithConnections(new Vector3(124.5f, 10.8f, -232.9f), new Vector3(175.5f, 10.8f, -227.7f), new Vector3(188.4f, 10.8f, -256.8f), new Vector3(225.1f, 10.8f, -286.9f), new Vector3(268.8f, 10.8f, -325.2f))
+            .Hints((player, hints) => _sneak = true)
+            .CompleteAtDestination()
+            .With(obj => obj.Update += () => obj.CompleteIf(HasFuel || FuelInNearWreckage)),
+
+        new QuestObjective(ws)
+            .Named("Recovery pouch")
+            .WithInteract(0x1EB56E)
+            .With(obj => obj.Update += () => obj.CompleteIf(HasFuel || FuelInNearWreckage
+                || World.Party.Player()?.FindStatus(1014) != null
+                || !World.Actors.Any(a => a.OID == 0x1EB56E && a.IsTargetable))),
+
+        new QuestObjective(ws)
             .Named("Fuel (far wreckage)")
-            .WithConnections(new Vector3(124.5f, 10.8f, -232.9f), new Vector3(175.5f, 10.8f, -227.7f), new Vector3(188.4f, 10.8f, -256.8f), new Vector3(225.1f, 10.8f, -286.9f), new Vector3(268.8f, 10.8f, -325.2f), new Vector3(295.5f, 10.8f, -366.3f))
+            .WithConnections(new Vector3(295.5f, 10.8f, -366.3f), new Vector3(308.8f, 10.8f, -364.1f), new Vector3(315.2f, 10.8f, -379.9f), new Vector3(302.4f, 10.8f, -392.6f))
             .Hints((player, hints) => {
                 _sneak = true;
+                _visitedFarWreckage |= !HasFuel && !FuelInNearWreckage;
                 InteractWithFirst(player, hints, 0x1EB452);
             })
             .With(obj => obj.Update += () => obj.CompleteIf(HasFuel || FuelInNearWreckage)),
 
         new QuestObjective(ws)
             .Named("Back from far wreckage")
-            .WithConnections(new Vector3(268.8f, 10.8f, -325.2f), new Vector3(225.1f, 10.8f, -286.9f), new Vector3(188.4f, 10.8f, -256.8f))
+            .WithConnections(new Vector3(315.2f, 10.8f, -379.9f), new Vector3(308.8f, 10.8f, -364.1f), new Vector3(295.5f, 10.8f, -366.3f), new Vector3(268.8f, 10.8f, -325.2f), new Vector3(225.1f, 10.8f, -286.9f), new Vector3(188.4f, 10.8f, -256.8f))
             .Hints(RefuelHints)
-            .With(obj => {
-                obj.OnNavigationComplete += () => obj.CompleteIf(true);
-                obj.Update += () => obj.CompleteIf(FuelInNearWreckage);
-            }),
+            .CompleteAtDestination()
+            .With(obj => obj.Update += () => obj.CompleteIf(!_visitedFarWreckage || FuelInNearWreckage)),
 
         new QuestObjective(ws)
             .Named("Refuel")
@@ -235,17 +275,13 @@ internal class InFromTheCold(WorldState ws) : QuestBattle(ws)
             .Named("Help the townspeople")
             .WithConnection(new Vector3(96, 10.8f, -215.7f))
             .WithConnection(new Vector3(17, 10.8f, -154.9f))
-            .Hints((player, hints) => {
-                hints.WantDismount = true;
-            })
+            .Hints((player, hints) => hints.WantDismount = true)
             .CompleteOnKilled(0x351C), // almasty
 
         new QuestObjective(ws)
             .Named("Miniboss")
             .WithConnection(new Vector3(-80, 10.8f, -181.5f))
-            .With(obj => {
-                obj.OnStatusGain += (act, st) => obj.CompleteIf(act.OID == 0 && st.ID == 2737);
-            }),
+            .With(obj => obj.OnStatusGain += (act, st) => obj.CompleteIf(act.OID == 0 && st.ID == 2737)),
 
         new QuestObjective(ws)
             .Named("Leave")

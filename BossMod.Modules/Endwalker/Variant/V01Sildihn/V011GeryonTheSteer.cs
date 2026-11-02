@@ -48,15 +48,9 @@ class Gigantomill(BossModule module) : Components.GenericRotatingAOE(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.GigantomillCWCast:
-                Sequences.Add(new(new AOEShapeCross(72, 5), spell.LocXZ, spell.Rotation, -22.5f.Degrees(), Module.CastFinishAt(spell), 1.7f, 5));
-                break;
-            case AID.GigantomillCCWCast:
-                Sequences.Add(new(new AOEShapeCross(72, 5), spell.LocXZ, spell.Rotation, 22.5f.Degrees(), Module.CastFinishAt(spell), 1.7f, 5));
-                break;
-        }
+        var aid = (AID)spell.Action.ID;
+        if (aid is AID.GigantomillCWCast or AID.GigantomillCCWCast)
+            Sequences.Add(new(new AOEShapeCross(72, 5), spell.LocXZ, spell.Rotation, aid == AID.GigantomillCWCast ? -22.5f.Degrees() : 22.5f.Degrees(), Module.CastFinishAt(spell), 1.7f, 5));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

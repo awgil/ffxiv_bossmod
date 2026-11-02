@@ -106,7 +106,7 @@ class TeaAwhirl(BossModule module) : Components.GenericAOEs(module)
         var act = WorldState.FutureTime(delay);
         foreach (var (a, b, explode) in patterns)
         {
-            if (b is { } bb ? HasCup(a) && HasCup(bb) : HasCup(a))
+            if (HasCup(a) && (b is not { } second || HasCup(second)))
             {
                 AddAOEs(act, explode);
                 return;

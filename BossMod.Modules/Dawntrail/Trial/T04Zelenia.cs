@@ -83,6 +83,11 @@ public enum IconID : uint
     StockBreak = 590, // player
 }
 
+public enum TetherID : uint
+{
+    RosebloodDrop = 197, // Boss->RosebloodDrop
+}
+
 class AlexandrianThunderIV(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
@@ -228,9 +233,11 @@ class RoseTiles(BossModule module) : BossComponent(module)
     public const int NumTiles = 6;
     public static readonly AOEShapeCone Slice = new(16, 30.Degrees());
 
+    private const float DropRoll = 29;
+
     public BitMask Lit;
 
-    public static Angle Direction(int tile) => (180 + 60 * tile).Degrees();
+    public static Angle Direction(int tile) => (180 - 60 * tile).Degrees();
 
     public override void OnMapEffect(byte index, uint state)
     {
@@ -238,17 +245,25 @@ class RoseTiles(BossModule module) : BossComponent(module)
         if (tile is < 0 or >= NumTiles)
             return;
 
-        if (state == 0x00400100)
+        if (state is 0x00400100 or 0x00800040)
             Lit.Set(tile);
         else if (state == 0x00040020)
             Lit.Clear(tile);
     }
 
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.RosebloodDrop && WorldState.Actors.Find(tether.Target) is { } drop)
+            Lit.Set(TileAt(Angle.FromDirection(drop.Position + DropRoll * drop.Rotation.ToDirection() - Arena.Center)));
+    }
+
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
-        if (id == 0x1E46 && TileFromSpawnRotation(actor.Rotation) is var tile && tile >= 0)
-            Lit.Set(tile);
+        if (id == 0x1E46)
+            Lit.Set(TileAt(actor.Rotation));
     }
+
+    public static int TileAt(Angle direction) => ((int)MathF.Round((180 - direction.Deg) / 60) % NumTiles + NumTiles) % NumTiles;
 
     public BitMask ConnectedTo(int tile)
     {
@@ -263,17 +278,6 @@ class RoseTiles(BossModule module) : BossComponent(module)
             group.Set(t);
         return group;
     }
-
-    private static int TileFromSpawnRotation(Angle rotation) => (int)MathF.Round(rotation.Deg) switch
-    {
-        180 or 143 or -143 => 0,
-        -120 or -156 or -83 => 1,
-        -60 or -96 or -23 => 2,
-        0 or 36 or -36 => 3,
-        59 or 23 or 96 => 4,
-        119 or 83 or 156 => 5,
-        _ => -1
-    };
 }
 
 class AlexandrianThunderIII(BossModule module) : Components.GenericAOEs(module)
@@ -304,6 +308,12 @@ class AlexandrianThunderIII(BossModule module) : Components.GenericAOEs(module)
         for (var t = 0; t < RoseTiles.NumTiles; ++t)
             if (tileActivation[t] != default)
                 yield return new(RoseTiles.Slice, Arena.Center, RoseTiles.Direction(t), tileActivation[t]);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var aoe in ActiveAOEs(slot, actor))
+            hints.AddForbiddenZone(aoe.Shape == RoseTiles.Slice ? p => aoe.Distance(p) - 0.5f : aoe.Distance, aoe.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

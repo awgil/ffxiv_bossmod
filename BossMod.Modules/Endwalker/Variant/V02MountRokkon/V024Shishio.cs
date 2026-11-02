@@ -86,12 +86,14 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnMapEffect(byte index, uint state)
     {
-        if (index == 0x64 && state == 0x00020001)
+        if (index != 0x64)
+            return;
+        if (state == 0x00020001)
         {
             _aoe = null;
             Arena.Bounds = new ArenaBoundsCircle(20);
         }
-        else if (index == 0x64 && state == 0x00080004)
+        else if (state == 0x00080004)
             Arena.Bounds = new ArenaBoundsSquare(20);
     }
 }

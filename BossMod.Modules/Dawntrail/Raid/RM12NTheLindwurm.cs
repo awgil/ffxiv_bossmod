@@ -448,12 +448,8 @@ class ArenaChanges(BossModule module) : BossComponent(module)
         switch (state)
         {
             case 0x00020001:
-                _tiles = TilesA;
-                _middle = false;
-                _holes.Clear();
-                break;
             case 0x02000100:
-                _tiles = TilesB;
+                _tiles = state == 0x00020001 ? TilesA : TilesB;
                 _middle = false;
                 _holes.Clear();
                 break;

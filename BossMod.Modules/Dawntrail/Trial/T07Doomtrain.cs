@@ -336,15 +336,8 @@ class HeadOnEmission(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.ThunderousBreath:
-                _casts.Add((false, Module.CastFinishAt(spell)));
-                break;
-            case AID.Headlight:
-                _casts.Add((true, Module.CastFinishAt(spell)));
-                break;
-        }
+        if ((AID)spell.Action.ID is AID.ThunderousBreath or AID.Headlight)
+            _casts.Add(((AID)spell.Action.ID == AID.Headlight, Module.CastFinishAt(spell)));
     }
 
     public override void AddGlobalHints(GlobalHints hints)
