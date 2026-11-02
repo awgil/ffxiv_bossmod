@@ -53,7 +53,7 @@ class ActivateOvoo(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (actor.MountId == 117)
+        if (actor.MountId != 0)
             hints.WantDismount = true;
 
         var beingAttacked = false;
@@ -132,7 +132,7 @@ class OvooStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68051, PrimaryActorOID = (uint)OID.Ovoo)]
+[ModuleInfo(Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 68051, PrimaryActorOID = (uint)OID.Ovoo)]
 public class Ovoo(ModuleInit init) : BossModule(init, new(354, 296.5f), new ArenaBoundsCircle(20))
 {
     protected override bool CheckPull() => Raid.Player()?.Position.InCircle(PrimaryActor.Position, 15) ?? false;
