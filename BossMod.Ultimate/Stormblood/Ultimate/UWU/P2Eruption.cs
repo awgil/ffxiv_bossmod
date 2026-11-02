@@ -156,7 +156,7 @@ class P4Eruption(BossModule module) : P2Eruption(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        if (NumCastsStarted == 0 && assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R1 && ((UWU)Module).Ultima() is { } ult)
-            hints.AddForbiddenZone(ShapeDistance.Circle(ult.Position, ult.HitboxRadius + 8));
+        if (NumCastsStarted == 0 && assignment is PartyRolesConfig.Assignment.H2 or PartyRolesConfig.Assignment.R1)
+            hints.AddForbiddenZone(ShapeDistance.Circle(new(100, 80.5f), 20));
     }
 }

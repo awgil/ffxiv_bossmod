@@ -632,16 +632,14 @@ class UWUStates : StateMachineBuilder
 
         ActorCastStart(id + 0x6000, _module.Ultima, AID.HomingLasers, 2, true)
             .ActivateOnEnter<P1FeatherRain>(); // sisters: PATE ~1.1s before cast start
-        ComponentCondition<P1FeatherRain>(id + 0x6001, 1.3f, comp => comp.NumCasts > 0, "Feathers 1")
-            .ActivateOnEnter<P4HomingLasers>()
-            .DeactivateOnExit<P1FeatherRain>();
+        ComponentCondition<P1FeatherRain>(id + 0x6001, 1.3f, comp => comp.NumCasts == 5, "Feathers 1")
+            .ActivateOnEnter<P4HomingLasers>();
         ComponentCondition<P4ViscousAetheroplasmResolve>(id + 0x6002, 0.7f, comp => !comp.Active, "Aetheroplasm resolve")
-            .ActivateOnEnter<P1FeatherRain>() // garuda: PATE ~0.3s after resolve, but activate earlier just in case...
             .DeactivateOnExit<P4ViscousAetheroplasmResolve>();
         ActorCastEnd(id + 0x6003, _module.Ultima, 0.9f, true, "Tankbuster")
             .DeactivateOnExit<P4HomingLasers>()
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<P1FeatherRain>(id + 0x6004, 1.9f, comp => comp.NumCasts > 0, "Feathers 2")
+        ComponentCondition<P1FeatherRain>(id + 0x6004, 1.9f, comp => comp.NumCasts == 10, "Feathers 2")
             .DeactivateOnExit<P1FeatherRain>()
             .DeactivateOnExit<P2InfernalFetters>(); // TODO: it should probably be deactivated earlier...
     }
@@ -650,11 +648,13 @@ class UWUStates : StateMachineBuilder
     {
         ActorCast(id, _module.Ultima, AID.UltimateAnnihilation, delay, 3, true);
         ActorTargetable(id + 0x10, _module.Ultima, false, 4.5f, "Disappear (annihilation)")
-            .SetHint(StateMachine.StateHint.DowntimeStart);
+            .SetHint(StateMachine.StateHint.DowntimeStart)
+            .ExecOnExit<PartyPositioning>(p => p.DesiredPosition = (new(95, 97), 1));
 
         ActorTargetable(id + 0x20, _module.Ultima, true, 4.3f, "Reappear")
             .ActivateOnEnter<P3WeightOfTheLand>() // first set starts at the same time as boss becomes targetable
             .ActivateOnEnter<P4FlamingCrush>()
+            .ExecOnEnter<P4FlamingCrush>(p => p.EnableHints = false)
             .SetHint(StateMachine.StateHint.DowntimeEnd);
         ComponentCondition<P4FlamingCrush>(id + 0x21, 0, comp => comp.Active); // icon appears at the same time as or slightly after boss becomes targetable
 

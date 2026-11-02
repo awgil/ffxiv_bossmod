@@ -3,9 +3,15 @@
 [ConfigDisplay(Order = 0x210, Parent = typeof(StormbloodConfig))]
 public class UWUConfig() : ConfigNode()
 {
+    [PropertyDisplay("Beyond Limits puddle assignments")]
+    [GroupDetails(["Garuda", "Ifrit", "Titan"])]
+    [GroupPreset("H1 -> R2 -> M1", [-1, -1, 0, -1, 2, -1, -1, 1])]
+    public GroupAssignment3 BeyondLimits = new() { Assignments = [-1, -1, 0, -1, 2, -1, -1, 1] };
+
     [PropertyDisplay("P1: Thermal Low cleanse order")]
     [GroupDetails(["1", "2", "3"])]
-    public GroupAssignmentFriction P1Friction = new() { Assignments = [-1, 2, -1, -1, 0, 1, -1, -1] };
+    [GroupPreset("M1 -> M2 -> OT", [-1, 2, -1, -1, 0, 1, -1, -1])]
+    public GroupAssignment3 P1Friction = new() { Assignments = [-1, 2, -1, -1, 0, 1, -1, -1] };
 
     [PropertyDisplay("P1: Show hints for fast awaken")]
     public bool P1FastAwaken = false;
@@ -15,7 +21,7 @@ public class UWUConfig() : ConfigNode()
     public GroupAssignmentUnique P3GaolPriorities = GroupAssignmentUnique.Default();
 }
 
-public class GroupAssignmentFriction : GroupAssignment
+public class GroupAssignment3 : GroupAssignment
 {
     public override bool Validate()
     {

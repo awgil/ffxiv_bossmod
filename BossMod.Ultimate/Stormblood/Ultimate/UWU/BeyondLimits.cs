@@ -5,15 +5,15 @@ class BeyondLimits : Components.GenericAOEs
     int _soaker;
     WPos? _position;
 
-    readonly PartyRolesConfig.Assignment[] Assignments;
+    private readonly int[] SoakOrder = Utils.MakeArray(3, -1);
 
     public BeyondLimits(BossModule module) : base(module)
     {
         KeepOnPhaseChange = true;
 
-        Assignments = Service.Config.Get<PartyRolesConfig>().AssignmentsPerSlot(Raid);
-        if (Assignments.Length == 0)
-            Assignments = new PartyRolesConfig.Assignment[8];
+        foreach (var (slot, group) in Service.Config.Get<UWUConfig>().BeyondLimits.Resolve(Raid))
+            if (group >= 0)
+                SoakOrder[group] = slot;
     }
 
     bool IsActive => !WorldState.Actors.Any(a => a.CastInfo is { } ci && (ci.IsSpell(AID.FeatherRain) || ci.IsSpell(AID.WeightOfTheLandAOE)));
@@ -28,15 +28,15 @@ class BeyondLimits : Components.GenericAOEs
             {
                 case OID.Garuda:
                     _position = actor.Position;
-                    _soaker = Assignments.IndexOf(PartyRolesConfig.Assignment.H1);
+                    _soaker = SoakOrder[0];
                     break;
                 case OID.Ifrit:
                     _position = actor.Position;
-                    _soaker = Assignments.IndexOf(PartyRolesConfig.Assignment.R2);
+                    _soaker = SoakOrder[1];
                     break;
                 case OID.Titan:
                     _position = actor.Position;
-                    _soaker = Assignments.IndexOf(PartyRolesConfig.Assignment.M1);
+                    _soaker = SoakOrder[2];
                     break;
             }
         }

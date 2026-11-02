@@ -70,9 +70,6 @@ class P4ViscousAetheroplasmResolve(BossModule module) : Components.StrictUniform
             if (player != null)
                 SetLaserTarget(Raid.FindSlot(player.InstanceID), player);
         }
-
-        if ((AID)spell.Action.ID == AID.FeatherRain)
-            EnableHints = true;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -84,6 +81,10 @@ class P4ViscousAetheroplasmResolve(BossModule module) : Components.StrictUniform
                 Stacks.Clear();
                 Spreads.Clear();
                 break;
+            case AID.HomingLasers:
+                foreach (ref var s in Stacks.AsSpan())
+                    s.ForbiddenPlayers.Clear(Raid.FindSlot(spell.MainTargetID));
+                break;
         }
     }
 
@@ -91,6 +92,12 @@ class P4ViscousAetheroplasmResolve(BossModule module) : Components.StrictUniform
     {
         if ((SID)status.ID == SID.ViscousAetheroplasm)
             Aetheroplasms.Set(Raid.FindSlot(actor.InstanceID));
+    }
+
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if ((OID)actor.OID is OID.Garuda or OID.GarudaSister && id == 0x1E3A)
+            EnableHints = true;
     }
 
     public override void Update()
