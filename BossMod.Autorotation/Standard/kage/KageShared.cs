@@ -152,6 +152,8 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     protected float RaidBuffsIn;
     protected bool InBossFight;
     protected bool InMelee;
+    protected bool AllowAoE;
+    protected bool ForceST;
     protected ActionID NextGCDAction { get; private set; }
     protected ActorCastEvent? NewCast { get; private set; }
     private int NextGCDPriority;
@@ -208,7 +210,9 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
         if (target?.Priority is AIHints.Enemy.PriorityInvincible or AIHints.Enemy.PriorityForbidden || target?.Priority == AIHints.Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
 
-        if (aoe == AOEStrategy.ForceST)
+        AllowAoE = aoe is AOEStrategy.AOE or AOEStrategy.ForceAOE;
+        ForceST = aoe == AOEStrategy.ForceST;
+        if (ForceST)
             targeting = Targeting.Manual;
         TargetMode = targeting == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : targeting;
         if (TargetMode == Targeting.Auto && target == null)
@@ -265,6 +269,15 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushOGCD(ClassShared.AID.Sprint, Player, 10);
         if (WalkInForPull(target, countdown, 7.8f, 0.5f))
             PushGCD(first, target.Actor, 10);
+    }
+
+    // the dash track's "Do not use" is for combat; Engage picks the dash on its own
+    protected void DashPull<AID>(AIHints.Enemy target, AID first, AID dash, float countdown, bool useDash = true) where AID : Enum
+    {
+        if (InMelee && countdown < 1.16f)
+            PushGCD(first, target.Actor, 10);
+        else if (useDash && !InMelee && countdown < 0.7f)
+            PushAction(ActionID.MakeSpell(dash), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
     }
 
     protected void Facepull<AID>(AIHints.Enemy target, AID first, float countdown) where AID : Enum

@@ -157,18 +157,17 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         SepulchreLeft = SelfStatusLeft(SID.SepulchreReady);
         BladeOfHonorLeft = SelfStatusLeft(SID.BladeOfHonorReady);
 
-        var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         NumAOETargets = Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        if (strategy.AOE.Value == AOEStrategy.ForceST)
+        if (ForceST)
             NumAOETargets = NumAOETargets > 0 && target != null && TargetInAOECircle(target.Actor, Player.Position, 5) ? 1 : 0;
         IsMoving = isMoving;
-        Loose = Player.InCombat && !InBossFight && strategy.AOE.Value != AOEStrategy.ForceST
+        Loose = Player.InCombat && !InBossFight && !ForceST
             ? [.. Hints.PriorityTargets.Select(e => e.Actor).Where(a => a.InCombat && a.TargetID != Player.InstanceID && World.Party.FindSlot(a.TargetID) >= 0)]
             : [];
         AOEMode = Unlocked(AID.TotalEclipse) && (UseAOE(strategy.AOE.Value, NumAOETargets, AoEMinTargets)
             || strategy.AOE.Value == AOEStrategy.AOE && NumAOETargets >= 2 && Loose.Any(a => TargetInAOECircle(a, Player.Position, 5)));
-        BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
-        BestMeleeSplashTarget = BestAOETarget(target, 3, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
+        BestSplashTarget = BestAOETarget(target, 25, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
+        BestMeleeSplashTarget = BestAOETarget(target, 3, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
         if (UsePotion(strategy))
             PushPotion(ActionDefinitions.IDPotionStr);
@@ -189,7 +188,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             return;
 
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 3);
-        Hints.GoalZones.Add(allowAoE && Unlocked(AID.TotalEclipse) ? GoalCombined(goal, Hints.GoalAOECircle(5), AoEMinTargets) : goal);
+        Hints.GoalZones.Add(AllowAoE && Unlocked(AID.TotalEclipse) ? GoalCombined(goal, Hints.GoalAOECircle(5), AoEMinTargets) : goal);
         if (Loose.Count > 0)
         {
             var loose = Loose;
@@ -246,31 +245,30 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             if (Unlocked(AID.Prominence) && ComboLastMove == AID.TotalEclipse && ComboLeft > GCD)
                 PushGCD(AID.Prominence, Player, 10);
             PushGCD(AID.TotalEclipse, Player, 1);
+            return;
         }
-        else
+
+        if (!InMelee && strategy.Ranged.Value != RangedStrategy.Never)
         {
-            if (!InMelee && strategy.Ranged.Value != RangedStrategy.Never)
-            {
-                if (strategy.Ranged.Value != RangedStrategy.ShieldLob && canHoly && (DivineMightLeft > GCD || InBossFight && !IsMoving))
-                    PushGCD(AID.HolySpirit, target.Actor, 20);
-                if (strategy.Ranged.Value != RangedStrategy.HolySpirit)
-                    PushGCD(AID.ShieldLob, target.Actor, 19);
-            }
-
-            var spend = FoFLeft > GCD || ComboLastMove == AID.RiotBlade;
-            if (AtonementLeft > GCD)
-                PushGCD(AID.Atonement, target.Actor, 48);
-            if (SupplicationLeft > GCD && (spend || SupplicationLeft < 6))
-                PushGCD(AID.Supplication, target.Actor, 47);
-            if (SepulchreLeft > GCD && (spend || SepulchreLeft < 6))
-                PushGCD(AID.Sepulchre, target.Actor, 45);
-
-            if (Unlocked(AID.RageOfHalone) && ComboLastMove == AID.RiotBlade && ComboLeft > GCD)
-                PushGCD(Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : AID.RageOfHalone, target.Actor, 11);
-            if (Unlocked(AID.RiotBlade) && ComboLastMove == AID.FastBlade && ComboLeft > GCD)
-                PushGCD(AID.RiotBlade, target.Actor, 10);
-            PushGCD(AID.FastBlade, target.Actor, 1);
+            if (strategy.Ranged.Value != RangedStrategy.ShieldLob && canHoly && (DivineMightLeft > GCD || InBossFight && !IsMoving))
+                PushGCD(AID.HolySpirit, target.Actor, 20);
+            if (strategy.Ranged.Value != RangedStrategy.HolySpirit)
+                PushGCD(AID.ShieldLob, target.Actor, 19);
         }
+
+        var spend = FoFLeft > GCD || ComboLastMove == AID.RiotBlade;
+        if (AtonementLeft > GCD)
+            PushGCD(AID.Atonement, target.Actor, 48);
+        if (SupplicationLeft > GCD && (spend || SupplicationLeft < 6))
+            PushGCD(AID.Supplication, target.Actor, 47);
+        if (SepulchreLeft > GCD && (spend || SepulchreLeft < 6))
+            PushGCD(AID.Sepulchre, target.Actor, 45);
+
+        if (Unlocked(AID.RageOfHalone) && ComboLastMove == AID.RiotBlade && ComboLeft > GCD)
+            PushGCD(Unlocked(AID.RoyalAuthority) ? AID.RoyalAuthority : AID.RageOfHalone, target.Actor, 11);
+        if (Unlocked(AID.RiotBlade) && ComboLastMove == AID.FastBlade && ComboLeft > GCD)
+            PushGCD(AID.RiotBlade, target.Actor, 10);
+        PushGCD(AID.FastBlade, target.Actor, 1);
     }
 
     #endregion
@@ -317,23 +315,16 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             return false;
         if (FightOrFlightStrat == OffensiveStrategy.Force)
             return true;
-        if (DowntimeIn < 10)
-            return false;
-        if (!TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, 10))
-            return false;
-        if (Unlocked(AID.Requiescat) && MP < HolySpiritMP * 3.6f)
-            return false;
-        if (!InMelee && !CanWeave(AID.Imperator))
+        if (DowntimeIn < 10 || !TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target, 10)
+            || Unlocked(AID.Requiescat) && MP < HolySpiritMP * 3.6f || !InMelee && !CanWeave(AID.Imperator))
             return false;
         if (CombatTime < 15)
-        {
             return strategy.Opener.Value switch
             {
                 OpenerStrategy.Standard => ComboLastMove == AID.RoyalAuthority || !Unlocked(AID.RoyalAuthority) && CombatTime >= 7,
                 OpenerStrategy.EarlyBuff => ComboLastMove is AID.FastBlade or AID.RiotBlade or AID.RoyalAuthority,
                 _ => CombatTime >= 8
             };
-        }
         return true;
     }
 
