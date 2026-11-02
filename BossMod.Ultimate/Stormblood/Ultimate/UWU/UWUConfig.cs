@@ -13,7 +13,7 @@ public class UWUConfig() : ConfigNode()
     [GroupPreset("M1 -> M2 -> OT", [-1, 2, -1, -1, 0, 1, -1, -1])]
     public GroupAssignment3 P1Friction = new() { Assignments = [-1, 2, -1, -1, 0, 1, -1, -1] };
 
-    [PropertyDisplay("P1: Show hints for fast awaken")]
+    [PropertyDisplay("P1: Show hints for fast awaken (during Friction)")]
     public bool P1FastAwaken = false;
 
     [PropertyDisplay("Titan gaols priorities (close < far)")]

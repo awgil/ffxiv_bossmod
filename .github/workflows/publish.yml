@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    uses: xanunderscore/DynamisPublishAction/.github/workflows/dynamis.yml@master
+    uses: xanunderscore/DynamisPublishAction/.github/workflows/dynamis.yml@msbuild
     with:
       plugin_id: 30
       internal_name: BossMod
