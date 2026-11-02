@@ -660,14 +660,17 @@ class UWUStates : StateMachineBuilder
 
         ComponentCondition<P4FlamingCrush>(id + 0x30, 5.1f, comp => !comp.Active, "Stack")
             .ActivateOnEnter<P1EyeOfTheStorm>() // cast starts ~1.8s before crash resolve
+            .ActivateOnEnter<P4Mesohigh>()
             .DeactivateOnExit<P4FlamingCrush>();
 
         ComponentCondition<P4Mesohigh>(id + 0x40, 3.2f, comp => comp.NumCasts > 0, "Tether 1 resolve")
-            .ActivateOnEnter<P4Mesohigh>() // tether appears ~1.9s before crash resolve, but should be handled after this mechanic
             .ActivateOnEnter<P4UltimateAnnihilation>() // first orb spawns ~1.9s before tether resolve, then new orb spawns every 6 sec
-            .ActivateOnEnter<P2SearingWind>() // inferno howl cast starts ~1.1s before tether resolve
+            .ActivateOnEnter<P4SearingWind>() // inferno howl cast starts ~1.1s before tether resolve
             .DeactivateOnExit<P1EyeOfTheStorm>() // cast ends ~2s before tether resolve
-            .DeactivateOnExit<P4Mesohigh>();
+            .DeactivateOnExit<P4Mesohigh>()
+            .ExecOnEnter<P4SearingWind>(p => p.EnableHints = false)
+            .ExecOnExit<P4SearingWind>(p => p.EnableHints = true)
+            .ExecOnExit<PartyPositioning>(p => p.DesiredPosition = null);
 
         ComponentCondition<P1FeatherRain>(id + 0x50, 2.1f, comp => comp.CastsPredicted, "Feathers bait")
             .ActivateOnEnter<P1FeatherRain>()
@@ -675,13 +678,13 @@ class UWUStates : StateMachineBuilder
 
         ActorCastStart(id + 0x60, _module.Ifrit, AID.CrimsonCyclone, 4.1f, false);
         ActorCastStart(id + 0x61, _module.Titan, AID.LandslideBossAwakened, 1.5f, false)
-            .ActivateOnEnter<P2CrimsonCyclone>() // TODO: proper activation time for prediction? PATE happens extremely early, but we don't want drawing hints too early
+            .ActivateOnEnter<P4CrimsonCyclone>() // TODO: proper activation time for prediction? PATE happens extremely early, but we don't want drawing hints too early
             .DeactivateOnExit<P1FeatherRain>();// usually resolves before crimson cyclone cast start, but sometimes slightly after?..
         ActorCastEnd(id + 0x62, _module.Ifrit, 1.5f, false, "Diag charge")
             .ActivateOnEnter<Landslide>(); // TODO: prediction PATE happens ~1.6s before crimson cyclone cast start...
         ActorCastEnd(id + 0x63, _module.Titan, 0.7f, false, "Landslide 1");
-        ComponentCondition<P2CrimsonCyclone>(id + 0x64, 1.4f, comp => !comp.CastsPredicted)
-            .DeactivateOnExit<P2CrimsonCyclone>();
+        ComponentCondition<P4CrimsonCyclone>(id + 0x64, 1.4f, comp => !comp.CastsPredicted)
+            .DeactivateOnExit<P4CrimsonCyclone>();
         ComponentCondition<Landslide>(id + 0x65, 0.7f, comp => !comp.CastsActive)
             .DeactivateOnExit<Landslide>();
 
@@ -703,9 +706,9 @@ class UWUStates : StateMachineBuilder
         ActorTargetable(id + 0x81, _module.Ultima, true, 4.3f, "Reappear")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
-        ComponentCondition<P2SearingWind>(id + 0x90, 2.3f, comp => !comp.Active)
+        ComponentCondition<P4SearingWind>(id + 0x90, 2.3f, comp => !comp.Active)
             .ActivateOnEnter<P1EyeOfTheStorm>() // cast starts ~1.9s before searing wind resolve
-            .DeactivateOnExit<P2SearingWind>();
+            .DeactivateOnExit<P4SearingWind>();
         ComponentCondition<P1EyeOfTheStorm>(id + 0x91, 1.1f, comp => comp.NumCasts > 0, "Annihilation resolve")
             .DeactivateOnExit<P4UltimateAnnihilation>() // orbs should really be soaked by this point...
             .DeactivateOnExit<P1EyeOfTheStorm>();

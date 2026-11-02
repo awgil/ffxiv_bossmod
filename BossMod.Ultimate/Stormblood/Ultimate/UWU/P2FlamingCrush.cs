@@ -41,7 +41,10 @@ class P4FlamingCrush(BossModule module) : FlamingCrush(module)
 
         // dodge left/right together
         if (Stacks.Count > 0)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(94, 97), new WPos(106, 97), 1), Stacks[0].Activation);
+        {
+            var z = assignment == PartyRolesConfig.Assignment.R1 ? 99 : 97;
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(94, z), new WPos(106, z), 0.51f), Stacks[0].Activation);
+        }
     }
 }
 

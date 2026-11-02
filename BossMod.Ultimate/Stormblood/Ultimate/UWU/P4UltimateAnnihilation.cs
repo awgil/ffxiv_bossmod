@@ -4,6 +4,8 @@ class P4UltimateAnnihilation(BossModule module) : BossComponent(module)
 {
     private readonly IReadOnlyList<Actor> _orbs = module.Enemies(OID.Aetheroplasm);
 
+    int _explosions;
+
     private const float _radius = 6;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -12,6 +14,24 @@ class P4UltimateAnnihilation(BossModule module) : BossComponent(module)
         {
             Arena.Actor(orb, ArenaColor.Object, true);
             Arena.AddCircle(orb.Position, _radius, ArenaColor.Object);
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.Aetheroplasm)
+            _explosions++;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var orb in _orbs.Where(o => !o.IsDead))
+        {
+            var soaking = assignment == PartyRolesConfig.Assignment.MT || _explosions < 2 && assignment == PartyRolesConfig.Assignment.OT;
+            if (soaking)
+                hints.AddForbiddenZone(ShapeDistance.PrecisePosition(orb.Position, new(0, 1), 0.5f, actor.Position, 0.1f), DateTime.MaxValue);
+            else
+                hints.AddForbiddenZone(ShapeDistance.Circle(orb.Position, 6), WorldState.FutureTime(1));
         }
     }
 }
