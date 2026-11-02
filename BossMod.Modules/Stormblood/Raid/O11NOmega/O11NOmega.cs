@@ -184,7 +184,8 @@ class OmegaJammer(BossModule module) : BossComponent(module)
             return;
 
         var reach = 20 + actor.HitboxRadius + target.HitboxRadius;
-        hints.ForcedTarget = target;
+        if (hints.FindEnemy(target) is { } enemy)
+            enemy.ShouldBeTargeted = true;
         hints.AddForbiddenZone(ShapeDistance.InvertedCircle(target.Position, reach - 1), WorldState.CurrentTime);
         if ((actor.Position - target.Position).LengthSq() <= reach * reach)
         {

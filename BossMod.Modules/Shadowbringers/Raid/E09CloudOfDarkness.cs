@@ -242,17 +242,12 @@ class SeedTethers(BossModule module) : BossComponent(module)
                 case TetherID.SeedNear:
                     // sit just outside the voidzone
                     hints.AddForbiddenZone(ShapeDistance.Circle(src.Position, 4));
-                    var ideal = src.Position + dir * 5;
-                    var toIdeal = ideal - actor.Position;
-                    if (toIdeal.LengthSq() > 0.25f)
-                        hints.ForcedMovement = toIdeal.ToVec3(actor.PosRot.Y);
+                    hints.GoalZones.Add(AIHints.GoalProximity(src.Position + dir * 5, 40, 1000));
                     break;
                 case TetherID.SeedFar:
                 case TetherID.SeedSuck:
                     // breaks at ~12y
                     hints.AddForbiddenZone(ShapeDistance.Circle(src.Position, 15));
-                    if (dist < 15)
-                        hints.ForcedMovement = dir.ToVec3(actor.PosRot.Y);
                     break;
             }
         }
