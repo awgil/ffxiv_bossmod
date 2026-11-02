@@ -21,7 +21,7 @@ jobs:
       project_file: BossMod/BossMod.csproj
       dotnet_version: 10.0.x
       dalamud_version: 15
-      testing: ${{ github.ref == 'refs/heads/testing' || inputs.testing == 'true' }}
+      testing: ${{ github.ref == 'refs/heads/testing' || inputs.testing }}
     secrets:
       publisher_key: ${{ secrets.PUBLISHER_KEY }}
 
