@@ -156,7 +156,16 @@ class CoffinScratchBait(BossModule module) : Components.BaitAwayIcon(module, new
             hints.AddForbiddenZone(new AOEShapeRect(17, 17, 17), Arena.Center, default, bait.Activation);
     }
 }
-class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 1, 5);
+class CoffinScratch(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(3), AID.CoffinScratchFirst, AID.CoffinScratchRest, 6, 1, 5)
+{
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        var pos = spell.MainTargetID == caster.InstanceID ? caster.Position : WorldState.Actors.Find(spell.MainTargetID)?.Position ?? spell.TargetXZ;
+        var first = spell.Action == ActionFirst ? Chasers.MinBy(c => (c.PredictedPosition() - pos).LengthSq()) : null;
+        base.OnEventCast(caster, spell);
+        first?.NextActivation = WorldState.FutureTime(2.6f);
+    }
+}
 class PhantomPain(BossModule module) : Components.StandardAOEs(module, AID.PhantomPain2, new AOEShapeRect(20, 10));
 class PaterPatriaeAOE(BossModule module) : Components.StandardAOEs(module, AID.PaterPatriaeAOE, new AOEShapeRect(60, 4));
 class CharnelClaw(BossModule module) : Components.StandardAOEs(module, AID.CharnelClaw, new AOEShapeRect(40, 2.5f), 5);
@@ -185,7 +194,7 @@ class D023AnimaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10285)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10285)]
 public class D023Anima(ModuleInit init) : BossModule(init, UpperArenaCenter, new ArenaBoundsSquare(19.5f))
 {
     public static readonly WPos UpperArenaCenter = new(0, -180);

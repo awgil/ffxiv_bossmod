@@ -263,7 +263,7 @@ class LowerRealm(BossModule module) : Components.RaidwideCast(module, AID.LowerR
 class Ephemerality(BossModule module) : Components.RaidwideCast(module, AID.Ephemerality);
 class CuttingJewel(BossModule module) : Components.BaitAwayCast(module, AID.CuttingJewel, new AOEShapeCircle(4), true);
 class CuttingJewelHint(BossModule module) : Components.SingleTargetCast(module, AID.CuttingJewel);
-class OrderedChaos(BossModule module) : Components.SpreadFromCastTargets(module, AID.OrderedChaos, 5);
+class OrderedChaos(BossModule module) : Components.SpreadFromCastTargets(module, AID.OrderedChaos2, 5);
 
 class T08AsuraStates : StateMachineBuilder
 {

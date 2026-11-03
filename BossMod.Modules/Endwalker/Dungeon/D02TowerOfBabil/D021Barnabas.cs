@@ -93,8 +93,8 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
         }
         else if (IsPull(actor, Shape.Rect, MagneticPole.Plus) || IsPull(actor, Shape.Rect, MagneticPole.Minus))
         {
-            yield return new(Module.Center, RectDistance, activation, _shape, rotation + offset, Kind.AwayFromOrigin);
-            yield return new(Module.Center, RectDistance, activation, _shape, rotation - offset, Kind.AwayFromOrigin);
+            yield return new(Module.Center, RectDistance, activation, _shape, rotation + offset, Kind.TowardsOrigin);
+            yield return new(Module.Center, RectDistance, activation, _shape, rotation - offset, Kind.TowardsOrigin);
         }
         else if (IsKnockback(actor, Shape.Circle, MagneticPole.Plus) || IsKnockback(actor, Shape.Circle, MagneticPole.Minus))
             yield return new(Module.Center, CircleDistance, activation);
@@ -139,7 +139,7 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.DynamicPoundKB or AID.DynamicPoundPull or AID.DynamicScraplinePull or AID.DynamicScraplinePull)
+        if ((AID)spell.Action.ID is AID.DynamicPoundKB or AID.DynamicPoundPull or AID.DynamicScraplineKB or AID.DynamicScraplinePull)
         {
             CurrentPole = MagneticPole.None;
             CurrentShape = Shape.None;
@@ -200,7 +200,7 @@ class D021BarnabasStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10279)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 785, NameID = 10279)]
 public class D021Barnabas(ModuleInit init) : BossModule(init, new(-300, 71), StartingBounds)
 {
     public static readonly ArenaBoundsCircle StartingBounds = new(19.5f);

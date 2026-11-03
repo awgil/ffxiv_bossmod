@@ -45,7 +45,7 @@ class AglaeaShot(BossModule module) : Components.GroupedAOEs(module, [AID.Aglaea
 class AglaeaClimbAOE(BossModule module) : Components.StandardAOEs(module, AID.AglaeaClimbAOE, new AOEShapeCone(20, 45.Degrees()));
 class Disparagement(BossModule module) : Components.StandardAOEs(module, AID.Disparagement, new AOEShapeCone(40, 60.Degrees()));
 
-class IgnisOdi(BossModule module) : Components.StackWithCastTargets(module, AID.IgnisOdi, 6, 8)
+class IgnisOdi(BossModule module) : Components.StackWithCastTargets(module, AID.IgnisOdi, 6, 4)
 {
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -53,6 +53,8 @@ class IgnisOdi(BossModule module) : Components.StackWithCastTargets(module, AID.
         // force AI to move to center - trust NPCs won't stack with you lol
         if (ActiveStackTargets.Contains(actor))
             hints.AddForbiddenZone(new AOEShapeDonut(3, 50), Arena.Center, activation: Stacks[0].Activation);
+        else
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 
@@ -75,5 +77,5 @@ class D051LiviaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "The Combat Reborn Team", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10290)]
+[ModuleInfo(Contributors = "The Combat Reborn Team, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 786, NameID = 10290)]
 public class D051Livia(ModuleInit init) : BossModule(init, new(-6, 471), new ArenaBoundsCircle(20));

@@ -2,9 +2,9 @@ namespace BossMod.Endwalker.Trial.T03Endsinger;
 
 public enum OID : uint
 {
-    Boss = 0x34F3, // Teamcraft index
-    Endsinger2 = 0x34F5, // Teamcraft index
-    Endsinger3 = 0x34F6, // Teamcraft index
+    Boss = 0x34F3, // The Endsinger, Teamcraft index
+    Endsinger2 = 0x34F5, // The Endsinger, Teamcraft index
+    Endsinger3 = 0x34F6, // The Endsinger, Teamcraft index
     Kakodaimon = 0x34F7, // Teamcraft index
     DoomedStars = 0x34F8, // Teamcraft index
     FeatherOfDespair = 0x34FA, // Teamcraft index
@@ -13,48 +13,162 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    Elegeia = 26156, // The Endsinger, cast, cactbot ~13.7s
-    Galaxias = 27753, // The Endsinger, cast, cactbot ~56.1s
-    Elenchos1 = 26180, // The Endsinger, cast, cactbot ~69.3s
-    DeathsEmbrace = 26185, // The Endsinger, cactbot ~93.6s
-    Aporrhoia = 26173, // The Endsinger, cactbot ~105.8s
-    Elenchos2 = 26174, // The Endsinger, cactbot ~115.4s
-    Hubris = 26194, // The Endsinger, cast, cactbot ~120.0s
-    ElegeiaUnforgotten = 26242, // The Endsinger, cast, cactbot ~132.2s
-    Fatalism1 = 26162, // The Endsinger, cactbot ~158.4s
-    Ekstasis = 26181, // The Endsinger, cactbot ~238.1s
-    Epigonoi = 26182, // The Endsinger, cast, cactbot ~241.9s
-    Interstellar = 26189, // The Endsinger, cactbot ~274.4s
-    Nemesis1 = 26190, // The Endsinger, cast, cactbot ~276.6s
-    Nemesis2 = 26196, // The Endsinger, cactbot ~388.0s
-    Planetes = 27480, // The Endsinger, cast, cactbot ~1000.0s
-    MeteorRadiant = 26198, // Kakodaimon, cactbot ~1023.4s
-    Crash = 26199, // Kakodaimon, cactbot ~1035.2s
-    MeteorOutburst = 26204, // Kakodaimon, cactbot ~1056.6s
-    Katastrophe = 26203, // Kakodaimon, cactbot ~1067.8s
-    UltimateFate = 27481, // The Endsinger, cast, cactbot ~1212.2s
-    Fatalism2 = 27483, // The Endsinger, cactbot ~2000.0s
-    Telos = 26206, // The Endsinger, cactbot ~2086.1s
-    Telomania1 = 26207, // The Endsinger, cactbot ~2099.3s
-    Telomania2 = 26209, // The Endsinger, cactbot ~2114.6s
-    DoomedStarsAoE1 = 26164, // cast, cactbot trigger
-    ElenchosOutsides = 26178, // cast, cactbot trigger
-    DoomedStarsAoE2 = 26158, // cast, cactbot trigger
+    Elegeia = 26156, // Boss->self, 5.0s cast, raidwide
+    ElegeiaAOE = 26618, // Helper->self, no cast, range 40 circle
+    ElegeiaUnforgotten = 26242, // Boss->self, 5.0s cast, raidwide
+    StellarCollision = 26158, // DoomedStars->self, 7.0s cast, range 30 circle
+    StellarCollisionRect = 26164, // DoomedStars->self, 3.0s cast, range 80 width 22 rect
+    FatalismStellarCollision = 26171, // ?->self, 2.0s cast, range 30 circle
+    Fatalism1 = 26162, // Boss->self, 3.0s cast, single-target
+    Galaxias = 27753, // Boss->self, 5.0s cast, single-target
+    GalaxiasAOE = 27754, // Helper->location, 5.0s cast, range 40 circle, knockback from center
+    ElenchosCenter = 26180, // Boss->self, 6.0s cast, range 40 width 14 rect
+    ElenchosSides = 26178, // Boss->self, 6.0s cast, single-target
+    ElenchosSidesAOE = 26179, // Helper->self, 6.0s cast, range 40 width 13 rect
+    DeathsEmbrace = 26185, // Boss->self, 6.0s cast, single-target
+    DeathsEmbraceAOE = 26187, // Boss->self, no cast, range 45 cone
+    Misery = 26184, // ?->self, no cast, range 1 circle
+    Pharmakon = 26188, // FeatherOfDespair->self, 2.0s cast, range 6 circle
+    Aporrhoia = 26173, // Boss->self, 3.0s cast, single-target
+    AporrhoiaLaser = 26174, // ?->self, 5.0s cast, range 40 width 5 rect (sheet name Elenchos)
+    FatalismLaser = 26175, // ?->self, 4.0s cast, range 40 width 5 rect
+    Hubris = 26194, // Boss->self, 5.0s cast, single-target
+    HubrisAOE = 26195, // Helper->player, 5.0s cast, range 6 circle
+    Ekstasis = 26181, // Boss->self, 3.0s cast, single-target
+    Epigonoi = 26182, // ?->location, 3.0s cast, range 6 circle
+    Interstellar = 26189, // Boss->self, 3.0s cast, single-target
+    InterstellarAOE = 26619, // Helper->self, 5.0s cast, range 40 width 28 rect
+    Nemesis1 = 26190, // Helper->player, 5.0s cast, range 6 circle
+    Nemesis2 = 26196, // Boss->self, 5.0s cast, single-target
+    Nemesis2AOE = 26197, // Helper->player, 5.0s cast, range 6 circle
+    Planetes = 27480, // Boss->self, 4.5s cast, single-target
+    MeteorRadiant = 26198, // Kakodaimon->self, 3.0s cast, single-target
+    Crash = 26199, // ?->location, 9.0s cast, range 15 circle
+    MeteorOutburst = 26204, // Kakodaimon->self, 5.0s cast, single-target
+    DeadStarSpread = 26205, // ?->player, 5.0s cast, range 6 circle
+    Katastrophe = 26203, // Kakodaimon->self, 5.0s cast, range 40 circle
+    UltimateFate = 27481, // Boss->self, 5.0s cast, range 40 circle
+    Fatalism2 = 27483, // Boss->self, 3.0s cast, single-target
+    Telos = 26206, // Boss->self, 5.0s cast, range 40 circle
+    Telomania = 26207, // Boss->self, 3.0s cast, single-target
+    TelomaniaSmall = 26208, // ?->self, no cast, range 40 circle
+    TelomaniaBig = 26209, // ?->self, no cast, range 40 circle
+    DeadStar = 24142, // ?->location, 3.0s cast, range 6 circle
 }
 
 public enum TetherID : uint
 {
-    Tether166 = 166, // cactbot
+    Fatalism = 166, // Boss->DoomedStars
 }
+
+class Elegeia(BossModule module) : Components.RaidwideCast(module, AID.Elegeia);
+class ElegeiaUnforgotten(BossModule module) : Components.RaidwideCast(module, AID.ElegeiaUnforgotten);
+class StellarCollision(BossModule module) : Components.StandardAOEs(module, AID.StellarCollision, 30);
+class StellarCollisionRect(BossModule module) : Components.StandardAOEs(module, AID.StellarCollisionRect, new AOEShapeRect(80, 11));
+class FatalismStellarCollision(BossModule module) : Components.StandardAOEs(module, AID.FatalismStellarCollision, 30);
+
+class FatalismStars(BossModule module) : Components.GenericAOEs(module, AID.FatalismStellarCollision)
+{
+    private static readonly AOEShapeCircle _shape = new(30);
+    private readonly Dictionary<ulong, WPos> _recorded = [];
+    private readonly List<AOEInstance> _aoes = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.StellarCollision)
+            _recorded[caster.InstanceID] = caster.Position;
+        else if (spell.Action == WatchedAction && _aoes.Count > 0)
+            _aoes.RemoveAt(0);
+    }
+
+    // TODO: activation delay after the tether is a guess, verify on the first replay
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == (uint)TetherID.Fatalism && WorldState.Actors.Find(tether.Target) is { } star)
+            _aoes.Add(new(_shape, _recorded.GetValueOrDefault(star.InstanceID, star.Position), default, WorldState.FutureTime(12)));
+    }
+}
+
+// TODO: knockback distance unknown, replace with a knockback component once a replay shows it
+class Galaxias(BossModule module) : Components.CastHint(module, AID.GalaxiasAOE, "Knockback from the center, stand in the middle!")
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var c in Casters)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(c.Position, 3), Module.CastFinishAt(c.CastInfo));
+    }
+}
+
+class ElenchosCenter(BossModule module) : Components.StandardAOEs(module, AID.ElenchosCenter, new AOEShapeRect(40, 7));
+class ElenchosSides(BossModule module) : Components.StandardAOEs(module, AID.ElenchosSidesAOE, new AOEShapeRect(40, 6.5f, 40));
+
+// TODO: cone angle unknown, draw the baits once a replay shows it
+class DeathsEmbrace(BossModule module) : Components.CastHint(module, AID.DeathsEmbrace, "Spread for cones");
+class Pharmakon(BossModule module) : Components.StandardAOEs(module, AID.Pharmakon, 6);
+
+class AporrhoiaLaser(BossModule module) : Components.StandardAOEs(module, AID.AporrhoiaLaser, new AOEShapeRect(40, 2.5f));
+class FatalismLaser(BossModule module) : Components.StandardAOEs(module, AID.FatalismLaser, new AOEShapeRect(40, 2.5f));
+class Hubris(BossModule module) : Components.BaitAwayCast(module, AID.HubrisAOE, new AOEShapeCircle(6), true);
+
+// TODO: growing head puddles after Epigonoi are not handled
+class Epigonoi(BossModule module) : Components.StandardAOEs(module, AID.Epigonoi, 6);
+class Interstellar(BossModule module) : Components.StandardAOEs(module, AID.InterstellarAOE, new AOEShapeRect(40, 14));
+class Nemesis1(BossModule module) : Components.SpreadFromCastTargets(module, AID.Nemesis1, 6);
+class Nemesis2(BossModule module) : Components.SpreadFromCastTargets(module, AID.Nemesis2AOE, 6);
+
+class Crash(BossModule module) : Components.StandardAOEs(module, AID.Crash, 15);
+class DeadStarSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.DeadStarSpread, 6);
+class Katastrophe(BossModule module) : Components.RaidwideCast(module, AID.Katastrophe);
+class UltimateFate(BossModule module) : Components.RaidwideCast(module, AID.UltimateFate, "Raidwide, tank LB3!");
+
+class Telos(BossModule module) : Components.RaidwideCast(module, AID.Telos);
+class Telomania(BossModule module) : Components.RaidwideCast(module, AID.Telomania, "Raidwide x5");
+class DeadStar(BossModule module) : Components.StandardAOEs(module, AID.DeadStar, 6);
 
 class T03EndsingerStates : StateMachineBuilder
 {
     public T03EndsingerStates(BossModule module) : base(module)
     {
-        // TODO: stub from cactbot IDs + Teamcraft OIDs; components and states from the first replay
-        TrivialPhase();
+        // TODO: check whether the final phase is still the primary actor, then split phases from the first replay
+        TrivialPhase()
+            .ActivateOnEnter<Elegeia>()
+            .ActivateOnEnter<ElegeiaUnforgotten>()
+            .ActivateOnEnter<StellarCollision>()
+            .ActivateOnEnter<StellarCollisionRect>()
+            .ActivateOnEnter<FatalismStellarCollision>()
+            .ActivateOnEnter<FatalismStars>()
+            .ActivateOnEnter<Galaxias>()
+            .ActivateOnEnter<ElenchosCenter>()
+            .ActivateOnEnter<ElenchosSides>()
+            .ActivateOnEnter<DeathsEmbrace>()
+            .ActivateOnEnter<Pharmakon>()
+            .ActivateOnEnter<AporrhoiaLaser>()
+            .ActivateOnEnter<FatalismLaser>()
+            .ActivateOnEnter<Hubris>()
+            .ActivateOnEnter<Epigonoi>()
+            .ActivateOnEnter<Interstellar>()
+            .ActivateOnEnter<Nemesis1>()
+            .ActivateOnEnter<Nemesis2>()
+            .ActivateOnEnter<Crash>()
+            .ActivateOnEnter<DeadStarSpread>()
+            .ActivateOnEnter<Katastrophe>()
+            .ActivateOnEnter<UltimateFate>()
+            .ActivateOnEnter<Telos>()
+            .ActivateOnEnter<Telomania>()
+            .ActivateOnEnter<DeadStar>();
     }
 }
 
 [ModuleInfo(Incomplete = true, Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 796, NameID = 10448)]
-public class T03Endsinger(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20));
+public class T03Endsinger(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
+{
+    protected override void DrawEnemies(int pcSlot, Actor pc)
+    {
+        Arena.Actor(PrimaryActor, ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Endsinger2), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Endsinger3), ArenaColor.Enemy);
+        Arena.Actors(Enemies(OID.Kakodaimon), ArenaColor.Enemy);
+    }
+}

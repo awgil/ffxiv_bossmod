@@ -33,20 +33,24 @@ class TrueAeroIV3(BossModule module) : Components.StandardAOEs(module, AID.TrueA
 class WindSafe(BossModule module) : Components.GenericAOEs(module)
 {
     private IEnumerable<Actor> Meteors => Module.Enemies(OID.Meteor);
-    private readonly List<(Actor source, AOEInstance aoe)> SafeZones = [];
+    private readonly List<(Actor source, Actor meteor, int volley, AOEInstance aoe)> SafeZones = [];
 
     // naively, just the same width as meteor hitbox - seemed accurate during my testing, needs double-check though
-    private readonly float SafeZoneWidth = 2.4f;
+    private const float SafeZoneWidth = 2.4f;
+    private static readonly AOEShapeRect _nearMeteor = new(6, SafeZoneWidth);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => SafeZones.Take(4).Select(x => x.aoe);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var shapes = SafeZones.Take(4).Select(s => s.aoe.Shape.Distance(s.aoe.Origin, s.aoe.Rotation)).ToList();
-        if (shapes.Count == 0)
-            return;
-
-        hints.AddForbiddenZone(p => -shapes.Min(e => e(p)), SafeZones[0].aoe.Activation);
+        foreach (var volley in SafeZones.GroupBy(s => s.volley))
+        {
+            var zones = volley.Where(s => !WillBreak(s.meteor)).ToList();
+            if (zones.Count == 0)
+                zones = [.. volley];
+            var shapes = zones.Select(s => (s.volley == 0 && !WillBreak(s.meteor) ? _nearMeteor : s.aoe.Shape).Distance(s.aoe.Origin, s.aoe.Rotation)).ToList();
+            hints.AddForbiddenZone(p => -shapes.Min(e => e(p)), zones.Min(s => s.aoe.Activation));
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -56,7 +60,7 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
             NumCasts++;
             var meteorBlocking = Meteors.FirstOrDefault(x => x.Position.InRect(caster.Position, spell.Rotation, 50, 0, 5) && (NumCasts <= 4 || !WillBreak(x)));
             if (meteorBlocking != null)
-                SafeZones.Add((caster, new AOEInstance(new AOEShapeRect(50, SafeZoneWidth), meteorBlocking.Position, spell.Rotation, Module.CastFinishAt(spell), ArenaColor.SafeFromAOE, false)));
+                SafeZones.Add((caster, meteorBlocking, (NumCasts - 1) / 4, new AOEInstance(new AOEShapeRect(50, SafeZoneWidth), meteorBlocking.Position, spell.Rotation, Module.CastFinishAt(spell), ArenaColor.SafeFromAOE, false)));
         }
     }
 
@@ -129,5 +133,5 @@ class D043HermesStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10399)]
+[ModuleInfo(Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10399)]
 public class D043Hermes(ModuleInit init) : BossModule(init, new(0, -50), new ArenaBoundsCircle(20));

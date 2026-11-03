@@ -46,7 +46,7 @@ class Voidzone(BossModule module) : BossComponent(module)
     }
 }
 
-class ArcaneEdge(BossModule module) : Components.RaidwideCast(module, AID.ArcaneEdge);
+class ArcaneEdge(BossModule module) : Components.SingleTargetCast(module, AID.ArcaneEdge);
 class OldMagic(BossModule module) : Components.RaidwideCast(module, AID.OldMagic);
 class Contrapasso(BossModule module) : Components.RaidwideCast(module, AID.Contrapasso);
 
@@ -153,5 +153,5 @@ class D133DuranteStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
+[ModuleInfo(Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
 class D133Durante(ModuleInit init) : BossModule(init, new(0, -422), new ArenaBoundsCircle(23));
