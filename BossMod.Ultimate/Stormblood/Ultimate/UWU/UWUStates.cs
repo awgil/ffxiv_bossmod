@@ -661,10 +661,11 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P4FlamingCrush>(id + 0x30, 5.1f, comp => !comp.Active, "Stack")
             .ActivateOnEnter<P1EyeOfTheStorm>() // cast starts ~1.8s before crash resolve
             .ActivateOnEnter<P4Mesohigh>()
+            .ExecOnEnter<P4Mesohigh>(m => m.Order = 1)
+            .ActivateOnEnter<P4UltimateAnnihilation>()
             .DeactivateOnExit<P4FlamingCrush>();
 
         ComponentCondition<P4Mesohigh>(id + 0x40, 3.2f, comp => comp.NumCasts > 0, "Tether 1 resolve")
-            .ActivateOnEnter<P4UltimateAnnihilation>() // first orb spawns ~1.9s before tether resolve, then new orb spawns every 6 sec
             .ActivateOnEnter<P4SearingWind>() // inferno howl cast starts ~1.1s before tether resolve
             .DeactivateOnExit<P1EyeOfTheStorm>() // cast ends ~2s before tether resolve
             .DeactivateOnExit<P4Mesohigh>()
@@ -690,6 +691,7 @@ class UWUStates : StateMachineBuilder
 
         ActorCastStart(id + 0x70, _module.Ultima, AID.TankPurge, 4.3f, true)
             .ActivateOnEnter<P4Mesohigh>() // tether appears ~3.9s before cast start
+            .ExecOnEnter<P4Mesohigh>(p => p.Order = 2)
             .ActivateOnEnter<P1EyeOfTheStorm>() // eots starts ~4.2s before cast start
             .DeactivateOnExit<P1EyeOfTheStorm>(); // second eots ends ~1.2s before cast start
         ComponentCondition<P4Mesohigh>(id + 0x71, 1.1f, comp => comp.NumCasts > 0, "Tether 2 resolve")
@@ -806,18 +808,22 @@ class UWUStates : StateMachineBuilder
     // TODO: razor plumes featherlance...
     private void P5Suppression(uint id, float delay)
     {
-        ActorCast(id, _module.Ultima, AID.UltimateSuppression, delay, 3, true);
+        ActorCastStart(id, _module.Ultima, AID.UltimateSuppression, delay, true)
+            .ActivateOnEnter<P4UltimateSuppression>();
+        ActorCastEnd(id + 1, _module.Ultima, 3, true);
         ActorTargetable(id + 0x10, _module.Ultima, false, 4.4f, "Disappear (suppression)")
-            .SetHint(StateMachine.StateHint.DowntimeStart);
+            .SetHint(StateMachine.StateHint.DowntimeStart)
+            .ExecOnExit<PartyPositioning>(p => p.Boss = null);
 
-        ActorCast(id + 0x20, _module.Ifrit, AID.Eruption, 4.4f, 2.5f, false)
-            .ActivateOnEnter<P2Eruption>()
-            .ActivateOnEnter<P1MistralSongAdds>(); // icons appear ~0.9s after cast start
+        ActorCastStart(id + 0x20, _module.Ifrit, AID.Eruption, 4.4f, false)
+            .ActivateOnEnter<P5Eruption>();
+        ActorCastEnd(id + 0x21, _module.Ifrit, 2.5f, false)
+            .ActivateOnEnter<P4MistralSong>(); // icons appear ~0.9s after cast start
         // +0.8s: 4 razor plumes spawn at intercards, r=17
 
         ActorCastStart(id + 0x30, _module.Ultima, AID.LightPillar, 3.5f, true); // cast starts at the same time as 4th eruptions start
-        ComponentCondition<P1MistralSongAdds>(id + 0x31, 0.1f, comp => comp.NumCasts > 0, "Mistral song")
-            .DeactivateOnExit<P1MistralSongAdds>();
+        ComponentCondition<P4MistralSong>(id + 0x31, 0.1f, comp => comp.NumCasts > 0, "Mistral song")
+            .DeactivateOnExit<P4MistralSong>();
         ActorCastStart(id + 0x32, _module.Garuda, AID.MistralSongCone, 0.3f, false);
         // +0.6s: 3rd set of eruptions end, fetters applied
 
@@ -828,8 +834,8 @@ class UWUStates : StateMachineBuilder
         ActorCastEnd(id + 0x42, _module.Garuda, 0.2f, false)
             .DeactivateOnExit<P5MistralSongCone>();
 
-        ComponentCondition<P2Eruption>(id + 0x50, 0.6f, comp => comp.Casters.Count == 0)
-            .DeactivateOnExit<P2Eruption>();
+        ComponentCondition<P5Eruption>(id + 0x50, 0.6f, comp => comp.Casters.Count == 0)
+            .DeactivateOnExit<P5Eruption>();
 
         // second set of feathers are baited at the same time as first laser cast start
         ActorCastStartMulti(id + 0x60, _module.Ultima, [AID.AetherochemicalLaserCenter, AID.AetherochemicalLaserRight, AID.AetherochemicalLaserLeft], 1.2f, true, "Feathers bait 2")

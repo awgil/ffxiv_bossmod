@@ -59,7 +59,11 @@ class P2SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
 
 class P4SearingWind(BossModule module) : Components.StrictUniformStackSpread(module, 0, 14, alwaysShowSpreads: true, includeDeadTargets: true)
 {
-    ArcList _safety = new(default, 0);
+    ArcList SafeAngles = new(default, 0);
+
+    int NumMesohigh;
+
+    bool DashMode = true;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -67,11 +71,11 @@ class P4SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
         {
             AddSpread(target, WorldState.FutureTime(8));
 
-            _safety = new(Arena.Center, 18.5f);
-            _safety.ForbidInfiniteRect(caster.Position, caster.Rotation, 9);
-            _safety.ForbidInfiniteRect(caster.Position + caster.Rotation.ToDirection().OrthoR() * 20, caster.Rotation, 9);
-            _safety.ForbidInfiniteRect(caster.Position + caster.Rotation.ToDirection().OrthoL() * 20, caster.Rotation, 9);
-            _safety.ForbidInfiniteCone(Arena.Center, 180.Degrees(), 135.Degrees());
+            SafeAngles = new(Arena.Center, 18.5f);
+            SafeAngles.ForbidInfiniteRect(caster.Position, caster.Rotation, 9);
+            SafeAngles.ForbidInfiniteRect(caster.Position + caster.Rotation.ToDirection().OrthoR() * 20, caster.Rotation, 9);
+            SafeAngles.ForbidInfiniteRect(caster.Position + caster.Rotation.ToDirection().OrthoL() * 20, caster.Rotation, 9);
+            SafeAngles.ForbidInfiniteCone(Arena.Center, 180.Degrees(), 135.Degrees());
         }
     }
 
@@ -90,13 +94,26 @@ class P4SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
                     spread.Activation = WorldState.FutureTime(6);
             }
         }
+
+        if ((AID)spell.Action.ID == AID.CrimsonCycloneCross)
+            DashMode = false;
+
+        if ((AID)spell.Action.ID == AID.Mesohigh)
+            NumMesohigh++;
     }
 
     public override (WPos, float)? GetSpreadDestination(int order, Actor target)
     {
-        var (min, max) = _safety.NextAllowed(180.Degrees(), false);
-        var closest = min.Abs() > max.Abs() ? min : max;
-        return (Arena.Center + closest.ToDirection() * 18.5f, 1.5f);
+        if (DashMode)
+        {
+            var (min, max) = SafeAngles.NextAllowed(180.Degrees(), false);
+            var closest = min.Abs() > max.Abs() ? min : max;
+            return (Arena.Center + closest.ToDirection() * 18.5f, 1.5f);
+        }
+        else if (WorldState.Actors.Any(a => a.CastInfo?.IsSpell(AID.EyeOfTheStorm) == true))
+            return (Arena.Center + new WDir(0, 11), 0);
+        else
+            return (Arena.Center + new WDir(0, 14), 4);
     }
 }
 

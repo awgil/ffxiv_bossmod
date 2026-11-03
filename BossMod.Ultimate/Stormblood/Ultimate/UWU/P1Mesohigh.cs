@@ -84,65 +84,17 @@ class P1Mesohigh(BossModule module) : Mesohigh(module)
 
 class P4Mesohigh(BossModule module) : Mesohigh(module)
 {
-    WPos partyDodgeBasis;
-    bool stackDone;
-
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
-    {
-        base.OnCastStarted(caster, spell);
-
-        if ((AID)spell.Action.ID == AID.WeightOfTheLandAOE && stackDone)
-            partyDodgeBasis = spell.LocXZ;
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        base.OnEventCast(caster, spell);
-
-        if ((AID)spell.Action.ID == AID.FlamingCrush)
-            stackDone = true;
-    }
+    public int Order;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        switch (assignment)
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (Order == 2 && actor.FindStatus(SID.SearingWind) != null && WorldState.Actors.Find(Module.PrimaryActor.Tether.Target) is { } currentTarget && currentTarget != actor)
         {
-            // R1 can move early since they won't get it anyone's way
-            case PartyRolesConfig.Assignment.R1:
-                if (stackDone)
-                {
-                    if (WorldState.Actors.Find(Module.PrimaryActor.Tether.Target) is { } tetherTarget && tetherTarget != actor)
-                    {
-                        var toGaruda = tetherTarget.DirectionTo(Module.PrimaryActor);
-                        hints.AddForbiddenZone(ShapeDistance.PrecisePosition(tetherTarget.Position + toGaruda * 3, new(0, 1), Arena.Bounds.MapResolution, actor.Position, 0.1f));
-                    }
-                    else
-                        // take tether around C (rect so we can dodge feather rain)
-                        hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(100, 105), new WPos(100, 110), 1), DateTime.MaxValue);
-                }
-                break;
-
-            // dps have no particular job, dodge north
-            case PartyRolesConfig.Assignment.M1:
-            case PartyRolesConfig.Assignment.M2:
-            case PartyRolesConfig.Assignment.R2:
-                if (partyDodgeBasis != default)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(96, 84), 1), DateTime.MaxValue);
-                break;
-
-            // tanks walk into orb
-            case PartyRolesConfig.Assignment.MT:
-            case PartyRolesConfig.Assignment.OT:
-                if (partyDodgeBasis != default)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedRect(partyDodgeBasis, new WDir(1, 0), 100, 0, 1));
-                break;
-
-            // healers spread W
-            case PartyRolesConfig.Assignment.H1:
-            case PartyRolesConfig.Assignment.H2:
-                if (partyDodgeBasis != default)
-                    hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(84, 100), 1), DateTime.MaxValue);
-                break;
+            hints.ForbiddenZones.Clear();
+            var intercept = Module.PrimaryActor.Position + Module.PrimaryActor.DirectionTo(currentTarget) * 7;
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(intercept, new(0, 1), 0.5f, actor.Position, 0.1f));
         }
     }
 }
