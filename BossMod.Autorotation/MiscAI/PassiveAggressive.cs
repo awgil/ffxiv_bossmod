@@ -25,6 +25,10 @@ public sealed class PassiveAggressive(RotationModuleManager manager, Actor playe
         if (strategy.Option(Track.Pull).As<Flag>() != Flag.Enabled)
             return;
 
+        // stop pulling extra guys when forlorn spawns
+        if (Hints.PotentialTargets.Any(p => p.Actor.AggroPlayer && p.Actor.NameID is 6737 or 6738))
+            return;
+
         float maxRange;
 
         if (Player.Role is Role.Healer or Role.Ranged)

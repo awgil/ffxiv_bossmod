@@ -14,14 +14,11 @@ on:
 
 jobs:
   build:
-    uses: xanunderscore/DynamisPublishAction/.github/workflows/dynamis.yml@msbuild
+    uses: xanunderscore/DynamisPublishAction/.github/workflows/dynamis.yml@master
     with:
       plugin_id: 30
-      internal_name: BossMod
       project_file: BossMod/BossMod.csproj
-      dotnet_version: 10.0.x
-      dalamud_version: 15
-      testing: ${{ github.ref == 'refs/heads/testing' || inputs.testing == 'true' }}
+      testing: ${{ inputs.testing || github.ref == 'refs/heads/testing' }}
     secrets:
       publisher_key: ${{ secrets.PUBLISHER_KEY }}
 

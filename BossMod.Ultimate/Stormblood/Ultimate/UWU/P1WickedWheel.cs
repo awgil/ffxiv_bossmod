@@ -70,3 +70,14 @@ class P4WickedWheel(BossModule module) : WickedWheel(module)
             Sources.Add((actor, ShapeCombined, WorldState.FutureTime(8.1f)));
     }
 }
+
+class P5WickedWheel(BossModule module) : WickedWheel(module)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+
+        if (NumCasts == 0 && Sources.Count > 0)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Sources[0].source.Position, 10), Sources[0].activation);
+    }
+}

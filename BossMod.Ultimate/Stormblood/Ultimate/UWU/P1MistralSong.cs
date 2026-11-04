@@ -104,3 +104,51 @@ class P1MistralSongAdds(BossModule module) : Components.CastCounter(module, AID.
 }
 
 class P1GreatWhirlwind(BossModule module) : Components.StandardAOEs(module, AID.GreatWhirlwind, 8);
+
+class P4MistralSong(BossModule module) : Components.CastCounter(module, AID.MistralSongAdds)
+{
+    BitMask Targets;
+
+    readonly List<(Actor Source, Actor? Target)> Pairs = [];
+
+    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
+    {
+        if ((IconID)iconID == IconID.MistralSong)
+            Targets.Set(Raid.FindSlot(targetID));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (actor.Role == Role.Tank && Pairs.Any(p => p.Target is { Role: not Role.Tank }))
+            hints.Add("Intercept add!");
+        else if (Pairs.Any(p => p.Target == actor))
+            hints.Add("GTFO from add!");
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        foreach (var (p, t) in Pairs)
+        {
+            Arena.Actor(p, ArenaColor.Object, true);
+            if (t != null)
+            {
+                if (Arena.Config.ShowOutlinesAndShadows)
+                    Arena.AddLine(p.Position, t.Position, 0xFF000000, 2);
+                Arena.AddLine(p.Position, t.Position, ArenaColor.Danger);
+            }
+        }
+    }
+
+    public override void Update()
+    {
+        Pairs.Clear();
+
+        if (Targets.Any())
+            foreach (var sister in Module.Enemies(OID.GarudaSister))
+            {
+                var targetCones = ShapeDistance.Union([.. Raid.WithSlot().IncludedInMask(Targets).Select(t => ShapeDistance.Cone(sister.Position, 40, sister.AngleTo(t.Item2), 90.Degrees()))]);
+
+                Pairs.Add((sister, Raid.WithoutSlot().Where(a => targetCones(a.Position) <= 0).Closest(sister.Position)));
+            }
+    }
+}

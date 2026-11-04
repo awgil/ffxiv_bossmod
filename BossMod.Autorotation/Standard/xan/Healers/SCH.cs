@@ -12,6 +12,8 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         public Track<AOEStrategy> AOE;
         [Track("Chain Stratagem", Actions = [AID.ChainStratagem, AID.Dissipation], Targets = ActionTargets.Hostile)]
         public Track<OffensiveStrategy> Buffs;
+        [Track("Fairy management")]
+        public Track<SummonBehavior> Summon;
         [Track("Fairy placement")]
         public Track<FairyPlacement> FairyPlace;
 
@@ -29,6 +31,16 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         FullAuto,
         [Option("Place fairy at specified location", Targets = ActionTargets.Area, Context = StrategyContext.Plan)]
         Specific
+    }
+
+    public enum SummonBehavior
+    {
+        [Option("Summon fairy if missing")]
+        Summon,
+        [Option("Dismiss fairy if summoned")]
+        Dismiss,
+        [Option("Do nothing")]
+        Disabled,
     }
 
     public static RotationModuleDefinition Definition()
@@ -93,7 +105,7 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
         if (Eos != null || FairyGone)
             _summonWait = World.CurrentTime.AddSeconds(1);
 
-        if (Eos == null && !FairyGone && World.CurrentTime > _summonWait)
+        if (Eos == null && !FairyGone && World.CurrentTime > _summonWait && strategy.Summon.Value == SummonBehavior.Summon)
             PushGCD(AID.SummonEos, Player);
 
         OGCD(strategy, primaryTarget);
@@ -169,6 +181,12 @@ public sealed class SCH(RotationModuleManager manager, Actor player) : Castxan<A
 
     private void OrderFairy(Strategy strategy)
     {
+        if (strategy.Summon.Value == SummonBehavior.Dismiss && Eos != null)
+        {
+            Hints.ActionsToExecute.Push(new ActionID(ActionType.PetAction, 1), null, ActionQueue.Priority.VeryHigh);
+            return;
+        }
+
         if (Eos == null)
             return;
 
