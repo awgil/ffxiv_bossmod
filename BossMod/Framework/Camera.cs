@@ -78,17 +78,16 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         {
             if (circle.Filled)
                 drawList.AddCircleFilled(circle.Center, circle.Radius, circle.Color, p: p(isLine: false, occluded: circle.Occluded) with { ProjectionHeight = circle.Dimension });
-            else
+            else if (circle.Radius > 0)
                 drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Dimension, p: p(false, circle.Occluded));
+            else
+                drawList.AddDot(circle.Center, circle.Dimension, circle.Color);
         }
-        //foreach (var cf in _circlesFilled)
-        //drawList.AddCircleFilled(cf.Center, cf.Radius, cf.Color, cf.OutlineColor, p: p(false, cf.Occluded) with { ProjectionHeight = cf.ProjectionHeight });
 
         _lines.Clear();
         _cones.Clear();
         _arcs.Clear();
         _circles.Clear();
-        //_circlesFilled.Clear();
     }
 
     public void AddLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
