@@ -61,8 +61,6 @@ class P4SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
 {
     ArcList SafeAngles = new(default, 0);
 
-    int NumMesohigh;
-
     bool DashMode = true;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -97,9 +95,6 @@ class P4SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
 
         if ((AID)spell.Action.ID == AID.CrimsonCycloneCross)
             DashMode = false;
-
-        if ((AID)spell.Action.ID == AID.Mesohigh)
-            NumMesohigh++;
     }
 
     public override (WPos, float)? GetSpreadDestination(int order, Actor target)
