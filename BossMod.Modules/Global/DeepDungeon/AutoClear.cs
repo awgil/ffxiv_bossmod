@@ -439,7 +439,10 @@ public abstract partial class AutoClear : ZoneModule
                     InterestingObjects.Add(new(a, GoalType.Hoard, dist));
 
                 if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive && !player.InCombat)
-                    InterestingObjects.Add(new(a, GoalType.Passage, dist));
+                {
+                    if (!(_config.FullClear && Palace.Rooms.Any(r => r > 0 && !r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Revealed))))
+                        InterestingObjects.Add(new(a, GoalType.Passage, dist));
+                }
             }
 
             if (RevealedTrapOIDs.Contains(a.OID))

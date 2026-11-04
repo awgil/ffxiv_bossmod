@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 [ConfigDisplay(Name = "In-game overlay", Order = -8, Group = "General")]
-internal class OverlayConfig : ConfigNode
+public class OverlayConfig : ConfigNode
 {
     public enum PixelBehavior
     {
