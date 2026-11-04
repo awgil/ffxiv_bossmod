@@ -57,7 +57,7 @@ internal class OverlayService(
             _ => false
         };
 
-        if (showRing && worldstate.Actors.Find(player.TargetID) is { } target)
+        if (showRing && worldstate.Actors.Find(player.TargetID) is { IsAlly: false } target)
             DrawTargetRing(player, target);
 
         if (_arConfig.ShowPositionals)
