@@ -4,11 +4,16 @@ class Ex2HydaelynStates : StateMachineBuilder
 {
     public Ex2HydaelynStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase)
-            .ActivateOnEnter<WeaponTracker>();
+        SimplePhase(0, Phase1, "Before adds")
+            .ActivateOnEnter<WeaponTracker>()
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.PrimaryActor.HPMP.CurHP == 0 || !Module.PrimaryActor.IsTargetable;
+        SimplePhase(0x10, Intermission, "Intermission")
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.PrimaryActor.HPMP.CurHP == 0 || Module.PrimaryActor.IsTargetable;
+        DeathPhase(0x11, Phase2)
+            .DeactivateOnExit<WeaponTracker>();
     }
 
-    private void SinglePhase(uint id)
+    private void Phase1(uint id)
     {
         HerosRadiance(id, 10.2f);
         ShiningSaber(id + 0x10000, 5.2f);
@@ -34,7 +39,7 @@ class Ex2HydaelynStates : StateMachineBuilder
         MousaScorn(id + 0x30000, 3.2f);
         Aureole(id + 0x40000, 5.2f);
         CrystallizeSwitchWeapon(id + 0x50000, 4.6f, true);
-        ForkFirstMerge(id, 2.2f);
+        Targetable(id + 0x100000, false, 2.2f, "Intermission start");
     }
 
     private void ForkFirstChakram(uint id)
@@ -45,12 +50,11 @@ class Ex2HydaelynStates : StateMachineBuilder
         MagosRadiance(id + 0x30000, 2.7f);
         Aureole(id + 0x40000, 5.2f);
         CrystallizeSwitchWeapon(id + 0x50000, 4.6f, true);
-        ForkFirstMerge(id, 2.2f);
+        Targetable(id + 0x100000, false, 2.2f, "Intermission start");
     }
 
-    private void ForkFirstMerge(uint id, float delay)
+    private void Phase2(uint id)
     {
-        Intermission(id + 0x100000, delay);
         Halo(id + 0x200000, 10.2f);
         Lightwave1(id + 0x210000, 4.1f);
         Lightwave2(id + 0x220000, 2.1f);
@@ -97,21 +101,22 @@ class Ex2HydaelynStates : StateMachineBuilder
         Cast(id + 0x190000, AID.Enrage, 9.5f, 10, "Enrage");
     }
 
-    private void Intermission(uint id, float delay)
+    private void Intermission(uint id)
     {
         var echoes = Module.Enemies(OID.Echo);
+        var crystals = Module.Enemies(OID.CrystalOfLight);
 
-        Targetable(id, false, delay, "Intermission start");
+        Targetable(id, false, 0, "Intermission start");
         ComponentCondition<PureCrystal>(id + 0x10000, 12.5f, comp => comp.NumCasts > 0, "Raidwide + adds appear")
             .ActivateOnEnter<PureCrystal>()
             .DeactivateOnExit<PureCrystal>()
             .SetHint(StateMachine.StateHint.DowntimeEnd); // crystals become targetable ~0.1s before, echoes ~0.1s after
-        Condition(id + 0x20000, 60, () => !echoes.Any(e => e.IsTargetable && !e.IsDead), "Adds down", 10000, 1) // note that time is arbitrary
+        Condition(id + 0x20000, 60, () => !echoes.Any(e => e.IsTargetable && !e.IsDead) && !crystals.Any(c => c.IsTargetable && !c.IsDead), "Adds down", 10000, 1) // crystals can outlive echoes when unsynced
             .ActivateOnEnter<IntermissionAdds>()
             .DeactivateOnExit<IntermissionAdds>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
         // +2.1s: boss casts 26043 'Exodus'
-        ComponentCondition<Exodus>(id + 0x30000, 16.9f, comp => comp.NumCasts > 0, "Raidwide")
+        ComponentCondition<Exodus>(id + 0x30000, 16.9f, comp => comp.NumCasts > 0, "Raidwide", float.MaxValue)
             .ActivateOnEnter<Exodus>()
             .DeactivateOnExit<Exodus>();
         Targetable(id + 0x40000, true, 5.2f, "Intermission end");

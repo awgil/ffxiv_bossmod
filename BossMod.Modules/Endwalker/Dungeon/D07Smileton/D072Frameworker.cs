@@ -32,30 +32,38 @@ class LeapForward(BossModule module) : Components.GroupedAOEs(module, [AID.LeapF
 class OmnidimensionalOnslaught(BossModule module) : Components.GenericAOEs(module, AID.OmnidimensionalOnslaughtAOE)
 {
     private static readonly AOEShapeCone _shape = new(40, 22.5f.Degrees());
-    private readonly List<AOEInstance> _aoes = [];
+    private readonly List<(ulong caster, AOEInstance aoe)> _aoes = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var deadline = _aoes.FirstOrDefault().Activation.AddSeconds(1);
-        return _aoes.TakeWhile(aoe => aoe.Activation < deadline);
+        var deadline = _aoes.FirstOrDefault().aoe.Activation.AddSeconds(1);
+        return _aoes.TakeWhile(c => c.aoe.Activation < deadline).Select(c => c.aoe);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
         {
-            _aoes.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell)));
-            _aoes.SortBy(aoe => aoe.Activation);
+            _aoes.Add((caster.InstanceID, new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell))));
+            _aoes.SortBy(c => c.aoe.Activation);
         }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == WatchedAction && _aoes.Count > 0)
+        if (spell.Action == WatchedAction)
         {
             ++NumCasts;
-            _aoes.RemoveAt(0);
+            var index = _aoes.FindIndex(c => c.caster == caster.InstanceID);
+            if (index >= 0)
+                _aoes.RemoveAt(index);
         }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+            _aoes.RemoveAll(c => c.caster == caster.InstanceID);
     }
 }
 

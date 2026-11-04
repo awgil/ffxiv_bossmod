@@ -249,11 +249,9 @@ class ForgedTrack(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID != AID.ForgedTrackAOE)
             return;
-        var id = _aoes.FirstOrDefault(kv => kv.Value.Rotation.AlmostEqual(caster.Rotation, 0.1f)).Key;
+        var id = _aoes.FirstOrDefault(kv => kv.Value.Origin.AlmostEqual(caster.Position, 1) && kv.Value.Rotation.AlmostEqual(caster.Rotation, 0.1f)).Key;
         if (id != 0)
             _aoes.Remove(id);
-        else if (_aoes.Count > 0)
-            _aoes.Remove(_aoes.Keys.First());
     }
 }
 

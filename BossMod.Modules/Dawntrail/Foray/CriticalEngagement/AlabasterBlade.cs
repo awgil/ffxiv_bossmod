@@ -41,7 +41,7 @@ class EmbrittlingBlade(BossModule module) : Components.RaidwideCastDelay(module,
 
 class Acclaim(BossModule module) : Components.GenericAOEs(module)
 {
-    record struct Caster(Actor Source, List<Angle> Angles, DateTime Next, bool Telegraphed);
+    record struct Caster(Actor Source, List<Angle> Angles, DateTime Next, ushort? ArrowPattern);
 
     readonly List<Caster> _casters = [];
 
@@ -50,7 +50,7 @@ class Acclaim(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AcclaimSlow)
-            _casters.Add(new(caster, [spell.Rotation], Module.CastFinishAt(spell), false));
+            _casters.Add(new(caster, [spell.Rotation], Module.CastFinishAt(spell), null));
         if ((AID)spell.Action.ID == AID.AcclaimFast)
         {
             var ix = _casters.FindIndex(c => c.Source == caster);
@@ -91,13 +91,14 @@ class Acclaim(BossModule module) : Components.GenericAOEs(module)
                 return;
             }
 
-            if (_casters[ix].Telegraphed)
+            if (_casters[ix].ArrowPattern is { } pattern)
             {
-                ReportError($"Duplicate arrow status for golem {actor}, skipping it");
+                if (pattern != status.Extra)
+                    ReportError($"Conflicting arrow status for golem {actor}: {pattern:X} -> {status.Extra:X}, skipping it");
                 return;
             }
 
-            _casters.Ref(ix).Telegraphed = true;
+            _casters.Ref(ix).ArrowPattern = status.Extra;
 
             var starting = _casters[ix].Angles[0];
 

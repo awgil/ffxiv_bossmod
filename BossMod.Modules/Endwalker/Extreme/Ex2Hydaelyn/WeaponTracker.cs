@@ -2,7 +2,7 @@
 
 // component tracking boss weapon/stance switches; also draws imminent aoe after each switch
 // note: we could rely on invisible buff 2273 to select weapon (n/a for sword, 1B4 for staff, 1B5 for chakram), it appears slightly earlier than 'official' buff
-class WeaponTracker(BossModule module) : BossComponent(module)
+class WeaponTracker : BossComponent
 {
     public enum Stance { None, Sword, Staff, Chakram }
     public Stance CurStance { get; private set; }
@@ -11,6 +11,11 @@ class WeaponTracker(BossModule module) : BossComponent(module)
     private static readonly AOEShapeRect _aoeSword = new(20, 5, 20);
     private static readonly AOEShapeCircle _aoeStaff = new(10);
     private static readonly AOEShapeDonut _aoeChakram = new(5, 40);
+
+    public WeaponTracker(BossModule module) : base(module)
+    {
+        KeepOnPhaseChange = true;
+    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

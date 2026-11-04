@@ -99,6 +99,12 @@ class RingOfMight(BossModule module) : Components.GenericAOEs(module)
         if (Casters.Count > 1)
             hints.AddForbiddenZone(ShapeDistance.Donut(Casters[0].Caster.Position, ((AOEShapeCircle)Casters[0].Shape).Radius + 2, 60), Module.CastFinishAt(Casters[0].Caster.CastInfo));
     }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.RingOfMightInnerSmall or AID.RingOfMightInnerMedium or AID.RingOfMightInnerLarge or AID.RingOfMightOuterSmall or AID.RingOfMightOuterMedium or AID.RingOfMightOuterLarge)
+            Casters.RemoveAll(c => c.Caster == caster);
+    }
 }
 
 class RushOfMight(BossModule module) : Components.GenericAOEs(module)
@@ -136,8 +142,14 @@ class RushOfMight(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.RushOfMightForward or AID.RushOfMightBackward)
         {
             NumCasts++;
-            Casters.RemoveAt(0);
+            Casters.Remove(caster);
         }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.RushOfMightForward or AID.RushOfMightBackward)
+            Casters.Remove(caster);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

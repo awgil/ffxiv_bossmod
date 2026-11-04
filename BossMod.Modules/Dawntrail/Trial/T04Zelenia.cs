@@ -90,9 +90,9 @@ public enum TetherID : uint
 
 class AlexandrianThunderIV(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = [];
+    private readonly List<(ulong caster, AOEInstance aoe)> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Count > 0 ? _aoes.Where(a => a.Activation <= _aoes[0].Activation.AddSeconds(1)) : [];
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Count > 0 ? _aoes.Where(c => c.aoe.Activation <= _aoes[0].aoe.Activation.AddSeconds(1)).Select(c => c.aoe) : [];
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -104,17 +104,21 @@ class AlexandrianThunderIV(BossModule module) : Components.GenericAOEs(module)
         };
         if (shape != null)
         {
-            _aoes.Add(new(shape, spell.LocXZ, default, Module.CastFinishAt(spell)));
-            _aoes.SortBy(a => a.Activation);
+            _aoes.Add((caster.InstanceID, new(shape, spell.LocXZ, default, Module.CastFinishAt(spell))));
+            _aoes.SortBy(c => c.aoe.Activation);
         }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.AlexandrianThunderIVCircle1 or AID.AlexandrianThunderIVCircle2 or AID.AlexandrianThunderIVDonut1 or AID.AlexandrianThunderIVDonut2 && _aoes.Count > 0)
+        if ((AID)spell.Action.ID is AID.AlexandrianThunderIVCircle1 or AID.AlexandrianThunderIVCircle2 or AID.AlexandrianThunderIVDonut1 or AID.AlexandrianThunderIVDonut2)
         {
-            ++NumCasts;
-            _aoes.RemoveAt(0);
+            var index = _aoes.FindIndex(c => c.caster == caster.InstanceID);
+            if (index >= 0)
+            {
+                ++NumCasts;
+                _aoes.RemoveAt(index);
+            }
         }
     }
 }

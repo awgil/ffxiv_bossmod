@@ -75,11 +75,14 @@ class Landslip(BossModule module) : Components.Knockback(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var c in _casters)
-            // forbid the half of each lane that would result in the player being pushed into the death wall
-            // TODO make this work with towerfall too...not a huge priority because duty support healer can keep
-            // player alive in that case
-            hints.AddForbiddenZone(new AOEShapeRect(10, 5, 10), c.Position + c.Rotation.ToDirection() * 30);
+        foreach (var src in Sources(slot, actor))
+        {
+            if (IsImmune(slot, src.Activation))
+                continue;
+
+            var offset = src.Direction.ToDirection() * src.Distance;
+            hints.AddForbiddenZone(Sdf.Discrete(p => src.Shape?.Check(p, src.Origin, src.Direction) != false && DestinationUnsafe(slot, actor, p + offset)), src.Activation);
+        }
     }
 }
 
@@ -179,5 +182,5 @@ class D132DamcyanAntilonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
+[ModuleInfo(Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
 public class D132DamcyanAntilon(ModuleInit init) : BossModule(init, new(0, 60), new ArenaBoundsRect(19.5f, 25));
