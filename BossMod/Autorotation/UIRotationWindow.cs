@@ -131,8 +131,8 @@ public sealed class UIRotationWindow : UIWindow
         }
 
         var upcoming = new List<(string label, float seconds)>();
-        if (next(AIHints.PredictedDamageType.Raidwide, StateMachine.StateHint.Raidwide) is var (rw, _))
-            upcoming.Add(("Raidwide", rw));
+        if (next(AIHints.PredictedDamageType.Raidwide, StateMachine.StateHint.Raidwide) is var (rw, rws))
+            upcoming.Add((rws == 1 ? "Spread" : "Raidwide", rw));
         if (next(AIHints.PredictedDamageType.Tankbuster, StateMachine.StateHint.Tankbuster) is var (tb, tanks))
             upcoming.Add((tanks > 1 ? $"Tankbuster x{tanks}" : "Tankbuster", tb));
         if (next(AIHints.PredictedDamageType.Shared, StateMachine.StateHint.None) is var (st, _))

@@ -126,10 +126,15 @@ class P4ViscousAetheroplasmResolve(BossModule module) : Components.StrictUniform
     }
 }
 
-class P5ViscousAetheroplasmTriple(BossModule module) : Components.UniformStackSpread(module, 4, 0, 8)
+class P5ViscousAetheroplasmTriple : Components.UniformStackSpread
 {
     public int NumCasts { get; private set; }
     private readonly List<(Actor target, DateTime resolve)> _aetheroplasms = [];
+
+    public P5ViscousAetheroplasmTriple(BossModule module) : base(module, 4, 0, 8)
+    {
+        EnableHints = false;
+    }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {

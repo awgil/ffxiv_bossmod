@@ -127,8 +127,6 @@ class P4MistralSong(BossModule module) : Components.CastCounter(module, AID.Mist
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        Arena.AddCircle(new(86.29f, 86.29f), 21.7f, ArenaColor.Danger);
-
         foreach (var (p, t) in Pairs)
         {
             Arena.Actor(p, ArenaColor.Object, true);

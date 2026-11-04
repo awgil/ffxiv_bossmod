@@ -4,7 +4,7 @@
 class P2Eruption(BossModule module, int numTargets) : Components.StandardAOEs(module, AID.EruptionAOE, 8)
 {
     public int NumCastsStarted { get; private set; }
-    protected BitMask Targets;
+    public BitMask Targets;
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
@@ -162,26 +162,41 @@ class P4Eruption(BossModule module) : P2Eruption(module, 2)
 
 class P5Eruption(BossModule module) : P2Eruption(module, 3)
 {
-    DateTime FirstCastStart;
+    bool MistralSongDone;
 
-    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnCastStarted(caster, spell);
+        base.OnEventCast(caster, spell);
 
-        if (spell.Action == WatchedAction && FirstCastStart == default)
-            FirstCastStart = WorldState.CurrentTime;
+        if ((AID)spell.Action.ID == AID.MistralSongAdds)
+            MistralSongDone = true;
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
+        if (MistralSongDone || actor.Role == Role.Tank || NumCastsStarted == 0)
+            return;
+
         if (Targets[slot])
         {
-            // bait diagonally across the arena
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new(80, 80), new(120, 120), 1), FirstCastStart.AddSeconds(2));
+            WPos dest = NumCastsStarted switch
+            {
+                <= 3 => new(94, 94),
+                <= 6 => new(101, 96.5f),
+                <= 9 => new(110, 96.5f),
+                _ => new(110, 105.5f)
+            };
+
+            hints.AddForbiddenZone(ShapeDistance.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.1f));
         }
-        else if (actor.Role != Role.Tank && FirstCastStart != default)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(91, 109), 2), FirstCastStart.AddSeconds(6.1f));
+        else
+        {
+            // hide behind tanks
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(new(91, 111), 1));
+        }
     }
 }
+
+class P5Eruption2(BossModule module) : P2Eruption(module, 2);

@@ -18,7 +18,6 @@ class P5AetherochemicalLaserCenter(BossModule module) : Components.StandardAOEs(
 class P5AetherochemicalLaserRight(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserRight, new AOEShapeRect(46, 4));
 class P5AetherochemicalLaserLeft(BossModule module) : Components.StandardAOEs(module, AID.AetherochemicalLaserLeft, new AOEShapeRect(46, 4));
 class P5LightPillar(BossModule module) : Components.StandardAOEs(module, AID.LightPillarAOE, 3); // TODO: consider showing circle around baiter
-class P5AethericBoom(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AethericBoom, 10);
 
 [ModuleInfo(PrimaryActorOID = (uint)OID.Garuda, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 539, PlanLevel = 70)]
 public class UWU : BossModule

@@ -90,7 +90,8 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
         {
             var gravity = Module.Enemies(OID.Gravitas).Select(g => ShapeDistance.Circle(g.Position, 5 + SpreadRadius + ExtraAISpreadThreshold)).ToList();
             // away from gravity
-            hints.AddForbiddenZone(ShapeDistance.Union(gravity), Spreads[0].Activation);
+            if (gravity.Count > 0)
+                hints.AddForbiddenZone(ShapeDistance.Union(gravity), Spreads[0].Activation);
 
             var spreadParty = _config.P1GravityPuddleSpread[assignment];
             // spread on predetermined side, otherwise we confuse our teammates
