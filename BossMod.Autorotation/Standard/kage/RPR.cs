@@ -561,7 +561,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         if (strategy.Slice.Value != SliceStrategy.Delay && GCDReady(SliceAction) && !JustUsed(SliceAction, GCDLength) && Soul < 100
             && (Soul < 50 || ReadyIn(AID.Gluttony) > GCD + GCDLength || SliceCapping))
-            PushGCD(SliceAction, AOEMode ? Player : target.Actor, 85);
+            PushGCD(SliceAction, SliceAction == AID.SoulScythe ? Player : target.Actor, 85);
     }
 
     private void UseDeathsDesign(in Strategy strategy, Enemy target)
@@ -674,13 +674,13 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             PushGCD(EnhancedCrossLeft > GCD ? AID.CrossReaping : AID.VoidReaping, target.Actor, 65);
     }
 
-    private AID SliceAction => AOEMode ? AID.SoulScythe : AID.SoulSlice;
+    private AID SliceAction => AOEMode && Unlocked(AID.SoulScythe) ? AID.SoulScythe : AID.SoulSlice;
     private bool SliceCapping => MaxChargesIn(SliceAction) <= GCD + GCDLength * 2;
 
     private void UseSoulSlice(in Strategy strategy, Enemy target)
     {
         if (GCDReady(SliceAction) && ShouldSlice(strategy.Slice.Value))
-            PushGCD(SliceAction, AOEMode ? Player : ResolveTarget(strategy.Slice) ?? target.Actor, 60);
+            PushGCD(SliceAction, SliceAction == AID.SoulScythe ? Player : ResolveTarget(strategy.Slice) ?? target.Actor, 60);
     }
 
     private bool ShouldSlice(SliceStrategy strategy)

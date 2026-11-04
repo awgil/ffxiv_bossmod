@@ -192,9 +192,11 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(AID.AfflatusMisery, misery, 8);
             if (SacredSight > 0)
                 PushGCD(AID.GlareIV, splash.Actor, 7);
-            if (Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) == 0).MaxBy(e => e.Actor.HPMP.CurHP) is { } spread)
+            if (!ForceST && strategy.Dot.Value == DotStrategy.Automatic
+                && Hints.PriorityTargets.Where(e => Player.DistanceToHitbox(e.Actor) <= 25 && DotWorthIt(e) && DotLeft(e.Actor) == 0).MaxBy(e => e.Actor.HPMP.CurHP) is { } spread)
                 PushGCD(AID.Aero, spread.Actor, 6);
-            PushGCD(AID.Aero, target.Actor, 5);
+            if (!target.ForbidDOTs || strategy.Dot.Value == DotStrategy.Force)
+                PushGCD(AID.Aero, target.Actor, 5);
         }
     }
 
@@ -225,7 +227,7 @@ public sealed class KageWHM(RotationModuleManager manager, Actor player) : KageS
     {
         if (strategy.Dot.Value == DotStrategy.Force)
             return JustUsed(AID.Dia, 5) || JustUsed(AID.AeroII, 5) || JustUsed(AID.Aero, 5) ? null : target.Actor;
-        var dot = DotTargetFor(target, DotLeft, DotRefresh, 8, strategy.Dot.Value == DotStrategy.Automatic);
+        var dot = DotTargetFor(target, DotLeft, DotRefresh, 8, !ForceST && strategy.Dot.Value == DotStrategy.Automatic);
         return dot == null || !AOEMode || dot == target.Actor || DiaOverHolyAfter <= 30 && TimeToKill.Estimate(dot) >= DiaOverHolyAfter ? dot : null;
     }
 

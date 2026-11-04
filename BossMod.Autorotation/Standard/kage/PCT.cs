@@ -223,7 +223,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             PushGCD(AID.StarPrism, splash, Starstruck < GCD + GCDLength * 2 ? 63 : 60);
 
         if (inStarry && Hyperphantasia > 0 && Subtractive && HyperStacks > prismReserve + (cometReady ? 1 : 0))
-            PushGCD(blizzard, spellTarget, 62, ScaledCastTime(AID.BlizzardInCyan));
+            PushGCD(blizzard, spellTarget, 62, HardcastTime(AID.BlizzardInCyan));
 
         if (RainbowBright > GCD)
             PushGCD(AID.RainbowDrip, BestLine ?? target.Actor, inStarry && HammerTime > GCD ? 47 : 58);
@@ -252,13 +252,13 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             MovementGCDs(strategy, splash);
 
         if (Subtractive)
-            PushGCD(blizzard, spellTarget, 20, ScaledCastTime(AID.BlizzardInCyan));
+            PushGCD(blizzard, spellTarget, 20, HardcastTime(AID.BlizzardInCyan));
 
         if (strategy.Holy.Value != OffensiveStrategy.Delay && !Monochrome && Paint > 0
             && (strategy.Holy.Value == OffensiveStrategy.Force || Dying || AOEMode || SplashCount > 1 && Paint > 1))
             PushGCD(AID.HolyInWhite, splash, AOEMode ? 25 : 15);
 
-        PushGCD(AOEMode ? AID.FireIIInRed : AID.FireInRed, spellTarget, 10, ScaledCastTime(AID.FireInRed));
+        PushGCD(AOEMode ? AID.FireIIInRed : AID.FireInRed, spellTarget, 10, HardcastTime(AID.FireInRed));
     }
 
     private void MovementGCDs(in Strategy strategy, Actor splash)
