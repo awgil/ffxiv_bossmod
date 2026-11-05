@@ -104,7 +104,8 @@ public abstract partial class AutoClear : ZoneModule
 
     protected DeepDungeonState Palace => World.DeepDungeon;
 
-    private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
+    private readonly ICallGateSubscriber<ushort, List<Vector3>> _palantirGetTraps = Service.PluginInterface.GetIpcSubscriber<ushort, List<Vector3>>("Palantir.GetTraps");
+    private readonly ICallGateSubscriber<List<Vector3>, object> _palantirWatchTraps = Service.PluginInterface.GetIpcSubscriber<List<Vector3>, object>("Palantir.WatchTraps");
 
     const float TrapRadius = 1.75f;
 
@@ -134,7 +135,7 @@ public abstract partial class AutoClear : ZoneModule
                 {
                     LoadWalls();
                     LoadGeometry();
-                    FilterTraps();
+                    UpdateTrapsFloor();
                     BetweenFloors = false;
                 }
             })
@@ -143,18 +144,21 @@ public abstract partial class AutoClear : ZoneModule
         LoadedFloors = Utils.LoadResource<Dictionary<string, Floor<Wall>>>("BossMod.Global.DeepDungeon.Walls.json");
         ProblematicTrapLocations = Utils.LoadResource<List<WPos>>("BossMod.Global.DeepDungeon.BadTraps.json");
 
+        _palantirWatchTraps.Subscribe(UpdateTrapsFloorset);
+
         // check if module got reloaded during an active run
         if (ws.DeepDungeon.Rooms.Any(d => d > 0))
         {
             LoadWalls();
             LoadGeometry();
-            FilterTraps();
+            UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
             BetweenFloors = false;
         }
     }
 
     protected override void Dispose(bool disposing)
     {
+        _palantirWatchTraps.Unsubscribe(UpdateTrapsFloorset);
         _subscriptions.Dispose();
         _obstacles.Dispose();
         base.Dispose(disposing);

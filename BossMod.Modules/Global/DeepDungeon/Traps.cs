@@ -12,30 +12,24 @@ abstract partial class AutoClear : ZoneModule
 
     private readonly List<Vector3> _trapsCurrentFloor = [];
 
-    private void FilterTraps()
+    private void UpdateTrapsFloorset(List<Vector3> trapsZone)
+    {
+        _trapsCurrentZone.Clear();
+        _trapsCurrentZone.AddRange(trapsZone);
+        _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
+
+        UpdateTrapsFloor();
+    }
+
+    // called when trap dataset didn't change but active rooms did
+    private void UpdateTrapsFloor()
     {
         _trapsCurrentFloor.Clear();
-        if (_trapsCurrentZone.Count == 0 && _palantirListTraps != null)
-        {
-            try
-            {
-                _trapsCurrentZone.AddRange(_palantirListTraps.InvokeFunc(World.CurrentZone));
-                Service.Log($"collected {_trapsCurrentZone.Count} traps from palantir");
-                _trapsCurrentZone.RemoveAll(t => ProblematicTrapLocations.Any(l => l.AlmostEqual(t.ToWPos(), 0.1f)));
-                _palantirError = null;
-            }
-            catch (IpcNotReadyError err)
-            {
-                _palantirError = err;
-            }
-        }
 
         if (Palace.Progress.Tileset >= 0 && Palace.Progress.Tileset < _floorRects.Count)
-        {
             for (var i = 0; i < Palace.Rooms.Length; i++)
                 if (Palace.Rooms[i] > 0 && !Palace.Rooms[i].HasFlag(RoomFlags.Home))
                     _trapsCurrentFloor.AddRange(_trapsCurrentZone.Where(t => _floorRects[Palace.Progress.Tileset][i].Contains(t)));
-        }
 
         foreach (var a in World.Actors)
             HandleBeacon(a);
