@@ -1,5 +1,4 @@
-﻿using Dalamud.Plugin.Ipc.Exceptions;
-using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
+﻿using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
 
@@ -8,7 +7,6 @@ abstract partial class AutoClear : ZoneModule
     private readonly List<Vector3> _trapsCurrentZone = [];
     private readonly List<WPos> ProblematicTrapLocations = [];
     private bool _trapsHidden = true;
-    private IpcNotReadyError? _palantirError;
 
     private readonly List<Vector3> _trapsCurrentFloor = [];
 
@@ -45,7 +43,7 @@ abstract partial class AutoClear : ZoneModule
             }
     }
 
-    private void HandleTrap(Actor actor, ActorCastEvent ev)
+    private void HandleTrapTriggered(Actor actor, ActorCastEvent ev)
     {
         switch (ev.Action.ID)
         {
@@ -68,6 +66,6 @@ abstract partial class AutoClear : ZoneModule
     private void HandleBeacon(Actor c)
     {
         if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
-            _trapsCurrentFloor.RemoveAll(t => t.ToWPos().InCircle(c.Position, 2));
+            _trapsCurrentFloor.RemoveAll(t => t.ToWPos().InCircle(c.Position, TrapRadius));
     }
 }

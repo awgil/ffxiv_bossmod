@@ -1,5 +1,6 @@
 ﻿using BossMod.Pathfinding;
 using Dalamud.Plugin.Ipc;
+using Dalamud.Plugin.Ipc.Exceptions;
 
 namespace BossMod.Global.DeepDungeon;
 
@@ -151,7 +152,14 @@ public abstract partial class AutoClear : ZoneModule
         {
             LoadWalls();
             LoadGeometry();
-            UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
+            try
+            {
+                UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
+            }
+            catch (IpcNotReadyError err)
+            {
+                Service.PluginLog.Warning(err, "unable to communicate with Palantir");
+            }
             BetweenFloors = false;
         }
     }
@@ -176,7 +184,7 @@ public abstract partial class AutoClear : ZoneModule
     protected virtual void OnCastFinished(Actor actor) { }
     private void HandleCastEvent(Actor actor, ActorCastEvent ev)
     {
-        HandleTrap(actor, ev);
+        HandleTrapTriggered(actor, ev);
         OnEventCast(actor, ev);
     }
     protected virtual void OnEventCast(Actor actor, ActorCastEvent ev) { }
