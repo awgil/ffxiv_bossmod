@@ -29,6 +29,7 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     private readonly List<Cone> _cones = [];
     private readonly List<Arc> _arcs = [];
     private readonly List<Circle> _circles = [];
+    private readonly List<(Vector3, Vector3, Vector3)> _triangles = [];
 
     public unsafe void Update()
     {
@@ -84,10 +85,20 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
                 drawList.AddDot(circle.Center, circle.Dimension, circle.Color);
         }
 
+        foreach (var (x, y, z) in _triangles)
+        {
+            drawList.AddTriangleFilled(x, y, z, 0x3030FF30, new()
+            {
+                OccludedAlpha = 1,
+                OcclusionTolerance = 0,
+            });
+        }
+
         _lines.Clear();
         _cones.Clear();
         _arcs.Clear();
         _circles.Clear();
+        _triangles.Clear();
     }
 
     public void AddLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
@@ -121,6 +132,11 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     public void AddCircleFilled(Vector3 center, float radius, uint color, float projectionHeight = 0, bool occluded = true)
     {
         _circles.Add(new(center, radius, color, true, projectionHeight, occluded));
+    }
+
+    public void AddTriangle(Vector3 a, Vector3 b, Vector3 c)
+    {
+        _triangles.Add((a, b, c));
     }
 
     public void AddSphere(Vector3 center, float radius, uint color, float thickness = 1)

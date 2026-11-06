@@ -1,44 +1,54 @@
-﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility.Raii;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
+﻿using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
-using System.Text.Json;
+using System.Diagnostics;
+using VisibilityPolygonCSharp;
 
 namespace BossMod.Debug;
 
-sealed unsafe class DebugRaycast(WorldState ws)
+sealed unsafe class DebugRaycast(WorldState ws, Camera camera)
 {
     private readonly (Vector3, Vector3)[] ShadowPoints = new (Vector3, Vector3)[25600];
 
     const float PlayerReach = 25;
     const float PlayerReachSq = PlayerReach * PlayerReach;
 
-    public static Shadowcast.LineSegment FailedSegment;
-    public static Shadowcast.Ray FailedRay;
+    class WPosAdapter : PointAdapter<WPos>
+    {
+        public override WPos Create(double x, double y) => new((float)x, (float)y);
+        public override double GetX(WPos point) => point.X;
+        public override double GetY(WPos point) => point.Z;
+    }
+
+    private readonly VisibilityPolygonCSharp<WPos> Vis = new(new WPosAdapter());
 
     struct DrawStats
     {
+        public TimeSpan ScanTime;
+        public TimeSpan ComputeTime;
+
         public int TotalCells;
         public int ProcessedCells;
-        public int NumIntersections;
-        public int NumPrunedIntersections;
+        public int NumTests;
+        public int NumTestsPruned;
+        public int NumPoints;
     }
 
-    int _numPoints;
     DrawStats _stats;
-    Vector3 origin;
-    readonly List<WPos> seg = [];
+    Vector3 _origin;
+    Vector3 _lookNormal; // perpendicular to look dir (along Y axis)
+    Vector3 _lookDir;
 
     public void Draw()
     {
-        Dalamud.Utility.Util.ShowObject(_stats);
+        var watch = Stopwatch.StartNew();
 
-        //if (ImGui.Button("Calculate shadowcast"))
-        origin = DoIt();
+        DoIt();
 
-        var originXZ = new WPos(origin.X, origin.Z);
-        List<Shadowcast.LineSegment> segments = [];
+        _stats.ScanTime = watch.Elapsed;
+
+        var originXZ = new WPos(_origin.X, _origin.Z);
+        List<Segment<WPos>> segments = [];
 
         void addBlock(WPos center, IEnumerable<WDir> corners)
         {
@@ -48,83 +58,58 @@ sealed unsafe class DebugRaycast(WorldState ws)
             segments.Add(new(c[^1] + center, c[0] + center));
         }
 
-        addBlock(originXZ, CurveApprox.Rect(new(100, 0), new(0, 100)));
+        addBlock(originXZ, CurveApprox.Circle(30, 0.1f));
 
-        for (var i = 0; i < _numPoints; i++)
-        {
+        for (var i = 0; i < _stats.NumPoints; i++)
             segments.Add(new(new(ShadowPoints[i].Item1.X, ShadowPoints[i].Item1.Z), new(ShadowPoints[i].Item2.X, ShadowPoints[i].Item2.Z)));
-            Service.Camera.AddLine(ShadowPoints[i].Item1, ShadowPoints[i].Item2, 0xFFFF00FF, 1, false);
-        }
 
-        ImGui.Text($"Total number of world segments: {_numPoints}");
+        var seg = Vis.Compute(new WPos(_origin.X, _origin.Z), Vis.BreakIntersections(segments));
 
-        if (FailedSegment != default)
-            Service.Camera.AddLine(FailedSegment.A.ToVec3(origin.Y), FailedSegment.B.ToVec3(origin.Y), 0xFFFFFF00, 1, false);
+        _stats.ComputeTime = watch.Elapsed - _stats.ScanTime;
 
-        if (FailedRay != default)
-            Service.Camera.AddLine(FailedRay.Origin.ToVec3(origin.Y), FailedRay.Origin.ToVec3(origin.Y) + FailedRay.Direction.ToVec3(0), 0xFF0000FF, 1, false);
-
-        using (ImRaii.Disabled(_numPoints == 0))
+        for (int i = 0, j = seg.Count - 1; i < seg.Count; j = i++)
         {
-            if (ImGui.Button("Calculate visibility polygon"))
-            {
-                ImGui.SetClipboardText(JsonSerializer.SerializeToUtf8Bytes(segments));
-
-                seg.Clear();
-                List<Shadowcast.LineSegment> l = [];
-                try
-                {
-                    Shadowcast.Uncross(segments, l);
-                    seg.AddRange([.. Shadowcast.VisibilityPolygon(new WPos(origin.X, origin.Z), l)]);
-                }
-                catch (ArgumentException ex)
-                {
-                    Service.PluginLog.Error(ex, "Unable to calculate polygon");
-                }
-            }
+            var oj = (seg[j] - originXZ).ToVec3();
+            var projj = oj - Vector3.Dot(oj, _lookNormal) * _lookNormal;
+            var oi = (seg[i] - originXZ).ToVec3();
+            var proji = oi - Vector3.Dot(oi, _lookNormal) * _lookNormal;
+            camera.AddTriangle(_origin, _origin + projj, _origin + proji);
         }
 
-        for (var i = 1; i < seg.Count; i++)
-            Service.Camera.AddLine(seg[i - 1].ToVec3(origin.Y), seg[i].ToVec3(origin.Y), 0xFFFF00FF, 3, false);
+        Dalamud.Utility.Util.ShowObject(_stats);
     }
 
-    Vector3 DoIt()
+    void DoIt()
     {
         Array.Fill(ShadowPoints, default);
-        seg.Clear();
         _stats = default;
-        _numPoints = 0;
-
-        Vector3 orig = default;
 
         foreach (var scene in Framework.Instance()->BGCollisionModule->SceneManager->Scenes)
-            orig = DrawCollision(scene->Scene->Quadtree) ?? default;
-
-        return orig;
+            DrawCollision(scene->Scene->Quadtree);
     }
 
-    Vector3? DrawCollision(Quadtree* tree)
+    void DrawCollision(Quadtree* tree)
     {
         if (ws.Party.Player() is not { } player)
-            return null;
-
-        Vector3 rayOrigin;
-        Vector3 rayDir;
+            return;
 
         if (ws.Actors.Find(player.TargetID) is { } target)
         {
-            rayOrigin = target.PosRot.XYZ();
-            rayDir = (player.Position - target.Position).Normalized().ToVec3(0);
+            _origin = target.PosRot.XYZ();
+            _lookDir = player.PosRot.XYZ() - target.PosRot.XYZ();
+            _lookDir /= _lookDir.Length();
         }
         else
         {
-            rayOrigin = player.PosRot.XYZ();
-            rayDir = player.Rotation.ToDirection().ToVec3(0);
+            _origin = player.PosRot.XYZ();
+            _lookDir = player.Rotation.ToDirection().ToVec3(0);
         }
 
-        rayOrigin.Y += 2;
+        _origin.Y += 2;
 
-        var rayWorld = Matrix4x4.CreateWorld(default, rayDir, new(0, 1, 0));
+        var rayWorld = Matrix4x4.CreateWorld(default, _lookDir, new(0, 1, 0));
+
+        _lookNormal = Vector3.Transform(new(0, 1, 0), rayWorld);
 
         for (var level = 1; level < tree->NumLevels; level++)
         {
@@ -143,22 +128,20 @@ sealed unsafe class DebugRaycast(WorldState ws)
                 var cellX = tree->MinX + x * cellSizeX;
                 var cellZ = tree->MinZ + z * cellSizeZ;
 
-                var playerXZ = new Vector2(rayOrigin.X, rayOrigin.Z);
+                var playerXZ = new Vector2(_origin.X, _origin.Z);
 
                 if (OverlapAARect(playerXZ, new(cellX, cellZ), new Vector2(cellX, cellZ) + new Vector2(cellSizeX, cellSizeZ)))
                 {
                     _stats.ProcessedCells++;
                     foreach (var coll in node.Colliders)
                         if (coll != null)
-                            DrawSolids(coll, rayOrigin, Vector3.Transform(new(0, 1, 0), rayWorld));
+                            DrawSolids(coll);
                 }
             }
         }
-
-        return rayOrigin;
     }
 
-    private void DrawSolids(Collider* coll, in Vector3 rayOrigin, in Vector3 rayDir)
+    private void DrawSolids(Collider* coll)
     {
         var type = coll->GetColliderType();
 
@@ -167,7 +150,7 @@ sealed unsafe class DebugRaycast(WorldState ws)
             var collM = (ColliderMesh*)coll;
             var mesh = (MeshPCB*)collM->Mesh;
             var world = collM->World;
-            DrawAllTriangles(mesh->RootNode, collM->World, 0xFF00FF00, rayOrigin, rayDir);
+            DrawAllTriangles(mesh->RootNode, collM->World, 0xFF00FF00);
         }
         else
         {
@@ -175,18 +158,18 @@ sealed unsafe class DebugRaycast(WorldState ws)
         }
     }
 
-    private void DrawAllTriangles(MeshPCB.FileNode* root, in Matrix4x3 world, uint color, in Vector3 rayOrigin, in Vector3 rayDir)
+    private void DrawAllTriangles(MeshPCB.FileNode* root, in Matrix4x3 world, uint color)
     {
         if (root == null)
             return;
 
         foreach (ref var prim in root->Primitives)
-            DrawOneTriangle(root, prim, world, color, rayOrigin, rayDir);
+            DrawOneTriangle(root, prim, world, color);
 
         if (root->Child1 != null)
-            DrawAllTriangles(root->Child1, world, color, rayOrigin, rayDir);
+            DrawAllTriangles(root->Child1, world, color);
         if (root->Child2 != null)
-            DrawAllTriangles(root->Child2, world, color, rayOrigin, rayDir);
+            DrawAllTriangles(root->Child2, world, color);
     }
 
     static float DistSqXZ(in Vector3 v1, in Vector3 v2)
@@ -196,7 +179,7 @@ sealed unsafe class DebugRaycast(WorldState ws)
         return dX * dX + dZ * dZ;
     }
 
-    private void DrawOneTriangle(MeshPCB.FileNode* node, in Mesh.Primitive prim, in Matrix4x3 world, uint color, in Vector3 rayOrigin, in Vector3 rayDir)
+    private void DrawOneTriangle(MeshPCB.FileNode* node, in Mesh.Primitive prim, in Matrix4x3 world, uint color)
     {
         if ((prim.Material & 0x4000) == 0)
             return;
@@ -207,45 +190,45 @@ sealed unsafe class DebugRaycast(WorldState ws)
 
         var ab = v2 - v1;
         var ac = v3 - v1;
-        var normal = Vector3.Normalize(Vector3.Cross(ab, ac));
+        var triNormal = Vector3.Normalize(Vector3.Cross(ab, ac));
         var centroid = (v1 + v2 + v3) / 3f;
 
         // tri is facing away from player/source object, skip
-        if (Vector3.Dot(normal, centroid - rayOrigin) >= 0)
+        if (Vector3.Dot(triNormal, centroid - _origin) >= 0)
             return;
 
-        var verts = new Vector3[2];
+        var verts = new Vector3[3];
         var i = 0;
-        if (PlaneLine(rayOrigin, rayDir, v1, v2, out var i12))
+        if (PlaneLine(v1, v2, out var i12))
             verts[i++] = i12;
-        if (PlaneLine(rayOrigin, rayDir, v2, v3, out var i23))
+        if (PlaneLine(v2, v3, out var i23))
             verts[i++] = i23;
-        if (i < 2 && PlaneLine(rayOrigin, rayDir, v1, v3, out var i13))
+        if (i < 2 && PlaneLine(v1, v3, out var i13))
             verts[i++] = i13;
 
-        if (i >= 2)
-            ShadowPoints[_numPoints++] = (verts[0], verts[1]);
+        if (i == 2)
+            ShadowPoints[_stats.NumPoints++] = (verts[0], verts[1]);
     }
 
-    bool PlaneLine(in Vector3 rayOrigin, in Vector3 rayDir, in Vector3 pointA, in Vector3 pointB, out Vector3 intersection)
+    bool PlaneLine(in Vector3 pointA, in Vector3 pointB, out Vector3 intersection)
     {
         intersection = default;
 
-        _stats.NumIntersections++;
+        _stats.NumTests++;
 
-        if (DistSqXZ(pointA, rayOrigin) >= PlayerReachSq && DistSqXZ(pointB, rayOrigin) >= PlayerReachSq)
+        if (DistSqXZ(pointA, _origin) >= PlayerReachSq && DistSqXZ(pointB, _origin) >= PlayerReachSq)
         {
-            _stats.NumPrunedIntersections++;
+            _stats.NumTestsPruned++;
             return false;
         }
 
         var u = pointB - pointA;
-        var dot = Vector3.Dot(rayDir, u);
+        var dot = Vector3.Dot(_lookNormal, u);
 
         if (MathF.Abs(dot) >= float.Epsilon)
         {
-            var w = pointA - rayOrigin;
-            var fac = -Vector3.Dot(rayDir, w) / dot;
+            var w = pointA - _origin;
+            var fac = -Vector3.Dot(_lookNormal, w) / dot;
             u *= fac;
             intersection = pointA + u;
             return fac is >= 0 and <= 1;

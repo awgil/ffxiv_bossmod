@@ -10,6 +10,7 @@
     <AssemblyAttribute Include="DalamudLibPath">
       <_Parameter1>$(DalamudLibPath)</_Parameter1>
     </AssemblyAttribute>
+    <PackageReference Include="VisibilityPolygonCSharp" Version="1.9.0.26016" />
 
     <ProjectReference Include="$(MSBuildThisFileDirectory)\..\DalaMock\DalaMock\DalaMock.Core.csproj" Condition="'$(LocalDalamock)' == 'true'" />
 
@@ -37,6 +38,7 @@
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Data\EnemyBehavior.csv" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
+    <EmbeddedResource Include="Dev\Shadowcast\*.json" />
   </ItemGroup>
 
   <ItemGroup>
