@@ -9,18 +9,25 @@ using Seg3 = VisibilityPolygonCSharp.Segment<System.Numerics.Vector3>;
 
 namespace BossMod;
 
+public class WPosAdapter : PointAdapter<WPos>
+{
+    public override WPos Create(double x, double y) => new((float)x, (float)y);
+    public override double GetX(WPos point) => point.X;
+    public override double GetY(WPos point) => point.Z;
+}
+
+public class VectorAdapter : PointAdapter<Vector3>
+{
+    public override Vector3 Create(double x, double y) => new((float)x, 0, (float)y);
+    public override double GetX(Vector3 point) => point.X;
+    public override double GetY(Vector3 point) => point.Z;
+}
+
 internal unsafe class Shadowcaster : IShadowcaster
 {
     public DrawStats Stats { get; private set; } = new();
 
-    class VecAdapter : PointAdapter<Vector3>
-    {
-        public override Vector3 Create(double x, double y) => new((float)x, 0, (float)y);
-        public override double GetX(Vector3 point) => point.X;
-        public override double GetY(Vector3 point) => point.Z;
-    }
-
-    private readonly VisibilityPolygonCSharp<Vector3> Vis = new(new VecAdapter());
+    private readonly VisibilityPolygonCSharp<Vector3> Vis = new(new VectorAdapter());
 
     public class DrawStats
     {
