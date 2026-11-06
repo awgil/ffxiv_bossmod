@@ -34,6 +34,9 @@ internal unsafe class Shadowcaster : IShadowcaster
         public int NumPoints;
 
         public int CollMesh;
+        public int CollBox;
+        public int CollTube;
+        public int CollPlane;
     }
 
     public List<Tri> ComputeVisibility2D(Vector3 origin, Vector3 lookDirection, float radius)
@@ -54,11 +57,11 @@ internal unsafe class Shadowcaster : IShadowcaster
 
         for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
         {
-            var oj = (poly[j] - origin) with { Y = 0 };
-            var projj = oj - Vector3.Dot(oj, normal) * normal;
-            var oi = (poly[i] - origin) with { Y = 0 };
-            var proji = oi - Vector3.Dot(oi, normal) * normal;
-            output.Add(new(origin, origin + projj, origin + proji));
+            var pj = poly[j] - origin;
+            var oj = pj with { Y = (-pj.X * normal.X - pj.Z * normal.Z) / normal.Y };
+            var pi = poly[i] - origin;
+            var oi = pi with { Y = (-pi.X * normal.X - pi.Z * normal.Z) / normal.Y };
+            output.Add(new(origin, origin + oj, origin + oi));
         }
 
         return output;
@@ -73,6 +76,7 @@ internal unsafe class Shadowcaster : IShadowcaster
 
         Stats.ScanTime = watch.Elapsed;
 
+        // FIXME: BreakIntersections is O(n^2) and extremely noticeable in busy environments, should be replaced with balaban's algorithm
         var poly = Vis.Compute(origin, Vis.BreakIntersections(segments));
 
         Stats.ComputeTime = watch.Elapsed - Stats.ScanTime;
@@ -100,13 +104,11 @@ internal unsafe class Shadowcaster : IShadowcaster
 
     void ScanTree(Quadtree* tree, Vector3 origin, Vector3 lookNormal, float radius, List<Seg3> segments)
     {
-        origin.Y += 2;
-
         var scanner = new Scanner(origin, radius, lookNormal, segments, Stats);
 
         // TODO: level 0 contains the streaming colliders, which might be duplicated in other layers...
         // figure out if using just streaming suffices since it would likely speed up the scan a lot
-        for (var level = 1; level < tree->NumLevels; level++)
+        for (var level = 0; level < tree->NumLevels; level++)
         {
             var cellSizeX = (tree->MaxX - tree->MinX + 1) / (1 << level);
             var cellSizeZ = (tree->MaxZ - tree->MinZ + 1) / (1 << level);
@@ -130,7 +132,7 @@ internal unsafe class Shadowcaster : IShadowcaster
                     Stats.ProcessedCells++;
                     foreach (var coll in node.Colliders)
                         if (coll != null)
-                            scanner.ProcessColider(coll);
+                            scanner.ProcessCollider(coll);
                 }
             }
         }
@@ -150,18 +152,60 @@ internal unsafe class Shadowcaster : IShadowcaster
     {
         readonly float Rsq = radius * radius;
 
-        public void ProcessColider(Collider* coll)
+        public void ProcessCollider(Collider* coll)
         {
+            // "is active" flag
+            if ((coll->VisibilityFlags & 1) == 0)
+                return;
+
             switch (coll->GetColliderType())
             {
+                case ColliderType.Streamed:
+                    // intentionally skipped
+                    /*
+                    {
+                        var cast = (ColliderStreamed*)coll;
+                        if (cast->Header != null && cast->Elements != null)
+                        {
+                            for (var i = 0; i < cast->Header->NumMeshes; i++)
+                            {
+                                var elem = cast->Elements + i;
+                                ProcessColliderMesh(elem->Mesh);
+                            }
+                        }
+                    }
+                    */
+                    break;
                 case ColliderType.Mesh:
                     stats.CollMesh++;
-                    var collM = (ColliderMesh*)coll;
-                    var mesh = (MeshPCB*)collM->Mesh;
-                    var world = collM->World;
-                    ProcessFileMesh(mesh->RootNode, world);
+                    ProcessColliderMesh((ColliderMesh*)coll);
+                    break;
+                case ColliderType.Cylinder:
+                    stats.CollTube++;
+                    ProcessCylinder((ColliderCylinder*)coll);
+                    break;
+                case ColliderType.Box:
+                    stats.CollBox++;
+                    ProcessBox((ColliderBox*)coll);
+                    break;
+                case ColliderType.Plane:
+                case ColliderType.PlaneTwoSided:
+                    stats.CollPlane++;
+                    ProcessPlane((ColliderPlane*)coll);
+                    break;
+                default:
+                    Service.PluginLog.Warning($"Unimplemented: collider type {coll->GetColliderType()}");
                     break;
             }
+        }
+
+        void ProcessColliderMesh(ColliderMesh* coll)
+        {
+            if (coll == null || coll->MeshIsSimple || coll->Mesh == null)
+                return;
+
+            var pcb = (MeshPCB*)coll->Mesh;
+            ProcessFileMesh(pcb->RootNode, coll->World);
         }
 
         void ProcessFileMesh(MeshPCB.FileNode* root, in Matrix4x3 world)
@@ -176,6 +220,71 @@ internal unsafe class Shadowcaster : IShadowcaster
                 ProcessFileMesh(root->Child1, world);
             if (root->Child2 != null)
                 ProcessFileMesh(root->Child2, world);
+        }
+
+        void ProcessPlane(ColliderPlane* coll)
+        {
+            if (!BlocksRaycast(&coll->Collider))
+                return;
+
+            var a = coll->World.TransformCoordinate(new(-1, +1, 0));
+            var b = coll->World.TransformCoordinate(new(-1, -1, 0));
+            var c = coll->World.TransformCoordinate(new(+1, -1, 0));
+            var d = coll->World.TransformCoordinate(new(+1, +1, 0));
+
+            ProcessTriangle(a, c, b);
+            ProcessTriangle(a, c, d);
+        }
+
+        void ProcessBox(ColliderBox* coll)
+        {
+            if (!BlocksRaycast(&coll->Collider))
+                return;
+
+            var v0 = coll->World.TransformCoordinate(new(-1, -1, -1));
+            var v1 = coll->World.TransformCoordinate(new(-1, -1, +1));
+            var v2 = coll->World.TransformCoordinate(new(+1, -1, -1));
+            var v3 = coll->World.TransformCoordinate(new(+1, -1, +1));
+            var v4 = coll->World.TransformCoordinate(new(-1, +1, -1));
+            var v5 = coll->World.TransformCoordinate(new(-1, +1, +1));
+            var v6 = coll->World.TransformCoordinate(new(+1, +1, -1));
+            var v7 = coll->World.TransformCoordinate(new(+1, +1, +1));
+
+            ProcessTriangle(v0, v1, v2);
+            ProcessTriangle(v2, v1, v3);
+            ProcessTriangle(v5, v4, v7);
+            ProcessTriangle(v7, v4, v6);
+            ProcessTriangle(v0, v4, v1);
+            ProcessTriangle(v1, v4, v5);
+            ProcessTriangle(v2, v3, v6);
+            ProcessTriangle(v6, v3, v7);
+            ProcessTriangle(v0, v2, v4);
+            ProcessTriangle(v4, v2, v6);
+            ProcessTriangle(v1, v5, v3);
+            ProcessTriangle(v3, v5, v7);
+        }
+
+        void ProcessCylinder(ColliderCylinder* coll)
+        {
+            if (!BlocksRaycast(&coll->Collider))
+                return;
+
+            var numSegments = CurveApprox.CalculateCircleSegments(coll->World.Row0.Length(), 360.Degrees(), 0.1f);
+            var prev1 = coll->World.TransformCoordinate(new(0, +1, 1));
+            var prev2 = coll->World.TransformCoordinate(new(0, -1, 1));
+
+            for (var i = 1; i <= numSegments; i++)
+            {
+                var dir = (i * 360f / numSegments).Degrees().ToDirection();
+                var curr1 = coll->World.TransformCoordinate(new(dir.X, +1, dir.Z));
+                var curr2 = coll->World.TransformCoordinate(new(dir.X, -1, dir.Z));
+
+                ProcessTriangle(prev1, prev2, curr2);
+                ProcessTriangle(prev1, curr2, curr1);
+
+                prev1 = curr1;
+                prev2 = curr2;
+            }
         }
 
         void ProcessMeshTriangle(MeshPCB.FileNode* node, in Mesh.Primitive prim, in Matrix4x3 world)
@@ -236,6 +345,14 @@ internal unsafe class Shadowcaster : IShadowcaster
             }
 
             return false;
+        }
+
+        static bool BlocksRaycast(Collider* c)
+        {
+            ulong id = 0;
+            ulong mask = 0;
+            c->GetMaterial(&id, &mask);
+            return (id & 0x4000) != 0 && (mask & 0x4000) != 0;
         }
 
         static float DistSqXZ(in Vector3 v1, in Vector3 v2)

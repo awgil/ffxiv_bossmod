@@ -21,7 +21,9 @@ sealed class DebugRaycast(WorldState ws, Camera camera, Shadowcaster shadows)
             dir = player.Rotation.ToDirection().ToVec3(0);
         }
 
-        var world = Matrix4x4.CreateWorld(origin with { Y = origin.Y + 2 }, dir, new(0, 1, 0));
+        origin.Y += 2;
+
+        var world = Matrix4x4.CreateWorld(origin, dir, new(0, 1, 0));
 
         var guideColor = 0xFFFF00FF;
 
