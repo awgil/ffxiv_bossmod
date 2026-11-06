@@ -87,6 +87,7 @@ public record struct WPos(float X, float Z)
         var d = (v1.X - v3.X) * (Z - v3.Z) - (v1.Z - v3.Z) * (X - v3.X);
         return d == 0 || (d < 0) == (s + t <= 0);
     }
+    public readonly bool InTri(Tri t) => InTri(t.A, t.B, t.C);
 
     public readonly bool InRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction, lenFront, lenBack, halfWidth);
     public readonly bool InRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction.ToDirection(), lenFront, lenBack, halfWidth);
@@ -107,4 +108,9 @@ public record struct WPos(float X, float Z)
 
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, WDir direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, Angle direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
+}
+
+public record struct Tri(WPos A, WPos B, WPos C)
+{
+    public readonly bool Contains(WPos p) => p.InTri(A, B, C);
 }
