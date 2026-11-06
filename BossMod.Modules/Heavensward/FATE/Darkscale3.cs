@@ -1,4 +1,5 @@
-﻿namespace BossMod.Heavensward.FATE.Darkscale3;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Heavensward.FATE.Darkscale3;
 
 public enum OID : uint
 {

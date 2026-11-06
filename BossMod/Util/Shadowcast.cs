@@ -1,9 +1,14 @@
-﻿namespace BossMod;
+﻿using BossMod.Debug;
+
+namespace BossMod;
 
 // adapted from https://github.com/trylock/visibility
 public static class Shadowcast
 {
-    public record struct LineSegment(WPos A, WPos B);
+    public record struct LineSegment(WPos A, WPos B)
+    {
+        public readonly float LengthSq() => (B.ToWDir() - A.ToWDir()).LengthSq();
+    }
 
     record struct LineSegmentDistCompare(WPos Origin) : IComparer<LineSegment>
     {
@@ -162,7 +167,11 @@ public static class Shadowcast
                 var nearest_segment = state.Min!;
                 var intersects = ray.Intersects(nearest_segment, out var intersection);
                 if (!intersects)
-                    throw new ArgumentException("ray intersects line segment L iff L is in the state");
+                {
+                    DebugRaycast.FailedSegment = nearest_segment;
+                    DebugRaycast.FailedRay = ray;
+                    throw new ArgumentException($"ray intersects line segment L iff L is in the state, but {ray} doesn't intersect {nearest_segment}");
+                }
                 if (evt.Type == EventType.Start)
                 {
                     vertices.Add(intersection);
@@ -191,7 +200,7 @@ public static class Shadowcast
         return [.. vertices.Take(top)];
     }
 
-    record struct Ray(WPos Origin, WDir Direction)
+    public record struct Ray(WPos Origin, WDir Direction)
     {
         public readonly bool Intersects(LineSegment segment, out WPos outPoint)
         {
@@ -224,6 +233,76 @@ public static class Shadowcast
             var t = -WDir.Cross(ab, ao) / det;
             outPoint = Origin + t * Direction;
             return ApproxEqual(t, 0) || t > 0;
+        }
+    }
+
+    static float Orient(WDir a, WDir b, WDir c) => (b - a).Cross(c - a);
+
+    static bool Intersects(LineSegment l1, LineSegment l2, out WPos point)
+    {
+        point = default;
+
+        var (a, b) = (l1.A.ToWDir(), l1.B.ToWDir());
+        var (c, d) = (l2.A.ToWDir(), l2.B.ToWDir());
+        var oa = Orient(c, d, a);
+        var ob = Orient(c, d, b);
+        var oc = Orient(a, b, c);
+        var od = Orient(a, b, d);
+        if (oa * ob < 0 && oc * od < 0)
+        {
+            point = ((a * ob - b * oa) / (ob - oa)).ToWPos();
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void Uncross(IEnumerable<LineSegment> items, List<LineSegment> output)
+    {
+        Queue<LineSegment> input = new(items);
+
+        var limit = input.Count * input.Count * 5;
+        var j = 0;
+
+        while (input.TryDequeue(out var nextItem))
+        {
+            if (j++ > limit)
+                throw new InvalidOperationException($"Too many iterations ({limit}) so giving up (with {output.Count} produced segments)");
+            for (var i = 0; i < output.Count; i++)
+            {
+                var o = output[i];
+                if (Intersects(nextItem, o, out var point))
+                {
+                    if (point.AlmostEqual(nextItem.A, 0.001f) || point.AlmostEqual(nextItem.B, 0.001f))
+                    {
+                        // Console.WriteLine($"{point} is too close to one of our endpoints ({nextItem.A} or {nextItem.B}), skipping");
+                        goto outer;
+                    }
+                    //Console.WriteLine($"{nextItem} intersects with {o} at {point}");
+                    var split = false;
+                    var pa = new LineSegment(nextItem.A, point);
+                    if (pa.LengthSq() >= 0.01f)
+                    {
+                        // Console.WriteLine($"[A branch] inserting item {pa} (length = {pa.LengthSq()})");
+                        split = true;
+                        input.Enqueue(pa);
+                    }
+                    var pb = new LineSegment(point, nextItem.B);
+                    if (pb.LengthSq() >= 0.01f)
+                    {
+                        // Console.WriteLine($"[B branch] inserting item {pb} (length = {pb.LengthSq()})");
+                        split = true;
+                        input.Enqueue(pb);
+                    }
+                    if (split)
+                        goto outer;
+                }
+            }
+            if (output.Count > 0 && output[^1] == nextItem)
+                throw new InvalidOperationException($"Degenerate: {nextItem}");
+            output.Add(nextItem);
+        outer:
+            continue;
         }
     }
 }

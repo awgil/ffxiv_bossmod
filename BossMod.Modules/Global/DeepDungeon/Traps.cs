@@ -30,7 +30,7 @@ abstract partial class AutoClear : ZoneModule
                     _trapsCurrentFloor.AddRange(_trapsCurrentZone.Where(t => _floorRects[Palace.Progress.Tileset][i].Contains(t)));
 
         foreach (var a in World.Actors)
-            HandleBeacon(a);
+            HandleBeaconCreated(a);
     }
 
     private void DrawTraps()
@@ -63,7 +63,7 @@ abstract partial class AutoClear : ZoneModule
         }
     }
 
-    private void HandleBeacon(Actor c)
+    private void HandleBeaconCreated(Actor c)
     {
         if ((OID)c.OID is OID.BeaconHoH or OID.BandedCofferIndicator)
             _trapsCurrentFloor.RemoveAll(t => t.ToWPos().InCircle(c.Position, TrapRadius));

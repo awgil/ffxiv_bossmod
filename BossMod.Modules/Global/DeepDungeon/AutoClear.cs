@@ -1,6 +1,7 @@
 ﻿using BossMod.Pathfinding;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
+using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
 
@@ -357,7 +358,7 @@ public abstract partial class AutoClear : ZoneModule
 
     private void HandleActorAdd(Actor c)
     {
-        HandleBeacon(c);
+        HandleBeaconCreated(c);
         OnActorCreated(c);
     }
     protected virtual void OnActorCreated(Actor c) { }
@@ -452,7 +453,7 @@ public abstract partial class AutoClear : ZoneModule
 
                 if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive && !player.InCombat)
                 {
-                    if (!(_config.FullClear && Palace.Rooms.Any(r => r > 0 && !r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Revealed))))
+                    if (!(_config.FullClear && Palace.Rooms.Any(r => r > 0 && !r.HasFlag(RoomFlags.Revealed))))
                         InterestingObjects.Add(new(a, GoalType.Passage, dist));
                 }
             }
@@ -503,7 +504,7 @@ public abstract partial class AutoClear : ZoneModule
             }
         }
 
-        var passageRevealed = Palace.Rooms.Any(r => r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Passage) && r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Revealed));
+        var passageRevealed = Palace.Rooms.Any(r => r.HasFlag(RoomFlags.Passage) && r.HasFlag(RoomFlags.Revealed));
 
         var canTarget = _config.AutoClear switch
         {
