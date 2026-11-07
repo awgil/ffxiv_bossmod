@@ -57,41 +57,41 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         ViewportSize = new(device->Width, device->Height);
 
         using var drawList = PctService.Draw();
-        if (drawList == null)
-            return;
-
-        PctDxParams p(bool isLine, bool occluded) => new() { OcclusionTolerance = isLine ? 0.02f : 0.02f, OccludedAlpha = occluded && _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1 };
-
-        foreach (var line in _lines)
-            drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, p(true, line.Occluded));
-        foreach (var arc in _arcs)
-            drawList.AddArc(arc.Center, arc.Radius, (-arc.Direction - arc.HalfAngle).Rad, (-arc.Direction + arc.HalfAngle).Rad, arc.Color, thickness: arc.Thickness, p: p(true, arc.Occluded));
-
-        foreach (var cone in _cones)
+        if (drawList != null)
         {
-            if (cone.Filled)
-                drawList.AddFanFilled(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, p: p(false, cone.Occluded) with { ProjectionHeight = cone.Dimension });
-            else
-                drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Dimension, p: p(true, cone.Occluded));
-        }
+            PctDxParams p(bool isLine, bool occluded) => new() { OcclusionTolerance = isLine ? 0.02f : 0.02f, OccludedAlpha = occluded && _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1 };
 
-        foreach (var circle in _circles)
-        {
-            if (circle.Filled)
-                drawList.AddCircleFilled(circle.Center, circle.Radius, circle.Color, p: p(isLine: false, occluded: circle.Occluded) with { ProjectionHeight = circle.Dimension });
-            else if (circle.Radius > 0)
-                drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Dimension, p: p(false, circle.Occluded));
-            else
-                drawList.AddDot(circle.Center, circle.Dimension, circle.Color);
-        }
+            foreach (var line in _lines)
+                drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, p(true, line.Occluded));
+            foreach (var arc in _arcs)
+                drawList.AddArc(arc.Center, arc.Radius, (-arc.Direction - arc.HalfAngle).Rad, (-arc.Direction + arc.HalfAngle).Rad, arc.Color, thickness: arc.Thickness, p: p(true, arc.Occluded));
 
-        foreach (var (x, y, z) in _triangles)
-        {
-            drawList.AddTriangleFilled(x, y, z, 0x3030FF30, new()
+            foreach (var cone in _cones)
             {
-                OccludedAlpha = 1,
-                OcclusionTolerance = 0,
-            });
+                if (cone.Filled)
+                    drawList.AddFanFilled(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, p: p(false, cone.Occluded) with { ProjectionHeight = cone.Dimension });
+                else
+                    drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Dimension, p: p(true, cone.Occluded));
+            }
+
+            foreach (var circle in _circles)
+            {
+                if (circle.Filled)
+                    drawList.AddCircleFilled(circle.Center, circle.Radius, circle.Color, p: p(isLine: false, occluded: circle.Occluded) with { ProjectionHeight = circle.Dimension });
+                else if (circle.Radius > 0)
+                    drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Dimension, p: p(false, circle.Occluded));
+                else
+                    drawList.AddDot(circle.Center, circle.Dimension, circle.Color);
+            }
+
+            foreach (var (x, y, z) in _triangles)
+            {
+                drawList.AddTriangleFilled(x, y, z, 0x3030FF30, new()
+                {
+                    OccludedAlpha = 1,
+                    OcclusionTolerance = 0,
+                });
+            }
         }
 
         _lines.Clear();

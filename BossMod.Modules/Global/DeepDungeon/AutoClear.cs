@@ -90,6 +90,8 @@ public abstract partial class AutoClear : ZoneModule
     private int Kills;
     private bool BetweenFloors = true;
 
+    private bool PendingInitialize;
+
     protected struct PlayerImmuneState
     {
         public DateTime RoleBuffExpire; // 0 if not active
@@ -129,13 +131,8 @@ public abstract partial class AutoClear : ZoneModule
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
             ws.DeepDungeon.MapDataChanged.Subscribe(op =>
             {
-                if (BetweenFloors && op.Rooms.Any(r => r > 0))
-                {
-                    LoadWalls();
-                    LoadGeometry();
-                    UpdateTrapsFloor();
-                    BetweenFloors = false;
-                }
+                if (BetweenFloors && !PendingInitialize && op.Rooms.Any(r => r > 0))
+                    OnEnterFloorInternal();
             })
         );
 
@@ -144,22 +141,7 @@ public abstract partial class AutoClear : ZoneModule
 
         _palantirWatchTraps.Subscribe(UpdateTrapsFloorset);
 
-        // check if module got reloaded during an active run
-        // TODO: works for module reload but not for *plugin* reload, since the zone change is triggered before the deep dungeon state is populated
-        if (ws.DeepDungeon.Rooms.Any(d => d > 0))
-        {
-            LoadWalls();
-            LoadGeometry();
-            try
-            {
-                UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
-            }
-            catch (IpcNotReadyError err)
-            {
-                Service.PluginLog.Warning(err, "unable to communicate with Palantir");
-            }
-            BetweenFloors = false;
-        }
+        PendingInitialize = true;
     }
 
     protected override void Dispose(bool disposing)
@@ -256,7 +238,17 @@ public abstract partial class AutoClear : ZoneModule
             _fakeExits.Add(actor.InstanceID);
     }
 
-    protected virtual void OnChangeFloors() { }
+    protected virtual void OnLeaveFloor() { }
+    protected virtual void OnEnterFloor() { }
+
+    private void OnEnterFloorInternal()
+    {
+        LoadWalls();
+        LoadGeometry();
+        UpdateTrapsFloor();
+        BetweenFloors = false;
+        OnEnterFloor();
+    }
 
     private void ClearState()
     {
@@ -278,8 +270,30 @@ public abstract partial class AutoClear : ZoneModule
         _chestContentsSilver.Clear();
         _trapsHidden = true;
         _fakeExits.Clear();
-        OnChangeFloors();
+        OnLeaveFloor();
         BetweenFloors = true;
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (PendingInitialize && Palace.Rooms.Any(r => r > 0) && Palace.DungeonId != DeepDungeonState.DungeonType.None)
+        {
+            if (_config.TrapHints)
+            {
+                try
+                {
+                    UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
+                }
+                catch (IpcNotReadyError)
+                {
+                    Service.ShowNotification("Trap locations will not be shown. Please make sure Palantir is installed.", "Unable to communicate with Palantir", Dalamud.Interface.ImGuiNotification.NotificationType.Warning);
+                }
+            }
+            PendingInitialize = false;
+            OnEnterFloorInternal();
+        }
     }
 
     protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
