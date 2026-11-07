@@ -62,7 +62,7 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
         }
 
         foreach (var bait in ActiveBaitsOn(actor))
-            hints.AddForbiddenZone(Sdf.Indexed((_, i) => i < 0 || _zombieCounter[i] > 1), bait.Activation);
+            hints.AddForbiddenZone(Sdf.Indexed((_, i) => _zombieCounter.BoundSafeAt(i) > 1), bait.Activation);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
