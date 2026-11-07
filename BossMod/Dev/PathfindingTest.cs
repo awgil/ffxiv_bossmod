@@ -2,14 +2,8 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
-using SharpDX;
 using SharpDX.Direct2D1;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Device = SharpDX.Direct3D11.Device;
 using Vector2 = System.Numerics.Vector2;
 
 namespace BossMod.Dev;
@@ -47,52 +41,27 @@ class PathfindingTest : TestWindow
     private float _blockRectRotationDeg;
     private float _blockRectG = 4;
 
-    private IDalamudTextureWrap Rendered = Service.Texture.CreateEmpty(new Dalamud.Interface.Textures.RawImageSpecification() { Width = 40, Height = 40 }, true, false);
-    private readonly Device _d3dDevice;
-    private Texture2DDescription _desc;
-    private readonly SharpDX.Direct2D1.DeviceContext _d2dContext;
+    bool _antialiased;
+
+    private readonly D2DDraw _draw = new();
+    private IDalamudTextureWrap _result = Service.Texture.CreateEmpty(RawImageSpecification.Bgra32(1, 1), false, false);
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            _d3dDevice.Dispose();
-            _d2dContext.Dispose();
+            _draw.Dispose();
+            _result.Dispose();
         }
     }
 
     public PathfindingTest() : base("Pathfinding test", new(400, 400), ImGuiWindowFlags.None)
     {
-        _d3dDevice = new Device(SharpDX.Direct3D.DriverType.Hardware, DeviceCreationFlags.BgraSupport);
-        _desc = new Texture2DDescription()
-        {
-            ArraySize = 1,
-            MipLevels = 1,
-            BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
-            Width = 40,
-            Height = 40,
-            Format = Format.B8G8R8A8_UNorm,
-            SampleDescription = new SampleDescription(1, 0)
-        };
-
-        var dxgi = _d3dDevice.QueryInterface<SharpDX.DXGI.Device>();
-        var d2dFactory = new SharpDX.Direct2D1.Factory1();
-        var d2dDevice = new SharpDX.Direct2D1.Device(d2dFactory, dxgi);
-        _d2dContext = new SharpDX.Direct2D1.DeviceContext(d2dDevice, DeviceContextOptions.None)
-        {
-            AntialiasMode = AntialiasMode.Aliased
-        };
-
         _visu = RebuildMap();
     }
 
     public override void Draw()
     {
-        if (_visu == null)
-        {
-            ImGui.Text($"_visu is null, despite being set in the constructor. That's kinda cool, right?");
-            return;
-        }
         _visu.Draw();
 
         var rebuild = false;
@@ -134,97 +103,20 @@ class PathfindingTest : TestWindow
             }
         }
 
+        rebuild |= ImGui.Checkbox("Antialiased", ref _antialiased);
+
         if (rebuild)
             _visu = RebuildMap();
 
-        ImGui.Text($"{_desc.Width} x {_desc.Height}");
-
-        ImGui.Image(Rendered.Handle, new Vector2(_desc.Width, _desc.Height) * 8);
+        ImGui.Text($"{_visu.Map.Width} x {_visu.Map.Height}");
+        var cursor = ImGui.GetCursorScreenPos();
+        ImGui.GetWindowDrawList().AddRect(cursor, cursor + new Vector2(400), 0xFFFFFFFF);
+        ImGui.Image(_result.Handle, new(400));
     }
 
     private MapVisualizer RebuildMap()
     {
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
-
-        _desc.Width = map.Width + 2;
-        _desc.Height = map.Height + 2;
-
-        using (var tex = new Texture2D(_d3dDevice, _desc))
-        {
-            var surface = tex.QueryInterface<Surface>();
-
-            var bitmap = new Bitmap1(_d2dContext, surface, new BitmapProperties1(new PixelFormat(_desc.Format, SharpDX.Direct2D1.AlphaMode.Premultiplied), 96, 96, BitmapOptions.Target));
-
-            _d2dContext.Target = bitmap;
-            _d2dContext.BeginDraw();
-            _d2dContext.Clear(new Color4(0, 0, 0, 1));
-
-            var geometry = new PathGeometry(_d2dContext.Factory);
-
-            RawVector2 V(Vector2 v2)
-            {
-                var v3 = v2 + _mapHalfSize / _mapResolution;
-                return new(v3.X, v3.Y);
-            }
-
-            if (_blockCone)
-            {
-                using var sink = geometry.Open();
-                sink.BeginFigure(V(_blockConeCenter), FigureBegin.Filled);
-
-                // left outer point
-                var mag = _blockConeRadius.Y / _mapResolution;
-                sink.AddLine(V(_blockConeCenter + (_blockConeRotationDeg + _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * mag));
-                sink.AddArc(new ArcSegment()
-                {
-                    Point = V(_blockConeCenter + (_blockConeRotationDeg - _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * mag),
-                    Size = new Size2F(1, 1),
-                    ArcSize = ArcSize.Large,
-                    SweepDirection = SweepDirection.Clockwise
-                });
-                sink.AddLine(V(_blockConeCenter + (_blockConeRotationDeg - _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * _blockConeRadius.X / _mapResolution));
-                sink.AddArc(new ArcSegment()
-                {
-                    Point = V(_blockConeCenter + (_blockConeRotationDeg + _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * _blockConeRadius.X / _mapResolution),
-                    Size = new Size2F(1, 1),
-                    ArcSize = ArcSize.Large,
-                    SweepDirection = SweepDirection.CounterClockwise
-                });
-                sink.EndFigure(FigureEnd.Closed);
-
-                sink.Close();
-            }
-
-            _d2dContext.FillGeometry(geometry, new SolidColorBrush(_d2dContext, new Color4(1, 0, 0, 1)));
-            _d2dContext.EndDraw();
-
-            var staging = tex.Description;
-            staging.Usage = ResourceUsage.Staging;
-            staging.BindFlags = BindFlags.None;
-            staging.CpuAccessFlags = CpuAccessFlags.Read;
-            staging.OptionFlags = ResourceOptionFlags.None;
-
-            using (var stx = new Texture2D(_d3dDevice, staging))
-            {
-                _d3dDevice.ImmediateContext.CopyResource(tex, stx);
-
-                var data = _d3dDevice.ImmediateContext.MapSubresource(stx, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None);
-
-                var width = tex.Description.Width;
-                var height = tex.Description.Height;
-                var stride = width * 4;
-
-                var px = new byte[stride * height];
-
-                for (var y = 0; y < height; y++)
-                    Marshal.Copy(data.DataPointer + y * data.RowPitch, px, y * stride, stride);
-
-                unsafe
-                {
-                    Rendered = Service.Texture.CreateFromRaw(RawImageSpecification.Bgra32(_desc.Width, _desc.Height), px);
-                }
-            }
-        }
 
         List<float> sg = [];
         var sb = new BitArray(0);
@@ -236,14 +128,10 @@ class PathfindingTest : TestWindow
             zones.Add((Sdf.Continuous(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
         zones.SortBy(z => z.activation);
 
-        var sw = Stopwatch.StartNew();
-
         if (_useNewRasterizer)
             NavigationDecision.RasterizeForbiddenZones(map, new(_startingPos), zones, now, sg, sb, _ping, _cushion);
         else
             NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, sg, sb, _ping, _cushion);
-
-        Service.Log($"rasterizer took {sw.ElapsedMilliseconds}ms");
 
         List<Func<WPos, float>> goals = [];
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
@@ -256,6 +144,45 @@ class PathfindingTest : TestWindow
         if (_blockRect)
             visu.Rects.Add((new(_blockRectCenter), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth, _blockRectRotationDeg.Degrees()));
 
+        _result.Dispose();
+        _result = _draw.Draw(map.Width + 1, map.Height + 1, _antialiased, ctx =>
+        {
+            if (_blockCone)
+            {
+                var geometry = new PathGeometry(ctx.Factory);
+
+                using (var sink = geometry.Open())
+                {
+                    var p1 = _blockConeCenter + _mapHalfSize / _mapResolution + (_blockConeRotationDeg + _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * _blockConeRadius.Y / _mapResolution;
+                    var p2 = _blockConeCenter + _mapHalfSize / _mapResolution + (_blockConeRotationDeg - _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * _blockConeRadius.Y / _mapResolution;
+                    var p3 = _blockConeCenter + _mapHalfSize / _mapResolution + (_blockConeRotationDeg - _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * _blockConeRadius.X / _mapResolution;
+                    var p4 = _blockConeCenter + _mapHalfSize / _mapResolution + (_blockConeRotationDeg + _blockConeHalfAngle).Degrees().ToDirection().ToVec2() * _blockConeRadius.X / _mapResolution;
+
+                    sink.BeginFigure(V(p1), FigureBegin.Filled);
+                    sink.AddArc(new()
+                    {
+                        Point = V(p2),
+                        Size = new(_blockConeRadius.Y / _mapResolution, _blockConeRadius.Y / _mapResolution),
+                        ArcSize = _blockConeHalfAngle >= 90 ? ArcSize.Large : ArcSize.Small,
+                        SweepDirection = SweepDirection.Clockwise
+                    });
+                    sink.AddLine(V(p3));
+                    sink.AddArc(new()
+                    {
+                        Point = V(p4),
+                        Size = new(_blockConeRadius.X / _mapResolution, _blockConeRadius.X / _mapResolution),
+                        ArcSize = _blockConeHalfAngle >= 90 ? ArcSize.Large : ArcSize.Small,
+                        SweepDirection = SweepDirection.CounterClockwise
+                    });
+                    sink.EndFigure(FigureEnd.Closed);
+                    sink.Close();
+                }
+
+                ctx.FillGeometry(geometry, new SolidColorBrush(ctx, new SharpDX.Color4(1, 0, 0, 1)));
+            }
+        });
+
         return visu;
     }
+    static RawVector2 V(Vector2 a) => new(a.X, a.Y);
 }
