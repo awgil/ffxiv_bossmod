@@ -23,7 +23,7 @@ public class VectorAdapter : PointAdapter<Vector3>
     public override double GetY(Vector3 point) => point.Z;
 }
 
-internal unsafe class Shadowcaster : IShadowcaster
+internal unsafe class Shadowcast : IShadowcast
 {
     public DrawStats Stats { get; private set; } = new();
 
@@ -46,29 +46,22 @@ internal unsafe class Shadowcaster : IShadowcaster
         public int CollPlane;
     }
 
-    public List<Tri> ComputeVisibility2D(Vector3 origin, Vector3 lookDirection, float radius)
+    public List<WPos> ComputeVisibility2D(Vector3 origin, Vector3 lookDirection, float radius)
     {
         var (poly, _) = ComputeShared(origin, lookDirection, radius);
-        var output = new List<Tri>();
-
-        for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
-            output.Add(new(new(origin.XZ()), new(poly[j].XZ()), new(poly[i].XZ())));
-
-        return output;
+        return [.. poly.Select(p => new WPos(p.XZ()))];
     }
 
-    public List<IShadowcaster.Triangle> ComputeVisibility3D(Vector3 origin, Vector3 lookDirection, float radius)
+    public List<Vector3> ComputeVisibility3D(Vector3 origin, Vector3 lookDirection, float radius)
     {
         var (poly, normal) = ComputeShared(origin, lookDirection, radius);
-        var output = new List<IShadowcaster.Triangle>();
+        var output = new List<Vector3>();
 
-        for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+        for (var i = 0; i < poly.Count; i++)
         {
-            var pj = poly[j] - origin;
-            var oj = pj with { Y = (-pj.X * normal.X - pj.Z * normal.Z) / normal.Y };
             var pi = poly[i] - origin;
             var oi = pi with { Y = (-pi.X * normal.X - pi.Z * normal.Z) / normal.Y };
-            output.Add(new(origin, origin + oj, origin + oi));
+            output.Add(oi);
         }
 
         return output;

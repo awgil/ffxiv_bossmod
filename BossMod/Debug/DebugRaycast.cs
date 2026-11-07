@@ -1,6 +1,6 @@
 ﻿namespace BossMod.Debug;
 
-sealed class DebugRaycast(WorldState ws, Camera camera, Shadowcaster shadows)
+sealed class DebugRaycast(WorldState ws, Camera camera, Shadowcast shadows)
 {
     public void Draw()
     {
@@ -31,8 +31,10 @@ sealed class DebugRaycast(WorldState ws, Camera camera, Shadowcaster shadows)
         camera.AddLine(Vector3.Transform(new(0, 0, -2.5f), world), Vector3.Transform(new(0.5f, 0, -2), world), guideColor, 10, false);
         camera.AddLine(Vector3.Transform(new(0, 0, -2.5f), world), Vector3.Transform(new(-0.5f, 0, -2), world), guideColor, 10, false);
 
-        foreach (var tri in shadows.ComputeVisibility3D(origin, dir, 30))
-            camera.AddTriangle(tri.A, tri.B, tri.C);
+        var poly = shadows.ComputeVisibility3D(origin, dir, 30);
+
+        for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+            camera.AddTriangle(origin, poly[j], poly[i]);
 
         Dalamud.Utility.Util.ShowObject(shadows.Stats);
     }

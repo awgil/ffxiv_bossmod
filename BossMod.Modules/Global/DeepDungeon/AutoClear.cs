@@ -1,5 +1,4 @@
-﻿using BossMod.Pathfinding;
-using Dalamud.Plugin.Ipc;
+﻿using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
@@ -72,7 +71,7 @@ public abstract partial class AutoClear : ZoneModule
     protected readonly List<Actor> HintDisabled = [];
     private readonly List<Actor> LOS = [];
 
-    private readonly Dictionary<ulong, (WPos, Bitmap)> _losCache = [];
+    private readonly Dictionary<ulong, RelSimplifiedComplexPolygon> _losCache = [];
 
     public record class Gaze(Actor Source, AOEShape Shape);
 
@@ -102,8 +101,6 @@ public abstract partial class AutoClear : ZoneModule
 
     private readonly PlayerImmuneState[] _playerImmunes = new PlayerImmuneState[4];
 
-    private readonly ObstacleMapManager _obstacles;
-
     protected DeepDungeonState Palace => World.DeepDungeon;
 
     private readonly ICallGateSubscriber<ushort, List<Vector3>> _palantirGetTraps = Service.PluginInterface.GetIpcSubscriber<ushort, List<Vector3>>("Palantir.GetTraps");
@@ -114,7 +111,6 @@ public abstract partial class AutoClear : ZoneModule
     protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
         this.LevelCap = LevelCap;
-        _obstacles = new(ws);
 
         _subscriptions = new(
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
@@ -169,7 +165,6 @@ public abstract partial class AutoClear : ZoneModule
     {
         _palantirWatchTraps.Unsubscribe(UpdateTrapsFloorset);
         _subscriptions.Dispose();
-        _obstacles.Dispose();
         base.Dispose(disposing);
     }
 
@@ -592,14 +587,7 @@ public abstract partial class AutoClear : ZoneModule
             if (!_losCache.TryGetValue(caster.InstanceID, out var dangermap))
                 return;
 
-            var origin = dangermap.Item1;
-            var map = dangermap.Item2;
-
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
-            {
-                var offset = (p - origin) / map.PixelSize;
-                return map[(int)offset.X, (int)offset.Z];
-            }), CastFinishAt(caster));
+            hints.AddForbiddenZone(new AOEShapeCustom(dangermap), caster.Position, default, CastFinishAt(caster));
         }, d => _losCache.Remove(d.InstanceID));
 
         ProcessAll(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>
@@ -628,57 +616,9 @@ public abstract partial class AutoClear : ZoneModule
 
     protected void AddLOSFromTerrain(Actor Source, float Range)
     {
-        var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
-        if (entry == null || data == null)
-        {
-            Service.Log($"no bitmap found for {Source}, not adding LOS hints");
-            return;
-        }
-
-        var pixelRange = (int)(Range / data.PixelSize);
-        var casterOff = Source.Position - entry.Origin;
-        var casterCell = casterOff / data.PixelSize;
-        var casterX = (int)casterCell.X;
-        var casterZ = (int)casterCell.Z;
-
-        var bm = new Bitmap(data.Width, data.Height, data.Color0, data.Color1, data.Resolution);
-        for (var i = Math.Max(0, casterX - pixelRange); i <= Math.Min(data.Width, casterX + pixelRange); i++)
-        {
-            for (var j = Math.Max(0, casterZ - pixelRange); j <= Math.Min(data.Height, casterZ + pixelRange); j++)
-            {
-                var pt = new Vector2(i, j);
-                var cc = new Vector2(casterX, casterZ);
-                if (!IsBlocked(data, pt, cc, pixelRange))
-                    bm[i, j] = true;
-            }
-        }
-
-        _losCache[Source.InstanceID] = (entry.Origin, bm);
+        var src = Source.Position;
+        var polys = Service.Shadowcast.ComputeVisibility2D(Source, Range);
+        _losCache[Source.InstanceID] = new RelSimplifiedComplexPolygon(polys.Select(p => p - src));
         LOS.Add(Source);
-    }
-
-    private static bool IsBlocked(Bitmap map, Vector2 point, Vector2 origin, float maxRange)
-    {
-        var dir = origin - point;
-        var dist = dir.Length();
-        if (dist >= maxRange)
-            return true;
-
-        dir /= dist;
-
-        var ox = point.X;
-        var oy = point.Y;
-        var vx = dir.X;
-        var vy = dir.Y;
-
-        for (var i = 0; i < (int)dist; i++)
-        {
-            if (map[(int)ox, (int)oy])
-                return true;
-            ox += vx;
-            oy += vy;
-        }
-
-        return false;
     }
 }

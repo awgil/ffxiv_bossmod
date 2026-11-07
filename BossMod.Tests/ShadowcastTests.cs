@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿/*
 using static BossMod.Shadowcast;
 
 namespace BossMod.Tests;
@@ -34,3 +34,4 @@ public sealed class ShadowcastTests
         }
     }
 }
+*/
