@@ -145,6 +145,7 @@ public abstract partial class AutoClear : ZoneModule
         _palantirWatchTraps.Subscribe(UpdateTrapsFloorset);
 
         // check if module got reloaded during an active run
+        // TODO: works for module reload but not for *plugin* reload, since the zone change is triggered before the deep dungeon state is populated
         if (ws.DeepDungeon.Rooms.Any(d => d > 0))
         {
             LoadWalls();
@@ -617,7 +618,7 @@ public abstract partial class AutoClear : ZoneModule
     protected void AddLOSFromTerrain(Actor Source, float Range)
     {
         var src = Source.Position;
-        var polys = Service.Shadowcast.ComputeVisibility2D(Source, Range);
+        var polys = Service.Shadowcast.ComputeVisibility2D(Source.PosRot.XYZ() with { Y = 6 }, new(1, 0, 0), Range);
         _losCache[Source.InstanceID] = new RelSimplifiedComplexPolygon(polys.Select(p => p - src));
         LOS.Add(Source);
     }

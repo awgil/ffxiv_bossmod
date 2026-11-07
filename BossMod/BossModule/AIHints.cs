@@ -104,7 +104,7 @@ public sealed class AIHints
     public WPos PathfindMapCenter;
     public ArenaBounds PathfindMapBounds = DefaultBounds;
     public Bitmap.Region PathfindMapObstacles;
-    private readonly List<float> _scratchG = [];
+    private float[] _scratchG = [];
     private readonly BitArray _scratchD = new(0);
 
     // list of potential targets
@@ -302,15 +302,11 @@ public sealed class AIHints
     {
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
         var dim = (map.Height + 1) * (map.Width + 1);
-        if (_scratchG.Count != dim)
-        {
-            _scratchG.Clear();
-            _scratchG.AddRange(Enumerable.Repeat(0f, dim));
-        }
+        if (_scratchG.Length != dim)
+            _scratchG = new float[dim];
         _scratchD.Length = dim;
 
-        foreach (var o in TemporaryObstacles)
-            Pathfinding.NavigationDecision.RasterizeForbiddenZone(map, o, -1000, _scratchG.AsSpan(), _scratchD, 0);
+        Pathfinding.NavigationDecision.RasterizeRaw(map, [.. TemporaryObstacles.Select(o => (o, -1000f))], _scratchG, _scratchD, 0);
 
         foreach (var (from, radius, to) in Portals)
             map.AddPortal(from, radius, to);
