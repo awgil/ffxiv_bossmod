@@ -53,6 +53,8 @@ class PathfindingTest : TestWindow
             _draw.Dispose();
             _result.Dispose();
         }
+
+        base.Dispose(disposing);
     }
 
     public PathfindingTest() : base("Pathfinding test", new(400, 400), ImGuiWindowFlags.None)
