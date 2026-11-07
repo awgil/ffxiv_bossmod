@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
-using VisibilityPolygonCSharp;
 
 namespace BossMod.Services;
 
@@ -34,8 +33,6 @@ public sealed class ModulePackService(IDalamudPluginInterface dalamud, IPluginLo
                 return typeof(Lumina.GameData).Assembly;
             if (assemblyName.Name == "Lumina.Excel")
                 return typeof(Lumina.Excel.Sheets.Action).Assembly;
-            if (assemblyName.Name == "VisibilityPolygonCSharp")
-                return typeof(VisibilityPolygonCSharp<>).Assembly;
 
             return base.Load(assemblyName);
         }

@@ -1,6 +1,4 @@
-﻿using VisibilityPolygonCSharp;
-
-namespace BossMod.Shadowbringers.Alliance.A34RedGirl;
+﻿namespace BossMod.Shadowbringers.Alliance.A34RedGirl;
 
 class Wipe(BossModule module) : Components.GenericAOEs(module)
 {
@@ -17,7 +15,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
     record class Meteor(Actor Caster, Shade Shade, List<WPos> Blockers);
 
     private readonly List<Meteor> _meteors = [];
-    private readonly VisibilityPolygonCSharp<WPos> Vis = new(new WPosAdapter());
+    private readonly VisibilityPolygon<WPos> Vis = new(VisibilityAdapters.WPos);
     private readonly Barrier _barriers = module.FindComponent<Barrier>()!;
     private bool _risky;
 
@@ -67,7 +65,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         foreach (var m in _meteors)
         {
             m.Blockers.Clear();
-            List<Segment<WPos>> segments = [];
+            List<VisibilityPolygon<WPos>.Segment> segments = [];
 
             void addBlock(WPos center, IEnumerable<WDir> corners)
             {

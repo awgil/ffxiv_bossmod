@@ -3,31 +3,16 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using System.Diagnostics;
-using VisibilityPolygonCSharp;
 
-using Seg3 = VisibilityPolygonCSharp.Segment<System.Numerics.Vector3>;
+using Vis = BossMod.VisibilityPolygon<System.Numerics.Vector3>;
 
 namespace BossMod;
-
-public class WPosAdapter : PointAdapter<WPos>
-{
-    public override WPos Create(double x, double y) => new((float)x, (float)y);
-    public override double GetX(WPos point) => point.X;
-    public override double GetY(WPos point) => point.Z;
-}
-
-public class VectorAdapter : PointAdapter<Vector3>
-{
-    public override Vector3 Create(double x, double y) => new((float)x, 0, (float)y);
-    public override double GetX(Vector3 point) => point.X;
-    public override double GetY(Vector3 point) => point.Z;
-}
 
 internal unsafe class Shadowcast : IShadowcast
 {
     public DrawStats Stats { get; private set; } = new();
 
-    private readonly VisibilityPolygonCSharp<Vector3> Vis = new(new VectorAdapter());
+    private readonly Vis Vis = new(VisibilityAdapters.Vec3);
 
     public class DrawStats
     {
@@ -84,12 +69,12 @@ internal unsafe class Shadowcast : IShadowcast
         return (poly, normal);
     }
 
-    (List<Seg3>, Vector3) Scan(Vector3 origin, Vector3 lookDirection, float radius)
+    (List<Vis.Segment>, Vector3) Scan(Vector3 origin, Vector3 lookDirection, float radius)
     {
         var lookWorld = Matrix4x4.CreateWorld(new(0), lookDirection, new(0, 1, 0));
         var lookNormal = Vector3.Transform(new(0, 1, 0), lookWorld);
 
-        List<Seg3> segments = [];
+        List<Vis.Segment> segments = [];
 
         var perimeter = CurveApprox.Circle(radius, 0.1f).ToList();
         for (var i = 1; i < perimeter.Count; i++)
@@ -102,7 +87,7 @@ internal unsafe class Shadowcast : IShadowcast
         return (segments, lookNormal);
     }
 
-    void ScanTree(Quadtree* tree, Vector3 origin, Vector3 lookNormal, float radius, List<Seg3> segments)
+    void ScanTree(Quadtree* tree, Vector3 origin, Vector3 lookNormal, float radius, List<Vis.Segment> segments)
     {
         var scanner = new Scanner(origin, radius, lookNormal, segments, Stats);
 
@@ -148,7 +133,7 @@ internal unsafe class Shadowcast : IShadowcast
         return !(aright <= bleft || bright <= aleft || atop <= bbottom || btop <= abottom);
     }
 
-    class Scanner(Vector3 origin, float radius, Vector3 lookNormal, List<Seg3> segments, DrawStats stats)
+    class Scanner(Vector3 origin, float radius, Vector3 lookNormal, List<Vis.Segment> segments, DrawStats stats)
     {
         readonly float Rsq = radius * radius;
 

@@ -1,29 +1,23 @@
 ﻿using Dalamud.Bindings.ImGui;
-using VisibilityPolygonCSharp;
+
+using Seg = BossMod.VisibilityPolygon<BossMod.WPos>.Segment;
 
 namespace BossMod.Dev;
 
 internal class ShadowTest : TestWindow
 {
     private readonly WPos Origin;
-    private readonly List<Segment<WPos>> Segments;
-    private readonly List<Segment<WPos>> Segments2 = [];
+    private readonly List<Seg> Segments;
+    private readonly List<Seg> Segments2 = [];
     private readonly MiniArena Canvas;
-    private readonly VisibilityPolygonCSharp<WPos> Vis = new(new WPosAdapter());
+    private readonly VisibilityPolygon<WPos> Vis = new(VisibilityAdapters.WPos);
     WPos CurrentOrigin;
-
-    class WPosAdapter : PointAdapter<WPos>
-    {
-        public override WPos Create(double x, double y) => new((float)x, (float)y);
-        public override double GetX(WPos point) => (double)point.X;
-        public override double GetY(WPos point) => (double)point.Z;
-    }
 
     public ShadowTest() : base("Shadow test", new(600, 600), ImGuiWindowFlags.None)
     {
         Origin = Utils.LoadResource<WPos>("BossMod.Dev.Shadowcast.origin.json");
         CurrentOrigin = Origin;
-        Segments = Utils.LoadResource<List<Segment<WPos>>>("BossMod.Dev.Shadowcast.segments.json");
+        Segments = Utils.LoadResource<List<Seg>>("BossMod.Dev.Shadowcast.segments.json");
         Vis.BreakIntersectionsWithOutput(Segments, Segments2);
         Canvas = new(Service.Config.Get<BossModuleConfig>(), Origin, new ArenaBoundsSquare(30));
     }
