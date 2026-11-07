@@ -119,7 +119,7 @@ class PathfindingTest : TestWindow
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
 
         var sg = Array.Empty<float>();
-        var sb = new BitArray(0);
+        var sb = Array.Empty<bool>();
         var now = DateTime.MinValue;
         List<(Sdf containsFn, DateTime activation, ulong source)> zones = [];
         if (_blockCone)
@@ -129,9 +129,9 @@ class PathfindingTest : TestWindow
         zones.SortBy(z => z.activation);
 
         if (_useNewRasterizer)
-            NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, sb, _ping, _cushion);
+            NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _ping, _cushion);
         else
-            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, sb, _ping, _cushion);
+            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sb, _ping, _cushion);
 
         List<Func<WPos, float>> goals = [];
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));

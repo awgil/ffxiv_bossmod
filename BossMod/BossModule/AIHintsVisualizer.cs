@@ -84,8 +84,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     {
         var map = new Map();
         hints.InitPathfindMap(map);
-        var gScratch = Utils.MakeArray((map.Width + 1) * (map.Height + 1), float.MinValue);
-        var dScratch = new BitArray(gScratch.Length);
+        var gScratch = new float[(map.Width + 1) * (map.Height + 1)];
+        var dScratch = new bool[(map.Width + 1) * (map.Height + 1)];
         NavigationDecision.RasterizeRaw(map, [(shape, 0f)], gScratch, dScratch, 0);
         return new MapVisualizer(map, player.Position, [.. gScratch]);
     }

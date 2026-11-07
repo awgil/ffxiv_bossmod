@@ -15,7 +15,7 @@ public struct NavigationDecision
     public class Context
     {
         public float[] ScratchG = [];
-        public BitArray ScratchD = new(0);
+        public bool[] ScratchD = []; // BitArray is not threadsafe (for parallel operations on the same storage byte)
         public Map Map = new();
         public ThetaStar ThetaStar = new();
     }
@@ -48,9 +48,9 @@ public struct NavigationDecision
         if (hints.ForbiddenZones.Count > 0)
         {
             if (useOldRasterizer)
-                RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+                RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, rtt, spaceCushion);
             else
-                RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+                RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ref ctx.ScratchG, ref ctx.ScratchD, rtt, spaceCushion);
         }
 
         var emergencyMode = false;
@@ -89,7 +89,7 @@ public struct NavigationDecision
         return Task.Run(() => Build(ctx, currentTime, hintsCopy, playerPos, playerSpeed, rtt, spaceCushion));
     }
 
-    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, BitArray dScratch, float rtt, float cushion)
+    public static void RasterizeForbiddenZones(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Sdf distance, float g)[zones.Count];
@@ -112,7 +112,8 @@ public struct NavigationDecision
         if (gScratch.Length != dim)
             gScratch = new float[dim];
 
-        dScratch.Length = dim;
+        if (dScratch.Length != dim)
+            dScratch = new bool[dim];
 
         RasterizeRaw(map, zonesFixed, gScratch, dScratch, cushion);
 
@@ -131,51 +132,44 @@ public struct NavigationDecision
         }
     }
 
-    public static void RasterizeRaw(Map map, (Sdf sdf, float g)[] zones, float[] gScratch, BitArray dScratch, float cushion)
+    public static void RasterizeRaw(Map map, (Sdf sdf, float g)[] zones, float[] gScratch, bool[] dScratch, float cushion)
     {
-        Array.Fill(gScratch, float.MinValue);
-        dScratch.SetAll(false);
-
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
+        // calculate gscore for each grid point
         Parallel.For(0, map.Height + 1, y =>
         {
             Parallel.For(0, map.Width + 1, x =>
             {
                 var iCell = y * (map.Width + 1) + x;
-                if (gScratch[iCell] == float.MinValue)
-                {
-                    var point = cy + x * dx + y * dy;
-                    var (g, d) = CalculateMaxG(zones, point, cushion);
-                    gScratch[iCell] = g;
-                    dScratch[iCell] = d;
-                }
+                var point = cy + x * dx + y * dy;
+                (gScratch[iCell], dScratch[iCell]) = CalculateMaxG(zones, point, cushion);
             });
         });
 
-        for (var y = 0; y < map.Height; y++)
-            for (var x = 0; x < map.Width; x++)
+        // set each cell to the min of its corners
+        // set PixelAvoid for cells inside cushion zones
+        Parallel.For(0, map.Height, y =>
+        {
+            Parallel.For(0, map.Width, x =>
             {
                 var iG = y * (map.Width + 1) + x;
                 var iM = y * map.Width + x;
-
-                if (map.PixelMaxG[iM] < float.MaxValue)
-                    continue;
 
                 var cellG = map.PixelMaxG[iM] = Math.Min(
                     Math.Min(gScratch[iG], gScratch[iG + 1]),
                     Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
                 );
-                //if (cellG == float.MinValue)
-                //    throw new InvalidOperationException($"grid was not filled at {x}x{y}");
+
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iM] = float.MinValue;
 
                 if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
                     map.PixelAvoid[iM] = true;
-            }
+            });
+        });
     }
 
     public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, bool cushion)
@@ -229,7 +223,7 @@ public struct NavigationDecision
             AddCushion(map);
     }
 
-    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, BitArray dScratch, float rtt, float cushion)
+    public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float rtt, float cushion)
     {
         // very slight difference in activation times cause issues for pathfinding - cluster them together
         var zonesFixed = new (Sdf distance, float g)[zones.Count];
@@ -255,7 +249,9 @@ public struct NavigationDecision
         if (gScratch.Length != map.PixelMaxG.Length)
             gScratch = new float[map.PixelMaxG.Length];
 
-        dScratch.Length = map.PixelMaxG.Length;
+        if (dScratch.Length != map.PixelMaxG.Length)
+            dScratch = new bool[map.PixelMaxG.Length];
+
         var numBlockedCells = 0;
 
         // see Map.EnumeratePixels, note that we care about corners rather than centers
