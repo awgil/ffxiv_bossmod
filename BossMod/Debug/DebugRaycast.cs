@@ -18,7 +18,7 @@ sealed class DebugRaycast(WorldState ws, Camera camera, Shadowcast shadows)
         else
         {
             origin = player.PosRot.XYZ();
-            dir = player.Rotation.ToDirection().ToVec3(0);
+            dir = player.Rotation.ToDirection().ToVec3();
         }
 
         origin.Y += 2;

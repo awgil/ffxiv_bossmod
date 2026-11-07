@@ -46,7 +46,7 @@ internal unsafe class Shadowcast : IShadowcast
         {
             var pi = poly[i] - origin;
             var oi = pi with { Y = (-pi.X * normal.X - pi.Z * normal.Z) / normal.Y };
-            output.Add(oi);
+            output.Add(oi + origin);
         }
 
         return output;
