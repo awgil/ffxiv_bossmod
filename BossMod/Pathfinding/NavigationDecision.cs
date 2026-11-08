@@ -159,8 +159,11 @@ public struct NavigationDecision
                 var iM = y * map.Width + x;
 
                 var cellG = map.PixelMaxG[iM] = Math.Min(
-                    Math.Min(gScratch[iG], gScratch[iG + 1]),
-                    Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
+                    map.PixelMaxG[iM], // note that pixelmaxg has already been updated by bounds initialization
+                    Math.Min(
+                        Math.Min(gScratch[iG], gScratch[iG + 1]),
+                        Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
+                    )
                 );
 
                 if (cellG < float.MaxValue)
