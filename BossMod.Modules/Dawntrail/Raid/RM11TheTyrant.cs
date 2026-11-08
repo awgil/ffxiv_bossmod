@@ -107,13 +107,8 @@ class CrownOfArcadia(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeRect rect = new(20, 6, 20);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -173,13 +168,8 @@ class Maelstrom(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnActorCreated(Actor actor)
     {
@@ -204,13 +194,8 @@ class PowerfulGust(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes.Take(8))
-            {
-                yield return e.aoe with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes.Take(8))
+            yield return e.aoe with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -281,7 +266,7 @@ class ForegoneFatality(BossModule module) : Components.TankbusterTether(module, 
         _cometTethers.RemoveAll(t => t.Source == actor || t.Target == actor);
     }
 }
-class DoubleTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(module, AID.DoubleTyrannhilation1, 60f, false)
+abstract class Tyrannhilation(BossModule module, Enum aid) : Components.CastLineOfSightAOE(module, aid, 60f, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Comet).Where(a => !a.Position.InCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + a.HitboxRadius + 9));
 
@@ -291,29 +276,16 @@ class DoubleTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(mo
             Refresh();
     }
 }
-class HiddenTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(module, AID.HiddenTyrannhilation, 60f, false)
-{
-    public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Comet).Where(a => !a.Position.InCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + a.HitboxRadius + 9));
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.Comet)
-            Refresh();
-    }
-}
+class DoubleTyrannhilation(BossModule module) : Tyrannhilation(module, AID.DoubleTyrannhilation1);
+class HiddenTyrannhilation(BossModule module) : Tyrannhilation(module, AID.HiddenTyrannhilation);
 class Flatliner(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeRect rect = new(20, 6, 20);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -381,13 +353,8 @@ class ArcadionAvalanche(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeRect rect = new(40f, 20f);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

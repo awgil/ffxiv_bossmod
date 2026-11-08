@@ -278,28 +278,6 @@ class RavanaSeeing(BossModule module) : Components.DirectionalParry(module, (uin
     }
 }
 
-abstract class RavanaBossOriginAOEs(BossModule module, Enum aid, AOEShape shape, float duration = 1.2f) : Components.GenericAOEs(module, aid)
-{
-    private readonly List<(WPos origin, Angle rot, DateTime expire)> _active = [];
-    protected abstract WPos Origin(Actor caster);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var now = WorldState.CurrentTime;
-        _active.RemoveAll(a => a.expire <= now);
-        foreach (var a in _active)
-            yield return new(shape, a.origin, a.rot, a.expire);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action != WatchedAction)
-            return;
-        var origin = Origin(caster);
-        _active.Add((origin, caster.Rotation, WorldState.FutureTime(duration)));
-    }
-}
-
 class SlaughterCircle(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Slaughter, AID.SlaughterCircle, 12, 7.3f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

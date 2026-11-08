@@ -88,7 +88,6 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnActorDestroyed(Actor actor)
     {
-        // reset cast counter for next iteration of mechanic
         if (!Meteors.Any())
             NumCasts = 0;
     }
