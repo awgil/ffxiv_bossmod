@@ -1,5 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-namespace BossMod.Heavensward.FATE.Darkscale1;
+﻿namespace BossMod.Heavensward.FATE.Darkscale1;
 
 public enum OID : uint
 {
@@ -11,15 +10,15 @@ public enum OID : uint
 
 public enum AID : uint
 {
-    _Spell_EvilEye = 5041, // Boss->self, 3.0s cast, range 8+R 90-degree cone
-    _AutoAttack_Attack = 870, // Boss->Vedrfolnir, no cast, single-target
-    _Weaponskill_SheetOfIce = 5042, // Boss->location, 3.0s cast, range 5 circle
-    _Weaponskill_SalivousSnap = 5040, // Boss->Vedrfolnir, no cast, single-target
-    _Weaponskill_Roast = 5043, // Boss->self, no cast, range 30+R width 8 rect
-    _Weaponskill_GraniteRain = 5045, // Boss->self, 3.5s cast, range 10+R circle
+    EvilEye = 5041, // Boss->self, 3.0s cast, range 8+R 90-degree cone
+    AutoAttack = 870, // Boss->Vedrfolnir, no cast, single-target
+    SheetOfIce = 5042, // Boss->location, 3.0s cast, range 5 circle
+    SalivousSnap = 5040, // Boss->Vedrfolnir, no cast, single-target
+    Roast = 5043, // Boss->self, no cast, range 30+R width 8 rect
+    GraniteRain = 5045, // Boss->self, 3.5s cast, range 10+R circle
 }
 
-class EvilEye(BossModule module) : Components.GenericGaze(module, AID._Spell_EvilEye)
+class EvilEye(BossModule module) : Components.GenericGaze(module, AID.EvilEye)
 {
     readonly List<Actor> Casters = [];
 
@@ -43,8 +42,8 @@ class EvilEye(BossModule module) : Components.GenericGaze(module, AID._Spell_Evi
     }
 }
 
-class SheetOfIce(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_SheetOfIce, 5);
-class GraniteRain(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_GraniteRain, 22.5f);
+class SheetOfIce(BossModule module) : Components.StandardAOEs(module, AID.SheetOfIce, 5);
+class GraniteRain(BossModule module) : Components.StandardAOEs(module, AID.GraniteRain, 22.5f);
 
 class DragonBabysitter(BossModule module) : BossComponent(module)
 {
@@ -74,7 +73,7 @@ class Darkscale1States : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.Fate, GroupID = 868, NameID = 3983)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Fate, GroupID = 868, NameID = 3983)]
 public class Darkscale1(ModuleInit init) : BossModule(init, new(-202.19f, -504.73f), new ArenaBoundsCircle(25))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
