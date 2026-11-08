@@ -312,13 +312,43 @@ public static class ShapeDistance
     }
     public static Func<WPos, float> Polygon(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
     {
-        if (!polygon.IsSimple)
-            throw new ArgumentException("Cannot use ShapeDistance.Polygon with a shape containing holes");
+        var ext = new List<WPos>(polygon.Exterior.Length);
+        foreach (var e in polygon.Exterior)
+            ext.Add(e.Rotate(rotation) + origin);
 
-        var verts = polygon.Vertices.Select(v => v.Rotate(rotation) + origin).ToList();
+        var dext = Polygon(ext);
 
-        return Polygon(verts);
+        if (polygon.IsSimple)
+            return dext;
+
+        var interiors = new List<Func<WPos, float>>();
+
+        foreach (var h in polygon.Holes)
+        {
+            var i = new List<WPos>();
+            foreach (var e in polygon.Interior(h))
+                i.Add(e.Rotate(rotation) + origin);
+            interiors.Add(Polygon(i));
+        }
+
+        return p =>
+        {
+            var dOut = dext(p);
+            if (dOut >= 0)
+                return dOut;
+
+            foreach (var hole in interiors)
+            {
+                var dh = hole(p);
+                if (dh < 0)
+                    return -dh;
+            }
+
+            return dOut;
+        };
     }
+
+    public static Func<WPos, float> ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
 
     public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     public static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
