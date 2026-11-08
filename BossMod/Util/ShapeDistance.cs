@@ -129,20 +129,15 @@ public static class ShapeDistance
             return _ => float.MaxValue;
         if (halfAngle.Rad >= MathF.PI)
             return Circle(origin, radius);
-        // for <= 180-degree cone: result = intersection of circle and two half-planes with normals pointing outside cone sides
-        // for > 180-degree cone: result = intersection of circle and negated intersection of two half-planes with inverted normals
-        // both normals point outside
-        float coneFactor = halfAngle.Rad > MathF.PI / 2 ? -1 : 1;
-        var nl = coneFactor * (centerDir + halfAngle).ToDirection().OrthoL();
-        var nr = coneFactor * (centerDir - halfAngle).ToDirection().OrthoR();
-        return p =>
+
+        var c = halfAngle.ToDirection().MirrorZ();
+        var cx = -centerDir.ToDirection().MirrorX();
+
+        return q =>
         {
-            var off = p - origin;
-            var distOrigin = off.Length();
-            var distOuter = distOrigin - radius;
-            var distLeft = off.Dot(nl);
-            var distRight = off.Dot(nr);
-            return Math.Max(distOuter, coneFactor * Math.Max(distLeft, distRight));
+            var p = (q - origin).Rotate(cx);
+            p.X = Math.Abs(p.X);
+            return Math.Max(p.Length() - radius, (p - c * Math.Clamp(p.Dot(c), 0, radius)).Length() * Math.Sign(c.Cross(p)));
         };
     }
 
@@ -160,18 +155,25 @@ public static class ShapeDistance
             return Donut(origin, innerRadius, outerRadius);
         if (innerRadius <= 0)
             return Cone(origin, outerRadius, centerDir, halfAngle);
-        float coneFactor = halfAngle.Rad > MathF.PI / 2 ? -1 : 1;
-        var nl = coneFactor * (centerDir + halfAngle + 90.Degrees()).ToDirection();
-        var nr = coneFactor * (centerDir - halfAngle - 90.Degrees()).ToDirection();
-        return p =>
+
+        var r = (outerRadius + innerRadius) * 0.5f;
+        var th = outerRadius - innerRadius;
+
+        var c = halfAngle.ToDirection().MirrorX();
+        var cx = centerDir.ToDirection().MirrorX();
+
+        return q =>
         {
-            var off = p - origin;
-            var distOrigin = off.Length();
-            var distOuter = distOrigin - outerRadius;
-            var distInner = innerRadius - distOrigin;
-            var distLeft = off.Dot(nl);
-            var distRight = off.Dot(nr);
-            return Math.Max(Math.Max(distOuter, distInner), coneFactor * Math.Max(distLeft, distRight));
+            var p = (q - origin).Rotate(cx);
+            p.X = MathF.Abs(p.X);
+            p = p.Rotate(c);
+            return Math.Max(
+                MathF.Abs(p.Length() - r) - th * 0.5f,
+                new WDir(
+                    p.X,
+                    MathF.Max(0, MathF.Abs(r - p.Z) - th * 0.5f
+                )).Length() * Math.Sign(p.X)
+            );
         };
     }
 
@@ -202,20 +204,22 @@ public static class ShapeDistance
     }
     public static Func<WPos, float> TriList(WPos origin, List<RelTriangle> tris) => Union([.. tris.Select(tri => Tri(origin, tri))]);
 
+    static WDir Max0(WDir a) => new(Math.Max(0, a.X), Math.Max(0, a.Z));
+    static float Maxcomp(WDir a) => Math.Max(a.X, a.Z);
+
     public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
-        // dir points outside far side
-        var normal = dir.OrthoL(); // points outside left side
+        var start = origin - dir * lenBack;
+        var end = origin + dir * lenFront;
+        var midpoint = WPos.Lerp(start, end, 0.5f);
+
+        var r = new WDir(halfWidth, (lenBack + lenFront) * 0.5f);
+        var dxr = dir.MirrorX();
+
         return p =>
         {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distFront = distParr - lenFront;
-            var distBack = -distParr - lenBack;
-            var distLeft = distOrtho - halfWidth;
-            var distRight = -distOrtho - halfWidth;
-            return Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
+            var q = (p - midpoint).Rotate(dxr).Abs() - r;
+            return Max0(q).Length() + Math.Min(Maxcomp(q), 0);
         };
     }
     public static Func<WPos, float> Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
@@ -228,19 +232,8 @@ public static class ShapeDistance
 
     public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
-        // dir points outside far side
-        var normal = dir.OrthoL(); // points outside left side
-        return p =>
-        {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distFront = distParr - lenFront;
-            var distBack = -distParr - lenBack;
-            var distLeft = distOrtho - halfWidth;
-            var distRight = -distOrtho - halfWidth;
-            return -Math.Max(Math.Max(distFront, distBack), Math.Max(distLeft, distRight));
-        };
+        var r = Rect(origin, dir, lenFront, lenBack, halfWidth);
+        return p => -r(p);
     }
     public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
     public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)

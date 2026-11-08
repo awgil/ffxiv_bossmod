@@ -110,10 +110,10 @@ class PathfindingTest : TestWindow
         if (rebuild)
             _visu = RebuildMap();
 
-        ImGui.Text($"{_visu.Map.Width} x {_visu.Map.Height}");
-        var cursor = ImGui.GetCursorScreenPos();
-        ImGui.GetWindowDrawList().AddRect(cursor, cursor + new Vector2(400), 0xFFFFFFFF);
-        ImGui.Image(_result.Handle, new(400));
+        //ImGui.Text($"{_visu.Map.Width} x {_visu.Map.Height}");
+        //var cursor = ImGui.GetCursorScreenPos();
+        //ImGui.GetWindowDrawList().AddRect(cursor, cursor + new Vector2(400), 0xFFFFFFFF);
+        //ImGui.Image(_result.Handle, new(400));
     }
 
     private MapVisualizer RebuildMap()
@@ -121,7 +121,7 @@ class PathfindingTest : TestWindow
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
 
         var sg = Array.Empty<float>();
-        var sb = Array.Empty<bool>();
+        var sd = Array.Empty<bool>();
         var now = DateTime.MinValue;
         List<(Sdf containsFn, DateTime activation, ulong source)> zones = [];
         if (_blockCone)
@@ -131,14 +131,13 @@ class PathfindingTest : TestWindow
         zones.SortBy(z => z.activation);
 
         if (_useNewRasterizer)
-            NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sb, _ping, _cushion);
+            NavigationDecision.RasterizeForbiddenZones(map, zones, now, ref sg, ref sd, _ping, _cushion);
         else
-            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sb, _ping, _cushion);
+            NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sd, _ping, _cushion);
 
         List<Func<WPos, float>> goals = [];
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
-        var f = Array.Empty<float>();
-        NavigationDecision.RasterizeGoalZones(map, goals, ref f, _cushion > 0);
+        NavigationDecision.RasterizeGoalZones(map, goals, ref sg);
 
         var visu = new MapVisualizer(map, new(_startingPos)/*, sg*/);
 

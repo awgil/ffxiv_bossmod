@@ -58,9 +58,7 @@ public struct NavigationDecision
             emergencyMode = ctx.Map.PixelMaxG[ctx.Map.GridToIndex(pX, pZ)] == 0;
 
         if (hints.GoalZones.Count > 0 && !emergencyMode)
-            RasterizeGoalZones(ctx.Map, hints.GoalZones, ref ctx.ScratchG, spaceCushion > 0);
-        else if (spaceCushion > 0)
-            AddCushion(ctx.Map);
+            RasterizeGoalZones(ctx.Map, hints.GoalZones, ref ctx.ScratchG);
 
         var rasterFinish = DateTime.Now;
 
@@ -156,9 +154,8 @@ public struct NavigationDecision
 
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iM] = float.MinValue;
-
-                if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
-                    map.PixelAvoid[iM] = true;
+                else if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
+                    map.PixelPriority[iM] = -CushionDepriority;
             }
         }
 
@@ -174,7 +171,7 @@ public struct NavigationDecision
         }
     }
 
-    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, ref float[] g_, bool cushion)
+    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, ref float[] g_)
     {
         // see Map.EnumeratePixels, note that we care about corners rather than centers
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
@@ -206,7 +203,7 @@ public struct NavigationDecision
 
                 if (map.PixelMaxG[iM] == float.MaxValue)
                 {
-                    var cellP = map.PixelPriority[iM] = Math.Min(
+                    var cellP = map.PixelPriority[iM] = map.PixelPriority[iM] + Math.Min(
                         Math.Min(gScratch[iG], gScratch[iG + 1]),
                         Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
                     );
@@ -216,9 +213,6 @@ public struct NavigationDecision
                     map.PixelPriority[iM] = float.MinValue;
             }
         }
-
-        if (cushion)
-            AddCushion(map);
     }
 
     public static void RasterizeForbiddenZonesOld(Map map, List<(Sdf distance, DateTime activation, ulong source)> zones, DateTime current, ref float[] gScratch, ref bool[] dScratch, float rtt, float cushion)
@@ -293,7 +287,7 @@ public struct NavigationDecision
                     ++numBlockedCells;
                 }
                 else if (bottomD || topD)
-                    map.PixelAvoid[jCell] = true;
+                    map.PixelPriority[jCell] -= CushionDepriority;
                 bottomD = topD;
                 bottomG = topG;
             }
@@ -343,17 +337,25 @@ public struct NavigationDecision
         return (g, d);
     }
 
-    public static void AddCushion(Map map)
+    /*
+    public static void AddCushion(Map map, bool[] avoid)
     {
         var pMax = float.MinValue;
-        for (var i = 0; i < map.Width * map.Height; i++)
+        for (var y = 0; y < map.Height; y++)
         {
-            if (map.PixelPriority[i] >= 0 && map.PixelAvoid[i])
-                map.PixelPriority[i] -= CushionDepriority;
-            pMax = Math.Max(map.PixelPriority[i], pMax);
+            for (var x = 0; x < map.Width; x++)
+            {
+                var iG = y * (map.Width + 1) + x;
+                var iM = y * map.Width + x;
+
+                if (map.PixelPriority[iM] >= 0 && avoid[iG] && avoid[iG + 1] && avoid[iG + map.Width + 1] && avoid[iG + map.Width + 2])
+                    map.PixelPriority[iM] -= CushionDepriority;
+                pMax = Math.Max(map.PixelPriority[iM], pMax);
+            }
         }
         map.MaxPriority = pMax;
     }
+    */
 
     private static float ActivationToG(DateTime activation, DateTime current, float rtt) => MathF.Max(0, (float)(activation - current).TotalSeconds - CushionFromRTT(rtt));
 
