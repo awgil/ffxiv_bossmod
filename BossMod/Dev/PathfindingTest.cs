@@ -127,13 +127,7 @@ class PathfindingTest : TestWindow
         if (_blockCone)
             zones.Add((Sdf.Continuous(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees())), now.AddSeconds(_blockConeG), 0));
         if (_blockRect)
-        {
-            var p = new RelPolygonWithHoles([new(10, 0), new(0, 5), new(-5, 10), new(-10, 0), new(0, -5), new(3, 0), new(0, 3), new(-3, 0)], [5]);
-            var q = new RelSimplifiedComplexPolygon([p]);
-
-            zones.Add((Sdf.Continuous(ShapeDistance.ComplexPolygon(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), q)), now.AddSeconds(_blockRectG), 0));
-            // zones.Add((Sdf.Continuous(ShapeDistance.Cross(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X/*, _blockRectLen.Y*/, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
-        }
+            zones.Add((Sdf.Continuous(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
         zones.SortBy(z => z.activation);
 
         if (_useNewRasterizer)
@@ -141,11 +135,14 @@ class PathfindingTest : TestWindow
         else
             NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, ref sg, ref sd, _ping, _cushion);
 
+        var gCopy = new float[sg.Length];
+        sg.CopyTo(gCopy);
+
         List<Func<WPos, float>> goals = [];
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
         NavigationDecision.RasterizeGoalZones(map, goals, ref sg);
 
-        var visu = new MapVisualizer(map, new(_startingPos)/*, sg*/);
+        var visu = new MapVisualizer(map, new(_startingPos), gCopy);
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));

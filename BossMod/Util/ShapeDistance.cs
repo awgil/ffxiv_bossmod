@@ -273,7 +273,7 @@ public static class ShapeDistance
     }
 
     // positive offset increases area
-    public static Func<WPos, float> ConvexPolygon(IEnumerable<(WPos, WPos)> edges, bool cw, float offset = 0)
+    public static Func<WPos, float> ConvexPolygon(IEnumerable<(WPos, WPos)> edges, bool cw)
     {
         Func<WPos, float> edge((WPos p1, WPos p2) e)
         {
@@ -283,9 +283,9 @@ public static class ShapeDistance
             var normal = cw ? dir.OrthoL() : dir.OrthoR();
             return p => normal.Dot(p - e.p1);
         }
-        return Intersection([.. edges.Select(edge)], offset);
+        return Intersection([.. edges.Select(edge)]);
     }
-    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
+    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw);
     public static Func<WPos, float> Polygon(List<WPos> vertices)
     {
         var n = vertices.Count;
@@ -350,8 +350,8 @@ public static class ShapeDistance
 
     public static Func<WPos, float> ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
 
-    public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
-    public static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;
+    public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs) => p => funcs.Max(e => e(p));
+    public static Func<WPos, float> Union(List<Func<WPos, float>> funcs) => p => funcs.Min(e => e(p));
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
