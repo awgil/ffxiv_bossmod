@@ -94,7 +94,8 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     {
         var map = new Map();
         hints.InitPathfindMap(map);
-        NavigationDecision.RasterizeGoalZones(map, [shape], false);
+        var f = Array.Empty<float>();
+        NavigationDecision.RasterizeGoalZones(map, [shape], ref f, false);
         return new MapVisualizer(map, player.Position);
     }
 

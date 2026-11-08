@@ -1,5 +1,4 @@
-﻿using System.Numerics.Tensors;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace BossMod.Pathfinding;
 
@@ -59,7 +58,7 @@ public struct NavigationDecision
             emergencyMode = ctx.Map.PixelMaxG[ctx.Map.GridToIndex(pX, pZ)] == 0;
 
         if (hints.GoalZones.Count > 0 && !emergencyMode)
-            RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
+            RasterizeGoalZones(ctx.Map, hints.GoalZones, ref ctx.ScratchG, spaceCushion > 0);
         else if (spaceCushion > 0)
             AddCushion(ctx.Map);
 
@@ -116,20 +115,6 @@ public struct NavigationDecision
             dScratch = new bool[dim];
 
         RasterizeRaw(map, zonesFixed, gScratch, dScratch, cushion);
-
-        // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
-        var ipx = map.Width * map.Height;
-        var maxGSpan = map.PixelMaxG.AsSpan()[..ipx];
-        var realMaxG = TensorPrimitives.Max(maxGSpan);
-        if (realMaxG < float.MaxValue)
-        {
-            for (var j = 0; j < ipx; j++)
-                if (map.PixelMaxG[j] == realMaxG)
-                {
-                    map.PixelMaxG[j] = float.MaxValue;
-                    map.PixelPriority[j] = 0;
-                }
-        }
     }
 
     public static void RasterizeRaw(Map map, (Sdf sdf, float g)[] zones, float[] gScratch, bool[] dScratch, float cushion)
@@ -149,77 +134,87 @@ public struct NavigationDecision
             });
         });
 
+        var maxG = float.MinValue;
         // set each cell to the min of its corners
         // set PixelAvoid for cells inside cushion zones
-        Parallel.For(0, map.Height, y =>
+        for (var y = 0; y < map.Height; y++)
         {
-            Parallel.For(0, map.Width, x =>
+            for (var x = 0; x < map.Width; x++)
             {
                 var iG = y * (map.Width + 1) + x;
                 var iM = y * map.Width + x;
 
                 var cellG = map.PixelMaxG[iM] = Math.Min(
-                    map.PixelMaxG[iM], // note that pixelmaxg has already been updated by bounds initialization
+                    // pixel may have already been initialized (i.e. by bounds creation)
+                    map.PixelMaxG[iM],
                     Math.Min(
                         Math.Min(gScratch[iG], gScratch[iG + 1]),
                         Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
                     )
                 );
+                maxG = MathF.Max(maxG, cellG);
 
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iM] = float.MinValue;
 
                 if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
                     map.PixelAvoid[iM] = true;
-            });
-        });
+            }
+        }
+
+        // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
+        if (maxG < float.MaxValue)
+        {
+            for (var j = 0; j < map.Width * map.Height; j++)
+                if (map.PixelMaxG[j] == maxG)
+                {
+                    map.PixelMaxG[j] = float.MaxValue;
+                    map.PixelPriority[j] = 0;
+                }
+        }
     }
 
-    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, bool cushion)
+    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals, ref float[] g_, bool cushion)
     {
         // see Map.EnumeratePixels, note that we care about corners rather than centers
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        var iCell = 0;
-        for (var y = 0; y < map.Height; ++y)
+        var dim = (map.Width + 1) * (map.Height + 1);
+        if (g_.Length != dim)
+            g_ = new float[dim];
+
+        var gScratch = g_;
+
+        Parallel.For(0, map.Height + 1, y =>
         {
-            var cx = cy;
-            var leftP = goals.Sum(g => g(cx));
-            for (var x = 0; x < map.Width; ++x)
+            Parallel.For(0, map.Width + 1, x =>
             {
-                cx += dx;
-                var rightP = goals.Sum(g => g(cx));
-                map.PixelPriority[iCell++] = Math.Min(leftP, rightP);
-                leftP = rightP;
-            }
-            cy += dy;
-        }
-        var bleftP = goals.Sum(g => g(cy));
-        iCell -= map.Width;
-        for (var x = 0; x < map.Width; ++x, ++iCell)
+                var iCell = y * (map.Width + 1) + x;
+                var point = cy + x * dx + y * dy;
+                gScratch[iCell] = goals.Sum(g => g(point));
+            });
+        });
+
+        for (var y = 0; y < map.Height; y++)
         {
-            cy += dx;
-            var brightP = goals.Sum(g => g(cy));
-            var bottomP = Math.Min(bleftP, brightP);
-            var jCell = iCell;
-            for (var y = map.Height; y > 0; --y, jCell -= map.Width)
+            for (var x = 0; x < map.Width; x++)
             {
-                var topP = map.PixelPriority[jCell];
-                if (map.PixelMaxG[jCell] == float.MaxValue)
+                var iG = y * (map.Width + 1) + x;
+                var iM = y * map.Width + x;
+
+                if (map.PixelMaxG[iM] == float.MaxValue)
                 {
-                    // TODO: is there a way to track whether this pixel has been previously avoided without creating a whole extra array to store that info?
-                    var cellP = map.PixelPriority[jCell] = Math.Min(topP, bottomP);
-                    map.MaxPriority = Math.Max(map.MaxPriority, cellP);
+                    var cellP = map.PixelPriority[iM] = Math.Min(
+                        Math.Min(gScratch[iG], gScratch[iG + 1]),
+                        Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
+                    );
+                    map.MaxPriority = MathF.Max(map.MaxPriority, cellP);
                 }
                 else
-                {
-                    map.PixelPriority[jCell] = float.MinValue;
-                }
-                bottomP = topP;
+                    map.PixelPriority[iM] = float.MinValue;
             }
-            bleftP = brightP;
         }
 
         if (cushion)
