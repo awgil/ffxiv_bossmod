@@ -3,7 +3,7 @@ namespace BossMod.Endwalker.Trial.T03Endsinger;
 public enum OID : uint
 {
     Boss = 0x34F3, // The Endsinger, Teamcraft index
-    Endsinger2 = 0x34F5, // The Endsinger, Teamcraft index
+    Endsinger2 = 0x34F5, // Epigonoi heads, source of Misery
     Endsinger3 = 0x34F6, // The Endsinger, Teamcraft index
     Kakodaimon = 0x34F7, // Teamcraft index
     DoomedStars = 0x34F8, // Teamcraft index
@@ -27,7 +27,7 @@ public enum AID : uint
     ElenchosSidesAOE = 26179, // Helper->self, 6.0s cast, range 40 width 13 rect
     DeathsEmbrace = 26185, // Boss->self, 6.0s cast, single-target
     DeathsEmbraceAOE = 26187, // Boss->self, no cast, range 45 cone
-    Misery = 26184, // ?->self, no cast, range 1 circle
+    Misery = 26184, // Helper->self, no cast, circle growing every ~1.07s for 14 pulses, last ~12
     Pharmakon = 26188, // FeatherOfDespair->self, 2.0s cast, range 6 circle
     Aporrhoia = 26173, // Boss->self, 3.0s cast, single-target
     AporrhoiaLaser = 26174, // ?->self, 5.0s cast, range 40 width 5 rect (sheet name Elenchos)
@@ -83,36 +83,102 @@ class FatalismStars(BossModule module) : Components.GenericAOEs(module, AID.Fata
             _aoes.RemoveAt(0);
     }
 
-    // TODO: activation delay after the tether is a guess, verify on the first replay
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
         if (tether.ID == (uint)TetherID.Fatalism && WorldState.Actors.Find(tether.Target) is { } star)
-            _aoes.Add(new(_shape, _recorded.GetValueOrDefault(star.InstanceID, star.Position), default, WorldState.FutureTime(12)));
+            _aoes.Add(new(_shape, _recorded.GetValueOrDefault(star.InstanceID, star.Position), default, WorldState.FutureTime(19.6f)));
     }
 }
 
-// TODO: knockback distance unknown, replace with a knockback component once a replay shows it
-class Galaxias(BossModule module) : Components.CastHint(module, AID.GalaxiasAOE, "Knockback from the center, stand in the middle!")
+class Galaxias(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GalaxiasAOE, 13)
 {
+    private bool LandsInStar(int slot, Actor actor, WPos pos) => Module.FindComponent<FatalismStars>()?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false;
+
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => base.DestinationUnsafe(slot, actor, pos) || LandsInStar(slot, actor, pos);
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        foreach (var c in Casters)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(c.Position, 3), Module.CastFinishAt(c.CastInfo));
+        foreach (var src in Sources(slot, actor))
+        {
+            if (IsImmune(slot, src.Activation))
+                continue;
+            var stars = Module.FindComponent<FatalismStars>()?.ActiveAOEs(slot, actor).ToList() ?? [];
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            {
+                var dest = AwayFromSource(p, src.Origin, src.Distance);
+                return !Arena.InBounds(dest) || stars.Any(a => a.Check(dest));
+            }), src.Activation);
+        }
     }
 }
 
 class ElenchosCenter(BossModule module) : Components.StandardAOEs(module, AID.ElenchosCenter, new AOEShapeRect(40, 7));
 class ElenchosSides(BossModule module) : Components.StandardAOEs(module, AID.ElenchosSidesAOE, new AOEShapeRect(40, 6.5f, 40));
 
-// TODO: cone angle unknown, draw the baits once a replay shows it
-class DeathsEmbrace(BossModule module) : Components.CastHint(module, AID.DeathsEmbrace, "Spread for cones");
-class Pharmakon(BossModule module) : Components.StandardAOEs(module, AID.Pharmakon, 6);
+class DeathsEmbrace(BossModule module) : Components.GenericBaitAway(module, AID.DeathsEmbraceAOE)
+{
+    private static readonly AOEShapeCone _shape = new(45, 5.Degrees());
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.DeathsEmbrace)
+            foreach (var p in Raid.WithoutSlot())
+                CurrentBaits.Add(new(caster, p, _shape, Module.CastFinishAt(spell, 1.2f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            ++NumCasts;
+            CurrentBaits.Clear();
+        }
+    }
+}
+
+class Pharmakon(BossModule module) : Components.GenericAOEs(module, AID.Pharmakon)
+{
+    private static readonly AOEShapeCircle _shape = new(6);
+    private readonly List<(Actor feather, DateTime activation)> _feathers = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _feathers.Select(f => new AOEInstance(_shape, f.feather.Position, default, f.activation));
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.FeatherOfDespair)
+            _feathers.Add((actor, WorldState.FutureTime(6.7f)));
+    }
+
+    public override void OnActorDestroyed(Actor actor) => _feathers.RemoveAll(f => f.feather == actor);
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            ++NumCasts;
+            _feathers.RemoveAll(f => f.feather == caster);
+        }
+    }
+}
+
+class Misery(BossModule module) : Components.GenericAOEs(module, AID.Misery)
+{
+    private static readonly AOEShapeCircle _shape = new(12.5f);
+    private DateTime _activation;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Module.Enemies(OID.Endsinger2).Select(h => new AOEInstance(_shape, h.Position, default, _activation));
+
+    public override void OnActorCreated(Actor actor)
+    {
+        if ((OID)actor.OID == OID.Endsinger2 && _activation < WorldState.CurrentTime)
+            _activation = WorldState.FutureTime(6.3f);
+    }
+}
 
 class AporrhoiaLaser(BossModule module) : Components.StandardAOEs(module, AID.AporrhoiaLaser, new AOEShapeRect(40, 2.5f));
 class FatalismLaser(BossModule module) : Components.StandardAOEs(module, AID.FatalismLaser, new AOEShapeRect(40, 2.5f));
 class Hubris(BossModule module) : Components.BaitAwayCast(module, AID.HubrisAOE, new AOEShapeCircle(6), true);
 
-// TODO: growing head puddles after Epigonoi are not handled
 class Epigonoi(BossModule module) : Components.StandardAOEs(module, AID.Epigonoi, 6);
 class Interstellar(BossModule module) : Components.StandardAOEs(module, AID.InterstellarAOE, new AOEShapeRect(40, 14));
 class Nemesis1(BossModule module) : Components.SpreadFromCastTargets(module, AID.Nemesis1, 6);
@@ -131,7 +197,6 @@ class T03EndsingerStates : StateMachineBuilder
 {
     public T03EndsingerStates(BossModule module) : base(module)
     {
-        // TODO: check whether the final phase is still the primary actor, then split phases from the first replay
         TrivialPhase()
             .ActivateOnEnter<Elegeia>()
             .ActivateOnEnter<ElegeiaUnforgotten>()
@@ -144,6 +209,7 @@ class T03EndsingerStates : StateMachineBuilder
             .ActivateOnEnter<ElenchosSides>()
             .ActivateOnEnter<DeathsEmbrace>()
             .ActivateOnEnter<Pharmakon>()
+            .ActivateOnEnter<Misery>()
             .ActivateOnEnter<AporrhoiaLaser>()
             .ActivateOnEnter<FatalismLaser>()
             .ActivateOnEnter<Hubris>()
@@ -161,7 +227,7 @@ class T03EndsingerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 796, NameID = 10448)]
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 796, NameID = 10448)]
 public class T03Endsinger(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)

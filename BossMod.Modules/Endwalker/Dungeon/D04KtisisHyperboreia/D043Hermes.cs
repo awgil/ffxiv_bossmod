@@ -43,6 +43,9 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (SafeZones.Count == 0 && Meteors.Any(WillBreak) && Meteors.FirstOrDefault(m => !WillBreak(m)) is { } intact)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(intact.Position, 5), WorldState.FutureTime(8));
+
         foreach (var volley in SafeZones.GroupBy(s => s.volley))
         {
             var zones = volley.Where(s => !WillBreak(s.meteor)).ToList();
