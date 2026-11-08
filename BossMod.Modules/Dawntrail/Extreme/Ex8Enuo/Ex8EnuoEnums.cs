@@ -1,6 +1,4 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
-
-namespace BossMod.Dawntrail.Extreme.Ex8Enuo;
+﻿namespace BossMod.Dawntrail.Extreme.Ex8Enuo;
 
 public enum OID : uint
 {

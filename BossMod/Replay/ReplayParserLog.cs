@@ -414,9 +414,17 @@ public sealed class ReplayParserLog : IDisposable
         if (!_dispatch.TryGetValue(tag, out var parse))
             throw new InvalidOperationException($"Replay contains unsupported tag {tag}");
 
-        var op = parse();
-        if (op != null)
-            _builder.AddOp(op);
+        try
+        {
+            var op = parse();
+            if (op != null)
+                _builder.AddOp(op);
+        }
+        catch (EndOfStreamException ex)
+        {
+            Service.PluginLog.Warning(ex, $"The replay is incomplete.");
+            return false;
+        }
 
         return true;
     }

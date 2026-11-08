@@ -102,7 +102,7 @@ public class DebugObjects
             for (var i = 0; i < numSegments; ++i)
             {
                 var p = selected.Position + selected.HitboxRadius * (i * 360.0f / numSegments).Degrees().ToDirection().ToVec3();
-                Service.Camera.AddLine(p - h, p + h, 0xff00ff00);
+                Service.Camera.AddLine(p + h, p - h, 0xff00ff00);
             }
         }
     }

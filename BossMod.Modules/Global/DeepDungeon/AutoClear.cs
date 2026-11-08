@@ -1,5 +1,6 @@
-﻿using BossMod.Pathfinding;
-using Dalamud.Plugin.Ipc;
+﻿using Dalamud.Plugin.Ipc;
+using Dalamud.Plugin.Ipc.Exceptions;
+using static FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon;
 
 namespace BossMod.Global.DeepDungeon;
 
@@ -70,7 +71,7 @@ public abstract partial class AutoClear : ZoneModule
     protected readonly List<Actor> HintDisabled = [];
     private readonly List<Actor> LOS = [];
 
-    private readonly Dictionary<ulong, (WPos, Bitmap)> _losCache = [];
+    private readonly Dictionary<ulong, RelSimplifiedComplexPolygon> _losCache = [];
 
     public record class Gaze(Actor Source, AOEShape Shape);
 
@@ -89,6 +90,8 @@ public abstract partial class AutoClear : ZoneModule
     private int Kills;
     private bool BetweenFloors = true;
 
+    private bool PendingInitialize;
+
     protected struct PlayerImmuneState
     {
         public DateTime RoleBuffExpire; // 0 if not active
@@ -100,18 +103,16 @@ public abstract partial class AutoClear : ZoneModule
 
     private readonly PlayerImmuneState[] _playerImmunes = new PlayerImmuneState[4];
 
-    private readonly ObstacleMapManager _obstacles;
-
     protected DeepDungeonState Palace => World.DeepDungeon;
 
-    private readonly ICallGateSubscriber<ushort, Vector3[]> _palantirListTraps = Service.PluginInterface.GetIpcSubscriber<ushort, Vector3[]>("Palantir.Traps");
+    private readonly ICallGateSubscriber<ushort, List<Vector3>> _palantirGetTraps = Service.PluginInterface.GetIpcSubscriber<ushort, List<Vector3>>("Palantir.GetTraps");
+    private readonly ICallGateSubscriber<List<Vector3>, object> _palantirWatchTraps = Service.PluginInterface.GetIpcSubscriber<List<Vector3>, object>("Palantir.WatchTraps");
 
     const float TrapRadius = 1.75f;
 
     protected AutoClear(WorldState ws, int LevelCap) : base(ws)
     {
         this.LevelCap = LevelCap;
-        _obstacles = new(ws);
 
         _subscriptions = new(
             ws.SystemLogMessage.Subscribe(OnSystemLogMessage),
@@ -130,33 +131,23 @@ public abstract partial class AutoClear : ZoneModule
             ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
             ws.DeepDungeon.MapDataChanged.Subscribe(op =>
             {
-                if (BetweenFloors && op.Rooms.Any(r => r > 0))
-                {
-                    LoadWalls();
-                    LoadGeometry();
-                    FilterTraps();
-                    BetweenFloors = false;
-                }
+                if (BetweenFloors && !PendingInitialize && op.Rooms.Any(r => r > 0))
+                    OnEnterFloorInternal();
             })
         );
 
         LoadedFloors = Utils.LoadResource<Dictionary<string, Floor<Wall>>>("BossMod.Global.DeepDungeon.Walls.json");
         ProblematicTrapLocations = Utils.LoadResource<List<WPos>>("BossMod.Global.DeepDungeon.BadTraps.json");
 
-        // check if module got reloaded during an active run
-        if (ws.DeepDungeon.Rooms.Any(d => d > 0))
-        {
-            LoadWalls();
-            LoadGeometry();
-            FilterTraps();
-            BetweenFloors = false;
-        }
+        _palantirWatchTraps.Subscribe(UpdateTrapsFloorset);
+
+        PendingInitialize = true;
     }
 
     protected override void Dispose(bool disposing)
     {
+        _palantirWatchTraps.Unsubscribe(UpdateTrapsFloorset);
         _subscriptions.Dispose();
-        _obstacles.Dispose();
         base.Dispose(disposing);
     }
 
@@ -172,7 +163,7 @@ public abstract partial class AutoClear : ZoneModule
     protected virtual void OnCastFinished(Actor actor) { }
     private void HandleCastEvent(Actor actor, ActorCastEvent ev)
     {
-        HandleTrap(actor, ev);
+        HandleTrapTriggered(actor, ev);
         OnEventCast(actor, ev);
     }
     protected virtual void OnEventCast(Actor actor, ActorCastEvent ev) { }
@@ -247,7 +238,17 @@ public abstract partial class AutoClear : ZoneModule
             _fakeExits.Add(actor.InstanceID);
     }
 
-    protected virtual void OnChangeFloors() { }
+    protected virtual void OnLeaveFloor() { }
+    protected virtual void OnEnterFloor() { }
+
+    private void OnEnterFloorInternal()
+    {
+        LoadWalls();
+        LoadGeometry();
+        UpdateTrapsFloor();
+        BetweenFloors = false;
+        OnEnterFloor();
+    }
 
     private void ClearState()
     {
@@ -269,8 +270,30 @@ public abstract partial class AutoClear : ZoneModule
         _chestContentsSilver.Clear();
         _trapsHidden = true;
         _fakeExits.Clear();
-        OnChangeFloors();
+        OnLeaveFloor();
         BetweenFloors = true;
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (PendingInitialize && Palace.Rooms.Any(r => r > 0) && Palace.DungeonId != DeepDungeonState.DungeonType.None)
+        {
+            if (_config.TrapHints)
+            {
+                try
+                {
+                    UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
+                }
+                catch (IpcNotReadyError)
+                {
+                    Service.ShowNotification("Trap locations will not be shown. Please make sure Palantir is installed.", "Unable to communicate with Palantir", Dalamud.Interface.ImGuiNotification.NotificationType.Warning);
+                }
+            }
+            PendingInitialize = false;
+            OnEnterFloorInternal();
+        }
     }
 
     protected void AddGaze(Actor Source, AOEShape Shape) => Gazes.Add(new(Source, Shape));
@@ -345,7 +368,7 @@ public abstract partial class AutoClear : ZoneModule
 
     private void HandleActorAdd(Actor c)
     {
-        HandleBeacon(c);
+        HandleBeaconCreated(c);
         OnActorCreated(c);
     }
     protected virtual void OnActorCreated(Actor c) { }
@@ -439,7 +462,10 @@ public abstract partial class AutoClear : ZoneModule
                     InterestingObjects.Add(new(a, GoalType.Hoard, dist));
 
                 if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive && !player.InCombat)
-                    InterestingObjects.Add(new(a, GoalType.Passage, dist));
+                {
+                    if (!(_config.FullClear && Palace.Rooms.Any(r => r > 0 && !r.HasFlag(RoomFlags.Revealed))))
+                        InterestingObjects.Add(new(a, GoalType.Passage, dist));
+                }
             }
 
             if (RevealedTrapOIDs.Contains(a.OID))
@@ -488,7 +514,7 @@ public abstract partial class AutoClear : ZoneModule
             }
         }
 
-        var passageRevealed = Palace.Rooms.Any(r => r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Passage) && r.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.InstanceContentDeepDungeon.RoomFlags.Revealed));
+        var passageRevealed = Palace.Rooms.Any(r => r.HasFlag(RoomFlags.Passage) && r.HasFlag(RoomFlags.Revealed));
 
         var canTarget = _config.AutoClear switch
         {
@@ -576,14 +602,7 @@ public abstract partial class AutoClear : ZoneModule
             if (!_losCache.TryGetValue(caster.InstanceID, out var dangermap))
                 return;
 
-            var origin = dangermap.Item1;
-            var map = dangermap.Item2;
-
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
-            {
-                var offset = (p - origin) / map.PixelSize;
-                return map[(int)offset.X, (int)offset.Z];
-            }), CastFinishAt(caster));
+            hints.AddForbiddenZone(new AOEShapeCustom(dangermap), caster.Position, default, CastFinishAt(caster));
         }, d => _losCache.Remove(d.InstanceID));
 
         ProcessAll(Voidzones, d => d.Source.IsDeadOrDestroyed, d =>
@@ -612,57 +631,9 @@ public abstract partial class AutoClear : ZoneModule
 
     protected void AddLOSFromTerrain(Actor Source, float Range)
     {
-        var (entry, data) = _obstacles.Find(Source.PosRot.XYZ());
-        if (entry == null || data == null)
-        {
-            Service.Log($"no bitmap found for {Source}, not adding LOS hints");
-            return;
-        }
-
-        var pixelRange = (int)(Range / data.PixelSize);
-        var casterOff = Source.Position - entry.Origin;
-        var casterCell = casterOff / data.PixelSize;
-        var casterX = (int)casterCell.X;
-        var casterZ = (int)casterCell.Z;
-
-        var bm = new Bitmap(data.Width, data.Height, data.Color0, data.Color1, data.Resolution);
-        for (var i = Math.Max(0, casterX - pixelRange); i <= Math.Min(data.Width, casterX + pixelRange); i++)
-        {
-            for (var j = Math.Max(0, casterZ - pixelRange); j <= Math.Min(data.Height, casterZ + pixelRange); j++)
-            {
-                var pt = new Vector2(i, j);
-                var cc = new Vector2(casterX, casterZ);
-                if (!IsBlocked(data, pt, cc, pixelRange))
-                    bm[i, j] = true;
-            }
-        }
-
-        _losCache[Source.InstanceID] = (entry.Origin, bm);
+        var src = Source.Position;
+        var polys = Service.Shadowcast.ComputeVisibility2D(Source.PosRot.XYZ() with { Y = 6 }, new(1, 0, 0), Range);
+        _losCache[Source.InstanceID] = new RelSimplifiedComplexPolygon(polys.Select(p => p - src));
         LOS.Add(Source);
-    }
-
-    private static bool IsBlocked(Bitmap map, Vector2 point, Vector2 origin, float maxRange)
-    {
-        var dir = origin - point;
-        var dist = dir.Length();
-        if (dist >= maxRange)
-            return true;
-
-        dir /= dist;
-
-        var ox = point.X;
-        var oy = point.Y;
-        var vx = dir.X;
-        var vy = dir.Y;
-
-        for (var i = 0; i < (int)dist; i++)
-        {
-            if (map[(int)ox, (int)oy])
-                return true;
-            ox += vx;
-            oy += vy;
-        }
-
-        return false;
     }
 }

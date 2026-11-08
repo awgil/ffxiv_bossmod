@@ -15,6 +15,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
     record class Meteor(Actor Caster, Shade Shade, List<WPos> Blockers);
 
     private readonly List<Meteor> _meteors = [];
+    private readonly VisibilityPolygon<WPos> Vis = new(VisibilityAdapters.WPos);
     private readonly Barrier _barriers = module.FindComponent<Barrier>()!;
     private bool _risky;
 
@@ -64,7 +65,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         foreach (var m in _meteors)
         {
             m.Blockers.Clear();
-            List<Shadowcast.LineSegment> segments = [];
+            List<VisibilityPolygon<WPos>.Segment> segments = [];
 
             void addBlock(WPos center, IEnumerable<WDir> corners)
             {
@@ -79,7 +80,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
             // use larger radius than arena max, since the algorithm is not designed to work with intersecting line segments - outermost blocks can extend outside arena
             addBlock(Arena.Center, CurveApprox.Rect(new(30, 0), new(0, 30)));
 
-            m.Blockers.AddRange(Shadowcast.VisibilityPolygon(m.Caster.Position, segments));
+            m.Blockers.AddRange(Vis.Compute(m.Caster.Position, segments));
 
             if (m.Blockers.Count > 0)
                 m.Blockers.Add(m.Blockers[0]);

@@ -27,15 +27,14 @@ public sealed class AIHintsBuilder : IDisposable
 
     private static readonly List<uint> InvincibleStatuses =
     [
-        151,
-        198,
-        325,
-        328,
+        151, // stoneskin f=12
+        325, // invincibility ???
+        328, // heart of the mountain ???
         385,
-        394,
-        469,
-        529,
-        592,
+        394, // invincibility f=1
+        469, // high and mighty ???
+        529, // invincibility ???
+        592, // ring of fire mod=100
         656,
         671,
         775,
@@ -160,18 +159,6 @@ public sealed class AIHintsBuilder : IDisposable
             if (inFate)
             {
                 hints.PathfindMapCenter = new(_ws.Client.ActiveFate.Center.XZ());
-
-                // if in a big fate with no obstacle map available, reduce resolution to avoid slowing down rasterization significantly
-                if (bitmap == null)
-                {
-                    resolution = _ws.Client.ActiveFate.Radius switch
-                    {
-                        > 60 => 2,
-                        > 30 => 1,
-                        _ => resolution
-                    };
-                }
-
                 hints.PathfindMapBounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius, resolution));
                 if (e != null && bitmap != null)
                 {

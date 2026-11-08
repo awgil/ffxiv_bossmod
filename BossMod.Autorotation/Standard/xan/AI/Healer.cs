@@ -691,6 +691,10 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     healFun(babysit, HealRatio(targetSlot) - ThresholdShift(babysit, targetSlot));
                 return;
             case HealMode.Enabled:
+                // banner of noble ends
+                // spirit of the profane
+                if (Player.Statuses.Any(s => s.ID is 2320 or 2326))
+                    return;
                 break;
             default:
                 return;
