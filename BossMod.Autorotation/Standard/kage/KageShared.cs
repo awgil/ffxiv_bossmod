@@ -68,7 +68,7 @@ public static class TimeToKill
 
 public static class RaidBuffs
 {
-    public const float OpenerBuffs = 7.8f;
+    private const float OpenerBuffs = 7.8f;
     private const float OverdueGrace = 10;
 
     public static (float Left, float In) Estimate(BossModuleManager bossmods, WorldState world, Actor player, Actor? target, float combatTime, float uptime)
@@ -145,8 +145,8 @@ public static class RaidBuffs
 
 public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor player) : TypedRotationModule<TStrategy>(manager, player) where TStrategy : struct
 {
-    protected float AnimLockDelay;
-    protected Targeting TargetMode;
+    private float AnimLockDelay;
+    private Targeting TargetMode;
     protected float DowntimeIn;
     protected float RaidBuffsLeft;
     protected float RaidBuffsIn;
@@ -381,7 +381,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     protected bool SwiftcastUp => SelfStatusLeft(ClassShared.SID.Swiftcast) > GCD;
     protected float HardcastTime<AID>(AID aid) where AID : Enum => SwiftcastUp ? 0 : ScaledCastTime(aid);
 
-    protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
+    private static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
     protected bool CastFits(float castTime) => Hints.MaxCastTime >= SlideCast(castTime);
 
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null, bool ignoreDisabled = false)

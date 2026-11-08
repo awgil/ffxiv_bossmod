@@ -272,7 +272,6 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private bool ConeAOE;
     private bool GuillotineMode;
     private AOEStrategy AOEStrat;
-    private int NumCircleTargets;
     private int NumConeTargets;
     private Actor? BestConeTarget;
     private Actor? BestLineTarget;
@@ -348,8 +347,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         HasSoulsow = HasSelfStatus(SID.Soulsow);
         TargetDDLeft = DDLeft(target);
 
-        NumCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        AOEMode = Unlocked(AID.SpinningScythe) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
+        var numCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+        AOEMode = Unlocked(AID.SpinningScythe) && UseAOE(strategy.AOE.Value, numCircleTargets, 3);
         (BestConeTarget, NumConeTargets) = BestAOETarget(target, 8, AllowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 90.Degrees()));
         ConeAOE = ConeAt(3);
         GuillotineMode = Unlocked(AID.Guillotine) && ConeAt(Executioner || EnhancedGibbetLeft == 0 && EnhancedGallowsLeft == 0 ? 3 : 4);
