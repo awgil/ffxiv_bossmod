@@ -127,7 +127,12 @@ class PathfindingTest : TestWindow
         if (_blockCone)
             zones.Add((Sdf.Continuous(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees())), now.AddSeconds(_blockConeG), 0));
         if (_blockRect)
-            zones.Add((Sdf.Continuous(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
+        {
+            zones.Add((
+                Sdf.Continuous(ShapeDistance.Polygon(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), new([new(10, 0), new(0, 5), new(-5, 10), new(-10, 0), new(0, -5)]))), now.AddSeconds(_blockRectG), 0
+            ));
+            // zones.Add((Sdf.Continuous(ShapeDistance.Cross(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X/*, _blockRectLen.Y*/, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
+        }
         zones.SortBy(z => z.activation);
 
         if (_useNewRasterizer)

@@ -254,24 +254,21 @@ public static class ShapeDistance
 
     public static Func<WPos, float> Cross(WPos origin, Angle direction, float length, float halfWidth)
     {
-        var dir = direction.ToDirection();
-        var normal = dir.OrthoL();
-        return p =>
+        if (halfWidth <= 0 || length <= 0)
+            return _ => float.MaxValue;
+
+        var dir = direction.ToDirection().MirrorX();
+        var b = new WDir(length, halfWidth);
+
+        return qq =>
         {
-            var offset = p - origin;
-            var distParr = offset.Dot(dir);
-            var distOrtho = offset.Dot(normal);
-            var distPFront = distParr - length;
-            var distPBack = -distParr - length;
-            var distPLeft = distOrtho - halfWidth;
-            var distPRight = -distOrtho - halfWidth;
-            var distOFront = distOrtho - length;
-            var distOBack = -distOrtho - length;
-            var distOLeft = distParr - halfWidth;
-            var distORight = -distParr - halfWidth;
-            var distP = Math.Max(Math.Max(distPFront, distPBack), Math.Max(distPLeft, distPRight));
-            var distO = Math.Max(Math.Max(distOFront, distOBack), Math.Max(distOLeft, distORight));
-            return Math.Min(distP, distO);
+            var p = (qq - origin).Rotate(dir).Abs();
+            if (p.Z > p.X)
+                p = new(p.Z, p.X);
+            var q = p - b;
+            var k = Math.Max(q.Z, q.X);
+            var w = k > 0 ? q : new(b.Z - p.X, -k);
+            return Math.Sign(k) * Max0(w).Length();
         };
     }
 
@@ -289,6 +286,39 @@ public static class ShapeDistance
         return Intersection([.. edges.Select(edge)], offset);
     }
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw, float offset = 0) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw, offset);
+    public static Func<WPos, float> Polygon(List<WPos> vertices)
+    {
+        var n = vertices.Count;
+
+        return p =>
+        {
+            var d = (p - vertices[0]).Dot(p - vertices[0]);
+            var s = 1f;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                var e = vertices[j] - vertices[i];
+                var w = p - vertices[i];
+                var b = w - e * Math.Clamp(w.Dot(e) / e.Dot(e), 0, 1);
+                d = Math.Min(d, b.Dot(b));
+
+                var c0 = p.Z >= vertices[i].Z;
+                var c1 = p.Z < vertices[j].Z;
+                var c2 = e.X * w.Z > e.Z * w.X;
+                if (c0 == c1 && c1 == c2)
+                    s *= -1;
+            }
+            return s * MathF.Sqrt(d);
+        };
+    }
+    public static Func<WPos, float> Polygon(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
+    {
+        if (!polygon.IsSimple)
+            throw new ArgumentException("Cannot use ShapeDistance.Polygon with a shape containing holes");
+
+        var verts = polygon.Vertices.Select(v => v.Rotate(rotation) + origin).ToList();
+
+        return Polygon(verts);
+    }
 
     public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Max(e => e(p)) - offset;
     public static Func<WPos, float> Union(List<Func<WPos, float>> funcs, float offset = 0) => p => funcs.Min(e => e(p)) - offset;

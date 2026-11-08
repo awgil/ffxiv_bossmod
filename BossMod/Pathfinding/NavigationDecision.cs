@@ -132,9 +132,10 @@ public struct NavigationDecision
             });
         });
 
-        var maxG = float.MinValue;
+        var maxG = map.MaxPriority = float.MinValue;
+
         // set each cell to the min of its corners
-        // set PixelAvoid for cells inside cushion zones
+        // track max cell priority seen (if most of the map is blocked and the user has requested a pathfinding cushion, best unblocked pixel might be e.g. -0.5 instead of 0)
         for (var y = 0; y < map.Height; y++)
         {
             for (var x = 0; x < map.Width; x++)
@@ -143,7 +144,6 @@ public struct NavigationDecision
                 var iM = y * map.Width + x;
 
                 var cellG = map.PixelMaxG[iM] = Math.Min(
-                    // pixel may have already been initialized (i.e. by bounds creation)
                     map.PixelMaxG[iM],
                     Math.Min(
                         Math.Min(gScratch[iG], gScratch[iG + 1]),
@@ -156,6 +156,8 @@ public struct NavigationDecision
                     map.PixelPriority[iM] = float.MinValue;
                 else if (dScratch[iG] || dScratch[iG + 1] || dScratch[iG + map.Width + 1] || dScratch[iG + map.Width + 2])
                     map.PixelPriority[iM] = -CushionDepriority;
+
+                map.MaxPriority = Math.Max(map.PixelPriority[iM], map.MaxPriority);
             }
         }
 
@@ -336,26 +338,6 @@ public struct NavigationDecision
         }
         return (g, d);
     }
-
-    /*
-    public static void AddCushion(Map map, bool[] avoid)
-    {
-        var pMax = float.MinValue;
-        for (var y = 0; y < map.Height; y++)
-        {
-            for (var x = 0; x < map.Width; x++)
-            {
-                var iG = y * (map.Width + 1) + x;
-                var iM = y * map.Width + x;
-
-                if (map.PixelPriority[iM] >= 0 && avoid[iG] && avoid[iG + 1] && avoid[iG + map.Width + 1] && avoid[iG + map.Width + 2])
-                    map.PixelPriority[iM] -= CushionDepriority;
-                pMax = Math.Max(map.PixelPriority[iM], pMax);
-            }
-        }
-        map.MaxPriority = pMax;
-    }
-    */
 
     private static float ActivationToG(DateTime activation, DateTime current, float rtt) => MathF.Max(0, (float)(activation - current).TotalSeconds - CushionFromRTT(rtt));
 
