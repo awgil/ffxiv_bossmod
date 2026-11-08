@@ -53,6 +53,7 @@ static class Program
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockMovementOverride>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockHintExecutor>();
             containerBuilder.RegisterSingletonSelfAndInterfaces<MockCamera>();
+            containerBuilder.RegisterSingletonSelfAndInterfaces<MockShadowcaster>();
 
             containerBuilder.RegisterSingletonSelf<MainDevWindow>();
         }

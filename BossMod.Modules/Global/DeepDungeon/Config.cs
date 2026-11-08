@@ -45,7 +45,7 @@ public class AutoDDConfig : ConfigNode
     [PropertyDisplay("Max number of mobs to pull before pausing navigation (0 = do not navigate while in combat)")]
     [PropertySlider(0, 15)]
     public int MaxPull = 0;
-    [PropertyDisplay("Try to use terrain to LOS attacks", tooltip: "This feature is currently very inconsistent and will likely get you killed. Enabling it is not recommended.")]
+    [PropertyDisplay("Try to use terrain to LOS attacks", tooltip: "This feature is experimental. In certain cases, it may not be able to find a safe zone for you. Keep an eye on your character.")]
     public bool AutoLOS = false;
 
     [PropertyDisplay("Reveal all rooms before proceeding to next floor")]

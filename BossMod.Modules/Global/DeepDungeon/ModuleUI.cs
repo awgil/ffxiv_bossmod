@@ -50,13 +50,6 @@ abstract partial class AutoClear : ZoneModule
         if (Service.IsDev && MostInterestingObject is { } obj)
             Service.Camera.AddLine(player?.PosRot.XYZ() ?? default, obj.Actor.PosRot.XYZ(), ArenaColor.Danger, 2, false);
 
-        if (_palantirError != null)
-        {
-            ImGui.Text("Couldn't connect to Palantir. Trap locations will not be displayed.");
-            if (ImGui.Button("Retry"))
-                FilterTraps();
-        }
-
         var maxPull = _config.MaxPull;
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Max pull size");
@@ -66,12 +59,6 @@ abstract partial class AutoClear : ZoneModule
         {
             _config.MaxPull = maxPull;
             _config.Modified.Fire();
-        }
-
-        if (ImGui.Button("Reload traps"))
-        {
-            _trapsCurrentZone.Clear();
-            FilterTraps();
         }
     }
 }

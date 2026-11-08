@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-[ConfigDisplay(Name = "Color Scheme", Order = -1, Group = "General")]
+[ConfigDisplay(Name = "Color Scheme", Order = -5, Group = "General")]
 public sealed class ColorConfig : ConfigNode
 {
     [PageStart("Arena")]

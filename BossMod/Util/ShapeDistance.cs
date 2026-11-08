@@ -7,7 +7,7 @@ namespace BossMod;
 [StructLayout(LayoutKind.Explicit)]
 public struct Sdf
 {
-    enum SdfType
+    public enum SdfType
     {
         Continuous,
         Discrete,
@@ -17,7 +17,7 @@ public struct Sdf
     [FieldOffset(0)] private Func<WPos, float> SdfCont;
     [FieldOffset(0)] private Func<WPos, bool> SdfDisc;
     [FieldOffset(0)] private Func<WPos, int, bool> SdfIx;
-    [FieldOffset(8)] private SdfType Type;
+    [FieldOffset(8)] public SdfType Type;
 
     public static Sdf Continuous(Func<WPos, float> d) => new() { Type = SdfType.Continuous, SdfCont = d };
     public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = b };

@@ -29,6 +29,7 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     private readonly List<Cone> _cones = [];
     private readonly List<Arc> _arcs = [];
     private readonly List<Circle> _circles = [];
+    private readonly List<(Vector3, Vector3, Vector3)> _triangles = [];
 
     public unsafe void Update()
     {
@@ -56,39 +57,48 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         ViewportSize = new(device->Width, device->Height);
 
         using var drawList = PctService.Draw();
-        if (drawList == null)
-            return;
-
-        PctDxParams p(bool isLine, bool occluded) => new() { OcclusionTolerance = isLine ? 0.02f : 0.02f, OccludedAlpha = occluded && _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1 };
-
-        foreach (var line in _lines)
-            drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, p(true, line.Occluded));
-        foreach (var arc in _arcs)
-            drawList.AddArc(arc.Center, arc.Radius, (-arc.Direction - arc.HalfAngle).Rad, (-arc.Direction + arc.HalfAngle).Rad, arc.Color, thickness: arc.Thickness, p: p(true, arc.Occluded));
-
-        foreach (var cone in _cones)
+        if (drawList != null)
         {
-            if (cone.Filled)
-                drawList.AddFanFilled(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, p: p(false, cone.Occluded) with { ProjectionHeight = cone.Dimension });
-            else
-                drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Dimension, p: p(true, cone.Occluded));
-        }
+            PctDxParams p(bool isLine, bool occluded) => new() { OcclusionTolerance = isLine ? 0.02f : 0.02f, OccludedAlpha = occluded && _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1 };
 
-        foreach (var circle in _circles)
-        {
-            if (circle.Filled)
-                drawList.AddCircleFilled(circle.Center, circle.Radius, circle.Color, p: p(isLine: false, occluded: circle.Occluded) with { ProjectionHeight = circle.Dimension });
-            else
-                drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Dimension, p: p(false, circle.Occluded));
+            foreach (var line in _lines)
+                drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, p(true, line.Occluded));
+            foreach (var arc in _arcs)
+                drawList.AddArc(arc.Center, arc.Radius, (-arc.Direction - arc.HalfAngle).Rad, (-arc.Direction + arc.HalfAngle).Rad, arc.Color, thickness: arc.Thickness, p: p(true, arc.Occluded));
+
+            foreach (var cone in _cones)
+            {
+                if (cone.Filled)
+                    drawList.AddFanFilled(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, p: p(false, cone.Occluded) with { ProjectionHeight = cone.Dimension });
+                else
+                    drawList.AddFan(cone.Center, 0, cone.Radius, (-cone.Direction - cone.HalfAngle).Rad, (-cone.Direction + cone.HalfAngle).Rad, cone.Color, thickness: cone.Dimension, p: p(true, cone.Occluded));
+            }
+
+            foreach (var circle in _circles)
+            {
+                if (circle.Filled)
+                    drawList.AddCircleFilled(circle.Center, circle.Radius, circle.Color, p: p(isLine: false, occluded: circle.Occluded) with { ProjectionHeight = circle.Dimension });
+                else if (circle.Radius > 0)
+                    drawList.AddCircle(circle.Center, circle.Radius, circle.Color, thickness: circle.Dimension, p: p(false, circle.Occluded));
+                else
+                    drawList.AddDot(circle.Center, circle.Dimension, circle.Color);
+            }
+
+            foreach (var (x, y, z) in _triangles)
+            {
+                drawList.AddTriangleFilled(x, y, z, 0x3030FF30, new()
+                {
+                    OccludedAlpha = 1,
+                    OcclusionTolerance = 0,
+                });
+            }
         }
-        //foreach (var cf in _circlesFilled)
-        //drawList.AddCircleFilled(cf.Center, cf.Radius, cf.Color, cf.OutlineColor, p: p(false, cf.Occluded) with { ProjectionHeight = cf.ProjectionHeight });
 
         _lines.Clear();
         _cones.Clear();
         _arcs.Clear();
         _circles.Clear();
-        //_circlesFilled.Clear();
+        _triangles.Clear();
     }
 
     public void AddLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
@@ -122,6 +132,11 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
     public void AddCircleFilled(Vector3 center, float radius, uint color, float projectionHeight = 0, bool occluded = true)
     {
         _circles.Add(new(center, radius, color, true, projectionHeight, occluded));
+    }
+
+    public void AddTriangle(Vector3 a, Vector3 b, Vector3 c)
+    {
+        _triangles.Add((a, b, c));
     }
 
     public void AddSphere(Vector3 center, float radius, uint color, float thickness = 1)

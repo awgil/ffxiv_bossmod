@@ -37,6 +37,7 @@
     <EmbeddedResource Include="Autorotation\OptionRenames.json" />
     <EmbeddedResource Include="Data\EnemyBehavior.csv" />
     <EmbeddedResource Include="Pathfinding\ObstacleMaps\*" />
+    <EmbeddedResource Include="Dev\Shadowcast\*.json" />
   </ItemGroup>
 
   <ItemGroup>

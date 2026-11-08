@@ -67,7 +67,7 @@ public sealed class AutoTarget(RotationModuleManager manager, Actor player) : Ro
     // all targets closer than this many units to the player are considered to have the same priority
     // we use "is this the player's current target?" as a tiebreaker
     // due to the way goalzones work for jobs with weirdly shaped AOEs (cone, rect, etc), AI tends to move closer to a mob that isn't its primary target, and without a threshold, that results in switching target rapidly (sometimes every frame)
-    public static float MinPriorityDistance(Actor player) => player.Role is Role.Tank or Role.Melee ? 3 : 25;
+    public static float MinPriorityDistance(Actor player) => 3; // player.Role is Role.Tank or Role.Melee ? 3 : 25;
 
     record struct TargetKey(bool ShouldTarget, int Priority, float InvDistance, bool IsCurrentTarget) : IComparable<TargetKey>
     {

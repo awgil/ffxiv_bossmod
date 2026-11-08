@@ -40,11 +40,6 @@ public sealed class UIRotationWindow : UIWindow
         }
     }
 
-    public override void PreOpenCheck()
-    {
-        DrawPositional();
-    }
-
     public override bool DrawConditions() => _mgr.WorldState.Party.Player() != null;
 
     public override void Draw()
@@ -307,27 +302,4 @@ public sealed class UIRotationWindow : UIWindow
 
         return modified;
     }
-
-    private void DrawPositional()
-    {
-        var pos = _mgr.Hints.RecommendedPositional;
-        if (_config.ShowPositionals && pos.Target != null && !pos.Target.Omnidirectional)
-        {
-            var color = PositionalColor(pos.Imminent, pos.Correct);
-            switch (pos.Pos)
-            {
-                case Positional.Flank:
-                    Service.Camera.AddCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 90.Degrees(), 45.Degrees(), color);
-                    Service.Camera.AddCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation - 90.Degrees(), 45.Degrees(), color);
-                    break;
-                case Positional.Rear:
-                    Service.Camera.AddCone(pos.Target.PosRot.XYZ(), pos.Target.HitboxRadius + 3.5f, pos.Target.Rotation + 180.Degrees(), 45.Degrees(), color);
-                    break;
-            }
-        }
-    }
-
-    private uint PositionalColor(bool imminent, bool correct) => imminent
-        ? (correct ? 0xff00ff00 : 0xff0000ff)
-        : (correct ? 0xffffffff : 0xff00ffff);
 }

@@ -1,4 +1,5 @@
 ﻿using BossMod.Autorotation;
+using BossMod.Debug;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Utility.Raii;
@@ -10,10 +11,11 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace BossMod;
 
-class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud) : UIWindow("Boss mod debug UI", false, new(300, 200))
+class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManagerEx amex, MovementOverride move, Camera camera, AIHintsBuilder hintBuilder, IDalamudPluginInterface dalamud, Shadowcast shadows) : UIWindow("Boss mod debug UI", false, new(300, 200))
 {
     private readonly DebugObstacles _debugObstacles = new(hintBuilder.Obstacles, dalamud);
     private readonly DebugObjects _debugObjects = new();
+    private readonly DebugRaycast _debugRaycast = new(ws, camera, shadows);
     private readonly DebugParty _debugParty = new();
     private readonly DebugMapEffect _debugMapEffect = new(ws);
     private readonly DebugGraphics _debugGraphics = new();
@@ -34,6 +36,11 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         _debugMapEffect.Dispose();
         _debugVfx.Dispose();
         base.Dispose(disposing);
+    }
+
+    public override void PreOpenCheck()
+    {
+        Service.Config.Get<DeveloperConfig>().DebugWindowOpen = IsOpen;
     }
 
     public override unsafe void Draw()
@@ -60,6 +67,10 @@ class MainDebugWindow(WorldState ws, RotationModuleManager autorot, ActionManage
         if (ImGui.CollapsingHeader("Obstacles"))
         {
             _debugObstacles.Draw();
+        }
+        if (ImGui.CollapsingHeader("Shadowcasting"))
+        {
+            _debugRaycast.Draw();
         }
         if (ImGui.CollapsingHeader("Full object list"))
         {
