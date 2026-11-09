@@ -71,25 +71,25 @@ public struct Sdf
         }
     }
 
-    public readonly V16 DistanceV(WVec p)
+    public readonly VF DistanceV(WVec p)
     {
         if (Type == SdfType.Vectored)
             return SdfVectored(p);
 
-        var xa = new float[16];
-        var xb = new float[16];
+        var xa = new float[VF.Count];
+        var xb = new float[VF.Count];
         p.X.CopyTo(xa);
         p.Z.CopyTo(xb);
 
-        var d = new float[16];
+        var d = new float[VF.Count];
         var s = this;
 
-        Parallel.For(0, 16, i =>
+        Parallel.For(0, VF.Count, i =>
         {
             d[i] = s.Distance(new(xa[i], xb[i]));
         });
 
-        return Vector512.Create(d);
+        return VV.Create(d);
     }
 
     public readonly float Distance(WPos p)

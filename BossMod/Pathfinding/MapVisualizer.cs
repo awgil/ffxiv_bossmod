@@ -46,7 +46,7 @@ public class MapVisualizer
 
         ImGui.Dummy(size);
 
-        var rowLength = 16 * ((Map.Width + 1) / 16 + 1);
+        var rowLength = ((Map.Width + 1) / VF.Count + 1) * VF.Count;
 
         var nodeIndex = 0;
         var hoverNode = -1;

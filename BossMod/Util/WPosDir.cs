@@ -1,4 +1,7 @@
-﻿using System.Runtime.Intrinsics;
+﻿global using ShapeFun = System.Func<BossMod.WVec, System.Runtime.Intrinsics.Vector256<float>>;
+global using VF = System.Runtime.Intrinsics.Vector256<float>;
+global using VU = System.Runtime.Intrinsics.Vector256<uint>;
+global using VV = System.Runtime.Intrinsics.Vector256;
 
 namespace BossMod;
 
@@ -111,40 +114,40 @@ public record struct WPos(float X, float Z)
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, Angle direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
 }
 
-public record struct WVec(V16 X, V16 Z)
+public record struct WVec(VF X, VF Z)
 {
-    public WVec(float x, float z) : this(Vector512.Create(x), Vector512.Create(z)) { }
+    public WVec(float x, float z) : this(VV.Create(x), VV.Create(z)) { }
     public WVec(WDir wd) : this(wd.X, wd.Z) { }
     public WVec(WPos wp) : this(wp.X, wp.Z) { }
 
     public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
 
-    public readonly V16 LengthSq() => X * X + Z * Z;
-    public readonly V16 Length() => Vector512.Sqrt(LengthSq());
-    public readonly V16 Dot(WVec a) => X * a.X + Z * a.Z;
-    public static V16 Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
-    public readonly V16 Cross(WVec b) => Cross(this, b);
+    public readonly VF LengthSq() => X * X + Z * Z;
+    public readonly VF Length() => VV.Sqrt(LengthSq());
+    public readonly VF Dot(WVec a) => X * a.X + Z * a.Z;
+    public static VF Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
+    public readonly VF Cross(WVec b) => Cross(this, b);
 
-    public readonly WVec Abs() => new(Vector512.Abs(X), Vector512.Abs(Z));
-    public readonly WVec ClampPositive() => new(Vector512.Max(X, V16.Zero), Vector512.Max(Z, V16.Zero));
-    public readonly V16 MaxComponent() => Vector512.Max(X, Z);
+    public readonly WVec Abs() => new(VV.Abs(X), VV.Abs(Z));
+    public readonly WVec ClampPositive() => new(VV.Max(X, VF.Zero), VV.Max(Z, VF.Zero));
+    public readonly VF MaxComponent() => VV.Max(X, Z);
 
     // exchanges all pairs where Z > X
     public readonly WVec AlignX()
     {
-        var gt = Vector512.GreaterThan(X, Z);
-        return new(Vector512.ConditionalSelect(gt, X, Z), Vector512.ConditionalSelect(gt, Z, X));
+        var gt = VV.GreaterThan(X, Z);
+        return new(VV.ConditionalSelect(gt, X, Z), VV.ConditionalSelect(gt, Z, X));
     }
 
-    public static WVec Select(V16 bits, WVec left, WVec right)
+    public static WVec Select(VF bits, WVec left, WVec right)
     {
-        return new(Vector512.ConditionalSelect(bits, left.X, right.X), Vector512.ConditionalSelect(bits, left.Z, right.Z));
+        return new(VV.ConditionalSelect(bits, left.X, right.X), VV.ConditionalSelect(bits, left.Z, right.Z));
     }
 
-    public readonly WVec Min(WVec other) => new(Vector512.Min(X, other.X), Vector512.Min(Z, other.Z));
+    public readonly WVec Min(WVec other) => new(VV.Min(X, other.X), VV.Min(Z, other.Z));
 
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
-    public static WVec operator *(WVec a, V16 b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(WVec a, VF b) => new(a.X * b, a.Z * b);
 }
 

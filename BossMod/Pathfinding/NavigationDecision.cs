@@ -111,7 +111,7 @@ public struct NavigationDecision
 
     public static void RasterizeRaw(Map map, (Sdf sdf, float g)[] zones, float cushion, List<float>? producedScratch = null)
     {
-        var rowLength = (((map.Width + 1) >> 4) + 1) << 4;
+        var rowLength = ((map.Width + 1) / VF.Count + 1) * VF.Count;
         var dim = rowLength * (map.Height + 1);
 
         var gScratch = ArrayPool<float>.Shared.Rent(dim);
@@ -123,13 +123,13 @@ public struct NavigationDecision
 
         Parallel.For(0, map.Height + 1, y =>
         {
-            var vz = Vector512.Create(cy.Z + y * dy.Z);
+            var vz = VV.Create(cy.Z + y * dy.Z);
 
-            for (var x = 0; x <= map.Width; x += 16)
+            for (var x = 0; x <= map.Width; x += VF.Count)
             {
                 var iCell = y * rowLength + x;
 
-                var (g, d) = CalculateMaxGV(zones, new(Vector512.CreateSequence(cy.X + x * dx.X, dx.X), vz), cushion);
+                var (g, d) = CalculateMaxGV(zones, new(VV.CreateSequence(cy.X + x * dx.X, dx.X), vz), cushion);
 
                 g.CopyTo(gScratch, iCell);
                 d.CopyTo(dScratch, iCell);
@@ -341,17 +341,17 @@ public struct NavigationDecision
         return (g, d);
     }
 
-    private static (V16 G, Vector512<uint> D) CalculateMaxGV((Sdf d, float g)[] zones, WVec p, float cushion)
+    private static (VF G, VU D) CalculateMaxGV((Sdf d, float g)[] zones, WVec p, float cushion)
     {
-        var g = Vector512.Create(float.MaxValue);
-        var d = Vector512<uint>.Zero;
-        var c0 = Vector512.Create(cushion);
+        var g = VV.Create(float.MaxValue);
+        var d = VU.Zero;
+        var c0 = VV.Create(cushion);
 
         foreach (var z in zones)
         {
             var dist = z.d.DistanceV(p);
-            g = Vector512.Min(g, Vector512.ConditionalSelect(Vector512.IsNegative(dist), Vector512.Create(z.g), Vector512.Create(float.MaxValue)));
-            d = Vector512.BitwiseOr(d, Vector512.LessThan(dist, c0).As<float, uint>());
+            g = VV.Min(g, VV.ConditionalSelect(VV.IsNegative(dist), VV.Create(z.g), VV.Create(float.MaxValue)));
+            d = VV.BitwiseOr(d, VV.LessThan(dist, c0).As<float, uint>());
         }
 
         return (g, d);

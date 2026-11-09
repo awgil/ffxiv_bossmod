@@ -1,5 +1,3 @@
-global using ShapeFun = System.Func<BossMod.WVec, System.Runtime.Intrinsics.Vector512<float>>;
-global using V16 = System.Runtime.Intrinsics.Vector512<float>;
 using Autofac;
 using Autofac.Features.AttributeFilters;
 using BossMod.Autorotation;
