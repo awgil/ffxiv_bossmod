@@ -35,8 +35,8 @@ class Platforms(BossModule module) : BossComponent(module)
         new(0, -HexaPlatformSide)
     ];
 
-    public static readonly Func<WPos, float>[] PlatformShapes = [.. Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.ConvexPolygon(PlatformPoly(i), true))];
-    public static readonly Func<WPos, float>[] HighEdgeShapes = [.. HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0))];
+    public static readonly Func<WVec, Vector<float>>[] PlatformShapes = [.. Enumerable.Range(0, HexaPlatformCenters.Length + 1).Select(i => ShapeDistance.Polygon(PlatformPoly(i)))];
+    public static readonly Func<WVec, Vector<float>>[] HighEdgeShapes = [.. HighEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => ShapeDistance.Rect(e.Item1, e.Item2, 0))];
     public static readonly (WPos p, WDir d, float l)[] JumpEdgeSegments = [.. JumpEdges.Select(e => HexaEdge(e.lower, e.upper)).Select(e => (e.Item1, (e.Item2 - e.Item1).Normalized(), (e.Item2 - e.Item1).Length()))];
 
     public static IEnumerable<WPos> HexaPoly(WPos center) => HexaCornerOffsets.Select(off => center + off);
@@ -90,12 +90,12 @@ class Platforms(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        float blockedArea(WPos p)
+        Vector<float> blockedArea(WVec p)
         {
             var res = -PlatformShapes.Min(f => f(p));
             foreach (var (e, f) in HighEdges.Zip(HighEdgeShapes))
                 if (actor.PosRot.Y + 0.1f < PlatformHeights[e.upper])
-                    res = Math.Min(res, f(p));
+                    res = Vector.Min(res, f(p));
             return res;
         }
         hints.AddForbiddenZone(blockedArea);

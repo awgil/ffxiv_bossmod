@@ -154,6 +154,7 @@ public record struct WVec(VF X, VF Z)
     public static WVec operator -(WVec a, WPos b) => new(a.X - VV.Create(b.X), a.Z - VV.Create(b.Z));
     public static WVec operator *(WVec a, VF b) => new(a.X * b, a.Z * b);
     public static WVec operator *(WVec a, float b) => new(a.X * VV.Create(b), a.Z * VV.Create(b));
+    public static WVec operator *(float a, WVec b) => b * a;
     public static WVec operator /(WVec a, VF b) => new(a.X / b, a.Z / b);
     public static WVec operator -(WVec a) => new(-a.X, -a.Z);
 }

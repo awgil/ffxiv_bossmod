@@ -51,7 +51,7 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
         }
     }
 
-    private Func<WPos, float>? GetFireballZone()
+    private Func<WVec, Vector<float>>? GetFireballZone()
     {
         _infatuation ??= Module.FindComponent<Infatuation>();
         if (_infatuation == null || _infatuation.Casters.Count == 0)
@@ -60,7 +60,7 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
         return ShapeDistance.Union([.. _infatuation.Casters.Select(c => ShapeDistance.Circle(c.Position, 7))]);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => GetFireballZone() is { } z && z(pos) < 0;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => GetFireballZone() is { } z && z(new(pos))[0] < 0;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -75,11 +75,12 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
 
         var clamp = Arena.ClampToBounds;
 
+        // FIXME(slow sdf)
         hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             var dir = (p - kbSource).Normalized();
             var proj = clamp(p + dir * 25);
-            return dangerZone(proj) < 0;
+            return dangerZone(new(proj))[0] < 0;
         }), _source.Value.Activation);
     }
 }

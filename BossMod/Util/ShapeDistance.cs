@@ -181,10 +181,10 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist Polygon(List<WPos> vertices)
+    public static ShapeDist Polygon(IEnumerable<WPos> vertices)
     {
-        var n = vertices.Count;
         var vv = vertices.Select(v => new WVec(v)).ToList();
+        var n = vv.Count;
 
         return p =>
         {

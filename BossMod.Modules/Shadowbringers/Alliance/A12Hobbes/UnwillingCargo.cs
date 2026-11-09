@@ -44,6 +44,7 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
         Pink
     }
 
+    // FIXME(slow sdf)
     private static WDir ExpectedDirection(Pattern pattern, WPos p)
     {
         var stripe = MathF.Abs(p.Z + 270) switch
@@ -131,7 +132,7 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
             hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dir = ExpectedDirection(pat, p);
-                return dir != default && safe(p + dir) < 0;
+                return dir != default && safe(new(p + dir))[0] < 0;
             }), Activation);
         }
     }

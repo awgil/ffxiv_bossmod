@@ -1,5 +1,4 @@
-﻿
-namespace BossMod;
+﻿namespace BossMod;
 
 public abstract record class AOEShape
 {

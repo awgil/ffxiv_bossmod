@@ -104,8 +104,6 @@ public sealed class AIHints
     public WPos PathfindMapCenter;
     public ArenaBounds PathfindMapBounds = DefaultBounds;
     public Bitmap.Region PathfindMapObstacles;
-    private float[] _scratchG = [];
-    private uint[] _scratchD = [];
 
     // list of potential targets
     public readonly Enemy?[] Enemies = new Enemy?[100];

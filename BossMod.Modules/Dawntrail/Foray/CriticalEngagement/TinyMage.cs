@@ -234,7 +234,7 @@ class TinyTether(BossModule module) : Components.Knockback(module)
         base.AddHints(slot, actor, hints);
 
         foreach (var aoe in ActiveAOEs())
-            if (aoe.Risky && aoe.CheckPoint(actor.Position))
+            if (aoe.Risky && aoe.Check(actor.Position))
                 hints.Add("GTFO from aoe!");
     }
 

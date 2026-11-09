@@ -357,7 +357,7 @@ class FleshKnockback(BossModule module) : Components.Knockback(module, AID.Shock
     }
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => base.DestinationUnsafe(slot, actor, pos) || Module.FindComponent<Burst>()?.AOEs.Any(a => a.CheckPoint(pos)) == true;
+        => base.DestinationUnsafe(slot, actor, pos) || Module.FindComponent<Burst>()?.AOEs.Any(a => a.Check(pos)) == true;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

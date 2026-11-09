@@ -1,4 +1,6 @@
-﻿namespace BossMod.Components;
+﻿using System.Runtime.CompilerServices;
+
+namespace BossMod.Components;
 
 // generic component that shows arbitrary shapes representing avoidable aoes
 public abstract class GenericAOEs(BossModule module, Enum? aid = default, string warningText = "GTFO from aoe!", string invertedText = "Go to safe zone!") : CastCounter(module, aid)
@@ -20,20 +22,24 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
             return res.DistanceV(pos);
         }
 
-        public readonly bool CheckPoint(WPos p) => Check(new WVec(p))[0] != 0;
-        public readonly float DistancePoint(WPos p) => Distance(new WVec(p))[0];
+        // type constrained alias so we don't need to explicitly cast when calling AddForbiddenZone
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly VF DistV(WVec pos) => Distance(pos);
+
+        public readonly bool Check(WPos p) => Check(new WVec(p))[0] != 0;
+        public readonly float Distance(WPos p) => Distance(new WVec(p))[0];
     }
 
     public string WarningText = warningText;
     public string InvertedText = invertedText;
 
-    public bool Check(int slot, Actor actor, WPos position) => ActiveAOEs(slot, actor).Any(a => a.CheckPoint(position));
+    public bool Check(int slot, Actor actor, WPos position) => ActiveAOEs(slot, actor).Any(a => a.Check(position));
 
     public abstract IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ActiveAOEs(slot, actor).FirstOrNull(c => c.Risky && c.CheckPoint(actor.Position)) is { } aoe)
+        if (ActiveAOEs(slot, actor).FirstOrNull(c => c.Risky && c.Check(actor.Position)) is { } aoe)
             hints.Add(aoe.Inverted ? InvertedText : WarningText);
     }
 
@@ -41,7 +47,7 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
     {
         foreach (var c in ActiveAOEs(slot, actor))
             if (c.Risky)
-                hints.AddForbiddenZone(c.Distance, c.Activation);
+                hints.AddForbiddenZone(c.DistV, c.Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
