@@ -345,15 +345,12 @@ public struct NavigationDecision
     {
         var g = Vector512.Create(float.MaxValue);
         var d = Vector512<uint>.Zero;
-        var z0 = V16.Zero;
         var c0 = Vector512.Create(cushion);
 
         foreach (var z in zones)
         {
             var dist = z.d.DistanceV(p);
-            var inside = Vector512.LessThan(dist, z0);
-            var outside = (~inside) & Vector512.Create(float.MaxValue);
-            g = Vector512.Min(g, (Vector512.Create(z.g) & inside) | outside);
+            g = Vector512.Min(g, Vector512.ConditionalSelect(Vector512.IsNegative(dist), Vector512.Create(z.g), Vector512.Create(float.MaxValue)));
             d = Vector512.BitwiseOr(d, Vector512.LessThan(dist, c0).As<float, uint>());
         }
 

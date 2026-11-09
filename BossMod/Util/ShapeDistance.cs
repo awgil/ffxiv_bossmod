@@ -93,33 +93,7 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WPos, float> Tri(WPos origin, RelTriangle tri)
-    {
-        var ab = tri.B - tri.A;
-        var bc = tri.C - tri.B;
-        var ca = tri.A - tri.C;
-        var n1 = ab.OrthoL().Normalized();
-        var n2 = bc.OrthoL().Normalized();
-        var n3 = ca.OrthoL().Normalized();
-        if (ab.Cross(bc) < 0)
-        {
-            n1 = -n1;
-            n2 = -n2;
-            n3 = -n3;
-        }
-        var a = origin + tri.A;
-        var b = origin + tri.B;
-        var c = origin + tri.C;
-        return p =>
-        {
-            var d1 = n1.Dot(p - a);
-            var d2 = n2.Dot(p - b);
-            var d3 = n3.Dot(p - c);
-            return Math.Max(Math.Max(d1, d2), d3);
-        };
-    }
-
-    public static ShapeFun TriV(WPos w0, WPos w1, WPos w2)
+    public static ShapeFun Tri(WPos w0, WPos w1, WPos w2)
     {
         WVec p0 = new(w0), p1 = new(w1), p2 = new(w2);
         WVec e0 = p1 - p0, e1 = p2 - p1, e2 = p0 - p2;
@@ -138,12 +112,7 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeFun TriV(WPos origin, RelTriangle rel) => TriV(origin + rel.A, origin + rel.B, origin + rel.C);
-
-    static WDir Max0(WDir a) => new(Math.Max(0, a.X), Math.Max(0, a.Z));
-
-    static WVec Max0(WVec v) => new(Vector512.Max(V16.Zero, v.X), Vector512.Max(V16.Zero, v.Z));
-    static V16 Maxcomp(WVec v) => Vector512.Max(v.X, v.Z);
+    public static ShapeFun Tri(WPos origin, RelTriangle rel) => Tri(origin + rel.A, origin + rel.B, origin + rel.C);
 
     public static ShapeFun Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
@@ -190,26 +159,6 @@ public static class ShapeDistance
     };
     public static Func<WPos, float> Capsule(WPos origin, Angle direction, float length, float radius) => Capsule(origin, direction.ToDirection(), length, radius);
 
-    public static Func<WPos, float> CrossH(WPos origin, Angle direction, float length, float halfWidth)
-    {
-        if (halfWidth <= 0 || length <= 0)
-            return _ => float.MaxValue;
-
-        var dir = direction.ToDirection().MirrorX();
-        var b = new WDir(length, halfWidth);
-
-        return qq =>
-        {
-            var p = (qq - origin).Rotate(dir).Abs();
-            if (p.Z > p.X)
-                p = new(p.Z, p.X);
-            var q = p - b;
-            var k = Math.Max(q.Z, q.X);
-            var w = k > 0 ? q : new(b.Z - p.X, -k);
-            return Math.Sign(k) * Max0(w).Length();
-        };
-    }
-
     public static ShapeFun Cross(WPos origin, Angle direction, float length, float halfWidth)
     {
         if (halfWidth <= 0 || length <= 0)
@@ -231,83 +180,7 @@ public static class ShapeDistance
         };
     }
 
-    // positive offset increases area
-    public static Func<WPos, float> ConvexPolygon(IEnumerable<(WPos, WPos)> edges, bool cw)
-    {
-        Func<WPos, float> edge((WPos p1, WPos p2) e)
-        {
-            if (e.p1 == e.p2)
-                return _ => float.MinValue;
-            var dir = (e.p2 - e.p1).Normalized();
-            var normal = cw ? dir.OrthoL() : dir.OrthoR();
-            return p => normal.Dot(p - e.p1);
-        }
-        return p => edges.Max(e => edge(e)(p));
-    }
-    public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw);
-    public static Func<WPos, float> Polygon(List<WPos> vertices)
-    {
-        var n = vertices.Count;
-
-        return p =>
-        {
-            var d = (p - vertices[0]).Dot(p - vertices[0]);
-            var s = 1f;
-            for (int i = 0, j = n - 1; i < n; j = i++)
-            {
-                var e = vertices[j] - vertices[i];
-                var w = p - vertices[i];
-                var b = w - e * Math.Clamp(w.Dot(e) / e.Dot(e), 0, 1);
-                d = Math.Min(d, b.Dot(b));
-
-                var c0 = p.Z >= vertices[i].Z;
-                var c1 = p.Z < vertices[j].Z;
-                var c2 = e.X * w.Z > e.Z * w.X;
-                if (c0 == c1 && c1 == c2)
-                    s *= -1;
-            }
-            return s * MathF.Sqrt(d);
-        };
-    }
-    public static Func<WPos, float> Polygon(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
-    {
-        var ext = new List<WPos>(polygon.Exterior.Length);
-        foreach (var e in polygon.Exterior)
-            ext.Add(e.Rotate(rotation) + origin);
-
-        var dext = Polygon(ext);
-
-        if (polygon.IsSimple)
-            return dext;
-
-        var interiors = new List<Func<WPos, float>>();
-
-        foreach (var h in polygon.Holes)
-        {
-            var i = new List<WPos>();
-            foreach (var e in polygon.Interior(h))
-                i.Add(e.Rotate(rotation) + origin);
-            interiors.Add(Polygon(i));
-        }
-
-        return p =>
-        {
-            var dOut = dext(p);
-            if (dOut >= 0)
-                return dOut;
-
-            foreach (var hole in interiors)
-            {
-                var dh = hole(p);
-                if (dh < 0)
-                    return -dh;
-            }
-
-            return dOut;
-        };
-    }
-
-    public static ShapeFun PolygonV(List<WPos> vertices)
+    public static ShapeFun Polygon(List<WPos> vertices)
     {
         var n = vertices.Count;
         var vv = vertices.Select(v => new WVec(v)).ToList();
@@ -327,22 +200,18 @@ public static class ShapeDistance
                 var c1 = Vector512.LessThan(p.Z, vv[j].Z);
                 var c2 = Vector512.GreaterThan(e.X * w.Z, e.Z * w.X);
 
-                var cAll = c0 & c1 & c2;
-                var cOr = ~(c0 | c1 | c2);
-                var cMatch = cAll | cOr;
-
-                s *= Vector512.ConditionalSelect(cAll | cOr, Vector512.Create(-1f), V16.One);
+                s *= Vector512.ConditionalSelect((c0 & c1 & c2) | ~(c0 | c1 | c2), Vector512.Create(-1f), V16.One);
             }
             return s * Vector512.Sqrt(d);
         };
     }
-    public static ShapeFun PolygonV(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
+    public static ShapeFun Polygon(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
     {
         var ext = new List<WPos>(polygon.Exterior.Length);
         foreach (var e in polygon.Exterior)
             ext.Add(e.Rotate(rotation) + origin);
 
-        var dext = PolygonV(ext);
+        var dext = Polygon(ext);
 
         if (polygon.IsSimple)
             return dext;
@@ -354,7 +223,7 @@ public static class ShapeDistance
             var i = new List<WPos>();
             foreach (var e in polygon.Interior(h))
                 i.Add(e.Rotate(rotation) + origin);
-            interiors.Add(PolygonV(i));
+            interiors.Add(Polygon(i));
         }
 
         return p =>
@@ -367,7 +236,7 @@ public static class ShapeDistance
             return dist;
         };
     }
-    public static ShapeFun ComplexPolygonV(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => PolygonV(origin, rotation, p))]);
+    public static ShapeFun ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
 
     public static ShapeFun Intersection(List<ShapeFun> funcs)
     {

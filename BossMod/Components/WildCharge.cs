@@ -281,7 +281,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
             else
             {
                 var zones = group.Select(ShapeFn).ToList();
-                hints.AddForbiddenZone(Sdf.Discrete(p => zones.Count(f => f(p) < 0) != 1), group.First().Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => zones.Count(f => f(new(p))[0] < 0) != 1), group.First().Activation);
             }
         }
     }

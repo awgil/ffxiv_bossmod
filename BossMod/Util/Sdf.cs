@@ -63,6 +63,9 @@ public struct Sdf
             case SdfType.Indexed:
                 return SdfIx(p, -1);
 
+            case SdfType.Vectored:
+                return SdfVectored(new(p))[0] < 0;
+
             default:
                 throw new UnreachableException();
         }
@@ -103,7 +106,7 @@ public struct Sdf
                 return SdfIx(p, -1) ? float.MinValue : float.MaxValue;
 
             case SdfType.Vectored:
-                return SdfVectored(new WVec(p))[0];
+                return SdfVectored(new(p))[0];
 
             default:
                 throw new UnreachableException();
@@ -122,6 +125,9 @@ public struct Sdf
 
             case SdfType.Indexed:
                 return SdfIx(p, index);
+
+            case SdfType.Vectored:
+                return SdfVectored(new(p))[0] < 0;
 
             default:
                 throw new UnreachableException();
