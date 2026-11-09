@@ -1,4 +1,6 @@
-﻿namespace BossMod;
+﻿using System.Runtime.Intrinsics;
+
+namespace BossMod;
 
 // 2d vector that represents world-space direction on XZ plane
 public record struct WDir(float X, float Z)
@@ -107,4 +109,23 @@ public record struct WPos(float X, float Z)
 
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, WDir direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, Angle direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
+}
+
+public record struct WVec(Vector512<float> X, Vector512<float> Z)
+{
+    public WVec(WDir wd) : this(Vector512.Create(wd.X), Vector512.Create(wd.Z)) { }
+    public WVec(WPos wp) : this(wp.ToWDir()) { }
+
+    //public readonly WDir Rotate(WDir dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
+    public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
+
+    public readonly Vector512<float> LengthSq() => X * X + Z * Z;
+    public readonly Vector512<float> Length() => Vector512.Sqrt(LengthSq());
+    public readonly Vector512<float> Dot(WVec a) => X * a.X + Z * a.Z;
+    public static Vector512<float> Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
+    public readonly Vector512<float> Cross(WVec b) => Cross(this, b);
+
+    public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
+    public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator *(WVec a, Vector512<float> b) => new(a.X * b, a.Z * b);
 }

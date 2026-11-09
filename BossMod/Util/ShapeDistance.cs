@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Threading.Tasks;
+using V16 = System.Runtime.Intrinsics.Vector512<float>;
 
 namespace BossMod;
 
@@ -11,17 +14,20 @@ public struct Sdf
     {
         Continuous,
         Discrete,
-        Indexed
+        Indexed,
+        Vectored
     }
 
     [FieldOffset(0)] private Func<WPos, float> SdfCont;
     [FieldOffset(0)] private Func<WPos, bool> SdfDisc;
     [FieldOffset(0)] private Func<WPos, int, bool> SdfIx;
+    [FieldOffset(0)] private Func<WVec, V16> SdfVectored;
     [FieldOffset(8)] public SdfType Type;
 
     public static Sdf Continuous(Func<WPos, float> d) => new() { Type = SdfType.Continuous, SdfCont = d };
     public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = b };
     public static Sdf Indexed(Func<WPos, int, bool> i) => new() { Type = SdfType.Indexed, SdfIx = i };
+    public static Sdf Vectored(Func<WVec, V16> v) => new() { Type = SdfType.Vectored, SdfVectored = v };
 
     public readonly Sdf Inverted()
     {
@@ -36,6 +42,9 @@ public struct Sdf
             case SdfType.Indexed:
                 var fi = SdfIx;
                 return Indexed((p, i) => !fi(p, i));
+            case SdfType.Vectored:
+                var fv = SdfVectored;
+                return Vectored(p => -fv(p));
             default:
                 throw new UnreachableException();
         }
@@ -60,6 +69,27 @@ public struct Sdf
         }
     }
 
+    public readonly V16 DistanceV(WVec p)
+    {
+        if (Type == SdfType.Vectored)
+            return SdfVectored(p);
+
+        var xa = new float[16];
+        var xb = new float[16];
+        p.X.CopyTo(xa);
+        p.Z.CopyTo(xb);
+
+        var d = new float[16];
+        var s = this;
+
+        Parallel.For(0, 16, i =>
+        {
+            d[i] = s.Distance(new(xa[i], xb[i]));
+        });
+
+        return Vector512.Create(d);
+    }
+
     public readonly float Distance(WPos p)
     {
         switch (Type)
@@ -72,6 +102,9 @@ public struct Sdf
 
             case SdfType.Indexed:
                 return SdfIx(p, -1) ? float.MinValue : float.MaxValue;
+
+            case SdfType.Vectored:
+                return SdfVectored(new WVec(p))[0];
 
             default:
                 throw new UnreachableException();
@@ -105,6 +138,13 @@ public static class ShapeDistance
     public static Func<WPos, float> HalfPlane(WPos point, WDir normal) => p => normal.Dot(p - point);
 
     public static Func<WPos, float> Circle(WPos origin, float radius) => radius <= 0 ? (_ => float.MaxValue) : (p => (p - origin).Length() - radius);
+    public static Func<WVec, V16> CircleV(WPos origin, float radius)
+    {
+        var ov = new WVec(origin);
+        var rv = Vector512.Create(radius);
+
+        return p => (p - ov).Length() - rv;
+    }
     public static Func<WPos, float> InvertedCircle(WPos origin, float radius) => radius <= 0 ? (_ => float.MinValue) : (p => radius - (p - origin).Length());
 
     public static Func<WPos, float> Donut(WPos origin, float innerRadius, float outerRadius)
@@ -123,6 +163,18 @@ public static class ShapeDistance
         };
     }
 
+    public static Func<WVec, V16> DonutV(WPos origin, float innerRadius, float outerRadius)
+    {
+        if (outerRadius <= 0 || innerRadius >= outerRadius)
+            return _ => Vector512.Create(float.MaxValue);
+
+        var midpoint = (outerRadius + innerRadius) * 0.5f;
+        var thickness = Vector512.Create((outerRadius - innerRadius) * 0.5f);
+        var cv = CircleV(origin, midpoint);
+
+        return p => Vector512.Abs(cv(p)) - thickness;
+    }
+
     public static Func<WPos, float> Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || radius <= 0)
@@ -137,7 +189,32 @@ public static class ShapeDistance
         {
             var p = (q - origin).Rotate(cx);
             p.X = Math.Abs(p.X);
-            return Math.Max(p.Length() - radius, (p - c * Math.Clamp(p.Dot(c), 0, radius)).Length() * Math.Sign(c.Cross(p)));
+            var v0 = p.Dot(c);
+            var v1 = Math.Clamp(v0, 0, radius);
+            var v2 = c.Cross(p);
+            var v3 = (p - c * v1).Length();
+            var v4 = Math.Sign(v2);
+            return Math.Max(p.Length() - radius, v3 * v4);
+        };
+    }
+
+    public static Func<WVec, V16> ConeV(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    {
+        if (halfAngle.Rad <= 0 || radius <= 0)
+            return _ => Vector512.Create(float.MaxValue);
+        if (halfAngle.Rad >= MathF.PI)
+            return CircleV(origin, radius);
+
+        WVec c = new(halfAngle.ToDirection().MirrorZ());
+        WVec cx = new(-centerDir.ToDirection().MirrorX());
+        WVec ov = new(origin);
+        var rv = Vector512.Create(radius);
+
+        return q =>
+        {
+            var p = (q - ov).Rotate(cx);
+            p.X = Vector512.Abs(p.X);
+            return Vector512.Max(p.Length() - rv, (p - c * Vector512.Clamp(p.Dot(c), V16.Zero, rv)).Length() * Vector512.CopySign(V16.One, c.Cross(p)));
         };
     }
 
@@ -168,6 +245,33 @@ public static class ShapeDistance
             p.X = MathF.Abs(p.X);
             p = p.Rotate(c);
             return Math.Max(MathF.Abs(p.Length() - r) - th, new WDir(p.X, MathF.Max(0, MathF.Abs(r - p.Z) - th)).Length() * Math.Sign(p.X));
+        };
+    }
+
+    public static Func<WVec, V16> DonutSectorV(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+    {
+        if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
+            return _ => Vector512.Create(float.MaxValue);
+
+        if (halfAngle.Rad >= MathF.PI)
+            return DonutV(origin, innerRadius, outerRadius);
+        if (innerRadius <= 0)
+            return ConeV(origin, outerRadius, centerDir, halfAngle);
+
+        var r = Vector512.Create((outerRadius + innerRadius) * 0.5f);
+        var th = Vector512.Create((outerRadius - innerRadius) * 0.5f);
+
+        WVec c = new(halfAngle.ToDirection().MirrorX());
+        WVec cx = new(centerDir.ToDirection().MirrorX());
+
+        var ov = new WVec(origin);
+
+        return q =>
+        {
+            var p = (q - ov).Rotate(cx);
+            p.X = Vector512.Abs(p.X);
+            p = p.Rotate(c);
+            return Vector512.Max(Vector512.Abs(p.Length() - r) - th, new WVec(p.X, Vector512.Max(V16.Zero, Vector512.Abs(r - p.Z) - th)).Length() * Vector512.CopySign(V16.One, p.X));
         };
     }
 

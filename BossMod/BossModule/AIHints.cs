@@ -105,7 +105,7 @@ public sealed class AIHints
     public ArenaBounds PathfindMapBounds = DefaultBounds;
     public Bitmap.Region PathfindMapObstacles;
     private float[] _scratchG = [];
-    private bool[] _scratchD = [];
+    private uint[] _scratchD = [];
 
     // list of potential targets
     public readonly Enemy?[] Enemies = new Enemy?[100];
@@ -301,13 +301,8 @@ public sealed class AIHints
     public void InitPathfindMap(Pathfinding.Map map)
     {
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
-        var dim = (map.Height + 1) * (map.Width + 1);
-        if (_scratchG.Length != dim)
-            _scratchG = new float[dim];
-        if (_scratchD.Length != dim)
-            _scratchD = new bool[dim];
 
-        Pathfinding.NavigationDecision.RasterizeRaw(map, [.. TemporaryObstacles.Select(o => (o, -1000f))], _scratchG, _scratchD, 0);
+        Pathfinding.NavigationDecision.RasterizeRaw(map, [.. TemporaryObstacles.Select(o => (o, -1000f))], 0);
 
         foreach (var (from, radius, to) in Portals)
             map.AddPortal(from, radius, to);
