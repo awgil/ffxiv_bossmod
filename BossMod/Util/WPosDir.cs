@@ -111,21 +111,34 @@ public record struct WPos(float X, float Z)
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, Angle direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
 }
 
-public record struct WVec(Vector512<float> X, Vector512<float> Z)
+public record struct WVec(V16 X, V16 Z)
 {
-    public WVec(WDir wd) : this(Vector512.Create(wd.X), Vector512.Create(wd.Z)) { }
-    public WVec(WPos wp) : this(wp.ToWDir()) { }
+    public WVec(float x, float z) : this(Vector512.Create(x), Vector512.Create(z)) { }
+    public WVec(WDir wd) : this(wd.X, wd.Z) { }
+    public WVec(WPos wp) : this(wp.X, wp.Z) { }
 
-    //public readonly WDir Rotate(WDir dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
     public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
+    public readonly WVec Abs() => new(Vector512.Abs(X), Vector512.Abs(Z));
 
-    public readonly Vector512<float> LengthSq() => X * X + Z * Z;
-    public readonly Vector512<float> Length() => Vector512.Sqrt(LengthSq());
-    public readonly Vector512<float> Dot(WVec a) => X * a.X + Z * a.Z;
-    public static Vector512<float> Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
-    public readonly Vector512<float> Cross(WVec b) => Cross(this, b);
+    public readonly V16 LengthSq() => X * X + Z * Z;
+    public readonly V16 Length() => Vector512.Sqrt(LengthSq());
+    public readonly V16 Dot(WVec a) => X * a.X + Z * a.Z;
+    public static V16 Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
+    public readonly V16 Cross(WVec b) => Cross(this, b);
+
+    public readonly WVec ClampPositive() => new(Vector512.Max(V16.Zero, X), Vector512.Max(V16.Zero, Z));
+    public readonly V16 MaxComponent() => Vector512.Max(X, Z);
+    public readonly WVec NormalizeXZ()
+    {
+        var greaterIndices = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.GreaterThan(X, Z).AsInt32());
+        var gt = Vector512.Shuffle(X, greaterIndices) + Vector512.Shuffle(Z, ~greaterIndices);
+        var lt = Vector512.Shuffle(Z, greaterIndices) + Vector512.Shuffle(X, ~greaterIndices);
+        return new(gt, lt);
+    }
+
+    public readonly WVec Shuffle(Vector512<int> indices) => new(Vector512.Shuffle(X, indices), Vector512.Shuffle(Z, indices));
 
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
-    public static WVec operator *(WVec a, Vector512<float> b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(WVec a, V16 b) => new(a.X * b, a.Z * b);
 }

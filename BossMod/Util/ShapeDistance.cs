@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
+﻿global using V16 = System.Runtime.Intrinsics.Vector512<float>;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Threading.Tasks;
-using V16 = System.Runtime.Intrinsics.Vector512<float>;
 
 namespace BossMod;
 
@@ -135,10 +135,15 @@ public struct Sdf
 
 public static class ShapeDistance
 {
-    public static Func<WPos, float> HalfPlane(WPos point, WDir normal) => p => normal.Dot(p - point);
+    public static Func<WVec, V16> HalfPlane(WPos point, WDir normal)
+    {
+        var n = new WVec(normal);
+        var p0 = new WVec(point);
 
-    public static Func<WPos, float> Circle(WPos origin, float radius) => radius <= 0 ? (_ => float.MaxValue) : (p => (p - origin).Length() - radius);
-    public static Func<WVec, V16> CircleV(WPos origin, float radius)
+        return p => n.Dot(p - p0);
+    }
+
+    public static Func<WVec, V16> Circle(WPos origin, float radius)
     {
         var ov = new WVec(origin);
         var rv = Vector512.Create(radius);
@@ -147,63 +152,24 @@ public static class ShapeDistance
     }
     public static Func<WPos, float> InvertedCircle(WPos origin, float radius) => radius <= 0 ? (_ => float.MinValue) : (p => radius - (p - origin).Length());
 
-    public static Func<WPos, float> Donut(WPos origin, float innerRadius, float outerRadius)
-    {
-        if (outerRadius <= 0 || innerRadius >= outerRadius)
-            return _ => float.MaxValue;
-        if (innerRadius <= 0)
-            return Circle(origin, outerRadius);
-        return p =>
-        {
-            // intersection of outer circle and inverted inner circle
-            var distOrigin = (p - origin).Length();
-            var distOuter = distOrigin - outerRadius;
-            var distInner = innerRadius - distOrigin;
-            return Math.Max(distOuter, distInner);
-        };
-    }
-
-    public static Func<WVec, V16> DonutV(WPos origin, float innerRadius, float outerRadius)
+    public static Func<WVec, V16> Donut(WPos origin, float innerRadius, float outerRadius)
     {
         if (outerRadius <= 0 || innerRadius >= outerRadius)
             return _ => Vector512.Create(float.MaxValue);
 
         var midpoint = (outerRadius + innerRadius) * 0.5f;
         var thickness = Vector512.Create((outerRadius - innerRadius) * 0.5f);
-        var cv = CircleV(origin, midpoint);
+        var cv = Circle(origin, midpoint);
 
         return p => Vector512.Abs(cv(p)) - thickness;
     }
 
-    public static Func<WPos, float> Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
-    {
-        if (halfAngle.Rad <= 0 || radius <= 0)
-            return _ => float.MaxValue;
-        if (halfAngle.Rad >= MathF.PI)
-            return Circle(origin, radius);
-
-        var c = halfAngle.ToDirection().MirrorZ();
-        var cx = -centerDir.ToDirection().MirrorX();
-
-        return q =>
-        {
-            var p = (q - origin).Rotate(cx);
-            p.X = Math.Abs(p.X);
-            var v0 = p.Dot(c);
-            var v1 = Math.Clamp(v0, 0, radius);
-            var v2 = c.Cross(p);
-            var v3 = (p - c * v1).Length();
-            var v4 = Math.Sign(v2);
-            return Math.Max(p.Length() - radius, v3 * v4);
-        };
-    }
-
-    public static Func<WVec, V16> ConeV(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    public static Func<WVec, V16> Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || radius <= 0)
             return _ => Vector512.Create(float.MaxValue);
         if (halfAngle.Rad >= MathF.PI)
-            return CircleV(origin, radius);
+            return Circle(origin, radius);
 
         WVec c = new(halfAngle.ToDirection().MirrorZ());
         WVec cx = new(-centerDir.ToDirection().MirrorX());
@@ -218,45 +184,23 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WPos, float> InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    public static Func<WVec, V16> InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         var cone = Cone(origin, radius, centerDir, halfAngle);
         return p => -cone(p);
     }
 
-    public static Func<WPos, float> DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
-    {
-        if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
-            return _ => float.MaxValue;
-        if (halfAngle.Rad >= MathF.PI)
-            return Donut(origin, innerRadius, outerRadius);
-        if (innerRadius <= 0)
-            return Cone(origin, outerRadius, centerDir, halfAngle);
+    static V16 Sign(V16 input) => Vector512.CopySign(V16.One, input);
 
-        var r = (outerRadius + innerRadius) * 0.5f;
-        var th = (outerRadius - innerRadius) * 0.5f;
-
-        var c = halfAngle.ToDirection().MirrorX();
-        var cx = centerDir.ToDirection().MirrorX();
-
-        return q =>
-        {
-            var p = (q - origin).Rotate(cx);
-            p.X = MathF.Abs(p.X);
-            p = p.Rotate(c);
-            return Math.Max(MathF.Abs(p.Length() - r) - th, new WDir(p.X, MathF.Max(0, MathF.Abs(r - p.Z) - th)).Length() * Math.Sign(p.X));
-        };
-    }
-
-    public static Func<WVec, V16> DonutSectorV(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+    public static Func<WVec, V16> DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
             return _ => Vector512.Create(float.MaxValue);
 
         if (halfAngle.Rad >= MathF.PI)
-            return DonutV(origin, innerRadius, outerRadius);
+            return Donut(origin, innerRadius, outerRadius);
         if (innerRadius <= 0)
-            return ConeV(origin, outerRadius, centerDir, halfAngle);
+            return Cone(origin, outerRadius, centerDir, halfAngle);
 
         var r = Vector512.Create((outerRadius + innerRadius) * 0.5f);
         var th = Vector512.Create((outerRadius - innerRadius) * 0.5f);
@@ -271,7 +215,7 @@ public static class ShapeDistance
             var p = (q - ov).Rotate(cx);
             p.X = Vector512.Abs(p.X);
             p = p.Rotate(c);
-            return Vector512.Max(Vector512.Abs(p.Length() - r) - th, new WVec(p.X, Vector512.Max(V16.Zero, Vector512.Abs(r - p.Z) - th)).Length() * Vector512.CopySign(V16.One, p.X));
+            return Vector512.Max(Vector512.Abs(p.Length() - r) - th, new WVec(p.X, Vector512.Max(V16.Zero, Vector512.Abs(r - p.Z) - th)).Length() * Sign(p.X));
         };
     }
 
@@ -302,38 +246,40 @@ public static class ShapeDistance
     }
 
     static WDir Max0(WDir a) => new(Math.Max(0, a.X), Math.Max(0, a.Z));
-    static float Maxcomp(WDir a) => Math.Max(a.X, a.Z);
 
-    public static Func<WPos, float> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    static WVec Max0(WVec v) => new(Vector512.Max(V16.Zero, v.X), Vector512.Max(V16.Zero, v.Z));
+    static V16 Maxcomp(WVec v) => Vector512.Max(v.X, v.Z);
+
+    public static Func<WVec, V16> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var start = origin - dir * lenBack;
         var end = origin + dir * lenFront;
-        var midpoint = WPos.Lerp(start, end, 0.5f);
+        var midpoint = new WVec(WPos.Lerp(start, end, 0.5f));
 
-        var r = new WDir(halfWidth, (lenBack + lenFront) * 0.5f);
-        var dxr = dir.MirrorX();
+        var r = new WVec(halfWidth, (lenBack + lenFront) * 0.5f);
+        WVec dxr = new(dir.MirrorX());
 
         return p =>
         {
             var q = (p - midpoint).Rotate(dxr).Abs() - r;
-            return Max0(q).Length() + Math.Min(Maxcomp(q), 0);
+            return q.ClampPositive().Length() + Vector512.Min(q.MaxComponent(), V16.Zero);
         };
     }
-    public static Func<WPos, float> Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-    public static Func<WPos, float> Rect(WPos from, WPos to, float halfWidth)
+    public static Func<WVec, V16> Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public static Func<WVec, V16> Rect(WPos from, WPos to, float halfWidth)
     {
         var dir = to - from;
         var l = dir.Length();
         return Rect(from, dir / l, l, 0, halfWidth);
     }
 
-    public static Func<WPos, float> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    public static Func<WVec, V16> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var r = Rect(origin, dir, lenFront, lenBack, halfWidth);
         return p => -r(p);
     }
-    public static Func<WPos, float> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-    public static Func<WPos, float> InvertedRect(WPos from, WPos to, float halfWidth)
+    public static Func<WVec, V16> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public static Func<WVec, V16> InvertedRect(WPos from, WPos to, float halfWidth)
     {
         var dir = to - from;
         var l = dir.Length();
@@ -349,7 +295,7 @@ public static class ShapeDistance
     };
     public static Func<WPos, float> Capsule(WPos origin, Angle direction, float length, float radius) => Capsule(origin, direction.ToDirection(), length, radius);
 
-    public static Func<WPos, float> Cross(WPos origin, Angle direction, float length, float halfWidth)
+    public static Func<WPos, float> CrossH(WPos origin, Angle direction, float length, float halfWidth)
     {
         if (halfWidth <= 0 || length <= 0)
             return _ => float.MaxValue;
@@ -366,6 +312,27 @@ public static class ShapeDistance
             var k = Math.Max(q.Z, q.X);
             var w = k > 0 ? q : new(b.Z - p.X, -k);
             return Math.Sign(k) * Max0(w).Length();
+        };
+    }
+
+    public static Func<WVec, V16> Cross(WPos origin, Angle direction, float length, float halfWidth)
+    {
+        if (halfWidth <= 0 || length <= 0)
+            return _ => Vector512.Create(float.MaxValue);
+
+        var dir = new WVec(direction.ToDirection().MirrorX());
+        var b = new WVec(length, halfWidth);
+        var ov = new WVec(origin);
+
+        return qq =>
+        {
+            var p = (qq - ov).Rotate(dir).Abs();
+            p = p.NormalizeXZ();
+            var q = p - b;
+            var k = Vector512.Max(q.Z, q.X);
+            var kpos = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.IsPositive(k).AsInt32());
+            var w = q.Shuffle(kpos) + new WVec(b.Z - p.X, -k).Shuffle(~kpos);
+            return Sign(k) * w.ClampPositive().Length();
         };
     }
 
@@ -453,7 +420,7 @@ public static class ShapeDistance
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
     // note that if the goal position is exactly aligned with a grid point, it results in a 2x2 safe area instead of 1x1 (this never happens in practice)
-    public static Func<WPos, float> PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
+    public static Func<WVec, V16> PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
     {
         var delta = starting - origin;
         var dparr = delta.Dot(dir);
