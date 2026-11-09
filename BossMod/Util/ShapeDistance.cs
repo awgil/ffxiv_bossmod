@@ -327,7 +327,7 @@ public static class ShapeDistance
         return qq =>
         {
             var p = (qq - ov).Rotate(dir).Abs();
-            p = p.NormalizeXZ();
+            p = p.AlignX();
             var q = p - b;
             var k = Vector512.Max(q.Z, q.X);
             var kpos = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.IsPositive(k).AsInt32());

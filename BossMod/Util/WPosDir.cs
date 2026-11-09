@@ -118,7 +118,6 @@ public record struct WVec(V16 X, V16 Z)
     public WVec(WPos wp) : this(wp.X, wp.Z) { }
 
     public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
-    public readonly WVec Abs() => new(Vector512.Abs(X), Vector512.Abs(Z));
 
     public readonly V16 LengthSq() => X * X + Z * Z;
     public readonly V16 Length() => Vector512.Sqrt(LengthSq());
@@ -126,19 +125,24 @@ public record struct WVec(V16 X, V16 Z)
     public static V16 Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
     public readonly V16 Cross(WVec b) => Cross(this, b);
 
-    public readonly WVec ClampPositive() => new(Vector512.Max(V16.Zero, X), Vector512.Max(V16.Zero, Z));
+    public readonly WVec Abs() => new(Vector512.Abs(X), Vector512.Abs(Z));
+    public readonly WVec ClampPositive() => new(Vector512.Max(X, V16.Zero), Vector512.Max(Z, V16.Zero));
     public readonly V16 MaxComponent() => Vector512.Max(X, Z);
-    public readonly WVec NormalizeXZ()
+
+    // exchanges all pairs where Z > X
+    public readonly WVec AlignX()
     {
-        var greaterIndices = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.GreaterThan(X, Z).AsInt32());
-        var gt = Vector512.Shuffle(X, greaterIndices) + Vector512.Shuffle(Z, ~greaterIndices);
-        var lt = Vector512.Shuffle(Z, greaterIndices) + Vector512.Shuffle(X, ~greaterIndices);
-        return new(gt, lt);
+        var gt = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.GreaterThan(X, Z).AsInt32());
+        var lte = ~gt;
+        var xs = Vector512.ShuffleNative(X, gt) + Vector512.ShuffleNative(Z, lte);
+        var zs = Vector512.ShuffleNative(X, lte) + Vector512.ShuffleNative(Z, gt);
+        return new(xs, zs);
     }
 
-    public readonly WVec Shuffle(Vector512<int> indices) => new(Vector512.Shuffle(X, indices), Vector512.Shuffle(Z, indices));
+    public readonly WVec Shuffle(Vector512<int> indices) => new(Vector512.ShuffleNative(X, indices), Vector512.ShuffleNative(Z, indices));
 
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
     public static WVec operator *(WVec a, V16 b) => new(a.X * b, a.Z * b);
 }
+
