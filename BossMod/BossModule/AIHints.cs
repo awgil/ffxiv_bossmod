@@ -143,6 +143,7 @@ public sealed class AIHints
     public class TempObstaclesList : List<Sdf>
     {
         public void Add(Func<WPos, float> c) => Add(Sdf.Continuous(c));
+        public void Add(ShapeFun c) => Add(Sdf.Vectored(c));
     }
 
     // AI will treat the pixels inside these shapes as unreachable and not try to pathfind through them (unlike imminent forbidden zones)
@@ -266,6 +267,7 @@ public sealed class AIHints
     public void InteractWithOID<OID>(WorldState ws, OID oid) where OID : Enum => InteractWithOID(ws, (uint)(object)oid);
 
     public void AddForbiddenZone(Func<WPos, float> containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((Sdf.Continuous(containsFn), activation, source));
+    public void AddForbiddenZone(ShapeFun containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((Sdf.Vectored(containsFn), activation, source));
     public void AddForbiddenZone(Sdf sdf, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((sdf, activation, source));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((shape.GetSdf(origin, rot), activation, source));
 

@@ -341,11 +341,11 @@ public struct NavigationDecision
         return (g, d);
     }
 
-    private static (Vector512<float> G, Vector512<uint> D) CalculateMaxGV((Sdf d, float g)[] zones, WVec p, float cushion)
+    private static (V16 G, Vector512<uint> D) CalculateMaxGV((Sdf d, float g)[] zones, WVec p, float cushion)
     {
         var g = Vector512.Create(float.MaxValue);
         var d = Vector512<uint>.Zero;
-        var z0 = Vector512<float>.Zero;
+        var z0 = V16.Zero;
         var c0 = Vector512.Create(cushion);
 
         foreach (var z in zones)

@@ -132,14 +132,16 @@ public record struct WVec(V16 X, V16 Z)
     // exchanges all pairs where Z > X
     public readonly WVec AlignX()
     {
-        var gt = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.GreaterThan(X, Z).AsInt32());
-        var lte = ~gt;
-        var xs = Vector512.ShuffleNative(X, gt) + Vector512.ShuffleNative(Z, lte);
-        var zs = Vector512.ShuffleNative(X, lte) + Vector512.ShuffleNative(Z, gt);
-        return new(xs, zs);
+        var gt = Vector512.GreaterThan(X, Z);
+        return new(Vector512.ConditionalSelect(gt, X, Z), Vector512.ConditionalSelect(gt, Z, X));
     }
 
-    public readonly WVec Shuffle(Vector512<int> indices) => new(Vector512.ShuffleNative(X, indices), Vector512.ShuffleNative(Z, indices));
+    public static WVec Select(V16 bits, WVec left, WVec right)
+    {
+        return new(Vector512.ConditionalSelect(bits, left.X, right.X), Vector512.ConditionalSelect(bits, left.Z, right.Z));
+    }
+
+    public readonly WVec Min(WVec other) => new(Vector512.Min(X, other.X), Vector512.Min(Z, other.Z));
 
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);

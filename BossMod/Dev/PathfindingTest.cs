@@ -125,9 +125,9 @@ class PathfindingTest : TestWindow
         var now = DateTime.MinValue;
         List<(Sdf containsFn, DateTime activation, ulong source)> zones = [];
         if (_blockCone)
-            zones.Add((Sdf.Vectored(ShapeDistance.DonutSectorV(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees())), now.AddSeconds(_blockConeG), 0));
+            zones.Add((Sdf.Vectored(ShapeDistance.DonutSector(new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees())), now.AddSeconds(_blockConeG), 0));
         if (_blockRect)
-            zones.Add((Sdf.Vectored(ShapeDistance.RectV(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
+            zones.Add((Sdf.Vectored(ShapeDistance.Rect(new(_blockRectCenter), _blockRectRotationDeg.Degrees(), _blockRectLen.X, _blockRectLen.Y, _blockRectHalfWidth)), now.AddSeconds(_blockRectG), 0));
         zones.SortBy(z => z.activation);
 
         var gCopy = new List<float>();

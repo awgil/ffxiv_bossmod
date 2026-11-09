@@ -53,13 +53,6 @@ class MiniArenaTest : TestWindow
         _arena.Actor(new(_playerPos), 0.Degrees(), 0xff00ff00);
         _arena.End();
 
-        var mousePos = ImGui.GetMousePos();
-        var mouseWorld = ScreenToWorld(mousePos);
-
-        var dist = ShapeDistance.Rect(_arena.Center, new WDir(0, 1), 20, 20, 20)(mouseWorld);
-
-        ImGui.GetWindowDrawList().AddText(mousePos, 0xFFFFFFFF, $"{mouseWorld}\ndistance {dist:f2}");
-
         // arena config
         ImGui.DragFloat2("Player pos", ref _playerPos);
         ImGui.Checkbox("Draw cone", ref _coneEnabled);

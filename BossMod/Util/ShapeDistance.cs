@@ -1,141 +1,10 @@
-﻿global using V16 = System.Runtime.Intrinsics.Vector512<float>;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
-using System.Threading.Tasks;
+﻿using System.Runtime.Intrinsics;
 
 namespace BossMod;
 
-// TODO: replace me with union when it gets implemented
-[StructLayout(LayoutKind.Explicit)]
-public struct Sdf
-{
-    public enum SdfType
-    {
-        Continuous,
-        Discrete,
-        Indexed,
-        Vectored
-    }
-
-    [FieldOffset(0)] private Func<WPos, float> SdfCont;
-    [FieldOffset(0)] private Func<WPos, bool> SdfDisc;
-    [FieldOffset(0)] private Func<WPos, int, bool> SdfIx;
-    [FieldOffset(0)] private Func<WVec, V16> SdfVectored;
-    [FieldOffset(8)] public SdfType Type;
-
-    public static Sdf Continuous(Func<WPos, float> d) => new() { Type = SdfType.Continuous, SdfCont = d };
-    public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = b };
-    public static Sdf Indexed(Func<WPos, int, bool> i) => new() { Type = SdfType.Indexed, SdfIx = i };
-    public static Sdf Vectored(Func<WVec, V16> v) => new() { Type = SdfType.Vectored, SdfVectored = v };
-
-    public readonly Sdf Inverted()
-    {
-        switch (Type)
-        {
-            case SdfType.Continuous:
-                var fc = SdfCont;
-                return Continuous(p => -fc(p));
-            case SdfType.Discrete:
-                var fd = SdfDisc;
-                return Discrete(p => !fd(p));
-            case SdfType.Indexed:
-                var fi = SdfIx;
-                return Indexed((p, i) => !fi(p, i));
-            case SdfType.Vectored:
-                var fv = SdfVectored;
-                return Vectored(p => -fv(p));
-            default:
-                throw new UnreachableException();
-        }
-    }
-
-#pragma warning disable IDE0066 // Convert switch statement to expression
-    public readonly bool Check(WPos p)
-    {
-        switch (Type)
-        {
-            case SdfType.Continuous:
-                return SdfCont(p) < 0;
-
-            case SdfType.Discrete:
-                return SdfDisc(p);
-
-            case SdfType.Indexed:
-                return SdfIx(p, -1);
-
-            default:
-                throw new UnreachableException();
-        }
-    }
-
-    public readonly V16 DistanceV(WVec p)
-    {
-        if (Type == SdfType.Vectored)
-            return SdfVectored(p);
-
-        var xa = new float[16];
-        var xb = new float[16];
-        p.X.CopyTo(xa);
-        p.Z.CopyTo(xb);
-
-        var d = new float[16];
-        var s = this;
-
-        Parallel.For(0, 16, i =>
-        {
-            d[i] = s.Distance(new(xa[i], xb[i]));
-        });
-
-        return Vector512.Create(d);
-    }
-
-    public readonly float Distance(WPos p)
-    {
-        switch (Type)
-        {
-            case SdfType.Continuous:
-                return SdfCont(p);
-
-            case SdfType.Discrete:
-                return SdfDisc(p) ? float.MinValue : float.MaxValue;
-
-            case SdfType.Indexed:
-                return SdfIx(p, -1) ? float.MinValue : float.MaxValue;
-
-            case SdfType.Vectored:
-                return SdfVectored(new WVec(p))[0];
-
-            default:
-                throw new UnreachableException();
-        }
-    }
-
-    public readonly bool CheckIndexed(WPos p, int index)
-    {
-        switch (Type)
-        {
-            case SdfType.Continuous:
-                return SdfCont(p) < 0;
-
-            case SdfType.Discrete:
-                return SdfDisc(p);
-
-            case SdfType.Indexed:
-                return SdfIx(p, index);
-
-            default:
-                throw new UnreachableException();
-        }
-    }
-#pragma warning restore IDE0066 // Convert switch statement to expression
-
-    public readonly bool IsContinuous => Type == SdfType.Continuous;
-}
-
 public static class ShapeDistance
 {
-    public static Func<WVec, V16> HalfPlane(WPos point, WDir normal)
+    public static ShapeFun HalfPlane(WPos point, WDir normal)
     {
         var n = new WVec(normal);
         var p0 = new WVec(point);
@@ -143,16 +12,21 @@ public static class ShapeDistance
         return p => n.Dot(p - p0);
     }
 
-    public static Func<WVec, V16> Circle(WPos origin, float radius)
+    public static ShapeFun Circle(WPos origin, float radius)
     {
         var ov = new WVec(origin);
         var rv = Vector512.Create(radius);
 
         return p => (p - ov).Length() - rv;
     }
-    public static Func<WPos, float> InvertedCircle(WPos origin, float radius) => radius <= 0 ? (_ => float.MinValue) : (p => radius - (p - origin).Length());
+    public static ShapeFun InvertedCircle(WPos origin, float radius)
+    {
+        var c = Circle(origin, radius);
 
-    public static Func<WVec, V16> Donut(WPos origin, float innerRadius, float outerRadius)
+        return p => -c(p);
+    }
+
+    public static ShapeFun Donut(WPos origin, float innerRadius, float outerRadius)
     {
         if (outerRadius <= 0 || innerRadius >= outerRadius)
             return _ => Vector512.Create(float.MaxValue);
@@ -164,7 +38,7 @@ public static class ShapeDistance
         return p => Vector512.Abs(cv(p)) - thickness;
     }
 
-    public static Func<WVec, V16> Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    public static ShapeFun Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || radius <= 0)
             return _ => Vector512.Create(float.MaxValue);
@@ -184,7 +58,7 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WVec, V16> InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    public static ShapeFun InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         var cone = Cone(origin, radius, centerDir, halfAngle);
         return p => -cone(p);
@@ -192,7 +66,7 @@ public static class ShapeDistance
 
     static V16 Sign(V16 input) => Vector512.CopySign(V16.One, input);
 
-    public static Func<WVec, V16> DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+    public static ShapeFun DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
             return _ => Vector512.Create(float.MaxValue);
@@ -245,12 +119,33 @@ public static class ShapeDistance
         };
     }
 
+    public static ShapeFun TriV(WPos w0, WPos w1, WPos w2)
+    {
+        WVec p0 = new(w0), p1 = new(w1), p2 = new(w2);
+        WVec e0 = p1 - p0, e1 = p2 - p1, e2 = p0 - p2;
+
+        return p =>
+        {
+            WVec v0 = p - p0, v1 = p - p2, v2 = p - p2;
+            var pq0 = v0 - e0 * Vector512.Clamp(v0.Dot(e0) / e0.Dot(e0), V16.Zero, V16.One);
+            var pq1 = v1 - e1 * Vector512.Clamp(v1.Dot(e1) / e1.Dot(e1), V16.Zero, V16.One);
+            var pq2 = v2 - e2 * Vector512.Clamp(v2.Dot(e2) / e2.Dot(e2), V16.Zero, V16.One);
+            var s = Sign(e0.Cross(e2));
+            var d = new WVec(pq0.Dot(pq0), s * v0.Cross(e0))
+                .Min(new WVec(pq1.Dot(pq1), s * v1.Cross(e1)))
+                .Min(new WVec(pq2.Dot(pq2), s * v2.Cross(e2)));
+            return Vector512.Negate(Vector512.Sqrt(d.X) * Sign(d.Z));
+        };
+    }
+
+    public static ShapeFun TriV(WPos origin, RelTriangle rel) => TriV(origin + rel.A, origin + rel.B, origin + rel.C);
+
     static WDir Max0(WDir a) => new(Math.Max(0, a.X), Math.Max(0, a.Z));
 
     static WVec Max0(WVec v) => new(Vector512.Max(V16.Zero, v.X), Vector512.Max(V16.Zero, v.Z));
     static V16 Maxcomp(WVec v) => Vector512.Max(v.X, v.Z);
 
-    public static Func<WVec, V16> Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    public static ShapeFun Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var start = origin - dir * lenBack;
         var end = origin + dir * lenFront;
@@ -265,21 +160,21 @@ public static class ShapeDistance
             return q.ClampPositive().Length() + Vector512.Min(q.MaxComponent(), V16.Zero);
         };
     }
-    public static Func<WVec, V16> Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-    public static Func<WVec, V16> Rect(WPos from, WPos to, float halfWidth)
+    public static ShapeFun Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public static ShapeFun Rect(WPos from, WPos to, float halfWidth)
     {
         var dir = to - from;
         var l = dir.Length();
         return Rect(from, dir / l, l, 0, halfWidth);
     }
 
-    public static Func<WVec, V16> InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    public static ShapeFun InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var r = Rect(origin, dir, lenFront, lenBack, halfWidth);
         return p => -r(p);
     }
-    public static Func<WVec, V16> InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-    public static Func<WVec, V16> InvertedRect(WPos from, WPos to, float halfWidth)
+    public static ShapeFun InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public static ShapeFun InvertedRect(WPos from, WPos to, float halfWidth)
     {
         var dir = to - from;
         var l = dir.Length();
@@ -315,7 +210,7 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WVec, V16> Cross(WPos origin, Angle direction, float length, float halfWidth)
+    public static ShapeFun Cross(WPos origin, Angle direction, float length, float halfWidth)
     {
         if (halfWidth <= 0 || length <= 0)
             return _ => Vector512.Create(float.MaxValue);
@@ -330,8 +225,8 @@ public static class ShapeDistance
             p = p.AlignX();
             var q = p - b;
             var k = Vector512.Max(q.Z, q.X);
-            var kpos = Vector512.BitwiseAnd(Vector512<int>.Indices, Vector512.IsPositive(k).AsInt32());
-            var w = q.Shuffle(kpos) + new WVec(b.Z - p.X, -k).Shuffle(~kpos);
+            var kpos = Vector512.IsPositive(k);
+            var w = WVec.Select(Vector512.IsPositive(k), q, new(b.Z - p.X, -k));
             return Sign(k) * w.ClampPositive().Length();
         };
     }
@@ -347,7 +242,7 @@ public static class ShapeDistance
             var normal = cw ? dir.OrthoL() : dir.OrthoR();
             return p => normal.Dot(p - e.p1);
         }
-        return Intersection([.. edges.Select(edge)]);
+        return p => edges.Max(e => edge(e)(p));
     }
     public static Func<WPos, float> ConvexPolygon(IEnumerable<WPos> vertices, bool cw) => ConvexPolygon(PolygonUtil.EnumerateEdges(vertices), cw);
     public static Func<WPos, float> Polygon(List<WPos> vertices)
@@ -412,15 +307,99 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WPos, float> ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
+    public static ShapeFun PolygonV(List<WPos> vertices)
+    {
+        var n = vertices.Count;
+        var vv = vertices.Select(v => new WVec(v)).ToList();
 
-    public static Func<WPos, float> Intersection(List<Func<WPos, float>> funcs) => p => funcs.Max(e => e(p));
-    public static Func<WPos, float> Union(List<Func<WPos, float>> funcs) => p => funcs.Min(e => e(p));
+        return p =>
+        {
+            var d = (p - vv[0]).Dot(p - vv[0]);
+            var s = V16.One;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                var e = vv[j] - vv[i];
+                var w = p - vv[i];
+                var b = w - e * Vector512.Clamp(w.Dot(e) / e.Dot(e), V16.Zero, V16.One);
+                d = Vector512.Min(d, b.Dot(b));
+
+                var c0 = Vector512.GreaterThanOrEqual(p.Z, vv[i].Z);
+                var c1 = Vector512.LessThan(p.Z, vv[j].Z);
+                var c2 = Vector512.GreaterThan(e.X * w.Z, e.Z * w.X);
+
+                var cAll = c0 & c1 & c2;
+                var cOr = ~(c0 | c1 | c2);
+                var cMatch = cAll | cOr;
+
+                s *= Vector512.ConditionalSelect(cAll | cOr, Vector512.Create(-1f), V16.One);
+            }
+            return s * Vector512.Sqrt(d);
+        };
+    }
+    public static ShapeFun PolygonV(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
+    {
+        var ext = new List<WPos>(polygon.Exterior.Length);
+        foreach (var e in polygon.Exterior)
+            ext.Add(e.Rotate(rotation) + origin);
+
+        var dext = PolygonV(ext);
+
+        if (polygon.IsSimple)
+            return dext;
+
+        var interiors = new List<ShapeFun>();
+
+        foreach (var h in polygon.Holes)
+        {
+            var i = new List<WPos>();
+            foreach (var e in polygon.Interior(h))
+                i.Add(e.Rotate(rotation) + origin);
+            interiors.Add(PolygonV(i));
+        }
+
+        return p =>
+        {
+            var dist = dext(p);
+
+            foreach (var hole in interiors)
+                dist = Vector512.Max(dist, Vector512.Negate(hole(p)));
+
+            return dist;
+        };
+    }
+    public static ShapeFun ComplexPolygonV(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => PolygonV(origin, rotation, p))]);
+
+    public static ShapeFun Intersection(List<ShapeFun> funcs)
+    {
+        if (funcs.Count == 0)
+            throw new ArgumentException("IntersectionV: funcs is empty");
+
+        return p =>
+        {
+            var d = funcs[0](p);
+            for (var i = 1; i < funcs.Count; i++)
+                d = Vector512.Max(d, funcs[i](p));
+            return d;
+        };
+    }
+    public static ShapeFun Union(List<ShapeFun> funcs)
+    {
+        if (funcs.Count == 0)
+            throw new ArgumentException("UnionV: funcs is empty");
+
+        return p =>
+        {
+            var d = funcs[0](p);
+            for (var i = 1; i < funcs.Count; i++)
+                d = Vector512.Min(d, funcs[i](p));
+            return d;
+        };
+    }
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
     // note that if the goal position is exactly aligned with a grid point, it results in a 2x2 safe area instead of 1x1 (this never happens in practice)
-    public static Func<WVec, V16> PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
+    public static ShapeFun PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
     {
         var delta = starting - origin;
         var dparr = delta.Dot(dir);

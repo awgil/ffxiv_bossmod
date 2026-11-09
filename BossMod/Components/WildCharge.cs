@@ -201,7 +201,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
 
     public readonly List<Stack> Stacks = [];
 
-    private Func<WPos, float> ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+    private ShapeFun ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
