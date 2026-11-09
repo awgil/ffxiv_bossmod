@@ -220,7 +220,7 @@ class Knockbacks(BossModule module) : Components.Knockback(module)
             if (src.Kind == Kind.AwayFromOrigin)
             {
                 var orig = src.Origin;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
                 {
                     var dir = (p - orig).Normalized() * 14;
                     return !(p + dir).AlmostEqual(Arena.Center, 20);

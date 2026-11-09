@@ -188,7 +188,7 @@ class AerialBlast(BossModule module) : Components.Knockback(module, AID.AerialBl
         var origin = _origin;
         var center = Arena.Center;
         var bounds = Arena.Bounds;
-        hints.AddForbiddenZone(Sdf.Discrete(p => !bounds.Contains(AwayFromSource(p, origin, 15) - center)), _positionDeadline);
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !bounds.Contains(AwayFromSource(p, origin, 15) - center)), _positionDeadline);
     }
 }
 class Hypernova(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HypernovaStack, AID.Hypernova, 7, 6);

@@ -94,7 +94,7 @@ class CrystalInOut(BossModule module) : Components.GenericAOEs(module)
         if (shapes.Count == 0)
             return;
 
-        float distance(WPos p)
+        Vector<float> distance(WVec p)
         {
             var dist = shapes.Min(s => s(p));
             return _mechanic == Mechanic.Out ? dist : -dist;

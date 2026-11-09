@@ -5,28 +5,35 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
 {
     public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true, bool Inverted = false)
     {
-        public readonly bool Check(WPos pos)
+        public readonly VU Check(WVec pos)
         {
-            var res = Shape.Check(pos, Origin, Rotation);
-            return Inverted ? !res : res;
+            var res = Shape.GetSdf(Origin, Rotation);
+            if (Inverted)
+                res = res.Inverted();
+            return res.CheckV(pos);
         }
-        public readonly float Distance(WPos pos)
+        public readonly VF Distance(WVec pos)
         {
-            var res = Shape.GetSdf(Origin, Rotation).Distance(pos);
-            return Inverted ? -res : res;
+            var res = Shape.GetSdf(Origin, Rotation);
+            if (Inverted)
+                res = res.Inverted();
+            return res.DistanceV(pos);
         }
+
+        public readonly bool CheckPoint(WPos p) => Check(new WVec(p))[0] != 0;
+        public readonly float DistancePoint(WPos p) => Distance(new WVec(p))[0];
     }
 
     public string WarningText = warningText;
     public string InvertedText = invertedText;
 
-    public bool Check(int slot, Actor actor, WPos position) => ActiveAOEs(slot, actor).Any(a => a.Check(position));
+    public bool Check(int slot, Actor actor, WPos position) => ActiveAOEs(slot, actor).Any(a => a.CheckPoint(position));
 
     public abstract IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (ActiveAOEs(slot, actor).FirstOrNull(c => c.Risky && c.Check(actor.Position)) is { } aoe)
+        if (ActiveAOEs(slot, actor).FirstOrNull(c => c.Risky && c.CheckPoint(actor.Position)) is { } aoe)
             hints.Add(aoe.Inverted ? InvertedText : WarningText);
     }
 

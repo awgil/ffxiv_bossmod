@@ -115,7 +115,7 @@ public struct NavigationDecision
         var dim = rowLength * (map.Height + 1);
 
         var gScratch = ArrayPool<float>.Shared.Rent(dim);
-        var dScratch = ArrayPool<uint>.Shared.Rent(dim);
+        var dScratch = ArrayPool<int>.Shared.Rent(dim);
 
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
@@ -158,7 +158,7 @@ public struct NavigationDecision
 
                 if (cellG < float.MaxValue)
                     map.PixelPriority[iM] = float.MinValue;
-                else if ((dScratch[iG] | dScratch[iG + 1] | dScratch[iG + rowLength] | dScratch[iG + rowLength + 1]) > 0)
+                else if ((dScratch[iG] | dScratch[iG + 1] | dScratch[iG + rowLength] | dScratch[iG + rowLength + 1]) != 0)
                     map.PixelPriority[iM] = -CushionDepriority;
 
                 map.MaxPriority = Math.Max(map.PixelPriority[iM], map.MaxPriority);
@@ -179,7 +179,7 @@ public struct NavigationDecision
         producedScratch?.AddRange(gScratch);
 
         ArrayPool<float>.Shared.Return(gScratch);
-        ArrayPool<uint>.Shared.Return(dScratch);
+        ArrayPool<int>.Shared.Return(dScratch);
     }
 
     public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals)
@@ -351,7 +351,7 @@ public struct NavigationDecision
         {
             var dist = z.d.DistanceV(p);
             g = VV.Min(g, VV.ConditionalSelect(VV.IsNegative(dist), VV.Create(z.g), VV.Create(float.MaxValue)));
-            d = VV.BitwiseOr(d, VV.LessThan(dist, c0).As<float, uint>());
+            d = VV.BitwiseOr(d, VV.LessThan(dist, c0));
         }
 
         return (g, d);

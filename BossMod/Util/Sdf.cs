@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
 using System.Threading.Tasks;
 
 namespace BossMod;
@@ -11,39 +10,45 @@ public struct Sdf
 {
     public enum SdfType
     {
-        Continuous,
-        Discrete,
+        ContinuousSingle,
+        DiscreteSingle,
         Indexed,
-        Vectored
+        Continuous,
+        Discrete
     }
 
-    [FieldOffset(0)] private Func<WPos, float> SdfCont;
-    [FieldOffset(0)] private Func<WPos, bool> SdfDisc;
+    [FieldOffset(0)] private Func<WPos, float> SdfCont1;
+    [FieldOffset(0)] private Func<WPos, bool> SdfDisc1;
     [FieldOffset(0)] private Func<WPos, int, bool> SdfIx;
-    [FieldOffset(0)] private ShapeFun SdfVectored;
+    [FieldOffset(0)] private ShapeDist SdfCont;
+    [FieldOffset(0)] private ShapeTest SdfDisc;
     [FieldOffset(8)] public SdfType Type;
 
-    public static Sdf Continuous(Func<WPos, float> d) => new() { Type = SdfType.Continuous, SdfCont = d };
-    public static Sdf Discrete(Func<WPos, bool> b) => new() { Type = SdfType.Discrete, SdfDisc = b };
+    public static Sdf ContinuousSingle(Func<WPos, float> d) => new() { Type = SdfType.ContinuousSingle, SdfCont1 = d };
+    public static Sdf DiscreteSingle(Func<WPos, bool> b) => new() { Type = SdfType.DiscreteSingle, SdfDisc1 = b };
     public static Sdf Indexed(Func<WPos, int, bool> i) => new() { Type = SdfType.Indexed, SdfIx = i };
-    public static Sdf Vectored(ShapeFun v) => new() { Type = SdfType.Vectored, SdfVectored = v };
+    public static Sdf Continuous(ShapeDist v) => new() { Type = SdfType.Continuous, SdfCont = v };
+    public static Sdf Discrete(ShapeTest t) => new() { Type = SdfType.Discrete, SdfDisc = t };
 
     public readonly Sdf Inverted()
     {
         switch (Type)
         {
-            case SdfType.Continuous:
-                var fc = SdfCont;
-                return Continuous(p => -fc(p));
-            case SdfType.Discrete:
-                var fd = SdfDisc;
-                return Discrete(p => !fd(p));
+            case SdfType.ContinuousSingle:
+                var fc = SdfCont1;
+                return ContinuousSingle(p => -fc(p));
+            case SdfType.DiscreteSingle:
+                var fd = SdfDisc1;
+                return DiscreteSingle(p => !fd(p));
             case SdfType.Indexed:
                 var fi = SdfIx;
                 return Indexed((p, i) => !fi(p, i));
-            case SdfType.Vectored:
-                var fv = SdfVectored;
-                return Vectored(p => -fv(p));
+            case SdfType.Continuous:
+                var fv = SdfCont;
+                return Continuous(p => -fv(p));
+            case SdfType.Discrete:
+                var ft = SdfDisc;
+                return Discrete(p => ~ft(p));
             default:
                 throw new UnreachableException();
         }
@@ -54,17 +59,20 @@ public struct Sdf
     {
         switch (Type)
         {
-            case SdfType.Continuous:
-                return SdfCont(p) < 0;
+            case SdfType.ContinuousSingle:
+                return SdfCont1(p) < 0;
 
-            case SdfType.Discrete:
-                return SdfDisc(p);
+            case SdfType.DiscreteSingle:
+                return SdfDisc1(p);
 
             case SdfType.Indexed:
                 return SdfIx(p, -1);
 
-            case SdfType.Vectored:
-                return SdfVectored(new(p))[0] < 0;
+            case SdfType.Continuous:
+                return SdfCont(new(p))[0] < 0;
+
+            case SdfType.Discrete:
+                return SdfDisc(new(p))[0] != 0;
 
             default:
                 throw new UnreachableException();
@@ -73,8 +81,11 @@ public struct Sdf
 
     public readonly VF DistanceV(WVec p)
     {
-        if (Type == SdfType.Vectored)
-            return SdfVectored(p);
+        if (Type == SdfType.Continuous)
+            return SdfCont(p);
+
+        if (Type == SdfType.Discrete)
+            return Vector.ConditionalSelect(SdfDisc(p), VV.Create(float.MinValue), VV.Create(float.MaxValue));
 
         var xa = new float[VF.Count];
         var xb = new float[VF.Count];
@@ -89,24 +100,51 @@ public struct Sdf
             d[i] = s.Distance(new(xa[i], xb[i]));
         });
 
-        return VV.Create(d);
+        return VV.Create(d.AsSpan());
+    }
+
+    public readonly VU CheckV(WVec p)
+    {
+        if (Type == SdfType.Continuous)
+            return Vector.LessThan(SdfCont(p), VF.Zero);
+
+        if (Type == SdfType.Discrete)
+            return SdfDisc(p);
+
+        var xa = new float[VF.Count];
+        var xb = new float[VF.Count];
+        p.X.CopyTo(xa);
+        p.Z.CopyTo(xb);
+
+        var d = new int[VF.Count];
+        var s = this;
+
+        Parallel.For(0, VF.Count, i =>
+        {
+            d[i] = s.Check(new(xa[i], xb[i])) ? ~0 : 0;
+        });
+
+        return VV.Create(d.AsSpan());
     }
 
     public readonly float Distance(WPos p)
     {
         switch (Type)
         {
-            case SdfType.Continuous:
-                return SdfCont(p);
+            case SdfType.ContinuousSingle:
+                return SdfCont1(p);
 
-            case SdfType.Discrete:
-                return SdfDisc(p) ? float.MinValue : float.MaxValue;
+            case SdfType.DiscreteSingle:
+                return SdfDisc1(p) ? float.MinValue : float.MaxValue;
 
             case SdfType.Indexed:
                 return SdfIx(p, -1) ? float.MinValue : float.MaxValue;
 
-            case SdfType.Vectored:
-                return SdfVectored(new(p))[0];
+            case SdfType.Continuous:
+                return SdfCont(new(p))[0];
+
+            case SdfType.Discrete:
+                return SdfDisc(new(p))[0] != 0 ? float.MinValue : float.MaxValue;
 
             default:
                 throw new UnreachableException();
@@ -117,17 +155,20 @@ public struct Sdf
     {
         switch (Type)
         {
-            case SdfType.Continuous:
-                return SdfCont(p) < 0;
+            case SdfType.ContinuousSingle:
+                return SdfCont1(p) < 0;
 
-            case SdfType.Discrete:
-                return SdfDisc(p);
+            case SdfType.DiscreteSingle:
+                return SdfDisc1(p);
 
             case SdfType.Indexed:
                 return SdfIx(p, index);
 
-            case SdfType.Vectored:
-                return SdfVectored(new(p))[0] < 0;
+            case SdfType.Continuous:
+                return SdfCont(new(p))[0] < 0;
+
+            case SdfType.Discrete:
+                return SdfDisc(new(p))[0] != 0;
 
             default:
                 throw new UnreachableException();
@@ -135,5 +176,5 @@ public struct Sdf
     }
 #pragma warning restore IDE0066 // Convert switch statement to expression
 
-    public readonly bool IsContinuous => Type == SdfType.Continuous;
+    public readonly bool IsContinuous => Type == SdfType.ContinuousSingle;
 }

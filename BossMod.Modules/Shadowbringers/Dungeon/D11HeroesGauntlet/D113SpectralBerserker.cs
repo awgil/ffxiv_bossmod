@@ -93,7 +93,7 @@ class WildRageKnockback(BossModule module) : Components.KnockbackFromCastTarget(
             if (!IsImmune(slot, src.Activation))
             {
                 var safeX = src.Origin.X < 750 ? 746 : 754;
-                hints.AddForbiddenZone(Sdf.Discrete(p => !p.InCircle(new(safeX, 479), 1) && !p.InCircle(new(safeX, 485), 1)), src.Activation);
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !p.InCircle(new(safeX, 479), 1) && !p.InCircle(new(safeX, 485), 1)), src.Activation);
             }
     }
 }

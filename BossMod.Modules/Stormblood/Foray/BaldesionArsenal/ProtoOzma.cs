@@ -143,7 +143,7 @@ class ShootingStar(BossModule module) : Components.KnockbackFromCastTarget(modul
 
             var directionToBoss = Angle.FromDirection((Module.PrimaryActor.Position - s.Origin).Normalized());
             var rect = ShapeDistance.InvertedRect(s.Origin, directionToBoss, 12, 12, 5);
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dir = (p - s.Origin).Normalized();
                 var proj = p + dir * s.Distance;

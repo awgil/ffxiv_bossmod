@@ -213,7 +213,7 @@ class IrresistiblePull(BossModule module) : Components.Knockback(module, AID.Irr
         if (IsImmune(slot, activation))
             return;
 
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             var dest = Predict(p, lineOrigin, rot);
             return VacuumSlice.Shape.Check(dest, lineOrigin, rot) || !Module.InBounds(dest);

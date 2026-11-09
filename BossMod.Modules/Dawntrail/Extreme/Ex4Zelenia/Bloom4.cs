@@ -57,11 +57,11 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
         base.AddAIHints(slot, actor, assignment, hints);
         if (IsSpreadTarget(actor))
         {
-            hints.AddForbiddenZone(Sdf.Discrete(_tiles.TileShape()), Spreads[0].Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(_tiles.TileShape()), Spreads[0].Activation);
             var sh = ClipBaitersShape(SpreadSouth, Arena.Center);
             // hints.AddForbiddenZone(p => ClipBaitersShape(p) > 0, Spreads[0].Activation);
-            hints.AddForbiddenZone(Sdf.Discrete(p => sh(p).HasFlag(Clip.Tile)), Spreads[0].Activation);
-            hints.AddForbiddenZone(Sdf.Discrete(p => sh(p).HasFlag(Clip.Player)), Spreads[0].Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => sh(p).HasFlag(Clip.Tile)), Spreads[0].Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => sh(p).HasFlag(Clip.Player)), Spreads[0].Activation);
         }
     }
 
@@ -185,7 +185,7 @@ class BanishIII(BossModule module) : Components.CastCounter(module, AID.Alexandr
         {
             var tpos = Target.Position;
             var stackTiles = _stackTiles;
-            hints.AddForbiddenZone(Sdf.Discrete(p => !p.InCircle(tpos, 4) && !stackTiles[Tiles.GetTile(p)]), Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !p.InCircle(tpos, 4) && !stackTiles[Tiles.GetTile(p)]), Activation);
         }
     }
 }

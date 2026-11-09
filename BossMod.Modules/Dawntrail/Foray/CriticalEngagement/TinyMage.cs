@@ -130,7 +130,7 @@ class RelayHoly(BossModule module) : Components.Knockback(module, AID.TinyHolyAO
             {
                 var s = src.Origin;
                 var d = src.Distance;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
                 {
                     var dir = (p - s).Normalized();
                     var proj = p + dir * d;
@@ -234,14 +234,14 @@ class TinyTether(BossModule module) : Components.Knockback(module)
         base.AddHints(slot, actor, hints);
 
         foreach (var aoe in ActiveAOEs())
-            if (aoe.Risky && aoe.Check(actor.Position))
+            if (aoe.Risky && aoe.CheckPoint(actor.Position))
                 hints.Add("GTFO from aoe!");
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         WPos orig;
-        Func<WPos, float> sh;
+        Func<WVec, Vector<float>> sh;
         switch (_mechanics)
         {
             case [{ Type: Orb.Flare } f1]:
@@ -258,7 +258,7 @@ class TinyTether(BossModule module) : Components.Knockback(module)
 
             case [{ Type: Orb.Holy } h1]:
                 orig = h1.Origin;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
                 {
                     var dir = (p - orig).Normalized() * 15;
                     return !(p + dir).InCircle(Arena.Center, 20);
@@ -267,7 +267,7 @@ class TinyTether(BossModule module) : Components.Knockback(module)
             case [{ Type: Orb.Holy } h1, { Type: Orb.Flare } f2, ..]:
                 orig = h1.Origin;
                 sh = ShapeDistance.Union([ShapeDistance.InvertedCircle(Arena.Center, 20), ShapeDistance.Circle(f2.Origin, 12)]);
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
                 {
                     var dir = (p - orig).Normalized() * 15;
                     var proj = p + dir;
@@ -277,7 +277,7 @@ class TinyTether(BossModule module) : Components.Knockback(module)
             case [{ Type: Orb.Holy } h1, { Type: Orb.Holy } h2, ..]:
                 orig = h1.Origin;
                 sh = ShapeDistance.Union([ShapeDistance.InvertedCircle(Arena.Center, 20), ShapeDistance.InvertedCircle(h2.Origin, 10)]);
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
                 {
                     var dir = (p - orig).Normalized() * 15;
                     var proj = p + dir;

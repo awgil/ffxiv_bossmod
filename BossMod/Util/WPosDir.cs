@@ -1,7 +1,8 @@
-﻿global using ShapeFun = System.Func<BossMod.WVec, System.Runtime.Intrinsics.Vector256<float>>;
-global using VF = System.Runtime.Intrinsics.Vector256<float>;
-global using VU = System.Runtime.Intrinsics.Vector256<uint>;
-global using VV = System.Runtime.Intrinsics.Vector256;
+﻿global using ShapeDist = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
+global using ShapeTest = System.Func<BossMod.WVec, System.Numerics.Vector<int>>;
+global using VF = System.Numerics.Vector<float>;
+global using VU = System.Numerics.Vector<int>;
+global using VV = System.Numerics.Vector;
 
 namespace BossMod;
 
@@ -123,7 +124,8 @@ public record struct WVec(VF X, VF Z)
     public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
 
     public readonly VF LengthSq() => X * X + Z * Z;
-    public readonly VF Length() => VV.Sqrt(LengthSq());
+    public readonly VF Length() => VV.SquareRoot(LengthSq());
+    public readonly WVec Normalized() => this / Length();
     public readonly VF Dot(WVec a) => X * a.X + Z * a.Z;
     public static VF Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
     public readonly VF Cross(WVec b) => Cross(this, b);
@@ -147,7 +149,12 @@ public record struct WVec(VF X, VF Z)
     public readonly WVec Min(WVec other) => new(VV.Min(X, other.X), VV.Min(Z, other.Z));
 
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
+    public static WVec operator +(WVec a, WDir b) => new(a.X + VV.Create(b.X), a.Z + VV.Create(b.Z));
     public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator -(WVec a, WPos b) => new(a.X - VV.Create(b.X), a.Z - VV.Create(b.Z));
     public static WVec operator *(WVec a, VF b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(WVec a, float b) => new(a.X * VV.Create(b), a.Z * VV.Create(b));
+    public static WVec operator /(WVec a, VF b) => new(a.X / b, a.Z / b);
+    public static WVec operator -(WVec a) => new(-a.X, -a.Z);
 }
 

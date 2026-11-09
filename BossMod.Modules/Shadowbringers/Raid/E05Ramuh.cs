@@ -201,7 +201,7 @@ class DeadlyDischargeKnockback(BossModule module) : Components.Knockback(module,
             var from = _from;
             var to = _to;
             var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var origin = NearestOnSegment(p, from, to);
                 return !Module.InBounds(AwayFromSource(p, origin, dist));

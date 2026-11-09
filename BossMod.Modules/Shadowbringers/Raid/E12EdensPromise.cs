@@ -392,7 +392,7 @@ class RapturousReachKnockback(BossModule module) : Components.KnockbackFromCastT
         {
             if (IsImmune(slot, s.Activation))
                 continue;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dest = p + s.Distance * s.Direction.ToDirection();
                 return DestinationUnsafe(slot, actor, dest);
@@ -409,7 +409,7 @@ class LaserEyeKnockback(BossModule module) : Components.KnockbackFromCastTarget(
         {
             if (IsImmune(slot, s.Activation))
                 continue;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dest = AwayFromSource(p, s.Origin, s.Distance);
                 return DestinationUnsafe(slot, actor, dest);

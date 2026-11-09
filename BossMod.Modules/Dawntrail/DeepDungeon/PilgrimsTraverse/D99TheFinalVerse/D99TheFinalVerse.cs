@@ -239,14 +239,14 @@ class DrainAether(BossModule module) : Components.CastCounterMulti(module, [AID.
                 // avoid moving into other zone
                 var badShape = LightDark.OppositeColorShape(nextColor);
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(Sdf.Discrete(p => badShape.Contains(p - ctr)), deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => badShape.Contains(p - ctr)), deadline.AddSeconds(-1));
             }
             else
             {
                 // move to correct zone
                 var targetShape = LightDark.ColorShape(nextColor);
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(Sdf.Discrete(p => !targetShape.Contains(p - ctr)), deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !targetShape.Contains(p - ctr)), deadline.AddSeconds(-1));
             }
         }
     }

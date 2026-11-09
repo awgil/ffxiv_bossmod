@@ -357,7 +357,7 @@ class FleshKnockback(BossModule module) : Components.Knockback(module, AID.Shock
     }
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => base.DestinationUnsafe(slot, actor, pos) || Module.FindComponent<Burst>()?.AOEs.Any(a => a.Check(pos)) == true;
+        => base.DestinationUnsafe(slot, actor, pos) || Module.FindComponent<Burst>()?.AOEs.Any(a => a.CheckPoint(pos)) == true;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
@@ -434,7 +434,7 @@ class MindlessFleshWide(BossModule module) : Components.StandardAOEs(module, AID
         foreach (var c in Casters)
         {
             var inside = ShapeDistance.Rect(c.CastInfo!.LocXZ, c.CastInfo.Rotation, 30, 0, 17.5f);
-            hints.GoalZones.Add(p => inside(p) > 0 ? 1 : 0);
+            hints.GoalZones.Add(p => inside(new(p))[0] > 0 ? 1 : 0);
         }
     }
 }

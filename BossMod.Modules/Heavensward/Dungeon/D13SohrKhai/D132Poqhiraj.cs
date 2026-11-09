@@ -53,7 +53,7 @@ class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(mo
         if (rightBlockers.Count + leftBlockers.Count == 0)
             return;
 
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             var blockers = p.X > 400 ? rightBlockers : leftBlockers;
             return !blockers.Any(b => Utils.AlmostEqual(p.Z, b.Z, 5.1f));

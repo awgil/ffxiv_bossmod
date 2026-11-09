@@ -162,8 +162,9 @@ class PlayBSide(BossModule module) : Components.GenericWildCharge(module, 4, AID
         var rects = aoes.Select(aoe => ShapeDistance.Rect(aoe.origin, aoe.dir, aoe.length, 0, HalfWidth)).ToList();
         var r0 = rects[0];
         var r1 = rects[1];
+        var xx = ShapeDistance.Xor(r0, r1);
 
-        hints.AddForbiddenZone(Sdf.Discrete(p => MathF.Sign(r0(p)) == MathF.Sign(r1(p))), Activation);
+        hints.AddForbiddenZone(p => -xx(p), Activation);
 
         hints.AddPredictedDamage(Raid.WithSlot().Mask(), Activation);
     }

@@ -128,7 +128,7 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
             var dir = src.Direction.ToDirection() * src.Distance;
             var pat = _pattern;
             var safe = ShapeDistance.InvertedCircle(new WPos(-805, -270), 17.5f);
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dir = ExpectedDirection(pat, p);
                 return dir != default && safe(p + dir) < 0;

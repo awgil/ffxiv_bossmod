@@ -97,7 +97,7 @@ class BlackFlame(BossModule module) : BossComponent(module)
             foreach (var ally in Furniture)
 #pragma warning disable VBM006 // Reference type captured in closure
                 // TODO(SDF)
-                hints.AddForbiddenZone(Sdf.Discrete(p => IntersectFurniture(ally, p)), activation);
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => IntersectFurniture(ally, p)), activation);
 #pragma warning restore VBM006 // Reference type captured in closure
     }
 

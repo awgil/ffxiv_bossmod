@@ -46,7 +46,7 @@ class Neutralize(BossModule module) : BossComponent(module)
     {
         if (_colors[slot] != default)
         {
-            List<Func<WPos, float>> _partners = [];
+            List<Func<WVec, Vector<float>>> _partners = [];
 
             foreach (var (s, a) in Raid.WithSlot().Exclude(actor))
             {

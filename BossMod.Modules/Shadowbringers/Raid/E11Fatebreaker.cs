@@ -124,7 +124,7 @@ class Blastburn(BossModule module) : Components.Knockback(module)
                 continue;
             var origin = s.Origin;
             var rot = s.Rotation;
-            hints.AddForbiddenZone(Sdf.Discrete(p => !Module.InBounds(Predict(p, origin, rot))), s.Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !Module.InBounds(Predict(p, origin, rot))), s.Activation);
         }
     }
 }
