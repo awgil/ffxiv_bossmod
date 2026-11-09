@@ -25,10 +25,13 @@ public struct Sdf
     [FieldOffset(8)] public SdfType Type;
 
     public static Sdf ContinuousSingle(Func<WPos, float> d) => new() { Type = SdfType.ContinuousSingle, SdfCont1 = d };
+    [Obsolete("Please convert your shit to use the vectored version!")]
     public static Sdf DiscreteSingle(Func<WPos, bool> b) => new() { Type = SdfType.DiscreteSingle, SdfDisc1 = b };
     public static Sdf Indexed(Func<WPos, int, bool> i) => new() { Type = SdfType.Indexed, SdfIx = i };
     public static Sdf Continuous(ShapeDist v) => new() { Type = SdfType.Continuous, SdfCont = v };
     public static Sdf Discrete(ShapeTest t) => new() { Type = SdfType.Discrete, SdfDisc = t };
+
+    public readonly Sdf Inverted(bool inverted) => inverted ? Inverted() : this;
 
     public readonly Sdf Inverted()
     {
@@ -103,30 +106,6 @@ public struct Sdf
         return VV.Create(d.AsSpan());
     }
 
-    public readonly VU CheckV(WVec p)
-    {
-        if (Type == SdfType.Continuous)
-            return Vector.LessThan(SdfCont(p), VF.Zero);
-
-        if (Type == SdfType.Discrete)
-            return SdfDisc(p);
-
-        var xa = new float[VF.Count];
-        var xb = new float[VF.Count];
-        p.X.CopyTo(xa);
-        p.Z.CopyTo(xb);
-
-        var d = new int[VF.Count];
-        var s = this;
-
-        Parallel.For(0, VF.Count, i =>
-        {
-            d[i] = s.Check(new(xa[i], xb[i])) ? ~0 : 0;
-        });
-
-        return VV.Create(d.AsSpan());
-    }
-
     public readonly float Distance(WPos p)
     {
         switch (Type)
@@ -175,6 +154,4 @@ public struct Sdf
         }
     }
 #pragma warning restore IDE0066 // Convert switch statement to expression
-
-    public readonly bool IsContinuous => Type == SdfType.ContinuousSingle;
 }

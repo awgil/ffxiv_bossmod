@@ -174,10 +174,8 @@ public static class ShapeDistance
             var p = (qq - origin).Rotate(dir).Abs();
             p = p.AlignX();
             var q = p - b;
-            var k = VV.Max(q.Z, q.X);
-            var kpos = VV.IsPositive(k);
-            var w = WVec.Select(VV.IsPositive(k), q, new(b.Z - p.X, -k));
-            return Sign(k) * w.ClampPositive().Length();
+            var w = WVec.Select(VV.IsPositive(VV.Max(q.Z, q.X)), q, new(b.Z - p.X, -VV.Max(q.Z, q.X)));
+            return Sign(VV.Max(q.Z, q.X)) * w.ClampPositive().Length();
         };
     }
 
@@ -188,7 +186,7 @@ public static class ShapeDistance
 
         return p =>
         {
-            var d = (p - vv[0]).Dot(p - vv[0]);
+            var d = (p - vv[0]).LengthSq();
             var s = VF.One;
             for (int i = 0, j = n - 1; i < n; j = i++)
             {
