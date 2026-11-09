@@ -157,7 +157,7 @@ public static class ShapeDistance
             return Cone(origin, outerRadius, centerDir, halfAngle);
 
         var r = (outerRadius + innerRadius) * 0.5f;
-        var th = outerRadius - innerRadius;
+        var th = (outerRadius - innerRadius) * 0.5f;
 
         var c = halfAngle.ToDirection().MirrorX();
         var cx = centerDir.ToDirection().MirrorX();
@@ -167,13 +167,7 @@ public static class ShapeDistance
             var p = (q - origin).Rotate(cx);
             p.X = MathF.Abs(p.X);
             p = p.Rotate(c);
-            return Math.Max(
-                MathF.Abs(p.Length() - r) - th * 0.5f,
-                new WDir(
-                    p.X,
-                    MathF.Max(0, MathF.Abs(r - p.Z) - th * 0.5f
-                )).Length() * Math.Sign(p.X)
-            );
+            return Math.Max(MathF.Abs(p.Length() - r) - th, new WDir(p.X, MathF.Max(0, MathF.Abs(r - p.Z) - th)).Length() * Math.Sign(p.X));
         };
     }
 
@@ -202,7 +196,6 @@ public static class ShapeDistance
             return Math.Max(Math.Max(d1, d2), d3);
         };
     }
-    public static Func<WPos, float> TriList(WPos origin, List<RelTriangle> tris) => Union([.. tris.Select(tri => Tri(origin, tri))]);
 
     static WDir Max0(WDir a) => new(Math.Max(0, a.X), Math.Max(0, a.Z));
     static float Maxcomp(WDir a) => Math.Max(a.X, a.Z);
@@ -355,6 +348,7 @@ public static class ShapeDistance
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
+    // note that if the goal position is exactly aligned with a grid point, it results in a 2x2 safe area instead of 1x1 (this never happens in practice)
     public static Func<WPos, float> PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
     {
         var delta = starting - origin;

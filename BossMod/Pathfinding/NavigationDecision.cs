@@ -122,14 +122,11 @@ public struct NavigationDecision
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
         // calculate gscore for each grid point
-        Parallel.For(0, map.Height + 1, y =>
+        Parallel.For(0, (map.Height + 1) * (map.Width + 1), iCell =>
         {
-            Parallel.For(0, map.Width + 1, x =>
-            {
-                var iCell = y * (map.Width + 1) + x;
-                var point = cy + x * dx + y * dy;
-                (gScratch[iCell], dScratch[iCell]) = CalculateMaxG(iCell, zones, point, cushion);
-            });
+            var (y, x) = Math.DivRem(iCell, map.Width + 1);
+            var point = cy + x * dx + y * dy;
+            (gScratch[iCell], dScratch[iCell]) = CalculateMaxG(iCell, zones, point, cushion);
         });
 
         var maxG = map.MaxPriority = float.MinValue;
@@ -186,14 +183,11 @@ public struct NavigationDecision
 
         var gScratch = g_;
 
-        Parallel.For(0, map.Height + 1, y =>
+        Parallel.For(0, (map.Height + 1) * (map.Width + 1), iCell =>
         {
-            Parallel.For(0, map.Width + 1, x =>
-            {
-                var iCell = y * (map.Width + 1) + x;
-                var point = cy + x * dx + y * dy;
-                gScratch[iCell] = goals.Sum(g => g(point));
-            });
+            var (y, x) = Math.DivRem(iCell, map.Width + 1);
+            var point = cy + x * dx + y * dy;
+            gScratch[iCell] = goals.Sum(g => g(point));
         });
 
         for (var y = 0; y < map.Height; y++)

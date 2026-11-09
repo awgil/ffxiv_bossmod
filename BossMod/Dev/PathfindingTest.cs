@@ -142,7 +142,7 @@ class PathfindingTest : TestWindow
         goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
         NavigationDecision.RasterizeGoalZones(map, goals, ref sg);
 
-        var visu = new MapVisualizer(map, new(_startingPos), gCopy);
+        var visu = new MapVisualizer(map, new(_startingPos), _useNewRasterizer ? gCopy : []);
 
         if (_blockCone)
             visu.Sectors.Add((new(_blockConeCenter), _blockConeRadius.X, _blockConeRadius.Y, _blockConeRotationDeg.Degrees(), _blockConeHalfAngle.Degrees()));
