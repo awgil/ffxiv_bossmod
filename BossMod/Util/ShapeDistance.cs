@@ -193,7 +193,7 @@ public static class ShapeDistance
                 var e = vv[j] - vv[i];
                 var w = p - vv[i];
                 var b = w - e * VV.Clamp(w.Dot(e) / e.Dot(e), VF.Zero, VF.One);
-                d = VV.Min(d, b.Dot(b));
+                d = VV.Min(d, b.LengthSq());
 
                 var c0 = VV.GreaterThanOrEqual(p.Z, vv[i].Z);
                 var c1 = VV.LessThan(p.Z, vv[j].Z);
@@ -249,6 +249,13 @@ public static class ShapeDistance
             return VV.Max(VV.Min(pa, pb), -VV.Max(pa, pb));
         };
     }
+
+    public static ShapeDist Grow(ShapeDist f, float g)
+    {
+        var v = VV.Create(g);
+        return p => f(p) - v;
+    }
+    public static ShapeDist Shrink(ShapeDist f, float g) => Grow(f, -g);
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
