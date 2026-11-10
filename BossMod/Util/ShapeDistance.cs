@@ -10,19 +10,8 @@ public static class ShapeDistance
         return p => n.Dot(p - p0);
     }
 
-    public static ShapeDist Circle(WPos origin, float radius)
-    {
-        var ov = new WVec(origin);
-        var rv = VV.Create(radius);
-
-        return p => (p - ov).Length() - rv;
-    }
-    public static ShapeDist InvertedCircle(WPos origin, float radius)
-    {
-        var c = Circle(origin, radius);
-
-        return p => -c(p);
-    }
+    public static ShapeDist Circle(WPos origin, float radius) => p => (p - origin).Length() - radius;
+    public static ShapeDist InvertedCircle(WPos origin, float radius) => p => radius - (p - origin).Length();
 
     public static ShapeDist Donut(WPos origin, float innerRadius, float outerRadius)
     {
@@ -30,10 +19,10 @@ public static class ShapeDistance
             return _ => VV.Create(float.MaxValue);
 
         var midpoint = (outerRadius + innerRadius) * 0.5f;
-        var thickness = VV.Create((outerRadius - innerRadius) * 0.5f);
+        var thickness = (outerRadius - innerRadius) * 0.5f;
         var cv = Circle(origin, midpoint);
 
-        return p => VV.Abs(cv(p)) - thickness;
+        return p => cv(p).Abs() - thickness;
     }
 
     public static ShapeDist Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
@@ -45,14 +34,15 @@ public static class ShapeDistance
 
         WVec c = new(halfAngle.ToDirection().MirrorZ());
         WVec cx = new(-centerDir.ToDirection().MirrorX());
-        WVec ov = new(origin);
         var rv = VV.Create(radius);
 
         return q =>
         {
-            var p = (q - ov).Rotate(cx);
+            var p = (q - origin).Rotate(cx);
             p.X = VV.Abs(p.X);
-            return VV.Max(p.Length() - rv, (p - c * VV.Clamp(p.Dot(c), VF.Zero, rv)).Length() * VV.CopySign(VF.One, c.Cross(p)));
+            var l = p.Length() - rv;
+            var m = (p - c * VV.Clamp(p.Dot(c), VFloat.Zero, rv)).Length();
+            return VV.Max(l, m * c.Cross(p).Sign());
         };
     }
 
@@ -61,8 +51,6 @@ public static class ShapeDistance
         var cone = Cone(origin, radius, centerDir, halfAngle);
         return p => -cone(p);
     }
-
-    static VF Sign(VF input) => VV.CopySign(VF.One, input);
 
     public static ShapeDist DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
     {
@@ -83,9 +71,9 @@ public static class ShapeDistance
         return q =>
         {
             var p = (q - origin).Rotate(cx);
-            p.X = VV.Abs(p.X);
+            p.X = p.X.Abs();
             p = p.Rotate(c);
-            return VV.Max(VV.Abs(p.Length() - r) - th, new WVec(p.X, VV.Max(VF.Zero, VV.Abs(r - p.Z) - th)).Length() * Sign(p.X));
+            return VV.Max(VV.Abs(p.Length() - r) - th, new WVec(p.X, VV.Max(VFloat.Zero, (r - p.Z).Abs() - th)).Length() * p.X.Sign());
         };
     }
 
@@ -97,14 +85,14 @@ public static class ShapeDistance
         return p =>
         {
             WVec v0 = p - p0, v1 = p - p2, v2 = p - p2;
-            var pq0 = v0 - e0 * VV.Clamp(v0.Dot(e0) / e0.Dot(e0), VF.Zero, VF.One);
-            var pq1 = v1 - e1 * VV.Clamp(v1.Dot(e1) / e1.Dot(e1), VF.Zero, VF.One);
-            var pq2 = v2 - e2 * VV.Clamp(v2.Dot(e2) / e2.Dot(e2), VF.Zero, VF.One);
-            var s = Sign(e0.Cross(e2));
+            var pq0 = v0 - e0 * VV.Clamp(v0.Dot(e0) / e0.Dot(e0), VFloat.Zero, VFloat.One);
+            var pq1 = v1 - e1 * VV.Clamp(v1.Dot(e1) / e1.Dot(e1), VFloat.Zero, VFloat.One);
+            var pq2 = v2 - e2 * VV.Clamp(v2.Dot(e2) / e2.Dot(e2), VFloat.Zero, VFloat.One);
+            var s = e0.Cross(e2).Sign();
             var d = new WVec(pq0.Dot(pq0), s * v0.Cross(e0))
                 .Min(new WVec(pq1.Dot(pq1), s * v1.Cross(e1)))
                 .Min(new WVec(pq2.Dot(pq2), s * v2.Cross(e2)));
-            return VV.Negate(VV.SquareRoot(d.X) * Sign(d.Z));
+            return -(VV.SquareRoot(d.X) * d.Z.Sign());
         };
     }
 
@@ -122,7 +110,7 @@ public static class ShapeDistance
         return p =>
         {
             var q = (p - midpoint).Rotate(dxr).Abs() - r;
-            return q.ClampPositive().Length() + VV.Min(q.MaxComponent(), VF.Zero);
+            return q.ClampPositive().Length() + VV.Min(q.MaxComponent(), VFloat.Zero);
         };
     }
     public static ShapeDist Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
@@ -155,7 +143,7 @@ public static class ShapeDistance
         return p =>
         {
             var pa = p - a;
-            var h = VV.Clamp(pa.Dot(ba) / ba.Dot(ba), VF.Zero, VF.One);
+            var h = VV.Clamp(pa.Dot(ba) / ba.Dot(ba), VFloat.Zero, VFloat.One);
             return (pa - ba * h).Length() - rv;
         };
     }
@@ -174,8 +162,8 @@ public static class ShapeDistance
             var p = (qq - origin).Rotate(dir).Abs();
             p = p.AlignX();
             var q = p - b;
-            var w = WVec.Select(VV.IsPositive(VV.Max(q.Z, q.X)), q, new(b.Z - p.X, -VV.Max(q.Z, q.X)));
-            return Sign(VV.Max(q.Z, q.X)) * w.ClampPositive().Length();
+            var w = WVec.Select(VV.IsPositive(VV.Max(q.Z, q.X)).Mask(), q, new(b.Z - p.X, -VV.Max(q.Z, q.X)));
+            return VV.Max(q.Z, q.X).Sign() * w.ClampPositive().Length();
         };
     }
 
@@ -187,19 +175,19 @@ public static class ShapeDistance
         return p =>
         {
             var d = (p - vv[0]).LengthSq();
-            var s = VF.One;
+            var s = VFloat.One;
             for (int i = 0, j = n - 1; i < n; j = i++)
             {
                 var e = vv[j] - vv[i];
                 var w = p - vv[i];
-                var b = w - e * VV.Clamp(w.Dot(e) / e.Dot(e), VF.Zero, VF.One);
+                var b = w - e * VV.Clamp(w.Dot(e) / e.Dot(e), VFloat.Zero, VFloat.One);
                 d = VV.Min(d, b.LengthSq());
 
-                var c0 = VV.GreaterThanOrEqual(p.Z, vv[i].Z);
-                var c1 = VV.LessThan(p.Z, vv[j].Z);
-                var c2 = VV.GreaterThan(e.X * w.Z, e.Z * w.X);
+                var c0 = p.Z >= vv[i].Z;
+                var c1 = p.Z < vv[j].Z;
+                var c2 = e.X * w.Z > e.Z * w.X;
 
-                s *= VV.ConditionalSelect((c0 & c1 & c2) | ~(c0 | c1 | c2), VV.Create(-1f), VF.One);
+                s *= VV.ConditionalSelect((c0 & c1 & c2) | ~(c0 | c1 | c2), VV.Create(-1f), VFloat.One);
             }
             return s * VV.SquareRoot(d);
         };
@@ -230,7 +218,7 @@ public static class ShapeDistance
             var dist = dext(p);
 
             foreach (var hole in interiors)
-                dist = VV.Max(dist, VV.Negate(hole(p)));
+                dist = VV.Max(dist, -hole(p));
 
             return dist;
         };
@@ -250,12 +238,16 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist Grow(ShapeDist f, float g)
+    public static Func<WVec, Vector<uint>> Counted(List<ShapeDist> fs)
     {
-        var v = VV.Create(g);
-        return p => f(p) - v;
+        return p =>
+        {
+            var sum = VBool.Zero;
+            foreach (var f in fs)
+                sum += VV.IsNegative(f(p)).As<float, int>() & VBool.One;
+            return sum.As<int, uint>();
+        };
     }
-    public static ShapeDist Shrink(ShapeDist f, float g) => Grow(f, -g);
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance

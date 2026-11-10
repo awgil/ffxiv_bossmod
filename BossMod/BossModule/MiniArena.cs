@@ -50,6 +50,7 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     private float _cameraCosAzimuth = 1;
 
     public bool InBounds(WPos position) => Bounds.Contains(position - Center);
+    public VBool InBoundsV(WVec position) => Bounds.Contains(position - Center);
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
     public float IntersectRayBounds(WPos rayOrigin, WDir rayDir) => Bounds.IntersectRay(rayOrigin - Center, rayDir);
 

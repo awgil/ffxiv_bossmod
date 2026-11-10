@@ -25,7 +25,9 @@ public struct Sdf
     [FieldOffset(8)] public SdfType Type;
 
     public static Sdf ContinuousSingle(Func<WPos, float> d) => new() { Type = SdfType.ContinuousSingle, SdfCont1 = d };
+#if DEBUG
     [Obsolete("Please convert your shit to use the vectored version!")]
+#endif
     public static Sdf DiscreteSingle(Func<WPos, bool> b) => new() { Type = SdfType.DiscreteSingle, SdfDisc1 = b };
     public static Sdf Indexed(Func<WPos, int, bool> i) => new() { Type = SdfType.Indexed, SdfIx = i };
     public static Sdf Continuous(ShapeDist v) => new() { Type = SdfType.Continuous, SdfCont = v };
@@ -42,7 +44,9 @@ public struct Sdf
                 return ContinuousSingle(p => -fc(p));
             case SdfType.DiscreteSingle:
                 var fd = SdfDisc1;
+#pragma warning disable CS0618 // Type or member is obsolete
                 return DiscreteSingle(p => !fd(p));
+#pragma warning restore CS0618 // Type or member is obsolete
             case SdfType.Indexed:
                 var fi = SdfIx;
                 return Indexed((p, i) => !fi(p, i));
@@ -82,7 +86,7 @@ public struct Sdf
         }
     }
 
-    public readonly VF DistanceV(WVec p)
+    public readonly VFloat DistanceV(WVec p)
     {
         if (Type == SdfType.Continuous)
             return SdfCont(p);
@@ -90,15 +94,15 @@ public struct Sdf
         if (Type == SdfType.Discrete)
             return Vector.ConditionalSelect(SdfDisc(p), VV.Create(float.MinValue), VV.Create(float.MaxValue));
 
-        var xa = new float[VF.Count];
-        var xb = new float[VF.Count];
+        var xa = new float[VFloat.Count];
+        var xb = new float[VFloat.Count];
         p.X.CopyTo(xa);
         p.Z.CopyTo(xb);
 
-        var d = new float[VF.Count];
+        var d = new float[VFloat.Count];
         var s = this;
 
-        Parallel.For(0, VF.Count, i =>
+        Parallel.For(0, VFloat.Count, i =>
         {
             d[i] = s.Distance(new(xa[i], xb[i]));
         });

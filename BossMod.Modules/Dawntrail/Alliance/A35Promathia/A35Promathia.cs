@@ -185,7 +185,7 @@ class FalseGenesis(BossModule module) : BossComponent(module)
 
         var center = Arena.Center;
         // TODO(SDF)
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !(p.InRect(center + new WDir(0, 13), default(Angle), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(120.Degrees()), 120.Degrees(), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(-120.Degrees()), -120.Degrees(), 6.5f, 6.5f, 6.5f))), _activation);
+        hints.AddForbiddenZone(Sdf.Discrete(p => ~(p.InRect(center + new WDir(0, 13), default(Angle), 6.5f, 6.5f, 6.5f) | p.InRect(center + new WDir(0, 13).Rotate(120.Degrees()), 120.Degrees(), 6.5f, 6.5f, 6.5f) | p.InRect(center + new WDir(0, 13).Rotate(-120.Degrees()), -120.Degrees(), 6.5f, 6.5f, 6.5f))), _activation);
     }
 
     public override void OnMapEffect(byte index, uint state)

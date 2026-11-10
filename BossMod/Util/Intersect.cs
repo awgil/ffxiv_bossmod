@@ -17,6 +17,23 @@ public static class Intersect
     }
     public static float RayCircle(WPos rayOrigin, WDir rayDir, WPos circleCenter, float circleRadius) => RayCircle(rayOrigin - circleCenter, rayDir, circleRadius);
 
+    public static VFloat RayCircleV(WVec rayOriginOffset, WVec rayDir, float circleRadius)
+    {
+        var halfB = rayOriginOffset.Dot(rayDir);
+        var halfDSq = halfB * halfB - rayOriginOffset.LengthSq() + VV.Create(circleRadius * circleRadius);
+        var t = -halfB + VV.SquareRoot(halfDSq);
+
+        return VV.ConditionalSelect(
+            VV.IsNegative(halfDSq).Mask(),
+            VV.Create(float.MaxValue),
+            VV.ConditionalSelect(
+                t >= VFloat.Zero,
+                t,
+                VV.Create(float.MaxValue)
+            )
+        );
+    }
+
     // halfWidth is along X, halfHeight is along Z
     public static float RayAABB(WDir rayOriginOffset, WDir rayDir, float halfWidth, float halfHeight)
     {
@@ -53,6 +70,38 @@ public static class Intersect
     }
     public static float RayAABB(WPos rayOrigin, WDir rayDir, WPos boxCenter, float halfWidth, float halfHeight) => RayAABB(rayOrigin - boxCenter, rayDir, halfWidth, halfHeight);
 
+    public static VFloat RayAABBV(WVec rayOriginOffset, WVec rayDir, float halfWidth, float halfHeight)
+    {
+        var invX = VFloat.One / rayDir.X;
+        var invZ = VFloat.One / rayDir.Z;
+        var tmin = VV.Create(-float.Epsilon);
+        var tmax = VV.Create(float.MaxValue);
+
+        var tx1 = (-rayOriginOffset.X - VV.Create(halfWidth)) * invX;
+        var tx2 = (-rayOriginOffset.X + VV.Create(halfWidth)) * invX;
+        var tz1 = (-rayOriginOffset.Z - VV.Create(halfHeight)) * invZ;
+        var tz2 = (-rayOriginOffset.Z + VV.Create(halfHeight)) * invZ;
+
+        tmin = VV.Min(VV.Max(tx1, tmin), VV.Max(tx2, tmin));
+        tmax = VV.Max(VV.Min(tx1, tmax), VV.Min(tx2, tmax));
+        tmin = VV.Min(VV.Max(tz1, tmin), VV.Max(tz2, tmin));
+        tmax = VV.Max(VV.Min(tz1, tmax), VV.Min(tz2, tmax));
+
+        return VV.ConditionalSelect(
+            VV.GreaterThan(tmin, tmax),
+            VV.Create(float.MaxValue),
+            VV.ConditionalSelect(
+                VV.GreaterThanOrEqual(tmin, VFloat.Zero),
+                tmin,
+                VV.ConditionalSelect(
+                    VV.GreaterThanOrEqual(tmax, VFloat.Zero),
+                    tmax,
+                    VV.Create(float.MaxValue)
+                )
+            )
+        );
+    }
+
     // if rotation is 0, half-width is along X and half-height is along Z
     public static float RayRect(WDir rayOriginOffset, WDir rayDir, WDir rectRotation, float halfWidth, float halfHeight)
     {
@@ -61,6 +110,13 @@ public static class Intersect
         return RayAABB(rotate(rayOriginOffset), rotate(rayDir), halfWidth, halfHeight);
     }
     public static float RayRect(WPos rayOrigin, WDir rayDir, WPos rectCenter, WDir rectRotation, float halfWidth, float halfHeight) => RayRect(rayOrigin - rectCenter, rayDir, rectRotation, halfWidth, halfHeight);
+
+    public static VFloat RayRectV(WVec rayOriginOffset, WVec rayDir, WDir rectRotation, float halfWidth, float halfHeight)
+    {
+        var rectX = rectRotation.OrthoL();
+        WVec rotate(WVec d) => new(d.Dot(rectX), d.Dot(rectRotation));
+        return RayAABBV(rotate(rayOriginOffset), rotate(rayDir), halfWidth, halfHeight);
+    }
 
     // infinite line intersection; 'center of symmetry' is any point on line
     // note that 'line' doesn't have to be normalized
@@ -78,6 +134,19 @@ public static class Intersect
     }
     public static float RayLine(WPos rayOrigin, WDir rayDir, WPos lineOrigin, WDir line) => RayLine(rayOrigin - lineOrigin, rayDir, line);
 
+    public static VFloat RayLineV(WVec rayOriginOffset, WVec rayDir, WDir line)
+    {
+        var n = line.OrthoL();
+        var ddn = rayDir.Dot(n);
+        var odn = rayOriginOffset.Dot(n);
+        var t = -odn / ddn;
+        return VV.ConditionalSelect(
+            VV.IsZero(ddn).Mask(),
+            VV.ConditionalSelect(VV.IsZero(odn).Mask(), odn, VV.Create(float.MaxValue)),
+            VV.ConditionalSelect(t >= 0, t, VV.Create(float.MaxValue))
+        );
+    }
+
     public static float RaySegment(WDir rayOriginOffset, WDir rayDir, WDir oa, WDir ob)
     {
         var lineDir = ob - oa;
@@ -89,6 +158,22 @@ public static class Intersect
         var p = rayOriginOffset + t * rayDir;
         var u = lineDir.Dot(p - oa);
         return u >= 0 && u <= lineDir.LengthSq() ? t : float.MaxValue;
+    }
+    public static VFloat RaySegmentV(WVec rayOriginOffset, WVec rayDir, WDir oa, WDir ob)
+    {
+        var lineDir = ob - oa;
+        var t = RayLineV(rayOriginOffset - oa, rayDir, lineDir);
+        var p = rayOriginOffset + t * rayDir;
+        var u = (p - oa).Dot(lineDir);
+        return VV.ConditionalSelect(
+            VV.Equals(t, VV.Create(float.MaxValue)),
+            VV.Create(float.MaxValue),
+            VV.ConditionalSelect(
+                (u >= VFloat.Zero) & (u <= lineDir.LengthSq()),
+                t,
+                VV.Create(float.MaxValue)
+            )
+        );
     }
 
     public static float RaySegments(WDir rayOriginOffset, WDir rayDir, ReadOnlySpan<WDir> verts)
@@ -103,6 +188,15 @@ public static class Intersect
 
         return min;
     }
+    public static VFloat RaySegmentsV(WVec rayOriginOffset, WVec rayDir, ReadOnlySpan<WDir> verts)
+    {
+        var min = VV.Create(float.MaxValue);
+
+        for (int j = verts.Length - 1, i = 0; i < verts.Length; j = i++)
+            min = VV.Min(min, RaySegmentV(rayOriginOffset, rayDir, verts[j], verts[i]));
+
+        return min;
+    }
 
     public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelPolygonWithHoles poly)
     {
@@ -112,6 +206,15 @@ public static class Intersect
         return dist;
     }
     public static float RayPolygon(WDir rayOriginOffset, WDir rayDir, RelSimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygon(rayOriginOffset, rayDir, part));
+
+    public static VFloat RayPolygonV(WVec rayOriginOffset, WVec rayDir, RelPolygonWithHoles poly)
+    {
+        var dist = RaySegmentsV(rayOriginOffset, rayDir, poly.Exterior);
+        foreach (var h in poly.Holes)
+            dist = VV.Min(dist, RaySegmentsV(rayOriginOffset, rayDir, poly.Interior(h)));
+        return dist;
+    }
+    public static VFloat RayPolygonV(WVec rayOriginOffset, WVec rayDir, RelSimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygonV(rayOriginOffset, rayDir, part));
 
     // circle-shape intersections; they return true if shapes intersect or touch, false otherwise
     // these are used e.g. for player-initiated aoes

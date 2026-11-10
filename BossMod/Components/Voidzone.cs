@@ -158,7 +158,7 @@ public class InvertibleVoidzone(BossModule module, float radius, Func<BossModule
 
         var shh = ShapeDistance.Union(shapes);
 
-        VF distance(WVec p)
+        VFloat distance(WVec p)
         {
             var dist = shh(p);
             return Inverted ? -dist : dist;

@@ -111,7 +111,7 @@ public struct NavigationDecision
 
     public static void RasterizeRaw(Map map, (Sdf sdf, float g)[] zones, float cushion, List<float>? producedScratch = null)
     {
-        var rowLength = ((map.Width + 1) / VF.Count + 1) * VF.Count;
+        var rowLength = ((map.Width + 1) / VFloat.Count + 1) * VFloat.Count;
         var dim = rowLength * (map.Height + 1);
 
         var gScratch = ArrayPool<float>.Shared.Rent(dim);
@@ -125,7 +125,7 @@ public struct NavigationDecision
         {
             var vz = VV.Create(cy.Z + y * dy.Z);
 
-            for (var x = 0; x <= map.Width; x += VF.Count)
+            for (var x = 0; x <= map.Width; x += VFloat.Count)
             {
                 var iCell = y * rowLength + x;
 
@@ -341,10 +341,10 @@ public struct NavigationDecision
         return (g, d);
     }
 
-    private static (VF G, VU D) CalculateMaxGV((Sdf d, float g)[] zones, WVec p, float cushion)
+    private static (VFloat G, VBool D) CalculateMaxGV((Sdf d, float g)[] zones, WVec p, float cushion)
     {
         var g = VV.Create(float.MaxValue);
-        var d = VU.Zero;
+        var d = VBool.Zero;
         var c0 = VV.Create(cushion);
 
         foreach (var z in zones)

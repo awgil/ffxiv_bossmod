@@ -7,11 +7,11 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
 {
     public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true, bool Inverted = false)
     {
-        public readonly VF Distance(WVec pos) => Shape.GetSdf(Origin, Rotation).Inverted(Inverted).DistanceV(pos);
+        public readonly VFloat Distance(WVec pos) => Shape.GetSdf(Origin, Rotation).Inverted(Inverted).DistanceV(pos);
 
         // type constrained alias so we don't need to explicitly cast when calling AddForbiddenZone
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly VF DistV(WVec pos) => Distance(pos);
+        public readonly VFloat DistV(WVec pos) => Distance(pos);
 
         public readonly bool Check(WPos p) => Distance(p) < 0;
         public readonly float Distance(WPos p) => Distance(new WVec(p))[0];

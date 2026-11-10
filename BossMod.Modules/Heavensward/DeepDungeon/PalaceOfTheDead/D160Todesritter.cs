@@ -72,15 +72,13 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
             return;
 
         var kbSource = _source.Value.Origin;
+        var clamp = Arena.Bounds.ClampToBounds;
 
-        var clamp = Arena.ClampToBounds;
-
-        // FIXME(slow sdf)
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
         {
             var dir = (p - kbSource).Normalized();
             var proj = clamp(p + dir * 25);
-            return dangerZone(new(proj))[0] < 0;
+            return dangerZone(proj) < 0;
         }), _source.Value.Activation);
     }
 }

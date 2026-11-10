@@ -22,13 +22,6 @@ class MiniArenaTest : TestWindow
 
     public MiniArenaTest() : base("Arena test", new(400, 400), ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse) { }
 
-    private WPos ScreenToWorld(Vector2 pos)
-    {
-        var screenOffset = pos - _arena.ScreenCenter;
-        var transformed = screenOffset * _arena.Bounds.Radius / _arena.ScreenHalfSize;
-        return new WDir(transformed) + _arena.Center;
-    }
-
     public override void Draw()
     {
         ImGui.DragFloat("Camera azimuth", ref _azimuth, 1, -180, +180);
