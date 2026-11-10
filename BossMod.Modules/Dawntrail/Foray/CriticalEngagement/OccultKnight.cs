@@ -140,14 +140,14 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
 
             hints.AddForbiddenZone(ShapeDistance.Donut(caster.Position, 5, 40), Module.CastFinishAt(caster.CastInfo));
 
-            var hitRectShape = HitByRect();
+            var hitRectShape = HitByRect().Discretize();
             var center = Arena.Center;
             var dist = Distance;
 
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = (p - center).Normalized() * dist;
-                return hitRectShape(new(p + dir))[0] < 0;
+                return hitRectShape(p + dir);
             }), Module.CastFinishAt(caster.CastInfo));
         }
     }

@@ -128,9 +128,11 @@ class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AO
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (CurrentBaits.Count > 0 && !ActiveBaitsOn(actor).Any())
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !IsOnBridge(p)), CurrentBaits[0].Activation);
+            hints.AddForbiddenZone(IsOnBridgeV.Inverted(), CurrentBaits[0].Activation);
     }
 
     private static bool IsOnBridge(Actor p) => IsOnBridge(p.Position);
     private static bool IsOnBridge(WPos p) => RM06SSugarRiot.Bridges.Any(b => RM06SSugarRiot.BridgeShape.Check(p, b.Center, b.Rotation));
+
+    private static Func<WVec, Vector<float>> IsOnBridgeV => ShapeDistance.Union([.. RM06SSugarRiot.Bridges.Select(b => RM06SSugarRiot.BridgeShape.Distance(b.Center, b.Rotation))]);
 }
