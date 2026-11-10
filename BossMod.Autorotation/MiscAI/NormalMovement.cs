@@ -173,7 +173,15 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 // 99% of eventobjects have an interact range of 3.5y, while the rest have a range of 2.09y
                 // checking only for the shorter range here would be fine in the vast majority of cases, but it can break interact pathfinding in the case that the target object is partially covered by a forbidden zone with a radius between 2.1 and 3.5
                 // this is specifically an issue in the metal gear thancred solo duty in endwalker
-                return length <= 2.09f ? 101 : length <= 3.5f ? 100 : 0;
+                return Vector.ConditionalSelect(
+                    length <= 2.09f,
+                    Vector.Create(101f),
+                    Vector.ConditionalSelect(
+                        length <= 3.5f,
+                        Vector.Create(100f),
+                        Vector<float>.Zero
+                    )
+                );
             });
         }
 
@@ -205,7 +213,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 var dist = (enemy.Actor.Position - Player.Position).Length();
                 var goal = enemy.Actor.Position + rot.ToDirection() * enemy.Actor.HitboxRadius;
                 var sh = ShapeDistance.PrecisePosition(goal, new(0, 1), Hints.PathfindMapBounds.MapResolution, Player.Position, 0.1f);
-                Hints.GoalZones.Add(p => sh(new(p))[0] >= 0 ? 10 : 0);
+                Hints.GoalZones.AddSimple(p => sh(p) >= Vector<float>.Zero, 10);
             }
         }
 

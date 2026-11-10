@@ -137,9 +137,7 @@ class PathfindingTest : TestWindow
         else
             NavigationDecision.RasterizeForbiddenZonesOld(map, zones, now, _ping, _cushion);
 
-        List<Func<WPos, float>> goals = [];
-        goals.Add(AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius));
-        NavigationDecision.RasterizeGoalZones(map, goals);
+        NavigationDecision.RasterizeGoalZones(map, [AIHints.GoalSingleTarget(new(_targetPos), _targetFacingDeg.Degrees(), Positional.Rear, _targetRadius)]);
 
         var visu = new MapVisualizer(map, new(_startingPos), [.. gCopy]);
 

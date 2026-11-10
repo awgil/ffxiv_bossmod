@@ -50,7 +50,7 @@ class Transfiguration(BossModule module) : Components.StandardAOEs(module, AID.S
 
         livingAdds.RemoveAll(a => casts.Any(c => HitByShatter(a, c.Origin)));
 
-        hints.GoalZones.Add(p => livingAdds.Count(a => HitByShatter(a, p)));
+        hints.GoalZones.Add(AIHints.GoalAOECircle(livingAdds.Select(a => (a.Actor.Position, a.Actor.HitboxRadius)), 5));
 
         if (livingAdds.Any(a => HitByShatter(a, actor.Position)))
             hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.Shatterstone), actor, 3000, targetPos: actor.PosRot.XYZ());

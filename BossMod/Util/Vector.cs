@@ -1,4 +1,12 @@
-﻿namespace BossMod;
+﻿global using DistFn = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
+global using GoalFun = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
+global using PointTest = System.Func<BossMod.WVec, System.Numerics.Vector<int>>;
+global using VBool = System.Numerics.Vector<int>;
+global using VFloat = System.Numerics.Vector<float>;
+global using VInt = System.Numerics.Vector<uint>;
+global using VV = System.Numerics.Vector;
+
+namespace BossMod;
 
 #pragma warning disable CA1708 // bug
 public static class VectorExtensions
@@ -25,15 +33,22 @@ public static class VectorExtensions
         public static VBool operator >(VFloat a, float b) => VV.GreaterThan(a, VV.Create(b));
     }
 
-    extension(ShapeDist sd)
+    extension<T>(Vector<T> mask)
     {
-        public ShapeDist Inverted() => p => -sd(p);
-        public ShapeDist Inverted(bool inverted) => inverted ? Inverted(sd) : sd;
+        public Vector<U> WithValue<U>(Vector<U> values) => mask.As<T, U>() & values;
     }
 
-    extension(ShapeTest st)
+    extension(DistFn sd)
     {
-        public ShapeTest Inverted() => p => ~st(p);
-        public ShapeTest Inverted(bool inverted) => inverted ? Inverted(st) : st;
+        public DistFn Inverted() => p => -sd(p);
+        public DistFn Inverted(bool inverted) => inverted ? Inverted(sd) : sd;
+
+        public PointTest Discretize() => p => sd(p) < VFloat.Zero;
+    }
+
+    extension(PointTest st)
+    {
+        public PointTest Inverted() => p => ~st(p);
+        public PointTest Inverted(bool inverted) => inverted ? Inverted(st) : st;
     }
 }

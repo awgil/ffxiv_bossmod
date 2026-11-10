@@ -110,7 +110,7 @@ class P3GrandOctet(BossModule module) : Components.GenericAOEs(module)
 
         baitAngle += (DiveOrder * 34).Degrees(); // approximation, i ain't doing no trigonometry
         var goalEdge = AIHints.GoalProximity(ctr + baitAngle.ToDirection() * 22, 20, 5);
-        hints.GoalZones.Add(p => p.InCircle(ctr, 19) ? 0 : goalEdge(p));
+        hints.GoalZones.Add(p => Vector.ConditionalSelect(p.InCircle(ctr, 19), Vector<float>.Zero, goalEdge(p)));
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

@@ -99,7 +99,7 @@ class P1LiquidHell : LiquidHell
 
                 var center = Arena.Center;
                 // encourage baiter to stay on arena edge if possible
-                hints.GoalZones.Add(p => p.InDonut(center, 18, 22) ? 0.1f : 0);
+                hints.GoalZones.AddSimple(p => p.InDonut(center, 18, 22), 0.1f);
 
                 // don't drop on neurolinks
                 foreach (var nl in Module.Enemies(OID.Neurolink))

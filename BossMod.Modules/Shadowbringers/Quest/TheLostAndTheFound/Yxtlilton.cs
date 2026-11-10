@@ -34,7 +34,7 @@ class LamittAI(WorldState ws) : UnmanagedRotation(ws, 25)
 
         var party = World.Party.WithoutSlot().ToList();
 
-        Hints.GoalZones.Add(p => party.Count(act => act.Position.InCircle(p, 15 + 0.5f + act.HitboxRadius)));
+        Hints.GoalZones.Add(AIHints.GoalAOECircle(party.Select(p => (p.Position, p.HitboxRadius)), 15.5f));
 
         var lowest = party.MinBy(p => p.PendingHPRatio)!;
         var esunable = party.FirstOrDefault(x => x.FindStatus(482) != null);

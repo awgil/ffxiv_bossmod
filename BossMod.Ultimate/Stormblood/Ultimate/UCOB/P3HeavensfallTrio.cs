@@ -219,11 +219,7 @@ class P3ThermionicBurst(BossModule module) : P2ThermionicBurst(module)
                 var bias = s + (_rotation * 5).Degrees();
                 var h = 11.25f.Degrees().Cos();
 
-                hints.GoalZones.Add(p =>
-                {
-                    var c = (p - ctr).Normalized().Dot(bias.ToDirection());
-                    return MathF.Abs(c) >= h ? 1 : 0;
-                });
+                hints.GoalZones.AddSimple(p => (p - ctr).Normalized().Dot(bias.ToDirection()).Abs() >= h, 1);
             }
             else
             {

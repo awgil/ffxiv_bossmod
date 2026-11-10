@@ -121,7 +121,7 @@ public class QuestObjective(WorldState ws)
     {
         AddAIHints += (player, hints) =>
         {
-            hints.GoalZones.Add(p => p.InCircle(destination, 2) ? weight : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(destination, 2), weight);
         };
         return this;
     }

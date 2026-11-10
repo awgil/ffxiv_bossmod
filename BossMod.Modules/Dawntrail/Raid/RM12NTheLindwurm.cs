@@ -433,8 +433,8 @@ class MindlessFleshWide(BossModule module) : Components.StandardAOEs(module, AID
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in Casters)
         {
-            var inside = ShapeDistance.Rect(c.CastInfo!.LocXZ, c.CastInfo.Rotation, 30, 0, 17.5f);
-            hints.GoalZones.Add(p => inside(new(p))[0] > 0 ? 1 : 0);
+            var inside = ShapeDistance.Rect(c.CastInfo!.LocXZ, c.CastInfo.Rotation, 30, 0, 17.5f).Discretize().Inverted();
+            hints.GoalZones.AddSimple(inside, 1);
         }
     }
 }

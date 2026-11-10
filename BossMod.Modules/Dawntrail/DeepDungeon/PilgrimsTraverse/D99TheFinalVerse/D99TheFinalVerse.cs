@@ -144,7 +144,11 @@ class LightDark(BossModule module) : BossComponent(module)
         if (_playerStates[slot].Color == Color.None)
         {
             var ctr = Arena.Center;
-            hints.GoalZones.Add(p => D99TheFinalVerse.DarkShape.Contains(p - ctr) || D99TheFinalVerse.LightShape.Contains(p - ctr) ? 100 : 0);
+            var anyPoly = ShapeDistance.Union([
+                ShapeDistance.ComplexPolygon(default, default, D99TheFinalVerse.DarkShape),
+                ShapeDistance.ComplexPolygon(default, default, D99TheFinalVerse.LightShape)
+            ]).Discretize();
+            hints.GoalZones.AddSimple(anyPoly, 100);
         }
     }
 }

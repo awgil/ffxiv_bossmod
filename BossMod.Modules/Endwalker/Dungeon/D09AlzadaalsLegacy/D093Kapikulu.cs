@@ -166,12 +166,12 @@ class SpinningHints(BossModule module) : BossComponent(module)
         {
             var d0 = Arena.Center + new WDir(0, -5);
             var d1 = Arena.Center + new WDir(0, 14);
-            hints.GoalZones.Add(p => p.AlmostEqual(d0 + new WDir(14, 0), 1) || p.AlmostEqual(d0 - new WDir(14, 0), 1) || p.AlmostEqual(d1 + new WDir(14, 0), 1) || p.AlmostEqual(d1 - new WDir(14, 0), 1) ? 1 : 0);
+            hints.GoalZones.AddSimple(p => p.AlmostEqual(d0 + new WDir(14, 0), 1) | p.AlmostEqual(d0 - new WDir(14, 0), 1) | p.AlmostEqual(d1 + new WDir(14, 0), 1) | p.AlmostEqual(d1 - new WDir(14, 0), 1), 1);
         }
         else
         {
             var dest2 = Arena.Center + new WDir(0, -10);
-            hints.GoalZones.Add(p => p.InCircle(dest2, 1) ? 1 : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(dest2, 1), 1);
         }
     }
 }

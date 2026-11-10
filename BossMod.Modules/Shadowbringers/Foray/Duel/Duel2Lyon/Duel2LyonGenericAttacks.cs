@@ -32,16 +32,18 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
-        var origins = Sequences.Select(s => s.Origin);
-
         if (Sequences.All(s => s.NumCastsDone == 0))
         {
             // preposition on edge of aoe to make next dodge easier
-            hints.GoalZones.Add(p => origins.Any(o => p.InCircle(o, 12)) ? 5 : 0);
+            var donutProximity = ShapeDistance.Union([.. Sequences.Select(s => ShapeDistance.Circle(s.Origin, 12))]);
+            hints.GoalZones.AddSimple(donutProximity.Discretize(), 5);
 
             // for multi-quake, standing inside both donuts will get us killed
             if (Sequences.Count == 2)
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => origins.All(o => p.InCircle(o, 20))), Sequences[0].NextActivation);
+            {
+                var bothDonuts = ShapeDistance.Intersection([.. Sequences.Select(s => ShapeDistance.Circle(s.Origin, 20))]);
+                hints.AddForbiddenZone(bothDonuts, Sequences[0].NextActivation);
+            }
         }
     }
 }

@@ -201,7 +201,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
 
     public readonly List<Stack> Stacks = [];
 
-    private ShapeDist ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+    private DistFn ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -282,7 +282,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
             {
                 var zones = group.Select(ShapeFn).ToList();
                 var x = ShapeDistance.Count(zones);
-                hints.AddForbiddenZone(Sdf.Discrete(p => VV.Equals(x(p), Vector<uint>.One).As<uint, int>()), group.First().Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => VV.Equals(x(p), VInt.One).WithValue(VBool.AllBitsSet)), group.First().Activation);
             }
         }
     }

@@ -71,6 +71,6 @@ public class UCOB(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBounds
         // TODO: pathfinder doesn't try to move out of blocked pixels unless the destination has a goal value > 0
         // we can run into blocked pixels e.g. when baiting p2 divebombs since they have to be close to the edge
         // this should be fixed in navigationdecision
-        hints.GoalZones.Add(_ => 0.1f);
+        hints.GoalZones.Add(_ => Vector.Create(0.1f));
     }
 }

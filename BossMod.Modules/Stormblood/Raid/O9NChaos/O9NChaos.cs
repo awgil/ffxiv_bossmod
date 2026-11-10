@@ -147,7 +147,7 @@ class EarthquakeKnockback(BossModule module) : Components.KnockbackFromCastTarge
             return;
 
         hints.AddForbiddenZone(PushedSouth, PushedSouthOrigin, default, WorldState.CurrentTime);
-        hints.GoalZones.Add(p => p.InCircle(NorthEdge, 2) ? 10 : 0);
+        hints.GoalZones.AddSimple(p => p.InCircle(NorthEdge, 2), 10);
     }
 }
 

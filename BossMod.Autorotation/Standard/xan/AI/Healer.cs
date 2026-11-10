@@ -137,9 +137,16 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
                     break;
                 case StayNearPartyStrategy.EnabledSlow:
                     List<(WPos pos, float radius)> allies = [.. LightParty.Exclude(Player).Select(e => (e.Position, e.HitboxRadius))];
-                    var currentCoverage = allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15));
-                    var scale = 1f / Math.Max(1, allies.Count);
-                    Hints.GoalZones.Add(p => scale * Math.Max(currentCoverage, allies.Count(a => a.pos.InCircle(p, a.radius + 0.5f + 13))));
+                    var currentCoverage = VV.Create((float)allies.Count(a => a.pos.InCircle(Player.Position, a.radius + 0.5f + 15)));
+                    var scale = VV.Create(1f / Math.Max(1, allies.Count));
+                    Hints.GoalZones.Add(p =>
+                    {
+                        var ac = VFloat.Zero;
+                        foreach (var a in allies)
+                            ac += p.InCircle(a.pos, a.radius + 0.5f + 13).WithValue(VFloat.One);
+
+                        return scale * VV.Max(currentCoverage, ac);
+                    });
                     break;
             }
         }

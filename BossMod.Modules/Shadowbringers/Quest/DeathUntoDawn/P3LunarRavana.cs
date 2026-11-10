@@ -35,7 +35,7 @@ class GrahaAI(WorldState ws) : UnmanagedRotation(ws, 25)
 
         if (adds.Any(ShouldBreak))
         {
-            Hints.GoalZones.Add(p => adds.Count(a => a.Position.InCircle(p, 20)));
+            Hints.GoalZones.Add(AIHints.GoalAOECircle(Adds.Select(a => (a.Position, a.HitboxRadius)), 20));
             if (adds.Any(a => ShouldBreak(a) && a.Position.InCircle(Player.Position, 20)))
                 UseAction(RID.Break, Player);
         }

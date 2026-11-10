@@ -178,7 +178,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 2.2f && Unlocked(AID.HolySpirit) && MP >= HolySpiritMP && Player.DistanceToHitbox(target.Actor) <= 25)
             {
                 var pos = Player.Position;
-                Hints.GoalZones.Add(p => p.InCircle(pos, 0.5f) ? 100 : 0);
+                Hints.GoalZones.AddSimple(p => p.InCircle(pos, 0.5f), 100);
                 if (countdown < 1.75f)
                     PushGCD(AID.HolySpirit, target.Actor, 10);
             }
@@ -193,7 +193,13 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         if (Loose.Count > 0)
         {
             var loose = Loose;
-            Hints.GoalZones.Add(p => loose.Count(a => p.InCircle(a.Position, 5 + a.HitboxRadius)));
+            Hints.GoalZones.Add(p =>
+            {
+                var c = VFloat.Zero;
+                foreach (var l in loose)
+                    c += p.InCircle(l.Position, 5 + l.HitboxRadius).WithValue(VFloat.One);
+                return c;
+            });
         }
 
         GCDs(strategy, target);

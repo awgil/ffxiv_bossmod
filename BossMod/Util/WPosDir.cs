@@ -1,10 +1,4 @@
-﻿global using ShapeDist = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
-global using ShapeTest = System.Func<BossMod.WVec, System.Numerics.Vector<int>>;
-global using VBool = System.Numerics.Vector<int>;
-global using VFloat = System.Numerics.Vector<float>;
-global using VV = System.Numerics.Vector;
-
-namespace BossMod;
+﻿namespace BossMod;
 
 // 2d vector that represents world-space direction on XZ plane
 public record struct WDir(float X, float Z)
@@ -30,6 +24,7 @@ public record struct WDir(float X, float Z)
     public readonly WDir MirrorZ() => new(X, -Z);
     public static float Dot(WDir a, WDir b) => a.X * b.X + a.Z * b.Z;
     public readonly float Dot(WDir a) => X * a.X + Z * a.Z;
+    public readonly VFloat Dot(WVec a) => X * a.X + Z * a.Z;
     public static float Cross(WDir a, WDir b) => a.X * b.Z - a.Z * b.X;
     public readonly float Cross(WDir b) => Cross(this, b);
     public readonly WDir Rotate(WDir dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
@@ -139,6 +134,9 @@ public record struct WVec(VFloat X, VFloat Z)
     public readonly WVec ClampPositive() => new(VV.Max(X, VFloat.Zero), VV.Max(Z, VFloat.Zero));
     public readonly VFloat MaxComponent() => VV.Max(X, Z);
 
+    public readonly WVec MirrorX() => new(-X, Z);
+    public readonly WVec MirrorZ() => new(X, -Z);
+
     // exchanges all pairs where Z > X
     public readonly WVec AlignX() => Select(X > Z, new(X, Z), new(Z, X));
 
@@ -151,6 +149,9 @@ public record struct WVec(VFloat X, VFloat Z)
     public readonly VBool AlmostZero(float eps) => AlmostZero(this, VV.Create(eps));
     public static VBool AlmostEqual(WVec a, WVec b, VFloat eps) => AlmostZero(a - b, eps);
     public readonly VBool AlmostEqual(WVec b, VFloat eps) => AlmostZero(this - b, eps);
+    public readonly VBool AlmostEqual(WPos b, float eps) => AlmostZero(this - b, VV.Create(eps));
+
+    public static WVec Lerp(WVec a, WVec b, VFloat progress) => new(VV.Lerp(a.X, b.X, progress), VV.Lerp(a.Z, b.Z, progress));
 
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator +(WVec a, WDir b) => new(a.X + b.X, a.Z + b.Z);
@@ -174,4 +175,15 @@ public record struct WVec(VFloat X, VFloat Z)
     }
     public readonly VBool InRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction, lenFront, lenBack, halfWidth);
     public readonly VBool InRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public readonly VBool InRect(WPos origin, WDir startToEnd, float halfWidth)
+    {
+        var len = startToEnd.Length();
+        return InRect(origin, startToEnd / len, len, 0, halfWidth);
+    }
+
+    public readonly VBool InCircle(WPos origin, float radius) => (this - origin).LengthSq() <= radius * radius;
+    public readonly VBool InDonut(WPos origin, float innerRadius, float outerRadius) => InCircle(origin, outerRadius) & ~InCircle(origin, innerRadius);
+
+    public readonly VBool InCone(WPos origin, WDir direction, Angle halfAngle) => (this - origin).Normalized().Dot(direction) >= halfAngle.Cos();
+    public readonly VBool InCone(WPos origin, Angle direction, Angle halfAngle) => InCone(origin, direction.ToDirection(), halfAngle);
 }

@@ -64,7 +64,7 @@ class P3Landslide(BossModule module) : Landslide(module)
         {
             var src = tit.Position;
             var r = tit.HitboxRadius + 3 + actor.HitboxRadius;
-            hints.GoalZones.Add(p => p.InDonut(src, r - 1, r) ? 0.1f : 0);
+            hints.GoalZones.AddSimple(p => p.InDonut(src, r - 1, r), 0.1f);
         }
     }
 }

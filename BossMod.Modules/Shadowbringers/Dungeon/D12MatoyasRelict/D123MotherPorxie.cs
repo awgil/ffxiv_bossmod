@@ -153,7 +153,7 @@ class Barbeque(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (active)
-            hints.GoalZones.Add(p => p.X >= 15 ? 50 : 0);
+            hints.GoalZones.AddSimple(p => p.X >= 15, 50);
     }
 }
 

@@ -28,9 +28,7 @@ class UriangerAI(WorldState ws) : UnmanagedRotation(ws, 25)
 
     protected override void Exec(Actor? primaryTarget)
     {
-        var partyPositions = World.Party.WithoutSlot().Select(p => p.Position).ToList();
-
-        Hints.GoalZones.Add(pos => partyPositions.Count(p => p.InCircle(pos, 16)));
+        Hints.GoalZones.Add(AIHints.GoalAOECircle(World.Party.WithoutSlot().Select(p => (p.Position, p.HitboxRadius)), 15.5f));
 
         if (World.Party.WithoutSlot().All(p => HeliosLeft(p) < 1 && p.Position.InCircle(Player.Position, 15.5f + p.HitboxRadius)))
             UseAction(RID.AspectedHelios, Player);

@@ -182,21 +182,31 @@ public struct NavigationDecision
         ArrayPool<int>.Shared.Return(dScratch);
     }
 
-    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals)
+    public static void RasterizeGoalZones(Map map, List<GoalFun> goals)
     {
-        // see Map.EnumeratePixels, note that we care about corners rather than centers
+        var rowLength = ((map.Width + 1) / VFloat.Count + 1) * VFloat.Count;
+        var dim = rowLength * (map.Height + 1);
+
+        var gScratch = ArrayPool<float>.Shared.Rent(dim);
+
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        var dim = (map.Width + 1) * (map.Height + 1);
-        var gScratch = ArrayPool<float>.Shared.Rent(dim);
-
-        Parallel.For(0, dim, iCell =>
+        Parallel.For(0, map.Height + 1, y =>
         {
-            var (y, x) = Math.DivRem(iCell, map.Width + 1);
-            var point = cy + x * dx + y * dy;
-            gScratch[iCell] = goals.Sum(g => g(point));
+            var vz = VV.Create(cy.Z + y * dy.Z);
+
+            for (var x = 0; x <= map.Width; x += VFloat.Count)
+            {
+                var iCell = y * rowLength + x;
+
+                var score = VFloat.Zero;
+                foreach (var goal in goals)
+                    score += goal(new(VV.CreateSequence(cy.X + x * dx.X, dx.X), vz));
+
+                score.CopyTo(gScratch, iCell);
+            }
         });
 
         for (var y = 0; y < map.Height; y++)
