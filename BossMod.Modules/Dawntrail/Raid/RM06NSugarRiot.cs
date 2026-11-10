@@ -286,8 +286,8 @@ class River(BossModule module) : BossComponent(module)
     {
         if (_activation == default)
             return;
-        var sdf = new AOEShapeCustom(SavageRiot.RiverPoly).Distance(Arena.Center, default);
-        hints.AddForbiddenZone(sdf.Inverted(_riverSafe), _activation);
+
+        hints.AddForbiddenZone(ShapeDistance.ComplexPolygon(Arena.Center, default, SavageRiot.RiverPoly).Inverted(_riverSafe), _activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

@@ -1,5 +1,6 @@
 ﻿namespace BossMod;
 
+#pragma warning disable CA1708 // bug
 public static class VectorExtensions
 {
     extension(VFloat source)

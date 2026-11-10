@@ -219,7 +219,7 @@ public sealed class AIHintsBuilder : IDisposable
                 ? ShapeDistance.Rect(aoe.Caster.Position, targetPos, ((AOEShapeRect)aoe.Shape).HalfWidth)
                 : aoe.Shape.Distance(targetPos, rot);
 
-            hints.AddForbiddenZone(p => f(p) - VV.Create(MaxError), finishAt, aoe.Caster.InstanceID);
+            hints.AddForbiddenZone(p => f(p) - MaxError, finishAt, aoe.Caster.InstanceID);
         }
 
         foreach (var gaze in _activeGazes.Values)

@@ -140,16 +140,9 @@ public record struct WVec(VFloat X, VFloat Z)
     public readonly VFloat MaxComponent() => VV.Max(X, Z);
 
     // exchanges all pairs where Z > X
-    public readonly WVec AlignX()
-    {
-        var gt = X > Z;
-        return new(VV.ConditionalSelect(gt, X, Z), VV.ConditionalSelect(gt, Z, X));
-    }
+    public readonly WVec AlignX() => Select(X > Z, new(X, Z), new(Z, X));
 
-    public static WVec Select(VBool bits, WVec left, WVec right)
-    {
-        return new(VV.ConditionalSelect(bits, left.X, right.X), VV.ConditionalSelect(bits, left.Z, right.Z));
-    }
+    public static WVec Select(VBool bits, WVec left, WVec right) => new(VV.ConditionalSelect(bits, left.X, right.X), VV.ConditionalSelect(bits, left.Z, right.Z));
 
     public readonly WVec Min(WVec other) => new(VV.Min(X, other.X), VV.Min(Z, other.Z));
 
@@ -177,7 +170,7 @@ public record struct WVec(VFloat X, VFloat Z)
         var dotNormal = Dot(direction.OrthoL());
         return (dotDir >= -lenBack)
             & (dotDir <= lenFront)
-            & (VV.Abs(dotNormal) <= halfWidth);
+            & (dotNormal.Abs() <= halfWidth);
     }
     public readonly VBool InRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction, lenFront, lenBack, halfWidth);
     public readonly VBool InRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction.ToDirection(), lenFront, lenBack, halfWidth);

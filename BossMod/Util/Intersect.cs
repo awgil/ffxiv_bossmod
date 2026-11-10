@@ -20,7 +20,7 @@ public static class Intersect
     public static VFloat RayCircleV(WVec rayOriginOffset, WVec rayDir, float circleRadius)
     {
         var halfB = rayOriginOffset.Dot(rayDir);
-        var halfDSq = halfB * halfB - rayOriginOffset.LengthSq() + VV.Create(circleRadius * circleRadius);
+        var halfDSq = halfB * halfB - rayOriginOffset.LengthSq() + circleRadius * circleRadius;
         var t = -halfB + VV.SquareRoot(halfDSq);
 
         return VV.ConditionalSelect(
@@ -77,16 +77,17 @@ public static class Intersect
         var tmin = VV.Create(-float.Epsilon);
         var tmax = VV.Create(float.MaxValue);
 
-        var tx1 = (-rayOriginOffset.X - VV.Create(halfWidth)) * invX;
-        var tx2 = (-rayOriginOffset.X + VV.Create(halfWidth)) * invX;
-        var tz1 = (-rayOriginOffset.Z - VV.Create(halfHeight)) * invZ;
-        var tz2 = (-rayOriginOffset.Z + VV.Create(halfHeight)) * invZ;
+        var tx1 = (-rayOriginOffset.X - halfWidth) * invX;
+        var tx2 = (-rayOriginOffset.X + halfWidth) * invX;
+        var tz1 = (-rayOriginOffset.Z - halfHeight) * invZ;
+        var tz2 = (-rayOriginOffset.Z + halfHeight) * invZ;
 
         tmin = VV.Min(VV.Max(tx1, tmin), VV.Max(tx2, tmin));
         tmax = VV.Max(VV.Min(tx1, tmax), VV.Min(tx2, tmax));
         tmin = VV.Min(VV.Max(tz1, tmin), VV.Max(tz2, tmin));
         tmax = VV.Max(VV.Min(tz1, tmax), VV.Min(tz2, tmax));
 
+        // TODO wtf lol
         return VV.ConditionalSelect(
             VV.GreaterThan(tmin, tmax),
             VV.Create(float.MaxValue),

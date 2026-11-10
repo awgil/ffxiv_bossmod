@@ -187,7 +187,7 @@ public static class ShapeDistance
                 var c1 = p.Z < vv[j].Z;
                 var c2 = e.X * w.Z > e.Z * w.X;
 
-                s *= VV.ConditionalSelect((c0 & c1 & c2) | ~(c0 | c1 | c2), VV.Create(-1f), VFloat.One);
+                s *= VV.ConditionalSelect((c0 & c1 & c2) | ~(c0 | c1 | c2), -VFloat.One, VFloat.One);
             }
             return s * VV.SquareRoot(d);
         };
