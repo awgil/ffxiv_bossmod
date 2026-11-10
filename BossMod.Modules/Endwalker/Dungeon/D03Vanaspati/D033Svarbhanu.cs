@@ -42,7 +42,7 @@ class ChaoticUndercurrent(BossModule module) : Components.GenericAOEs(module)
     {
         // index 0x08
         // red blue blue red => 0x00400020, red (-142, -172), blue (-152, -162)
-        // blue blue red red => 0x00020001, red (-142, -152), blue (-162, -172) 
+        // blue blue red red => 0x00020001, red (-142, -152), blue (-162, -172)
         // blue red red blue => 0x00100008, red (-152, -162), blue (-172, -142)
         // red red blue blue => 0x01000080, red (-162, -172), blue (-152, -142)
         if (index == 0x08)
@@ -170,7 +170,7 @@ class CosmicKissKnockback(BossModule module) : Components.KnockbackFromCastTarge
             if (!IsImmune(slot, src.Activation))
             {
                 var inv = ShapeDistance.InvertedRect(Arena.Center, default(Angle), 20, 20, 20);
-                var rects = Module.FindComponent<ChaoticUndercurrent>()!.ActiveAOEs(slot, actor).Select(a => (GoalFun)a.Distance).ToList();
+                var rects = Module.FindComponent<ChaoticUndercurrent>()!.ActiveAOEs(slot, actor).Select(a => (DistFn)a.Distance).ToList();
                 var rect = rects.Count > 0 ? ShapeDistance.Union(rects) : _ => VV.Create(float.MaxValue);
 
                 var orig = src.Origin;

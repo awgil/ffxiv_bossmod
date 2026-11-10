@@ -271,7 +271,7 @@ class Drains(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        List<GoalFun> zones = [];
+        List<DistFn> zones = [];
         foreach (var drain in GetActiveDrains())
         {
             bool inDrain(WPos p) => p.AlmostEqual(drain.Position, 1.25f);

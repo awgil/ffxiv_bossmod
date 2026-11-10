@@ -198,7 +198,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var proj = projectedV(p);
-                return proj.IsValid() & ~Arena.InBoundsV(proj);
+                return proj.IsValid() & ~Arena.InBounds(proj);
             }), src.Activation);
         }
     }

@@ -155,7 +155,7 @@ class RockyRoll(BossModule module) : Components.GenericBaitAway(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        var forbidden = new List<GoalFun>();
+        var forbidden = new List<DistFn>();
         foreach (var b in ActiveBaitsOn(actor))
             foreach (var h in activeHoles)
                 forbidden.Add(ShapeDistance.InvertedRect(b.Source.Position, h, 1));

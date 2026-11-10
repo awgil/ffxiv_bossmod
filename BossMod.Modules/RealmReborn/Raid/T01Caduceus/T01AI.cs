@@ -28,7 +28,7 @@ class T01AI(BossModule module) : BossComponent(module)
         else if (activePlatforms.Any())
         {
             var actorIsSpawner = !cloneSpawned && assignment == (activePlatforms[0] ? PartyRolesConfig.Assignment.R2 : PartyRolesConfig.Assignment.R1);
-            GoalFun nonAllowedPlatforms = actorIsSpawner
+            DistFn nonAllowedPlatforms = actorIsSpawner
                 ? p => -activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)) // inverse union of active
                 : p => activePlatforms.SetBits().Min(platform => Platforms.PlatformShapes[platform](p)); // union of active
             hints.AddForbiddenZone(nonAllowedPlatforms, _platforms!.ExplosionAt);

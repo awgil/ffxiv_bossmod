@@ -184,11 +184,7 @@ class AerialBlast(BossModule module) : Components.Knockback(module, AID.AerialBl
     {
         if (_activation == default || WorldState.CurrentTime > _activation.AddSeconds(0.5) || IsImmune(slot, _activation))
             return;
-        hints.AddForbiddenZone(ShapeDistance.InvertedCircle(_origin, 10), _positionDeadline);
-        var origin = _origin;
-        var center = Arena.Center;
-        var bounds = Arena.Bounds;
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !bounds.Contains(AwayFromSource(p, origin, 15) - center)), _positionDeadline);
+        base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 class Hypernova(BossModule module) : Components.StackWithIcon(module, (uint)IconID.HypernovaStack, AID.Hypernova, 7, 6);

@@ -57,7 +57,7 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
     {
         if (Module.FindComponent<AetherSprayFire>()!.Active)
         {
-            var forbiddenInverted = new List<GoalFun>();
+            var forbiddenInverted = new List<DistFn>();
             foreach (var a in _aoes)
                 forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
@@ -90,7 +90,7 @@ class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget
     }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<GoalFun>();
+        var forbidden = new List<DistFn>();
         var source = Sources(slot, actor).FirstOrDefault();
         if (Module.FindComponent<QueerBubble>()!.ActiveAOEs(slot, actor).Any() && source != default)
         {
