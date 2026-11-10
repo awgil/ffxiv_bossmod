@@ -120,7 +120,6 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
             offset *= radius / offset.Length();
         return offset;
     }
-
     public override WDir ClampToBounds(WDir offset) => ClampToBounds(offset, Radius);
     public override WVec ClampToBounds(WVec offset) => offset * VV.Min(Radius / offset.Length(), VFloat.One);
 

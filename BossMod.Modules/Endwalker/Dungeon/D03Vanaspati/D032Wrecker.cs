@@ -62,7 +62,7 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
                 forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
             if (forbiddenInverted.Count > 0)
-                hints.AddForbiddenZone(p => forbiddenInverted.Max(f => f(p)), activation);
+                hints.AddForbiddenZone(ShapeDistance.Intersection(forbiddenInverted), activation);
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);

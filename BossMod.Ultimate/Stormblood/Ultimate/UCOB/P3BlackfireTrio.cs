@@ -167,7 +167,7 @@ class P3BlackfireTower(BossModule module) : P3MegaflareTower(module)
             if (t.ForbiddenSoakers[slot])
                 hints.AddForbiddenZone(ShapeDistance.Circle(t.Position, t.Radius + (_numHypernovas < 2 ? 2 : 0)), t.Activation);
             else if (_numHypernovas < 2)
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(t.Position, t.Radius + 2, t.Radius + 5)).Inverted(), t.Activation); // FIXME hypernova spawn
+                hints.AddForbiddenZone(ShapeDistance.Donut(t.Position, t.Radius + 2, t.Radius + 5).Inverted(), t.Activation); // FIXME hypernova spawn
             else
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(t.Position, t.Radius), t.Activation);
         }

@@ -183,7 +183,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
 
             WVec projectedV(WVec starting)
             {
-                starting = WVec.Select(src.Shape?.CheckV(starting, src.Origin, src.Direction) ?? VBool.AllBitsSet, starting, WVec.Invalid);
+                starting = WVec.Select(src.Shape?.Check(starting, src.Origin, src.Direction) ?? VBool.AllBitsSet, starting, WVec.Invalid);
 
                 return src.Kind switch
                 {

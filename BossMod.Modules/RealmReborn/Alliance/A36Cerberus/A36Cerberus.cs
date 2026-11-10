@@ -187,7 +187,7 @@ class Mini : Components.StandardAOEs
         if (aoes.Count == 0)
             return;
         if (aoes[0].Inverted)
-            hints.AddForbiddenZone(p => aoes.Max(a => a.DistV(p)), aoes.Min(a => a.Activation));
+            hints.AddForbiddenZone(ShapeDistance.Intersection([.. aoes.Select(a => a.DistV)]), aoes.Min(a => a.Activation));
         else
             foreach (var c in aoes)
                 hints.AddForbiddenZone(c.DistV, c.Activation);
@@ -219,7 +219,7 @@ class Slabber : Components.VoidzoneAtCastTarget
         if (aoes.Count == 0)
             return;
         if (aoes[0].Inverted)
-            hints.AddForbiddenZone(p => aoes.Max(a => a.DistV(p)), aoes.Min(a => a.Activation));
+            hints.AddForbiddenZone(ShapeDistance.Intersection([.. aoes.Select(a => a.DistV)]), aoes.Min(a => a.Activation));
         else
             foreach (var c in aoes)
                 hints.AddForbiddenZone(c.DistV, c.Activation);

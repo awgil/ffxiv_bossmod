@@ -23,4 +23,16 @@ public static class VectorExtensions
         public static VBool operator >(VFloat a, VFloat b) => VV.GreaterThan(a, b);
         public static VBool operator >(VFloat a, float b) => VV.GreaterThan(a, VV.Create(b));
     }
+
+    extension(ShapeDist sd)
+    {
+        public ShapeDist Inverted() => p => -sd(p);
+        public ShapeDist Inverted(bool inverted) => inverted ? Inverted(sd) : sd;
+    }
+
+    extension(ShapeTest st)
+    {
+        public ShapeTest Inverted() => p => ~st(p);
+        public ShapeTest Inverted(bool inverted) => inverted ? Inverted(st) : st;
+    }
 }

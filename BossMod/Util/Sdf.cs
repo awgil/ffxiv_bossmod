@@ -33,34 +33,6 @@ public struct Sdf
     public static Sdf Continuous(ShapeDist v) => new() { Type = SdfType.Continuous, SdfCont = v };
     public static Sdf Discrete(ShapeTest t) => new() { Type = SdfType.Discrete, SdfDisc = t };
 
-    public readonly Sdf Inverted(bool inverted) => inverted ? Inverted() : this;
-
-    public readonly Sdf Inverted()
-    {
-        switch (Type)
-        {
-            case SdfType.ContinuousSingle:
-                var fc = SdfCont1;
-                return ContinuousSingle(p => -fc(p));
-            case SdfType.DiscreteSingle:
-                var fd = SdfDisc1;
-#pragma warning disable CS0618 // Type or member is obsolete
-                return DiscreteSingle(p => !fd(p));
-#pragma warning restore CS0618 // Type or member is obsolete
-            case SdfType.Indexed:
-                var fi = SdfIx;
-                return Indexed((p, i) => !fi(p, i));
-            case SdfType.Continuous:
-                var fv = SdfCont;
-                return Continuous(p => -fv(p));
-            case SdfType.Discrete:
-                var ft = SdfDisc;
-                return Discrete(p => ~ft(p));
-            default:
-                throw new UnreachableException();
-        }
-    }
-
 #pragma warning disable IDE0066 // Convert switch statement to expression
     public readonly bool Check(WPos p)
     {
@@ -86,7 +58,7 @@ public struct Sdf
         }
     }
 
-    public readonly VFloat DistanceV(WVec p)
+    public readonly VFloat Distance(WVec p)
     {
         if (Type == SdfType.Continuous)
             return SdfCont(p);
@@ -104,7 +76,7 @@ public struct Sdf
 
         Parallel.For(0, VFloat.Count, i =>
         {
-            d[i] = s.Distance(new(xa[i], xb[i]));
+            d[i] = s.Distance(new WPos(xa[i], xb[i]));
         });
 
         return VV.Create(d.AsSpan());
@@ -136,26 +108,7 @@ public struct Sdf
 
     public readonly bool CheckIndexed(WPos p, int index)
     {
-        switch (Type)
-        {
-            case SdfType.ContinuousSingle:
-                return SdfCont1(p) < 0;
-
-            case SdfType.DiscreteSingle:
-                return SdfDisc1(p);
-
-            case SdfType.Indexed:
-                return SdfIx(p, index);
-
-            case SdfType.Continuous:
-                return SdfCont(new(p))[0] < 0;
-
-            case SdfType.Discrete:
-                return SdfDisc(new(p))[0] != 0;
-
-            default:
-                throw new UnreachableException();
-        }
+        return Type == SdfType.Indexed ? SdfIx(p, index) : Check(p);
     }
 #pragma warning restore IDE0066 // Convert switch statement to expression
 }

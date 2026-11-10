@@ -349,9 +349,9 @@ public struct NavigationDecision
 
         foreach (var z in zones)
         {
-            var dist = z.d.DistanceV(p);
+            var dist = z.d.Distance(p);
             g = VV.Min(g, VV.ConditionalSelect(VV.IsNegative(dist), VV.Create(z.g), VV.Create(float.MaxValue)));
-            d = VV.BitwiseOr(d, VV.LessThan(dist, c0));
+            d |= dist < c0;
         }
 
         return (g, d);

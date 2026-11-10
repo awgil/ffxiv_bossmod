@@ -225,8 +225,32 @@ public static class ShapeDistance
     }
     public static ShapeDist ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
 
-    public static ShapeDist Intersection(List<ShapeDist> funcs) => p => funcs.Max(f => f(p));
-    public static ShapeDist Union(List<ShapeDist> funcs) => p => funcs.Min(f => f(p));
+    public static ShapeDist Intersection(List<ShapeDist> funcs)
+    {
+        if (funcs.Count == 0)
+            return _ => VV.Create(float.MaxValue);
+
+        return p =>
+        {
+            var d = VV.Create(float.MinValue);
+            foreach (var f in funcs)
+                d = VV.Max(d, f(p));
+            return d;
+        };
+    }
+    public static ShapeDist Union(List<ShapeDist> funcs)
+    {
+        if (funcs.Count == 0)
+            return _ => VV.Create(float.MaxValue);
+
+        return p =>
+        {
+            var d = VV.Create(float.MaxValue);
+            foreach (var f in funcs)
+                d = VV.Min(d, f(p));
+            return d;
+        };
+    }
 
     public static ShapeDist Xor(ShapeDist a, ShapeDist b)
     {
@@ -238,7 +262,7 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WVec, Vector<uint>> Counted(List<ShapeDist> fs)
+    public static Func<WVec, Vector<uint>> Count(List<ShapeDist> fs)
     {
         return p =>
         {

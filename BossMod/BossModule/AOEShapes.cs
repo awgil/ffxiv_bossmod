@@ -7,12 +7,12 @@ public abstract record class AOEShape
     public abstract void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0);
     public virtual ShapeDist Distance(WPos origin, Angle rotation) => throw new NotImplementedException("Please implement either this function or GetSdf");
     public virtual Sdf GetSdf(WPos origin, Angle rotation) => Sdf.Continuous(Distance(origin, rotation));
-    public virtual VBool CheckV(WVec position, WPos origin, Angle rotation) => GetSdf(origin, rotation).DistanceV(position) < VFloat.Zero;
-
     public bool Check(WPos position, Actor? origin)
     {
         return origin != null && Check(position, origin.Position, origin.Rotation);
     }
+
+    public VBool Check(WVec position, WPos origin, Angle rotation) => VV.IsNegative(GetSdf(origin, rotation).Distance(position)).Mask();
 
     public void Draw(MiniArena arena, Actor? origin, uint color = 0)
     {

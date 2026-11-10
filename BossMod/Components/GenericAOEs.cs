@@ -1,17 +1,14 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace BossMod.Components;
+﻿namespace BossMod.Components;
 
 // generic component that shows arbitrary shapes representing avoidable aoes
 public abstract class GenericAOEs(BossModule module, Enum? aid = default, string warningText = "GTFO from aoe!", string invertedText = "Go to safe zone!") : CastCounter(module, aid)
 {
     public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true, bool Inverted = false)
     {
-        public readonly VFloat Distance(WVec pos) => Shape.GetSdf(Origin, Rotation).Inverted(Inverted).DistanceV(pos);
+        public readonly VFloat Distance(WVec pos) => Shape.Distance(Origin, Rotation).Inverted(Inverted)(pos);
 
         // type constrained alias so we don't need to explicitly cast when calling AddForbiddenZone
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly VFloat DistV(WVec pos) => Distance(pos);
+        public readonly ShapeDist DistV => Distance;
 
         public readonly bool Check(WPos p) => Distance(p) < 0;
         public readonly float Distance(WPos p) => Distance(new WVec(p))[0];

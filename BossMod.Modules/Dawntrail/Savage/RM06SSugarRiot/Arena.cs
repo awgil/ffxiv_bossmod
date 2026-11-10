@@ -44,8 +44,7 @@ class RiverPhaseArena(BossModule module) : BossComponent(module)
         if (Activation == default)
             return;
 
-        var chk = new AOEShapeCustom(RiverPoly).GetSdf(Arena.Center, default);
-        hints.AddForbiddenZone(RiverSafe ? chk.Inverted() : chk, Activation);
+        hints.AddForbiddenZone(ShapeDistance.ComplexPolygon(Arena.Center, default, RiverPoly).Inverted(RiverSafe), Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

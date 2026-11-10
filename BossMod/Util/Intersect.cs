@@ -214,7 +214,13 @@ public static class Intersect
             dist = VV.Min(dist, RaySegmentsV(rayOriginOffset, rayDir, poly.Interior(h)));
         return dist;
     }
-    public static VFloat RayPolygonV(WVec rayOriginOffset, WVec rayDir, RelSimplifiedComplexPolygon poly) => poly.Parts.Min(part => RayPolygonV(rayOriginOffset, rayDir, part));
+    public static VFloat RayPolygonV(WVec rayOriginOffset, WVec rayDir, RelSimplifiedComplexPolygon poly)
+    {
+        var d = VV.Create(float.MaxValue);
+        foreach (var part in poly.Parts)
+            d = VV.Min(d, RayPolygonV(rayOriginOffset, rayDir, part));
+        return d;
+    }
 
     // circle-shape intersections; they return true if shapes intersect or touch, false otherwise
     // these are used e.g. for player-initiated aoes
