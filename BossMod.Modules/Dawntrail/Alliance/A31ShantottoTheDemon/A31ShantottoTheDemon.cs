@@ -165,7 +165,7 @@ class Winds : Components.Knockback
         if (dir.Activation > WorldState.CurrentTime)
         {
             var dist = 50f;
-            if (HitsWall(_safeWalls, dir.Direction, actor.Position))
+            if (HitsWall(_safeWalls, dir.Direction).CallOnce(actor.Position))
                 dist = Arena.Bounds.IntersectRay(actor.Position - Arena.Center, dir.Direction);
 
             yield return new(actor.Position, dist - 0.1f, dir.Activation, null, dir.Direction.ToAngle(), Kind.DirForward);
@@ -177,16 +177,19 @@ class Winds : Components.Knockback
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation))
             {
-                var d = _directions[slot].Direction;
                 var walls = _safeWalls.ToList();
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !HitsWall(walls, d, p)), src.Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(HitsWall(walls, _directions[slot].Direction).Inverted()), src.Activation);
             }
     }
 
-    static bool HitsWall(List<(WDir WindDir, WPos Center, float HalfWidth)> walls, WDir windDir, WPos pos)
+    static Func<WVec, VBool> HitsWall(List<(WDir WindDir, WPos Center, float HalfWidth)> walls, WDir windDir) => pos =>
     {
-        return walls.Any(w => w.WindDir == windDir && pos.InRect(w.Center, w.WindDir * -50, w.HalfWidth));
-    }
+        var any = VBool.Zero;
+        foreach (var w in walls)
+            if (w.WindDir == windDir)
+                any |= pos.InRect(w.Center, w.WindDir * -50, w.HalfWidth);
+        return any;
+    };
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {

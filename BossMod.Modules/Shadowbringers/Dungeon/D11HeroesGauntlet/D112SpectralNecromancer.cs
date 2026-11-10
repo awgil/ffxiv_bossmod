@@ -92,7 +92,7 @@ class Necrobombs(BossModule module) : BossComponent(module)
     {
         if (_ba.ActiveBaits.Any())
             return;
-        var forbidden = new List<Func<WVec, Vector<float>>>();
+        var forbidden = new List<DistFn>();
         foreach (var e in WorldState.Actors.Where(x => !x.IsAlly && x.Tether.ID == (uint)TetherID.CrawlingNecrobombs))
             forbidden.Add(circle.Distance(e.Position, default));
         if (forbidden.Count > 0)

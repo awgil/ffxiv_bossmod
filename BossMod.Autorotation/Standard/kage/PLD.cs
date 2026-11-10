@@ -378,7 +378,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     private bool PotionBurst(in Strategy strategy) => Player.InCombat && (FightOrFlightStrat == OffensiveStrategy.Delay ? RaidBuffsLeft > 0 || RaidBuffsIn < 5 : ReadyIn(AID.FightOrFlight) < 3 && (CombatTime > 15 || ComboLastMove == (strategy.Opener.Value == OpenerStrategy.EarlyBuff ? AID.FastBlade : AID.RiotBlade) || !Unlocked(AID.RiotBlade)));
 
-    private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
+    private void PushGCD(AID aid, Actor? target, int priority) => PushGCD(aid, target, priority, CastTime(aid));
 
     private float CastTime(AID aid)
     {

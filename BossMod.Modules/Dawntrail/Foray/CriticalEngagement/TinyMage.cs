@@ -241,7 +241,7 @@ class TinyTether(BossModule module) : Components.Knockback(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         WPos orig;
-        Func<WVec, Vector<float>> sh;
+        DistFn sh;
         switch (_mechanics)
         {
             case [{ Type: Orb.Flare } f1]:

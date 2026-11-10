@@ -16,14 +16,10 @@ public static class ShapeDistance
 
     public static DistFn Donut(WPos origin, float innerRadius, float outerRadius)
     {
-        if (outerRadius <= 0 || innerRadius >= outerRadius)
-            return _ => VV.Create(float.MaxValue);
-
         var midpoint = (outerRadius + innerRadius) * 0.5f;
         var thickness = (outerRadius - innerRadius) * 0.5f;
-        var cv = Circle(origin, midpoint);
 
-        return p => cv(p).Abs() - thickness;
+        return Ring(Circle(origin, midpoint), thickness);
     }
 
     public static DistFn ConeMulti(WVec origin, float radius, WVec centerDir, Angle halfAngle)
@@ -282,6 +278,8 @@ public static class ShapeDistance
 
     public static DistFn Grow(DistFn a, float len) => p => a(p) - len;
     public static DistFn Shrink(DistFn a, float len) => p => a(p) + len;
+
+    public static DistFn Ring(DistFn input, float thickness) => p => input(p).Abs() - thickness;
 
     public static Func<WVec, VInt> Count(List<DistFn> fs)
     {

@@ -172,11 +172,11 @@ abstract partial class AutoClear : ZoneModule
         hints.GoalZones.Add(p => Vector.ConditionalSelect(
             // align the near side of the goal rect to the grid since we get annoying jittering otherwise
             p.InRect(playerPos, srcToDestCardinal, 10, 100, 100),
-            Vector<float>.Zero,
+            VFloat.Zero,
             Vector.ConditionalSelect(
                  p.InRect(srcBox.Pos, srcToDest.ToAngle(), srcToDestLen, srcToDestLen, rectWidth),
                  Vector.Create(goalWeight),
-                 Vector<float>.Zero
+                 VFloat.Zero
             )
         ));
     }

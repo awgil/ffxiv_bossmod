@@ -89,7 +89,7 @@ class FearsomeFireball2(BossModule module) : Components.GenericWildCharge(module
         if (Source == null)
             return;
 
-        List<Func<WVec, Vector<float>>> zones = [];
+        List<DistFn> zones = [];
         switch (PlayerRoles[slot])
         {
             case PlayerRole.Target:

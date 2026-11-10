@@ -138,7 +138,7 @@ public sealed class AIHints
     // other parts of the code can return small (e.g. 0.01) values to slightly (de)prioritize some positions, or large (e.g. 1000) values to effectively soft-override target position (but still utilize pathfinding)
     public GoalList GoalZones = [];
 
-    public class GoalList : List<GoalFun>
+    public class GoalList : List<GoalFn>
     {
         public void AddSimple(PointTest fun, float value) => Add(p => fun(p).WithValue(VV.Create(value)));
     }
@@ -368,12 +368,12 @@ public sealed class AIHints
     }
 
     // goal zones
-    public static GoalFun GoalSingleTarget(WPos target, float radius, float weight = 1)
+    public static GoalFn GoalSingleTarget(WPos target, float radius, float weight = 1)
     {
         var effrsq = radius * radius;
         return p => VV.ConditionalSelect((p - target).LengthSq() <= effrsq, VV.Create(weight), VFloat.Zero);
     }
-    public GoalFun GoalSingleTarget(Actor target, Actor player, ActorState actorState, float range, float weight = 1)
+    public GoalFn GoalSingleTarget(Actor target, Actor player, ActorState actorState, float range, float weight = 1)
     {
         var f = GoalSingleTarget(target.Position, range + target.HitboxRadius + 0.5f, weight);
         var g = FollowTarget(target, player, actorState, range);
@@ -381,7 +381,7 @@ public sealed class AIHints
         return p => f(p) + g(p);
     }
 
-    public static GoalFun GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius, float cushion = 0)
+    public static GoalFn GoalSingleTarget(WPos target, Angle rotation, Positional positional, float radius, float cushion = 0)
     {
         if (positional == Positional.Any)
             return GoalSingleTarget(target, radius);
@@ -413,7 +413,7 @@ public sealed class AIHints
             );
         };
     }
-    public GoalFun GoalSingleTarget(Actor target, Positional positional, Actor player, ActorState actorState, float range = 3, float cushion = 0)
+    public GoalFn GoalSingleTarget(Actor target, Positional positional, Actor player, ActorState actorState, float range = 3, float cushion = 0)
     {
         var f = GoalSingleTarget(target.Position, target.Rotation, positional, range + target.HitboxRadius + 0.5f, cushion);
         var g = FollowTarget(target, player, actorState, range);
@@ -421,7 +421,7 @@ public sealed class AIHints
         return new(p => f(p) + g(p));
     }
 
-    GoalFun FollowTarget(Actor target, Actor player, ActorState actorState, float maxRange)
+    GoalFn FollowTarget(Actor target, Actor player, ActorState actorState, float maxRange)
     {
         if (target.CastInfo == null && target.TargetID != player.InstanceID && FindEnemy(target) is { } e && actorState.Find(target.TargetID) is { } tt)
         {
@@ -439,7 +439,7 @@ public sealed class AIHints
     }
 
     // simple goal zone that returns number of targets in aoes; note that performance is a concern for these functions, and perfection isn't required, so eg they ignore forbidden targets, etc
-    public static GoalFun GoalAOECircle(IEnumerable<(WPos pos, float radius)> targets, float range)
+    public static GoalFn GoalAOECircle(IEnumerable<(WPos pos, float radius)> targets, float range)
     {
         var tt = targets.ToList();
 
@@ -455,9 +455,9 @@ public sealed class AIHints
         };
     }
 
-    public GoalFun GoalAOECircle(float radius) => GoalAOECircle(PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius)), radius);
+    public GoalFn GoalAOECircle(float radius) => GoalAOECircle(PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius)), radius);
 
-    public GoalFun GoalAOECone(Actor primaryTarget, float radius, Angle halfAngle)
+    public GoalFn GoalAOECone(Actor primaryTarget, float radius, Angle halfAngle)
     {
         List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
 
@@ -481,7 +481,7 @@ public sealed class AIHints
         };
     }
 
-    public GoalFun GoalAOERect(Actor primaryTarget, float lenFront, float halfWidth, float lenBack = 0)
+    public GoalFn GoalAOERect(Actor primaryTarget, float lenFront, float halfWidth, float lenBack = 0)
     {
         List<(WPos pos, float radius)> targets = [.. PriorityTargets.Select(e => (e.Actor.Position, e.Actor.HitboxRadius))];
         var aimPoint = primaryTarget.Position;
@@ -505,7 +505,7 @@ public sealed class AIHints
     }
 
     // combined goal zone: returns 'aoe' priority if targets hit are at or above minimum, otherwise returns 'single-target' priority
-    public static GoalFun GoalCombined(GoalFun singleTarget, GoalFun aoe, int minAOETargets)
+    public static GoalFn GoalCombined(GoalFn singleTarget, GoalFn aoe, int minAOETargets)
     {
         if (minAOETargets >= 50)
             return singleTarget; // assume aoe is never efficient, so don't bother
@@ -518,7 +518,7 @@ public sealed class AIHints
     }
 
     // goal zone that returns a value between 0 and weight depending on distance to point; useful for downtime movement targets
-    public static GoalFun GoalProximity(WPos destination, float maxDistance, float maxWeight)
+    public static GoalFn GoalProximity(WPos destination, float maxDistance, float maxWeight)
     {
         var invDist = 1.0f / maxDistance;
         return p =>
@@ -529,7 +529,7 @@ public sealed class AIHints
         };
     }
 
-    public GoalFun PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2, bool greed = true)
+    public GoalFn PullTargetToLocation(Actor target, WPos destination, Actor player, float gcd, float destRadius = 2, bool greed = true)
     {
         var enemy = FindEnemy(target);
         if (enemy == null)

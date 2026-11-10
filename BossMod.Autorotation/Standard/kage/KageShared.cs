@@ -275,7 +275,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushGCD(first, target.Actor, 10);
     }
 
-    protected void AddMeleeGoal(AIHints.Enemy target, GoalFun? aoe, int minAoETargets = 3, bool forcePositional = false)
+    protected void AddMeleeGoal(AIHints.Enemy target, GoalFn? aoe, int minAoETargets = 3, bool forcePositional = false)
     {
         var (_, pos, imminent, _) = Hints.RecommendedPositional;
         var single = Hints.GoalSingleTarget(target.Actor, imminent || forcePositional ? pos : Positional.Any, Player, World.Actors, 3);

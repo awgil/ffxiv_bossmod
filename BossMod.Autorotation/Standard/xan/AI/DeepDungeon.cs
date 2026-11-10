@@ -167,7 +167,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (primaryTarget == null)
             return;
 
-        GoalFun goal;
+        GoalFn goal;
         ActionID attack;
         int numTargets;
         var castTime = 0f;

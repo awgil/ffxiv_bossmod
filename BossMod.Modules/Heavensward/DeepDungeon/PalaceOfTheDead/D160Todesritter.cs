@@ -51,7 +51,7 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
         }
     }
 
-    private Func<WVec, Vector<float>>? GetFireballZone()
+    private DistFn? GetFireballZone()
     {
         _infatuation ??= Module.FindComponent<Infatuation>();
         if (_infatuation == null || _infatuation.Casters.Count == 0)

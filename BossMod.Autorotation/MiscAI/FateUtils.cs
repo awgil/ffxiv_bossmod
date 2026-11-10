@@ -79,8 +79,8 @@ public sealed class FateUtils(RotationModuleManager manager, Actor player) : Rot
                 //if (progress <= 0)
                 //    return 0;
 
-                var cappedProgress = Vector.Min(progress, Vector.Create(losDist));
-                var overshoot = Vector.Max(Vector<float>.Zero, progress - losDist);
+                var cappedProgress = VV.Min(progress, VV.Create(losDist));
+                var overshoot = VV.Max(VFloat.Zero, progress - losDist);
                 return cappedProgress * 8 - overshoot * 16;
             });
         }

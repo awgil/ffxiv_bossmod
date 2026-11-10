@@ -174,13 +174,22 @@ class RedRushKnockback(BossModule module) : Components.Knockback(module, AID.Red
             yield return new(b.Source.Position, 15, b.Activation);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _water?.Active == true && !pos.InCircle(Arena.Center, T09Seiryu.IslandRadius);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => DangerShape().CallOnce(pos);
+
+    private Func<WVec, VBool> DangerShape()
+    {
+        if (_water is not { Active: true })
+            return _ => VBool.Zero;
+
+        return p => ~p.InCircle(Arena.Center, T09Seiryu.IslandRadius);
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var sh = DangerShape();
         foreach (var s in Sources(slot, actor))
             if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, s.Origin, s.Distance))), s.Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => sh(AwayFromSource(p, s.Origin, s.Distance))), s.Activation);
     }
 }
 
@@ -274,7 +283,7 @@ class ForbiddenArts(BossModule module) : Components.GenericWildCharge(module, 4,
     }
 }
 
-class CoursingRiver(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiver, 25, shape: new AOEShapeRect(90, 45), kind: Components.Knockback.Kind.DirForward)
+class CoursingRiver(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiver, 25, shape: new AOEShapeRect(90, 45), kind: Kind.DirForward)
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, T09Seiryu.IslandRadius);
 

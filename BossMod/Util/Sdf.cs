@@ -54,9 +54,7 @@ public readonly struct Sdf
     }
 
     public static Sdf ContinuousSingle(Func<WPos, float> d) => new(d);
-#if DEBUG
     [Obsolete("Please convert your shit to use the vectored version!")]
-#endif
     public static Sdf DiscreteSingle(Func<WPos, bool> b) => new(b);
     public static Sdf Indexed(Func<WPos, int, bool> i) => new(i);
     public static Sdf Continuous(DistFn v) => new(v);

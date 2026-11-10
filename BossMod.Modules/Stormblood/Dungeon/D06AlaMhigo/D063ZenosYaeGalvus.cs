@@ -97,14 +97,14 @@ class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(mod
         if (caster == null)
             return;
 
-        List<Func<WVec, Vector<float>>> funcs = [
+        List<DistFn> funcs = [
             ShapeDistance.InvertedCircle(Module.Center, 20),
         ];
 
         if (storm?.ActiveCasters.FirstOrDefault() is Actor st)
             funcs.Add(storm.Shape.Distance(st.Position, st.Rotation));
 
-        Vector<float> inbounds(WVec pos)
+        VFloat inbounds(WVec pos)
         {
             var dir = (pos - caster.Position).Normalized();
             var proj = pos + dir * 15;

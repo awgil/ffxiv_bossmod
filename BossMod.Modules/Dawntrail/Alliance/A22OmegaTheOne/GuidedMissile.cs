@@ -62,7 +62,7 @@ class GuidedMissileBait(BossModule module) : Components.CastCounter(module, AID.
     {
         if (_baits.FirstOrNull(b => b.Target == actor) is { } thisBait)
         {
-            List<Func<WVec, Vector<float>>> selfShape = [];
+            List<GoalFun> selfShape = [];
             foreach (var r in Raid.WithoutSlot().Exclude(actor))
                 selfShape.Add(ShapeDistance.Circle(r.Position - thisBait.Offset, 6));
 
@@ -70,7 +70,7 @@ class GuidedMissileBait(BossModule module) : Components.CastCounter(module, AID.
                 hints.AddForbiddenZone(ShapeDistance.Union(selfShape), thisBait.Activation);
         }
 
-        List<Func<WVec, Vector<float>>> othersShape = [];
+        List<GoalFun> othersShape = [];
         foreach (var b in _baits.Where(b => b.Target != actor))
             othersShape.Add(ShapeDistance.Circle(b.Target.Position + b.Offset, 6));
 

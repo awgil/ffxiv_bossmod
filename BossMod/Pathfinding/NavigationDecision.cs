@@ -182,7 +182,7 @@ public struct NavigationDecision
         ArrayPool<int>.Shared.Return(dScratch);
     }
 
-    public static void RasterizeGoalZones(Map map, List<GoalFun> goals)
+    public static void RasterizeGoalZones(Map map, List<GoalFn> goals)
     {
         var rowLength = ((map.Width + 1) / VFloat.Count + 1) * VFloat.Count;
         var dim = rowLength * (map.Height + 1);

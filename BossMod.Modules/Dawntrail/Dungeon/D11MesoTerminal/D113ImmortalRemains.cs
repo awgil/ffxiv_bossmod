@@ -46,7 +46,7 @@ class ImpressionKnockback(BossModule module) : Components.KnockbackFromCastTarge
 {
     private Bombardment? _bomb;
 
-    private readonly List<Func<WVec, Vector<float>>> _safeSpots = [];
+    private readonly List<DistFn> _safeSpots = [];
 
     public override void Update()
     {

@@ -126,9 +126,9 @@ class BlastKnuckles(BossModule module) : Components.KnockbackFromCastTarget(modu
 
     private readonly CageOfFire _cage = module.FindComponent<CageOfFire>()!;
 
-    private Func<WVec, Vector<float>> HitByRect() => ShapeDistance.Union([.. _cage.ActiveCasters.Select(c => ShapeDistance.Rect(c.Position, c.Rotation, 60, 0, 4))]);
+    private DistFn HitByRect() => ShapeDistance.Union([.. _cage.ActiveCasters.Select(c => ShapeDistance.Rect(c.Position, c.Rotation, 60, 0, 4))]);
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, 20) || HitByRect()(new(pos))[0] < 0;
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, 20) || HitByRect().CallOnce(pos) < 0;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

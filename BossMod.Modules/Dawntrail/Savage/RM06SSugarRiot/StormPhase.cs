@@ -134,5 +134,5 @@ class LightningStorm(BossModule module) : Components.BaitAwayIcon(module, new AO
     private static bool IsOnBridge(Actor p) => IsOnBridge(p.Position);
     private static bool IsOnBridge(WPos p) => RM06SSugarRiot.Bridges.Any(b => RM06SSugarRiot.BridgeShape.Check(p, b.Center, b.Rotation));
 
-    private static Func<WVec, Vector<float>> IsOnBridgeV => ShapeDistance.Union([.. RM06SSugarRiot.Bridges.Select(b => RM06SSugarRiot.BridgeShape.Distance(b.Center, b.Rotation))]);
+    private static DistFn IsOnBridgeV => ShapeDistance.Union([.. RM06SSugarRiot.Bridges.Select(b => RM06SSugarRiot.BridgeShape.Distance(b.Center, b.Rotation))]);
 }

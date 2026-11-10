@@ -179,7 +179,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                     Vector.ConditionalSelect(
                         length <= 3.5f,
                         Vector.Create(100f),
-                        Vector<float>.Zero
+                        VFloat.Zero
                     )
                 );
             });
@@ -213,7 +213,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 var dist = (enemy.Actor.Position - Player.Position).Length();
                 var goal = enemy.Actor.Position + rot.ToDirection() * enemy.Actor.HitboxRadius;
                 var sh = ShapeDistance.PrecisePosition(goal, new(0, 1), Hints.PathfindMapBounds.MapResolution, Player.Position, 0.1f);
-                Hints.GoalZones.AddSimple(p => sh(p) >= Vector<float>.Zero, 10);
+                Hints.GoalZones.AddSimple(p => sh(p) >= VFloat.Zero, 10);
             }
         }
 

@@ -42,7 +42,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && PlayerImmunes[slot].ImmuneAt(time);
 
     public static WPos AwayFromSource(WPos pos, WPos origin, float distance) => pos != origin ? pos + distance * (pos - origin).Normalized() : pos;
-    public static WVec AwayFromSourceV(WVec pos, WPos origin, float distance) => pos + distance * (pos - origin).Normalized();
+    public static WVec AwayFromSource(WVec pos, WPos origin, float distance) => pos + distance * (pos - origin).Normalized();
     public static WPos AwayFromSource(WPos pos, Actor? source, float distance) => source != null ? AwayFromSource(pos, source.Position, distance) : pos;
 
     public static void DrawKnockback(WPos from, WPos to, Angle rot, MiniArena arena)
@@ -187,7 +187,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
 
                 return src.Kind switch
                 {
-                    Kind.AwayFromOrigin => AwayFromSourceV(starting, src.Origin, src.Distance),
+                    Kind.AwayFromOrigin => AwayFromSource(starting, src.Origin, src.Distance),
                     Kind.DirForward => starting + src.Direction.ToDirection() * src.Distance,
                     Kind.DirLeft => starting + src.Direction.ToDirection().OrthoL() * src.Distance,
                     Kind.DirRight => starting + src.Direction.ToDirection().OrthoR() * src.Distance,

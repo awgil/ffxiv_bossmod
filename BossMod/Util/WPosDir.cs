@@ -121,6 +121,7 @@ public record struct WVec(VFloat X, VFloat Z)
     public readonly VBool IsValid() => (VV.IsFinite(X) & VV.IsFinite(Z)).Mask();
     public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
     public readonly WVec OrthoL() => new(Z, -X); // CCW, same length
+    public readonly WVec OrthoR() => new(-Z, X); // CW, same length
 
     public readonly VFloat LengthSq() => X * X + Z * Z;
     public readonly VFloat Length() => VV.SquareRoot(LengthSq());

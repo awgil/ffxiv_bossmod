@@ -64,7 +64,7 @@ class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, AI
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WVec, Vector<float>>>();
+        var forbidden = new List<DistFn>();
         var component = Module.FindComponent<BitingWind>()?.ActiveAOEs(slot, actor)?.ToList();
         var source = Sources(slot, actor).FirstOrDefault();
         if (source != default && component != null)
