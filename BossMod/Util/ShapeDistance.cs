@@ -135,6 +135,22 @@ public static class ShapeDistance
         };
     }
 
+    public static DistFn InvertedRect2(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    {
+        var normal = dir.OrthoL();
+        return p =>
+        {
+            var offset = p - origin;
+            var distParr = offset.Dot(dir);
+            var distOrtho = offset.Dot(normal);
+            var distFront = distParr - lenFront;
+            var distBack = -distParr - lenBack;
+            var distLeft = distOrtho - halfWidth;
+            var distRight = -distOrtho - halfWidth;
+            return -VV.Max(VV.Max(distFront, distBack), VV.Max(distLeft, distRight));
+        };
+    }
+
     public static DistFn InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var r = Rect(origin, dir, lenFront, lenBack, halfWidth);
@@ -311,6 +327,6 @@ public static class ShapeDistance
         else if (dortho < -tolerance && dortho >= -cellSize)
             origin += cellSize * normal;
 
-        return InvertedRect(origin, dir, cellSize, cellSize, cellSize);
+        return InvertedRect2(origin, dir, cellSize, cellSize, cellSize);
     }
 }
