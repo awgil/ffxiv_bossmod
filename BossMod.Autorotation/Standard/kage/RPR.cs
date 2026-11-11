@@ -836,7 +836,6 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         return !gluttonySoon && (CircleIn is >= 49f and <= 66f || Soul >= 90) || Shroud >= 100 && CircleIn > 15;
     }
 
-    // the gap after the 2-minute Communio usually has under 50 Soul; Soul Slice first, and only while Immortal Sacrifice outlasts Gluttony's two Executioner GCDs
     private bool ShouldGluttonyBeforeHarvest(SliceStrategy slice)
     {
         if (GluttonyStrat != GluttonyStrategy.GluttonyFirst || !Unlocked(AID.Gluttony) || !HasImmortal || Enshrouded || SoulReaver || ShroudOvercapping
