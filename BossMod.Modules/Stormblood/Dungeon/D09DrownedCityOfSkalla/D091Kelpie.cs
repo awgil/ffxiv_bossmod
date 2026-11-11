@@ -40,29 +40,7 @@ public enum TetherID : uint
 
 class Torpedo(BossModule module) : Components.SingleTargetCast(module, AID.Torpedo);
 class RisingSeas(BossModule module) : Components.RaidwideCast(module, AID.RisingSeas);
-class HydroPull(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPull, 20, kind: Kind.TowardsOrigin)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor).Where(s => !IsImmune(slot, s.Activation)))
-        {
-            var orig = src.Origin;
-            var ctr = Arena.Center;
-            var dangerShape = ShapeDistance.Union([
-                .. Module.Enemies(OID.BloodyPuddle).Select(e => ShapeDistance.Circle(e.Position, 8)),
-                ShapeDistance.InvertedRect(ctr, default(Angle), 15, 15, 15)
-            ]);
-            var ov = new WVec(orig);
-
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
-            {
-                var dir = ov - p;
-                var proj = p + dir.Normalized() * VV.Min(VV.Create(20f), dir.Length());
-                return VV.LessThan(dangerShape(proj), VFloat.Zero);
-            }), src.Activation);
-        }
-    }
-}
+class HydroPull(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPull, 20, kind: Kind.TowardsOrigin);
 class HydroPush(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, kind: Kind.DirForward);
 class BloodyPuddleSpread(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.BigSpread, AID.BloodyPuddle, 8, 5.1f)
 {

@@ -38,6 +38,7 @@ public static class VectorExtensions
     extension(PointTest _)
     {
         public static PointTest Never => _ => VBool.Zero;
+        public static PointTest Always => _ => VBool.AllBitsSet;
 
         public static PointTest operator |(PointTest a, PointTest b) => p => a(p) | b(p);
         public static PointTest operator &(PointTest a, PointTest b) => p => a(p) & b(p);
@@ -53,6 +54,9 @@ public static class VectorExtensions
     {
         public DistFn Inverted() => p => -sd(p);
         public DistFn Inverted(bool inverted) => inverted ? Inverted(sd) : sd;
+
+        public DistFn Grow(float value) => p => sd(p) - value;
+        public DistFn Shrink(float value) => p => sd(p) + value;
 
         public PointTest Discretize() => p => sd(p) < VFloat.Zero;
 

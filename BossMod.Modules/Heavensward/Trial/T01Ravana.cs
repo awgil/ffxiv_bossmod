@@ -150,7 +150,7 @@ class TheRoseOfHate(BossModule module) : Components.StandardAOEs(module, AID.The
 class BloodyFuller(BossModule module) : Components.RaidwideCast(module, AID.BloodyFuller);
 class PillarsOfHeaven(BossModule module) : Components.RaidwideCast(module, AID.PillarsOfHeaven);
 
-class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PillarsOfHeaven, 20, stopAtWall: true)
+class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PillarsOfHeaven, 20)
 {
     private static readonly Angle GateHalfWidth = 20.Degrees();
 
@@ -163,20 +163,17 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
                 OpenGates.Add(g.Position);
     }
 
-    protected override WVec CalculateMovement(Source src, WVec starting)
+    public override VFloat CalculateDistance(WVec position, WVec direction)
     {
         var inDanger = VBool.Zero;
 
         foreach (var gate in OpenGates)
         {
             var gateDir = gate - Arena.Center;
-            inDanger |= starting.InCone(Arena.Center, gateDir.ToAngle(), GateHalfWidth);
+            inDanger |= position.InCone(Arena.Center, gateDir.ToAngle(), GateHalfWidth);
         }
 
-        var distance = VV.ConditionalSelect(inDanger, VV.Create(40f), VV.Create(19.5f));
-        var dir = (starting - src.Origin).Normalized();
-
-        return new WVec(src.Origin) + dir * distance;
+        return VV.ConditionalSelect(inDanger, VV.Create(float.MaxValue), 19.5f - (position - Arena.Center).Length());
     }
 }
 class SwiftSlaughter(BossModule module) : Components.CastHint(module, AID.SwiftSlaughter, "Enrage!", true);

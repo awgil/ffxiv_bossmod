@@ -206,28 +206,6 @@ class Knockbacks(BossModule module) : Components.Knockback(module)
         if ((AID)spell.Action.ID == AID.StormsBreathKB)
             _stormsBreathCaster = null;
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor).Where(s => !IsImmune(slot, s.Activation)).Take(1))
-        {
-            if (src.Kind == Kind.DirForward)
-            {
-                hints.AddForbiddenZone(ShapeDistance.Rect(Arena.Center, src.Direction, 20, 5, 20), src.Activation);
-                hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center, default(Angle), 15, 15, 15), src.Activation);
-            }
-
-            if (src.Kind == Kind.AwayFromOrigin)
-            {
-                var orig = src.Origin;
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-                {
-                    var dir = (p - orig).Normalized() * 14;
-                    return !(p + dir).AlmostEqual(Arena.Center, 20);
-                }), src.Activation);
-            }
-        }
-    }
 }
 
 class Cluster(BossModule module) : Components.GroupedAOEs(module, [AID.IceClusterAOE, AID.LightningClusterAOE], new AOEShapeCircle(15))

@@ -92,37 +92,15 @@ class BlackFlame(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        base.AddAIHints(slot, actor, assignment, hints);
         if (targets[slot])
             foreach (var ally in Furniture)
-#pragma warning disable VBM006 // Reference type captured in closure
-                // TODO(SDF)
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => IntersectFurniture(ally, p)), activation);
-#pragma warning restore VBM006 // Reference type captured in closure
+                hints.AddForbiddenZone(ShapeDistance.Cross(ally.Position, default, 10, 2).Grow(ally.HitboxRadius), activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (targets[slot])
-            hints.Add("Bait away from furniture!", Furniture.Any(f => IntersectFurniture(f, actor.Position)));
-    }
-
-    private bool IntersectFurniture(Actor furniture, WPos player) => IntersectBubble(furniture, player, 2, 10) || IntersectBubble(furniture, player, 10, 2);
-
-    // TODO replace with Intersect.CircleAARect
-    private bool IntersectBubble(Actor furniture, WPos rectCenter, float halfWidth, float halfHeight)
-    {
-        var radius = furniture.HitboxRadius;
-
-        var circleCenter = furniture.Position;
-        var off1 = (rectCenter - circleCenter).Abs();
-        if (off1.X > halfWidth + radius || off1.Z > halfHeight + radius)
-            return false;
-
-        if (off1.X <= halfWidth || off1.Z <= halfHeight)
-            return true;
-
-        return (off1 - new WDir(halfWidth, halfHeight)).Length() <= radius;
+            hints.Add("Bait away from furniture!", Furniture.Any(f => ShapeDistance.Cross(f.Position, default, 10, 2).CallOnce(actor.Position) < f.HitboxRadius));
     }
 }
 

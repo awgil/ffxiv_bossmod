@@ -30,14 +30,14 @@ class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, AID.S
     }
 }
 class OnLow(BossModule module) : Components.StandardAOEs(module, AID.OnLow, new AOEShapeCone(11, 60.Degrees()));
-class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
+class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh, stopAtWall: true)
 {
     private readonly List<Actor> Casters = [];
     private static readonly Angle[] Walls = [default, 90.Degrees(), 180.Degrees(), 270.Degrees()];
     private BitMask BlockedWalls;
     private const float WallHalfAngle = MathF.PI / 16;
 
-    public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, CheckWall(actor.Position) ? 19 - (c.Position - actor.Position).Length() : 30, Module.CastFinishAt(c.CastInfo)));
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, 30, Module.CastFinishAt(c.CastInfo)));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -72,19 +72,17 @@ class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
             BlockedWalls.Reset();
     }
 
-    protected override WVec CalculateMovement(Source src, WVec starting)
+    public override VFloat CalculateDistance(WVec position, WVec direction)
     {
+        var offset = (position - Arena.Center).Length();
+
         var onWall = VBool.Zero;
 
         foreach (var wall in Walls)
-            onWall |= starting.InCone(Arena.Center, wall.ToDirection(), WallHalfAngle.Radians());
+            onWall |= position.InCone(Arena.Center, wall.ToDirection(), WallHalfAngle.Radians());
 
-        var direction = (starting - src.Origin).Normalized();
-        var distance = VV.ConditionalSelect(onWall, VV.Create(19f), VV.Create(30f));
-        return new WVec(src.Origin) + direction * distance;
+        return VV.ConditionalSelect(onWall, 18.5f - offset, 24.5f - offset);
     }
-
-    private bool CheckWall(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w, WallHalfAngle));
 }
 class Walls(BossModule module) : Components.GenericAOEs(module)
 {

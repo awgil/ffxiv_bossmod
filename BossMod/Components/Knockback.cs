@@ -62,14 +62,6 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
 
     // called to determine whether we need to show hint
     public bool DestinationUnsafe(int slot, Actor actor, WPos pos) => DestinationUnsafeImpl(slot, actor).CallOnce(pos);
-    public virtual PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.Union([.. Module.Components.OfType<GenericAOEs>().SelectMany(a => a.ActiveAOEs(slot, actor).Select(inst => inst.DistV))]).Discretize();
-
-    private PointTest DestinationUnsafeImpl(int slot, Actor actor)
-    {
-        var bad = DestinationUnsafe(slot, actor);
-
-        return StopAtWall ? bad : (p => bad(p) | ~Module.InBounds(p));
-    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -161,11 +153,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
         WVec dir;
         var distance = VV.Create(src.Distance);
 
-        void clamp(WVec dir)
-        {
-            if (StopAtWall)
-                distance = VV.Min(distance, Module.Arena.IntersectRayBounds(starting, dir));
-        }
+        void clamp(WVec dir) => distance = VV.Min(distance, CalculateDistance(starting, dir));
 
         switch (src.Kind)
         {
@@ -192,6 +180,27 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
 
         return starting + dir * distance;
     }
+
+    /// <summary>
+    /// <para>Check if the provided point is "dangerous".</para>
+    /// <para>This function <em>should not</em> test if the point is in bounds. Out of bounds points are tested separately.</para>
+    /// </summary>
+    /// <returns></returns>
+    public virtual PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.Union([.. Module.Components.OfType<GenericAOEs>().SelectMany(a => a.ActiveAOEs(slot, actor).Select(inst => inst.DistV))]).Discretize();
+    /// <summary>
+    /// <para>Check if the provided point is in bounds.</para>
+    /// </summary>
+    /// <returns></returns>
+    public virtual PointTest DestinationOutOfBounds(int slot, Actor actor) => StopAtWall ? PointTest.Never : ((PointTest)Module.InBounds).Inverted();
+    /// <summary>
+    /// <para>Calculate how far a player starting at <paramref name="position"/> would move in <paramref name="direction"/>. This value will be capped to the current <c cref="Source">Source</c>'s maximum distance, so if there is no applicable wall, you can just return a large positive number. Useful for temporary obstacles.</para>
+    /// </summary>
+    /// <param name="position">Position vector.</param>
+    /// <param name="direction">Direction vector (normalized).</param>
+    /// <returns></returns>
+    public virtual VFloat CalculateDistance(WVec position, WVec direction) => StopAtWall ? Module.Arena.IntersectRayBounds(position - Arena.Center, direction) : VV.Create(float.MaxValue);
+
+    private PointTest DestinationUnsafeImpl(int slot, Actor actor) => DestinationUnsafe(slot, actor) | DestinationOutOfBounds(slot, actor);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

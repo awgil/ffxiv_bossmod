@@ -1,4 +1,5 @@
-﻿namespace BossMod.Shadowbringers.Alliance.A12Hobbes;
+﻿
+namespace BossMod.Shadowbringers.Alliance.A12Hobbes;
 
 class UnwillingCargoRing(BossModule module) : Components.GenericAOEs(module)
 {
@@ -44,82 +45,33 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
         Pink
     }
 
+    static readonly WPos PlatformCenter = new(-805, -270);
+
     public bool IsAffected(Actor actor) => Activation > WorldState.CurrentTime && MathF.Abs(actor.Position.Z + 270) < 20;
-
-    private WDir ExpectedDirection(WPos p)
-    {
-        var stripe = MathF.Abs(p.Z + 270) switch
-        {
-            < 3.5f => 1,
-            < 10.5f => 0,
-            < 17.5f => 1,
-            _ => -1
-        };
-        if (stripe < 0)
-            return default;
-
-        var blue = new WDir(-1, 0);
-        var pink = new WDir(1, 0);
-
-        return _pattern switch
-        {
-            Pattern.Blue => blue,
-            Pattern.Pink => pink,
-            Pattern.BluePink => stripe == 1 ? blue : pink,
-            Pattern.PinkBlue => stripe == 1 ? pink : blue,
-            _ => default
-        };
-    }
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (IsImmune(slot, Activation))
-            yield break;
-
-        var dir = ExpectedDirection(actor.Position);
-        if (dir == default)
-            yield break;
-
-        yield return new(actor.Position, 15, Activation, Direction: dir.ToAngle(), Kind: Kind.DirForward);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (IsImmune(slot, Activation) || !IsAffected(actor))
-            return;
-
-        WPos platformCenter = new(-805, -270);
-
-        var blueShift = ShapeDistance.InvertedCircle(platformCenter + new WDir(15, 0), 17.5f);
-        var pinkShift = ShapeDistance.InvertedCircle(platformCenter - new WDir(15, 0), 17.5f);
-        var oddRow = ShapeDistance.Union([
-            ShapeDistance.Rect(platformCenter, new WDir(1, 0), 20, 20, 3.5f),
-            ShapeDistance.Rect(platformCenter - new WDir(0, 14), new WDir(1, 0), 20, 20, 3.5f),
-            ShapeDistance.Rect(platformCenter + new WDir(0, 14), new WDir(1, 0), 20, 20, 3.5f)
-        ]);
-        var evenRow = ShapeDistance.Union([
-            ShapeDistance.Rect(platformCenter - new WDir(0, 7), new WDir(1, 0), 20, 20, 3.5f),
-            ShapeDistance.Rect(platformCenter + new WDir(0, 7), new WDir(1, 0), 20, 20, 3.5f)
-        ]);
+        var sign = _pattern is Pattern.Blue or Pattern.BluePink ? 1 : -1;
 
         switch (_pattern)
         {
             case Pattern.Blue:
-                hints.AddForbiddenZone(blueShift, Activation);
-                break;
             case Pattern.Pink:
-                hints.AddForbiddenZone(pinkShift, Activation);
+                yield return new(PlatformCenter, 15, Activation, new AOEShapeRect(20, 20, 20), sign * 90.Degrees(), Kind.DirForward);
                 break;
             case Pattern.BluePink:
-                hints.AddForbiddenZone(ShapeDistance.Intersection([blueShift, oddRow]), Activation);
-                hints.AddForbiddenZone(ShapeDistance.Intersection([pinkShift, evenRow]), Activation);
-                break;
             case Pattern.PinkBlue:
-                hints.AddForbiddenZone(ShapeDistance.Intersection([blueShift, evenRow]), Activation);
-                hints.AddForbiddenZone(ShapeDistance.Intersection([pinkShift, oddRow]), Activation);
+                yield return new(PlatformCenter - new WDir(0, 14), 15, Activation, new AOEShapeRect(20, 3.5f, 20), sign * 90.Degrees(), Kind.DirForward);
+                yield return new(PlatformCenter - new WDir(0, 7), 15, Activation, new AOEShapeRect(20, 3.5f, 20), -sign * 90.Degrees(), Kind.DirForward);
+                yield return new(PlatformCenter, 15, Activation, new AOEShapeRect(20, 3.5f, 20), sign * 90.Degrees(), Kind.DirForward);
+                yield return new(PlatformCenter + new WDir(0, 7), 15, Activation, new AOEShapeRect(20, 3.5f, 20), -sign * 90.Degrees(), Kind.DirForward);
+                yield return new(PlatformCenter + new WDir(0, 14), 15, Activation, new AOEShapeRect(20, 3.5f, 20), sign * 90.Degrees(), Kind.DirForward);
                 break;
         }
     }
+
+    public override VFloat CalculateDistance(WVec position, WVec direction) => Intersect.RayCircleV(position - PlatformCenter, direction, 20);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.InvertedCircle(PlatformCenter, 17.5f).Discretize();
 
     public override void OnMapEffect(byte index, uint state)
     {

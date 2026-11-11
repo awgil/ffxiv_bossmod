@@ -276,9 +276,6 @@ public static class ShapeDistance
         };
     }
 
-    public static DistFn Grow(DistFn a, float len) => p => a(p) - len;
-    public static DistFn Shrink(DistFn a, float len) => p => a(p) + len;
-
     public static DistFn Ring(DistFn input, float thickness) => p => input(p).Abs() - thickness;
 
     public static Func<WVec, VInt> Count(List<DistFn> fs)

@@ -6,9 +6,9 @@ class EnaeroEndeath(BossModule module) : Components.Knockback(module)
     private Kind _delayed;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_source);
-    public override Func<WVec, VBool> DestinationUnsafe(int slot, Actor actor) => _source is { Kind: Kind.TowardsOrigin } src
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => _source is { Kind: Kind.TowardsOrigin } src
         ? ShapeDistance.Circle(src.Origin, 6).Discretize()
-        : Func<WVec, VBool>.Never;
+        : PointTest.Never;
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

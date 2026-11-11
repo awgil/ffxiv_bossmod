@@ -145,7 +145,10 @@ public sealed class AIHints
 
     public class TempObstaclesList : List<Sdf>
     {
+#if true
+        [Obsolete("Please convert your shit to use the vectored version!")]
         public void Add(Func<WPos, float> c) => Add(Sdf.ContinuousSingle(c));
+#endif
         public void Add(DistFn c) => Add(Sdf.Continuous(c));
     }
 
