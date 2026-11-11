@@ -192,16 +192,19 @@ class WindswrathLong(BossModule module) : Components.KnockbackFromCastTarget(mod
                 continue;
 
             // ok knockback is imminent, calculate precise safe zone
-            List<Func<WPos, float>> funcs = [
+            List<Func<WVec, Vector<float>>> funcs = [
                 ShapeDistance.InvertedRect(Module.Center, new WDir(0, 1), 20, 20, 20),
                 .. _tornadoes.Select(t => ShapeDistance.Capsule(t.Position, t.Rotation, 20, 6))
             ];
-            float combined(WPos p)
+            var so = new WVec(s.Origin);
+            var sd = Vector.Create(s.Distance);
+
+            Vector<float> combined(WVec p)
             {
-                var offset = p - s.Origin;
-                offset += offset.Normalized() * s.Distance;
-                var adj = s.Origin + offset;
-                return funcs.Min(f => f(adj) - 1);
+                var offset = p - so;
+                offset += offset.Normalized() * sd;
+                var adj = so + offset;
+                return funcs.Min(f => f(adj) - Vector<float>.One);
             }
             hints.AddForbiddenZone(combined, s.Activation);
         }

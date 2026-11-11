@@ -87,7 +87,7 @@ class WasteAway(BossModule module) : Components.KnockbackFromCastTarget(module, 
                 continue;
             var origin = s.Origin;
             var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.Discrete(p => DestinationUnsafe(slot, actor, AwayFromSource(p, origin, dist))), s.Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, origin, dist))), s.Activation);
         }
     }
 }

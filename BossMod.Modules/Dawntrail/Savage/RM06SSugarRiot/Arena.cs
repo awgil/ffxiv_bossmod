@@ -33,10 +33,12 @@ class RiverPhaseArena(BossModule module) : BossComponent(module)
         if (Activation == default)
             return;
 
+        var inRiver = RiverPoly.Contains(actor.Position - Arena.Center);
+
         if (RiverSafe)
-            hints.Add("Stand in water!", !RiverPoly.Contains(actor.Position - Arena.Center));
+            hints.Add("Stand in water!", !inRiver);
         else
-            hints.Add("Avoid water!", RiverPoly.Contains(actor.Position - Arena.Center));
+            hints.Add("Avoid water!", inRiver);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -44,8 +46,7 @@ class RiverPhaseArena(BossModule module) : BossComponent(module)
         if (Activation == default)
             return;
 
-        var chk = new AOEShapeCustom(RiverPoly).GetSdf(Arena.Center, default);
-        hints.AddForbiddenZone(RiverSafe ? chk.Inverted() : chk, Activation);
+        hints.AddForbiddenZone(ShapeDistance.ComplexPolygon(Arena.Center, default, RiverPoly).Inverted(RiverSafe), Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

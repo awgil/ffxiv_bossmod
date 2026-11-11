@@ -28,7 +28,7 @@ public class RasterizeTest
             coords[i] = arenaCenter + new WDir((float)x0, (float)z0);
         }
 
-        _tris = BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Poly.Triangulate();
+        _tris = BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Triangulate();
     }
 
     [Benchmark]
@@ -38,7 +38,7 @@ public class RasterizeTest
         foreach (var c in coords)
         {
             var dir = c - arenaCenter;
-            if (BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Poly.Contains(dir))
+            if (BossMod.Dawntrail.DeepDungeon.PilgrimsTraverse.D50Ogbunabali.Rocks.RockShape.Contains(dir))
                 hit++;
         }
     }

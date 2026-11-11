@@ -199,7 +199,7 @@ public class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounte
             var closest = Raid.WithSlot().Exclude(actor).ExcludedFromMask(actorStack.ForbiddenTargets).WhereSlot(p => !IsDifferentTarget(actorStack, p) || !IsStackTarget(p) && !IsSpreadTarget(p)).Select(p => p.Item2).Closest(actor.Position);
             if (closest != null)
             {
-                float cf(WPos p) => -actorStack.Shape.Distance(actorStack.Position(closest), actorStack.Angle(closest))(p);
+                VFloat cf(WVec p) => -actorStack.Shape.Distance(actorStack.Position(closest), actorStack.Angle(closest))(p);
                 hints.AddForbiddenZone(cf, actorStack.Activation);
             }
         }
@@ -208,7 +208,7 @@ public class UntelegraphedBait(BossModule module, Enum? aid = null) : CastCounte
             var closestStack = CurrentBaits.Where(s => !s.ForbiddenTargets[slot] && s.IsStack).SelectMany(b => PossibleTargets(b).Where(t => numOthersInside(b, t) < b.StackSize).Select(t => (t, b))).MinBy(t => (t.t.Position - actor.Position).LengthSq());
             if (closestStack.t != null)
             {
-                float cf2(WPos p) => -closestStack.b.Shape.Distance(closestStack.b.Position(closestStack.t), closestStack.b.Angle(closestStack.t))(p);
+                VFloat cf2(WVec p) => -closestStack.b.Shape.Distance(closestStack.b.Position(closestStack.t), closestStack.b.Angle(closestStack.t))(p);
                 hints.AddForbiddenZone(cf2, closestStack.b.Activation);
             }
         }

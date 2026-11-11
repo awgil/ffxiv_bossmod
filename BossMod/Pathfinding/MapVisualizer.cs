@@ -46,6 +46,8 @@ public class MapVisualizer
 
         ImGui.Dummy(size);
 
+        var rowLength = ((Map.Width + 1) / VFloat.Count + 1) * VFloat.Count;
+
         var nodeIndex = 0;
         var hoverNode = -1;
         for (var y = 0; y < Map.Height; ++y)
@@ -94,10 +96,10 @@ public class MapVisualizer
         }
 
         // highlights blocked grid points, useful for rasterizer debugging but noisy otherwise
-        if (gScratch != null)
+        if (gScratch?.Length > 0)
             for (var y = 0; y <= Map.Height; ++y)
                 for (var x = 0; x <= Map.Width; ++x)
-                    if (gScratch.BoundSafeAt(y * (Map.Width + 1) + x, float.MinValue) is > float.MinValue and < float.MaxValue)
+                    if (gScratch[y * rowLength + x] is > float.MinValue and < float.MaxValue)
                         dl.AddCircleFilled(tl + new Vector2(x, y) * ScreenPixelSize, 4, 0xFF0000FF);
 
         // border

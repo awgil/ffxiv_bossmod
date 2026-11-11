@@ -60,7 +60,7 @@ class ShieldBash(BossModule module) : Components.KnockbackFromCastTarget(module,
 {
     private static readonly float PlatformSafeRad = MathF.Atan2(5, 40);
 
-    public static Func<WPos, float> SafetyShape => ShapeDistance.Intersection([
+    public static Func<WVec, Vector<float>> SafetyShape => ShapeDistance.Intersection([
         ShapeDistance.InvertedCone(new WPos(-200, 150), 10, 180.Degrees(), PlatformSafeRad.Radians()),
         ShapeDistance.InvertedCone(new WPos(-200, 150), 10, 60.Degrees(), PlatformSafeRad.Radians()),
         ShapeDistance.InvertedCone(new WPos(-200, 150), 10, -60.Degrees(), PlatformSafeRad.Radians()),

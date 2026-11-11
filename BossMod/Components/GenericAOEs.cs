@@ -5,16 +5,13 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
 {
     public record struct AOEInstance(AOEShape Shape, WPos Origin, Angle Rotation = default, DateTime Activation = default, uint Color = 0, bool Risky = true, bool Inverted = false)
     {
-        public readonly bool Check(WPos pos)
-        {
-            var res = Shape.Check(pos, Origin, Rotation);
-            return Inverted ? !res : res;
-        }
-        public readonly float Distance(WPos pos)
-        {
-            var res = Shape.GetSdf(Origin, Rotation).Distance(pos);
-            return Inverted ? -res : res;
-        }
+        public readonly VFloat Distance(WVec pos) => Shape.Distance(Origin, Rotation).Inverted(Inverted)(pos);
+
+        // type constrained alias so we don't need to explicitly cast when calling AddForbiddenZone
+        public readonly ShapeDist DistV => Distance;
+
+        public readonly bool Check(WPos p) => Distance(p) < 0;
+        public readonly float Distance(WPos p) => Distance(new WVec(p))[0];
     }
 
     public string WarningText = warningText;
@@ -34,7 +31,7 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
     {
         foreach (var c in ActiveAOEs(slot, actor))
             if (c.Risky)
-                hints.AddForbiddenZone(c.Distance, c.Activation);
+                hints.AddForbiddenZone(c.DistV, c.Activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)

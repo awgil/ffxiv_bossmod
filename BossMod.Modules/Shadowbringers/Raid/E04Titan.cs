@@ -127,7 +127,7 @@ class Geocrush(BossModule module) : Components.KnockbackFromCastTarget(module, A
             var center = Arena.Center;
             var toCenter = (center - origin).LengthSq() > 0.01f ? (center - origin).Normalized() : new WDir(0, -1);
             hints.AddForbiddenZone(ShapeDistance.InvertedCircle(origin + 2.5f * toCenter, 4), s.Activation);
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dest = AwayFromSource(p, origin, dist);
                 return dest.X is < 80 or > 120 || dest.Z is < 80 or > 120;
@@ -218,7 +218,7 @@ class FaultZoneKnockback(BossModule module) : Components.Knockback(module, AID.F
             var from = _from;
             var to = _to;
             var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var origin = NearestOnSegment(p, from, to);
                 return !Module.InBounds(AwayFromSource(p, origin, dist));

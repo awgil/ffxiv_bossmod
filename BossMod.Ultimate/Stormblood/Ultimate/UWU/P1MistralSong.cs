@@ -148,7 +148,7 @@ class P4MistralSong(BossModule module) : Components.CastCounter(module, AID.Mist
             {
                 var targetCones = ShapeDistance.Union([.. Raid.WithSlot().IncludedInMask(Targets).Select(t => ShapeDistance.Cone(sister.Position, 40, sister.AngleTo(t.Item2), 90.Degrees()))]);
 
-                Pairs.Add((sister, Raid.WithoutSlot().Where(a => targetCones(a.Position) <= 0).Closest(sister.Position)));
+                Pairs.Add((sister, Raid.WithoutSlot().Where(a => targetCones(new(a.Position))[0] <= 0).Closest(sister.Position)));
             }
     }
 }

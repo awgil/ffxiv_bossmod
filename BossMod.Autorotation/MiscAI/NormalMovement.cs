@@ -205,7 +205,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                 var dist = (enemy.Actor.Position - Player.Position).Length();
                 var goal = enemy.Actor.Position + rot.ToDirection() * enemy.Actor.HitboxRadius;
                 var sh = ShapeDistance.PrecisePosition(goal, new(0, 1), Hints.PathfindMapBounds.MapResolution, Player.Position, 0.1f);
-                Hints.GoalZones.Add(p => sh(p) >= 0 ? 10 : 0);
+                Hints.GoalZones.Add(p => sh(new(p))[0] >= 0 ? 10 : 0);
             }
         }
 

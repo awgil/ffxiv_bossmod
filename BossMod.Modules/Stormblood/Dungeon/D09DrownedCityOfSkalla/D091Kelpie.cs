@@ -52,12 +52,13 @@ class HydroPull(BossModule module) : Components.KnockbackFromCastTarget(module, 
                 .. Module.Enemies(OID.BloodyPuddle).Select(e => ShapeDistance.Circle(e.Position, 8)),
                 ShapeDistance.InvertedRect(ctr, default(Angle), 15, 15, 15)
             ]);
+            var ov = new WVec(orig);
 
             hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
-                var dir = orig - p;
-                var proj = p + dir.Normalized() * Math.Min(20, dir.Length());
-                return dangerShape(proj) < 0;
+                var dir = ov - p;
+                var proj = p + dir.Normalized() * Vector.Min(Vector.Create(20f), dir.Length());
+                return Vector.LessThan(dangerShape(proj), Vector<float>.Zero);
             }), src.Activation);
         }
     }

@@ -396,7 +396,7 @@ class ElevateAndEviscerate(BossModule module) : Components.Knockback(module, ign
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var src in Sources(slot, actor))
-            hints.AddForbiddenZone(Sdf.Discrete(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -478,7 +478,7 @@ class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, 
     {
         foreach (var src in Sources(slot, actor))
             if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(Sdf.Discrete(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
     }
 }
 

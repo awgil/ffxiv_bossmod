@@ -116,7 +116,7 @@ class P4Mesohigh(BossModule module) : Mesohigh(module)
                     var src = tt.Position;
 
                     var inside = ShapeDistance.Circle(Module.PrimaryActor.Position, targetToBoss.Length() - 2);
-                    hints.GoalZones.Add(p => inside(p) <= 0 && p.InCone(src, farSide, 90.Degrees()) ? 1 : 0);
+                    hints.GoalZones.Add(p => inside(new(p))[0] <= 0 && p.InCone(src, farSide, 90.Degrees()) ? 1 : 0);
                 }
             }
         }

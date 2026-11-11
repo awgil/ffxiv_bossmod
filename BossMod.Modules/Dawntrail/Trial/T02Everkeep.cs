@@ -297,7 +297,7 @@ class VorpalTrail(BossModule module) : Components.GenericAOEs(module)
             }
             else
             {
-                hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
+                hints.AddForbiddenZone(aoe.DistV, aoe.Activation);
             }
         }
         hints.GoalZones.Add(AIHints.GoalSingleTarget(Module.Center, CenterAttractRadius, CenterAttractWeight));

@@ -41,7 +41,7 @@ class HeartOfNatureConcentric(BossModule module) : Components.ConcentricAOEs(mod
 
             // for multi-quake, standing inside both donuts will get us killed
             if (Sequences.Count == 2)
-                hints.AddForbiddenZone(Sdf.Discrete(p => origins.All(o => p.InCircle(o, 20))), Sequences[0].NextActivation);
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => origins.All(o => p.InCircle(o, 20))), Sequences[0].NextActivation);
         }
     }
 }

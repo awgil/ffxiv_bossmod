@@ -180,7 +180,7 @@ class RedRushKnockback(BossModule module) : Components.Knockback(module, AID.Red
     {
         foreach (var s in Sources(slot, actor))
             if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(Sdf.Discrete(p => DestinationUnsafe(slot, actor, AwayFromSource(p, s.Origin, s.Distance))), s.Activation);
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, s.Origin, s.Distance))), s.Activation);
     }
 }
 

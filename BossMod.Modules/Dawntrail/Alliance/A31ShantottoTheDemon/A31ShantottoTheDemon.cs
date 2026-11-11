@@ -179,7 +179,7 @@ class Winds : Components.Knockback
             {
                 var d = _directions[slot].Direction;
                 var walls = _safeWalls.ToList();
-                hints.AddForbiddenZone(Sdf.Discrete(p => !HitsWall(walls, d, p)), src.Activation);
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !HitsWall(walls, d, p)), src.Activation);
             }
     }
 

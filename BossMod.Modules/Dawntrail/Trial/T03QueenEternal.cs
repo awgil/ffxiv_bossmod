@@ -182,7 +182,7 @@ class GravityGap(BossModule module) : Components.GenericAOEs(module)
             return;
         var platforms = T03QueenEternal.SplitPlatforms;
 #pragma warning disable VBM006 // Reference type captured in closure
-        hints.AddForbiddenZone(Sdf.Discrete(p => !platforms.Contains(p - T03QueenEternal.SplitArenaCenter)), _end);
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !platforms.Contains(p - T03QueenEternal.SplitArenaCenter)), _end);
 #pragma warning restore VBM006 // Reference type captured in closure
     }
 
@@ -410,7 +410,7 @@ class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(modu
         WPos[] partners = [.. Raid.WithoutSlot().Exclude(actor).Select(p => p.Position)];
         if (partners.Length > 0)
 #pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(Sdf.Discrete(p => !partners.Any(c => p.InCircle(c, 2))), Stacks[own].Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !partners.Any(c => p.InCircle(c, 2))), Stacks[own].Activation);
 #pragma warning restore VBM006 // Reference type captured in closure
     }
 
@@ -512,7 +512,7 @@ class PlatformKnockback(BossModule module, AID aid, float distance, Components.K
             var origin = src.Origin;
             var distance = src.Distance;
 #pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(Sdf.Discrete(p => LeavesBounds(bounds, center, p, push, origin, distance)), src.Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => LeavesBounds(bounds, center, p, push, origin, distance)), src.Activation);
 #pragma warning restore VBM006 // Reference type captured in closure
         }
     }
