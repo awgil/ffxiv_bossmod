@@ -416,6 +416,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         if (target != null && strategy.Harpe.Value != HarpeStrategy.Delay && !InMelee && countdown < HarpeCastTime + 0.4f)
             PushGCD(AID.Harpe, target.Actor, 10, HarpeCastTime);
+
+        UseIngress(strategy, target);
     }
 
     private float HarpeCastTime => EnhancedHarpeLeft > GCD ? 0 : ScaledCastTime(AID.Harpe);
@@ -533,9 +535,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     private void UsePerfectio(in Strategy strategy, Enemy target)
     {
-        if (!PerfectioReady || strategy.Perfectio.Value == PerfectioStrategy.Delay)
+        if (!PerfectioReady || strategy.Perfectio.Value == PerfectioStrategy.Delay || HoldingPerfectio)
             return;
-        PushGCD(AID.Perfectio, ResolveTarget(strategy.Perfectio) ?? BestSplashTarget ?? target.Actor, HoldingPerfectio ? 18 : 90);
+        PushGCD(AID.Perfectio, ResolveTarget(strategy.Perfectio) ?? BestSplashTarget ?? target.Actor, 90);
     }
 
     // Perfectio can't hit an untargetable boss - dump it before downtime / death even when held for ranged
@@ -679,7 +681,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private void UseSoulSlice(in Strategy strategy, Enemy target)
     {
         if (GCDReady(SliceAction) && ShouldSlice(strategy.Slice.Value))
-            PushGCD(SliceAction, SliceAction == AID.SoulScythe ? Player : ResolveTarget(strategy.Slice) ?? target.Actor, 60);
+            PushGCD(SliceAction, SliceAction == AID.SoulScythe ? Player : ResolveTarget(strategy.Slice) ?? target.Actor, strategy.Slice.Value == SliceStrategy.Force ? 95 : 60);
     }
 
     private bool ShouldSlice(SliceStrategy strategy)
@@ -768,10 +770,10 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         if (Enshrouded)
         {
             if (VoidShroud >= 2)
-                PushOGCD(ConeAOE && Unlocked(AID.LemuresScythe) ? AID.LemuresScythe : AID.LemuresSlice, ConeAOE ? BestConeTarget ?? target.Actor : target.Actor, 61);
+                PushOGCD(ConeAOE && Unlocked(AID.LemuresScythe) ? AID.LemuresScythe : AID.LemuresSlice, ConeAOE ? BestConeTarget ?? target.Actor : target.Actor, 60);
 
             if (OblatioLeft > 0 && (AOEMode ? Lemure <= 2 : Lemure <= 4) && (CircleLeft > 0 && !JustUsed(AID.ArcaneCircle, 2) || CircleIn > EnshroudLeft))
-                PushOGCD(AID.Sacrificium, BestSplashTarget ?? target.Actor, 60);
+                PushOGCD(AID.Sacrificium, BestSplashTarget ?? target.Actor, 61);
         }
 
         if (strategy.Crest.Value == CrestStrategy.Automatic && CanWeave(AID.ArcaneCrest) && DamageIncoming(3))
@@ -791,7 +793,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         if (!CanWeave(AID.ArcaneCircle))
             return;
 
-        var sodDone = JustUsed(AID.ShadowofDeath, GCDLength + 0.5f) || target.ForbidDOTs || strategy.DeathsDesign.Value == DeathsDesignStrategy.Delay;
+        var openedWithSlice = CombatTime < GCDLength * 2 && JustUsed(AID.SoulSlice, GCDLength);
+        var sodDone = JustUsed(AID.ShadowofDeath, GCDLength + 0.5f) || openedWithSlice || target.ForbidDOTs || strategy.DeathsDesign.Value == DeathsDesignStrategy.Delay;
         var overdue = CircleReadySince != default && (World.CurrentTime - CircleReadySince).TotalSeconds > 10;
         var use = CircleStrat == OffensiveStrategy.Force
             || WorthBurst && DowntimeIn > 10 && (AOEMode || sodDone || !Unlocked(AID.Enshroud) || overdue);
