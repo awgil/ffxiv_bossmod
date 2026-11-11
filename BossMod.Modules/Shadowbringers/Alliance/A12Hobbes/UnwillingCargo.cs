@@ -91,8 +91,8 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
 
         WPos platformCenter = new(-805, -270);
 
-        var blueShift = ShapeDistance.InvertedCircle(platformCenter - new WDir(15, 0), 17.5f);
-        var pinkShift = ShapeDistance.InvertedCircle(platformCenter + new WDir(15, 0), 17.5f);
+        var blueShift = ShapeDistance.InvertedCircle(platformCenter + new WDir(15, 0), 17.5f);
+        var pinkShift = ShapeDistance.InvertedCircle(platformCenter - new WDir(15, 0), 17.5f);
         var oddRow = ShapeDistance.Union([
             ShapeDistance.Rect(platformCenter, new WDir(1, 0), 20, 20, 3.5f),
             ShapeDistance.Rect(platformCenter - new WDir(0, 14), new WDir(1, 0), 20, 20, 3.5f),
