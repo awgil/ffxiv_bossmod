@@ -139,14 +139,14 @@ public abstract partial class AutoClear : ZoneModule
         LoadedFloors = Utils.LoadResource<Dictionary<string, Floor<Wall>>>("BossMod.Global.DeepDungeon.Walls.json");
         ProblematicTrapLocations = Utils.LoadResource<List<WPos>>("BossMod.Global.DeepDungeon.BadTraps.json");
 
-        _palantirWatchTraps.Subscribe(UpdateTrapsFloorset);
+        _palantirWatchTraps?.Subscribe(UpdateTrapsFloorset);
 
         PendingInitialize = true;
     }
 
     protected override void Dispose(bool disposing)
     {
-        _palantirWatchTraps.Unsubscribe(UpdateTrapsFloorset);
+        _palantirWatchTraps?.Unsubscribe(UpdateTrapsFloorset);
         _subscriptions.Dispose();
         base.Dispose(disposing);
     }

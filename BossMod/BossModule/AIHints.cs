@@ -104,8 +104,6 @@ public sealed class AIHints
     public WPos PathfindMapCenter;
     public ArenaBounds PathfindMapBounds = DefaultBounds;
     public Bitmap.Region PathfindMapObstacles;
-    private float[] _scratchG = [];
-    private bool[] _scratchD = [];
 
     // list of potential targets
     public readonly Enemy?[] Enemies = new Enemy?[100];
@@ -142,7 +140,8 @@ public sealed class AIHints
 
     public class TempObstaclesList : List<Sdf>
     {
-        public void Add(Func<WPos, float> c) => Add(Sdf.Continuous(c));
+        public void Add(Func<WPos, float> c) => Add(Sdf.ContinuousSingle(c));
+        public void Add(ShapeDist c) => Add(Sdf.Continuous(c));
     }
 
     // AI will treat the pixels inside these shapes as unreachable and not try to pathfind through them (unlike imminent forbidden zones)
@@ -265,7 +264,8 @@ public sealed class AIHints
     public void InteractWithOID(WorldState ws, uint oid) => InteractWithTarget = ws.Actors.FirstOrDefault(a => a.OID == oid && a.IsTargetable);
     public void InteractWithOID<OID>(WorldState ws, OID oid) where OID : Enum => InteractWithOID(ws, (uint)(object)oid);
 
-    public void AddForbiddenZone(Func<WPos, float> containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((Sdf.Continuous(containsFn), activation, source));
+    public void AddForbiddenZone(Func<WPos, float> containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((Sdf.ContinuousSingle(containsFn), activation, source));
+    public void AddForbiddenZone(ShapeDist containsFn, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((Sdf.Continuous(containsFn), activation, source));
     public void AddForbiddenZone(Sdf sdf, DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((sdf, activation, source));
     public void AddForbiddenZone(AOEShape shape, WPos origin, Angle rot = new(), DateTime activation = new(), ulong source = 0) => ForbiddenZones.Add((shape.GetSdf(origin, rot), activation, source));
 
@@ -301,13 +301,8 @@ public sealed class AIHints
     public void InitPathfindMap(Pathfinding.Map map)
     {
         PathfindMapBounds.PathfindMap(map, PathfindMapCenter);
-        var dim = (map.Height + 1) * (map.Width + 1);
-        if (_scratchG.Length != dim)
-            _scratchG = new float[dim];
-        if (_scratchD.Length != dim)
-            _scratchD = new bool[dim];
 
-        Pathfinding.NavigationDecision.RasterizeRaw(map, [.. TemporaryObstacles.Select(o => (o, -1000f))], _scratchG, _scratchD, 0);
+        Pathfinding.NavigationDecision.RasterizeRaw(map, [.. TemporaryObstacles.Select(o => (o, -1000f))], 0);
 
         foreach (var (from, radius, to) in Portals)
             map.AddPortal(from, radius, to);
@@ -522,6 +517,6 @@ public sealed class AIHints
         }
 
         var sh = ShapeDistance.PrecisePosition(target.Position + dirToGoal.Normalized() * distToGoal, new(0, 1), PathfindMapBounds.MapResolution, player.Position, 0.1f);
-        return p => sh(p) >= 0 ? 15 : 0;
+        return p => sh(new(p))[0] >= 0 ? 15 : 0;
     }
 }

@@ -1,4 +1,10 @@
-﻿namespace BossMod;
+﻿global using ShapeDist = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
+global using ShapeTest = System.Func<BossMod.WVec, System.Numerics.Vector<int>>;
+global using VBool = System.Numerics.Vector<int>;
+global using VFloat = System.Numerics.Vector<float>;
+global using VV = System.Numerics.Vector;
+
+namespace BossMod;
 
 // 2d vector that represents world-space direction on XZ plane
 public record struct WDir(float X, float Z)
@@ -107,4 +113,65 @@ public record struct WPos(float X, float Z)
 
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, WDir direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
     public readonly bool InDonutCone(WPos origin, float innerRadius, float outerRadius, Angle direction, Angle halfAngle) => InDonut(origin, innerRadius, outerRadius) && InCone(origin, direction, halfAngle);
+}
+
+public record struct WVec(VFloat X, VFloat Z)
+{
+    public WVec(float x, float z) : this(VV.Create(x), VV.Create(z)) { }
+    public WVec(WDir wd) : this(wd.X, wd.Z) { }
+    public WVec(WPos wp) : this(wp.X, wp.Z) { }
+
+    public static readonly WVec Invalid = new(float.NaN, float.NaN);
+
+    public readonly VBool IsValid() => (VV.IsFinite(X) & VV.IsFinite(Z)).Mask();
+    public readonly WVec Rotate(WVec dir) => new(X * dir.Z + Z * dir.X, Z * dir.Z - X * dir.X);
+    public readonly WVec OrthoL() => new(Z, -X); // CCW, same length
+
+    public readonly VFloat LengthSq() => X * X + Z * Z;
+    public readonly VFloat Length() => VV.SquareRoot(LengthSq());
+    public readonly WVec Normalized() => this / Length();
+    public readonly VFloat Dot(WVec a) => X * a.X + Z * a.Z;
+    public readonly VFloat Dot(WDir a) => X * a.X + Z * a.Z;
+    public static VFloat Cross(WVec a, WVec b) => a.X * b.Z - a.Z * b.X;
+    public readonly VFloat Cross(WVec b) => Cross(this, b);
+
+    public readonly WVec Abs() => new(VV.Abs(X), VV.Abs(Z));
+    public readonly WVec ClampPositive() => new(VV.Max(X, VFloat.Zero), VV.Max(Z, VFloat.Zero));
+    public readonly VFloat MaxComponent() => VV.Max(X, Z);
+
+    // exchanges all pairs where Z > X
+    public readonly WVec AlignX() => Select(X > Z, new(X, Z), new(Z, X));
+
+    public static WVec Select(VBool bits, WVec left, WVec right) => new(VV.ConditionalSelect(bits, left.X, right.X), VV.ConditionalSelect(bits, left.Z, right.Z));
+
+    public readonly WVec Min(WVec other) => new(VV.Min(X, other.X), VV.Min(Z, other.Z));
+
+    public static VBool AlmostZero(WVec a, VFloat eps) => (VV.Abs(a.X) <= eps) & (VV.Abs(a.Z) <= eps);
+    public readonly VBool AlmostZero(VFloat eps) => AlmostZero(this, eps);
+    public readonly VBool AlmostZero(float eps) => AlmostZero(this, VV.Create(eps));
+    public static VBool AlmostEqual(WVec a, WVec b, VFloat eps) => AlmostZero(a - b, eps);
+    public readonly VBool AlmostEqual(WVec b, VFloat eps) => AlmostZero(this - b, eps);
+
+    public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
+    public static WVec operator +(WVec a, WDir b) => new(a.X + b.X, a.Z + b.Z);
+    public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator -(WVec a, WPos b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator -(WVec a, WDir b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator *(WVec a, VFloat b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(WVec a, float b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(float a, WVec b) => b * a;
+    public static WVec operator *(VFloat a, WVec b) => b * a;
+    public static WVec operator /(WVec a, VFloat b) => new(a.X / b, a.Z / b);
+    public static WVec operator -(WVec a) => new(-a.X, -a.Z);
+
+    public readonly VBool InRect(WDir direction, float lenFront, float lenBack, float halfWidth)
+    {
+        var dotDir = Dot(direction);
+        var dotNormal = Dot(direction.OrthoL());
+        return (dotDir >= -lenBack)
+            & (dotDir <= lenFront)
+            & (dotNormal.Abs() <= halfWidth);
+    }
+    public readonly VBool InRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction, lenFront, lenBack, halfWidth);
+    public readonly VBool InRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction.ToDirection(), lenFront, lenBack, halfWidth);
 }

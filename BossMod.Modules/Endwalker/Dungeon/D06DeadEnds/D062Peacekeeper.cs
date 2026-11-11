@@ -48,7 +48,7 @@ class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(m
             var peacefireSources = _peacefire?.Casters.Select(c => c.CastInfo!.LocXZ).ToList() ?? [];
 
             // TODO: continuous
-            hints.AddForbiddenZone(Sdf.Discrete(pos =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(pos =>
             {
                 if ((pos - center).Length() > 5)
                     return true;

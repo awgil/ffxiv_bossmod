@@ -2,17 +2,12 @@
 
 class Wipe(BossModule module) : Components.GenericAOEs(module)
 {
-    record class AOEShapeTri(WDir A, WDir B, WDir C) : AOEShape
+    class Meteor(Actor caster, Shade shade)
     {
-        public AOEShapeTri(WPos source, WPos a, WPos b) : this(default, a - source, b - source) { }
-
-        public override bool Check(WPos position, WPos origin, Angle rotation) => position.InTri(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation));
-        public override void Draw(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.ZoneTri(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation), color);
-        public override void Outline(MiniArena arena, WPos origin, Angle rotation, uint color = 0) => arena.AddTriangle(origin + A.Rotate(rotation), origin + B.Rotate(rotation), origin + C.Rotate(rotation), color);
-        public override Func<WPos, float> Distance(WPos origin, Angle rotation) => ShapeDistance.Tri(origin, new(A, B, C));
+        public Actor Caster = caster;
+        public Shade Shade = shade;
+        public RelSimplifiedComplexPolygon? Shadow;
     }
-
-    record class Meteor(Actor Caster, Shade Shade, List<WPos> Blockers);
 
     private readonly List<Meteor> _meteors = [];
     private readonly VisibilityPolygon<WPos> Vis = new(VisibilityAdapters.WPos);
@@ -26,12 +21,8 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
             yield break;
 
         foreach (var m in _meteors)
-        {
-            for (var i = 0; i < m.Blockers.Count - 1; i++)
-            {
-                yield return new AOEInstance(new AOEShapeTri(m.Caster.Position, m.Blockers[i], m.Blockers[i + 1]), m.Caster.Position, default, Activation: Module.CastFinishAt(m.Caster.CastInfo));
-            }
-        }
+            if (m.Shadow != null)
+                yield return new(new AOEShapeCustom(m.Shadow), m.Caster.Position, default, Activation: Module.CastFinishAt(m.Caster.CastInfo));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -44,7 +35,7 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
         };
         if (color != default)
         {
-            _meteors.Add(new(caster, color, []));
+            _meteors.Add(new(caster, color));
             UpdateWalls();
         }
     }
@@ -64,7 +55,6 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
 
         foreach (var m in _meteors)
         {
-            m.Blockers.Clear();
             List<VisibilityPolygon<WPos>.Segment> segments = [];
 
             void addBlock(WPos center, IEnumerable<WDir> corners)
@@ -80,10 +70,8 @@ class Wipe(BossModule module) : Components.GenericAOEs(module)
             // use larger radius than arena max, since the algorithm is not designed to work with intersecting line segments - outermost blocks can extend outside arena
             addBlock(Arena.Center, CurveApprox.Rect(new(30, 0), new(0, 30)));
 
-            m.Blockers.AddRange(Vis.Compute(m.Caster.Position, segments));
-
-            if (m.Blockers.Count > 0)
-                m.Blockers.Add(m.Blockers[0]);
+            var poly = Vis.Compute(m.Caster.Position, segments);
+            m.Shadow = new(poly.Select(p => p - m.Caster.Position));
         }
     }
 

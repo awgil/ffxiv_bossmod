@@ -35,8 +35,11 @@ public abstract record class ArenaBounds(float Radius, float MapResolution)
     protected abstract PolygonClipper.Operand BuildClipPoly();
     public abstract void PathfindMap(Pathfinding.Map map, WPos center);
     public abstract bool Contains(WDir offset);
+    public abstract VBool Contains(WVec offset);
     public abstract float IntersectRay(WDir originOffset, WDir dir);
+    public abstract VFloat IntersectRay(WVec originOffset, WVec dir);
     public abstract WDir ClampToBounds(WDir offset);
+    public abstract WVec ClampToBounds(WVec offset);
 
     // functions for clipping various shapes to bounds; all shapes are expected to be defined relative to bounds center
     public List<RelTriangle> ClipAndTriangulate(IEnumerable<WDir> poly) => Clipper.Intersect(new(poly), _clipOperand).Triangulate();
@@ -107,9 +110,9 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Circle(Radius, MaxApproxError));
     public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(_cachedMap ??= BuildMap(), center);
     public override bool Contains(WDir offset) => offset.LengthSq() <= Radius * Radius;
+    public override VBool Contains(WVec offset) => offset.LengthSq() <= Radius * Radius;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayCircle(originOffset, dir, Radius);
-
-    public override WDir ClampToBounds(WDir offset) => ClampToBounds(offset, Radius);
+    public override VFloat IntersectRay(WVec originOffset, WVec dir) => Intersect.RayCircleV(originOffset, dir, Radius);
 
     public static WDir ClampToBounds(WDir offset, float radius)
     {
@@ -117,6 +120,8 @@ public record class ArenaBoundsCircle(float Radius, float MapResolution = 0.5f) 
             offset *= radius / offset.Length();
         return offset;
     }
+    public override WDir ClampToBounds(WDir offset) => ClampToBounds(offset, Radius);
+    public override WVec ClampToBounds(WVec offset) => offset * VV.Min(Radius / offset.Length(), VFloat.One);
 
     private Pathfinding.Map BuildMap()
     {
@@ -149,7 +154,9 @@ public record class ArenaBoundsSquare(float Radius, float MapResolution = 0.5f) 
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(new(Radius, 0), new(0, Radius)));
     public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(MapResolution, center, Radius, Radius);
     public override bool Contains(WDir offset) => offset.AlmostZero(Radius);
+    public override VBool Contains(WVec offset) => offset.AlmostZero(Radius);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayAABB(originOffset, dir, Radius, Radius);
+    public override VFloat IntersectRay(WVec originOffset, WVec dir) => Intersect.RayAABBV(originOffset, dir, Radius, Radius);
 
     public override WDir ClampToBounds(WDir offset)
     {
@@ -158,6 +165,10 @@ public record class ArenaBoundsSquare(float Radius, float MapResolution = 0.5f) 
         if (Math.Abs(offset.Z) > Radius)
             offset *= Radius / Math.Abs(offset.Z);
         return offset;
+    }
+    public override WVec ClampToBounds(WVec offset)
+    {
+        return offset * VV.Min(Radius / offset.X.Abs(), VFloat.One) * VV.Min(Radius / offset.Z.Abs(), VFloat.One);
     }
 }
 
@@ -172,16 +183,24 @@ public record class ArenaBoundsRect(float HalfWidth, float HalfHeight, Angle Rot
     protected override PolygonClipper.Operand BuildClipPoly() => new(CurveApprox.Rect(Orientation, HalfWidth, HalfHeight));
     public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(MapResolution, center, HalfWidth, HalfHeight, Rotation);
     public override bool Contains(WDir offset) => offset.InRect(Orientation, HalfHeight, HalfHeight, HalfWidth);
+    public override VBool Contains(WVec offset) => offset.InRect(Orientation, HalfHeight, HalfHeight, HalfWidth);
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayRect(originOffset, dir, Orientation, HalfWidth, HalfHeight);
+    public override VFloat IntersectRay(WVec originOffset, WVec dir) => Intersect.RayRectV(originOffset, dir, Orientation, HalfWidth, HalfHeight);
 
     public override WDir ClampToBounds(WDir offset)
     {
         var dx = MathF.Abs(offset.Dot(Orientation.OrthoL()));
-        if (dx > HalfWidth)
-            offset *= HalfWidth / dx;
+        offset *= MathF.Min(HalfWidth / dx, 1);
         var dy = MathF.Abs(offset.Dot(Orientation));
-        if (dy > HalfHeight)
-            offset *= HalfHeight / dy;
+        offset *= MathF.Min(HalfHeight / dy, 1);
+        return offset;
+    }
+    public override WVec ClampToBounds(WVec offset)
+    {
+        var dx = VV.Abs(offset.Dot(Orientation.OrthoL()));
+        offset *= VV.Min(HalfWidth / dx, VFloat.One);
+        var dy = VV.Abs(offset.Dot(Orientation));
+        offset *= VV.Min(HalfHeight / dy, VFloat.One);
         return offset;
     }
 }
@@ -194,13 +213,22 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
     protected override PolygonClipper.Operand BuildClipPoly() => new(Poly);
     public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(_cachedMap ??= BuildMap(), center);
     public override bool Contains(WDir offset) => Poly.Contains(offset);
+    public override VBool Contains(WVec offset) => ShapeDistance.ComplexPolygon(default, default, Poly)(offset) < VFloat.Zero;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayPolygon(originOffset, dir, Poly);
+    public override VFloat IntersectRay(WVec originOffset, WVec dir) => Intersect.RayPolygonV(originOffset, dir, Poly);
     public override WDir ClampToBounds(WDir offset)
     {
         var l = offset.Length();
         var dir = offset / l;
         var t = Intersect.RayPolygon(default, dir, Poly);
         return dir * Math.Min(t, l);
+    }
+    public override WVec ClampToBounds(WVec offset)
+    {
+        var l = offset.Length();
+        var dir = offset / l;
+        var t = Intersect.RayPolygonV(default, dir, Poly);
+        return dir * VV.Min(t, l);
     }
 
     private Pathfinding.Map BuildMap()

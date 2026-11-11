@@ -50,7 +50,7 @@ class P2Cauterize(BossModule module) : Components.GenericAOEs(module)
             }
             else
             {
-                hints.AddForbiddenZone(Sdf.Continuous(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7)).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-2));
+                hints.AddForbiddenZone(ShapeDistance.Donut(CurrentBaits[bo - 1], 5, 7).Inverted(), BaitOrder[slot].Deadline.AddSeconds(-2));
 
                 // hypernova drop timing is not actually consistent pull to pull, because whoever designed this mechanic is a genius
                 // thus if you drop h3 5 units away, and h4 directly under the dragon, as recommended, h4 may kill you especially at higher latency (or rather, the player would have to move before receiving the cast start event from the server to survive it, which would be fine if the cast start timings were predictable, etc etc)

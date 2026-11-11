@@ -49,9 +49,9 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.Sh
         if (Casters.FirstOrDefault() is Actor c)
             hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
-                var dir = c.DirectionTo(p);
+                var dir = (p - c.Position).Normalized();
                 var projected = p + dir * 10;
-                return windzone(projected) < 0;
+                return Vector.LessThan(windzone(projected), Vector<float>.Zero);
             }), Module.CastFinishAt(c.CastInfo));
     }
 }

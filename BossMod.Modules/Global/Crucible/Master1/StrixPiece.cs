@@ -156,7 +156,7 @@ class AeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AI
             {
                 var orig = src.Origin;
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
+                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
                 {
                     var dir = (p - orig).Normalized() * 25;
                     return !(orig + dir).InCircle(ctr, 20);

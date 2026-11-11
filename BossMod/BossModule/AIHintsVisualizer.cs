@@ -84,17 +84,16 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
     {
         var map = new Map();
         hints.InitPathfindMap(map);
-        var gScratch = new float[(map.Width + 1) * (map.Height + 1)];
-        var dScratch = new bool[(map.Width + 1) * (map.Height + 1)];
-        NavigationDecision.RasterizeRaw(map, [(shape, 0f)], gScratch, dScratch, 0);
-        return new MapVisualizer(map, player.Position, [.. gScratch]);
+        var gOut = new List<float>();
+        NavigationDecision.RasterizeRaw(map, [(shape, 0f)], 0, gOut);
+        return new MapVisualizer(map, player.Position, [.. gOut]);
     }
 
     private MapVisualizer BuildGoalVisualizer(Func<WPos, float> shape)
     {
         var map = new Map();
         hints.InitPathfindMap(map);
-        NavigationDecision.RasterizeGoalZones(map, [shape], false);
+        NavigationDecision.RasterizeGoalZones(map, [shape]);
         return new MapVisualizer(map, player.Position);
     }
 

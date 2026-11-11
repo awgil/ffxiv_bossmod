@@ -84,7 +84,7 @@ class EsotericInstruction(BossModule module) : Components.GenericAOEs(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var aoe in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
+            hints.AddForbiddenZone(aoe.DistV, aoe.Activation);
     }
 
     public override void OnActorEAnim(Actor actor, uint state)

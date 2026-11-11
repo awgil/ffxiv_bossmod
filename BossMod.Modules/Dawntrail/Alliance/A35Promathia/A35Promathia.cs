@@ -185,7 +185,7 @@ class FalseGenesis(BossModule module) : BossComponent(module)
 
         var center = Arena.Center;
         // TODO(SDF)
-        hints.AddForbiddenZone(Sdf.Discrete(p => !(p.InRect(center + new WDir(0, 13), default(Angle), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(120.Degrees()), 120.Degrees(), 6.5f, 6.5f, 6.5f) || p.InRect(center + new WDir(0, 13).Rotate(-120.Degrees()), -120.Degrees(), 6.5f, 6.5f, 6.5f))), _activation);
+        hints.AddForbiddenZone(Sdf.Discrete(p => ~(p.InRect(center + new WDir(0, 13), default(Angle), 6.5f, 6.5f, 6.5f) | p.InRect(center + new WDir(0, 13).Rotate(120.Degrees()), 120.Degrees(), 6.5f, 6.5f, 6.5f) | p.InRect(center + new WDir(0, 13).Rotate(-120.Degrees()), -120.Degrees(), 6.5f, 6.5f, 6.5f))), _activation);
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -340,7 +340,7 @@ class EmptySeed(BossModule module) : Components.KnockbackFromCastTarget(module, 
         {
             var center = src.Origin;
             var safeCorner = 45.Degrees() + PlatformOrientation(center);
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 if (!p.AlmostEqual(center, 10))
                     return false;

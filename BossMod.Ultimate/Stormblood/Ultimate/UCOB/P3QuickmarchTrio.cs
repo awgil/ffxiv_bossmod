@@ -271,7 +271,7 @@ class P3TempestWing(BossModule module) : Components.TankbusterTether(module, AID
             }
             else if (!Targets[slot])
             {
-                List<Func<WPos, float>> goal = [];
+                List<Func<WVec, Vector<float>>> goal = [];
 
                 foreach (var side in Tethers.Where(t => t.Player.Role != Role.Tank))
                 {

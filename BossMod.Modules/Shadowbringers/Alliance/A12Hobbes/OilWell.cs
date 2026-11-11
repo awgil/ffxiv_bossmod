@@ -28,7 +28,7 @@ class OilWell(BossModule module) : Components.GenericAOEs(module, AID.OilWell)
         {
             var inv = _inverted;
             // TODO(SDF)
-            hints.AddForbiddenZone(Sdf.Discrete(p => inv ? !OnPlatform(p) : OnPlatform(p)), Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => inv ? !OnPlatform(p) : OnPlatform(p)), Activation);
         }
     }
 

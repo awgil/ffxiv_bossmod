@@ -114,7 +114,8 @@ class Barrier(BossModule module) : BossComponent(module)
             if (Barriers[i] != default)
             {
                 var (center, orient) = GetBarrierPosition(i);
-                hints.TemporaryObstacles.Add(ShapeDistance.Rect(center, Angle.FromDirection(orient), 3.5f, 3.5f, 1.5f)); // increase size for player hitbox
+                var rect = ShapeDistance.Rect(center, orient, 3, 3, 1);
+                hints.TemporaryObstacles.Add(p => rect(p) - 0.5f); // player hitbox
             }
         }
     }

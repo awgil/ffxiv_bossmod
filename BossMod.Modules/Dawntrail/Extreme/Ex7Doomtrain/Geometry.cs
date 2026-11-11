@@ -6,7 +6,7 @@ static class Shapes
     public static IEnumerable<WDir> Crate(float x, float z, CurveApprox.Corners c = CurveApprox.Corners.All) => CurveApprox.TruncatedRect(new(x, z), new WDir(2.9f, 0), new(0, 2.9f), 0.5f, c);
 
     // TODO(SDF)
-    public static Sdf RectOutline(WPos center, float lenFront, float lenBack, float halfWidth) => Sdf.Discrete(p => p.InRect(center, default(Angle), lenFront + 0.25f, lenBack + 0.25f, halfWidth + 0.25f) && !p.InRect(center, default(Angle), lenFront - 0.25f, lenBack - 0.25f, halfWidth - 0.25f));
+    public static Sdf RectOutline(WPos center, float lenFront, float lenBack, float halfWidth) => Sdf.DiscreteSingle(p => p.InRect(center, default(Angle), lenFront + 0.25f, lenBack + 0.25f, halfWidth + 0.25f) && !p.InRect(center, default(Angle), lenFront - 0.25f, lenBack - 0.25f, halfWidth - 0.25f));
 }
 
 class CarGeometry : BossComponent

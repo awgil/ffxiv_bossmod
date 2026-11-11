@@ -103,7 +103,7 @@ class GreatestLabyrinth(BossModule module) : BossComponent(module)
         if (!OnFoot(actor.Position))
             return;
         var tile = ShapeDistance.Rect(entry, new WDir(0, 1), TileHalf, TileHalf, TileHalf);
-        hints.AddForbiddenZone(p => -MathF.Min(middle(p), tile(p)));
+        hints.AddForbiddenZone(p => -Vector.Min(middle(p), tile(p)));
         hints.AddForbiddenZone(middle, WorldState.FutureTime(1));
     }
 

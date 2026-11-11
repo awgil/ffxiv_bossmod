@@ -102,7 +102,7 @@ class ArcanePlot(BossModule module) : Components.GenericAOEs(module)
         foreach (var c in _aoes)
         {
             if (c.Risky && c.Activation <= horizon)
-                hints.AddForbiddenZone(c.Distance, c.Activation);
+                hints.AddForbiddenZone(c.DistV, c.Activation);
         }
 
         if (SafeZoneCenters.Count > 0)

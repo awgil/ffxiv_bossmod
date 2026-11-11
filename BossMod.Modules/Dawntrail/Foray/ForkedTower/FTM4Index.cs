@@ -273,10 +273,10 @@ class Shockwave(BossModule module) : Components.Knockback(module)
         var platformDir = (closestSource - Arena.Center).Normalized();
 
         var safeRect = ShapeDistance.InvertedRect(Arena.Center + platformDir * 5, platformDir, 23, 0, 7.5f);
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             var off = (p - closestSource).Normalized() * 9;
-            return safeRect(p + off) < 0;
+            return safeRect(new(p + off))[0] < 0;
         }), activation);
 
         if (_balladActive)

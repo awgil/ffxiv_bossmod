@@ -156,9 +156,11 @@ public class InvertibleVoidzone(BossModule module, float radius, Func<BossModule
         if (shapes.Count == 0)
             return;
 
-        float distance(WPos p)
+        var shh = ShapeDistance.Union(shapes);
+
+        VFloat distance(WVec p)
         {
-            var dist = shapes.Min(s => s(p));
+            var dist = shh(p);
             return Inverted ? -dist : dist;
         }
         hints.AddForbiddenZone(distance, InvertResolveAt);

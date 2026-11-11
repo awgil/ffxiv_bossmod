@@ -92,7 +92,7 @@ class QuoteIronChariotLunarDynamo(BossModule module) : Components.GenericAOEs(mo
             if (shape.Shape is AOEShapeDonut d)
                 hints.AddForbiddenZone(ShapeDistance.InvertedCircle(shape.Origin, d.InnerRadius), shape.Activation);
             else
-                hints.AddForbiddenZone(shape.Distance, shape.Activation);
+                hints.AddForbiddenZone(shape.DistV, shape.Activation);
         }
     }
 }
