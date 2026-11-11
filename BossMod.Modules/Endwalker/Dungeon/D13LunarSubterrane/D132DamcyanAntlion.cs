@@ -81,7 +81,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
                 continue;
 
             var offset = src.Direction.ToDirection() * src.Distance;
-            hints.AddForbiddenZone(Sdf.Discrete(p => src.Shape?.Check(p, src.Origin, src.Direction) != false && DestinationUnsafe(slot, actor, p + offset)), src.Activation);
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => src.Shape?.Check(p, src.Origin, src.Direction) != false && DestinationUnsafe(slot, actor, p + offset)), src.Activation);
         }
     }
 }

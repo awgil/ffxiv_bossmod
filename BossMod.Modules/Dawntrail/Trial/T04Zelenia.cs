@@ -317,7 +317,7 @@ class AlexandrianThunderIII(BossModule module) : Components.GenericAOEs(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var aoe in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.Shape == RoseTiles.Slice ? p => aoe.Distance(p) - 0.5f : aoe.Distance, aoe.Activation);
+            hints.AddForbiddenZone(aoe.Shape == RoseTiles.Slice ? p => aoe.Distance(p) - new Vector<float>(0.5f) : aoe.DistV, aoe.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

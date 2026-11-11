@@ -103,7 +103,7 @@ class Galaxias(BossModule module) : Components.KnockbackFromCastTarget(module, A
             if (IsImmune(slot, src.Activation))
                 continue;
             var stars = Module.FindComponent<FatalismStars>()?.ActiveAOEs(slot, actor).ToList() ?? [];
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dest = AwayFromSource(p, src.Origin, src.Distance);
                 return !Arena.InBounds(dest) || stars.Any(a => a.Check(dest));

@@ -327,7 +327,7 @@ class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, 
         {
             if (IsImmune(slot, src.Activation))
                 continue;
-            hints.AddForbiddenZone(Sdf.Discrete(p =>
+            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
             {
                 var dest = AwayFromSource(p, src.Origin, src.Distance);
                 return !Arena.InBounds(dest) || BreaksLeash(slot, dest);

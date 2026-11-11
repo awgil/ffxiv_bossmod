@@ -1,4 +1,4 @@
-namespace BossMod.Endwalker.Variant.V01Sildihn.V011GeryonTheSteer;
+﻿namespace BossMod.Endwalker.Variant.V01Sildihn.V011GeryonTheSteer;
 
 public enum OID : uint
 {
@@ -259,7 +259,7 @@ class Intake(BossModule module) : Components.Knockback(module, stopAtWall: true)
     {
         if (_sources.Count == 0 || _kegs == null || IsImmune(slot, _sources[0].Activation))
             return;
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             foreach (var s in _sources)
             {
@@ -310,7 +310,7 @@ class RunawayRunoff(BossModule module) : Components.KnockbackFromCastTarget(modu
         var src = Sources(slot, actor).FirstOrDefault();
         if (src.Distance == 0 || IsImmune(slot, src.Activation) || _kegs == null)
             return;
-        hints.AddForbiddenZone(Sdf.Discrete(p => _kegs.UnsafeAt(AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => _kegs.UnsafeAt(AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
     }
 }
 
@@ -329,7 +329,7 @@ class Shockwave(BossModule module) : Components.Knockback(module, AID.Shockwave)
         if (_sources.Count == 0 || IsImmune(slot, _sources[0].Activation))
             return;
         var zones = Module.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7).Select(z => z.Position).ToList();
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             var push = (p.X < Arena.Center.X ? -90 : 90).Degrees().ToDirection();
             var dest = p + 15 * push;
