@@ -50,7 +50,6 @@ class NumbingNoiseTailSnapRotating(BossModule module) : Components.GenericRotati
 
 class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(module)
 {
-    private readonly NumbingNoiseTailSnapRotating? _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(30);

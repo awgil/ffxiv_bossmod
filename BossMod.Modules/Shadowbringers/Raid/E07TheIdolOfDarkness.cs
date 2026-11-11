@@ -173,56 +173,17 @@ class AwayWithThee(BossModule module) : Components.Knockback(module, ignoreImmun
             _sources.RemoveAll(s => s.Target == actor);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
     {
-        if (!Module.InBounds(pos))
-            return true;
+        var baseUnsafe = base.DestinationUnsafe(slot, actor);
+
         if (Module.FindComponent<BlackSmoke>() is { Towers.Count: > 0 } towers)
-            return !towers.Towers.Any(t => t.IsInside(pos));
-        foreach (var c in Module.Components.OfType<Components.GenericAOEs>())
-            if (c.ActiveAOEs(slot, actor).Any(a => a.Risky && a.Check(pos)))
-                return true;
-        return false;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var (target, sid, act, lockedFace) in _sources)
         {
-            if (target != actor)
-                continue;
-
-            var dir = DirAt(sid, lockedFace);
-            if (dir == default)
-                continue;
-
-            var offset = Distance * dir;
-            var r = Module.Bounds.Radius - 1; // bit of margin
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(Arena.Center - offset, new WDir(0, 1), r, r, r), act);
-
-            foreach (var c in Module.Components.OfType<Components.GenericAOEs>())
-            {
-                foreach (var aoe in c.ActiveAOEs(slot, actor))
-                {
-                    if (aoe.Risky)
-                        hints.AddForbiddenZone(aoe.Shape.Distance(aoe.Origin - offset, aoe.Rotation), act);
-                }
-            }
-
-            if (Module.FindComponent<BlackSmoke>() is { Towers.Count: > 0 } towers)
-            {
-                var preimages = towers.Towers.Select(t => ShapeDistance.Circle(t.Position - offset, t.Radius)).ToList();
-                var soak = ShapeDistance.Union(preimages);
-                hints.AddForbiddenZone(p => -soak(p), act);
-                foreach (var t in towers.Towers)
-                    hints.GoalZones.Add(AIHints.GoalSingleTarget(t.Position - offset, t.Radius));
-            }
-
-            hints.ForbiddenDirections.Add(((lockedFace + 180.Degrees()).Normalized(), 178.Degrees(), act));
-            var remain = (float)(act - WorldState.CurrentTime).TotalSeconds;
-            if (remain is > 0 and < 0.5f) // stop attacks before resolve so autorot doesn't change facing
-                hints.MaxCastTime = Math.Min(hints.MaxCastTime, Math.Max(0, remain - 0.4f));
+            var notInTower = ShapeDistance.Union([.. towers.Towers.Select(t => ShapeDistance.Circle(t.Position, t.Radius))]).Inverted().Discretize();
+            return baseUnsafe | notInTower;
         }
+
+        return baseUnsafe;
     }
 }
 

@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Heavensward.Dungeon.D15Xelphatol.D151DotoliCiloc;
+﻿namespace BossMod.Heavensward.Dungeon.D15Xelphatol.D151DotoliCiloc;
 
 public enum OID : uint
 {
@@ -73,7 +72,7 @@ class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
             BlockedWalls.Reset();
     }
 
-    protected override WVec Displace(Source src, WVec starting)
+    protected override WVec CalculateMovement(Source src, WVec starting)
     {
         var onWall = VBool.Zero;
 

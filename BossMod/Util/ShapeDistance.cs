@@ -294,7 +294,6 @@ public static class ShapeDistance
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
-    // note that if the goal position is exactly aligned with a grid point, it results in a 2x2 safe area instead of 1x1 (this never happens in practice)
     public static DistFn PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
     {
         var delta = starting - origin;

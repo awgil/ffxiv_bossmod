@@ -379,7 +379,6 @@ class ElevateAndEviscerate(BossModule module) : Components.Knockback(module, ign
     public Actor? Caster;
     public Actor? Target;
     public DateTime Activation;
-    private readonly Floor? _floor = module.FindComponent<Floor>();
 
     public const float Distance = 10;
 
@@ -465,8 +464,6 @@ class ElevateAndEviscerateImpact(BossModule module) : Components.GenericAOEs(mod
 
 class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ShockwaveAOE, 18)
 {
-    private readonly Floor? _floor = module.FindComponent<Floor>();
-
     // FIXME(knockback)
     //public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.Unsafe(pos) ?? !Module.InBounds(pos);
 }

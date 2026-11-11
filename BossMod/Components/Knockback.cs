@@ -61,7 +61,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     public abstract IEnumerable<Source> Sources(int slot, Actor actor);
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => DestinationUnsafeImpl(slot, actor).CallOnce(pos);
+    public bool DestinationUnsafe(int slot, Actor actor, WPos pos) => DestinationUnsafeImpl(slot, actor).CallOnce(pos);
     public virtual PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.Union([.. Module.Components.OfType<GenericAOEs>().SelectMany(a => a.ActiveAOEs(slot, actor).Select(inst => inst.DistV))]).Discretize();
 
     private PointTest DestinationUnsafeImpl(int slot, Actor actor)
@@ -145,7 +145,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             if (s.Shape?.Check(from, s.Origin, s.Direction) == false)
                 continue; // this source won't affect player due to being out of aoe
 
-            var to = Displace(s, new(from)).First();
+            var to = CalculateMovement(s, new(from)).First();
             yield return (from, to);
             from = to;
 
@@ -154,7 +154,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
         }
     }
 
-    protected virtual WVec Displace(Source src, WVec starting)
+    protected virtual WVec CalculateMovement(Source src, WVec starting)
     {
         starting = WVec.Select(src.Shape?.Check(starting, src.Origin, src.Direction) ?? VBool.AllBitsSet, starting, WVec.Invalid);
 
@@ -204,7 +204,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
 
             hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
-                var proj = Displace(src, p);
+                var proj = CalculateMovement(src, p);
                 return proj.IsValid() & isUnsafe(proj);
             }), src.Activation);
         }

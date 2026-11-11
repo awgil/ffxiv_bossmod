@@ -2,7 +2,6 @@ namespace BossMod.Endwalker.Alliance.A34Eulogia;
 
 class ClimbingShot(BossModule module) : Components.Knockback(module)
 {
-    private readonly AsAboveSoBelow? _exaflare = module.FindComponent<AsAboveSoBelow>();
     private Source? _knockback;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_knockback);
