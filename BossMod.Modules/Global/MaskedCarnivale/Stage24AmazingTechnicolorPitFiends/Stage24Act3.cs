@@ -54,18 +54,7 @@ class VacuumBlade(BossModule module) : Components.GenericAOEs(module)
 
 class HeadDown(BossModule module) : Components.BaitAwayChargeCast(module, AID.HeadDown, 4);
 
-class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HeadDown, 10, kind: Kind.DirForward)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<VacuumBlade>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (!Module.InBounds(pos))
-            return true;
-        else
-            return false;
-    }
-}
+class HeadDownKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HeadDown, 10, kind: Kind.DirForward);
 
 class BoneShaker(BossModule module) : Components.RaidwideCast(module, AID.BoneShaker, "Adds + Raidwide");
 

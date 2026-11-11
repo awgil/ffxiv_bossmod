@@ -168,8 +168,6 @@ class CrossbonesKB(BossModule module) : Components.Knockback(module, stopAtWall:
         if ((AID)spell.Action.ID == AID.Crossbones)
             _caster = null;
     }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Bombardment>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
 class D153JuliaQuoSoranusStates : StateMachineBuilder

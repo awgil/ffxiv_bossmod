@@ -106,7 +106,7 @@ public class Rocks(BossModule module) : BossComponent(module)
         // if already drowning, movespeed has already been adjusted on the client so we can let pathfinder do its thing
         var drownTime = _drowning[slot] == default ? WorldState.FutureTime(3.44f) : _drowning[slot];
 
-        var check = ShapeDistance.ComplexPolygon(Arena.Center, default, RockShape);
+        var check = ShapeDistance.Polygon(Arena.Center, default, RockShape);
 
         if (_quicksand)
             hints.AddForbiddenZone(check.Inverted(), drownTime);

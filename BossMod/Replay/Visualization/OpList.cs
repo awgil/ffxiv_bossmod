@@ -208,6 +208,7 @@ class OpList(Replay replay, Replay.Encounter? enc, BossModuleRegistry.Info? modu
             ClientState.OpActiveFateChange op => $"FATE: {op.Value.ID} '{Service.LuminaRow<Lumina.Excel.Sheets.Fate>(op.Value.ID)?.Name}' {op.Value.Progress}%",
             ClientState.OpActivePetChange op => $"Player pet: {ActorString(op.Value.InstanceID, op.Timestamp)}",
             ClientState.OpInventoryChange op => ItemString(op),
+            ReplayState.OpRoleAssignmentsChange op => $"Party roles: {string.Join(", ", op.Assignments)}",
             PartyState.OpModify op => $"Party slot {op.Slot}: {ActorString(op.Member.InstanceId, op.Timestamp)}",
             WorldState.OpMapEffect op => $"MapEffect: {op.Index:X2} {op.State:X8}",
             WorldState.OpLegacyMapEffect op => $"MapEffect (legacy): seq={op.Sequence} param={op.Param} data={string.Join(" ", op.Data.Select(d => d.ToString("X2")))}",

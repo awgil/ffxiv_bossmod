@@ -53,7 +53,7 @@ public class DirectionalParry(BossModule module, uint actorOID, int forbiddenPri
             {
                 var orig = target.Position;
                 var dir = target.Rotation + offset;
-                hints.GoalZones.Add(p => p.InCone(orig, dir, 45.Degrees()) ? 1 : 0);
+                hints.GoalZones.AddSimple(p => p.InCone(orig, dir, 45.Degrees()), 1);
             }
 
             var forbiddenSides = ActiveSides(targetState);

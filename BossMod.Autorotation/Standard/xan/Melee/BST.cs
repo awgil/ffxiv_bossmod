@@ -247,7 +247,7 @@ public sealed class BST(RotationModuleManager manager, Actor player) : Attackxan
         ManagePet(strategy);
         Prep(strategy, gauge);
 
-        GoalZoneCombined(strategy, 3, _ => 0, AID.None, 50, gauge.KinshipClassification == 5 ? 30 : null);
+        GoalZoneCombined(strategy, 3, _ => VFloat.Zero, AID.None, 50, gauge.KinshipClassification == 5 ? 30 : null);
     }
 
     void ManagePet(in Strategy strategy)

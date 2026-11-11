@@ -334,7 +334,7 @@ class AquaSpearVoidzone(BossModule module) : Components.GenericAOEs(module)
 class AlluringOrder(BossModule module) : Components.StatusDrivenForcedMarch(module, 3, (uint)SID.ForwardMarch, (uint)SID.AboutFace, (uint)SID.LeftFace, (uint)SID.RightFace)
 {
     public List<(Angle dir, float duration, DateTime activation)> PendingMoves = [];
-    private static readonly Func<WVec, Vector<float>> arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
+    private static readonly DistFn arenaBounds = ShapeDistance.InvertedRect(new(355f, 530f), new(395f, 530f), 20f);
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
     {
@@ -347,7 +347,7 @@ class AlluringOrder(BossModule module) : Components.StatusDrivenForcedMarch(modu
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        Vector<float> marchUnsafe(WVec playerPos)
+        VFloat marchUnsafe(WVec playerPos)
         {
             var pos = playerPos;
             var dist = arenaBounds(pos);
@@ -355,7 +355,7 @@ class AlluringOrder(BossModule module) : Components.StatusDrivenForcedMarch(modu
             foreach (var s in PendingMoves)
             {
                 pos += new WVec(24 * s.dir.ToDirection());
-                dist = Vector.Min(dist, arenaBounds(pos));
+                dist = VV.Min(dist, arenaBounds(pos));
             }
             return dist;
         }

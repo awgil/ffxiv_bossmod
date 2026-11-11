@@ -67,30 +67,7 @@ class AntiAirParticleBeam(BossModule module) : Components.StandardAOEs(module, A
 class CloneZeroFormParticleBeam(BossModule module) : Components.StandardAOEs(module, AID.CloneZeroFormParticleBeam, new AOEShapeRect(60, 4));
 class EvilSeed(BossModule module) : Components.StandardAOEs(module, AID.EvilSeed, 4);
 class BadVibrations(BossModule module) : Components.StandardAOEs(module, AID.BadVibrations, new AOEShapeCone(22, 90.Degrees()));
-class WasteAway(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WasteAway, 12)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (!Module.InBounds(pos))
-            return true;
-        foreach (var c in Module.Components.OfType<Components.GenericAOEs>())
-            if (c.ActiveAOEs(slot, actor).Any(a => a.Risky && a.Check(pos)))
-                return true;
-        return false;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            var origin = s.Origin;
-            var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, origin, dist))), s.Activation);
-        }
-    }
-}
+class WasteAway(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WasteAway, 12);
 
 class HyperchargedClouds(BossModule module) : Components.Adds(module, (uint)OID.HyperchargedCloud, 2)
 {

@@ -121,8 +121,8 @@ class LightningRod(BossModule module) : BossComponent(module)
     {
         if (Mines.Count > 0 && actor.Role == Role.Tank)
         {
-            var mineShape = ShapeDistance.Union([.. Mines.Select(m => ShapeDistance.Circle(m, Radius))]);
-            hints.GoalZones.Add(p => mineShape(new(p))[0] < 0 ? 0.5f : 0);
+            var mineShape = ShapeDistance.Union([.. Mines.Select(m => ShapeDistance.Circle(m, Radius))]).Discretize();
+            hints.GoalZones.AddSimple(mineShape, 0.5f);
         }
     }
 }

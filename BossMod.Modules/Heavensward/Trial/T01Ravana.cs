@@ -156,8 +156,6 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
 
     private readonly List<WPos> OpenGates = [];
 
-    private bool TowardsOpenGate(WPos pos) => OpenGates.Any(g => Angle.FromDirection(pos - Module.PrimaryActor.Position).AlmostEqual(Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth.Rad));
-
     public override void Update()
     {
         foreach (var g in Module.Enemies(OID.IronGate))
@@ -165,22 +163,20 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
                 OpenGates.Add(g.Position);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => TowardsOpenGate(pos);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override WVec CalculateMovement(Source src, WVec starting)
     {
-        if (Module.PrimaryActor.CastInfo is not { } cast || cast.Action.ID != (uint)AID.PillarsOfHeaven)
-            return;
-        foreach (var g in OpenGates)
-            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 40, Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth), Module.CastFinishAt(cast, 1));
-    }
+        var inDanger = VBool.Zero;
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        if (Module.PrimaryActor.CastInfo is not { } cast || cast.Action.ID != (uint)AID.PillarsOfHeaven)
-            return;
-        foreach (var g in OpenGates)
-            Arena.ZoneCone(Module.PrimaryActor.Position, 0, 40, Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth, ArenaColor.AOE);
+        foreach (var gate in OpenGates)
+        {
+            var gateDir = gate - Arena.Center;
+            inDanger |= starting.InCone(Arena.Center, gateDir.ToAngle(), GateHalfWidth);
+        }
+
+        var distance = VV.ConditionalSelect(inDanger, VV.Create(40f), VV.Create(19.5f));
+        var dir = (starting - src.Origin).Normalized();
+
+        return new WVec(src.Origin) + dir * distance;
     }
 }
 class SwiftSlaughter(BossModule module) : Components.CastHint(module, AID.SwiftSlaughter, "Enrage!", true);

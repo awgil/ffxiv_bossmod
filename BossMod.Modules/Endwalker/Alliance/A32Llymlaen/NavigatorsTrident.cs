@@ -32,13 +32,11 @@ class NavigatorsTridentAOE(BossModule module) : Components.StandardAOEs(module, 
 
 class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(module)
 {
-    private readonly SerpentsTide? _serpentsTide = module.FindComponent<SerpentsTide>();
     private readonly List<Source> _sources = [];
 
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources;
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_serpentsTide?.AOEs.Any(z => z.Check(pos)) ?? false);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

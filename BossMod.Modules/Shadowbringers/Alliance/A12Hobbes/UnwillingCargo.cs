@@ -44,8 +44,9 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
         Pink
     }
 
-    // FIXME(slow sdf)
-    private static WDir ExpectedDirection(Pattern pattern, WPos p)
+    public bool IsAffected(Actor actor) => Activation > WorldState.CurrentTime && MathF.Abs(actor.Position.Z + 270) < 20;
+
+    private WDir ExpectedDirection(WPos p)
     {
         var stripe = MathF.Abs(p.Z + 270) switch
         {
@@ -57,10 +58,10 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
         if (stripe < 0)
             return default;
 
-        var blue = new WDir(-15, 0);
-        var pink = new WDir(15, 0);
+        var blue = new WDir(-1, 0);
+        var pink = new WDir(1, 0);
 
-        return pattern switch
+        return _pattern switch
         {
             Pattern.Blue => blue,
             Pattern.Pink => pink,
@@ -68,21 +69,56 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
             Pattern.PinkBlue => stripe == 1 ? pink : blue,
             _ => default
         };
-
     }
-
-    public bool IsAffected(Actor actor) => Activation > WorldState.CurrentTime && MathF.Abs(actor.Position.Z + 270) < 20;
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(new WPos(-805, -270), 17.5f);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         if (IsImmune(slot, Activation))
             yield break;
 
-        var dir = ExpectedDirection(_pattern, actor.Position);
-        if (dir != default)
-            yield return new(actor.Position, 15, Activation, Direction: Angle.FromDirection(dir), Kind: Kind.DirForward);
+        var dir = ExpectedDirection(actor.Position);
+        if (dir == default)
+            yield break;
+
+        yield return new(actor.Position, 15, Activation, Direction: dir.ToAngle(), Kind: Kind.DirForward);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (IsImmune(slot, Activation) || !IsAffected(actor))
+            return;
+
+        WPos platformCenter = new(-805, -270);
+
+        var blueShift = ShapeDistance.InvertedCircle(platformCenter + new WDir(15, 0), 17.5f);
+        var pinkShift = ShapeDistance.InvertedCircle(platformCenter - new WDir(15, 0), 17.5f);
+        var oddRow = ShapeDistance.Union([
+            ShapeDistance.Rect(platformCenter, new WDir(1, 0), 20, 20, 3.5f),
+            ShapeDistance.Rect(platformCenter - new WDir(0, 14), new WDir(1, 0), 20, 20, 3.5f),
+            ShapeDistance.Rect(platformCenter + new WDir(0, 14), new WDir(1, 0), 20, 20, 3.5f)
+        ]);
+        var evenRow = ShapeDistance.Union([
+            ShapeDistance.Rect(platformCenter - new WDir(0, 7), new WDir(1, 0), 20, 20, 3.5f),
+            ShapeDistance.Rect(platformCenter + new WDir(0, 7), new WDir(1, 0), 20, 20, 3.5f)
+        ]);
+
+        switch (_pattern)
+        {
+            case Pattern.Blue:
+                hints.AddForbiddenZone(blueShift, Activation);
+                break;
+            case Pattern.Pink:
+                hints.AddForbiddenZone(pinkShift, Activation);
+                break;
+            case Pattern.BluePink:
+                hints.AddForbiddenZone(ShapeDistance.Intersection([blueShift, oddRow]), Activation);
+                hints.AddForbiddenZone(ShapeDistance.Intersection([pinkShift, evenRow]), Activation);
+                break;
+            case Pattern.PinkBlue:
+                hints.AddForbiddenZone(ShapeDistance.Intersection([blueShift, evenRow]), Activation);
+                hints.AddForbiddenZone(ShapeDistance.Intersection([pinkShift, oddRow]), Activation);
+                break;
+        }
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -120,20 +156,5 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
     {
         _pattern = p;
         Activation = WorldState.FutureTime(6.1f);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            var dir = src.Direction.ToDirection() * src.Distance;
-            var pat = _pattern;
-            var safe = ShapeDistance.InvertedCircle(new WPos(-805, -270), 17.5f);
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var dir = ExpectedDirection(pat, p);
-                return dir != default && safe(new(p + dir))[0] < 0;
-            }), Activation);
-        }
     }
 }

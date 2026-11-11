@@ -358,9 +358,6 @@ class Shockwave(BossModule module) : Components.Knockback(module, AID.Shockwave,
             yield return new(Module.Center, Distance, _next);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => !Module.InBounds(pos) || (Module.FindComponent<IslebloomLight>()?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false);
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_left <= 0 || _next == default || IsImmune(slot, _next))

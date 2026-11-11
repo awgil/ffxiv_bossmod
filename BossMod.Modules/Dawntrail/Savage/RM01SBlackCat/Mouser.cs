@@ -198,9 +198,8 @@ class ElevateAndEviscerate(BossModule module) : Components.CastCounter(module, A
 
 class GrimalkinGaleShockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GrimalkinGaleShockwaveAOE, 21, true)
 {
-    private readonly Mouser? _mouser = module.FindComponent<Mouser>();
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || _mouser != null && _mouser.DestroyedCells[_mouser.CellIndex(pos)];
+    // FIXME(knockback)
+    //public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || _mouser != null && _mouser.DestroyedCells[_mouser.CellIndex(pos)];
 }
 
 class GrimalkinGaleSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID.GrimalkinGaleSpreadAOE, 5);

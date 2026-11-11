@@ -1,4 +1,12 @@
-﻿namespace BossMod;
+﻿global using DistFn = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
+global using GoalFn = System.Func<BossMod.WVec, System.Numerics.Vector<float>>;
+global using PointTest = System.Func<BossMod.WVec, System.Numerics.Vector<int>>;
+global using VBool = System.Numerics.Vector<int>;
+global using VFloat = System.Numerics.Vector<float>;
+global using VInt = System.Numerics.Vector<uint>;
+global using VV = System.Numerics.Vector;
+
+namespace BossMod;
 
 #pragma warning disable CA1708 // bug
 public static class VectorExtensions
@@ -8,6 +16,8 @@ public static class VectorExtensions
         public VFloat Abs() => VV.Abs(source);
         public VFloat Sign() => VV.BitwiseAnd(~VV.IsZero(source), VV.CopySign(VFloat.One, source));
         public VBool Mask() => VV.As<float, int>(source);
+
+        public VBool AlmostEqual(float value, float eps) => (source - value).Abs() < eps;
 
         public static VFloat operator /(VFloat a, float b) => a / VV.Create(b);
         public static VFloat operator /(float a, VFloat b) => VV.Create(a) / b;
@@ -25,15 +35,35 @@ public static class VectorExtensions
         public static VBool operator >(VFloat a, float b) => VV.GreaterThan(a, VV.Create(b));
     }
 
-    extension(ShapeDist sd)
+    extension(PointTest _)
     {
-        public ShapeDist Inverted() => p => -sd(p);
-        public ShapeDist Inverted(bool inverted) => inverted ? Inverted(sd) : sd;
+        public static PointTest Never => _ => VBool.Zero;
+
+        public static PointTest operator |(PointTest a, PointTest b) => p => a(p) | b(p);
+        public static PointTest operator &(PointTest a, PointTest b) => p => a(p) & b(p);
+        public static PointTest operator ^(PointTest a, PointTest b) => p => a(p) ^ b(p);
     }
 
-    extension(ShapeTest st)
+    extension<T>(Vector<T> mask)
     {
-        public ShapeTest Inverted() => p => ~st(p);
-        public ShapeTest Inverted(bool inverted) => inverted ? Inverted(st) : st;
+        public Vector<U> WithValue<U>(Vector<U> values) => mask.As<T, U>() & values;
+    }
+
+    extension(DistFn sd)
+    {
+        public DistFn Inverted() => p => -sd(p);
+        public DistFn Inverted(bool inverted) => inverted ? Inverted(sd) : sd;
+
+        public PointTest Discretize() => p => sd(p) < VFloat.Zero;
+
+        public float CallOnce(WPos p) => sd(new(p))[0];
+    }
+
+    extension(PointTest st)
+    {
+        public PointTest Inverted() => p => ~st(p);
+        public PointTest Inverted(bool inverted) => inverted ? Inverted(st) : st;
+
+        public bool CallOnce(WPos p) => st(new(p))[0] != 0;
     }
 }

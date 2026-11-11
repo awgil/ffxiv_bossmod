@@ -576,11 +576,7 @@ public abstract partial class AutoClear : ZoneModule
                 if (distToSource <= d.Radius)
                 {
                     var desiredDistance = distToSource + 10;
-                    hints.GoalZones.Add(p =>
-                    {
-                        var dist = (p - d.Source.Position).Length();
-                        return dist >= desiredDistance ? 100 : 0;
-                    });
+                    hints.GoalZones.AddSimple(p => (p - d.Source.Position).Length() >= desiredDistance, 100);
                 }
             }
         });

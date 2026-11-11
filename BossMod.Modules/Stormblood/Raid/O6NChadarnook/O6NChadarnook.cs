@@ -65,7 +65,7 @@ class DemonicPain(BossModule module) : Components.CastHint(module, AID.DemonicPa
         if (Module.PrimaryActor.CastInfo?.IsSpell(AID.DemonicPain) != true)
             return;
         var boss = Module.PrimaryActor.Position;
-        hints.GoalZones.Add(p => (p - boss).LengthSq() > 225 ? 5 : 0); // 15 yalms
+        hints.GoalZones.AddSimple(p => (p - boss).LengthSq() > 225, 5); // 15 yalms
     }
 }
 
@@ -239,7 +239,7 @@ class Paintings(BossModule module) : BossComponent(module)
         return best;
     }
 
-    private void Goal(AIHints hints, WPos pos, float radius) => hints.GoalZones.Add(p => p.InCircle(pos, radius) ? 10 : 0);
+    private void Goal(AIHints hints, WPos pos, float radius) => hints.GoalZones.AddSimple(p => p.InCircle(pos, radius), 10);
 
     private void WindMounted(Actor actor, AIHints hints)
     {

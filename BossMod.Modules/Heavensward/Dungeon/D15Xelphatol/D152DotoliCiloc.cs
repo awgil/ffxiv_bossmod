@@ -35,7 +35,6 @@ class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
     private readonly List<Actor> Casters = [];
     private static readonly Angle[] Walls = [default, 90.Degrees(), 180.Degrees(), 270.Degrees()];
     private BitMask BlockedWalls;
-    private IEnumerable<Angle> UnblockedWalls => Walls.Where((_, i) => !BlockedWalls[i]);
     private const float WallHalfAngle = MathF.PI / 16;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, CheckWall(actor.Position) ? 19 - (c.Position - actor.Position).Length() : 30, Module.CastFinishAt(c.CastInfo)));
@@ -73,15 +72,16 @@ class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
             BlockedWalls.Reset();
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => base.DestinationUnsafe(slot, actor, pos) || !UnblockedWalls.Any(w => Module.PrimaryActor.AngleTo(actor).AlmostEqual(w, WallHalfAngle));
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    protected override WVec CalculateMovement(Source src, WVec starting)
     {
-        if (Casters.Count == 0)
-            return;
+        var onWall = VBool.Zero;
 
-        var zones = UnblockedWalls.Select(w => ShapeDistance.InvertedCone(Arena.Center, 30, w, WallHalfAngle.Radians())).ToList();
-        hints.AddForbiddenZone(ShapeDistance.Intersection(zones), Module.CastFinishAt(Casters[0].CastInfo));
+        foreach (var wall in Walls)
+            onWall |= starting.InCone(Arena.Center, wall.ToDirection(), WallHalfAngle.Radians());
+
+        var direction = (starting - src.Origin).Normalized();
+        var distance = VV.ConditionalSelect(onWall, VV.Create(19f), VV.Create(30f));
+        return new WVec(src.Origin) + direction * distance;
     }
 
     private bool CheckWall(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w, WallHalfAngle));

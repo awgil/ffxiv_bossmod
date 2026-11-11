@@ -31,6 +31,7 @@ public abstract class BossModule : IDisposable
     public WPos Center => Arena.Center;
     public ArenaBounds Bounds => Arena.Bounds;
     public bool InBounds(WPos position) => Arena.InBounds(position);
+    public VBool InBounds(WVec position) => Arena.InBounds(position);
 
     // per-oid enemy lists; filled on first request
     private readonly Dictionary<uint, List<Actor>> _relevantEnemies = []; // key = actor OID

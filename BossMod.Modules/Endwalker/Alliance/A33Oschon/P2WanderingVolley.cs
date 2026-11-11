@@ -4,12 +4,10 @@ class P2WanderingVolleyDownhill(BossModule module) : Components.StandardAOEs(mod
 
 class P2WanderingVolleyKnockback(BossModule module) : Components.Knockback(module)
 {
-    private readonly P2WanderingVolleyDownhill? _downhill = module.FindComponent<P2WanderingVolleyDownhill>();
     private readonly List<Source> _sources = [];
     private static readonly AOEShapeCone _shape = new(30, 90.Degrees());
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources;
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_downhill?.ActiveAOEs(slot, actor).Any(z => z.Check(pos)) ?? false);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

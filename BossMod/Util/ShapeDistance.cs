@@ -2,7 +2,7 @@
 
 public static class ShapeDistance
 {
-    public static ShapeDist HalfPlane(WPos point, WDir normal)
+    public static DistFn HalfPlane(WPos point, WDir normal)
     {
         var n = new WVec(normal);
         var p0 = new WVec(point);
@@ -10,30 +10,25 @@ public static class ShapeDistance
         return p => n.Dot(p - p0);
     }
 
-    public static ShapeDist Circle(WPos origin, float radius) => p => (p - origin).Length() - radius;
-    public static ShapeDist InvertedCircle(WPos origin, float radius) => p => radius - (p - origin).Length();
+    public static DistFn CircleMulti(WVec origin, float radius) => p => (p - origin).Length() - radius;
+    public static DistFn Circle(WPos origin, float radius) => CircleMulti(new(origin), radius);
+    public static DistFn InvertedCircle(WPos origin, float radius) => p => radius - (p - origin).Length();
 
-    public static ShapeDist Donut(WPos origin, float innerRadius, float outerRadius)
+    public static DistFn Donut(WPos origin, float innerRadius, float outerRadius)
     {
-        if (outerRadius <= 0 || innerRadius >= outerRadius)
-            return _ => VV.Create(float.MaxValue);
-
         var midpoint = (outerRadius + innerRadius) * 0.5f;
         var thickness = (outerRadius - innerRadius) * 0.5f;
-        var cv = Circle(origin, midpoint);
 
-        return p => cv(p).Abs() - thickness;
+        return Ring(Circle(origin, midpoint), thickness);
     }
 
-    public static ShapeDist Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    public static DistFn ConeMulti(WVec origin, float radius, WVec centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || radius <= 0)
             return _ => VV.Create(float.MaxValue);
-        if (halfAngle.Rad >= MathF.PI)
-            return Circle(origin, radius);
 
         WVec c = new(halfAngle.ToDirection().MirrorZ());
-        WVec cx = new(-centerDir.ToDirection().MirrorX());
+        var cx = -centerDir.MirrorX();
         var rv = VV.Create(radius);
 
         return q =>
@@ -46,13 +41,16 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
+    public static DistFn Cone(WPos origin, float radius, WDir centerDir, Angle halfAngle) => ConeMulti(new(origin), radius, new(centerDir), halfAngle);
+    public static DistFn Cone(WPos origin, float radius, Angle centerDir, Angle halfAngle) => ConeMulti(new(origin), radius, new(centerDir.ToDirection()), halfAngle);
+
+    public static DistFn InvertedCone(WPos origin, float radius, Angle centerDir, Angle halfAngle)
     {
         var cone = Cone(origin, radius, centerDir, halfAngle);
         return p => -cone(p);
     }
 
-    public static ShapeDist DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
+    public static DistFn DonutSector(WPos origin, float innerRadius, float outerRadius, Angle centerDir, Angle halfAngle)
     {
         if (halfAngle.Rad <= 0 || outerRadius <= 0 || innerRadius >= outerRadius)
             return _ => VV.Create(float.MaxValue);
@@ -77,7 +75,7 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist Tri(WPos w0, WPos w1, WPos w2)
+    public static DistFn Tri(WPos w0, WPos w1, WPos w2)
     {
         WVec p0 = new(w0), p1 = new(w1), p2 = new(w2);
         WVec e0 = p1 - p0, e1 = p2 - p1, e2 = p0 - p2;
@@ -96,9 +94,9 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist Tri(WPos origin, RelTriangle rel) => Tri(origin + rel.A, origin + rel.B, origin + rel.C);
+    public static DistFn Tri(WPos origin, RelTriangle rel) => Tri(origin + rel.A, origin + rel.B, origin + rel.C);
 
-    public static ShapeDist Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    public static DistFn Rect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var start = origin - dir * lenBack;
         var end = origin + dir * lenFront;
@@ -113,28 +111,44 @@ public static class ShapeDistance
             return q.ClampPositive().Length() + VV.Min(q.MaxComponent(), VFloat.Zero);
         };
     }
-    public static ShapeDist Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-    public static ShapeDist Rect(WPos from, WPos to, float halfWidth)
+    public static DistFn Rect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => Rect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public static DistFn Rect(WPos from, WPos to, float halfWidth)
     {
         var dir = to - from;
         var l = dir.Length();
         return Rect(from, dir / l, l, 0, halfWidth);
     }
 
-    public static ShapeDist InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
+    public static DistFn RectMulti(WVec origin, WVec dir, float lenFront, float lenBack, float halfWidth)
+    {
+        var start = origin - dir * lenBack;
+        var end = origin + dir * lenFront;
+        var midpoint = WVec.Lerp(start, end, VV.Create(0.5f));
+
+        var r = new WVec(halfWidth, (lenBack + lenFront) * 0.5f);
+        var dxr = dir.MirrorX();
+
+        return p =>
+        {
+            var q = (p - midpoint).Rotate(dxr).Abs() - r;
+            return q.ClampPositive().Length() + VV.Min(q.MaxComponent(), VFloat.Zero);
+        };
+    }
+
+    public static DistFn InvertedRect(WPos origin, WDir dir, float lenFront, float lenBack, float halfWidth)
     {
         var r = Rect(origin, dir, lenFront, lenBack, halfWidth);
         return p => -r(p);
     }
-    public static ShapeDist InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-    public static ShapeDist InvertedRect(WPos from, WPos to, float halfWidth)
+    public static DistFn InvertedRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => InvertedRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
+    public static DistFn InvertedRect(WPos from, WPos to, float halfWidth)
     {
         var dir = to - from;
         var l = dir.Length();
         return InvertedRect(from, dir / l, l, 0, halfWidth);
     }
 
-    public static ShapeDist Capsule(WPos origin, WDir dir, float length, float radius)
+    public static DistFn Capsule(WPos origin, WDir dir, float length, float radius)
     {
         var a = new WVec(origin);
         var ba = new WVec(dir * length);
@@ -147,9 +161,9 @@ public static class ShapeDistance
             return (pa - ba * h).Length() - rv;
         };
     }
-    public static ShapeDist Capsule(WPos origin, Angle direction, float length, float radius) => Capsule(origin, direction.ToDirection(), length, radius);
+    public static DistFn Capsule(WPos origin, Angle direction, float length, float radius) => Capsule(origin, direction.ToDirection(), length, radius);
 
-    public static ShapeDist Cross(WPos origin, Angle direction, float length, float halfWidth)
+    public static DistFn Cross(WPos origin, Angle direction, float length, float halfWidth)
     {
         if (halfWidth <= 0 || length <= 0)
             return _ => VV.Create(float.MaxValue);
@@ -167,7 +181,7 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist Polygon(IEnumerable<WPos> vertices)
+    public static DistFn Polygon(IEnumerable<WPos> vertices)
     {
         var vv = vertices.Select(v => new WVec(v)).ToList();
         var n = vv.Count;
@@ -192,7 +206,7 @@ public static class ShapeDistance
             return s * VV.SquareRoot(d);
         };
     }
-    public static ShapeDist Polygon(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
+    public static DistFn Polygon(WPos origin, Angle rotation, RelPolygonWithHoles polygon)
     {
         var ext = new List<WPos>(polygon.Exterior.Length);
         foreach (var e in polygon.Exterior)
@@ -203,7 +217,7 @@ public static class ShapeDistance
         if (polygon.IsSimple)
             return dext;
 
-        var interiors = new List<ShapeDist>();
+        var interiors = new List<DistFn>();
 
         foreach (var h in polygon.Holes)
         {
@@ -223,9 +237,9 @@ public static class ShapeDistance
             return dist;
         };
     }
-    public static ShapeDist ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
+    public static DistFn Polygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
 
-    public static ShapeDist Intersection(List<ShapeDist> funcs)
+    public static DistFn Intersection(List<DistFn> funcs)
     {
         if (funcs.Count == 0)
             return _ => VV.Create(float.MaxValue);
@@ -238,7 +252,7 @@ public static class ShapeDistance
             return d;
         };
     }
-    public static ShapeDist Union(List<ShapeDist> funcs)
+    public static DistFn Union(List<DistFn> funcs)
     {
         if (funcs.Count == 0)
             return _ => VV.Create(float.MaxValue);
@@ -252,7 +266,7 @@ public static class ShapeDistance
         };
     }
 
-    public static ShapeDist Xor(ShapeDist a, ShapeDist b)
+    public static DistFn Xor(DistFn a, DistFn b)
     {
         return p =>
         {
@@ -262,21 +276,25 @@ public static class ShapeDistance
         };
     }
 
-    public static Func<WVec, Vector<uint>> Count(List<ShapeDist> fs)
+    public static DistFn Grow(DistFn a, float len) => p => a(p) - len;
+    public static DistFn Shrink(DistFn a, float len) => p => a(p) + len;
+
+    public static DistFn Ring(DistFn input, float thickness) => p => input(p).Abs() - thickness;
+
+    public static Func<WVec, VInt> Count(List<DistFn> fs)
     {
         return p =>
         {
-            var sum = VBool.Zero;
+            var sum = VInt.Zero;
             foreach (var f in fs)
-                sum += VV.IsNegative(f(p)).As<float, int>() & VBool.One;
-            return sum.As<int, uint>();
+                sum += (f(p) < VFloat.Zero).WithValue(VInt.One);
+            return sum;
         };
     }
 
     // special distance function for precise positioning, finer than map resolution
     // it's an inverted rect of a size equal to one grid cell, with a special adjustment if starting position is in the same cell, but farther than tolerance
-    // note that if the goal position is exactly aligned with a grid point, it results in a 2x2 safe area instead of 1x1 (this never happens in practice)
-    public static ShapeDist PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
+    public static DistFn PrecisePosition(WPos origin, WDir dir, float cellSize, WPos starting, float tolerance)
     {
         var delta = starting - origin;
         var dparr = delta.Dot(dir);

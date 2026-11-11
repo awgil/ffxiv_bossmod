@@ -8,6 +8,7 @@ class CrystallineThorns(BossModule module) : Components.CastCounter(module, AID.
 
     public bool Active => Activation != default;
     public bool Dangerous(WPos pos) => _poly?.Contains(pos - Module.Center) ?? false;
+    public Func<WVec, VBool> IsDangerous => _poly is { } p ? ShapeDistance.Polygon(default, default, p).Inverted().Discretize() : (_ => VBool.Zero);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -73,7 +74,7 @@ class AuroralUppercut(BossModule module) : Components.Knockback(module, AID.Auro
             yield return new(Module.Center, _distance, _activation);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_thorns?.Dangerous(pos) ?? false);
+    public override Func<WVec, VBool> DestinationUnsafe(int slot, Actor actor) => _thorns is { } t ? t.IsDangerous : (_ => VBool.Zero);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

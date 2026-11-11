@@ -60,7 +60,7 @@ class PortentousComet : Components.UniformStackSpread
         if (IsSpreadTarget(actor) && _meteor != null)
         {
             var meteorPos = _meteor.Position;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => MathF.Abs(p.Z - meteorPos.Z) > 3), Spreads[0].Activation);
+            hints.AddForbiddenZone(Sdf.Discrete(p => VV.Abs(p.Z - meteorPos.Z) > 3), Spreads[0].Activation);
         }
 
         base.AddAIHints(slot, actor, assignment, hints);

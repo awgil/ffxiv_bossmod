@@ -42,7 +42,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     public bool IsImmune(int slot, DateTime time) => !IgnoreImmunes && PlayerImmunes[slot].ImmuneAt(time);
 
     public static WPos AwayFromSource(WPos pos, WPos origin, float distance) => pos != origin ? pos + distance * (pos - origin).Normalized() : pos;
-    public static WVec AwayFromSourceV(WVec pos, WPos origin, float distance) => pos + distance * (pos - origin).Normalized();
+    public static WVec AwayFromSource(WVec pos, WPos origin, float distance) => pos + distance * (pos - origin).Normalized();
     public static WPos AwayFromSource(WPos pos, Actor? source, float distance) => source != null ? AwayFromSource(pos, source.Position, distance) : pos;
 
     public static void DrawKnockback(WPos from, WPos to, Angle rot, MiniArena arena)
@@ -61,7 +61,15 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     public abstract IEnumerable<Source> Sources(int slot, Actor actor);
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !StopAtWall && !Module.InBounds(pos);
+    public bool DestinationUnsafe(int slot, Actor actor, WPos pos) => DestinationUnsafeImpl(slot, actor).CallOnce(pos);
+    public virtual PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.Union([.. Module.Components.OfType<GenericAOEs>().SelectMany(a => a.ActiveAOEs(slot, actor).Select(inst => inst.DistV))]).Discretize();
+
+    private PointTest DestinationUnsafeImpl(int slot, Actor actor)
+    {
+        var bad = DestinationUnsafe(slot, actor);
+
+        return StopAtWall ? bad : (p => bad(p) | ~Module.InBounds(p));
+    }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -137,28 +145,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             if (s.Shape?.Check(from, s.Origin, s.Direction) == false)
                 continue; // this source won't affect player due to being out of aoe
 
-            var dir = s.Kind switch
-            {
-                Kind.AwayFromOrigin => from != s.Origin ? (from - s.Origin).Normalized() : default,
-                Kind.TowardsOrigin => from != s.Origin ? (s.Origin - from).Normalized() : default,
-                Kind.DirForward => s.Direction.ToDirection(),
-                Kind.DirLeft => s.Direction.ToDirection().OrthoL(),
-                Kind.DirRight => s.Direction.ToDirection().OrthoR(),
-                _ => default
-            };
-            if (dir == default)
-                continue; // couldn't determine direction for some reason
-
-            var distance = s.Distance;
-            if (s.Kind is Kind.TowardsOrigin)
-                distance = Math.Min(s.Distance, (s.Origin - from).Length() - s.MinDistance);
-            if (distance <= 0)
-                continue; // this could happen if attract starts from < min distance
-
-            if (StopAtWall)
-                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - 0.1f);
-
-            var to = from + distance * dir;
+            var to = CalculateMovement(s, new(from))[0];
             yield return (from, to);
             from = to;
 
@@ -167,38 +154,58 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
         }
     }
 
+    protected virtual WVec CalculateMovement(Source src, WVec starting)
+    {
+        starting = WVec.Select(src.Shape?.Check(starting, src.Origin, src.Direction) ?? VBool.AllBitsSet, starting, WVec.Invalid);
+
+        WVec dir;
+        var distance = VV.Create(src.Distance);
+
+        void clamp(WVec dir)
+        {
+            if (StopAtWall)
+                distance = VV.Min(distance, Module.Arena.IntersectRayBounds(starting, dir));
+        }
+
+        switch (src.Kind)
+        {
+            case Kind.AwayFromOrigin:
+                clamp(dir = (starting - src.Origin).Normalized());
+                break;
+            case Kind.TowardsOrigin:
+                var off = src.Origin - starting;
+                dir = off.Normalized();
+                distance = VV.Clamp(off.Length() - src.MinDistance, VFloat.Zero, VV.Create(src.Distance));
+                break;
+            case Kind.DirForward:
+                clamp(dir = new(src.Direction.ToDirection()));
+                break;
+            case Kind.DirLeft:
+                clamp(dir = new(src.Direction.ToDirection().OrthoL()));
+                break;
+            case Kind.DirRight:
+                clamp(dir = new(src.Direction.ToDirection().OrthoR()));
+                break;
+            default:
+                return WVec.Invalid;
+        }
+
+        return starting + dir * distance;
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        // arbitrary polygon in-bounds test is too expensive, don't bother
-        if (Arena.Bounds is ArenaBoundsCustom)
-            return;
-
-        if (StopAtWall)
-            return;
-
         foreach (var src in Sources(slot, actor))
         {
             if (IsImmune(slot, src.Activation))
                 continue;
 
-            WVec projectedV(WVec starting)
-            {
-                starting = WVec.Select(src.Shape?.Check(starting, src.Origin, src.Direction) ?? VBool.AllBitsSet, starting, WVec.Invalid);
-
-                return src.Kind switch
-                {
-                    Kind.AwayFromOrigin => AwayFromSourceV(starting, src.Origin, src.Distance),
-                    Kind.DirForward => starting + src.Direction.ToDirection() * src.Distance,
-                    Kind.DirLeft => starting + src.Direction.ToDirection().OrthoL() * src.Distance,
-                    Kind.DirRight => starting + src.Direction.ToDirection().OrthoR() * src.Distance,
-                    _ => WVec.Invalid
-                };
-            }
+            var isUnsafe = DestinationUnsafeImpl(slot, actor);
 
             hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
-                var proj = projectedV(p);
-                return proj.IsValid() & ~Arena.InBoundsV(proj);
+                var proj = CalculateMovement(src, p);
+                return proj.IsValid() & isUnsafe(proj);
             }), src.Activation);
         }
     }

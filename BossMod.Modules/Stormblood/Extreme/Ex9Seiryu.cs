@@ -102,13 +102,13 @@ class ForceOfNatureAOE(BossModule module) : Components.StandardAOEs(module, AID.
 class ForceOfNature(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ForceOfNatureKnockback, 10, shape: new AOEShapeCircle(21))
 {
     // safe area is the island, not the full (water-filled) phase-2 arena bounds
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, Ex9Seiryu.IslandRadius);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.InvertedCircle(Arena.Center, Ex9Seiryu.IslandRadius).Discretize();
 }
 
 // Coursing River is the Blue Orochi "river current" push: a directional knockback along the snake's facing that can fling players off the island
-class CoursingRiverLine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiverLine, 25, shape: new AOEShapeRect(90, 45), kind: Components.Knockback.Kind.DirForward)
+class CoursingRiverLine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiverLine, 25, shape: new AOEShapeRect(90, 45), kind: Kind.DirForward)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, Ex9Seiryu.IslandRadius);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.InvertedCircle(Arena.Center, Ex9Seiryu.IslandRadius).Discretize();
 }
 
 class Ex9SeiryuStates : StateMachineBuilder

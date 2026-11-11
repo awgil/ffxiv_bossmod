@@ -26,10 +26,7 @@ class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydro
 class Ceras(BossModule module) : Components.SingleTargetCast(module, AID.Ceras);
 class BodySlam(BossModule module) : Components.StandardAOEs(module, AID.BodySlam, 10);
 
-class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 20, shape: new AOEShapeCircle(10), stopAtWall: true)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<PrevailingCurrent>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
-}
+class BodySlamKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BodySlam, 20, shape: new AOEShapeCircle(10), stopAtWall: true);
 
 class SwallowStates : StateMachineBuilder
 {

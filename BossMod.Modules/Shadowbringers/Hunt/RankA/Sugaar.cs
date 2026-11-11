@@ -50,7 +50,6 @@ class NumbingNoiseTailSnapRotating(BossModule module) : Components.GenericRotati
 
 class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(module)
 {
-    private readonly NumbingNoiseTailSnapRotating? _rotating = module.FindComponent<NumbingNoiseTailSnapRotating>();
     private DateTime _activation;
 
     private static readonly AOEShapeCircle _shape = new(30);
@@ -60,8 +59,6 @@ class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(modu
         if (_activation != default)
             yield return new(Module.PrimaryActor.Position, 25, _activation, _shape, default, Kind.TowardsOrigin, Module.PrimaryActor.HitboxRadius + actor.HitboxRadius);
     }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _rotating?.ActiveAOEs(slot, actor).Any(aoe => aoe.Check(pos)) ?? false;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
