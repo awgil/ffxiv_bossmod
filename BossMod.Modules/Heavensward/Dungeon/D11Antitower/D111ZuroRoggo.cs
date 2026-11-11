@@ -105,5 +105,5 @@ class ZuroRoggoStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4805, Contributors = "xan")]
-public class ZuroRoggo(ModuleInit init) : BossModule(init, new(-365, -250), new ArenaBoundsCircle(20));
+public class D111ZuroRoggo(ModuleInit init) : BossModule(init, new(-365, -250), new ArenaBoundsCircle(20));
 

@@ -101,4 +101,4 @@ class HraesvelgrStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4954, Contributors = "xan")]
-public class Hraesvelgr(ModuleInit init) : BossModule(init, new(400, -400), new ArenaBoundsCircle(20));
+public class D133Hraesvelgr(ModuleInit init) : BossModule(init, new(400, -400), new ArenaBoundsCircle(20));

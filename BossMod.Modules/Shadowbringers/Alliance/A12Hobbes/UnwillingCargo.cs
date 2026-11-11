@@ -47,10 +47,13 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
 
     static readonly WPos PlatformCenter = new(-805, -270);
 
-    public bool IsAffected(Actor actor) => Activation > WorldState.CurrentTime && MathF.Abs(actor.Position.Z + 270) < 20;
+    public bool IsAffected(Actor actor) => Activation > WorldState.CurrentTime && actor.Position.AlmostEqual(PlatformCenter, 20);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
+        if (!actor.Position.AlmostEqual(PlatformCenter, 20))
+            yield break;
+
         var sign = _pattern is Pattern.Blue or Pattern.BluePink ? 1 : -1;
 
         switch (_pattern)
@@ -70,6 +73,7 @@ class UnwillingCargo(BossModule module) : Components.Knockback(module, AID.Unwil
         }
     }
 
+    // could return constant 15 to improve perf here, but visual hint would be incorrect (arrow extending outside platform)
     public override VFloat CalculateDistance(WVec position, WVec direction) => Intersect.RayCircleV(position - PlatformCenter, direction, 20);
     public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.InvertedCircle(PlatformCenter, 17.5f).Discretize();
 

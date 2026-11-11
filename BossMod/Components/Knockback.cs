@@ -182,18 +182,20 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     }
 
     /// <summary>
-    /// <para>Check if the provided point is "dangerous".</para>
-    /// <para>This function <em>should not</em> test if the point is in bounds. Out of bounds points are tested separately.</para>
+    /// <para>Check if the provided point is "dangerous", i.e. inside an AOE.</para>
+    /// <remarks>The returned function is not expected to check if its input is in bounds. Bounds checking is handled by <c cref="DestinationOutOfBounds(int, Actor)">DestinationOutOfBounds</c>.</remarks>
     /// </summary>
     /// <returns></returns>
     public virtual PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.Union([.. Module.Components.OfType<GenericAOEs>().SelectMany(a => a.ActiveAOEs(slot, actor).Select(inst => inst.DistV))]).Discretize();
     /// <summary>
     /// <para>Check if the provided point is in bounds.</para>
+    /// <remarks>Default implementation does nothing if <c cref="StopAtWall">StopAtWall</c> is true (since all points are expected to be in bounds).</remarks>
     /// </summary>
     /// <returns></returns>
     public virtual PointTest DestinationOutOfBounds(int slot, Actor actor) => StopAtWall ? PointTest.Never : ((PointTest)Module.InBounds).Inverted();
     /// <summary>
-    /// <para>Calculate how far a player starting at <paramref name="position"/> would move in <paramref name="direction"/>. This value will be capped to the current <c cref="Source">Source</c>'s maximum distance, so if there is no applicable wall, you can just return a large positive number. Useful for temporary obstacles.</para>
+    /// <para>Calculate how far a player starting at <paramref name="position"/> would move in <paramref name="direction"/>.</para>
+    /// <remarks>This value will be capped to the current <c cref="Source">Source</c>'s maximum distance, so if there is no applicable wall, you can just return a large positive number. Useful for temporary obstacles.</remarks>
     /// </summary>
     /// <param name="position">Position vector.</param>
     /// <param name="direction">Direction vector (normalized).</param>
