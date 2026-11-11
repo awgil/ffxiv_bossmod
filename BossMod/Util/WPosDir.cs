@@ -178,6 +178,8 @@ public record struct WVec(VFloat X, VFloat Z)
     public readonly VBool InCone(WPos origin, WDir direction, Angle halfAngle) => (this - origin).Normalized().Dot(direction) >= halfAngle.Cos();
     public readonly VBool InCone(WPos origin, Angle direction, Angle halfAngle) => InCone(origin, direction.ToDirection(), halfAngle);
 
+    public readonly WPos this[int index] => new(X[index], Z[index]);
+
     public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator +(WVec a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);

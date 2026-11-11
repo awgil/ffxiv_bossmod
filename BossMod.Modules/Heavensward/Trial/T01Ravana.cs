@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Heavensward.Trial.T01Ravana;
+﻿namespace BossMod.Heavensward.Trial.T01Ravana;
 
 public enum OID : uint
 {

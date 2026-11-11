@@ -145,7 +145,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
             if (s.Shape?.Check(from, s.Origin, s.Direction) == false)
                 continue; // this source won't affect player due to being out of aoe
 
-            var to = CalculateMovement(s, new(from)).First();
+            var to = CalculateMovement(s, new(from))[0];
             yield return (from, to);
             from = to;
 
