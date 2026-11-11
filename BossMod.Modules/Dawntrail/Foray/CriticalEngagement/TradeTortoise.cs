@@ -229,7 +229,7 @@ class CoinGame(BossModule module) : BossComponent(module)
 
         if (obj.AtCapacity || obj.Deficit <= 0)
         {
-            hints.GoalZones.Add(p => p.InCircle(obj.Destination, 5) ? 10 : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(obj.Destination, 5), 10);
             return;
         }
 

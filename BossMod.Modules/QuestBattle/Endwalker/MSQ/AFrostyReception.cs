@@ -50,7 +50,7 @@ internal class AFrostyReception(WorldState ws) : QuestBattle(ws)
             hints.InteractWithTarget = null;
     }
 
-    private static Func<WVec, Vector<float>> GetSightCone(Actor p)
+    private static DistFn GetSightCone(Actor p)
     {
         if (p.OID == 0x362A)
             return ShapeDistance.Circle(p.Position, 8.5f + p.HitboxRadius);

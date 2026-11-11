@@ -168,7 +168,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
             if (target != null && strategy.Opener.Value == OpenerStrategy.Standard && countdown < 2.2f && Unlocked(AID.HolySpirit) && MP >= HolySpiritMP && Player.DistanceToHitbox(target.Actor) <= 25)
             {
                 var pos = Player.Position;
-                Hints.GoalZones.Add(p => p.InCircle(pos, 0.5f) ? 100 : 0);
+                Hints.GoalZones.AddSimple(p => p.InCircle(pos, 0.5f), 100);
                 if (countdown < 1.75f)
                     PushGCD(AID.HolySpirit, target.Actor, 10);
             }
@@ -183,7 +183,13 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
         if (Loose.Count > 0)
         {
             var loose = Loose;
-            Hints.GoalZones.Add(p => loose.Count(a => p.InCircle(a.Position, 5 + a.HitboxRadius)));
+            Hints.GoalZones.Add(p =>
+            {
+                var c = VFloat.Zero;
+                foreach (var l in loose)
+                    c += p.InCircle(l.Position, 5 + l.HitboxRadius).WithValue(VFloat.One);
+                return c;
+            });
         }
 
         GCDs(strategy, target);
@@ -354,7 +360,7 @@ public sealed class KagePLD(RotationModuleManager manager, Actor player) : KageS
 
     private bool PotionBurst(in Strategy strategy) => Player.InCombat && (strategy.FightOrFlight.Value == OffensiveStrategy.Delay ? RaidBuffsLeft > 0 || RaidBuffsIn < 5 : ReadyIn(AID.FightOrFlight) < 3 && (CombatTime > 15 || ComboLastMove == (strategy.Opener.Value == OpenerStrategy.EarlyBuff ? AID.FastBlade : AID.RiotBlade) || !Unlocked(AID.RiotBlade)));
 
-    private void PushGCD(AID aid, Actor? target, int priority) => base.PushGCD(aid, target, priority, CastTime(aid));
+    private void PushGCD(AID aid, Actor? target, int priority) => PushGCD(aid, target, priority, CastTime(aid));
 
     private float CastTime(AID aid)
     {

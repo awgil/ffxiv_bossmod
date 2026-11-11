@@ -531,14 +531,14 @@ public abstract class AkechiTools<AID, TraitID>(RotationModuleManager manager, A
         if (GoalTarget != null)
             Hints.GoalZones.Add(Hints.GoalSingleTarget(GoalTarget.Actor, Player, World.Actors, range));
     }
-    protected void GoalZoneCombined(StrategyValues strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void GoalZoneCombined(StrategyValues strategy, float range, GoalFn fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
         => AddGoalZone(range, fAoe, firstUnlockedAoeAction, minAoe, maximumActionRange, Hints.RecommendedPositional.Pos);
-    protected void AnyGoalZoneCombined(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void AnyGoalZoneCombined(float range, GoalFn fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
         var (_, positional, imminent, _) = Hints.RecommendedPositional;
         AddGoalZone(range, fAoe, firstUnlockedAoeAction, minAoe, maximumActionRange, imminent ? positional : Positional.Any);
     }
-    private void AddGoalZone(float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange, Positional positional)
+    private void AddGoalZone(float range, GoalFn fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange, Positional positional)
     {
         var aoe = Unlocked(firstUnlockedAoeAction) ? minAoe : 50;
         if (GoalTarget == null && aoe < 50)

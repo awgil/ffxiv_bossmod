@@ -209,15 +209,15 @@ class SaintlyBeam(BossModule module) : Components.GenericAOEs(module)
         base.AddAIHints(slot, actor, assignment, hints);
         if (TetheredGhost(actor) is { } ghost && _beams.Any(b => b.Target.InstanceID == actor.InstanceID && b.Locked == null))
         {
-            hints.GoalZones.Add(p =>
+            hints.GoalZones.AddSimple(p =>
             {
                 var distance = (p - ghost.Position).Length();
-                return distance is >= 4.5f and <= 5.5f ? 10 : 0;
-            });
+                return (distance >= 4.5f) & (distance <= 5.5f);
+            }, 10);
             return;
         }
         if (BaitSpot(actor) is { } spot)
-            hints.GoalZones.Add(p => p.InCircle(spot, 0.4f) ? 10 : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(spot, 0.4f), 10);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -333,7 +333,7 @@ class DiabolicLight(BossModule module) : Components.GenericAOEs(module)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (actor.FindStatus(SID.Prey) != null)
-            hints.GoalZones.Add(p => p.InCircle(Bait, 3) ? 5 : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(Bait, 3), 5);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -363,7 +363,7 @@ class ChasingGhost(BossModule module) : Components.Voidzone(module, 4, OID.Ghost
         {
             var ghost = Sources.Where(s => !s.IsDead).MinBy(s => (s.Position - actor.Position).LengthSq());
             if (ghost != null)
-                hints.GoalZones.Add(p => p.InCircle(ghost.Position, 1) ? 5 : 0);
+                hints.GoalZones.AddSimple(p => p.InCircle(ghost.Position, 1), 5);
             return;
         }
         base.AddAIHints(slot, actor, assignment, hints);
@@ -428,15 +428,15 @@ class JumpPads(BossModule module) : BossComponent(module)
         {
             var pad = Pad(OID.RoofJump);
             if (pad != null && actor.Position.Z < pad.Position.Z + 8)
-                hints.GoalZones.Add(p => p.InCircle(pad.Position, 1.5f) ? 10 : 0);
+                hints.GoalZones.AddSimple(p => p.InCircle(pad.Position, 1.5f), 10);
             else
-                hints.GoalZones.Add(p => p.InCircle(chimney.Position, 15) ? 5 : 0);
+                hints.GoalZones.AddSimple(p => p.InCircle(chimney.Position, 15), 5);
             return;
         }
 
         var passengers = Module.Enemies(OID.PutridPassenger).Any(a => a.IsTargetable && !a.IsDead);
         if (!passengers && Pad(OID.CartJump) is { } cart)
-            hints.GoalZones.Add(p => p.InCircle(cart.Position, 1.5f) ? 10 : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(cart.Position, 1.5f), 10);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

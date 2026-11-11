@@ -57,7 +57,7 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
     {
         if (Module.FindComponent<AetherSprayFire>()!.Active)
         {
-            var forbiddenInverted = new List<Func<WVec, Vector<float>>>();
+            var forbiddenInverted = new List<DistFn>();
             foreach (var a in _aoes)
                 forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
@@ -76,7 +76,6 @@ class AetherSprayWater(BossModule module) : Components.RaidwideCast(module, AID.
 class AetherSprayFire(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayFire, "Go into a bubble! (Raidwide)");
 class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<QueerBubble>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
     private static readonly Dictionary<object, object> cache = [];
     public static WPos RotateAroundOrigin(float rotatebydegrees, WPos origin, WPos caster)
     {
@@ -90,7 +89,7 @@ class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget
     }
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WVec, Vector<float>>>();
+        var forbidden = new List<DistFn>();
         var source = Sources(slot, actor).FirstOrDefault();
         if (Module.FindComponent<QueerBubble>()!.ActiveAOEs(slot, actor).Any() && source != default)
         {

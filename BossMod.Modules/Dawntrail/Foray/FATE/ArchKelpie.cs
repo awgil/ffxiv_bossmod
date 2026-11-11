@@ -69,7 +69,7 @@ class StormWave : Components.Exaflare
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var l in Lines.Where(l => l.ExplosionsLeft == 5))
-            hints.GoalZones.Add(p => p.InRect(l.Next, l.Rotation, 50, 0, 4) ? 0.5f : 0);
+            hints.GoalZones.AddSimple(p => p.InRect(l.Next, l.Rotation, 50, 0, 4), 0.5f);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

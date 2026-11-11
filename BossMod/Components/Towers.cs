@@ -69,8 +69,8 @@ public class GenericTowers(BossModule module, Enum? aid = default, AIHints.Predi
         // first see if we have one or more towers we need to soak - if so, add hints to take one of them
         // if there are no towers to soak, add hints to avoid forbidden ones
         // note that if we're currently inside a tower that has min number of soakers, we can't leave it
-        List<ShapeDist> zones = [];
-        List<ShapeDist> forbiddenZones = [];
+        List<DistFn> zones = [];
+        List<DistFn> forbiddenZones = [];
         var haveTowersToSoak = false;
         foreach (var t in Towers.Where(t => t.Activation <= deadline))
         {

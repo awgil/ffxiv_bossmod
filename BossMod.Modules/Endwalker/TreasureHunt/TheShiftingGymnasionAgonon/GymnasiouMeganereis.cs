@@ -41,12 +41,7 @@ public enum AID : uint
 }
 
 class Ceras(BossModule module) : Components.SingleTargetCast(module, AID.Ceras);
-
-class WaveOfTurmoil(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WaveOfTurmoil, 20, stopAtWall: true)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Hydrobomb>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
-}
-
+class WaveOfTurmoil(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WaveOfTurmoil, 20, stopAtWall: true);
 class Hydrobomb(BossModule module) : Components.StandardAOEs(module, AID.Hydrobomb, 10);
 class Waterspout(BossModule module) : Components.StandardAOEs(module, AID.Waterspout2, 8);
 class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydrocannon, new AOEShapeRect(17, 1.5f));

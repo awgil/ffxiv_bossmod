@@ -48,10 +48,7 @@ class HeirloomScream(BossModule module) : Components.StandardAOEs(module, AID.He
 class PungentPirouette(BossModule module) : Components.StandardAOEs(module, AID.PungentPirouette, new AOEShapeCircle(6.84f));
 class Pollen(BossModule module) : Components.StandardAOEs(module, AID.Pollen, new AOEShapeCircle(6.84f));
 
-class StygianReleaseKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.StygianRelease, 20, stopAtWall: true)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<TerrorEye>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
-}
+class StygianReleaseKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.StygianRelease, 20, stopAtWall: true);
 
 class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);

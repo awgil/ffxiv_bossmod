@@ -30,9 +30,7 @@ class Multibox(RotationModuleManager manager, Actor player) : RotationModule(man
             {
                 var destination = primaryTarget.Position + primaryTarget.DirectionTo(Player) * (14 + primaryTarget.HitboxRadius + 0.5f);
 
-                var sh = ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f);
-
-                Hints.GoalZones.Add(p => sh(new(p))[0] > 0 ? 5 : 0);
+                Hints.GoalZones.AddSimple(ShapeDistance.PrecisePosition(destination, new(0, 1), 0.5f, Player.Position, 0.1f).Inverted().Discretize(), 5);
             }
         }
     }

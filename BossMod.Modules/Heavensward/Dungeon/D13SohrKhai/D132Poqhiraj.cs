@@ -30,35 +30,7 @@ class Touchdown(BossModule module) : Components.StandardAOEs(module, AID.Touchdo
 class GallopLine(BossModule module) : Components.StandardAOEs(module, AID.GallopLine, new AOEShapeRect(40, 1));
 class GallopKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GallopKnockback, 10, shape: new AOEShapeRect(6.5f, 20), kind: Kind.DirForward, stopAtWall: true)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => pos.X is > 405 or < 395;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (Casters.Count == 0)
-            return;
-
-        List<WPos> leftBlockers = [];
-        List<WPos> rightBlockers = [];
-
-        foreach (var wall in Module.Enemies(OID.PrayerWall).Where(x => !x.IsDeadOrDestroyed))
-        {
-            if (wall.Position.X > 400)
-                rightBlockers.Add(wall.Position);
-            else
-                leftBlockers.Add(wall.Position);
-        }
-
-        if (rightBlockers.Count + leftBlockers.Count == 0)
-            return;
-
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            var blockers = p.X > 400 ? rightBlockers : leftBlockers;
-            return !blockers.Any(b => Utils.AlmostEqual(p.Z, b.Z, 5.1f));
-        }), Module.CastFinishAt(Casters[0].CastInfo));
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => p => ~p.X.AlmostEqual(400, 5);
 }
 class BurningBright(BossModule module) : Components.BaitAwayCast(module, AID.BurningBright, new AOEShapeRect(26, 3), endsOnCastEvent: false);
 class CloudCall(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(8), (uint)IconID.CloudCall, AID.CloudCall, 4.1f, true);

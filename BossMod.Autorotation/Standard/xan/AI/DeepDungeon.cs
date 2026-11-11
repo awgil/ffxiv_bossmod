@@ -155,11 +155,11 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         var total = maxRange + Player.HitboxRadius + primaryTarget.HitboxRadius;
         var totalKite = maxKite + Player.HitboxRadius + primaryTarget.HitboxRadius;
         var goalFactor = 0.05f;
-        Hints.GoalZones.Add(pos =>
+        Hints.GoalZones.AddSimple(pos =>
         {
             var dist = (pos - primaryPos).Length();
-            return dist <= total && dist >= totalKite ? goalFactor : 0;
-        });
+            return (dist <= total) & (dist >= totalKite);
+        }, goalFactor);
     }
 
     private void DoTransformActions(in Strategy strategy, Actor? primaryTarget, Transformation t)
@@ -167,7 +167,7 @@ public class DeepDungeonAI(RotationModuleManager manager, Actor player) : AIBase
         if (primaryTarget == null)
             return;
 
-        Func<WPos, float> goal;
+        GoalFn goal;
         ActionID attack;
         int numTargets;
         var castTime = 0f;

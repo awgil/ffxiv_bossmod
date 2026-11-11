@@ -63,15 +63,16 @@ class WhiteHole(BossModule module) : Components.StandardAOEs(module, AID.WhiteHo
 
 class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Shockwave, 19, shape: new AOEShapeCircle(19))
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => !Module.Enemies(OID.Boss).Any(b => !b.IsDeadOrDestroyed && pos.InCircle(b.Position, A35Atomos.PlatformRadius));
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
+    {
+        var nearBosses = ShapeDistance.Union([.. Module.Enemies(OID.Boss).Select(b => ShapeDistance.Circle(b.Position, A35Atomos.PlatformRadius))]);
+        return nearBosses.Inverted().Discretize();
+    }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (Platforms.OnRing(actor))
-            return;
-        foreach (var c in Casters.Where(c => Platforms.OnAtomosPlatform(Module, actor, c.Position)))
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(c.Position, 1.5f), Module.CastFinishAt(c.CastInfo));
+        if (!Platforms.OnRing(actor))
+            base.AddAIHints(slot, actor, assignment, hints);
     }
 }
 

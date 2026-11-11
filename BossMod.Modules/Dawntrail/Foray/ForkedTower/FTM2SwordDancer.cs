@@ -153,12 +153,6 @@ class SwordDance(BossModule module) : Components.GenericAOEs(module, AID.SwordDa
         if (spell.Action == WatchedAction && _predicted.Count > 0)
             _predicted.RemoveAt(0);
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.DistV, aoe.Activation);
-    }
 }
 
 class Pierce(BossModule module) : Components.StandardAOEs(module, AID.Pierce, 5);

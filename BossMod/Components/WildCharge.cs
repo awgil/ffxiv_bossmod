@@ -75,7 +75,7 @@ public class GenericWildCharge(BossModule module, float halfWidth, Enum? aid = d
                 {
                     // try to stack with furthest target (by angle delta) to hit as many teammates as possible
                     var baitDir = (actor.Position - Source.Position).ToAngle();
-                    var farthest = Raid.WithSlot().WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().MaxBy(a => baitDir.DistanceToAngle((a.Position - Source.Position).ToAngle()).Abs());
+                    var farthest = Raid.WithSlot(excludeAlliance: true, excludeNPCs: true).WhereSlot(i => PlayerRoles[i] is PlayerRole.Share or PlayerRole.ShareNotFirst).Actors().MaxBy(a => baitDir.DistanceToAngle((a.Position - Source.Position).ToAngle()).Abs());
                     if (farthest != null)
                     {
                         var stack = GetAOEForTarget(Source.Position, farthest.Position);
@@ -201,7 +201,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
 
     public readonly List<Stack> Stacks = [];
 
-    private ShapeDist ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
+    private DistFn ShapeFn(Stack s) => ShapeDistance.Rect(s.Source, (s.Target.Position - s.Source).Normalized(), fixedLength, 0, halfWidth);
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -282,7 +282,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
             {
                 var zones = group.Select(ShapeFn).ToList();
                 var x = ShapeDistance.Count(zones);
-                hints.AddForbiddenZone(Sdf.Discrete(p => VV.Equals(x(p), Vector<uint>.One).As<uint, int>()), group.First().Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => VV.Equals(x(p), VInt.One).WithValue(VBool.AllBitsSet)), group.First().Activation);
             }
         }
     }

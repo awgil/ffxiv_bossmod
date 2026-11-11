@@ -24,7 +24,7 @@ public static class Intersect
         var t = -halfB + VV.SquareRoot(halfDSq);
 
         return VV.ConditionalSelect(
-            VV.IsNegative(halfDSq).Mask(),
+            halfDSq < VFloat.Zero,
             VV.Create(float.MaxValue),
             VV.ConditionalSelect(
                 t >= VFloat.Zero,

@@ -89,7 +89,7 @@ class Doom(BossModule module) : BossComponent(module)
         {
             // platforms take ~8.6 seconds to cleanse doom, we'll call it 9 to account for movement delay
             var moveDeadline = _deadline.AddSeconds(-9);
-            static Func<WVec, Vector<float>> plat(float x, float z) => ShapeDistance.InvertedRect(new(x, z), default(Angle), 2.5f, 2.5f, 2.5f);
+            static DistFn plat(float x, float z) => ShapeDistance.InvertedRect(new(x, z), default(Angle), 2.5f, 2.5f, 2.5f);
             var plats = ShapeDistance.Intersection([plat(520, -7.5f), plat(520, 7.5f), plat(530, 0), plat(510, 0)]);
             hints.AddForbiddenZone(plats, moveDeadline);
         }
@@ -224,4 +224,3 @@ class TaurusPieceStates : StateMachineBuilder
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1089, NameID = 14546)]
 public class TaurusPiece(ModuleInit init) : BossModule(init, new(520, 0), new ArenaBoundsRect(20, 15));
-

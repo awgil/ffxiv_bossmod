@@ -33,7 +33,7 @@ class WingmarkKB(BossModule module) : Components.Knockback(module)
             yield return new Source(actor.Position, 34, Direction: actor.Rotation, Kind: Kind.DirForward);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Risky && base.DestinationUnsafe(slot, actor, pos);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => Risky ? base.DestinationUnsafe(slot, actor) : PointTest.Never;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

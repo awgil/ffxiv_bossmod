@@ -141,7 +141,7 @@ class SoakPads(BossModule module, uint oid, int need, string hint) : BossCompone
             if (others < need)
             {
                 var stay = pad.Position;
-                hints.GoalZones.Add(p => (p - stay).LengthSq() <= Radius * Radius ? 10 : 0);
+                hints.GoalZones.AddSimple(p => (p - stay).LengthSq() <= Radius * Radius, 10);
                 return;
             }
         }
@@ -161,7 +161,7 @@ class SoakPads(BossModule module, uint oid, int need, string hint) : BossCompone
             }
         }
         if (best is { } pos)
-            hints.GoalZones.Add(p => (p - pos).LengthSq() <= Radius * Radius ? 10 : 0);
+            hints.GoalZones.AddSimple(p => (p - pos).LengthSq() <= Radius * Radius, 10);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -297,7 +297,7 @@ class Bombs(BossModule module) : BossComponent(module)
             }
         }
         if (goal is { } spot)
-            hints.GoalZones.Add(p => p.InCircle(spot, 1) ? 10 : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(spot, 1), 10);
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)

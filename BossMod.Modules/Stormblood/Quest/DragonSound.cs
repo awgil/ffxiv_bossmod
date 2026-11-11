@@ -52,7 +52,7 @@ class Enervation(BossModule module) : BossComponent(module)
         hints.ActionsToExecute.Push(ActionID.MakeSpell(DRG.AID.ElusiveJump), actor, ActionQueue.Priority.Medium, facingAngle: -actor.AngleTo(OrnKhai));
 
         var okp = OrnKhai.Position;
-        hints.GoalZones.Add(p => p.InCircle(okp, 3) ? 100 : 0);
+        hints.GoalZones.AddSimple(p => p.InCircle(okp, 3), 100);
     }
 }
 

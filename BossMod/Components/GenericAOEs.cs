@@ -8,7 +8,7 @@ public abstract class GenericAOEs(BossModule module, Enum? aid = default, string
         public readonly VFloat Distance(WVec pos) => Shape.Distance(Origin, Rotation).Inverted(Inverted)(pos);
 
         // type constrained alias so we don't need to explicitly cast when calling AddForbiddenZone
-        public readonly ShapeDist DistV => Distance;
+        public readonly DistFn DistV => Distance;
 
         public readonly bool Check(WPos p) => Distance(p) < 0;
         public readonly float Distance(WPos p) => Distance(new WVec(p))[0];

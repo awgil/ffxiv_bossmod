@@ -339,19 +339,19 @@ class EmptySeed(BossModule module) : Components.KnockbackFromCastTarget(module, 
         foreach (var src in Sources(slot, actor))
         {
             var center = src.Origin;
-            var safeCorner = 45.Degrees() + PlatformOrientation(center);
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
+            var rotationBase = PlatformOrientation(center);
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
-                if (!p.AlmostEqual(center, 10))
-                    return false;
-                var ad = p - center;
+                var safeCorner = 45.Degrees() + rotationBase;
+                var onPlat = p.AlmostEqual(center, 10);
+                var inCorner = VBool.Zero;
                 for (var i = 0; i < 4; i++)
                 {
-                    if (ad.ToAngle().AlmostEqual(safeCorner, SafeConeHalfWidth))
-                        return false;
-                    ad = ad.OrthoR();
+                    inCorner |= p.InCone(center, safeCorner, SafeConeHalfWidth.Radians());
+                    safeCorner += 90.Degrees();
                 }
-                return true;
+
+                return onPlat & ~inCorner;
             }), src.Activation);
         }
     }

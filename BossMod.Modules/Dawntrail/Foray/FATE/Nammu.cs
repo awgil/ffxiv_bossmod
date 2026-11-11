@@ -75,7 +75,7 @@ class TidelineStart(BossModule module) : Components.StandardAOEs(module, AID.Tid
         var rotation = spellInstance.Rotation;
         var right = spellInstance.LocXZ + rotation.ToDirection().OrthoR() * 1f;
         var left = spellInstance.LocXZ + rotation.ToDirection().OrthoL() * 1f;
-        hints.GoalZones.Add(p => shapeInstance.Check(p, right, rotation) || shapeInstance.Check(p, left, rotation) ? 100 : 0);
+        hints.GoalZones.AddSimple(p => shapeInstance.Check(p, right, rotation) | shapeInstance.Check(p, left, rotation), 100);
     }
 
     // We change this to draw to the foreground as the exaflares casts overlap with the first one, and it can look confusing where is exactly safe

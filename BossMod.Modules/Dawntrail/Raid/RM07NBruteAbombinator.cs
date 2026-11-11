@@ -249,19 +249,12 @@ class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, 
 
 class NeoBombarianSpecialKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.NeoBombarianSpecial, 58)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => p =>
     {
-        var inSquare = Math.Abs(pos.X - 100) < 19.5f && Math.Abs(pos.Z - 100) < 19.5f;
-        var inCorridor = Math.Abs(pos.X - 100) < 10 && pos.Z is > -19.5f and < 25;
-        return !inSquare && !inCorridor;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
-    }
+        var inSquare = (VV.Abs(p.X - 100) < 19.5f) & (VV.Abs(p.Z - 100) < 19.5f);
+        var inCorridor = (VV.Abs(p.X - 100) < 10) & (p.Z > -19.5f) & (p.Z < 25);
+        return ~inSquare & ~inCorridor;
+    };
 }
 
 class ArenaChanges(BossModule module) : BossComponent(module)

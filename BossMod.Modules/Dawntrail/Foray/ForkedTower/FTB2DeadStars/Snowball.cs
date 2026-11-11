@@ -11,7 +11,7 @@ class SnowBoulder(BossModule module) : Components.CastCounter(module, AID.SnowBo
     // 0 = north, 1 = south
     record struct Charge(WPos Source, WPos Target, DateTime Activation, int Snowball, int Order)
     {
-        public readonly Func<WVec, Vector<float>> ShapeFn => ShapeDistance.Rect(Source, Target, 5);
+        public readonly DistFn ShapeFn => ShapeDistance.Rect(Source, Target, 5);
     }
 
     private readonly List<Charge> _charges = [];

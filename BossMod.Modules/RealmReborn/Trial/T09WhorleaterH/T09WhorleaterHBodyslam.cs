@@ -23,8 +23,6 @@ class BodySlamKB(BossModule module) : Components.Knockback(module, stopAtWall: t
         if ((AID)spell.Action.ID is AID.BodySlamNorth or AID.BodySlamSouth)
             _knockback = null;
     }
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Hydroshot>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (Module.FindComponent<Dreadstorm>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
-
 }
 
 class BodySlamAOE(BossModule module) : Components.GenericAOEs(module)

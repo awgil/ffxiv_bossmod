@@ -111,7 +111,7 @@ class DirectSeeding(BossModule module) : BossComponent(module)
         else
         {
             var off = WindOffset;
-            List<Func<WVec, Vector<float>>> tiledist = [];
+            List<DistFn> tiledist = [];
             foreach (var t in TileCenters)
             {
                 tiledist.Add(ShapeDistance.Rect(t - off, default(Angle), 5, 5, 5));

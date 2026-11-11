@@ -81,12 +81,6 @@ class EsotericInstruction(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => draw ? _predicted.Select((p, i) => p.AOE with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 }).Take(2) : [];
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.DistV, aoe.Activation);
-    }
-
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (actor.OID == 0x1EC02A && state is 0x00100020 or 0x00010002)

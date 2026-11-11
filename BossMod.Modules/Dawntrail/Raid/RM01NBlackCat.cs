@@ -379,7 +379,6 @@ class ElevateAndEviscerate(BossModule module) : Components.Knockback(module, ign
     public Actor? Caster;
     public Actor? Target;
     public DateTime Activation;
-    private readonly Floor? _floor = module.FindComponent<Floor>();
 
     public const float Distance = 10;
 
@@ -391,13 +390,8 @@ class ElevateAndEviscerate(BossModule module) : Components.Knockback(module, ign
             yield return new(Caster.Position, Distance, Activation);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.NotIntact(pos) ?? !Module.InBounds(pos);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
-    }
+    // FIXME(knockback)
+    //public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.NotIntact(pos) ?? !Module.InBounds(pos);
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -470,16 +464,8 @@ class ElevateAndEviscerateImpact(BossModule module) : Components.GenericAOEs(mod
 
 class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ShockwaveAOE, 18)
 {
-    private readonly Floor? _floor = module.FindComponent<Floor>();
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.Unsafe(pos) ?? !Module.InBounds(pos);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
-    }
+    // FIXME(knockback)
+    //public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.Unsafe(pos) ?? !Module.InBounds(pos);
 }
 
 class PredaceousPounce(BossModule module) : Components.GenericAOEs(module)
