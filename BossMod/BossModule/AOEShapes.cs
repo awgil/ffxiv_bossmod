@@ -12,7 +12,7 @@ public abstract record class AOEShape
         return origin != null && Check(position, origin.Position, origin.Rotation);
     }
 
-    public VBool Check(WVec position, WPos origin, Angle rotation) => VV.IsNegative(GetSdf(origin, rotation).Distance(position)).WithValue(VBool.AllBitsSet);
+    public VBool Check(WVec position, WPos origin, Angle rotation) => GetSdf(origin, rotation).Distance(position) < VFloat.Zero;
 
     public void Draw(MiniArena arena, Actor? origin, uint color = 0)
     {

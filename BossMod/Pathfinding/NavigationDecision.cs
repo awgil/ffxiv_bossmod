@@ -360,7 +360,7 @@ public struct NavigationDecision
         foreach (var z in zones)
         {
             var dist = z.d.Distance(p);
-            g = VV.Min(g, VV.ConditionalSelect(VV.IsNegative(dist), VV.Create(z.g), VV.Create(float.MaxValue)));
+            g = VV.Min(g, VV.ConditionalSelect(dist < VFloat.Zero, VV.Create(z.g), VV.Create(float.MaxValue)));
             d |= dist < c0;
         }
 
