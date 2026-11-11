@@ -177,7 +177,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     private float ZanshinLeft;
 
     private bool AOEMode;
-    private bool ForceST;
     private int NumCircleTargets;
     private int NumTenkaTargets;
     private Actor? BestLineTarget;
@@ -225,7 +224,6 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         SeneiStrat = strategy.Senei.Value;
         MeikyoStrat = strategy.Meikyo.Value;
         ShohaStrat = strategy.Shoha.Value;
-        ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SamuraiGauge>();
         Kenki = gauge.Kenki;
@@ -245,12 +243,11 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         KenkiMakesRoom = strategy.Kenki.Value == KenkiStrategy.Automatic;
         Tsubame = ReadTsubame();
 
-        var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         NumCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
         NumTenkaTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 8);
         AOEMode = Unlocked(AID.Fuga) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
-        (BestLineTarget, NumLineTargets) = BestAOETarget(target, 10, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 10, 2));
-        BestConeTarget = BestAOETarget(target, 8, allowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 60.Degrees())).Best;
+        (BestLineTarget, NumLineTargets) = BestAOETarget(target, 10, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 10, 2));
+        BestConeTarget = BestAOETarget(target, 8, AllowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 60.Degrees())).Best;
 
         if (UsePotion(strategy))
             PushPotion(ActionDefinitions.IDPotionStr);
@@ -286,7 +283,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
         GCDs(strategy, target);
         UpdatePositionals(strategy, target);
-        AddMeleeGoal(target, allowAoE && Unlocked(AID.Fuga) ? Hints.GoalAOECircle(5) : null);
+        AddMeleeGoal(target, AllowAoE && Unlocked(AID.Fuga) ? Hints.GoalAOECircle(5) : null);
         if (Player.InCombat)
             OGCDs(strategy, target);
     }
@@ -326,7 +323,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
         UseTsubame(strategy, target);
         UseIaijutsu(strategy, target);
-        UseOgi(strategy, target);
+        UseOgi(target);
 
         if (MeikyoLeft > GCD && MeikyoStacks > 0)
             PushGCD(MeikyoFinisher(strategy), target.Actor, 40);
@@ -344,14 +341,13 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
     {
         if (!Unlocked(AID.TsubameGaeshi))
             return (0, Repeat.None);
-        float Left(SID sid) => SelfStatusLeft(sid);
-        if (Left(SID.TendoKaeshiSetsugekka) is > 0 and var ts)
+        if (SelfStatusLeft(SID.TendoKaeshiSetsugekka) is > 0 and var ts)
             return (ts, Repeat.TendoSetsugekka);
-        if (Left(SID.TendoKaeshiGoken) is > 0 and var tg)
+        if (SelfStatusLeft(SID.TendoKaeshiGoken) is > 0 and var tg)
             return (tg, Repeat.TendoGoken);
-        if (Left(SID.KaeshiGoken) is > 0 and var g)
+        if (SelfStatusLeft(SID.KaeshiGoken) is > 0 and var g)
             return (g, Repeat.Goken);
-        if (Left(SID.KaeshiSetsugekka) is > 0 and var s)
+        if (SelfStatusLeft(SID.KaeshiSetsugekka) is > 0 and var s)
             return (s, Repeat.Setsugekka);
         return (0, Repeat.None);
     }
@@ -407,11 +403,11 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
         if (SenCount == 2 && Unlocked(AID.TenkaGoken) && !ForceST && (NumTenkaTargets >= 3 && AOEMode || !Unlocked(AID.MidareSetsugekka)))
             PushGCD(TendoLeft > GCD ? AID.TendoGoken : AID.TenkaGoken, Player, 70);
 
-        if (SenCount == 3 && Tsubame.Kind != Repeat.Setsugekka && !(TendoLeft == 0 && MeikyoBurstNow(strategy)))
+        if (SenCount == 3 && Tsubame.Kind != Repeat.Setsugekka && !(TendoLeft == 0 && MeikyoBurstNow()))
             PushGCD(setsugekka, target.Actor, 70);
     }
 
-    private void UseOgi(in Strategy strategy, Enemy target)
+    private void UseOgi(Enemy target)
     {
         if (OgiLeft <= GCD || OgiStrat == OffensiveStrategy.Delay || !HaveBuffs)
             return;
@@ -431,7 +427,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
             PushGCD(AID.OgiNamikiri, BestConeTarget ?? target.Actor, 78);
     }
 
-    private bool MeikyoBurstNow(in Strategy strategy)
+    private bool MeikyoBurstNow()
         => Unlocked(AID.TendoSetsugekka) && MeikyoLeft == 0 && MeikyoStrat != OffensiveStrategy.Delay && WorthBurst
         && ReadyIn(AID.MeikyoShisui) <= GCD && DowntimeIn >= GCDLength * 3 && (SeneiSoon || HasRaidBuffJobs && RaidBuffsLeft > GCD);
 
@@ -648,23 +644,21 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
 
     private void UseMeikyo(in Strategy strategy, Enemy target)
     {
-        if (MeikyoStrat == OffensiveStrategy.Delay || MeikyoLeft > 0 || !CanWeave(AID.MeikyoShisui))
-            return;
+        if (MeikyoLeft == 0 && CanWeave(AID.MeikyoShisui) && ShouldMeikyo(strategy, target))
+            PushOGCD(AID.MeikyoShisui, Player, 70);
+    }
+
+    private bool ShouldMeikyo(in Strategy strategy, Enemy target)
+    {
+        if (MeikyoStrat == OffensiveStrategy.Delay)
+            return false;
         if (MeikyoStrat == OffensiveStrategy.Force)
-        {
-            PushOGCD(AID.MeikyoShisui, Player, 70);
-            return;
-        }
+            return true;
         if (TendoLeft > 0 || MidCombo && !Reopening || DowntimeIn < GCDLength * 3 || !WorthBurst && CombatTime > 25)
-            return;
+            return false;
 
-        if (AOEMode)
-        {
-            PushOGCD(AID.MeikyoShisui, Player, 70);
-            return;
-        }
-
-        var use = strategy.Opener.Value != OpenerStrategy.None && CombatTime < 25 && SenCount == 0 && Tsubame.Kind == Repeat.None && Unlocked(AID.TendoSetsugekka)
+        return AOEMode
+            || strategy.Opener.Value != OpenerStrategy.None && CombatTime < 25 && SenCount == 0 && Tsubame.Kind == Repeat.None && Unlocked(AID.TendoSetsugekka)
             || SenCount == 0 && DotTarget != null && DotLeft(target.Actor) <= 15
             || Recovering
             || Reopening && SenCount < 3
@@ -672,9 +666,7 @@ public sealed class KageSAM(RotationModuleManager manager, Actor player) : KageS
             || !Unlocked(AID.HissatsuSenei)
             || UseMAL && NeedAcceleration()
             || SeneiSoon
-            || SenCount == 3 && MeikyoBurstNow(strategy);
-        if (use)
-            PushOGCD(AID.MeikyoShisui, Player, 70);
+            || SenCount == 3 && MeikyoBurstNow();
     }
 
     private bool UseMAL => Unlocked(TraitID.EnhancedMeikyoShisui) && FukaGCD >= 2.11f;

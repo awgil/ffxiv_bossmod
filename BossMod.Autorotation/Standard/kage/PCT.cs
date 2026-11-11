@@ -117,7 +117,6 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     private float HammerTime;
     private float Aetherhues2;
 
-    private bool AllowAoE;
     private bool AOEMode;
     private int SplashCount;
     private Actor? BestSplash;
@@ -157,7 +156,6 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         HammerTime = SelfStatusLeft(SID.HammerTime);
         Aetherhues2 = SelfStatusLeft(SID.AetherhuesII);
 
-        AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         (BestSplash, SplashCount) = BestAOETarget(target, 25, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5));
         BestLine = BestAOETarget(target, 25, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 25, 2)).Best;
         var breakpoint = Unlocked(TraitID.EnhancedPictomancyIV) || !Subtractive && Aetherhues2 == 0 ? 4 : 3;
@@ -215,6 +213,8 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
     private void GCDs(in Strategy strategy, Enemy target)
     {
         var splash = BestSplash ?? target.Actor;
+        var spellTarget = AOEMode ? splash : target.Actor;
+        var blizzard = AOEMode ? AID.BlizzardIIInCyan : AID.BlizzardInCyan;
         var inStarry = StarryLeft > GCD;
         var prismReserve = Starstruck > GCD ? 1 : 0;
         var cometReady = Monochrome && Paint > 0;
@@ -223,7 +223,7 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             PushGCD(AID.StarPrism, splash, Starstruck < GCD + GCDLength * 2 ? 63 : 60);
 
         if (inStarry && Hyperphantasia > 0 && Subtractive && HyperStacks > prismReserve + (cometReady ? 1 : 0))
-            PushGCD(AOEMode ? AID.BlizzardIIInCyan : AID.BlizzardInCyan, AOEMode ? splash : target.Actor, 62, ScaledCastTime(AID.BlizzardInCyan));
+            PushGCD(blizzard, spellTarget, 62, HardcastTime(AID.BlizzardInCyan));
 
         if (RainbowBright > GCD)
             PushGCD(AID.RainbowDrip, BestLine ?? target.Actor, inStarry && HammerTime > GCD ? 47 : 58);
@@ -249,19 +249,19 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             Motifs(false, target);
 
         if (!CanCast)
-            MovementGCDs(strategy, target, splash);
+            MovementGCDs(strategy, splash);
 
         if (Subtractive)
-            PushGCD(AOEMode ? AID.BlizzardIIInCyan : AID.BlizzardInCyan, AOEMode ? splash : target.Actor, 20, ScaledCastTime(AID.BlizzardInCyan));
+            PushGCD(blizzard, spellTarget, 20, HardcastTime(AID.BlizzardInCyan));
 
         if (strategy.Holy.Value != OffensiveStrategy.Delay && !Monochrome && Paint > 0
             && (strategy.Holy.Value == OffensiveStrategy.Force || Dying || AOEMode || SplashCount > 1 && Paint > 1))
             PushGCD(AID.HolyInWhite, splash, AOEMode ? 25 : 15);
 
-        PushGCD(AOEMode ? AID.FireIIInRed : AID.FireInRed, AOEMode ? splash : target.Actor, 10, ScaledCastTime(AID.FireInRed));
+        PushGCD(AOEMode ? AID.FireIIInRed : AID.FireInRed, spellTarget, 10, HardcastTime(AID.FireInRed));
     }
 
-    private void MovementGCDs(in Strategy strategy, Enemy target, Actor splash)
+    private void MovementGCDs(in Strategy strategy, Actor splash)
     {
         if (strategy.Hammer.Value != OffensiveStrategy.Delay && HammerTime > GCD && Hyperphantasia == 0)
             PushGCD(AID.HammerStamp, splash, 45);
@@ -336,9 +336,9 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
         if (PortraitReady && UsePortrait(strategy.Portrait.Value) && CanWeave(AID.MogOfTheAges))
             PushOGCD(Creature.HasFlag(CreatureFlags.MadeenPortrait) ? AID.RetributionOfTheMadeen : AID.MogOfTheAges, BestLine ?? target.Actor, 55);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 6500)
-            if (CanWeave(ClassShared.AID.LucidDreaming))
-                PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
+        if ((strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && MP <= 6500)
+            && CanWeave(ClassShared.AID.LucidDreaming))
+            PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
 
         if (strategy.Swiftcast.Value == OffensiveStrategy.Force && !SwiftcastUp && CanWeave(ClassShared.AID.Swiftcast))
             PushOGCD(ClassShared.AID.Swiftcast, Player, 80);
@@ -384,24 +384,17 @@ public sealed class KagePCT(RotationModuleManager manager, Actor player) : KageS
             return true;
         if (LivingMuseAID is AID.WingedMuse or AID.FangedMuse && PortraitReady)
             return false;
-        if (!Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || TrashAoE)
-            return true;
-        return StarryLeft > 0 || RaidBuffsLeft > GCD || StarryIn > 40;
+        return !Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || TrashAoE
+            || StarryLeft > 0 || RaidBuffsLeft > GCD || StarryIn > 40;
     }
 
-    private bool UseStriking(OffensiveStrategy strategy)
+    private bool UseStriking(OffensiveStrategy strategy) => strategy switch
     {
-        switch (strategy)
-        {
-            case OffensiveStrategy.Delay:
-                return false;
-            case OffensiveStrategy.Force:
-                return true;
-        }
-        if (!Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || MaxChargesIn(AID.StrikingMuse) <= GCD + 3 || Dying)
-            return true;
-        return StarryLeft > 0 || StarryIn is < 10 or > 60;
-    }
+        OffensiveStrategy.Delay => false,
+        OffensiveStrategy.Force => true,
+        _ => !Unlocked(AID.StarryMuse) || StarryStrat == OffensiveStrategy.Delay || MaxChargesIn(AID.StrikingMuse) <= GCD + 3 || Dying
+            || StarryLeft > 0 || StarryIn is < 10 or > 60
+    };
 
     private bool UsePortrait(OffensiveStrategy strategy) => strategy switch
     {

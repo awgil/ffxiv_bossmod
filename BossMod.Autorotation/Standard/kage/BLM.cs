@@ -131,7 +131,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
     private float ManafontIn;
 
     private bool AOEMode;
-    private bool ForceST { get; set; }
     private int NumAOETargets;
     private bool AoEExitIce;
     private OpenerStrategy OpenerMode;
@@ -170,7 +169,6 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         AmplifierStrat = strategy.Amplifier.Value;
         ManafontStrat = strategy.Manafont.Value;
         PolyglotStrat = strategy.Polyglot.Value;
-        ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         OpenerMode = strategy.Opener.Value == OpenerStrategy.Flare && !Unlocked(AID.FlareStar) ? OpenerStrategy.Standard : strategy.Opener.Value;
 
         var gauge = World.Client.GetGauge<BlackMageGauge>();
@@ -296,13 +294,9 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(AID.Fire4, target.Actor, 40);
         }
         else if (MP >= FireCost + (FlareFinisher ? 800 : 0))
-        {
             PushGCD(AID.Fire1, target.Actor, 40);
-        }
         else if (FlareFinisher && MP >= 800)
-        {
             PushGCD(AID.Flare, target.Actor, 40);
-        }
 
         if (!Unlocked(AID.Fire4) && FirestarterLeft > GCD)
             PushGCD(AID.Fire3, target.Actor, 45);
@@ -344,9 +338,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(Unlocked(AID.Fire3) ? AID.Fire3 : AID.Fire1, target.Actor, 40);
         }
         else if (!MPFull)
-        {
             PushGCD(AID.Blizzard1, target.Actor, 1);
-        }
 
         if (CantCast && Paradox)
             PushGCD(AID.Paradox, target.Actor, 6);
@@ -375,15 +367,10 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
                 : Unlocked(AID.Flare) || !Unlocked(AID.Freeze) || strategy.Thunder.Value == OffensiveStrategy.Delay || target.ForbidDOTs ? MPFull
                 : MPFull && NeedThunderhead(target);
             var iceSpell = NumAOETargets == 2 && Unlocked(AID.Blizzard4) ? AID.Blizzard4 : Unlocked(AID.Freeze) ? AID.Freeze : iceAoE;
-            if (Unlocked(AID.Blizzard4))
-            {
-                if ((Hearts < 3 || !Unlocked(AID.Freeze)) && !(MP >= 5000 && Unlocked(AID.Flare) && Hearts >= 3))
-                    PushGCD(iceSpell, target.Actor, 45);
-            }
-            else if (!AoEExitIce || Unlocked(AID.Freeze) && !CanUseTranspose)
-            {
+            if (Unlocked(AID.Blizzard4)
+                ? (Hearts < 3 || !Unlocked(AID.Freeze)) && !(MP >= 5000 && Unlocked(AID.Flare) && Hearts >= 3)
+                : !AoEExitIce || Unlocked(AID.Freeze) && !CanUseTranspose)
                 PushGCD(iceSpell, target.Actor, 45);
-            }
             if (Paradox)
                 PushGCD(AID.Paradox, target.Actor, 30);
             if (Unlocked(AID.Blizzard4) ? !CanUseTranspose && (MPFull || Hearts >= 3) : AoEExitIce && (!CanUseTranspose || AoECastSwap))
@@ -392,9 +379,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(AID.Foul, target.Actor, 30);
         }
         else
-        {
             PushGCD(iceAoE, target.Actor, 20);
-        }
     }
 
     private bool NeedThunderhead(Enemy target) => ThunderheadLeft == 0 && ThunderLeft(target.Actor) < 10 && TimeToKill.WorthDot(Bossmods.ActiveModule, target.Actor, 15);
@@ -469,9 +454,7 @@ public sealed class KageBLM(RotationModuleManager manager, Actor player) : KageS
         var full = MaxChargesIn(AID.LeyLines) <= 0;
         if (!InBossFight || NoRaidBuffs)
             return full;
-        if (RaidBuffsLeft > 10 || RaidBuffsIn <= 3)
-            return true;
-        return full && RaidBuffsIn > 40;
+        return RaidBuffsLeft > 10 || RaidBuffsIn <= 3 || full && RaidBuffsIn > 40;
     }
 
     #endregion

@@ -134,7 +134,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
     private float DraconianFire;
     private float DotLeft;
 
-    private bool AllowAoE;
     private bool AOEMode;
     private Actor? BestLine;
 
@@ -188,7 +187,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         DraconianFire = SelfStatusLeft(SID.DraconianFire);
         DotLeft = target != null ? MaxDotLeft(target.Actor, SID.ChaoticSpring, SID.ChaosThrust) : 0;
 
-        AllowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
         var (bestLine, lineCount) = BestAOETarget(target, 10, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 10, 2));
         BestLine = bestLine;
         AOEMode = Unlocked(AID.DoomSpike) && UseAOE(strategy.AOE.Value, lineCount, 3);
@@ -234,11 +232,8 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
         switch (engage)
         {
             case EngageStrategy.Glide:
-                if (InMelee && countdown < 1.16f)
-                    PushGCD(AID.TrueThrust, target.Actor, 10);
-                // Engage picks Winged Glide on its own; the Winged Glide track's "Do not use" is for combat
-                else if (!InMelee && countdown < 0.7f)
-                    PushAction(ActionID.MakeSpell(AID.WingedGlide), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
+            case EngageStrategy.Manual:
+                DashPull(target, AID.TrueThrust, AID.WingedGlide, countdown, engage == EngageStrategy.Glide);
                 break;
             case EngageStrategy.Talon:
                 if (countdown < 0.85f && Unlocked(AID.PiercingTalon))
@@ -249,10 +244,6 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
                 break;
             case EngageStrategy.Facepull:
                 Facepull(target, AID.TrueThrust, countdown);
-                break;
-            case EngageStrategy.Manual:
-                if (InMelee && countdown < 1.16f)
-                    PushGCD(AID.TrueThrust, target.Actor, 10);
                 break;
         }
     }
@@ -355,14 +346,12 @@ public sealed class KageDRG(RotationModuleManager manager, Actor player) : KageS
             return;
         }
 
-        if (LitanyStrat == OffensiveStrategy.Force || LitanyStrat == OffensiveStrategy.Automatic && worth)
-            if (CanWeave(AID.BattleLitany))
-                PushOGCD(AID.BattleLitany, Player, 80);
+        if ((LitanyStrat == OffensiveStrategy.Force || LitanyStrat == OffensiveStrategy.Automatic && worth) && CanWeave(AID.BattleLitany))
+            PushOGCD(AID.BattleLitany, Player, 80);
 
         var fruLanceHold = InOpener && OpenerMode == OpenerStrategy.FRU && CombatTime < GCDLength * 5;
-        if (LanceStrat == OffensiveStrategy.Force || LanceStrat == OffensiveStrategy.Automatic && (worth || Dying) && !fruLanceHold)
-            if (CanWeave(AID.LanceCharge))
-                PushOGCD(AID.LanceCharge, Player, 79);
+        if ((LanceStrat == OffensiveStrategy.Force || LanceStrat == OffensiveStrategy.Automatic && (worth || Dying) && !fruLanceHold) && CanWeave(AID.LanceCharge))
+            PushOGCD(AID.LanceCharge, Player, 79);
 
         var lineTarget = BestLongLine(target);
         if (strategy.Geirskogul.Value != OffensiveStrategy.Delay && !InLotD && CanWeave(AID.Geirskogul)

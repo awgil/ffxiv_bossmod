@@ -271,9 +271,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private bool AOEMode;
     private bool ConeAOE;
     private bool GuillotineMode;
-    private bool ForceST;
     private AOEStrategy AOEStrat;
-    private int NumCircleTargets;
     private int NumConeTargets;
     private Actor? BestConeTarget;
     private Actor? BestLineTarget;
@@ -324,7 +322,6 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         EnshroudStrat = strategy.Enshroud.Value;
         GluttonyStrat = strategy.Gluttony.Value;
         StalkStrat = strategy.BloodStalk.Value;
-        ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
         AOEStrat = strategy.AOE.Value;
 
         var gauge = World.Client.GetGauge<ReaperGauge>();
@@ -350,14 +347,13 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         HasSoulsow = HasSelfStatus(SID.Soulsow);
         TargetDDLeft = DDLeft(target);
 
-        var allowAoE = strategy.AOE.Value is AOEStrategy.AOE or AOEStrategy.ForceAOE;
-        NumCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
-        AOEMode = Unlocked(AID.SpinningScythe) && UseAOE(strategy.AOE.Value, NumCircleTargets, 3);
-        (BestConeTarget, NumConeTargets) = BestAOETarget(target, 8, allowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 90.Degrees()));
+        var numCircleTargets = ForceST ? 0 : Hints.NumPriorityTargetsInAOECircle(Player.Position, 5);
+        AOEMode = Unlocked(AID.SpinningScythe) && UseAOE(strategy.AOE.Value, numCircleTargets, 3);
+        (BestConeTarget, NumConeTargets) = BestAOETarget(target, 8, AllowAoE, (c, e) => TargetInAOECone(e, Player.Position, 8, Player.DirectionTo(c), 90.Degrees()));
         ConeAOE = ConeAt(3);
         GuillotineMode = Unlocked(AID.Guillotine) && ConeAt(Executioner || EnhancedGibbetLeft == 0 && EnhancedGallowsLeft == 0 ? 3 : 4);
-        BestLineTarget = BestAOETarget(target, 15, allowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 15, 2)).Best;
-        BestSplashTarget = BestAOETarget(target, 25, allowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
+        BestLineTarget = BestAOETarget(target, 15, AllowAoE, (c, e) => TargetInAOERect(e, Player.Position, Player.DirectionTo(c), 15, 2)).Best;
+        BestSplashTarget = BestAOETarget(target, 25, AllowAoE, (c, e) => TargetInAOECircle(e, c.Position, 5)).Best;
 
         AvoidGluttonyDrift = strategy.DeathsDesign.Value == DeathsDesignStrategy.KeepGluttonyAligned && target != null && Soul == 100 && ReadyIn(AID.Gluttony) < 2 && TargetDDLeft < 25 && !SoulReaver && !Enshrouded;
         SpendUnderTrueNorth = SelfStatusLeft(ClassShared.SID.TrueNorth) > GCD + GCDLength;
@@ -396,14 +392,14 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         WorthBurst = TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10);
         WantEnshroud = ShouldEnshroud();
 
-        UpdateOpener(strategy, target);
+        UpdateOpener(strategy);
         if (OpenerSteps != null)
             PushOpenerStep(target);
         else
             GCDs(strategy, target, isMoving);
 
         UpdatePositionals(strategy, target);
-        AddMeleeGoal(target, allowAoE && Unlocked(AID.SpinningScythe) ? Hints.GoalAOECircle(5) : null);
+        AddMeleeGoal(target, AllowAoE && Unlocked(AID.SpinningScythe) ? Hints.GoalAOECircle(5) : null);
 
         if (Player.InCombat)
         {
@@ -420,6 +416,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         if (target != null && strategy.Harpe.Value != HarpeStrategy.Delay && !InMelee && countdown < HarpeCastTime + 0.4f)
             PushGCD(AID.Harpe, target.Actor, 10, HarpeCastTime);
+
+        UseIngress(strategy, target);
     }
 
     private float HarpeCastTime => EnhancedHarpeLeft > GCD ? 0 : ScaledCastTime(AID.Harpe);
@@ -435,7 +433,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         }
     }
 
-    private void UpdateOpener(in Strategy strategy, Enemy target)
+    private void UpdateOpener(in Strategy strategy)
     {
         if (!Player.InCombat)
             return;
@@ -537,9 +535,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     private void UsePerfectio(in Strategy strategy, Enemy target)
     {
-        if (!PerfectioReady || strategy.Perfectio.Value == PerfectioStrategy.Delay)
+        if (!PerfectioReady || strategy.Perfectio.Value == PerfectioStrategy.Delay || HoldingPerfectio)
             return;
-        PushGCD(AID.Perfectio, ResolveTarget(strategy.Perfectio) ?? BestSplashTarget ?? target.Actor, HoldingPerfectio ? 18 : 90);
+        PushGCD(AID.Perfectio, ResolveTarget(strategy.Perfectio) ?? BestSplashTarget ?? target.Actor, 90);
     }
 
     // Perfectio can't hit an untargetable boss - dump it before downtime / death even when held for ranged
@@ -562,10 +560,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             return;
         }
 
-        var slice = AOEMode ? AID.SoulScythe : AID.SoulSlice;
-        if (strategy.Slice.Value != SliceStrategy.Delay && GCDReady(slice) && !JustUsed(slice, GCDLength) && Soul < 100
-            && (Soul < 50 || ReadyIn(AID.Gluttony) > GCD + GCDLength || SliceCapping(slice)))
-            PushGCD(slice, AOEMode ? Player : target.Actor, 85);
+        if (strategy.Slice.Value != SliceStrategy.Delay && GCDReady(SliceAction) && !JustUsed(SliceAction, GCDLength) && Soul < 100
+            && (Soul < 50 || ReadyIn(AID.Gluttony) > GCD + GCDLength || SliceCapping))
+            PushGCD(SliceAction, SliceAction == AID.SoulScythe ? Player : target.Actor, 85);
     }
 
     private void UseDeathsDesign(in Strategy strategy, Enemy target)
@@ -678,32 +675,28 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             PushGCD(EnhancedCrossLeft > GCD ? AID.CrossReaping : AID.VoidReaping, target.Actor, 65);
     }
 
-    private bool SliceCapping(AID slice) => MaxChargesIn(slice) <= GCD + GCDLength * 2;
+    private AID SliceAction => AOEMode && Unlocked(AID.SoulScythe) ? AID.SoulScythe : AID.SoulSlice;
+    private bool SliceCapping => MaxChargesIn(SliceAction) <= GCD + GCDLength * 2;
 
     private void UseSoulSlice(in Strategy strategy, Enemy target)
     {
-        var slice = AOEMode ? AID.SoulScythe : AID.SoulSlice;
-        if (strategy.Slice.Value == SliceStrategy.Delay || !GCDReady(slice))
-            return;
+        if (GCDReady(SliceAction) && ShouldSlice(strategy.Slice.Value))
+            PushGCD(SliceAction, SliceAction == AID.SoulScythe ? Player : ResolveTarget(strategy.Slice) ?? target.Actor, strategy.Slice.Value == SliceStrategy.Force ? 95 : 60);
+    }
 
-        var sliceTarget = AOEMode ? Player : ResolveTarget(strategy.Slice) ?? target.Actor;
-        if (strategy.Slice.Value == SliceStrategy.Force)
-        {
-            PushGCD(slice, sliceTarget, 60);
-            return;
-        }
-
+    private bool ShouldSlice(SliceStrategy strategy)
+    {
+        if (strategy == SliceStrategy.Delay)
+            return false;
+        if (strategy == SliceStrategy.Force)
+            return true;
         if (InPostBurst || !InNormalRotation || ComboExpiring(3))
-            return;
+            return false;
 
-        var capping = Soul < 100 && SliceCapping(slice);
-        var use = strategy.Slice.Value switch
-        {
-            SliceStrategy.Pool => Soul <= 50 && (CircleLeft > GCD || RaidBuffsLeft > GCD || SpendUnderTrueNorth) || capping,
-            _ => Soul <= 50 || capping
-        };
-        if (use)
-            PushGCD(slice, sliceTarget, 60);
+        var capping = Soul < 100 && SliceCapping;
+        return strategy == SliceStrategy.Pool
+            ? Soul <= 50 && (CircleLeft > GCD || RaidBuffsLeft > GCD || SpendUnderTrueNorth) || capping
+            : Soul <= 50 || capping;
     }
 
     private void UseHarvestMoon(in Strategy strategy, Enemy target)
@@ -777,10 +770,10 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         if (Enshrouded)
         {
             if (VoidShroud >= 2)
-                PushOGCD(ConeAOE && Unlocked(AID.LemuresScythe) ? AID.LemuresScythe : AID.LemuresSlice, ConeAOE ? BestConeTarget ?? target.Actor : target.Actor, 61);
+                PushOGCD(ConeAOE && Unlocked(AID.LemuresScythe) ? AID.LemuresScythe : AID.LemuresSlice, ConeAOE ? BestConeTarget ?? target.Actor : target.Actor, 60);
 
             if (OblatioLeft > 0 && (AOEMode ? Lemure <= 2 : Lemure <= 4) && (CircleLeft > 0 && !JustUsed(AID.ArcaneCircle, 2) || CircleIn > EnshroudLeft))
-                PushOGCD(AID.Sacrificium, BestSplashTarget ?? target.Actor, 60);
+                PushOGCD(AID.Sacrificium, BestSplashTarget ?? target.Actor, 61);
         }
 
         if (strategy.Crest.Value == CrestStrategy.Automatic && CanWeave(AID.ArcaneCrest) && DamageIncoming(3))
@@ -800,7 +793,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         if (!CanWeave(AID.ArcaneCircle))
             return;
 
-        var sodDone = JustUsed(AID.ShadowofDeath, GCDLength + 0.5f) || target.ForbidDOTs || strategy.DeathsDesign.Value == DeathsDesignStrategy.Delay;
+        var openedWithSlice = CombatTime < GCDLength * 2 && JustUsed(AID.SoulSlice, GCDLength);
+        var sodDone = JustUsed(AID.ShadowofDeath, GCDLength + 0.5f) || openedWithSlice || target.ForbidDOTs || strategy.DeathsDesign.Value == DeathsDesignStrategy.Delay;
         var overdue = CircleReadySince != default && (World.CurrentTime - CircleReadySince).TotalSeconds > 10;
         var use = CircleStrat == OffensiveStrategy.Force
             || WorthBurst && DowntimeIn > 10 && (AOEMode || sodDone || !Unlocked(AID.Enshroud) || overdue);
@@ -830,9 +824,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             return false;
         if (!Unlocked(AID.PlentifulHarvest) || CircleLeft > 0 || IdealHostLeft > 0)
             return true;
-        if (CircleIn <= GCDLength + 1.5f)
-            return true;
-        if (JustUsed(AID.PlentifulHarvest, 5))
+        if (CircleIn <= GCDLength + 1.5f || JustUsed(AID.PlentifulHarvest, 5))
             return true;
         if (DDExpiring(5))
             return false;
@@ -843,44 +835,27 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     private void UseGluttony(in Strategy strategy, Enemy target)
     {
-        if (!GluttonyReady || ShroudOvercapping)
-            return;
+        if (GluttonyReady && !ShroudOvercapping && ShouldGluttony())
+            PushOGCD(AID.Gluttony, ResolveTarget(strategy.Gluttony) ?? BestSplashTarget ?? target.Actor, 64);
+    }
 
-        var gluttonyTarget = ResolveTarget(strategy.Gluttony) ?? BestSplashTarget ?? target.Actor;
-        if (GluttonyStrat == GluttonyStrategy.Force)
-        {
-            PushOGCD(AID.Gluttony, gluttonyTarget, 64);
-            return;
-        }
+    private bool ShouldGluttony()
+    {
         if (GluttonyStrat == GluttonyStrategy.Delay)
-            return;
+            return false;
+        if (GluttonyStrat == GluttonyStrategy.Force)
+            return true;
 
         var burst = InPostBurst && !PostPerfectioCombo;
         var normal = !Enshrouded && !SoulReaver && IdealHostLeft == 0 && !PerfectioPending && (!HasImmortal || GluttonyStrat == GluttonyStrategy.GluttonyFirst)
             && !ComboExpiring(3) && !InPostBurst;
-        if ((burst || normal) && TargetDDLeft > GCD + GCDLength * 2)
-            PushOGCD(AID.Gluttony, gluttonyTarget, 64);
+        return (burst || normal) && TargetDDLeft > GCD + GCDLength * 2;
     }
 
     private void UseBloodStalk(in Strategy strategy, Enemy target)
     {
-        if (Soul < 50 || Enshrouded || StalkStrat == BloodStalkStrategy.Delay)
+        if (Soul < 50 || Enshrouded || !ShouldBloodStalk())
             return;
-
-        var forced = StalkStrat == BloodStalkStrategy.Force;
-        if (!forced)
-        {
-            if (ShroudOvercapping || !InNormalRotation || ComboExpiring(3) || AvoidGluttonyDrift || TargetDDLeft <= GCD + GCDLength)
-                return;
-            if (Soul < 100 && InPostBurst && !JustUsed(AID.Gluttony, GCDLength * 8))
-                return;
-
-            var gluttonyFar = ReadyIn(AID.Gluttony) > GCDLength * (AOEMode ? 5 : 4);
-            var spend = Soul == 100
-                || StalkStrat == BloodStalkStrategy.Automatic && (!Unlocked(AID.Gluttony) || gluttonyFar || SpendUnderTrueNorth && ReadyIn(AID.Gluttony) > GCDLength * 2);
-            if (!spend)
-                return;
-        }
 
         var stalkTarget = ResolveTarget(strategy.BloodStalk);
         var unveiled = Unlocked(AID.UnveiledGibbet) && (EnhancedGibbetLeft > 0 || EnhancedGallowsLeft > 0);
@@ -888,6 +863,22 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(AID.GrimSwathe, BestConeTarget ?? target.Actor, 62);
         else
             PushOGCD(AID.BloodStalk, stalkTarget ?? target.Actor, 62);
+    }
+
+    private bool ShouldBloodStalk()
+    {
+        if (StalkStrat == BloodStalkStrategy.Delay)
+            return false;
+        if (StalkStrat == BloodStalkStrategy.Force)
+            return true;
+        if (ShroudOvercapping || !InNormalRotation || ComboExpiring(3) || AvoidGluttonyDrift || TargetDDLeft <= GCD + GCDLength)
+            return false;
+        if (Soul < 100 && InPostBurst && !JustUsed(AID.Gluttony, GCDLength * 8))
+            return false;
+
+        var gluttonyFar = ReadyIn(AID.Gluttony) > GCDLength * (AOEMode ? 5 : 4);
+        return Soul == 100
+            || StalkStrat == BloodStalkStrategy.Automatic && (!Unlocked(AID.Gluttony) || gluttonyFar || SpendUnderTrueNorth && ReadyIn(AID.Gluttony) > GCDLength * 2);
     }
 
     private void UseIngress(in Strategy strategy, Enemy? target)
