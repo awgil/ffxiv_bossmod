@@ -273,52 +273,12 @@ class ThinIce(BossModule module) : Components.Knockback(module, ignoreImmunes: t
             yield return new(actor.Position, dist, default, null, actor.Rotation, Kind.DirForward);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (!Module.InBounds(pos))
-            return true;
-        foreach (var comp in Module.Components.OfType<Components.GenericAOEs>())
-            if (comp.ActiveAOEs(slot, actor).Any(a => a.Risky && a.Check(pos)))
-                return true;
-        return false;
-    }
-
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         if (SlideDistance(actor) <= 0)
             return;
         hints.Add("Slippery floor", false);
         base.AddHints(slot, actor, hints);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var dist = SlideDistance(actor);
-        if (dist <= 0)
-            return;
-
-        var aoes = Module.Components.OfType<Components.GenericAOEs>().SelectMany(c => c.ActiveAOEs(slot, actor)).Where(a => a.Risky).ToList();
-        if (!aoes.Any(a => a.Check(actor.Position)))
-            return;
-
-        WDir bestDir = default;
-        var bestScore = float.MinValue;
-        for (var i = 0; i < 16; ++i)
-        {
-            var dir = (i * 22.5f).Degrees().ToDirection();
-            var landing = actor.Position + dist * dir;
-            if (!Module.InBounds(landing) || aoes.Any(a => a.Check(landing)))
-                continue;
-
-            var score = -(landing - Module.PrimaryActor.Position).LengthSq();
-            if (score > bestScore)
-            {
-                bestScore = score;
-                bestDir = dir;
-            }
-        }
-        if (bestDir != default)
-            hints.GoalZones.Add(AIHints.GoalProximity(actor.Position + dist * bestDir, 2, 80));
     }
 }
 

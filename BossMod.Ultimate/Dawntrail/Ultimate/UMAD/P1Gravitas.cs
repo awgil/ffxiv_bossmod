@@ -181,12 +181,6 @@ class P1GravitationalWaveIntemperateWill(BossModule module) : Components.Generic
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted).Select(w => w with { Risky = Risky });
 
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.DistV, aoe.Activation);
-    }
-
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBFBD && state == 0x00400080)

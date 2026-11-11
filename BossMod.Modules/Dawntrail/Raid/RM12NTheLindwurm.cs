@@ -356,9 +356,6 @@ class FleshKnockback(BossModule module) : Components.Knockback(module, AID.Shock
             yield return new(actor.Position, Distance, _activation[slot], null, actor.Rotation + (_back[slot] ? 180.Degrees() : default), Kind.DirForward);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => base.DestinationUnsafe(slot, actor, pos) || Module.FindComponent<Burst>()?.AOEs.Any(a => a.Check(pos)) == true;
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (slot >= _activation.Length || _activation[slot] == default || IsImmune(slot, _activation[slot]))

@@ -213,7 +213,7 @@ public record class ArenaBoundsCustom(float Radius, RelSimplifiedComplexPolygon 
     protected override PolygonClipper.Operand BuildClipPoly() => new(Poly);
     public override void PathfindMap(Pathfinding.Map map, WPos center) => map.Init(_cachedMap ??= BuildMap(), center);
     public override bool Contains(WDir offset) => Poly.Contains(offset);
-    public override VBool Contains(WVec offset) => ShapeDistance.ComplexPolygon(default, default, Poly)(offset) < VFloat.Zero;
+    public override VBool Contains(WVec offset) => ShapeDistance.Polygon(default, default, Poly)(offset) < VFloat.Zero;
     public override float IntersectRay(WDir originOffset, WDir dir) => Intersect.RayPolygon(originOffset, dir, Poly);
     public override VFloat IntersectRay(WVec originOffset, WVec dir) => Intersect.RayPolygonV(originOffset, dir, Poly);
     public override WDir ClampToBounds(WDir offset)

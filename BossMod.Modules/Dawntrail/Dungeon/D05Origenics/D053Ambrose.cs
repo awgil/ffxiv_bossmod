@@ -59,7 +59,7 @@ class ExtrasensoryExpulsion(BossModule module) : Components.Knockback(module)
     private static readonly AOEShapeRect _shape = new(10, 10, 10);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => AOEs;
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || _cleaveDir.Dot(pos - Module.Center) > 0;
+    public override Func<WVec, VBool> DestinationUnsafe(int slot, Actor actor) => p => _cleaveDir.Dot(p - Module.Center) > 0;
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

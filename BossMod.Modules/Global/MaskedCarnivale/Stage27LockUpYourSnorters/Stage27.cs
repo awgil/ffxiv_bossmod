@@ -59,8 +59,6 @@ class Fungah(BossModule module) : Components.Knockback(module, stopAtWall: true)
             otherpatterns = false;
         }
     }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Explosion>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
 }
 
 class Explosion(BossModule module) : Components.GenericAOEs(module)

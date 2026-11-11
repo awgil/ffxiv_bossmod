@@ -58,8 +58,6 @@ class WindsPeak(BossModule module) : Components.StandardAOEs(module, AID.WindsPe
 
 class WindsPeakKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindsPeak2, 15)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.PrimaryActor.CastInfo == null && base.DestinationUnsafe(slot, actor, pos);
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var src in Sources(slot, actor))

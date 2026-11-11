@@ -237,7 +237,7 @@ public static class ShapeDistance
             return dist;
         };
     }
-    public static DistFn ComplexPolygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
+    public static DistFn Polygon(WPos origin, Angle rotation, RelSimplifiedComplexPolygon polygon) => Union([.. polygon.Parts.Select(p => Polygon(origin, rotation, p))]);
 
     public static DistFn Intersection(List<DistFn> funcs)
     {

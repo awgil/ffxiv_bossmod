@@ -145,6 +145,8 @@ public record struct WVec(VFloat X, VFloat Z)
 
     public readonly WVec Min(WVec other) => new(VV.Min(X, other.X), VV.Min(Z, other.Z));
 
+    public readonly WPos First() => new(X[0], Z[0]);
+
     public static VBool AlmostZero(WVec a, VFloat eps) => (VV.Abs(a.X) <= eps) & (VV.Abs(a.Z) <= eps);
     public readonly VBool AlmostZero(VFloat eps) => AlmostZero(this, eps);
     public readonly VBool AlmostZero(float eps) => AlmostZero(this, VV.Create(eps));
@@ -153,18 +155,6 @@ public record struct WVec(VFloat X, VFloat Z)
     public readonly VBool AlmostEqual(WPos b, float eps) => AlmostZero(this - b, VV.Create(eps));
 
     public static WVec Lerp(WVec a, WVec b, VFloat progress) => new(VV.Lerp(a.X, b.X, progress), VV.Lerp(a.Z, b.Z, progress));
-
-    public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
-    public static WVec operator +(WVec a, WDir b) => new(a.X + b.X, a.Z + b.Z);
-    public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
-    public static WVec operator -(WVec a, WPos b) => new(a.X - b.X, a.Z - b.Z);
-    public static WVec operator -(WVec a, WDir b) => new(a.X - b.X, a.Z - b.Z);
-    public static WVec operator *(WVec a, VFloat b) => new(a.X * b, a.Z * b);
-    public static WVec operator *(WVec a, float b) => new(a.X * b, a.Z * b);
-    public static WVec operator *(float a, WVec b) => b * a;
-    public static WVec operator *(VFloat a, WVec b) => b * a;
-    public static WVec operator /(WVec a, VFloat b) => new(a.X / b, a.Z / b);
-    public static WVec operator -(WVec a) => new(-a.X, -a.Z);
 
     public readonly VBool InRect(WDir direction, float lenFront, float lenBack, float halfWidth)
     {
@@ -187,4 +177,17 @@ public record struct WVec(VFloat X, VFloat Z)
 
     public readonly VBool InCone(WPos origin, WDir direction, Angle halfAngle) => (this - origin).Normalized().Dot(direction) >= halfAngle.Cos();
     public readonly VBool InCone(WPos origin, Angle direction, Angle halfAngle) => InCone(origin, direction.ToDirection(), halfAngle);
+
+    public static WVec operator +(WVec a, WVec b) => new(a.X + b.X, a.Z + b.Z);
+    public static WVec operator +(WVec a, WDir b) => new(a.X + b.X, a.Z + b.Z);
+    public static WVec operator -(WVec a, WVec b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator -(WVec a, WPos b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator -(WPos a, WVec b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator -(WVec a, WDir b) => new(a.X - b.X, a.Z - b.Z);
+    public static WVec operator *(WVec a, VFloat b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(WVec a, float b) => new(a.X * b, a.Z * b);
+    public static WVec operator *(float a, WVec b) => b * a;
+    public static WVec operator *(VFloat a, WVec b) => b * a;
+    public static WVec operator /(WVec a, VFloat b) => new(a.X / b, a.Z / b);
+    public static WVec operator -(WVec a) => new(-a.X, -a.Z);
 }

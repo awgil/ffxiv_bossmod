@@ -17,6 +17,8 @@ public static class VectorExtensions
         public VFloat Sign() => VV.BitwiseAnd(~VV.IsZero(source), VV.CopySign(VFloat.One, source));
         public VBool Mask() => VV.As<float, int>(source);
 
+        public VBool AlmostEqual(float value, float eps) => (source - value).Abs() < eps;
+
         public static VFloat operator /(VFloat a, float b) => a / VV.Create(b);
         public static VFloat operator /(float a, VFloat b) => VV.Create(a) / b;
         public static VFloat operator +(VFloat a, float b) => a + VV.Create(b);
@@ -31,6 +33,15 @@ public static class VectorExtensions
         public static VBool operator <(VFloat a, float b) => VV.LessThan(a, VV.Create(b));
         public static VBool operator >(VFloat a, VFloat b) => VV.GreaterThan(a, b);
         public static VBool operator >(VFloat a, float b) => VV.GreaterThan(a, VV.Create(b));
+    }
+
+    extension(PointTest _)
+    {
+        public static PointTest Never => _ => VBool.Zero;
+
+        public static PointTest operator |(PointTest a, PointTest b) => p => a(p) | b(p);
+        public static PointTest operator &(PointTest a, PointTest b) => p => a(p) & b(p);
+        public static PointTest operator ^(PointTest a, PointTest b) => p => a(p) ^ b(p);
     }
 
     extension<T>(Vector<T> mask)

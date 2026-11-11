@@ -76,7 +76,6 @@ class AetherSprayWater(BossModule module) : Components.RaidwideCast(module, AID.
 class AetherSprayFire(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayFire, "Go into a bubble! (Raidwide)");
 class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<QueerBubble>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
     private static readonly Dictionary<object, object> cache = [];
     public static WPos RotateAroundOrigin(float rotatebydegrees, WPos origin, WPos caster)
     {

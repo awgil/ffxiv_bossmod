@@ -52,7 +52,9 @@ public sealed class MiniArena(BossModuleConfig config, WPos center, ArenaBounds 
     public bool InBounds(WPos position) => Bounds.Contains(position - Center);
     public VBool InBounds(WVec position) => Bounds.Contains(position - Center);
     public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
+    public WVec ClampToBounds(WVec position) => new WVec(Center) + Bounds.ClampToBounds(position - Center);
     public float IntersectRayBounds(WPos rayOrigin, WDir rayDir) => Bounds.IntersectRay(rayOrigin - Center, rayDir);
+    public VFloat IntersectRayBounds(WVec rayOrigin, WVec rayDir) => Bounds.IntersectRay(rayOrigin - Center, rayDir);
 
     public string DrawCacheStats() => _triCache.Stats();
 

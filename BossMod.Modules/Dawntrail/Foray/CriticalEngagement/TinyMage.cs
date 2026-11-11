@@ -287,17 +287,12 @@ class TinyTether(BossModule module) : Components.Knockback(module)
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
     {
-        if (_mechanics[0].Type != Orb.Holy)
-            return false;
+        if (_mechanics is [{ Type: Orb.Holy }, { Type: Orb.Flare, Origin: var f }, ..])
+            return ShapeDistance.Circle(f, 18).Discretize();
 
-        var danger = !pos.InCircle(Arena.Center, 20);
-
-        if (_mechanics is [_, { Type: Orb.Flare } f, ..])
-            danger |= pos.InCircle(f.Origin, 18);
-
-        return danger;
+        return PointTest.Never;
     }
 }
 

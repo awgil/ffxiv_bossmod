@@ -38,6 +38,4 @@ class SpinningDiveKB(BossModule module) : Components.Knockback(module, stopAtWal
         if ((AID)spell.Action.ID == AID.SpinningDiveEffect)
             _knockback = null;
     }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<Hydroshot>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || (Module.FindComponent<Dreadstorm>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false);
 }

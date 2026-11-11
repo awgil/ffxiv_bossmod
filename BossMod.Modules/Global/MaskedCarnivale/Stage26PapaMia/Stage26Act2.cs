@@ -52,16 +52,6 @@ class DadJoke(BossModule module) : Components.Knockback(module)
         if ((AID)spell.Action.ID == AID.DadJoke)
             _activation = default;
     }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<Thunderhead>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false)
-            return true;
-        if (!Module.InBounds(pos))
-            return true;
-        else
-            return false;
-    }
 }
 
 class VoidThunderII(BossModule module) : Components.StandardAOEs(module, AID.VoidThunderII, 4);

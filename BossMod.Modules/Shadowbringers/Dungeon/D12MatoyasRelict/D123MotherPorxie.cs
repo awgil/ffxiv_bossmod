@@ -116,22 +116,7 @@ class HuffAndPuff(BossModule module) : Components.Knockback(module, stopAtWall: 
             Arena.ZoneDonut(rear.Position, 5, 40, ArenaColor.AOE);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => MediumRear != null && !pos.InCircle(MediumRear.Position, 5);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (MediumRear is not Actor p)
-            return;
-
-        foreach (var movement in CalculateMovements(slot, actor))
-        {
-            var offset = movement.from - movement.to;
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(p.Position + offset, 5), Module.CastFinishAt(p.CastInfo));
-            break;
-        }
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => MediumRear != null ? ShapeDistance.InvertedCircle(MediumRear.Position, 5).Discretize() : PointTest.Never;
 }
 
 class Barbeque(BossModule module) : BossComponent(module)

@@ -58,20 +58,7 @@ class FaithUnmoving(BossModule module) : Components.KnockbackFromCastTarget(modu
             _forbidden.Forbidden.Clear();
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.Enemies(OID.AetherialTear).Any(t => pos.InCircle(t.Position, 7));
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-
-            var cl = _forbidden.Clone();
-            var center = Arena.Center;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => cl.Forbidden.Contains(Angle.FromDirection(p - center).Rad)), s.Activation);
-        }
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.Union([.. Module.Enemies(OID.AetherialTear).Select(t => ShapeDistance.Circle(t.Position, 7))]).Discretize();
 }
 class DimensionalRip(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.DimensionalRip, OID.DimensionalRipVoidzone, 0.8f);
 class Rive(BossModule module) : Components.StandardAOEs(module, AID.Rive, new AOEShapeRect(30, 1));

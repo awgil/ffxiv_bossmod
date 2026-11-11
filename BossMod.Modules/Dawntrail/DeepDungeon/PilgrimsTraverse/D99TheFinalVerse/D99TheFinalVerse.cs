@@ -145,8 +145,8 @@ class LightDark(BossModule module) : BossComponent(module)
         {
             var ctr = Arena.Center;
             var anyPoly = ShapeDistance.Union([
-                ShapeDistance.ComplexPolygon(default, default, D99TheFinalVerse.DarkShape),
-                ShapeDistance.ComplexPolygon(default, default, D99TheFinalVerse.LightShape)
+                ShapeDistance.Polygon(default, default, D99TheFinalVerse.DarkShape),
+                ShapeDistance.Polygon(default, default, D99TheFinalVerse.LightShape)
             ]).Discretize();
             hints.GoalZones.AddSimple(anyPoly, 100);
         }
@@ -243,14 +243,14 @@ class DrainAether(BossModule module) : Components.CastCounterMulti(module, [AID.
                 // avoid moving into other zone
                 var badShape = LightDark.OppositeColorShape(nextColor);
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(ShapeDistance.ComplexPolygon(default, default, badShape), deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(ShapeDistance.Polygon(default, default, badShape), deadline.AddSeconds(-1));
             }
             else
             {
                 // move to correct zone
                 var targetShape = LightDark.ColorShape(nextColor);
                 var ctr = Arena.Center;
-                hints.AddForbiddenZone(ShapeDistance.ComplexPolygon(default, default, targetShape).Inverted(), deadline.AddSeconds(-1));
+                hints.AddForbiddenZone(ShapeDistance.Polygon(default, default, targetShape).Inverted(), deadline.AddSeconds(-1));
             }
         }
     }

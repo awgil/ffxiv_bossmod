@@ -213,14 +213,14 @@ public struct NavigationDecision
         {
             for (var x = 0; x < map.Width; x++)
             {
-                var iG = y * (map.Width + 1) + x;
+                var iG = y * rowLength + x;
                 var iM = y * map.Width + x;
 
                 if (map.PixelMaxG[iM] == float.MaxValue)
                 {
                     var cellP = map.PixelPriority[iM] = map.PixelPriority[iM] + Math.Min(
                         Math.Min(gScratch[iG], gScratch[iG + 1]),
-                        Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
+                        Math.Min(gScratch[iG + rowLength], gScratch[iG + rowLength + 1])
                     );
                     map.MaxPriority = MathF.Max(map.MaxPriority, cellP);
                 }

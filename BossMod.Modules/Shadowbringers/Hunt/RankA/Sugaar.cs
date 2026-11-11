@@ -61,8 +61,6 @@ class NumbingNoiseTailSnapAttract(BossModule module) : Components.Knockback(modu
             yield return new(Module.PrimaryActor.Position, 25, _activation, _shape, default, Kind.TowardsOrigin, Module.PrimaryActor.HitboxRadius + actor.HitboxRadius);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _rotating?.ActiveAOEs(slot, actor).Any(aoe => aoe.Check(pos)) ?? false;
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (caster == Module.PrimaryActor && (AID)spell.Action.ID is AID.NumbingNoiseAttract or AID.TailSnapAttract)
