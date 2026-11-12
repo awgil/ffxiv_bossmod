@@ -19,19 +19,7 @@ public enum AID : uint
 class Tornado(BossModule module) : Components.SpreadFromCastTargets(module, AID.Tornado, 6);
 class AncientAero(BossModule module) : Components.StandardAOEs(module, AID.AncientAero, new AOEShapeRect(52.4f, 4));
 class AncientAeroII(BossModule module) : Components.StandardAOEs(module, AID.AncientAeroII, 6);
-class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true)
-{
-    static readonly float WindCone = MathF.Atan2(6, 22);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            foreach (var w in Module.Enemies(OID.Whirlwind).Where(e => !e.IsDeadOrDestroyed))
-                hints.AddForbiddenZone(ShapeDistance.Cone(src.Origin, 25, (w.Position - src.Origin).ToAngle(), WindCone.Radians()), src.Activation);
-        }
-    }
-}
+class AncientAeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AncientAeroIII, 23.5f, true, stopAtWall: true);
 class Windage(BossModule module) : Components.Voidzone(module, 6, OID.Whirlwind, m => m.IsDead);
 
 class D40BhimaStates : StateMachineBuilder

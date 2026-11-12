@@ -123,13 +123,13 @@ public struct NavigationDecision
 
         Parallel.For(0, map.Height + 1, y =>
         {
-            var vz = VV.Create(cy.Z + y * dy.Z);
-
             for (var x = 0; x <= map.Width; x += VFloat.Count)
             {
                 var iCell = y * rowLength + x;
 
-                var (g, d) = CalculateMaxGV(zones, new(VV.CreateSequence(cy.X + x * dx.X, dx.X), vz), cushion);
+                WVec row = new(VV.CreateSequence(cy.X + x * dx.X + y * dy.X, dx.X), VV.CreateSequence(cy.Z + x * dx.Z + y * dy.Z, dx.Z));
+
+                var (g, d) = CalculateMaxGV(zones, row, cushion);
 
                 g.CopyTo(gScratch, iCell);
                 d.CopyTo(dScratch, iCell);
@@ -168,6 +168,7 @@ public struct NavigationDecision
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         if (maxG < float.MaxValue)
         {
+            map.MaxPriority = 0;
             for (var j = 0; j < map.Width * map.Height; j++)
                 if (map.PixelMaxG[j] == maxG)
                 {
@@ -195,15 +196,15 @@ public struct NavigationDecision
 
         Parallel.For(0, map.Height + 1, y =>
         {
-            var vz = VV.Create(cy.Z + y * dy.Z);
-
             for (var x = 0; x <= map.Width; x += VFloat.Count)
             {
                 var iCell = y * rowLength + x;
 
+                WVec row = new(VV.CreateSequence(cy.X + x * dx.X + y * dy.X, dx.X), VV.CreateSequence(cy.Z + x * dx.Z + y * dy.Z, dx.Z));
+
                 var score = VFloat.Zero;
                 foreach (var goal in goals)
-                    score += goal(new(VV.CreateSequence(cy.X + x * dx.X, dx.X), vz));
+                    score += goal(row);
 
                 score.CopyTo(gScratch, iCell);
             }

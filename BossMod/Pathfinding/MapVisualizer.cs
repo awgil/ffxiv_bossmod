@@ -125,7 +125,7 @@ public class MapVisualizer
         // shapes
         foreach (var c in Sectors)
         {
-            DrawSector(dl, tl, c.center, c.ir, c.or, c.dir, c.halfWidth);
+            DrawSector(dl, tl, c.center, c.ir, c.or, c.dir - Map.Rotation, c.halfWidth);
         }
         foreach (var r in Rects)
         {

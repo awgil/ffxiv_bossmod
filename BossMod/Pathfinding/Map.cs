@@ -208,4 +208,42 @@ public class Map
             while (y1 != y2);
         }
     }
+
+    public void Diff(Map other)
+    {
+        static bool Compare<T>(string label, T a, T b)
+        {
+            if (!EqualityComparer<T>.Default.Equals(a, b))
+            {
+                Service.Log($"{label} mismatch: {a} != {b}");
+                return true;
+            }
+            return false;
+        }
+
+        if (Compare("Resolution", Resolution, other.Resolution))
+            return;
+        if (Compare("Width", Width, other.Width))
+            return;
+        if (Compare("Height", Height, other.Height))
+            return;
+        if (Compare("Center", Center, other.Center))
+            return;
+        if (Compare("Rotation", Rotation, other.Rotation))
+            return;
+        if (Compare("MaxG", MaxG, other.MaxG))
+            return;
+        if (Compare("MaxPriority", MaxPriority, other.MaxPriority))
+            return;
+
+        for (var i = 0; i < Width * Height; i++)
+        {
+            var grid = IndexToGrid(i);
+            var world = GridToWorld(grid.x, grid.y, 0.5f, 0.5f);
+            if (Compare($"PixelMaxG({world})", PixelMaxG[i], other.PixelMaxG[i]))
+                return;
+            if (Compare($"PixelPriority({world})", PixelPriority[i], other.PixelPriority[i]))
+                return;
+        }
+    }
 }
