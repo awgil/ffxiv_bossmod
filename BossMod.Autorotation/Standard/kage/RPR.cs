@@ -286,6 +286,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private bool AvoidGluttonyDrift;
     private bool SpendUnderTrueNorth;
     private bool HoldingPerfectio;
+    private bool GluttonyBeforeHarvest;
 
     private DateTime CircleReadySince;
 
@@ -391,6 +392,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
         WorthBurst = TimeToKill.BurstWorthIt(Bossmods.ActiveModule, Hints, target.Actor, 10);
         WantEnshroud = ShouldEnshroud();
+        GluttonyBeforeHarvest = ShouldGluttonyBeforeHarvest(strategy.Slice.Value);
 
         UpdateOpener(strategy);
         if (OpenerSteps != null)
@@ -642,7 +644,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
 
     private void UseHarvest(in Strategy strategy, Enemy target)
     {
-        if (strategy.Harvest.Value == OffensiveStrategy.Delay || Enshrouded || SoulReaver || !HasImmortal)
+        if (strategy.Harvest.Value == OffensiveStrategy.Delay || Enshrouded || SoulReaver || !HasImmortal
+            || GluttonyBeforeHarvest && strategy.Harvest.Value != OffensiveStrategy.Force)
             return;
         if (strategy.Harvest.Value == OffensiveStrategy.Force || BloodsownLeft <= 1 || JustUsed(AID.Communio))
             PushGCD(AID.PlentifulHarvest, ResolveTarget(strategy.Harvest) ?? BestLineTarget ?? target.Actor, 70);
@@ -688,7 +691,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         if (strategy == SliceStrategy.Delay)
             return false;
-        if (strategy == SliceStrategy.Force)
+        if (strategy == SliceStrategy.Force || GluttonyBeforeHarvest && Soul < 50)
             return true;
         if (InPostBurst || !InNormalRotation || ComboExpiring(3))
             return false;
@@ -831,6 +834,16 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         // Gluttony < 13s turns into Sacrificium and drifts; shroud overcap still wins (Gluttony is held while capped)
         var gluttonySoon = Unlocked(AID.Gluttony) && ReadyIn(AID.Gluttony) < 13;
         return !gluttonySoon && (CircleIn is >= 49f and <= 66f || Soul >= 90) || Shroud >= 100 && CircleIn > 15;
+    }
+
+    private bool ShouldGluttonyBeforeHarvest(SliceStrategy slice)
+    {
+        if (GluttonyStrat != GluttonyStrategy.GluttonyFirst || !Unlocked(AID.Gluttony) || !HasImmortal || Enshrouded || SoulReaver || ShroudOvercapping
+            || ImmortalLeft <= GCD + GCDLength * 3)
+            return false;
+        if (Soul >= 50)
+            return GluttonyReady;
+        return slice != SliceStrategy.Delay && !IsDisabled(SliceAction) && GCDReady(SliceAction) && ReadyIn(AID.Gluttony) <= GCD + GCDLength;
     }
 
     private void UseGluttony(in Strategy strategy, Enemy target)
