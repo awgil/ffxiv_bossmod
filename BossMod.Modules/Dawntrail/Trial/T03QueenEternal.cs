@@ -176,6 +176,8 @@ class GravityGap(BossModule module) : Components.GenericAOEs(module)
             yield return new(_shape, T03QueenEternal.SplitArenaCenter, default, _end);
     }
 
+    /*
+    // fix
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_end == default || _end > WorldState.FutureTime(6))
@@ -185,6 +187,7 @@ class GravityGap(BossModule module) : Components.GenericAOEs(module)
         hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !platforms.Contains(p - T03QueenEternal.SplitArenaCenter)), _end);
 #pragma warning restore VBM006 // Reference type captured in closure
     }
+    */
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
@@ -400,6 +403,8 @@ class AbsoluteAuthorityCircle(BossModule module) : Components.StandardAOEs(modul
 class AbsoluteAuthorityFlare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(12), (uint)IconID.Flare, AID.AbsoluteAuthorityFlare, 6, centerAtTarget: true);
 class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(module, (uint)IconID.DoritoStack, AID.AbsoluteAuthorityDoritoStack1, 3, 5.1f, 2, 8)
 {
+    /*
+    // fix, also this should be a StackTogether
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Stacks.FindIndex(s => s.Target == actor) is var own && own < 0)
@@ -413,6 +418,7 @@ class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(modu
             hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !partners.Any(c => p.InCircle(c, 2))), Stacks[own].Activation);
 #pragma warning restore VBM006 // Reference type captured in closure
     }
+    */
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -498,36 +504,7 @@ class DivideAndConquer(BossModule module) : Components.GenericBaitAway(module, A
     }
 }
 
-class PlatformKnockback(BossModule module, AID aid, float distance, Components.Knockback.Kind kind = Components.Knockback.Kind.AwayFromOrigin) : Components.KnockbackFromCastTarget(module, aid, distance, kind: kind)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (IsImmune(slot, src.Activation))
-                continue;
-            var bounds = Arena.Bounds;
-            var center = Arena.Center;
-            var push = src.Kind == Kind.DirForward ? src.Direction.ToDirection() * src.Distance : default;
-            var origin = src.Origin;
-            var distance = src.Distance;
-#pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => LeavesBounds(bounds, center, p, push, origin, distance)), src.Activation);
-#pragma warning restore VBM006 // Reference type captured in closure
-        }
-    }
-
-    private static WPos Landing(WPos from, WDir push, WPos origin, float distance) => push != default ? from + push : from + (from - origin).Normalized() * distance;
-
-    private static bool LeavesBounds(ArenaBounds bounds, WPos center, WPos from, WDir push, WPos origin, float distance)
-    {
-        var step = (Landing(from, push, origin, distance) - from) / 20;
-        for (var i = 1; i <= 20; ++i)
-            if (!bounds.Contains(from + step * i - center))
-                return true;
-        return false;
-    }
-}
+class PlatformKnockback(BossModule module, AID aid, float distance, Components.Knockback.Kind kind = Components.Knockback.Kind.AwayFromOrigin) : Components.KnockbackFromCastTarget(module, aid, distance, kind: kind);
 
 class DownburstKB(BossModule module) : PlatformKnockback(module, AID.Downburst, 10);
 class PowerfulGustKB(BossModule module) : PlatformKnockback(module, AID.PowerfulGust, 20, Kind.DirForward);

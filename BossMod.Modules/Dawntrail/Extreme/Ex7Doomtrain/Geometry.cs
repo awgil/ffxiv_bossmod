@@ -5,7 +5,6 @@ static class Shapes
     public static IEnumerable<WDir> Fence(float x, float z) => CurveApprox.TruncatedRect(new(x, z), new WDir(2.5f, 0), new(0, 2.5f), 0.5f, CurveApprox.Corners.All);
     public static IEnumerable<WDir> Crate(float x, float z, CurveApprox.Corners c = CurveApprox.Corners.All) => CurveApprox.TruncatedRect(new(x, z), new WDir(2.9f, 0), new(0, 2.9f), 0.5f, c);
 
-    // TODO(SDF)
     public static DistFn RectOutline(WPos center, float lenFront, float lenBack, float halfWidth) => ShapeDistance.Ring(ShapeDistance.Rect(center, new WDir(0, 1), lenFront, lenBack, halfWidth), 0.5f);
 }
 

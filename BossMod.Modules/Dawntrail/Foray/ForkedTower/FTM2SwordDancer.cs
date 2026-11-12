@@ -183,23 +183,6 @@ class Steelsbreath(BossModule module) : Components.Knockback(module, AID.Steelsb
         if (spell.Action == WatchedAction && _sources.Count > 0)
             _sources.RemoveAt(0);
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var srcs = _sources.SkipWhile(s => IsImmune(slot, s.Activation)).GetEnumerator();
-        if (!srcs.MoveNext())
-            return;
-
-        var kb0 = srcs.Current;
-        var orig = kb0.Origin;
-        var goal = srcs.MoveNext() ? ShapeDistance.InvertedCircle(srcs.Current.Origin, 6) : ShapeDistance.InvertedCircle(Arena.Center, 24);
-
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            var off = (p - orig).Normalized() * 24;
-            return goal(new(p + off))[0] < 0;
-        }), kb0.Activation);
-    }
 }
 
 class FTM2SwordDancerStates : StateMachineBuilder

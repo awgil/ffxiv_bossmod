@@ -191,23 +191,6 @@ class DeadlyDischargeKnockback(BossModule module) : Components.Knockback(module,
             ++NumCasts;
         }
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            var from = _from;
-            var to = _to;
-            var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var origin = NearestOnSegment(p, from, to);
-                return !Module.InBounds(AwayFromSource(p, origin, dist));
-            }), s.Activation);
-        }
-    }
 }
 
 class Gallop(BossModule module) : Components.StandardAOEs(module, AID.Gallop, new AOEShapeRect(50, 2.5f));

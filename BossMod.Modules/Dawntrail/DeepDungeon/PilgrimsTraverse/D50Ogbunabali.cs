@@ -191,8 +191,8 @@ class BitingWind(BossModule module) : Components.Knockback(module, AID.BitingWin
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_caster != null && Rocks.RockShape.Contains(actor.Position - Arena.Center))
-            yield return new(Arena.Center, 20, Module.CastFinishAt(_caster.CastInfo));
+        if (_caster != null)
+            yield return new(Arena.Center, 20, Module.CastFinishAt(_caster.CastInfo), new AOEShapeCustom(Rocks.RockShape));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

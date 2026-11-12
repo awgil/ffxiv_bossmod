@@ -114,19 +114,6 @@ class Blastburn(BossModule module) : Components.Knockback(module)
         if ((AID)spell.Action.ID is AID.Blastburn or AID.CloneBlastburn)
             _sources.RemoveAll(s => s.Caster == caster);
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        static WPos Predict(WPos p, WPos lineOrigin, Angle lineRotation) => AwayFromSource(p, NearestOnLine(p, lineOrigin, lineRotation), Distance);
-        foreach (var s in _sources)
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            var origin = s.Origin;
-            var rot = s.Rotation;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !Module.InBounds(Predict(p, origin, rot))), s.Activation);
-        }
-    }
 }
 
 class Sinsmoke(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Sinsmoke, AID.Sinsmoke, 6, 8);

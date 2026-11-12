@@ -81,7 +81,7 @@ public enum IconID : uint
 
 static class Shapes
 {
-    public static Sdf RectOutline(WPos center, float halfLength, float halfWidth) => Sdf.DiscreteSingle(p => p.InRect(center, default(Angle), halfLength + 0.25f, halfLength + 0.25f, halfWidth + 0.25f) && !p.InRect(center, default(Angle), halfLength - 0.25f, halfLength - 0.25f, halfWidth - 0.25f));
+    public static DistFn RectOutline(WPos center, float halfLength, float halfWidth) => ShapeDistance.Ring(ShapeDistance.Rect(center, new WDir(0, 1), halfLength, halfLength, halfWidth), 0.5f);
 }
 
 class CarGeometry : BossComponent

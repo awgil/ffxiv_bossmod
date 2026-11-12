@@ -347,6 +347,8 @@ class CalculatedTrajectory : Components.GenericForcedMarch
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (Module.FindComponent<ArcanePlot>()?.IsTileUnsafe(pos) ?? false);
 
+    /*
+    // fix, this is disgusting
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (!_armed)
@@ -389,6 +391,7 @@ class CalculatedTrajectory : Components.GenericForcedMarch
             return false;
         }));
     }
+    */
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {

@@ -13,6 +13,8 @@ class OilWell(BossModule module) : Components.GenericAOEs(module, AID.OilWell)
         return [.. centers.Select(c => platformCenter + c.Rotate(-120.Degrees()))];
     }
 
+    private static DistFn PlatformShape() => ShapeDistance.Union([.. MakePlatforms().Select(p => ShapeDistance.Circle(p, 6))]);
+
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         if (Activation != default)
@@ -25,11 +27,7 @@ class OilWell(BossModule module) : Components.GenericAOEs(module, AID.OilWell)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Activation != default && Relevant(actor))
-        {
-            var inv = _inverted;
-            // TODO(SDF)
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => inv ? !OnPlatform(p) : OnPlatform(p)), Activation);
-        }
+            hints.AddForbiddenZone(PlatformShape().Inverted(_inverted), Activation);
     }
 
     bool Relevant(Actor a) => a.Position.InCircle(new(-779, -225), 20);
