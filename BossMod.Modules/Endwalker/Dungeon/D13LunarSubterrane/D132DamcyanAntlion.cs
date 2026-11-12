@@ -160,5 +160,5 @@ class D132DamcyanAntilonStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
 public class D132DamcyanAntilon(ModuleInit init) : BossModule(init, new(0, 60), new ArenaBoundsRect(19.5f, 25));
