@@ -43,8 +43,7 @@ public enum SID : uint
     TizonasBastion = 2908, // none->player/FordolaLupis, extra=0x0
 }
 
-class ThroesOfRemorse(BossModule module) : Components.StandardAOEs(module, AID.ThroesOfRemorse, new AOEShapeRect(40, 3));
-class ThroesOfRemorseLong(BossModule module) : Components.StandardAOEs(module, AID.ThroesOfRemorseLong, new AOEShapeRect(40, 3));
+class ThroesOfRemorse(BossModule module) : Components.GroupedAOEs(module, [AID.ThroesOfRemorse, AID.ThroesOfRemorseLong], new AOEShapeRect(40, 3));
 class LevinsphereBlast(BossModule module) : Components.StandardAOEs(module, AID.LevinsphereBlast, 8);
 class LightningBolt(BossModule module) : Components.StandardAOEs(module, AID.LightningBolt, 8);
 class GroundPound(BossModule module) : Components.RaidwideCast(module, AID.GroundPound);
@@ -107,7 +106,6 @@ class CharletStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<ThroesOfRemorse>()
-            .ActivateOnEnter<ThroesOfRemorseLong>()
             .ActivateOnEnter<LevinsphereBlast>()
             .ActivateOnEnter<LightningBolt>()
             .ActivateOnEnter<GroundPound>()
