@@ -116,8 +116,7 @@ class RuneAxe(BossModule module) : Components.GenericAOEs(module)
             if (spread.Radius == 11)
             {
                 foreach (var (off, dir) in FTB4Magitaur.Platforms)
-                    // TODO(SDF)
-                    hints.AddForbiddenZone(Sdf.DiscreteSingle(p => Intersect.CircleRect(p, spread.Radius, center + off, dir.ToDirection(), 10, 10)), spread.Activation);
+                    hints.AddForbiddenZone(ShapeDistance.Rect(center + off, dir.ToDirection(), 10, 10, 10).Grow(spread.Radius), spread.Activation);
             }
             else
             {

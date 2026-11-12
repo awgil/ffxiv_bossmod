@@ -71,9 +71,9 @@ class HotBlast(BossModule module) : Components.CastCounter(module, AID.HotBlast)
     }
 }
 
-class NuzalHuelocStates : StateMachineBuilder
+class D151NuzalHuelocStates : StateMachineBuilder
 {
-    public NuzalHuelocStates(BossModule module) : base(module)
+    public D151NuzalHuelocStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<WindBlast>()
@@ -82,7 +82,7 @@ class NuzalHuelocStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5265, Contributors = "xan")]
-public class NuzalHueloc(ModuleInit init) : BossModule(init, new(-74.5f, -70.25f), new ArenaBoundsCircle(20))
+public class D151NuzalHueloc(ModuleInit init) : BossModule(init, new(-74.5f, -70.25f), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

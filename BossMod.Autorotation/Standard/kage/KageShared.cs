@@ -68,7 +68,7 @@ public static class TimeToKill
 
 public static class RaidBuffs
 {
-    public const float OpenerBuffs = 7.8f;
+    private const float OpenerBuffs = 7.8f;
     private const float OverdueGrace = 10;
 
     public static (float Left, float In) Estimate(BossModuleManager bossmods, WorldState world, Actor player, Actor? target, float combatTime, float uptime)
@@ -145,13 +145,15 @@ public static class RaidBuffs
 
 public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor player) : TypedRotationModule<TStrategy>(manager, player) where TStrategy : struct
 {
-    protected float AnimLockDelay;
-    protected Targeting TargetMode;
+    private float AnimLockDelay;
+    private Targeting TargetMode;
     protected float DowntimeIn;
     protected float RaidBuffsLeft;
     protected float RaidBuffsIn;
     protected bool InBossFight;
     protected bool InMelee;
+    protected bool AllowAoE;
+    protected bool ForceST;
     protected ActionID NextGCDAction { get; private set; }
     protected ActorCastEvent? NewCast { get; private set; }
     private int NextGCDPriority;
@@ -208,7 +210,9 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
         if (target?.Priority is AIHints.Enemy.PriorityInvincible or AIHints.Enemy.PriorityForbidden || target?.Priority == AIHints.Enemy.PriorityPointless && Hints.PriorityTargets.Any())
             target = null;
 
-        if (aoe == AOEStrategy.ForceST)
+        AllowAoE = aoe is AOEStrategy.AOE or AOEStrategy.ForceAOE;
+        ForceST = aoe == AOEStrategy.ForceST;
+        if (ForceST)
             targeting = Targeting.Manual;
         TargetMode = targeting == Targeting.AutoTryPri ? (target != null ? Targeting.AutoPrimary : Targeting.Auto) : targeting;
         if (TargetMode == Targeting.Auto && target == null)
@@ -267,6 +271,15 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushGCD(first, target.Actor, 10);
     }
 
+    // the dash track's "Do not use" is for combat; Engage picks the dash on its own
+    protected void DashPull<AID>(AIHints.Enemy target, AID first, AID dash, float countdown, bool useDash = true) where AID : Enum
+    {
+        if (InMelee && countdown < 1.16f)
+            PushGCD(first, target.Actor, 10);
+        else if (useDash && !InMelee && countdown < 0.7f)
+            PushAction(ActionID.MakeSpell(dash), target.Actor, ActionQueue.Priority.High + 10, ignoreDisabled: true);
+    }
+
     protected void Facepull<AID>(AIHints.Enemy target, AID first, float countdown) where AID : Enum
     {
         if (!InMelee)
@@ -275,7 +288,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
             PushGCD(first, target.Actor, 10);
     }
 
-    protected void AddMeleeGoal(AIHints.Enemy target, Func<WPos, float>? aoe, int minAoETargets = 3, bool forcePositional = false)
+    protected void AddMeleeGoal(AIHints.Enemy target, GoalFn? aoe, int minAoETargets = 3, bool forcePositional = false)
     {
         var (_, pos, imminent, _) = Hints.RecommendedPositional;
         var single = Hints.GoalSingleTarget(target.Actor, imminent || forcePositional ? pos : Positional.Any, Player, World.Actors, 3);
@@ -368,7 +381,7 @@ public abstract class KageShared<TStrategy>(RotationModuleManager manager, Actor
     protected bool SwiftcastUp => SelfStatusLeft(ClassShared.SID.Swiftcast) > GCD;
     protected float HardcastTime<AID>(AID aid) where AID : Enum => SwiftcastUp ? 0 : ScaledCastTime(aid);
 
-    protected static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
+    private static float SlideCast(float castTime) => MathF.Max(0, castTime - 0.5f);
     protected bool CastFits(float castTime) => Hints.MaxCastTime >= SlideCast(castTime);
 
     protected bool PushAction(ActionID action, Actor? target, float priority, float delay = 0, float castTime = 0, Angle? facing = null, bool ignoreDisabled = false)

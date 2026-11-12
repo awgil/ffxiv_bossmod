@@ -123,13 +123,13 @@ public struct NavigationDecision
 
         Parallel.For(0, map.Height + 1, y =>
         {
-            var vz = VV.Create(cy.Z + y * dy.Z);
-
             for (var x = 0; x <= map.Width; x += VFloat.Count)
             {
                 var iCell = y * rowLength + x;
 
-                var (g, d) = CalculateMaxGV(zones, new(VV.CreateSequence(cy.X + x * dx.X, dx.X), vz), cushion);
+                WVec row = new(VV.CreateSequence(cy.X + x * dx.X + y * dy.X, dx.X), VV.CreateSequence(cy.Z + x * dx.Z + y * dy.Z, dx.Z));
+
+                var (g, d) = CalculateMaxGV(zones, row, cushion);
 
                 g.CopyTo(gScratch, iCell);
                 d.CopyTo(dScratch, iCell);
@@ -168,6 +168,7 @@ public struct NavigationDecision
         // whole grid is blocked, unblock cells with highest gscore so pathfinding produces a reasonable result
         if (maxG < float.MaxValue)
         {
+            map.MaxPriority = 0;
             for (var j = 0; j < map.Width * map.Height; j++)
                 if (map.PixelMaxG[j] == maxG)
                 {
@@ -182,35 +183,45 @@ public struct NavigationDecision
         ArrayPool<int>.Shared.Return(dScratch);
     }
 
-    public static void RasterizeGoalZones(Map map, List<Func<WPos, float>> goals)
+    public static void RasterizeGoalZones(Map map, List<GoalFn> goals)
     {
-        // see Map.EnumeratePixels, note that we care about corners rather than centers
+        var rowLength = ((map.Width + 1) / VFloat.Count + 1) * VFloat.Count;
+        var dim = rowLength * (map.Height + 1);
+
+        var gScratch = ArrayPool<float>.Shared.Rent(dim);
+
         var dy = map.LocalZDivRes * map.Resolution * map.Resolution;
         var dx = dy.OrthoL();
         var cy = map.Center - map.Width / 2 * dx - map.Height / 2 * dy;
 
-        var dim = (map.Width + 1) * (map.Height + 1);
-        var gScratch = ArrayPool<float>.Shared.Rent(dim);
-
-        Parallel.For(0, dim, iCell =>
+        Parallel.For(0, map.Height + 1, y =>
         {
-            var (y, x) = Math.DivRem(iCell, map.Width + 1);
-            var point = cy + x * dx + y * dy;
-            gScratch[iCell] = goals.Sum(g => g(point));
+            for (var x = 0; x <= map.Width; x += VFloat.Count)
+            {
+                var iCell = y * rowLength + x;
+
+                WVec row = new(VV.CreateSequence(cy.X + x * dx.X + y * dy.X, dx.X), VV.CreateSequence(cy.Z + x * dx.Z + y * dy.Z, dx.Z));
+
+                var score = VFloat.Zero;
+                foreach (var goal in goals)
+                    score += goal(row);
+
+                score.CopyTo(gScratch, iCell);
+            }
         });
 
         for (var y = 0; y < map.Height; y++)
         {
             for (var x = 0; x < map.Width; x++)
             {
-                var iG = y * (map.Width + 1) + x;
+                var iG = y * rowLength + x;
                 var iM = y * map.Width + x;
 
                 if (map.PixelMaxG[iM] == float.MaxValue)
                 {
                     var cellP = map.PixelPriority[iM] = map.PixelPriority[iM] + Math.Min(
                         Math.Min(gScratch[iG], gScratch[iG + 1]),
-                        Math.Min(gScratch[iG + map.Width + 1], gScratch[iG + map.Width + 2])
+                        Math.Min(gScratch[iG + rowLength], gScratch[iG + rowLength + 1])
                     );
                     map.MaxPriority = MathF.Max(map.MaxPriority, cellP);
                 }
@@ -259,11 +270,11 @@ public struct NavigationDecision
         for (var y = 0; y < map.Height; ++y)
         {
             var cx = cy;
-            var (leftG, leftD) = CalculateMaxG(-1, zonesFixed, cx, cushion);
+            var (leftG, leftD) = CalculateMaxG(zonesFixed, cx, cushion);
             for (var x = 0; x < map.Width; ++x)
             {
                 cx += dx;
-                var (rightG, rightD) = CalculateMaxG(-1, zonesFixed, cx, cushion);
+                var (rightG, rightD) = CalculateMaxG(zonesFixed, cx, cushion);
                 dScratch[iCell] = leftD || rightD ? 1u : 0;
                 gScratch[iCell++] = Math.Min(leftG, rightG);
                 leftD = rightD;
@@ -271,12 +282,12 @@ public struct NavigationDecision
             }
             cy += dy;
         }
-        var (bleftG, bleftD) = CalculateMaxG(-1, zonesFixed, cy, cushion);
+        var (bleftG, bleftD) = CalculateMaxG(zonesFixed, cy, cushion);
         iCell -= map.Width;
         for (var x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
-            var (brightG, brightD) = CalculateMaxG(-1, zonesFixed, cy, cushion);
+            var (brightG, brightD) = CalculateMaxG(zonesFixed, cy, cushion);
             var bottomD = bleftD || brightD;
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
@@ -317,16 +328,14 @@ public struct NavigationDecision
         }
     }
 
-    private static (float G, bool D) CalculateMaxG(int cell, (Sdf d, float g)[] zones, WPos p, float cushion)
+    private static (float G, bool D) CalculateMaxG((Sdf d, float g)[] zones, WPos p, float cushion)
     {
         var g = float.MaxValue;
         var d = false;
 
         foreach (var z in zones)
         {
-            var dist = z.d.Type == Sdf.SdfType.Indexed
-                ? z.d.CheckIndexed(p, cell) ? float.MinValue : float.MaxValue
-                : z.d.Distance(p);
+            var dist = z.d.Distance(p);
             if (!float.IsFinite(dist))
                 throw new InvalidOperationException($"distance function returned invalid value {dist}");
             if (dist < 0)
@@ -350,7 +359,7 @@ public struct NavigationDecision
         foreach (var z in zones)
         {
             var dist = z.d.Distance(p);
-            g = VV.Min(g, VV.ConditionalSelect(VV.IsNegative(dist), VV.Create(z.g), VV.Create(float.MaxValue)));
+            g = VV.Min(g, VV.ConditionalSelect(dist < VFloat.Zero, VV.Create(z.g), VV.Create(float.MaxValue)));
             d |= dist < c0;
         }
 

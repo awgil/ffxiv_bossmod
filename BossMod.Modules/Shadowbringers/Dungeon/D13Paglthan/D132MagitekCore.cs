@@ -54,41 +54,7 @@ class StableCannon(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GroundToGroundBallistic, 10, stopAtWall: true)
-{
-    private StableCannon? cannons;
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        cannons ??= Module.FindComponent<StableCannon>();
-
-        if (cannons == null)
-            return false;
-
-        return cannons.ActiveAOEs(slot, actor).Any(e => e.Check(pos));
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-
-        if (Casters.Count == 0)
-            return;
-
-        var aoes = cannons?.ActiveAOEs(slot, actor).ToList();
-        if (aoes == null)
-            return;
-
-        var source = Casters[0].CastInfo!.LocXZ;
-        var clamp = Arena.ClampToBounds;
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            var dist = (p - source).Normalized();
-            var proj = clamp(p + dist * 10);
-            return aoes.Any(e => e.Check(proj));
-        }), Module.CastFinishAt(Casters[0].CastInfo));
-    }
-}
+class GroundToGroundBallistic(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GroundToGroundBallistic, 10, stopAtWall: true);
 
 class Launchpad(BossModule module) : BossComponent(module)
 {

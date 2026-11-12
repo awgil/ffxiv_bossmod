@@ -102,9 +102,6 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
             yield return new(Module.Center, CircleDistance, activation, default, default, Kind.TowardsOrigin);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<ElectromagneticRelease1>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) ||
-        (Module.FindComponent<ElectromagneticRelease2>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
-
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is ((uint)IconID.Plus) or ((uint)IconID.Minus))
@@ -149,7 +146,7 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var forbidden = new List<Func<WVec, Vector<float>>>();
+        var forbidden = new List<DistFn>();
         if (IsKnockback(actor, Shape.Circle, MagneticPole.Plus) || IsKnockback(actor, Shape.Circle, MagneticPole.Minus))
             forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 10));
         else if (IsPull(actor, Shape.Circle, MagneticPole.Plus) || IsPull(actor, Shape.Circle, MagneticPole.Minus))

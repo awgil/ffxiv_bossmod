@@ -17,10 +17,7 @@ public enum AID : uint
 class Hydrocannon(BossModule module) : Components.StandardAOEs(module, AID.Hydrocannon, 8);
 class AetherialSpark(BossModule module) : Components.StandardAOEs(module, AID.AetherialSpark, new AOEShapeRect(12, 2));
 
-class AetherialPull(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherialPull, 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<Flood>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
-}
+class AetherialPull(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherialPull, 30, shape: new AOEShapeCircle(30), kind: Kind.TowardsOrigin);
 
 class Flood(BossModule module) : Components.GenericAOEs(module)
 {

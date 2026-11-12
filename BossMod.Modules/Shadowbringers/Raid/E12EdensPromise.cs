@@ -384,39 +384,9 @@ class FrigidStone2(BossModule module) : Components.SpreadFromCastTargets(module,
 
 class RapturousReachCone(BossModule module) : Components.GroupedAOEs(module, [AID.RapturousReach, AID.RapturousReach2], new AOEShapeCone(40, 105.Degrees()));
 
-class RapturousReachKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RapturousReachRect, 15, kind: Kind.DirForward, shape: new AOEShapeRect(30, 15))
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var dest = p + s.Distance * s.Direction.ToDirection();
-                return DestinationUnsafe(slot, actor, dest);
-            }), s.Activation);
-        }
-    }
-}
+class RapturousReachKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RapturousReachRect, 15, kind: Kind.DirForward, shape: new AOEShapeRect(30, 15));
 
-class LaserEyeKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.LaserEye, 12)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var dest = AwayFromSource(p, s.Origin, s.Distance);
-                return DestinationUnsafe(slot, actor, dest);
-            }), s.Activation);
-        }
-    }
-}
+class LaserEyeKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.LaserEye, 12);
 
 class ExplosionSmall(BossModule module) : Components.StandardAOEs(module, AID.ExplosionSmall, 10);
 class ExplosionLarge(BossModule module) : Components.StandardAOEs(module, AID.ExplosionLarge, 22);

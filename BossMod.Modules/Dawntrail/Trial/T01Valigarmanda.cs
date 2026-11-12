@@ -182,15 +182,7 @@ class RuinfallKnockback(BossModule module) : Components.Knockback(module)
             _casters.Clear();
         }
     }
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<RuinfallAOEs>() is var aoe && aoe != null && aoe.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
-            return true;
-        if (!Module.InBounds(pos))
-            return true;
-        else
-            return false;
-    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_source != null)

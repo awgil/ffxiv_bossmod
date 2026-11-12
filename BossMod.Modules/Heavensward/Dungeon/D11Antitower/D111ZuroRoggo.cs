@@ -92,9 +92,9 @@ class WaterBomb(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ZuroRoggoStates : StateMachineBuilder
+class D111ZuroRoggoStates : StateMachineBuilder
 {
-    public ZuroRoggoStates(BossModule module) : base(module)
+    public D111ZuroRoggoStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Chirp>()
@@ -105,5 +105,5 @@ class ZuroRoggoStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4805, Contributors = "xan")]
-public class ZuroRoggo(ModuleInit init) : BossModule(init, new(-365, -250), new ArenaBoundsCircle(20));
+public class D111ZuroRoggo(ModuleInit init) : BossModule(init, new(-365, -250), new ArenaBoundsCircle(20));
 

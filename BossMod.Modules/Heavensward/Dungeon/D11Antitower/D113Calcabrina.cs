@@ -77,9 +77,9 @@ class TerrifyingGlance(BossModule module) : Components.BaitAwayIcon(module, new 
     }
 }
 
-class CalcabrinaStates : StateMachineBuilder
+class D113CalcabrinaStates : StateMachineBuilder
 {
-    public CalcabrinaStates(BossModule module) : base(module)
+    public D113CalcabrinaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Brace>()
@@ -91,7 +91,7 @@ class CalcabrinaStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4813, Contributors = "xan")]
-public class Calcabrina(ModuleInit init) : BossModule(init, new(232, -182), new ArenaBoundsCircle(20))
+public class D113Calcabrina(ModuleInit init) : BossModule(init, new(232, -182), new ArenaBoundsCircle(20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc) => Arena.Actors(WorldState.Actors.Where(x => !x.IsAlly), ArenaColor.Enemy);
 

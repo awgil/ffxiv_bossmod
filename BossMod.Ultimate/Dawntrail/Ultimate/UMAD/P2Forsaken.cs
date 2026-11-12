@@ -555,12 +555,8 @@ class P2Spellwave(BossModule module) : Components.GenericBaitAway(module, AID.Sp
         base.AddAIHints(slot, actor, assignment, hints);
 
         foreach (var b in CurrentBaits)
-        {
-            // forbid target/source from dashing while bait is active
-            // (this zone will be removed by the other component if role-specific forsaken hints are configured properly)
             if (b.Target == actor || b.Source == actor)
-                hints.AddForbiddenZone(_ => float.MinValue, DateTime.MaxValue);
-        }
+                hints.AllowDash = false;
     }
 
     public override void Update()

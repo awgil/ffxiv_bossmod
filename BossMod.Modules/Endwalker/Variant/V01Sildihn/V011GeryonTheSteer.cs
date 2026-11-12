@@ -74,7 +74,7 @@ class PowderKegs(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _draw ? AOEs : [];
 
-    public bool UnsafeAt(WPos pos) => AOEs.Any(a => a.Shape != Donut && a.Check(pos));
+    public PointTest UnsafeTest() => ShapeDistance.Union([.. AOEs.Where(a => a.Shape != Donut).Select(a => a.DistV)]).Discretize();
 
     public override void OnActorCreated(Actor actor)
     {
@@ -253,25 +253,7 @@ class Intake(BossModule module) : Components.Knockback(module, stopAtWall: true)
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _kegs?.AOEs.Count > 0 ? _sources : [];
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _kegs?.UnsafeAt(pos) ?? false;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_sources.Count == 0 || _kegs == null || IsImmune(slot, _sources[0].Activation))
-            return;
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            foreach (var s in _sources)
-            {
-                if (!_rect.Check(p, s.Origin, s.Direction))
-                    continue;
-                var pull = (s.Direction + 180.Degrees()).ToDirection();
-                var dest = p + Math.Min(s.Distance, (s.Origin - p).Dot(pull)) * pull;
-                return _kegs.UnsafeAt(Arena.Center + Arena.Bounds.ClampToBounds(dest - Arena.Center));
-            }
-            return false;
-        }), _sources[0].Activation);
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => _kegs?.UnsafeTest() ?? PointTest.Never;
 
     public override void OnMapEffect(byte index, uint state)
     {
@@ -302,16 +284,7 @@ class RunawayRunoff(BossModule module) : Components.KnockbackFromCastTarget(modu
 {
     private readonly PowderKegs? _kegs = module.FindComponent<PowderKegs>();
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (_kegs?.UnsafeAt(pos) ?? false) || !Module.InBounds(pos);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        var src = Sources(slot, actor).FirstOrDefault();
-        if (src.Distance == 0 || IsImmune(slot, src.Activation) || _kegs == null)
-            return;
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => _kegs.UnsafeAt(AwayFromSource(p, src.Origin, src.Distance))), src.Activation);
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => _kegs?.UnsafeTest() ?? PointTest.Never;
 }
 
 class Shockwave(BossModule module) : Components.Knockback(module, AID.Shockwave)
@@ -320,22 +293,6 @@ class Shockwave(BossModule module) : Components.Knockback(module, AID.Shockwave)
     private readonly List<Source> _sources = [];
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => _sources;
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || Module.Enemies(OID.SludgeVoidzone).Any(z => z.EventState != 7 && z.Position.InCircle(pos, 9));
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (_sources.Count == 0 || IsImmune(slot, _sources[0].Activation))
-            return;
-        var zones = Module.Enemies(OID.SludgeVoidzone).Where(z => z.EventState != 7).Select(z => z.Position).ToList();
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            var push = (p.X < Arena.Center.X ? -90 : 90).Degrees().ToDirection();
-            var dest = p + 15 * push;
-            return zones.Any(z => z.InCircle(dest, 10));
-        }), _sources[0].Activation);
-    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {

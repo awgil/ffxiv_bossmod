@@ -30,15 +30,14 @@ class Swiftfeather(BossModule module) : Components.GenericBaitAway(module, AID.S
     }
 }
 class OnLow(BossModule module) : Components.StandardAOEs(module, AID.OnLow, new AOEShapeCone(11, 60.Degrees()));
-class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
+class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh, stopAtWall: true)
 {
     private readonly List<Actor> Casters = [];
     private static readonly Angle[] Walls = [default, 90.Degrees(), 180.Degrees(), 270.Degrees()];
     private BitMask BlockedWalls;
-    private IEnumerable<Angle> UnblockedWalls => Walls.Where((_, i) => !BlockedWalls[i]);
     private const float WallHalfAngle = MathF.PI / 16;
 
-    public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, CheckWall(actor.Position) ? 19 - (c.Position - actor.Position).Length() : 30, Module.CastFinishAt(c.CastInfo)));
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, 30, Module.CastFinishAt(c.CastInfo)));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -73,18 +72,17 @@ class OnHigh(BossModule module) : Components.Knockback(module, AID.OnHigh)
             BlockedWalls.Reset();
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => base.DestinationUnsafe(slot, actor, pos) || !UnblockedWalls.Any(w => Module.PrimaryActor.AngleTo(actor).AlmostEqual(w, WallHalfAngle));
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override VFloat CalculateDistance(WVec position, WVec direction)
     {
-        if (Casters.Count == 0)
-            return;
+        var offset = (position - Arena.Center).Length();
 
-        var zones = UnblockedWalls.Select(w => ShapeDistance.InvertedCone(Arena.Center, 30, w, WallHalfAngle.Radians())).ToList();
-        hints.AddForbiddenZone(ShapeDistance.Intersection(zones), Module.CastFinishAt(Casters[0].CastInfo));
+        var onWall = VBool.Zero;
+
+        foreach (var wall in Walls)
+            onWall |= position.InCone(Arena.Center, wall.ToDirection(), WallHalfAngle.Radians());
+
+        return VV.ConditionalSelect(onWall, 18.5f - offset, 24.5f - offset);
     }
-
-    private bool CheckWall(WPos pos) => Walls.Any(w => Angle.FromDirection(pos - Arena.Center).AlmostEqual(w, WallHalfAngle));
 }
 class Walls(BossModule module) : Components.GenericAOEs(module)
 {
@@ -108,9 +106,9 @@ class Walls(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DotoliCilocStates : StateMachineBuilder
+class D152DotoliCilocStates : StateMachineBuilder
 {
-    public DotoliCilocStates(BossModule module) : base(module)
+    public D152DotoliCilocStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<OnLow>()
@@ -122,7 +120,7 @@ class DotoliCilocStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5269, Contributors = "xan")]
-public class DotoliCiloc(ModuleInit init) : BossModule(init, DefaultCenter, new ArenaBoundsCircle(25))
+public class D152DotoliCiloc(ModuleInit init) : BossModule(init, DefaultCenter, new ArenaBoundsCircle(25))
 {
     // position of boss casting On High (knockback from arena center)
     public static readonly WPos DefaultCenter = new(245.289f, 13.626f);

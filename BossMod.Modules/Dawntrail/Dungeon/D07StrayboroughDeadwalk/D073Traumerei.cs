@@ -77,7 +77,7 @@ class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
     private bool _activated;
     private bool _fleshbuster;
     private DateTime _fleshAct;
-    private Func<WVec, Vector<float>>? _safeZones;
+    private DistFn? _safeZones;
     private Ghostduster? _avoid;
     private IllIntentTethers? _seek;
 
@@ -108,7 +108,7 @@ class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
         if (state != 0x00020001 || index != 0x0C)
             return;
         _activated = true;
-        var zones = new List<Func<WVec, Vector<float>>>(4);
+        var zones = new List<DistFn>(4);
         for (var i = 0; i < 4; ++i)
         {
             var pos = _platforms[i];

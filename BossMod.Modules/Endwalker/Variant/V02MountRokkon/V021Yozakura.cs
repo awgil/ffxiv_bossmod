@@ -253,10 +253,6 @@ class LevinblossomLance(BossModule module) : Components.GenericRotatingAOE(modul
 class DriftingPetals(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DriftingPetals, 15, ignoreImmunes: true)
 {
     private readonly Mudrain? _mud = module.FindComponent<Mudrain>();
-    private readonly Witherwind? _wind = module.FindComponent<Witherwind>();
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => !Module.InBounds(pos) || (_mud?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false) || (_wind?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

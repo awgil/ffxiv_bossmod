@@ -106,7 +106,7 @@ public class Rocks(BossModule module) : BossComponent(module)
         // if already drowning, movespeed has already been adjusted on the client so we can let pathfinder do its thing
         var drownTime = _drowning[slot] == default ? WorldState.FutureTime(3.44f) : _drowning[slot];
 
-        var check = ShapeDistance.ComplexPolygon(Arena.Center, default, RockShape);
+        var check = ShapeDistance.Polygon(Arena.Center, default, RockShape);
 
         if (_quicksand)
             hints.AddForbiddenZone(check.Inverted(), drownTime);
@@ -191,8 +191,8 @@ class BitingWind(BossModule module) : Components.Knockback(module, AID.BitingWin
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
-        if (_caster != null && Rocks.RockShape.Contains(actor.Position - Arena.Center))
-            yield return new(Arena.Center, 20, Module.CastFinishAt(_caster.CastInfo));
+        if (_caster != null)
+            yield return new(Arena.Center, 20, Module.CastFinishAt(_caster.CastInfo), new AOEShapeCustom(Rocks.RockShape));
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

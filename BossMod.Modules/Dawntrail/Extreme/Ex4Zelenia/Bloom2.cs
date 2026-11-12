@@ -45,7 +45,7 @@ class ThunderSlash(BossModule module) : Components.StandardAOEs(module, AID.Thun
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (Casters.Count > 0 && Tiles is { } t)
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(t.TileShape()), NumCasts > 0 ? default : Module.CastFinishAt(Casters[0].CastInfo));
+            hints.AddForbiddenZone(t.TilesShape(), NumCasts > 0 ? default : Module.CastFinishAt(Casters[0].CastInfo));
     }
 }
 

@@ -114,7 +114,7 @@ class Aetheromagnetism(BossModule module) : Components.Knockback(module, ignoreI
             //if (Intersect.RayCircle(p, kb, bossPos, 5) < 1000)
             //    return true;
 
-            return Vector.LessThan(all(p + kb * 10), Vector<float>.Zero);
+            return VV.LessThan(all(p + kb * 10), VFloat.Zero);
         }), source.Activation);
     }
 }

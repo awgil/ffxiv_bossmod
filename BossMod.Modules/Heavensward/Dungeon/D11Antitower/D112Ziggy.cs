@@ -102,9 +102,9 @@ class DeepFracture(BossModule module) : Components.StandardAOEs(module, AID.Deep
 class GyratingGlare(BossModule module) : Components.RaidwideCast(module, AID.GyratingGlare);
 class MysticLight(BossModule module) : Components.StandardAOEs(module, AID.MysticLight, new AOEShapeCircle(12));
 
-class ZiggyStates : StateMachineBuilder
+class D112ZiggyStates : StateMachineBuilder
 {
-    public ZiggyStates(BossModule module) : base(module)
+    public D112ZiggyStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Stardust>()
@@ -119,4 +119,4 @@ class ZiggyStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 141, NameID = 4808, Contributors = "xan")]
-public class Ziggy(ModuleInit init) : BossModule(init, new(185.78f, 137.5f), new ArenaBoundsCircle(20));
+public class D112Ziggy(ModuleInit init) : BossModule(init, new(185.78f, 137.5f), new ArenaBoundsCircle(20));

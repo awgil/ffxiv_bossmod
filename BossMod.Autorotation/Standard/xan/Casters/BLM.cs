@@ -301,7 +301,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             return;
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID == 0x179 && x.OwnerID == Player.InstanceID) is Actor ll)
-            Hints.GoalZones.Add(p => p.InCircle(ll.Position, 3) ? 0.5f : 0);
+            Hints.GoalZones.AddSimple(p => p.InCircle(ll.Position, 3), 0.5f);
 
         if (strategy.Zeninage.IsEnabled() && RaidBuffsLeft > GCD && DutyActionGCDReady(PhantomID.Zeninage))
             PushGCD((AID)PhantomID.Zeninage, primaryTarget, GCDPriority.Max);

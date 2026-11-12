@@ -148,7 +148,7 @@ class ShootingStar(BossModule module) : Components.KnockbackFromCastTarget(modul
             {
                 var dir = (p - ov).Normalized();
                 var proj = p + dir * s.Distance;
-                return Vector.LessThan(rect(proj), Vector<float>.Zero);
+                return Vector.LessThan(rect(proj), VFloat.Zero);
             }), s.Activation);
             break;
         }

@@ -90,27 +90,7 @@ class FatalismStars(BossModule module) : Components.GenericAOEs(module, AID.Fata
     }
 }
 
-class Galaxias(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GalaxiasAOE, 13)
-{
-    private bool LandsInStar(int slot, Actor actor, WPos pos) => Module.FindComponent<FatalismStars>()?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false;
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => base.DestinationUnsafe(slot, actor, pos) || LandsInStar(slot, actor, pos);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (IsImmune(slot, src.Activation))
-                continue;
-            var stars = Module.FindComponent<FatalismStars>()?.ActiveAOEs(slot, actor).ToList() ?? [];
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var dest = AwayFromSource(p, src.Origin, src.Distance);
-                return !Arena.InBounds(dest) || stars.Any(a => a.Check(dest));
-            }), src.Activation);
-        }
-    }
-}
+class Galaxias(BossModule module) : Components.KnockbackFromCastTarget(module, AID.GalaxiasAOE, 13);
 
 class ElenchosCenter(BossModule module) : Components.StandardAOEs(module, AID.ElenchosCenter, new AOEShapeRect(40, 7));
 class ElenchosSides(BossModule module) : Components.StandardAOEs(module, AID.ElenchosSidesAOE, new AOEShapeRect(40, 6.5f, 40));

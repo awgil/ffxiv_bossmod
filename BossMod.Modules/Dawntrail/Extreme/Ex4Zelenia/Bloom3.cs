@@ -3,17 +3,28 @@
 class Bloom3Emblazon(BossModule module) : Emblazon(module)
 {
     private BitMask TowerTiles;
+    private BitMask ForbiddenTiles;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.TileExplosion)
+        {
             TowerTiles.Set(Tiles.GetTile(spell.LocXZ));
+            if (TowerTiles.NumSetBits() == 4)
+            {
+                ForbiddenTiles |= new BitMask(0xFF00);
+                ForbiddenTiles |= _tiles.Mask & new BitMask(0xFF);
+                foreach (var i in (int[])[9, 10, 13, 14])
+                    if (_tiles.Mask[i])
+                        ForbiddenTiles.Set(i - 8);
+            }
+        }
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
-        if (Baiters[slot] && DangerTile(_tiles.Mask, Tiles.GetTile(actor)))
+        if (Baiters[slot] && ForbiddenTiles[Tiles.GetTile(actor)])
             hints.Add("Don't connect towers!");
     }
 
@@ -22,20 +33,7 @@ class Bloom3Emblazon(BossModule module) : Emblazon(module)
         base.AddAIHints(slot, actor, assignment, hints);
 
         if (Baiters[slot])
-        {
-            var mask = _tiles.Mask;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DangerTile(mask, Tiles.GetTile(p))), Activation);
-        }
-    }
-
-    private static bool DangerTile(BitMask _tiles, int t)
-    {
-        var tileNext = t is 7 or 15 ? t - 7 : t + 1;
-        var tilePrev = t is 0 or 8 ? t + 7 : t - 1;
-
-        return t >= 8 // outer ring always unsafe
-            || _tiles[t] // active tiles always unsafe
-            || _tiles[t + 8] && _tiles[tileNext] != _tiles[tilePrev]; // inner "side tiles" always unsafe
+            hints.AddForbiddenZone(Tiles.TilesShape(ForbiddenTiles), Activation);
     }
 }
 
@@ -102,12 +100,12 @@ class TileExplosion(BossModule module) : Components.CastCounter(module, AID.Tile
         if (_casters.Count == 0 || !_active)
             return;
 
-        var ts = _tiles.TileShape();
+        var ts = _tiles.TilesShape();
         var soakers = _forbiddenSoakers;
 
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => soakers[slot] ? ts(p) : !ts(p)), Activation);
+        hints.AddForbiddenZone(ts.Inverted(!soakers[slot]), Activation);
 
-        hints.AddPredictedDamage(Raid.WithSlot().Where(r => ts(r.Item2.Position)).Mask(), Activation);
+        hints.AddPredictedDamage(Raid.WithSlot().Where(r => ts.CallOnce(r.Item2.Position) < 0).Mask(), Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

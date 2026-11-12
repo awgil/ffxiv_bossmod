@@ -81,7 +81,7 @@ public enum IconID : uint
 
 static class Shapes
 {
-    public static Sdf RectOutline(WPos center, float halfLength, float halfWidth) => Sdf.DiscreteSingle(p => p.InRect(center, default(Angle), halfLength + 0.25f, halfLength + 0.25f, halfWidth + 0.25f) && !p.InRect(center, default(Angle), halfLength - 0.25f, halfLength - 0.25f, halfWidth - 0.25f));
+    public static DistFn RectOutline(WPos center, float halfLength, float halfWidth) => ShapeDistance.Ring(ShapeDistance.Rect(center, new WDir(0, 1), halfLength, halfLength, halfWidth), 0.5f);
 }
 
 class CarGeometry : BossComponent
@@ -298,7 +298,7 @@ class LightningExpress(BossModule module) : Components.KnockbackFromCastTarget(m
 class Windpipe(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindpipeVisual, 20, kind: Kind.DirForward, stopAtWall: true)
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Select(src => src with { Direction = src.Direction + 180.Degrees() });
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 10), 10);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => pos => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 10), 10);
 }
 
 class Blastpipe(BossModule module) : Components.GenericAOEs(module, AID.Blastpipe)

@@ -125,9 +125,6 @@ class SurpriseBalloon(BossModule module) : Components.KnockbackFromCastTarget(mo
     private const float StandOffset = 3f;
     private const float WeightRadius = 4.5f;
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => !Module.InBounds(pos) || (_weights?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false);
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (Casters.Count == 0)

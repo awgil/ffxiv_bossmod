@@ -51,7 +51,7 @@ class ShudderingSwipeKB(BossModule module) : Components.Knockback(module, AID.Sh
             {
                 var dir = (p - c.Position).Normalized();
                 var projected = p + dir * 10;
-                return Vector.LessThan(windzone(projected), Vector<float>.Zero);
+                return VV.LessThan(windzone(projected), VFloat.Zero);
             }), Module.CastFinishAt(c.CastInfo));
     }
 }

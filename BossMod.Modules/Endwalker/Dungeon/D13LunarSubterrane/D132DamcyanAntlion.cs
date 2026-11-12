@@ -62,28 +62,6 @@ class Landslip(BossModule module) : Components.Knockback(module)
         if ((AID)spell.Action.ID == AID.Landslip2)
             _casters.Remove(caster);
     }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        if (Module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
-            return true;
-        if (!Module.InBounds(pos))
-            return true;
-        else
-            return false;
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (IsImmune(slot, src.Activation))
-                continue;
-
-            var offset = src.Direction.ToDirection() * src.Distance;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => src.Shape?.Check(p, src.Origin, src.Direction) != false && DestinationUnsafe(slot, actor, p + offset)), src.Activation);
-        }
-    }
 }
 
 class EarthenGeyser(BossModule module) : Components.StackWithCastTargets(module, AID.EarthenGeyser2, 10);

@@ -23,13 +23,10 @@ public enum AID : uint
     TwistingDive = 31471 // Boss->self, 5.0s cast, range 50 width 15 rect
 }
 
-class Twister(BossModule module) : Components.CastTwister(module, 1.5f, (uint)OID.Twister, AID.TwisterVisual, 0.4f, 0.25f);
+class Twister(BossModule module) : Components.CastTwister(module, 1.25f, (uint)OID.Twister, AID.TwisterVisual, 0.3f, 0.6f, 2.25f);
 class BitingWind(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Gust, OID.BitingWind, 0.9f);
 class MeracydianSquall(BossModule module) : Components.StandardAOEs(module, AID.MeracydianSquall, 5);
-class TwistersHint(BossModule module, AID aid) : Components.CastHint(module, aid, "Twisters spawning, keep moving!");
-class Twisters1(BossModule module) : TwistersHint(module, AID.TwisterVisual);
-class Twisters2(BossModule module) : TwistersHint(module, AID.TwistingDive);
-class DiveTwister(BossModule module) : Components.CastTwister(module, 1.5f, (uint)OID.Twister, AID.TwistingDive, 0.4f, 0.25f);
+class DiveTwister(BossModule module) : Components.CastTwister(module, 1.25f, (uint)OID.Twister, AID.TwistingDive, 0.3f, 0.6f, 2.25f);
 
 class TwistingDive(BossModule module) : Components.GenericAOEs(module)
 {
@@ -60,24 +57,7 @@ class TwistingDive(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Turbine, 15)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var forbidden = new List<Func<WVec, Vector<float>>>();
-        var component = Module.FindComponent<BitingWind>()?.ActiveAOEs(slot, actor)?.ToList();
-        var source = Sources(slot, actor).FirstOrDefault();
-        if (source != default && component != null)
-        {
-            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 5));
-            forbidden.AddRange(component.Select(c => ShapeDistance.Cone(Arena.Center, 20, Angle.FromDirection(c.Origin - Arena.Center), 20.Degrees())));
-            if (forbidden.Count > 0)
-                hints.AddForbiddenZone(ShapeDistance.Union(forbidden), source.Activation);
-        }
-    }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<BitingWind>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
-}
+class Turbine(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Turbine, 15);
 
 class D40TwintaniasCloneStates : StateMachineBuilder
 {
@@ -85,8 +65,6 @@ class D40TwintaniasCloneStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<Twister>()
-            .ActivateOnEnter<Twisters1>()
-            .ActivateOnEnter<Twisters2>()
             .ActivateOnEnter<BitingWind>()
             .ActivateOnEnter<MeracydianSquall>()
             .ActivateOnEnter<Turbine>()

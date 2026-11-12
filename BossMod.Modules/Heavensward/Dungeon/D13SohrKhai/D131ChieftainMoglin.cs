@@ -133,9 +133,9 @@ class PomPraise(BossModule module) : BossComponent(module)
     }
 }
 
-class ChieftainMoglinStates : StateMachineBuilder
+class D131ChieftainMoglinStates : StateMachineBuilder
 {
-    public ChieftainMoglinStates(BossModule module) : base(module)
+    public D131ChieftainMoglinStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<PomHoly>()
@@ -149,7 +149,7 @@ class ChieftainMoglinStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4943, Contributors = "xan")]
-public class ChieftainMoglin(ModuleInit init) : BossModule(init, new(-400, -158), new ArenaBoundsCircle(20))
+public class D131ChieftainMoglin(ModuleInit init) : BossModule(init, new(-400, -158), new ArenaBoundsCircle(20))
 {
     protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {

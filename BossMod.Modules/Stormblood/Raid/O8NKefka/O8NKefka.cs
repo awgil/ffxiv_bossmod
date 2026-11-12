@@ -80,7 +80,7 @@ class RevoltingRuin(BossModule module) : Components.GenericAOEs(module, AID.Revo
         var len = off.Length();
         if (len > 18)
             behind = Arena.Center + off * (18 / len);
-        hints.GoalZones.Add(p => p.InCircle(behind, 1) ? 10 : 0);
+        hints.GoalZones.AddSimple(p => p.InCircle(behind, 1), 10);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc) { }

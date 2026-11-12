@@ -72,10 +72,7 @@ class Torpedo(BossModule module) : Components.SingleTargetDelayableCast(module, 
 class RisingSeas(BossModule module) : Components.RaidwideCast(module, AID.RisingSeas);
 class HydroPushKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.HydroPush, 20, shape: new AOEShapeRect(49.4f, 22), kind: Kind.DirForward, stopAtWall: true);
 
-class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RisingSeas, 20, stopAtWall: true)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<BloodyPuddle>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false;
-}
+class RisingSeasKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.RisingSeas, 20, stopAtWall: true);
 
 class RaucousScritch(BossModule module) : Components.StandardAOEs(module, AID.RaucousScritch, new AOEShapeCone(8.42f, 30.Degrees()));
 class Hurl(BossModule module) : Components.StandardAOEs(module, AID.Hurl, 6);

@@ -194,32 +194,6 @@ class IrresistiblePull(BossModule module) : Components.Knockback(module, AID.Irr
         yield return new(NearestOnLine(actor.Position, origin, rot), Distance, Module.CastFinishAt(_casters[0].CastInfo), Kind: Kind.TowardsOrigin);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-    {
-        var vacuum = Module.FindComponent<VacuumSlice>();
-        if (vacuum?.LineOrigin is { } origin && vacuum.LineRotation is { } rot && VacuumSlice.Shape.Check(pos, origin, rot))
-            return true;
-        return base.DestinationUnsafe(slot, actor, pos);
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_casters.Count == 0)
-            return;
-        var vacuum = Module.FindComponent<VacuumSlice>();
-        if (vacuum?.LineOrigin is not { } lineOrigin || vacuum.LineRotation is not { } rot)
-            return;
-        var activation = Module.CastFinishAt(_casters[0].CastInfo);
-        if (IsImmune(slot, activation))
-            return;
-
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            var dest = Predict(p, lineOrigin, rot);
-            return VacuumSlice.Shape.Check(dest, lineOrigin, rot) || !Module.InBounds(dest);
-        }), activation);
-    }
-
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)

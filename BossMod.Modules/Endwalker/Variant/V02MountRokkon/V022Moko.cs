@@ -274,10 +274,6 @@ class Explosion(BossModule module) : Components.GenericAOEs(module, AID.Explosio
 
 class YamaKagura(BossModule module) : Components.KnockbackFromCastTarget(module, AID.YamaKagura, 33, shape: new AOEShapeRect(40, 2.5f), kind: Kind.DirForward)
 {
-    private readonly GhastlyGrasp? _grasp = module.FindComponent<GhastlyGrasp>();
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (_grasp?.ActiveAOEs(slot, actor).Any(a => a.Check(pos)) ?? false);
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var c in Casters)

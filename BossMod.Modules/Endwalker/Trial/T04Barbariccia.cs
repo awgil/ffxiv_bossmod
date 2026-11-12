@@ -317,23 +317,10 @@ class BlowAwayPuddle(BossModule module) : Components.StandardAOEs(module, AID.Bl
 
 class Touchdown(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Touchdown, 7)
 {
-    private bool BreaksLeash(int slot, WPos dest) => Module.FindComponent<TangleLeash>()?.TangleFor(slot) is { } tangle && !dest.InCircle(tangle.Position, TangleLeash.Radius);
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => base.DestinationUnsafe(slot, actor, pos) || BreaksLeash(slot, pos);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (IsImmune(slot, src.Activation))
-                continue;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var dest = AwayFromSource(p, src.Origin, src.Distance);
-                return !Arena.InBounds(dest) || BreaksLeash(slot, dest);
-            }), src.Activation);
-        }
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
+        => Module.FindComponent<TangleLeash>()?.TangleFor(slot) is { } tangle
+            ? base.DestinationUnsafe(slot, actor) | ShapeDistance.InvertedCircle(tangle.Position, TangleLeash.Radius).Discretize()
+            : base.DestinationUnsafe(slot, actor);
 }
 
 // TODO: not reached on the 11-07 run (boss died first): shapes from the Action sheet, knockback distance from Ex4, timings unverified

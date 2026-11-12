@@ -30,40 +30,7 @@ class NoFutureSpread(BossModule module) : Components.SpreadFromCastTargets(modul
 class Peacefire(BossModule module) : Components.StandardAOEs(module, AID.Peacefire, 10);
 class SmallBoreLaser(BossModule module) : Components.StandardAOEs(module, AID.SmallBoreLaser, new AOEShapeRect(20, 2));
 class InfantryDeterrent(BossModule module) : Components.SpreadFromCastTargets(module, AID.InfantryDeterrent, 6);
-class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EclipsingExhaust, 11)
-{
-    private Peacefire? _peacefire;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        _peacefire ??= Module.FindComponent<Peacefire>();
-
-        base.AddAIHints(slot, actor, assignment, hints);
-        if (Casters.FirstOrDefault() is Actor c)
-        {
-            if (IsImmune(slot, Module.CastFinishAt(c.CastInfo)))
-                return;
-
-            var center = Arena.Center;
-            var peacefireSources = _peacefire?.Casters.Select(c => c.CastInfo!.LocXZ).ToList() ?? [];
-
-            // TODO: continuous
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(pos =>
-            {
-                if ((pos - center).Length() > 5)
-                    return true;
-
-                var proj = pos + (pos - center).Normalized() * 11;
-
-                foreach (var pf in peacefireSources)
-                    if (proj.InCircle(pf, 10))
-                        return true;
-
-                return false;
-            }), Module.CastFinishAt(c.CastInfo));
-        }
-    }
-}
+class EclipsingExhaust(BossModule module) : Components.KnockbackFromCastTarget(module, AID.EclipsingExhaust, 11);
 class Firewall(BossModule module) : Components.GenericAOEs(module)
 {
     private bool Active;

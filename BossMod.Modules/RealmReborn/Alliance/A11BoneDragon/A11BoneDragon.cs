@@ -86,6 +86,8 @@ class Poison(BossModule module) : BossComponent(module)
         }
     }
 
+    /*
+    // fix...
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (_poisonStage > 0)
@@ -95,6 +97,7 @@ class Poison(BossModule module) : BossComponent(module)
             hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !Safe(center, stage, p)), DateTime.MaxValue);
         }
     }
+    */
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {

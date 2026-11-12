@@ -150,7 +150,7 @@ class TheRoseOfHate(BossModule module) : Components.StandardAOEs(module, AID.The
 class BloodyFuller(BossModule module) : Components.RaidwideCast(module, AID.BloodyFuller);
 class PillarsOfHeaven(BossModule module) : Components.RaidwideCast(module, AID.PillarsOfHeaven);
 
-class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PillarsOfHeaven, 20, stopAtWall: true)
+class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.PillarsOfHeaven, 20)
 {
     private static readonly Angle GateHalfWidth = 20.Degrees();
 
@@ -163,23 +163,17 @@ class PillarsOfHeavenKnockback(BossModule module) : Components.KnockbackFromCast
                 OpenGates.Add(g.Position);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => OpenGates.Any(g => Angle.FromDirection(pos - Module.PrimaryActor.Position).AlmostEqual(Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth.Rad));
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override VFloat CalculateDistance(WVec position, WVec direction)
     {
-        if (Module.PrimaryActor.CastInfo is not { } cast || cast.Action.ID != (uint)AID.PillarsOfHeaven)
-            return;
-        foreach (var g in OpenGates)
-            hints.AddForbiddenZone(ShapeDistance.Cone(Module.PrimaryActor.Position, 40, Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth), Module.CastFinishAt(cast, 1));
-    }
+        var inDanger = VBool.Zero;
 
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        if (Module.PrimaryActor.CastInfo is not { } cast || cast.Action.ID != (uint)AID.PillarsOfHeaven)
-            return;
-        foreach (var g in OpenGates)
-            Arena.ZoneCone(Module.PrimaryActor.Position, 0, 40, Angle.FromDirection(g - Module.PrimaryActor.Position), GateHalfWidth, ArenaColor.AOE);
+        foreach (var gate in OpenGates)
+        {
+            var gateDir = gate - Arena.Center;
+            inDanger |= position.InCone(Arena.Center, gateDir.ToAngle(), GateHalfWidth);
+        }
+
+        return VV.ConditionalSelect(inDanger, VV.Create(float.MaxValue), 19.5f - (position - Arena.Center).Length());
     }
 }
 class SwiftSlaughter(BossModule module) : Components.CastHint(module, AID.SwiftSlaughter, "Enrage!", true);

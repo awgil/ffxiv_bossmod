@@ -231,7 +231,7 @@ public sealed class PCT(RotationModuleManager manager, Actor player) : Castxan<A
         GoalZoneSingle(25);
 
         if (Player.InCombat && World.Actors.FirstOrDefault(x => x.OID is LeylinesOID && x.OwnerID == Player.InstanceID) is Actor ll)
-            Hints.GoalZones.Add(p => p.InCircle(ll.Position, 8) ? 0.5f : 0);
+            Hints.GoalZones.AddSimple(p => p.InCircle(ll.Position, 8), 0.5f);
 
         if (Player.InCombat && primaryTarget != null)
         {

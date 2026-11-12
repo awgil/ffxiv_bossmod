@@ -148,21 +148,6 @@ class AeroIII(BossModule module) : Components.KnockbackFromCastTarget(module, AI
         if (Sources(slot, actor).Any(s => s.Origin.InCircle(Arena.Center, 5)))
             hints.Add("Move feather!");
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-            if (!src.Origin.InCircle(Arena.Center, 5))
-            {
-                var orig = src.Origin;
-                var ctr = Arena.Center;
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-                {
-                    var dir = (p - orig).Normalized() * 25;
-                    return !(orig + dir).InCircle(ctr, 20);
-                }), src.Activation);
-            }
-    }
 }
 class Overdue(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Overdue1, 15);
 

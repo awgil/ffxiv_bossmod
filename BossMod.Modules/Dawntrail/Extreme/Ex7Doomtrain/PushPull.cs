@@ -4,7 +4,7 @@ class DeadMansExpress(BossModule module) : Components.KnockbackFromCastTarget(mo
 class DeadMansWindpipe(BossModule module) : Components.KnockbackFromCastTarget(module, AID.DeadMansWindpipeBoss, 30, kind: Kind.DirForward, stopAtWall: true)
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Select(src => src with { Direction = src.Direction + 180.Degrees() });
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 10), 10);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => pos => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 10), 10);
 }
 
 class Plasma(BossModule module) : Components.GenericStackSpread(module)

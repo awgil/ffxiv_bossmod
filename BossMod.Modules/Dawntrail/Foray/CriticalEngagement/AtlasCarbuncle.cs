@@ -286,11 +286,11 @@ class SpinebreakingStampede(BossModule module) : Components.Knockback(module)
         {
             var src = _sources[^1].Origin;
             var center = Arena.Center;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
+            hints.AddForbiddenZone(Sdf.Discrete(p =>
             {
                 var dir = (p - src).Normalized();
                 var proj = p + dir * 30;
-                return !proj.AlmostEqual(center, 20);
+                return ~proj.AlmostEqual(center, 20);
             }), _sources[^1].Activation);
         }
 

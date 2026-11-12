@@ -82,9 +82,9 @@ class HolyOrb(BossModule module) : Components.Exaflare(module, new AOEShapeCircl
     }
 }
 
-class HraesvelgrStates : StateMachineBuilder
+class D133HraesvelgrStates : StateMachineBuilder
 {
-    public HraesvelgrStates(BossModule module) : base(module)
+    public D133HraesvelgrStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Wyrmclaw>()
@@ -101,4 +101,4 @@ class HraesvelgrStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 171, NameID = 4954, Contributors = "xan")]
-public class Hraesvelgr(ModuleInit init) : BossModule(init, new(400, -400), new ArenaBoundsCircle(20));
+public class D133Hraesvelgr(ModuleInit init) : BossModule(init, new(400, -400), new ArenaBoundsCircle(20));

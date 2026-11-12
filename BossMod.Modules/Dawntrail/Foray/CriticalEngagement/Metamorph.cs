@@ -268,7 +268,7 @@ class HellishBreath(BossModule module) : Components.GenericAOEs(module)
         if (_predicted.Count > 0)
         {
             var src = _predicted[0].Origin;
-            hints.GoalZones.Add(p => p.InCircle(src, 15) ? 0.5f : 0);
+            hints.GoalZones.AddSimple(p => p.InCircle(src, 15), 0.5f);
         }
     }
 

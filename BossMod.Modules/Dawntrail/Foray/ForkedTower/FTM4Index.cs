@@ -226,9 +226,6 @@ class Shockwave(BossModule module) : Components.Knockback(module)
 {
     private readonly List<(Actor, WPos, DateTime)> _casters = [];
 
-    private bool _balladActive;
-    private bool _aimActive;
-
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
         foreach (var (_, p, d) in _casters)
@@ -239,20 +236,10 @@ class Shockwave(BossModule module) : Components.Knockback(module)
     {
         if ((AID)spell.Action.ID == AID.ShockwaveKnockback)
             _casters.RemoveAll(c => c.Item1 == caster);
-
-        if ((AID)spell.Action.ID == AID.RomeosBallad)
-            _balladActive = false;
-        if ((AID)spell.Action.ID == AID.Aim)
-            _aimActive = false;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID.RomeosBallad)
-            _balladActive = true;
-        if ((AID)spell.Action.ID == AID.Aim)
-            _aimActive = true;
-
         if ((AID)spell.Action.ID == AID.ShockwaveKnockback)
         {
             var src = spell.LocXZ;
@@ -261,29 +248,6 @@ class Shockwave(BossModule module) : Components.Knockback(module)
 
             _casters.Add((caster, src, Module.CastFinishAt(spell)));
         }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_casters.Count == 0 || IsImmune(slot, _casters[0].Item3))
-            return;
-
-        var (_, closestSource, activation) = _casters.MinBy(c => (c.Item2 - actor.Position).LengthSq());
-
-        var platformDir = (closestSource - Arena.Center).Normalized();
-
-        var safeRect = ShapeDistance.InvertedRect(Arena.Center + platformDir * 5, platformDir, 23, 0, 7.5f);
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-        {
-            var off = (p - closestSource).Normalized() * 9;
-            return safeRect(new(p + off))[0] < 0;
-        }), activation);
-
-        if (_balladActive)
-            hints.AddForbiddenZone(ShapeDistance.HalfPlane(closestSource, platformDir), activation);
-
-        if (_aimActive)
-            hints.AddForbiddenZone(ShapeDistance.HalfPlane(closestSource, -platformDir), activation);
     }
 }
 

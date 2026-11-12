@@ -39,9 +39,9 @@ class EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.Eye
 class Bill(BossModule module) : Components.SpreadFromCastTargets(module, AID.Bill, 5);
 class Ingurgitate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Ingurgitate, AID.IngurgitateCast, 5, 5.4f);
 
-class TozolHuatotlStates : StateMachineBuilder
+class D153TozolHuatotlStates : StateMachineBuilder
 {
-    public TozolHuatotlStates(BossModule module) : base(module)
+    public D153TozolHuatotlStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<EyeOfTheStorm>()
@@ -56,7 +56,7 @@ class TozolHuatotlStates : StateMachineBuilder
 }
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 182, NameID = 5272, Contributors = "xan")]
-public class TozolHuatotl(ModuleInit init) : BossModule(init, DefaultCenter, new ArenaBoundsCircle(20))
+public class D153TozolHuatotl(ModuleInit init) : BossModule(init, DefaultCenter, new ArenaBoundsCircle(20))
 {
     // position of Garuda casting Eye of the Storm
     public static readonly WPos DefaultCenter = new(317.948f, -416.172f);

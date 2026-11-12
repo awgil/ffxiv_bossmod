@@ -368,7 +368,7 @@ public abstract class Basexan<AID, TraitID, TValues>(RotationModuleManager manag
             Hints.GoalZones.Add(Hints.GoalSingleTarget(PlayerTarget.Actor, Player, World.Actors, range));
     }
 
-    protected void GoalZoneCombined(in IStrategyCommon strategy, float range, Func<WPos, float> fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
+    protected void GoalZoneCombined(in IStrategyCommon strategy, float range, GoalFn fAoe, AID firstUnlockedAoeAction, int minAoe, float? maximumActionRange = null)
     {
         var a = strategy.AOE;
         var (_, positional, imminent, _) = Hints.RecommendedPositional;

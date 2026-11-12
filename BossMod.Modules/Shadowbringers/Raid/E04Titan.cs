@@ -114,27 +114,7 @@ class SeismicWave(BossModule module) : Components.GenericLineOfSightAOE(module, 
     }
 }
 
-class Geocrush(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Geocrush, 20)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            var origin = s.Origin;
-            var dist = s.Distance;
-            var center = Arena.Center;
-            var toCenter = (center - origin).LengthSq() > 0.01f ? (center - origin).Normalized() : new WDir(0, -1);
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(origin + 2.5f * toCenter, 4), s.Activation);
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var dest = AwayFromSource(p, origin, dist);
-                return dest.X is < 80 or > 120 || dest.Z is < 80 or > 120;
-            }), s.Activation);
-        }
-    }
-}
+class Geocrush(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Geocrush, 20);
 
 class MassiveLandslide(BossModule module) : Components.GroupedAOEs(module, [AID.MassiveLandslideAOE1, AID.MassiveLandslideAOE2], new AOEShapeRect(42, 11));
 class AftershockLandslide(BossModule module) : Components.StandardAOEs(module, AID.AftershockLandslide, new AOEShapeRect(10, 5), highlightImminent: true);
@@ -206,23 +186,6 @@ class FaultZoneKnockback(BossModule module) : Components.Knockback(module, AID.F
             _from = default;
             _to = default;
             ++NumCasts;
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-        {
-            if (IsImmune(slot, s.Activation))
-                continue;
-            var from = _from;
-            var to = _to;
-            var dist = s.Distance;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
-            {
-                var origin = NearestOnSegment(p, from, to);
-                return !Module.InBounds(AwayFromSource(p, origin, dist));
-            }), s.Activation);
         }
     }
 }

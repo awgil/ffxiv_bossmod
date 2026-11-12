@@ -347,6 +347,8 @@ class CalculatedTrajectory : Components.GenericForcedMarch
 
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !Module.InBounds(pos) || (Module.FindComponent<ArcanePlot>()?.IsTileUnsafe(pos) ?? false);
 
+    /*
+    // fix, this is disgusting
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (!_armed)
@@ -365,7 +367,7 @@ class CalculatedTrajectory : Components.GenericForcedMarch
         var bound = Module.Bounds.Radius;
         var tileOrigins = Module.FindComponent<ArcanePlot>()?.ActiveTileOrigins ?? [];
 
-        hints.AddForbiddenZone(pos =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(pos =>
         {
             var p = pos;
             var dir = startRot;
@@ -380,15 +382,16 @@ class CalculatedTrajectory : Components.GenericForcedMarch
                 p += speed * move.duration * dir.ToDirection();
             }
             if (Math.Abs(p.X - center.X) > bound || Math.Abs(p.Z - center.Z) > bound)
-                return -1f;
+                return true;
             foreach (var origin in tileOrigins)
             {
                 if (ArcanePlot.Shape.Check(p, origin, default))
-                    return -1f;
+                    return true;
             }
-            return 1f;
-        });
+            return false;
+        }));
     }
+    */
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {

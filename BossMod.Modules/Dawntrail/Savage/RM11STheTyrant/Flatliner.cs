@@ -19,7 +19,7 @@ class Flatliner(BossModule module) : Components.Knockback(module, AID.Flatliner,
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => base.DestinationUnsafe(slot, actor, pos) || pos.InRect(Arena.Center, default(Angle), 20, 20, 6);
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => p => p.InRect(Arena.Center, new WDir(0, 1), 20, 20, 6);
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -89,15 +89,12 @@ class ExplosionKnockback(BossModule module) : Components.KnockbackFromCastTarget
 {
     public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Where(s => actor.Position.InCircle(s.Origin, 4));
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
     {
-        if (base.DestinationUnsafe(slot, actor, pos))
-            return true;
-
         if (Module.PrimaryActor.CastInfo is { } ci && (AID)ci.Action.ID is AID.ArcadionAvalancheBoss1 or AID.ArcadionAvalancheBoss2 or AID.ArcadionAvalancheBoss3 or AID.ArcadionAvalancheBoss4)
-            return pos.InRect(ci.LocXZ, ci.Rotation, 40, 0, 40);
+            return p => p.InRect(ci.LocXZ, ci.Rotation, 40, 0, 40);
 
-        return false;
+        return PointTest.Never;
     }
 }
 

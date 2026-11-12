@@ -57,7 +57,7 @@ class EncounterHints(BossModule module) : BossComponent(module)
         {
             case BossAction.Charybdis:
                 // drop charybdis near arena edge (22y or more from center)
-                hints.GoalZones.Add(p => (p - center).LengthSq() >= 484 ? 0.5f : 0);
+                hints.GoalZones.AddSimple(p => (p - center).LengthSq() >= 484, 0.5f);
                 break;
             case BossAction.Thunderbolt:
                 // stay near boss to make thunderbolt dodge easier
@@ -65,11 +65,11 @@ class EncounterHints(BossModule module) : BossComponent(module)
                 break;
             case BossAction.TrounceEast:
                 // stay in eastward 1/4th of arena to prepare for dodging trounce
-                hints.GoalZones.Add(p => (p.X - center.X) >= 20 ? 0.5f : 0);
+                hints.GoalZones.AddSimple(p => (p.X - center.X) >= 20, 0.5f);
                 break;
             case BossAction.TrounceWest:
                 // see above
-                hints.GoalZones.Add(p => (p.X - center.X) <= -20 ? 0.5f : 0);
+                hints.GoalZones.AddSimple(p => (p.X - center.X) <= -20, 0.5f);
                 break;
         }
     }

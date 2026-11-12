@@ -163,12 +163,8 @@ class GravityGap(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_end == default || _end > WorldState.FutureTime(6))
-            return;
-        var platforms = T03QueenEternal.SplitPlatforms;
-#pragma warning disable VBM006 // Reference type captured in closure
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !platforms.Contains(p - T03QueenEternal.SplitArenaCenter)), _end);
-#pragma warning restore VBM006 // Reference type captured in closure
+        if (_end != default && _end <= WorldState.FutureTime(6))
+            hints.AddForbiddenZone(Sdf.Discrete(p => ~T03QueenEternal.SplitPlatforms.Contains(p - T03QueenEternal.SplitArenaCenter)), _end);
     }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
@@ -428,36 +424,7 @@ class DivideAndConquer(BossModule module) : Components.GenericBaitAway(module, A
     }
 }
 
-class PlatformKnockback(BossModule module, AID aid, float distance, Components.Knockback.Kind kind = Components.Knockback.Kind.AwayFromOrigin) : Components.KnockbackFromCastTarget(module, aid, distance, kind: kind)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (IsImmune(slot, src.Activation))
-                continue;
-            var bounds = Arena.Bounds;
-            var center = Arena.Center;
-            var push = src.Kind == Kind.DirForward ? src.Direction.ToDirection() * src.Distance : default;
-            var origin = src.Origin;
-            var distance = src.Distance;
-#pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => LeavesBounds(bounds, center, p, push, origin, distance)), src.Activation);
-#pragma warning restore VBM006 // Reference type captured in closure
-        }
-    }
-
-    private static WPos Landing(WPos from, WDir push, WPos origin, float distance) => push != default ? from + push : from + (from - origin).Normalized() * distance;
-
-    private static bool LeavesBounds(ArenaBounds bounds, WPos center, WPos from, WDir push, WPos origin, float distance)
-    {
-        var step = (Landing(from, push, origin, distance) - from) / 20;
-        for (var i = 1; i <= 20; ++i)
-            if (!bounds.Contains(from + step * i - center))
-                return true;
-        return false;
-    }
-}
+class PlatformKnockback(BossModule module, AID aid, float distance, Components.Knockback.Kind kind = Components.Knockback.Kind.AwayFromOrigin) : Components.KnockbackFromCastTarget(module, aid, distance, kind: kind);
 
 class DownburstKB(BossModule module) : PlatformKnockback(module, AID.Downburst, 10);
 class PowerfulGustKB(BossModule module) : PlatformKnockback(module, AID.PowerfulGust, 20, Kind.DirForward);

@@ -57,7 +57,7 @@ class IdyllicDreamArena : Components.GenericAOEs
     {
         // TODO: complex polygons should cache their own rasterization
         if (_activation != default)
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(z => !z.InCircle(new(114, 100), 10) && !z.InCircle(new(86, 100), 10)), _activation);
+            hints.AddForbiddenZone(Sdf.Discrete(z => ~z.InCircle(new(114, 100), 10) & ~z.InCircle(new(86, 100), 10)), _activation);
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)

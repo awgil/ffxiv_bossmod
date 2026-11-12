@@ -343,8 +343,6 @@ class InfernWellPull(BossModule module) : Components.Knockback(module, AID.Infer
 
     public override IEnumerable<Source> Sources(int slot, Actor actor) => Utils.ZeroOrOne(_source);
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<InfernWellAOE>()?.AOE?.Check(pos) ?? false;
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);

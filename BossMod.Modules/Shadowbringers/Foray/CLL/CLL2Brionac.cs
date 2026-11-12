@@ -91,8 +91,6 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => balls?.ActiveAOEs(slot, actor).Any(a => a.Shape.Check(pos, a.Origin, a.Rotation)) == true;
-
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         for (var slot = 0; slot < PartyState.MaxPartySize; slot++)
@@ -153,19 +151,6 @@ class MagnetTethers(BossModule module) : Components.Knockback(module, stopAtWall
             Array.Fill(tetheredTo, null);
             charges.Clear();
             swaps.Clear();
-        }
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var src in Sources(slot, actor))
-        {
-            if (src.Kind == Kind.AwayFromOrigin && balls?.CurrentPattern == Balls.Pattern.DonutOut)
-            {
-                WDir dirToCenter = src.Origin.X < 80 ? new(4, 0) : new(-4, 0);
-                hints.AddForbiddenZone(ShapeDistance.InvertedRect(src.Origin, src.Origin + dirToCenter, 0.5f), src.Activation);
-            }
-            break;
         }
     }
 }

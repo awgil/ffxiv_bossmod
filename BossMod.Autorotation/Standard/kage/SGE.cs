@@ -133,7 +133,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
     private bool Eukrasia;
 
     private bool AOEMode;
-    private bool ForceST;
 
     protected override bool UsesSpellSpeed => true;
     private bool CanCast => CastFits(ScaledCastTime(AID.Dosis));
@@ -146,7 +145,6 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         var target = SelectTarget(strategy, strategy.Targeting.Value, ref primaryTarget, estimatedAnimLockDelay, 25, strategy.AOE.Value);
         PhlegmaStrat = strategy.Phlegma.Value;
         PsycheStrat = strategy.Psyche.Value;
-        ForceST = strategy.AOE.Value == AOEStrategy.ForceST;
 
         var gauge = World.Client.GetGauge<SageGauge>();
         Gall = gauge.Addersgall;
@@ -185,7 +183,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             return;
 
         var goal = Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 25);
-        Hints.GoalZones.Add(strategy.AOE.Value is AOEStrategy.ST or AOEStrategy.ForceST || !Unlocked(AID.Dyskrasia) ? goal : GoalCombined(goal, Hints.GoalAOECircle(5), 3));
+        Hints.GoalZones.Add(!AllowAoE || !Unlocked(AID.Dyskrasia) ? goal : GoalCombined(goal, Hints.GoalAOECircle(5), 3));
 
         GCDs(strategy, target, numAround);
         if (Player.InCombat)
@@ -212,7 +210,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
                 PushGCD(AID.Eukrasia, Player, 50);
         }
 
-        if (ShouldPhlegma(strategy, target))
+        if (ShouldPhlegma(target))
         {
             Hints.GoalZones.Add(Hints.GoalSingleTarget(target.Actor, Player, World.Actors, 6));
             if (Player.DistanceToHitbox(target.Actor) <= 6)
@@ -223,10 +221,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             || strategy.Pneuma.Value == OffensiveStrategy.Automatic && !RaidwideWithin(20) && !ForceST && Hints.NumPriorityTargetsInAOERect(Player.Position, Player.DirectionTo(target.Actor), 25, 2) >= 2))
             PushGCD(AID.Pneuma, target.Actor, 35);
 
-        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.ASAP)
-            PushGCD(AID.Toxikon, target.Actor, 30);
-
-        if (Sting > 0 && strategy.Toxikon.Value == ToxikonStrategy.Automatic && numAround < 3 && !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 2)
+        if (Sting > 0 && (strategy.Toxikon.Value == ToxikonStrategy.ASAP
+            || strategy.Toxikon.Value == ToxikonStrategy.Automatic && numAround < 3 && !ForceST && Hints.NumPriorityTargetsInAOECircle(target.Actor.Position, 5) >= 2))
             PushGCD(AID.Toxikon, target.Actor, 30);
 
         if (AOEMode)
@@ -256,7 +252,7 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
         return DotTargetFor(target, DotLeft, DotRefresh, CombatTime < 40 ? 12 : 8, strategy.Dot.Value == DotStrategy.Automatic);
     }
 
-    private bool ShouldPhlegma(in Strategy strategy, Enemy target)
+    private bool ShouldPhlegma(Enemy target)
     {
         if (ReadyIn(AID.Phlegma) > GCD)
             return false;
@@ -296,9 +292,8 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
                 && (RaidBuffsLeft > 0 || RaidBuffsIn > 10 || !InBossFight)))
             PushOGCD(AID.Psyche, target.Actor, 50);
 
-        if (strategy.Rhizomata.Value == OffensiveStrategy.Force || strategy.Rhizomata.Value == OffensiveStrategy.Automatic && Gall <= 1)
-            if (CanWeave(AID.Rhizomata))
-                PushOGCD(AID.Rhizomata, Player, 40);
+        if ((strategy.Rhizomata.Value == OffensiveStrategy.Force || strategy.Rhizomata.Value == OffensiveStrategy.Automatic && Gall <= 1) && CanWeave(AID.Rhizomata))
+            PushOGCD(AID.Rhizomata, Player, 40);
 
         // the gall timer stops at 3, so every second at cap is wasted
         if (strategy.Druochole.Value == DruocholeStrategy.Automatic && Gall >= 3 && CanWeave(AID.Druochole)
@@ -308,13 +303,11 @@ public sealed class KageSGE(RotationModuleManager manager, Actor player) : KageS
             PushOGCD(AID.Druochole, healTarget, 35);
         }
 
-        if (strategy.Soteria.Value == OffensiveStrategy.Force || strategy.Soteria.Value == OffensiveStrategy.Automatic && Player.FindStatus(SID.Kardia) != null)
-            if (CanWeave(AID.Soteria))
-                PushOGCD(AID.Soteria, Player, 30);
+        if ((strategy.Soteria.Value == OffensiveStrategy.Force || strategy.Soteria.Value == OffensiveStrategy.Automatic && Player.FindStatus(SID.Kardia) != null) && CanWeave(AID.Soteria))
+            PushOGCD(AID.Soteria, Player, 30);
 
-        if (strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon))
-            if (CanWeave(ClassShared.AID.LucidDreaming))
-                PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
+        if ((strategy.Lucid.Value == OffensiveStrategy.Force || strategy.Lucid.Value == OffensiveStrategy.Automatic && (MP <= 6500 || MP <= 8500 && MPCheckSoon)) && CanWeave(ClassShared.AID.LucidDreaming))
+            PushOGCD(ClassShared.AID.LucidDreaming, Player, 20);
     }
 
     private void Kardia(in Strategy strategy)

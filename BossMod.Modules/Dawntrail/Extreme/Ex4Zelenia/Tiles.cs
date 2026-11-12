@@ -73,7 +73,12 @@ class Tiles(BossModule module) : BossComponent(module)
 
     public bool InActiveTile(Actor actor) => Mask[GetTile(actor)];
 
-    public Func<WPos, bool> TileShape() => p => Mask[GetTile(p)];
+    public static DistFn TileShape(int b) => b < 8
+        ? ShapeDistance.Cone(new(100, 100), 8, GetTileOrientation(b), 22.5f.Degrees())
+        : ShapeDistance.DonutSector(new(100, 100), 8, 16, GetTileOrientation(b), 22.5f.Degrees());
+
+    public DistFn TilesShape() => TilesShape(Mask);
+    public static DistFn TilesShape(BitMask tiles) => ShapeDistance.Union([.. tiles.SetBits().Select(TileShape)]);
 
     public BitMask GetConnectedTiles(int tile)
     {
@@ -193,13 +198,10 @@ abstract class Emblazon(BossModule module) : Components.CastCounter(module, AID.
     {
         if (Baiters[slot])
         {
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(_tiles.TileShape()), Activation);
+            hints.AddForbiddenZone(_tiles.TilesShape(), Activation);
 
             foreach (var b in OtherBaits(actor))
-            {
-                var t = Tiles.GetTile(b);
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => Tiles.GetTile(p) == t), Activation);
-            }
+                hints.AddForbiddenZone(Tiles.TileShape(Tiles.GetTile(b)), Activation);
         }
 
         if (Baiters.Any())

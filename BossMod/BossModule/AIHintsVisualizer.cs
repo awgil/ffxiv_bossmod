@@ -89,7 +89,7 @@ public class AIHintsVisualizer(AIHints hints, WorldState ws, Actor player, float
         return new MapVisualizer(map, player.Position, [.. gOut]);
     }
 
-    private MapVisualizer BuildGoalVisualizer(Func<WPos, float> shape)
+    private MapVisualizer BuildGoalVisualizer(GoalFn shape)
     {
         var map = new Map();
         hints.InitPathfindMap(map);

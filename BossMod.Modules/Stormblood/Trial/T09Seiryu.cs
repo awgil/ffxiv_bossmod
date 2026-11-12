@@ -174,13 +174,12 @@ class RedRushKnockback(BossModule module) : Components.Knockback(module, AID.Red
             yield return new(b.Source.Position, 15, b.Activation);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _water?.Active == true && !pos.InCircle(Arena.Center, T09Seiryu.IslandRadius);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
     {
-        foreach (var s in Sources(slot, actor))
-            if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(Sdf.DiscreteSingle(p => DestinationUnsafe(slot, actor, AwayFromSource(p, s.Origin, s.Distance))), s.Activation);
+        if (_water is not { Active: true })
+            return PointTest.Never;
+
+        return ShapeDistance.InvertedCircle(Arena.Center, T09Seiryu.IslandRadius).Discretize();
     }
 }
 
@@ -274,28 +273,14 @@ class ForbiddenArts(BossModule module) : Components.GenericWildCharge(module, 4,
     }
 }
 
-class CoursingRiver(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiver, 25, shape: new AOEShapeRect(90, 45), kind: Components.Knockback.Kind.DirForward)
+class CoursingRiver(BossModule module) : Components.KnockbackFromCastTarget(module, AID.CoursingRiver, 25, shape: new AOEShapeRect(90, 45), kind: Kind.DirForward)
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, T09Seiryu.IslandRadius);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-            if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center - s.Distance * s.Direction.ToDirection(), T09Seiryu.IslandRadius), s.Activation);
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.InvertedCircle(Arena.Center, T09Seiryu.IslandRadius).Discretize();
 }
 
 class ForceOfNatureKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ForceOfNatureKnockback, 10, shape: new AOEShapeCircle(21))
 {
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !pos.InCircle(Arena.Center, T09Seiryu.IslandRadius);
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var s in Sources(slot, actor))
-            if (!IsImmune(slot, s.Activation))
-                hints.AddForbiddenZone(ShapeDistance.InvertedCircle(Arena.Center, T09Seiryu.IslandRadius - s.Distance), s.Activation);
-    }
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => ShapeDistance.InvertedCircle(Arena.Center, T09Seiryu.IslandRadius).Discretize();
 }
 
 class FifthElement(BossModule module) : Components.RaidwideCast(module, AID.FifthElement);

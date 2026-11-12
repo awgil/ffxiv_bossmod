@@ -29,39 +29,19 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
 
     private bool SpreadSouth => _tiles[9] && _tiles[14];
 
-    [Flags]
-    enum Clip
-    {
-        None,
-        Tile = 1,
-        Player = 2
-    }
-
-    private static Func<WPos, Clip> ClipBaitersShape(bool spreadSouth, WPos center) => p =>
-    {
-        var signright = spreadSouth ? 1 : -1;
-        var c = Clip.None;
-
-        if (Intersect.CircleDonutSector(p, 4, center, 8, 16, new WDir(1, 0).Rotate(22.5f.Degrees() * signright), 22.5f.Degrees()))
-            c |= Clip.Tile;
-        else if (Intersect.CircleDonutSector(p, 4, center, 8, 16, new WDir(-1, 0).Rotate(-22.5f.Degrees() * signright), 22.5f.Degrees()))
-            c |= Clip.Tile;
-
-        if (Intersect.CircleCone(p, 4, new WPos(100, 100), 16, new WDir(0, spreadSouth ? -1 : 1), 45.Degrees()))
-            c |= Clip.Player;
-        return c;
-    };
+    private BitMask RoseTiles => RosePlayerTiles | RoseEdgeTiles;
+    private BitMask RosePlayerTiles => BitMask.Build(SpreadSouth ? [0, 7, 8, 15] : [3, 4, 11, 12]);
+    private BitMask RoseEdgeTiles => BitMask.Build(SpreadSouth ? [9, 4] : [10, 13]);
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (IsSpreadTarget(actor))
         {
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(_tiles.TileShape()), Spreads[0].Activation);
-            var sh = ClipBaitersShape(SpreadSouth, Arena.Center);
-            // hints.AddForbiddenZone(p => ClipBaitersShape(p) > 0, Spreads[0].Activation);
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => sh(p).HasFlag(Clip.Tile)), Spreads[0].Activation);
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => sh(p).HasFlag(Clip.Player)), Spreads[0].Activation);
+            // avoid rose baiter tiles with additional radius
+            hints.AddForbiddenZone(Tiles.TilesShape(RoseTiles).Grow(SpreadRadius), Spreads[0].Activation);
+            // avoid other tiles normally - they explode when touched and will kill you
+            hints.AddForbiddenZone(Tiles.TilesShape(_tiles.Mask & ~RoseTiles), Spreads[0].Activation);
         }
     }
 
@@ -70,14 +50,13 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
         base.AddHints(slot, actor, hints);
         if (IsSpreadTarget(actor))
         {
-            if (_tiles.InActiveTile(actor))
+            if (_tiles.TilesShape().CallOnce(actor.Position) < 0)
                 hints.Add("GTFO from tile!");
 
-            var clip = ClipBaitersShape(SpreadSouth, Arena.Center)(actor.Position);
-            if (clip.HasFlag(Clip.Tile))
+            if (Tiles.TilesShape(RoseTiles).CallOnce(actor.Position) < SpreadRadius)
                 hints.Add("Stay away from connected tiles!");
 
-            if (clip.HasFlag(Clip.Player))
+            if (Raid.WithSlot().InRadiusExcluding(actor, SpreadRadius).Any())
                 hints.Add("Stay away from baiters!");
         }
     }
@@ -88,12 +67,10 @@ class Bloom4AlexandrianThunderIII(BossModule module) : Components.SpreadFromIcon
 
         if (IsSpreadTarget(pc))
         {
-            var clip = ClipBaitersShape(SpreadSouth, Arena.Center)(pc.Position);
-
-            if (clip.HasFlag(Clip.Player))
+            if (Tiles.TilesShape(RosePlayerTiles).CallOnce(pc.Position) < SpreadRadius)
                 Arena.ZoneCone(Arena.Center, 0, 16, SpreadSouth ? 180.Degrees() : default, 45.Degrees(), ArenaColor.Danger);
 
-            if (clip.HasFlag(Clip.Tile))
+            if (Tiles.TilesShape(RoseEdgeTiles).CallOnce(pc.Position) < SpreadRadius)
             {
                 var rightSide = pc.Position.X > 100;
                 var badTile = (SpreadSouth, rightSide) switch
@@ -183,9 +160,10 @@ class BanishIII(BossModule module) : Components.CastCounter(module, AID.Alexandr
     {
         if (Target != null && Target != actor)
         {
-            var tpos = Target.Position;
-            var stackTiles = _stackTiles;
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !p.InCircle(tpos, 4) && !stackTiles[Tiles.GetTile(p)]), Activation);
+            var stackTiles = Tiles.TilesShape(_stackTiles);
+            var stackCircle = ShapeDistance.Circle(Target.Position, 4);
+
+            hints.AddForbiddenZone((stackTiles | stackCircle).Inverted(), Activation);
         }
     }
 }

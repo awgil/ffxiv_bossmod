@@ -57,7 +57,7 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
     {
         if (Module.FindComponent<AetherSprayFire>()!.Active)
         {
-            var forbiddenInverted = new List<Func<WVec, Vector<float>>>();
+            var forbiddenInverted = new List<DistFn>();
             foreach (var a in _aoes.Where(x => !x.IsDead))
                 forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
@@ -74,24 +74,7 @@ class PoisonHeartStack(BossModule module) : Components.StackWithCastTargets(modu
 class TotalWreck(BossModule module) : Components.SingleTargetCast(module, AID.TotalWreck);
 class AetherSprayWater(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayWater);
 class AetherSprayFire(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayFire, "Go into a bubble! (Raidwide)");
-class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13)
-{
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => (Module.FindComponent<QueerBubble>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false) || !Module.InBounds(pos);
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var bubbles = Module.FindComponent<QueerBubble>()?.ActiveAOEs(slot, actor).ToList() ?? [];
-        foreach (var src in Sources(slot, actor))
-            if (!IsImmune(slot, src.Activation))
-                hints.AddForbiddenZone(Sdf.Discrete(p =>
-                {
-                    var proj = AwayFromSourceV(p, src.Origin, src.Distance);
-                    var bad = ~Arena.InBoundsV(proj);
-                    foreach (var z in bubbles)
-                        bad |= z.Shape.Check(proj, z.Origin, z.Rotation);
-                    return bad;
-                }), src.Activation);
-    }
-}
+class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13);
 
 class D032WreckerStates : StateMachineBuilder
 {

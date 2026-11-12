@@ -25,7 +25,6 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
 {
     private int _target;
     private Source? _source;
-    private Infatuation? _infatuation;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -49,37 +48,6 @@ class ValfodrKB(BossModule module) : Components.Knockback(module, AID.Valfodr, s
             _target = -1;
             _source = null;
         }
-    }
-
-    private Func<WVec, Vector<float>>? GetFireballZone()
-    {
-        _infatuation ??= Module.FindComponent<Infatuation>();
-        if (_infatuation == null || _infatuation.Casters.Count == 0)
-            return null;
-
-        return ShapeDistance.Union([.. _infatuation.Casters.Select(c => ShapeDistance.Circle(c.Position, 7))]);
-    }
-
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => GetFireballZone() is { } z && z(new(pos))[0] < 0;
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_target != slot || _source == null)
-            return;
-
-        var dangerZone = GetFireballZone();
-        if (dangerZone == null)
-            return;
-
-        var kbSource = _source.Value.Origin;
-        Func<WVec, WVec> clamp = Arena.Bounds.ClampToBounds;
-
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
-        {
-            var dir = (p - kbSource).Normalized();
-            var proj = clamp(p + dir * 25);
-            return dangerZone(proj) < 0;
-        }), _source.Value.Activation);
     }
 }
 
