@@ -146,7 +146,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
         }
     }
 
-    protected virtual WVec CalculateMovement(Source src, WVec starting)
+    protected WVec CalculateMovement(Source src, WVec starting)
     {
         starting = WVec.Select(src.Shape?.Check(starting, src.Origin, src.Direction) ?? VBool.AllBitsSet, starting, WVec.Invalid);
 

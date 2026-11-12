@@ -71,9 +71,9 @@ class HotBlast(BossModule module) : Components.CastCounter(module, AID.HotBlast)
     }
 }
 
-class NuzalHuelocStates : StateMachineBuilder
+class D151NuzalHuelocStates : StateMachineBuilder
 {
-    public NuzalHuelocStates(BossModule module) : base(module)
+    public D151NuzalHuelocStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<WindBlast>()

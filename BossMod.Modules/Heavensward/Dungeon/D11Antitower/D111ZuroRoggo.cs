@@ -92,9 +92,9 @@ class WaterBomb(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ZuroRoggoStates : StateMachineBuilder
+class D111ZuroRoggoStates : StateMachineBuilder
 {
-    public ZuroRoggoStates(BossModule module) : base(module)
+    public D111ZuroRoggoStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Chirp>()

@@ -82,9 +82,9 @@ class HolyOrb(BossModule module) : Components.Exaflare(module, new AOEShapeCircl
     }
 }
 
-class HraesvelgrStates : StateMachineBuilder
+class D133HraesvelgrStates : StateMachineBuilder
 {
-    public HraesvelgrStates(BossModule module) : base(module)
+    public D133HraesvelgrStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Wyrmclaw>()

@@ -77,9 +77,9 @@ class TerrifyingGlance(BossModule module) : Components.BaitAwayIcon(module, new 
     }
 }
 
-class CalcabrinaStates : StateMachineBuilder
+class D113CalcabrinaStates : StateMachineBuilder
 {
-    public CalcabrinaStates(BossModule module) : base(module)
+    public D113CalcabrinaStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<Brace>()

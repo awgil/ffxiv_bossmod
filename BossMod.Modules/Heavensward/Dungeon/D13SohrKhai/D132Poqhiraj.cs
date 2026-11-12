@@ -68,9 +68,9 @@ class Walls(BossModule module) : BossComponent(module)
     }
 }
 
-class PoqhirajStates : StateMachineBuilder
+class D132PoqhirajStates : StateMachineBuilder
 {
-    public PoqhirajStates(BossModule module) : base(module)
+    public D132PoqhirajStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<GallopLine>()

@@ -46,23 +46,10 @@ public abstract class GenericLineOfSightAOE(BossModule module, Enum? aid, float 
         if (Origin != null && !IgnoredPlayers[slot])
         {
             // inverse of a union of inverted max-range circle and a bunch of infinite cones minus inner cirles
-            var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
-            float invertedDistanceToSafe(WPos p)
-            {
-                var off = p - Origin.Value;
-                var distOrigin = off.Length();
-                var distanceToSafe = MaxRange - distOrigin; // this is positive if we're inside max-range
-                foreach (var (minRange, nl, nr) in normals)
-                {
-                    var distInnerInv = minRange - distOrigin;
-                    var distLeft = off.Dot(nl);
-                    var distRight = off.Dot(nr);
-                    var distCone = Math.Max(distInnerInv, Math.Max(distLeft, distRight));
-                    distanceToSafe = Math.Min(distanceToSafe, distCone);
-                }
-                return -distanceToSafe;
-            }
-            hints.AddForbiddenZone(invertedDistanceToSafe, NextExplosion);
+            var safetyCones = ShapeDistance.Union([.. Visibility.Select(v => ShapeDistance.DonutSector(Origin.Value, v.Distance, MaxRange * 2, v.Dir, v.HalfWidth))]);
+            var unsafety = ShapeDistance.Intersection([safetyCones.Inverted(), ShapeDistance.Circle(Origin.Value, MaxRange)]);
+
+            hints.AddForbiddenZone(unsafety, NextExplosion);
         }
         if (BlockersImpassable)
             foreach (var b in Blockers)

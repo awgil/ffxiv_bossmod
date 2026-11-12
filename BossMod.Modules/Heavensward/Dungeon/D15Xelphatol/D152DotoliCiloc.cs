@@ -106,9 +106,9 @@ class Walls(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class DotoliCilocStates : StateMachineBuilder
+class D152DotoliCilocStates : StateMachineBuilder
 {
-    public DotoliCilocStates(BossModule module) : base(module)
+    public D152DotoliCilocStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<OnLow>()

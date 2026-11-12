@@ -10,7 +10,6 @@ public readonly struct Sdf
 {
     public enum SdfType
     {
-        ContinuousSingle,
         DiscreteSingle,
         Indexed,
         Continuous,
@@ -19,7 +18,6 @@ public readonly struct Sdf
 
     // please bro just give me unions bro please
 #nullable disable
-    [FieldOffset(0)] private readonly Func<WPos, float> SdfCont1;
     [FieldOffset(0)] private readonly Func<WPos, bool> SdfDisc1;
     [FieldOffset(0)] private readonly Func<WPos, int, bool> SdfIx;
     [FieldOffset(0)] private readonly DistFn SdfCont;
@@ -27,11 +25,6 @@ public readonly struct Sdf
 #nullable restore
     [FieldOffset(8)] public readonly SdfType Type;
 
-    Sdf(Func<WPos, float> d) : this()
-    {
-        Type = SdfType.ContinuousSingle;
-        SdfCont1 = d;
-    }
     Sdf(Func<WPos, bool> b) : this()
     {
         Type = SdfType.DiscreteSingle;
@@ -53,7 +46,6 @@ public readonly struct Sdf
         SdfDisc = pt;
     }
 
-    public static Sdf ContinuousSingle(Func<WPos, float> d) => new(d);
 #if DEBUG
     [Obsolete("Please convert your shit to use the vectored version!")]
 #endif
@@ -67,9 +59,6 @@ public readonly struct Sdf
     {
         switch (Type)
         {
-            case SdfType.ContinuousSingle:
-                return SdfCont1(p) < 0;
-
             case SdfType.DiscreteSingle:
                 return SdfDisc1(p);
 
@@ -115,9 +104,6 @@ public readonly struct Sdf
     {
         switch (Type)
         {
-            case SdfType.ContinuousSingle:
-                return SdfCont1(p);
-
             case SdfType.DiscreteSingle:
                 return SdfDisc1(p) ? float.MinValue : float.MaxValue;
 

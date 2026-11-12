@@ -133,9 +133,9 @@ class PomPraise(BossModule module) : BossComponent(module)
     }
 }
 
-class ChieftainMoglinStates : StateMachineBuilder
+class D131ChieftainMoglinStates : StateMachineBuilder
 {
-    public ChieftainMoglinStates(BossModule module) : base(module)
+    public D131ChieftainMoglinStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<PomHoly>()

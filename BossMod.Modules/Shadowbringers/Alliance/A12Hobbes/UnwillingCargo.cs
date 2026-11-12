@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Shadowbringers.Alliance.A12Hobbes;
+﻿namespace BossMod.Shadowbringers.Alliance.A12Hobbes;
 
 class UnwillingCargoRing(BossModule module) : Components.GenericAOEs(module)
 {

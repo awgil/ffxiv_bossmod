@@ -102,12 +102,12 @@ class TileExplosion(BossModule module) : Components.CastCounter(module, AID.Tile
         if (_casters.Count == 0 || !_active)
             return;
 
-        var ts = _tiles.TileShape();
+        var ts = _tiles.TilesShape();
         var soakers = _forbiddenSoakers;
 
-        hints.AddForbiddenZone(Sdf.DiscreteSingle(p => soakers[slot] ? ts(p) : !ts(p)), Activation);
+        hints.AddForbiddenZone(ts.Inverted(!soakers[slot]), Activation);
 
-        hints.AddPredictedDamage(Raid.WithSlot().Where(r => ts(r.Item2.Position)).Mask(), Activation);
+        hints.AddPredictedDamage(Raid.WithSlot().Where(r => ts.CallOnce(r.Item2.Position) < 0).Mask(), Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

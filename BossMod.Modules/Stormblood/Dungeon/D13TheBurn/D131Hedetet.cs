@@ -103,6 +103,8 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        /*
+        // ???
         if (Origin != null && playerTarget)
         {
             var normals = Visibility.Select(v => (v.Distance, (v.Dir + v.HalfWidth).ToDirection().OrthoL(), (v.Dir - v.HalfWidth).ToDirection().OrthoR())).ToArray();
@@ -123,6 +125,7 @@ class Hailfire(BossModule module) : Components.GenericAOEs(module)
             }
             hints.AddForbiddenZone(invertedDistanceToSafe);
         }
+        */
         foreach (var b in ActiveBaits)
         {
             if (b.Target != actor)

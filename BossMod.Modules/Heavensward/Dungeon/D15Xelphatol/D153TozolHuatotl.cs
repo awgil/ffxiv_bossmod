@@ -39,9 +39,9 @@ class EyeOfTheStorm(BossModule module) : Components.StandardAOEs(module, AID.Eye
 class Bill(BossModule module) : Components.SpreadFromCastTargets(module, AID.Bill, 5);
 class Ingurgitate(BossModule module) : Components.StackWithIcon(module, (uint)IconID.Ingurgitate, AID.IngurgitateCast, 5, 5.4f);
 
-class TozolHuatotlStates : StateMachineBuilder
+class D153TozolHuatotlStates : StateMachineBuilder
 {
-    public TozolHuatotlStates(BossModule module) : base(module)
+    public D153TozolHuatotlStates(BossModule module) : base(module)
     {
         TrivialPhase()
             .ActivateOnEnter<EyeOfTheStorm>()
