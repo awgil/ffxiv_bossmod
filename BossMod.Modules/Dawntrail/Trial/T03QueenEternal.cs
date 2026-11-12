@@ -366,31 +366,7 @@ class RuthlessRegalia(BossModule module) : Components.GenericAOEs(module)
 
 class AbsoluteAuthorityCircle(BossModule module) : Components.StandardAOEs(module, AID.AbsoluteAuthorityCircle, 8);
 class AbsoluteAuthorityFlare(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(12), (uint)IconID.Flare, AID.AbsoluteAuthorityFlare, 6, centerAtTarget: true);
-class AbsoluteAuthorityDorito(BossModule module) : Components.StackWithIcon(module, (uint)IconID.DoritoStack, AID.AbsoluteAuthorityDoritoStack1, 3, 5.1f, 2, 8)
-{
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (Stacks.FindIndex(s => s.Target == actor) is var own && own < 0)
-        {
-            base.AddAIHints(slot, actor, assignment, hints);
-            return;
-        }
-        WPos[] partners = [.. Raid.WithoutSlot().Exclude(actor).Select(p => p.Position)];
-        if (partners.Length > 0)
-#pragma warning disable VBM006 // Reference type captured in closure
-            hints.AddForbiddenZone(Sdf.DiscreteSingle(p => !partners.Any(c => p.InCircle(c, 2))), Stacks[own].Activation);
-#pragma warning restore VBM006 // Reference type captured in closure
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if ((AID)spell.Action.ID is AID.AbsoluteAuthorityDoritoStack1 or AID.AbsoluteAuthorityDoritoStack2 && Stacks.Count > 0)
-        {
-            Stacks.Clear();
-            ++NumFinishedStacks;
-        }
-    }
-}
+class AbsoluteAuthorityDorito(BossModule module) : Components.StackTogether(module, (uint)IconID.DoritoStack, 5.2f);
 
 class AuthoritysHold(BossModule module) : Components.StayMove(module, 3)
 {
