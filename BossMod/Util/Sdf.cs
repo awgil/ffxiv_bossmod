@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -10,24 +9,17 @@ public readonly struct Sdf
 {
     public enum SdfType
     {
-        Indexed,
         Continuous,
         Discrete
     }
 
     // please bro just give me unions bro please
 #nullable disable
-    [FieldOffset(0)] private readonly Func<WPos, int, bool> SdfIx;
     [FieldOffset(0)] private readonly DistFn SdfCont;
     [FieldOffset(0)] private readonly PointTest SdfDisc;
 #nullable restore
     [FieldOffset(8)] public readonly SdfType Type;
 
-    Sdf(Func<WPos, int, bool> i) : this()
-    {
-        Type = SdfType.Indexed;
-        SdfIx = i;
-    }
     Sdf(DistFn dist) : this()
     {
         Type = SdfType.Continuous;
@@ -39,7 +31,6 @@ public readonly struct Sdf
         SdfDisc = pt;
     }
 
-    public static Sdf Indexed(Func<WPos, int, bool> i) => new(i);
     public static Sdf Continuous(DistFn v) => new(v);
     public static Sdf Discrete(PointTest t) => new(t);
 
@@ -48,14 +39,11 @@ public readonly struct Sdf
     {
         switch (Type)
         {
-            case SdfType.Indexed:
-                return SdfIx(p, -1);
-
             case SdfType.Continuous:
-                return SdfCont(new(p))[0] < 0;
+                return SdfCont.CallOnce(p) < 0;
 
             case SdfType.Discrete:
-                return SdfDisc(new(p))[0] != 0;
+                return SdfDisc.CallOnce(p);
 
             default:
                 throw new UnreachableException();
@@ -64,49 +52,32 @@ public readonly struct Sdf
 
     public readonly VFloat Distance(WVec p)
     {
-        if (Type == SdfType.Continuous)
-            return SdfCont(p);
-
-        if (Type == SdfType.Discrete)
-            return Vector.ConditionalSelect(SdfDisc(p), VV.Create(float.MinValue), VV.Create(float.MaxValue));
-
-        var xa = new float[VFloat.Count];
-        var xb = new float[VFloat.Count];
-        p.X.CopyTo(xa);
-        p.Z.CopyTo(xb);
-
-        var d = new float[VFloat.Count];
-        var s = this;
-
-        Parallel.For(0, VFloat.Count, i =>
-        {
-            d[i] = s.Distance(new WPos(xa[i], xb[i]));
-        });
-
-        return VV.Create(d.AsSpan());
-    }
-
-    public readonly float Distance(WPos p)
-    {
         switch (Type)
         {
-            case SdfType.Indexed:
-                return SdfIx(p, -1) ? float.MinValue : float.MaxValue;
-
             case SdfType.Continuous:
-                return SdfCont(new(p))[0];
+                return SdfCont(p);
 
             case SdfType.Discrete:
-                return SdfDisc(new(p))[0] != 0 ? float.MinValue : float.MaxValue;
+                return VV.ConditionalSelect(SdfDisc(p), VV.Create(float.MinValue), VV.Create(float.MaxValue));
 
             default:
                 throw new UnreachableException();
         }
     }
 
-    public readonly bool CheckIndexed(WPos p, int index)
+    public readonly float Distance(WPos p)
     {
-        return Type == SdfType.Indexed ? SdfIx(p, index) : Check(p);
+        switch (Type)
+        {
+            case SdfType.Continuous:
+                return SdfCont.CallOnce(p);
+
+            case SdfType.Discrete:
+                return SdfDisc.CallOnce(p) ? float.MinValue : float.MaxValue;
+
+            default:
+                throw new UnreachableException();
+        }
     }
 #pragma warning restore IDE0066 // Convert switch statement to expression
 }

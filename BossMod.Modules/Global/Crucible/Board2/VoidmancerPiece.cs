@@ -38,8 +38,6 @@ public enum IconID : uint
 
 class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, centerAtTarget: true)
 {
-    private int[] _zombieCounter = [];
-
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
         base.AddHints(slot, actor, hints);
@@ -53,15 +51,12 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (_zombieCounter.Length == 0)
-        {
-            var zombies = Module.Enemies(OID.ZombiePiece);
-
-            _zombieCounter = hints.GenerateFromMap((p, _) => zombies.Count(z => z.IsDead && z.Position.InCircle(p, 10.75f)));
-        }
-
         foreach (var bait in ActiveBaitsOn(actor))
-            hints.AddForbiddenZone(Sdf.Indexed((_, i) => _zombieCounter.BoundSafeAt(i) > 1), bait.Activation);
+        {
+            var zombieCounter = ShapeDistance.Count([.. Module.Enemies(OID.ZombiePiece).Where(z => z.IsDead).Select(z => ShapeDistance.Circle(z.Position, 10.75f))]);
+
+            hints.AddForbiddenZone(Sdf.Discrete(p => VV.GreaterThan(zombieCounter(p), VInt.One).As<uint, int>()), bait.Activation);
+        }
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -83,12 +78,6 @@ class DeathDriveBait(BossModule module) : Components.GenericBaitAway(module, cen
     {
         if ((AID)spell.Action.ID == AID.DeathDrive)
             CurrentBaits.Clear();
-    }
-
-    public override void OnIsDeadChanged(Actor actor)
-    {
-        if ((OID)actor.OID == OID.ZombiePiece)
-            _zombieCounter = []; // force recalculation
     }
 }
 

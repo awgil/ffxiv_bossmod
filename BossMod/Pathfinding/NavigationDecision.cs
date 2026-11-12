@@ -269,11 +269,11 @@ public struct NavigationDecision
         for (var y = 0; y < map.Height; ++y)
         {
             var cx = cy;
-            var (leftG, leftD) = CalculateMaxG(-1, zonesFixed, cx, cushion);
+            var (leftG, leftD) = CalculateMaxG(zonesFixed, cx, cushion);
             for (var x = 0; x < map.Width; ++x)
             {
                 cx += dx;
-                var (rightG, rightD) = CalculateMaxG(-1, zonesFixed, cx, cushion);
+                var (rightG, rightD) = CalculateMaxG(zonesFixed, cx, cushion);
                 dScratch[iCell] = leftD || rightD ? 1u : 0;
                 gScratch[iCell++] = Math.Min(leftG, rightG);
                 leftD = rightD;
@@ -281,12 +281,12 @@ public struct NavigationDecision
             }
             cy += dy;
         }
-        var (bleftG, bleftD) = CalculateMaxG(-1, zonesFixed, cy, cushion);
+        var (bleftG, bleftD) = CalculateMaxG(zonesFixed, cy, cushion);
         iCell -= map.Width;
         for (var x = 0; x < map.Width; ++x, ++iCell)
         {
             cy += dx;
-            var (brightG, brightD) = CalculateMaxG(-1, zonesFixed, cy, cushion);
+            var (brightG, brightD) = CalculateMaxG(zonesFixed, cy, cushion);
             var bottomD = bleftD || brightD;
             var bottomG = Math.Min(bleftG, brightG);
             var jCell = iCell;
@@ -327,16 +327,14 @@ public struct NavigationDecision
         }
     }
 
-    private static (float G, bool D) CalculateMaxG(int cell, (Sdf d, float g)[] zones, WPos p, float cushion)
+    private static (float G, bool D) CalculateMaxG((Sdf d, float g)[] zones, WPos p, float cushion)
     {
         var g = float.MaxValue;
         var d = false;
 
         foreach (var z in zones)
         {
-            var dist = z.d.Type == Sdf.SdfType.Indexed
-                ? z.d.CheckIndexed(p, cell) ? float.MinValue : float.MaxValue
-                : z.d.Distance(p);
+            var dist = z.d.Distance(p);
             if (!float.IsFinite(dist))
                 throw new InvalidOperationException($"distance function returned invalid value {dist}");
             if (dist < 0)

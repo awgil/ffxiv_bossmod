@@ -200,7 +200,7 @@ public abstract class Knockback(BossModule module, Enum? aid = default, bool ign
     /// <param name="position">Position vector.</param>
     /// <param name="direction">Direction vector (normalized).</param>
     /// <returns></returns>
-    public virtual VFloat CalculateDistance(WVec position, WVec direction) => StopAtWall ? Module.Arena.IntersectRayBounds(position - Arena.Center, direction) : VV.Create(float.MaxValue);
+    public virtual VFloat CalculateDistance(WVec position, WVec direction) => StopAtWall ? Module.Arena.IntersectRayBounds(position, direction) - 0.1f : VV.Create(float.MaxValue);
 
     private PointTest DestinationUnsafeImpl(int slot, Actor actor) => DestinationUnsafe(slot, actor) | DestinationOutOfBounds(slot, actor);
 
