@@ -121,6 +121,6 @@ class TturuhhetsoStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70785, NameID = 13594)]
+[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70785, NameID = 13594)]
 public class Tturuhhetso(ModuleInit init) : BossModule(init, new(395.737f, -45.356f), new ArenaBoundsCircle(20));
 

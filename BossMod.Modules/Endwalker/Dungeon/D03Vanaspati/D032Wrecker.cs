@@ -91,5 +91,5 @@ class D032WreckerStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10718)]
+[ModuleInfo(Contributors = "The Combat Reborn Team (Malediktus, LTS), Ported by Herculezz", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 789, NameID = 10718)]
 public class D032Wrecker(ModuleInit init) : BossModule(init, new(-295, -354), new ArenaBoundsCircle(20));

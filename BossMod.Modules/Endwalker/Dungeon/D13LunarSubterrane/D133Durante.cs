@@ -153,5 +153,5 @@ class D133DuranteStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12584)]
 class D133Durante(ModuleInit init) : BossModule(init, new(0, -422), new ArenaBoundsCircle(23));

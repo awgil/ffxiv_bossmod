@@ -296,7 +296,7 @@ class T08AsuraStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 944, NameID = 12351)]
+[ModuleInfo(Incomplete = true, Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 944, NameID = 12351)]
 public class T08Asura(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsCircle(19.5f))
 {
     public static readonly ArenaBoundsCircle DefaultBounds = new(19);

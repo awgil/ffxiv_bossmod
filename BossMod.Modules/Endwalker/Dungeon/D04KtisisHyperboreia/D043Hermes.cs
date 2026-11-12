@@ -135,5 +135,5 @@ class D043HermesStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10399)]
+[ModuleInfo(Contributors = "xan", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 787, NameID = 10399)]
 public class D043Hermes(ModuleInit init) : BossModule(init, new(0, -50), new ArenaBoundsCircle(20));

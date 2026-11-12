@@ -251,5 +251,5 @@ class D111AlbionStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11992)]
+[ModuleInfo(Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 11992)]
 public class D111Albion(ModuleInit init) : BossModule(init, new(24, -744), new ArenaBoundsSquare(19.5f));
