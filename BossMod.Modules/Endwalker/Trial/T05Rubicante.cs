@@ -244,26 +244,7 @@ class ScaldingFleetFirst(BossModule module) : Components.GenericBaitAway(module,
 
 class ScaldingFleetSecond(BossModule module) : Components.StandardAOEs(module, AID.ScaldingFleetSecond, new AOEShapeRect(60, 3));
 
-class Dualfire(BossModule module) : Components.GenericBaitAway(module, AID.DualfireAOE)
-{
-    // TODO: cone angle comes from Ex5 and has no omen: the replay only shows it is under 66 degrees either side
-    private static readonly AOEShapeCone _shape = new(60, 60.Degrees());
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (iconID == (uint)IconID.Dualfire)
-            CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape, WorldState.FutureTime(6)));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            ++NumCasts;
-            CurrentBaits.Clear();
-        }
-    }
-}
+class Dualfire(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 60.Degrees()), (uint)IconID.Dualfire, AID.DualfireAOE, 6, damageType: AIHints.PredictedDamageType.None);
 
 class SweepingImmolationSpread(BossModule module) : Components.StandardAOEs(module, AID.SweepingImmolationSpread, new AOEShapeCone(20, 90.Degrees()));
 class SweepingImmolationStack(BossModule module) : Components.StandardAOEs(module, AID.SweepingImmolationStack, new AOEShapeCone(20, 90.Degrees()));
@@ -273,7 +254,6 @@ class T05RubicanteStates : StateMachineBuilder
 {
     public T05RubicanteStates(BossModule module) : base(module)
     {
-        // TODO: Total Immolation and the third Ordeal's fireball were not reached on the 11-08 run: the boss died during that Ordeal
         TrivialPhase()
             .ActivateOnEnter<Inferno1>()
             .ActivateOnEnter<ShatteringHeat1>()

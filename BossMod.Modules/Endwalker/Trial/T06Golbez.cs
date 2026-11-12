@@ -85,25 +85,7 @@ class ImmolatingShade(BossModule module) : Components.StackWithCastTargets(modul
 class DoubleMeteor1(BossModule module) : Components.StandardAOEs(module, AID.DoubleMeteorAOE1, 15);
 class DoubleMeteor2(BossModule module) : Components.StandardAOEs(module, AID.DoubleMeteorAOE2, 15);
 
-class VoidMeteor(BossModule module) : Components.GenericBaitAway(module, AID.VoidMeteorAOE, centerAtTarget: true)
-{
-    private static readonly AOEShapeCircle _shape = new(6);
-
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (iconID == (uint)IconID.VoidMeteor)
-            CurrentBaits.Add(new(Module.PrimaryActor, actor, _shape, WorldState.FutureTime(9.1f)));
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action == WatchedAction)
-        {
-            ++NumCasts;
-            CurrentBaits.RemoveAll(b => b.Target.InstanceID == spell.MainTargetID);
-        }
-    }
-}
+class VoidMeteor(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCircle(6), (uint)IconID.VoidMeteor, AID.VoidMeteorAOE, 9.1f, true, AIHints.PredictedDamageType.None);
 
 class DragonsDescent(BossModule module) : Components.Knockback(module, AID.DragonsDescent)
 {

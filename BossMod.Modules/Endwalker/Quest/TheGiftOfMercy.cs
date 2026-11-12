@@ -70,33 +70,16 @@ class Electrocution(BossModule module) : BossComponent(module)
     }
 }
 
-class TizonasBastion(BossModule module) : BossComponent(module)
+class TizonasBastion(BossModule module) : Components.GenericAOEs(module, invertedText: "Get inside Raubahn's bastion!")
 {
-    private const float Radius = 8;
-    private WPos? _center;
+    private AOEInstance? _aoe;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.TizonasBastion)
-            _center = caster.Position;
-    }
-
-    public override void AddHints(int slot, Actor actor, TextHints hints)
-    {
-        if (_center is { } c && !actor.Position.InCircle(c, Radius))
-            hints.Add("Get inside Raubahn's bastion!");
-    }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        if (_center is { } c)
-            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(c, Radius - 1.5f));
-    }
-
-    public override void DrawArenaBackground(int pcSlot, Actor pc)
-    {
-        if (_center is { } c)
-            Arena.ZoneCircle(c, Radius, ArenaColor.SafeFromAOE);
+            _aoe = new(new AOEShapeCircle(6.5f), caster.Position, Inverted: true);
     }
 }
 
