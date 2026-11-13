@@ -46,7 +46,9 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
         if (shapes.Count == 0)
             return;
 
-        hints.AddForbiddenZone(p => -shapes.Min(e => e(p)), SafeZones[0].aoe.Activation);
+        var inv = -ShapeDistance.Union(shapes);
+
+        hints.AddForbiddenZone(inv, SafeZones[0].aoe.Activation);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)

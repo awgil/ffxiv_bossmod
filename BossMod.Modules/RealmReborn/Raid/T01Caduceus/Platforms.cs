@@ -90,9 +90,11 @@ class Platforms(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var platforms = ShapeDistance.Union([.. PlatformShapes]);
+
         VFloat blockedArea(WVec p)
         {
-            var res = -PlatformShapes.Min(f => f(p));
+            var res = -platforms(p);
             foreach (var (e, f) in HighEdges.Zip(HighEdgeShapes))
                 if (actor.PosRot.Y + 0.1f < PlatformHeights[e.upper])
                     res = VV.Min(res, f(p));

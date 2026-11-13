@@ -74,34 +74,7 @@ class PoisonHeartStack(BossModule module) : Components.StackWithCastTargets(modu
 class TotalWreck(BossModule module) : Components.SingleTargetCast(module, AID.TotalWreck);
 class AetherSprayWater(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayWater);
 class AetherSprayFire(BossModule module) : Components.RaidwideCast(module, AID.AetherSprayFire, "Go into a bubble! (Raidwide)");
-class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13)
-{
-    private static readonly Dictionary<object, object> cache = [];
-    public static WPos RotateAroundOrigin(float rotatebydegrees, WPos origin, WPos caster)
-    {
-        if (cache.TryGetValue((rotatebydegrees, origin, caster), out var cachedResult))
-            return (WPos)cachedResult;
-        var x = MathF.Cos(rotatebydegrees * Angle.DegToRad) * (caster.X - origin.X) - MathF.Sin(rotatebydegrees * Angle.DegToRad) * (caster.Z - origin.Z);
-        var z = MathF.Sin(rotatebydegrees * Angle.DegToRad) * (caster.X - origin.X) + MathF.Cos(rotatebydegrees * Angle.DegToRad) * (caster.Z - origin.Z);
-        var result = new WPos(origin.X + x, origin.Z + z);
-        cache[(rotatebydegrees, origin, caster)] = result;
-        return result;
-    }
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        var forbidden = new List<DistFn>();
-        var source = Sources(slot, actor).FirstOrDefault();
-        if (Module.FindComponent<QueerBubble>()!.ActiveAOEs(slot, actor).Any() && source != default)
-        {
-            forbidden.Add(ShapeDistance.InvertedCircle(Arena.Center, 7));
-            for (var i = 0; i < 6; i++)
-                if (Module.Enemies(OID.QueerBubble).Where(x => x.Position.AlmostEqual(RotateAroundOrigin(i * 60, Arena.Center, x.Position), 1) && Module.FindComponent<QueerBubble>()!._aoes.Contains(x)) != null)
-                    forbidden.Add(ShapeDistance.Cone(Arena.Center, 20, i * 60.Degrees(), 10.Degrees()));
-            if (forbidden.Count > 0)
-                hints.AddForbiddenZone(p => forbidden.Min(f => f(p)), source.Activation);
-        }
-    }
-}
+class AetherSprayWaterKB(BossModule module) : Components.KnockbackFromCastTarget(module, AID.AetherSprayWater, 13);
 
 class D032WreckerStates : StateMachineBuilder
 {

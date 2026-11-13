@@ -83,8 +83,8 @@ class P5AI(BossModule module) : BossComponent(module)
                 //if (!orbIntercepted)
                 {
                     forbidNeurolinks = false;
-                    var forbidden = _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Select(n => ShapeDistance.Circle(n.Position, T05Twintania.NeurolinkRadius));
-                    hints.AddForbiddenZone(p => -forbidden.Min(f => f(p)));
+                    var forbidden = ShapeDistance.Union([.. _hatch.Neurolinks.Exclude(neurolinkUnderBoss).Select(n => ShapeDistance.Circle(n.Position, T05Twintania.NeurolinkRadius))]);
+                    hints.AddForbiddenZone(-forbidden);
                 }
             }
             else if (assignment == ((_deathSentence?.TankedByOT ?? false) ? PartyRolesConfig.Assignment.MT : PartyRolesConfig.Assignment.OT) && neurolinkUnderBoss != null && actor != _liquidHell?.Target)

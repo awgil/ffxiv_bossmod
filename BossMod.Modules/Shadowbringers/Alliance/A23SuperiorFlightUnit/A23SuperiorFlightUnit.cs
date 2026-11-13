@@ -103,7 +103,10 @@ class IncendiaryBombingSpread(BossModule module) : Components.BaitAwayIcon(modul
 
         // encourage AI not to bait explosion near party
         if (ActiveBaitsOn(actor).FirstOrNull() is { } bait)
-            hints.AddForbiddenZone(p => A23SuperiorFlightUnit.PlatformCenters.Min(c => ShapeDistance.Circle(c, 17)(p)), bait.Activation);
+        {
+            var centers = ShapeDistance.Union([.. A23SuperiorFlightUnit.PlatformCenters.Select(p => ShapeDistance.Circle(p, 17))]);
+            hints.AddForbiddenZone(centers, bait.Activation);
+        }
     }
 }
 class IncendiaryBombing(BossModule module) : Components.VoidzoneAtCastTarget(module, 8, AID.IncendiaryBombing, OID.IncendiaryBomb, 0.8f);
