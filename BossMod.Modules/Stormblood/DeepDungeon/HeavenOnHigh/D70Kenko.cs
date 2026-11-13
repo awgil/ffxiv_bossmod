@@ -1,5 +1,4 @@
-﻿
-namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D70Kenko;
+﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D70Kenko;
 
 public enum OID : uint
 {
