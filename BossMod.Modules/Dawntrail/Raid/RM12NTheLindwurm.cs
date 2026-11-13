@@ -750,5 +750,5 @@ class RM12NTheLindwurmStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1074, NameID = 14378)]
+[ModuleInfo(Contributors = "Kagekazu, Nonu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1074, NameID = 14378)]
 public class RM12NTheLindwurm(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 15));
