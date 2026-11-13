@@ -30,6 +30,7 @@ public class Analyzer : DiagnosticAnalyzer
     public static readonly DiagnosticDescriptor RuleInternalNamesForOptions = Register("Bad arguments to AddOption", "Second argument ({1}) should match variant name ({0})", DiagnosticSeverity.Error);
     public static readonly DiagnosticDescriptor RuleNoCompareLessThanGCD = Register("Misbehaving comparison", "Testing if a value is strictly less than the GCD timer may result in false positives when the GCD is at zero. Use \"> GCD\" or \"<= GCD\".");
     public static readonly DiagnosticDescriptor RuleUseModuleInitializer = Register("Obsolete constructor", "Use ModuleInitializer constructor instead of passing arguments separately", DiagnosticSeverity.Error);
+    public static readonly DiagnosticDescriptor RuleNoVectorMinmax = Register("Invalid IEnumerable usage", "This code will throw an exception at runtime. Instead, use ShapeDistance.Union (Min) or Intersection (Max) as appropriate.", DiagnosticSeverity.Error);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -45,6 +46,7 @@ public class Analyzer : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeNoMathInHintFn, SyntaxKind.Block);
         //context.RegisterSyntaxNodeAction(AnalyzeOptionInternalNames, SyntaxKind.Block);
         context.RegisterSyntaxNodeAction(AnalyzeModuleConstructor, SyntaxKind.ClassDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeVectorMinmax, SyntaxKind.Block);
     }
 
     private static void AnalyzeNoMutableStatics(SymbolAnalysisContext context)
@@ -273,6 +275,28 @@ public class Analyzer : DiagnosticAnalyzer
         foreach (var plist in paramLists)
             if (isV1Initializer(plist))
                 context.ReportDiagnostic(Diagnostic.Create(RuleUseModuleInitializer, plist.GetLocation()));
+    }
+
+    private static void AnalyzeVectorMinmax(SyntaxNodeAnalysisContext context)
+    {
+        var ienum = context.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
+        var vec = context.Compilation.GetTypeByMetadataName("System.Numerics.Vector`1");
+
+        foreach (var node in context.Node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            if (node.Expression is MemberAccessExpressionSyntax syn && syn.Name.ToString() is "Min" or "Max")
+            {
+                if (context.SemanticModel.GetSymbolInfo(node.Expression, context.CancellationToken).Symbol is not IMethodSymbol
+                    {
+                        ReceiverType: INamedTypeSymbol receiver,
+                        ReturnType: INamedTypeSymbol ret
+                    })
+                    continue;
+
+                if (receiver.ConstructedFrom?.Equals(ienum, SymbolEqualityComparer.Default) == true && ret.ConstructedFrom?.Equals(vec, SymbolEqualityComparer.Default) == true)
+                    context.ReportDiagnostic(Diagnostic.Create(RuleNoVectorMinmax, node.GetLocation()));
+            }
+        }
     }
 }
 

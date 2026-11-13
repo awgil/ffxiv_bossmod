@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DalaMock.Core", "DalaMock\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BossMod.Tests", "BossMod.Tests\BossMod.Tests.csproj", "{D056F243-79A6-079B-3641-FA76CAF328F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeFix", "CodeFix\CodeFix.csproj", "{E48CED54-9D9E-4264-B3F4-79AB3C615CA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -80,6 +82,10 @@ Global
 		{D056F243-79A6-079B-3641-FA76CAF328F3}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{D056F243-79A6-079B-3641-FA76CAF328F3}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{D056F243-79A6-079B-3641-FA76CAF328F3}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{E48CED54-9D9E-4264-B3F4-79AB3C615CA5}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{E48CED54-9D9E-4264-B3F4-79AB3C615CA5}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{E48CED54-9D9E-4264-B3F4-79AB3C615CA5}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{E48CED54-9D9E-4264-B3F4-79AB3C615CA5}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

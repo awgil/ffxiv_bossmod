@@ -187,7 +187,7 @@ public class TrackPartyHealth(WorldState World)
     {
         // copied from veyn's HealerActions in EW bossmod - i am a thief
         BitMask esunas = new();
-        foreach (var caster in World.Party.WithoutSlot(excludeAlliance: true).Where(a => a.CastInfo?.IsSpell(BossMod.WHM.AID.Esuna) == true))
+        foreach (var caster in World.Party.WithoutSlot(excludeAlliance: true).Where(a => a.CastInfo?.IsSpell(WHM.AID.Esuna) == true))
             esunas.Set(World.Party.FindSlot(caster.CastInfo!.TargetID));
 
         _haveRealPartyMembers = false;
