@@ -22,18 +22,13 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
         }
       },
-      "CsvHelper": {
-        "type": "Transitive",
-        "resolved": "33.1.0",
-        "contentHash": "kqfTOZGrn7NarNeXgjh86JcpTHUoeQDMB8t9NVa/ZtlSYiV1rxfRnQ49WaJsob4AiGrbK0XDzpyKkBwai4F8eg=="
-      },
       "DalaMock.Host": {
         "type": "Transitive",
-        "resolved": "6.2.1",
-        "contentHash": "rtYsv0U/iMeRXUgFU72pc7XVmW+QVU7es4xW+FUHAtvuTEq7Q8q/9jH4OebpzMmjGs70nUOhZ5joyHuY3lxEJA==",
+        "resolved": "6.2.2",
+        "contentHash": "mc39gTw6lClGuBjZL7/Jl54nQQc1ObPlvUrhlt906RK8W/jQDTgcQ8YQv6JwrzJ2FOYp/FxMFU0ufdvu2p2KQA==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "DalaMock.Shared": "6.2.1",
+          "DalaMock.Shared": "6.2.2",
           "Microsoft.Extensions.Hosting": "10.0.4",
           "Microsoft.Extensions.Hosting.Abstractions": "10.0.4",
           "Microsoft.Extensions.ObjectPool": "10.0.4"
@@ -41,8 +36,8 @@
       },
       "DalaMock.Shared": {
         "type": "Transitive",
-        "resolved": "6.2.1",
-        "contentHash": "Do9/iTvJ7rfWe64ufQzOXs4WCcxtk7VCG//BUK7Du3EOerAbqW5OR/FtmTvQeVLvtUbhUfMFPXiwH8WJ0idACw==",
+        "resolved": "6.2.2",
+        "contentHash": "ZfRGzgHuNmR+9lZ6/Hc52phYBkNpuon+Xdr5djj+FMs/ty9ODuyA/n/lQtyoEyZDtNRU07y2bv1qb9+13gwEmw==",
         "dependencies": {
           "Autofac": "9.0.0"
         }
@@ -449,32 +444,19 @@
         "resolved": "3.1.12",
         "contentHash": "iAg6zifihXEFS/t7fiHhZBGAdCp3FavsF4i2ZIDp0JfeYeDVzvmlbY1CNhhIKimaIzrzSi5M/NBFcWvZT2rB/A=="
       },
-      "System.Data.SQLite": {
-        "type": "Transitive",
-        "resolved": "2.0.4",
-        "contentHash": "iiawN8l6QBzLZTK2BQRyq/1XmvDONghjvXoDhkkQgPTG8bRIsmIxJV1+Lc75fviNgMnjAE3wxReVJAF7P1hkoQ=="
-      },
       "System.Diagnostics.EventLog": {
         "type": "Transitive",
         "resolved": "10.0.4",
         "contentHash": "xXo5NcIPeMUMfpo9Efl/3Rgomjb/Jfa3Aa0BgSfqYctN4YpwjPzvIrnD9JTwoKqe3pFtLF9vmtMl892+wwZ6EA=="
       },
-      "System.Numerics.Tensors": {
-        "type": "Transitive",
-        "resolved": "10.0.14",
-        "contentHash": "88DUO9lZZ/PfBwO51YKTd5TdVb+Cl31kd6imLKHUZxNXjnPU2V4mHIVT4f8rVK3T+sXXfDbHInzclnOHrK4azw=="
-      },
       "bossmod": {
         "type": "Project",
         "dependencies": {
-          "CsvHelper": "[33.1.0, )",
-          "DalaMock.Host": "[6.2.1, )",
-          "DalaMock.Shared": "[6.2.1, )",
+          "DalaMock.Host": "[6.2.2, )",
+          "DalaMock.Shared": "[6.2.2, )",
           "DalamudPackager": "[15.0.0, )",
           "Microsoft.Extensions.Caching.Memory": "[10.0.12, )",
-          "Pictomancy": "[1.0.10, )",
-          "System.Data.Sqlite": "[2.0.4, )",
-          "System.Numerics.Tensors": "[10.0.14, )"
+          "Pictomancy": "[1.0.10, )"
         }
       }
     }

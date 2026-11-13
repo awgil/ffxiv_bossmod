@@ -25,7 +25,7 @@ public static class EnemyBehavior
             }
 
             var start = 0;
-            if (oidText.StartsWith("0x"))
+            if (oidText.StartsWith("0x", StringComparison.Ordinal))
                 start = 2;
 
             if (!uint.TryParse(oidText[start..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var oid))

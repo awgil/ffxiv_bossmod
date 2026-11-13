@@ -2,20 +2,14 @@
   "version": 1,
   "dependencies": {
     "net10.0-windows7.0": {
-      "CsvHelper": {
-        "type": "Direct",
-        "requested": "[33.1.0, )",
-        "resolved": "33.1.0",
-        "contentHash": "kqfTOZGrn7NarNeXgjh86JcpTHUoeQDMB8t9NVa/ZtlSYiV1rxfRnQ49WaJsob4AiGrbK0XDzpyKkBwai4F8eg=="
-      },
       "DalaMock.Host": {
         "type": "Direct",
-        "requested": "[6.2.1, )",
-        "resolved": "6.2.1",
-        "contentHash": "rtYsv0U/iMeRXUgFU72pc7XVmW+QVU7es4xW+FUHAtvuTEq7Q8q/9jH4OebpzMmjGs70nUOhZ5joyHuY3lxEJA==",
+        "requested": "[6.2.2, )",
+        "resolved": "6.2.2",
+        "contentHash": "mc39gTw6lClGuBjZL7/Jl54nQQc1ObPlvUrhlt906RK8W/jQDTgcQ8YQv6JwrzJ2FOYp/FxMFU0ufdvu2p2KQA==",
         "dependencies": {
           "Autofac.Extensions.DependencyInjection": "10.0.0",
-          "DalaMock.Shared": "6.2.1",
+          "DalaMock.Shared": "6.2.2",
           "Microsoft.Extensions.Hosting": "10.0.4",
           "Microsoft.Extensions.Hosting.Abstractions": "10.0.4",
           "Microsoft.Extensions.ObjectPool": "10.0.4"
@@ -23,9 +17,9 @@
       },
       "DalaMock.Shared": {
         "type": "Direct",
-        "requested": "[6.2.1, )",
-        "resolved": "6.2.1",
-        "contentHash": "Do9/iTvJ7rfWe64ufQzOXs4WCcxtk7VCG//BUK7Du3EOerAbqW5OR/FtmTvQeVLvtUbhUfMFPXiwH8WJ0idACw==",
+        "requested": "[6.2.2, )",
+        "resolved": "6.2.2",
+        "contentHash": "ZfRGzgHuNmR+9lZ6/Hc52phYBkNpuon+Xdr5djj+FMs/ty9ODuyA/n/lQtyoEyZDtNRU07y2bv1qb9+13gwEmw==",
         "dependencies": {
           "Autofac": "9.0.0"
         }
@@ -67,12 +61,6 @@
           "SharpDX.Direct3D11": "4.2.0",
           "SharpDX.Mathematics": "4.2.0"
         }
-      },
-      "System.Numerics.Tensors": {
-        "type": "Direct",
-        "requested": "[10.0.14, )",
-        "resolved": "10.0.14",
-        "contentHash": "88DUO9lZZ/PfBwO51YKTd5TdVb+Cl31kd6imLKHUZxNXjnPU2V4mHIVT4f8rVK3T+sXXfDbHInzclnOHrK4azw=="
       },
       "Autofac": {
         "type": "Transitive",
