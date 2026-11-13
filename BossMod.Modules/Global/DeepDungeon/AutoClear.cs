@@ -87,6 +87,8 @@ public abstract partial class AutoClear : ZoneModule
     private readonly List<GoalObject> InterestingObjects = [];
     private GoalObject? MostInterestingObject;
 
+    private readonly List<PointTest> _pathfindZones = [];
+
     private int Kills;
     private bool BetweenFloors = true;
 
@@ -461,7 +463,7 @@ public abstract partial class AutoClear : ZoneModule
                 if (oid == OID.BandedCofferIndicator && Palace.Progress.HoardCurrentFloor)
                     InterestingObjects.Add(new(a, GoalType.Hoard, dist));
 
-                if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive && !player.InCombat)
+                if (oid is OID.CairnPalace or OID.BeaconHoH or OID.PylonEO or OID.PylonPT && Palace.PassageActive && !player.InCombat && !Palace.Progress.HoardCurrentFloor)
                 {
                     if (!(_config.FullClear && Palace.Rooms.Any(r => r > 0 && !r.HasFlag(RoomFlags.Revealed))))
                         InterestingObjects.Add(new(a, GoalType.Passage, dist));
@@ -500,7 +502,9 @@ public abstract partial class AutoClear : ZoneModule
             {
                 case { Type: GoalType.Passage, Actor: var c }:
                     hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 2, goalWeight));
-                    hints.GoalZones.Add(AIHints.GoalSingleTarget(c.Position, 25, goalWeight));
+                    var (_, room) = FindClosestRoom(c.Position);
+                    var roomShape = ShapeDistance.Rect(room.Pos, default(Angle), room.Size.Z, room.Size.Z, room.Size.X);
+                    _pathfindZones.Add((ShapeDistance.Circle(c.Position, 25) & roomShape).Discretize());
                     break;
 
                 case { Type: GoalType.Hoard, Actor: var h }:
@@ -508,7 +512,7 @@ public abstract partial class AutoClear : ZoneModule
                     break;
 
                 case { IsTreasure: true, Actor: var d }:
-                    hints.GoalZones.Add(AIHints.GoalSingleTarget(d.Position, 25, goalWeight));
+                    _pathfindZones.Add(ShapeDistance.Circle(d.Position, 25).Discretize());
                     hints.InteractWithTarget = d;
                     break;
             }
@@ -544,6 +548,11 @@ public abstract partial class AutoClear : ZoneModule
                     pp.ShouldBeTargeted = true;
             }
         }
+
+        if (_pathfindZones.Count > 0)
+            hints.GoalZones.AddSimple(ShapeDistance.UnionPoint([.. _pathfindZones]), player.InCombat ? 1 : 0.01f);
+
+        _pathfindZones.Clear();
     }
 
     private void DrawAOEs(int playerSlot, Actor player, AIHints hints)

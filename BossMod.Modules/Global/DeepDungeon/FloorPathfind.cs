@@ -141,12 +141,10 @@ abstract partial class AutoClear : ZoneModule
             return;
         }
 
-        var goalWeight = player.InCombat ? 1 : 0.01f;
-
         // player is in a hallway/bridge near destination room, move closer
         if (PlayerRoom == DesiredRoom.Index)
         {
-            hints.GoalZones.AddSimple(p => p.InRect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X), goalWeight);
+            _pathfindZones.Add(ShapeDistance.Rect(destRoom.Pos, default(Angle), destRoom.Scale.Z, destRoom.Scale.Z, destRoom.Scale.X).Discretize());
             return;
         }
 
@@ -169,14 +167,14 @@ abstract partial class AutoClear : ZoneModule
 
         var rectWidth = 10f;
 
-        hints.GoalZones.Add(p => Vector.ConditionalSelect(
+        _pathfindZones.Add(p => Vector.ConditionalSelect(
             // align the near side of the goal rect to the grid since we get annoying jittering otherwise
             p.InRect(playerPos, srcToDestCardinal, 10, 100, 100),
-            VFloat.Zero,
+            VBool.Zero,
             Vector.ConditionalSelect(
                  p.InRect(srcBox.Pos, srcToDest.ToAngle(), srcToDestLen, srcToDestLen, rectWidth),
-                 Vector.Create(goalWeight),
-                 VFloat.Zero
+                 VBool.AllBitsSet,
+                 VBool.Zero
             )
         ));
     }
