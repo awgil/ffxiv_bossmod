@@ -13,14 +13,36 @@ public enum AID : uint
     Eyeshine = 12261, // 230E->self, 3.5s cast, range 38+R circle
     AtropineSpore = 12415, // 22FF->self, 4.0s cast, range ?-41 donut
     FrondFatale = 12416, // 22FF->self, 3.0s cast, range 40 circle
+    WoolyInspiration = 12218, // 2309->player, 2.5s cast, range 70.8 60-degree cone
+    TuskButt = 12219, // 2309->self, instant, range 10.8 90?-degree cone
+    GoldenTongue = 12222, // 230A->self, 2.5s cast, damage buff
     TheDragonsVoice = 12432, // 2311->self, 4.5s cast, range 30 circle
     Hex = 12442, // 2314->self, 4.0s cast, range 30 circle
     HorrisonousBlast = 12258, // 230D->self, 4.0s cast, range 16+R circle
     Northerlies = 12227, // 230C->self, 5.0s cast, range 40+R circle
 }
 
+public enum SID : uint
+{
+    // Stun = 2, // from mandragora, 2s duration
+    // Windburn = 269, // from 22D1, negligible damage
+    Silence = 7, // from trap
+    Concussion = 266, // 22F9->player
+    Frostbite = 268, // 2307->player
+    Poison = 560, // 22F7/22FE->player
+    Pacification = 620, // from trap
+}
+
 public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
 {
+    static readonly uint[] BadStatuses = [
+        (uint)SID.Silence,
+        (uint)SID.Concussion,
+        (uint)SID.Frostbite,
+        (uint)SID.Poison,
+        (uint)SID.Pacification
+    ];
+
     protected override void OnCastStarted(Actor actor)
     {
         switch ((AID)actor.CastInfo!.Action.ID)
@@ -31,6 +53,7 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
             case AID.Malice:
             case AID.HorrisonousBlast:
             case AID.Northerlies:
+            case AID.GoldenTongue:
                 Interrupts.Add(actor);
                 break;
             case AID.StoneGaze:
@@ -59,7 +82,39 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
                 AddDonut(actor, 8, 30);
                 HintDisabled.Add(actor);
                 break;
+
+            case AID.WoolyInspiration:
+                AddVoidzone(actor, new AOEShapeCone(10.8f, 45.Degrees()), World.FutureTime(actor.CastInfo.NPCRemainingTime));
+                break;
+            case AID.TuskButt:
+                Voidzones.RemoveAll(v => v.Source == actor);
+                break;
         }
+    }
+
+    BitMask _shouldCleanse;
+
+    protected override void OnStatusGain(Actor actor, ActorStatus status)
+    {
+        if (BadStatuses.Contains(status.ID) && World.Party.TryFindSlot(actor.InstanceID, out var slot))
+            _shouldCleanse.Set(slot);
+    }
+
+    protected override void OnStatusLose(Actor actor, ActorStatus status)
+    {
+        if (BadStatuses.Contains(status.ID) && World.Party.TryFindSlot(actor.InstanceID, out var slot))
+        {
+            // actor still has the status during this event
+            if (actor.Statuses.Count(s => BadStatuses.Contains(s.ID)) == 1)
+                _shouldCleanse.Clear(slot);
+        }
+    }
+
+    public override void CalculateAIHints(int playerSlot, Actor player, AIHints hints)
+    {
+        base.CalculateAIHints(playerSlot, player, hints);
+
+        hints.ShouldCleanse |= _shouldCleanse;
     }
 }
 

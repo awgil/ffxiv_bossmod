@@ -286,7 +286,8 @@ public abstract partial class AutoClear : ZoneModule
             {
                 try
                 {
-                    UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
+                    if (_palantirGetTraps != null)
+                        UpdateTrapsFloorset(_palantirGetTraps.InvokeFunc(World.CurrentZone));
                 }
                 catch (IpcNotReadyError)
                 {

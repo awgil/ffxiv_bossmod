@@ -58,7 +58,7 @@ class ReplayDetailsWindow : UIWindow
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
         EnableDebugEvents();
-        _player.AdvanceTo(_curTime, _mgr.Update);
+        _player.AdvanceTo(_curTime, UpdateWorld);
         _config = new(_player.WorldState, null, null);
         _events = new(data, MoveTo, rotationDB.Plans, this);
         _analysis = new([data]);
@@ -96,15 +96,14 @@ class ReplayDetailsWindow : UIWindow
 
             if (zm.GetWindowDescription() is { } desc)
             {
-                if (_modulePopout == null)
+                _modulePopout ??= new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(_rmm), true, new(600, 400), desc.Flags)
                 {
-                    _modulePopout = new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(_rmm), true, new(600, 400), desc.Flags);
-                    _modulePopout.OpenAndBringToFront();
-                }
+                    IsOpen = true
+                };
             }
             else
             {
-                _modulePopout?.IsOpen = false;
+                _modulePopout?.Dispose();
                 _modulePopout = null;
             }
         }
@@ -588,12 +587,20 @@ class ReplayDetailsWindow : UIWindow
             _zmm = new(_player.WorldState);
             _hintsBuilder = new(_player.WorldState, _mgr, _zmm, new(_player.WorldState));
             _rmm = new(_rotationDB, _mgr, _hints);
+            _modulePopout?.Dispose();
+            _modulePopout = null;
             EnableDebugEvents();
         }
-        _player.AdvanceTo(t, _mgr.Update);
+        _player.AdvanceTo(t, UpdateWorld);
         _mgr.DrawnModule?.DebugOpts = _moduleDebug;
         _curTime = t;
         ResetPF();
+    }
+
+    private void UpdateWorld()
+    {
+        _mgr.Update();
+        _zmm.ActiveModule?.Update();
     }
 
     private void Rewind(float seconds)

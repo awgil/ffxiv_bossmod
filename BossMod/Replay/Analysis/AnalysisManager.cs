@@ -17,6 +17,7 @@ public sealed class AnalysisManager : IDisposable
         private readonly Lazy<UnknownActionEffects> _unkEffects = new(() => new(replays));
         private readonly Lazy<ParticipantInfo> _participantInfo = new(() => new(replays));
         private readonly Lazy<AbilityInfo> _abilityInfo = new(() => new(replays));
+        private readonly Lazy<GlobalStatusInfo> _statusInfo = new(() => new(replays));
         private readonly Lazy<ClassDefinitions> _classDefinitions = new(() => new(replays));
         private readonly Lazy<ClientActions> _clientActions = new(() => new(replays));
         private readonly Lazy<EffectResultMispredict> _effectResultMissing = new(() => new(replays, true));
@@ -33,6 +34,9 @@ public sealed class AnalysisManager : IDisposable
 
             foreach (var n in tree.Node("Ability info", false, 0xffffffff, () => _abilityInfo.Get().DrawContextMenu()))
                 _abilityInfo.Get().Draw(tree);
+
+            foreach (var n in tree.Node("Status info", false, 0xffffffff))
+                _statusInfo.Get().Draw(tree);
 
             foreach (var n in tree.Node("Player class definitions"))
                 _classDefinitions.Get().Draw(tree);

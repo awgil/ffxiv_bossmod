@@ -1,4 +1,5 @@
-﻿namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D70Kenko;
+﻿
+namespace BossMod.Stormblood.DeepDungeon.HeavenOnHigh.D70Kenko;
 
 public enum OID : uint
 {
@@ -30,7 +31,15 @@ public enum IconID : uint
 class PredatorClaws(BossModule module) : Components.StandardAOEs(module, AID.PredatorClaws, new AOEShapeCone(15, 60.Degrees()));
 class Slabber(BossModule module) : Components.StandardAOEs(module, AID.Slabber, 8);
 class Ululation(BossModule module) : Components.RaidwideCast(module, AID.Ululation);
-class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, AID.HoundOutOfHell, 7);
+class HoundOutOfHell(BossModule module) : Components.BaitAwayChargeCast(module, AID.HoundOutOfHell, 7)
+{
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        // baiter has to walk to the puddle, so allies should get out of their way
+        if (!CurrentBaits.Any(b => b.Target == actor))
+            base.AddAIHints(slot, actor, assignment, hints);
+    }
+}
 class InnerspacePredict(BossModule module) : Components.SpreadFromCastTargets(module, AID.Innerspace, 3);
 class Innerspace(BossModule module) : Components.GenericAOEs(module)
 {
@@ -68,6 +77,52 @@ class Innerspace(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
+class Devour(BossModule module) : Components.GenericAOEs(module, AID.Devour)
+{
+    Actor? Target;
+    bool Risky;
+    static readonly AOEShapeCone Shape = new(10, 60.Degrees());
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (Target == null || Target == actor)
+            yield break;
+
+        var toTarget = Target.Position - Module.PrimaryActor.Position;
+        WPos castSource;
+        if (Risky)
+            castSource = Module.PrimaryActor.Position;
+        else
+        {
+            var dist = Math.Max(0, toTarget.Length() - Module.PrimaryActor.HitboxRadius - Target.HitboxRadius);
+            castSource = Module.PrimaryActor.Position + toTarget.Normalized() * dist;
+        }
+
+        yield return new(Shape, castSource, toTarget.ToAngle(), Risky: Risky);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        foreach (var aoe in ActiveAOEs(slot, actor))
+            hints.AddForbiddenZone(aoe.DistV, aoe.Activation);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.HoundOutOfHell && WorldState.Actors.Find(spell.TargetID) is { } target)
+            Target = target;
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID == AID.HoundOutOfHell)
+            Risky = true;
+
+        if (spell.Action == WatchedAction)
+            Target = null;
+    }
+}
+
 class D70KenkoStates : StateMachineBuilder
 {
     public D70KenkoStates(BossModule module) : base(module)
@@ -78,7 +133,8 @@ class D70KenkoStates : StateMachineBuilder
             .ActivateOnEnter<Innerspace>()
             .ActivateOnEnter<InnerspacePredict>()
             .ActivateOnEnter<Ululation>()
-            .ActivateOnEnter<HoundOutOfHell>();
+            .ActivateOnEnter<HoundOutOfHell>()
+            .ActivateOnEnter<Devour>();
     }
 }
 

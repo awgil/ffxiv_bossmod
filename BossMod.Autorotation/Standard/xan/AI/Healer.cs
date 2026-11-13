@@ -157,7 +157,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         if (esuna.IsEnabled())
             foreach (var st in Health.PartyMemberStates)
                 if (st.EsunableStatusRemaining > GCD + 1.14f && esuna.Check(Hints.ShouldCleanse[st.Slot]))
-                    UseGCD(BossMod.WHM.AID.Esuna, World.Party[st.Slot]);
+                    UseGCD(BossMod.WHM.AID.Esuna, World.Party[st.Slot], 50);
 
         switch (Player.Class)
         {

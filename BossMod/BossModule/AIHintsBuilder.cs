@@ -25,6 +25,11 @@ public sealed class AIHintsBuilder : IDisposable
 
     private float ConeFallback => Math.Clamp(_hintConfig.ConeFallbackAngle, 1, 180);
 
+    // invincibility statuses
+    // `f` refers to the Flags column, only specified if nonzero
+    // `mod` refers to the ParamModifier column
+    // `???` means the status appears to have no attributes that distinguish it from other buffs unrelated to invincibility (this is why the list is incomplete, the majority of these have no useful data)
+    // invincibility can also be purely serverside, e.g. garuda normal
     private static readonly List<uint> InvincibleStatuses =
     [
         151, // stoneskin f=12
