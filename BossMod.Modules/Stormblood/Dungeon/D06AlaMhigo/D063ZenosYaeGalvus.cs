@@ -86,34 +86,7 @@ class ArtOfTheSword(BossModule module) : Components.GenericBaitAway(module)
 }
 class Concentrativity(BossModule module) : Components.RaidwideCast(module, AID.Concentrativity);
 class ArtOfTheStorm1(BossModule module) : Components.StandardAOEs(module, AID.ArtOfTheStorm1, new AOEShapeCircle(8));
-class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ArtOfTheSwell1, 15)
-{
-    private ArtOfTheStorm1? storm;
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        storm ??= Module.FindComponent<ArtOfTheStorm1>();
-
-        var caster = Casters.FirstOrDefault();
-        if (caster == null)
-            return;
-
-        List<DistFn> funcs = [
-            ShapeDistance.InvertedCircle(Module.Center, 20),
-        ];
-
-        if (storm?.ActiveCasters.FirstOrDefault() is Actor st)
-            funcs.Add(storm.Shape.Distance(st.Position, st.Rotation));
-
-        VFloat inbounds(WVec pos)
-        {
-            var dir = (pos - caster.Position).Normalized();
-            var proj = pos + dir * 15;
-            return funcs.Min(f => f(proj));
-        }
-
-        hints.AddForbiddenZone(inbounds, Module.CastFinishAt(caster.CastInfo));
-    }
-}
+class ArtOfTheSwell1(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ArtOfTheSwell1, 15);
 
 class StormSwellSword(BossModule module) : Components.RaidwideCast(module, AID.StormSwellSword1);
 

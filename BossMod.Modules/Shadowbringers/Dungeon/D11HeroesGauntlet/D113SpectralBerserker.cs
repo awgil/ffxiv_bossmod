@@ -233,14 +233,10 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
     {
         if (_zones.Count > 0)
         {
-            var safe = UnsafeAt > WorldState.CurrentTime;
+            var holeSafe = UnsafeAt > WorldState.CurrentTime;
             var hs = HoleSize;
-            var zones = _zones.Select(z => ShapeDistance.Circle(z, hs));
-            hints.AddForbiddenZone(p =>
-            {
-                var inHole = zones.Min(z => z(p));
-                return safe ? -inHole : inHole;
-            }, UnsafeAt);
+            var zones = ShapeDistance.Union([.. _zones.Select(z => ShapeDistance.Circle(z, hs))]);
+            hints.AddForbiddenZone(zones.Inverted(holeSafe), UnsafeAt);
         }
     }
 

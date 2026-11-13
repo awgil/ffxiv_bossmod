@@ -199,12 +199,14 @@ class WindswrathLong(BossModule module) : Components.KnockbackFromCastTarget(mod
             var so = new WVec(s.Origin);
             var sd = VV.Create(s.Distance);
 
+            var safe = ShapeDistance.Union(funcs).Grow(1);
+
             VFloat combined(WVec p)
             {
                 var offset = p - so;
                 offset += offset.Normalized() * sd;
                 var adj = so + offset;
-                return funcs.Min(f => f(adj) - VFloat.One);
+                return safe(adj);
             }
             hints.AddForbiddenZone(combined, s.Activation);
         }

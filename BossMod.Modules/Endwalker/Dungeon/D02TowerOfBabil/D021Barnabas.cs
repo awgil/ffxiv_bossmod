@@ -156,7 +156,7 @@ class Magnetism(BossModule module) : Components.Knockback(module, ignoreImmunes:
         else if (IsPull(actor, Shape.Rect, MagneticPole.Plus) || IsPull(actor, Shape.Rect, MagneticPole.Minus))
             forbidden.Add(ShapeDistance.Rect(Arena.Center, rotation, 15, 15, 12));
         if (forbidden.Count > 0)
-            hints.AddForbiddenZone(p => forbidden.Min(f => f(p)), activation);
+            hints.AddForbiddenZone(ShapeDistance.Union(forbidden), activation);
     }
 }
 

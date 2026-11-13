@@ -52,7 +52,7 @@ class WindSafe(BossModule module) : Components.GenericAOEs(module)
             if (zones.Count == 0)
                 zones = [.. volley];
             var shapes = zones.Select(s => (s.volley == 0 && !WillBreak(s.meteor) ? _nearMeteor : s.aoe.Shape).Distance(s.aoe.Origin, s.aoe.Rotation)).ToList();
-            hints.AddForbiddenZone(p => -shapes.Min(e => e(p)), zones.Min(s => s.aoe.Activation));
+            hints.AddForbiddenZone(-ShapeDistance.Union(shapes), zones.Min(s => s.aoe.Activation));
         }
     }
 

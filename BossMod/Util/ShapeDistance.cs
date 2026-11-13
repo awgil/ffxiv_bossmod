@@ -265,6 +265,19 @@ public static class ShapeDistance
             return d;
         };
     }
+    public static PointTest UnionPoint(List<PointTest> funcs)
+    {
+        if (funcs.Count == 0)
+            return PointTest.Never;
+
+        return p =>
+        {
+            var result = VBool.Zero;
+            foreach (var f in funcs)
+                result |= f(p);
+            return result;
+        };
+    }
 
     public static DistFn Xor(DistFn a, DistFn b)
     {
