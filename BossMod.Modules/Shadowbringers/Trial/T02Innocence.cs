@@ -229,17 +229,11 @@ class InnocenceAdds(BossModule module) : Components.AddsMulti(module, [(uint)OID
 
 class SinSphere(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnActorCreated(Actor actor)
+    public override void Update()
     {
-        if (actor.OID == (uint)OID.MeteorTower)
-            Towers.Add(new(actor.Position, 5, 1, 2));
-    }
-
-    public override void OnActorDestroyed(Actor actor)
-    {
-        base.OnActorDestroyed(actor);
-        if (actor.OID == (uint)OID.MeteorTower)
-            Towers.Clear();
+        Towers.Clear();
+        foreach (var t in Module.Enemies(OID.MeteorTower).Where(a => !a.IsDestroyed))
+            Towers.Add(new(t.Position, 5, 1, 2));
     }
 }
 

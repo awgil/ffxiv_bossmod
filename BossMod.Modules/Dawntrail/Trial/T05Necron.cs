@@ -92,7 +92,7 @@ class ExistentialDread(BossModule module) : Components.GenericAOEs(module, AID.E
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (_safeSide != Side.Unknown && !_risky && _activation != default)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(PreposOrigin(), new WDir(0, 1), 30, 0, 2), _activation);
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(PreposOrigin(), new WDir(0, 1), 30, 0, 1), _activation);
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -150,7 +150,7 @@ class ExistentialDread(BossModule module) : Components.GenericAOEs(module, AID.E
 
     private WPos PreposOrigin()
     {
-        var x = _safeSide == Side.Left ? Arena.Center.X - 5 : Arena.Center.X + 5;
+        var x = _safeSide == Side.Left ? Arena.Center.X - 4.5f : Arena.Center.X + 4.5f;
         return new(x, Arena.Center.Z - 15);
     }
 

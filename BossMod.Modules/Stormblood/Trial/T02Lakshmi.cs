@@ -96,23 +96,14 @@ class VrilOrbs(BossModule module) : BossComponent(module)
     private IEnumerable<Actor> Orbs() => Module.Enemies(OID.Vril).Where(z => !z.IsDead);
 }
 
-class PathOfLight(BossModule module) : Components.GenericBaitAway(module, AID.ThePathOfLight, damageType: AIHints.PredictedDamageType.Tankbuster)
+// TODO: verify Path of Light half-angle
+class PathOfLight(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(40, 37.5f.Degrees()), (uint)IconID.ProteanCleave, AID.ThePathOfLight, 5.3f, damageType: AIHints.PredictedDamageType.Tankbuster)
 {
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if ((IconID)iconID != IconID.ProteanCleave)
-            return;
-        if (WorldState.Actors.Find(targetID) is { } target)
-            CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeCone(40, 37.5f.Degrees()), WorldState.FutureTime(5.3f))); // TODO: verify Path of Light half-angle
-    }
-
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.ThePathOfLightProtean or AID.ThePathOfLight)
-        {
-            ++NumCasts;
+        base.OnEventCast(caster, spell);
+        if ((AID)spell.Action.ID == AID.ThePathOfLightProtean)
             CurrentBaits.Clear();
-        }
     }
 }
 

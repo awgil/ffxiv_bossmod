@@ -60,17 +60,11 @@ class Apokalypsis(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        if ((AID)spell.Action.ID is AID.ApokalypsisFirst or AID.ApokalypsisRest && ++NumCasts == 5)
         {
-            case AID.ApokalypsisFirst:
-            case AID.ApokalypsisRest:
-                if (++NumCasts == 5)
-                {
-                    _activation = default;
-                    UnsafePlatforms.Clear();
-                    NumCasts = 0;
-                }
-                break;
+            _activation = default;
+            UnsafePlatforms.Clear();
+            NumCasts = 0;
         }
     }
 }
@@ -112,16 +106,10 @@ class DeathlyRayTherion(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
+        if ((AID)spell.Action.ID is AID.DeathlyRayTherionFirst or AID.DeathlyRayTherionRest && ++NumCasts >= 5)
         {
-            case AID.DeathlyRayTherionFirst:
-            case AID.DeathlyRayTherionRest:
-                if (++NumCasts >= 5)
-                {
-                    _aoe = null;
-                    NumCasts = 0;
-                }
-                break;
+            _aoe = null;
+            NumCasts = 0;
         }
     }
 }

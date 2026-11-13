@@ -35,21 +35,20 @@ public enum SID : uint
 
 class PipingPour(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCircle _shape = new(8);
-    private readonly List<AOEInstance> _aoes = [];
+    private readonly Queue<WPos> _puddles = new();
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
-
-    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
-    {
-        if (id == 0x11DD && _aoes.Count > 0 && (OID)actor.OID == OID.SpectralSamovar)
-            _aoes.RemoveAt(0);
-    }
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _puddles.Select(p => new AOEInstance(new AOEShapeCircle(8), p));
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
-        if (status.ID == (uint)SID.AreaOfInfluenceUp && status.Extra == 0x1)
-            _aoes.Add(new(_shape, actor.Position));
+        if ((SID)status.ID == SID.AreaOfInfluenceUp && status.Extra == 1)
+            _puddles.Enqueue(actor.Position);
+    }
+
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if (id == 0x11DD && (OID)actor.OID == OID.SpectralSamovar)
+            _puddles.TryDequeue(out _);
     }
 }
 
@@ -107,7 +106,7 @@ class TeaAwhirl(BossModule module) : Components.GenericAOEs(module)
         var act = WorldState.FutureTime(delay);
         foreach (var (a, b, explode) in patterns)
         {
-            if (b is { } bb ? HasCup(a) && HasCup(bb) : HasCup(a))
+            if (HasCup(a) && (b is not { } second || HasCup(second)))
             {
                 AddAOEs(act, explode);
                 return;
@@ -142,10 +141,10 @@ class D072JackInThePotStates : StateMachineBuilder
     {
         // TODO: Sordid Steam never seen (two clears)
         TrivialPhase()
-            .ActivateOnEnter<TeaAwhirl>()
-            .ActivateOnEnter<PipingPour>()
+            .ActivateOnEnter<LastDrop>()
             .ActivateOnEnter<SordidSteam>()
-            .ActivateOnEnter<LastDrop>();
+            .ActivateOnEnter<PipingPour>()
+            .ActivateOnEnter<TeaAwhirl>();
     }
 }
 

@@ -38,9 +38,10 @@ public enum IconID : uint
     LoomingNightmare = 197, // player
 }
 
-class ArenaChange(BossModule module) : Components.GenericAOEs(module)
+class MaliciousMist(BossModule module) : Components.RaidwideCast(module, AID.MaliciousMist);
+
+class MistDeathwall(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeDonut _donut = new(14, 20);
     private AOEInstance? _aoe;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
@@ -48,80 +49,87 @@ class ArenaChange(BossModule module) : Components.GenericAOEs(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.MaliciousMist && Arena.Bounds.Radius > 14)
-            _aoe = new(_donut, Arena.Center, default, Module.CastFinishAt(spell, 0.9f));
+            _aoe = new(new AOEShapeDonut(14, 20), Arena.Center, default, Module.CastFinishAt(spell, 0.9f));
     }
 
     public override void OnMapEffect(byte index, uint state)
     {
         if (index == 0x00 && state == 0x00020001)
         {
-            Arena.Bounds = D071HisRoyalHeadnessLeonoggI.DefaultBounds;
             _aoe = null;
+            Arena.Bounds = D071HisRoyalHeadnessLeonoggI.DefaultBounds;
         }
     }
 }
 
 class LoomingNightmare(BossModule module) : Components.StandardChasingAOEs(module, new AOEShapeCircle(4), AID.LoomingNightmareFirst, AID.LoomingNightmareRest, 3, 1.6f, 5)
 {
-    private int _total;
+    private int _numChases;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
+        if (spell.Action == ActionFirst && ++_numChases > 2)
+            MaxCasts = 4;
         base.OnCastStarted(caster, spell);
-        if (spell.Action == ActionFirst)
-        {
-            ++_total;
-            if (_total > 1)
-                MaxCasts = 4;
-        }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (ExcludedTargets[slot])
-            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 13.5f), Chasers.FirstOrDefault()?.NextActivation ?? default);
+        if (Chasers.Find(c => c.Target == actor) is { } chaser)
+            hints.AddForbiddenZone(ShapeDistance.Circle(Arena.Center, 13.5f), chaser.NextActivation);
     }
 }
 
 class FallingNightmare(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeCircle _shape = new(2);
-    private readonly List<AOEInstance> _aoes = [];
+    private readonly Dictionary<ulong, AOEInstance> _aoes = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Values;
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id == 0x11D1 && (OID)actor.OID == OID.NobleNoggin)
-            _aoes.Add(new(_shape, actor.Position, default, WorldState.FutureTime(3)));
+            _aoes[actor.InstanceID] = new(new AOEShapeCircle(2), actor.Position, default, WorldState.FutureTime(3));
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.FallingNightmare1 or AID.FallingNightmare2)
+            _aoes[caster.InstanceID] = new(new AOEShapeCircle(2), caster.Position, default, Module.CastFinishAt(spell));
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.FallingNightmare1 or AID.FallingNightmare2)
-            _aoes.RemoveAt(0);
+        if ((AID)spell.Action.ID is AID.FallingNightmare1 or AID.FallingNightmare2)
+        {
+            ++NumCasts;
+            _aoes.Remove(caster.InstanceID);
+        }
     }
+
+    public override void OnActorDestroyed(Actor actor) => _aoes.Remove(actor.InstanceID);
 }
 
 class SpiritedCharge(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeRect _shape = new(6, 1);
-    private readonly List<Actor> _charges = [];
+    private readonly List<Actor> _dolls = [];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _charges.Select(c => new AOEInstance(_shape, c.Position, c.Rotation));
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _dolls.Select(d => new AOEInstance(new AOEShapeRect(6, 1), d.Position, d.Rotation));
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID == AID.SpiritedChargeStart)
-            _charges.Add(caster);
+            _dolls.Add(caster);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
     {
         if (id == 0x1E3C)
-            _charges.Remove(actor);
+            _dolls.Remove(actor);
     }
+
+    public override void OnActorDestroyed(Actor actor) => _dolls.Remove(actor);
 }
 
 class EvilScheme(BossModule module) : Components.Exaflare(module, 4)
@@ -129,36 +137,27 @@ class EvilScheme(BossModule module) : Components.Exaflare(module, 4)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.EvilSchemeFirst)
-            Lines.Add(new()
-            {
-                Next = caster.Position,
-                Advance = 4 * spell.Rotation.ToDirection(),
-                NextExplosion = Module.CastFinishAt(spell, 1.6f),
-                TimeToMove = 1.5f,
-                ExplosionsLeft = 5,
-                MaxShownExplosions = 5,
-            });
+            Lines.Add(new() { Next = caster.Position, Advance = 4 * spell.Rotation.ToDirection(), NextExplosion = Module.CastFinishAt(spell, 1.6f), TimeToMove = 1.5f, ExplosionsLeft = 5, MaxShownExplosions = 5 });
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is not (AID.EvilSchemeFirst or AID.EvilSchemeRest))
-            return;
-        var pos = caster.Position;
-        for (var i = 0; i < Lines.Count; ++i)
+        if ((AID)spell.Action.ID is AID.EvilSchemeFirst or AID.EvilSchemeRest)
         {
-            if (Lines[i].Next.AlmostEqual(pos, 1))
+            ++NumCasts;
+            var index = Lines.FindIndex(l => l.Next.AlmostEqual(caster.Position, 1));
+            if (index < 0)
             {
-                AdvanceLine(Lines[i], pos);
-                if (Lines[i].ExplosionsLeft == 0)
-                    Lines.RemoveAt(i);
-                break;
+                ReportError($"Failed to find line for {caster.InstanceID:X}");
+                return;
             }
+            AdvanceLine(Lines[index], caster.Position);
+            if (Lines[index].ExplosionsLeft == 0)
+                Lines.RemoveAt(index);
         }
     }
 }
 
-class MaliciousMist(BossModule module) : Components.RaidwideCast(module, AID.MaliciousMist);
 class Scream(BossModule module) : Components.StandardAOEs(module, AID.Scream, new AOEShapeCone(20, 30.Degrees()), maxCasts: 4);
 
 class D071HisRoyalHeadnessLeonoggIStates : StateMachineBuilder
@@ -167,13 +166,13 @@ class D071HisRoyalHeadnessLeonoggIStates : StateMachineBuilder
     {
         // TODO: Morbid Fascination and Scream never seen (two clears)
         TrivialPhase()
-            .ActivateOnEnter<ArenaChange>()
             .ActivateOnEnter<MaliciousMist>()
-            .ActivateOnEnter<LoomingNightmare>()
-            .ActivateOnEnter<EvilScheme>()
-            .ActivateOnEnter<FallingNightmare>()
+            .ActivateOnEnter<MistDeathwall>()
+            .ActivateOnEnter<Scream>()
             .ActivateOnEnter<SpiritedCharge>()
-            .ActivateOnEnter<Scream>();
+            .ActivateOnEnter<FallingNightmare>()
+            .ActivateOnEnter<EvilScheme>()
+            .ActivateOnEnter<LoomingNightmare>();
     }
 }
 

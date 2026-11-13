@@ -96,16 +96,9 @@ class TheDragonsGaze(BossModule module) : Components.CastGaze(module, AID.TheDra
 class SacredCross(BossModule module) : Components.RaidwideCast(module, AID.SacredCross);
 class DimensionalCollapse(BossModule module) : Components.StandardAOEs(module, AID.DimensionalCollapse, 10);
 class Conviction(BossModule module) : Components.CastTowers(module, AID.Conviction, 2);
-class HeavyImpact(BossModule module) : Components.ConcentricAOEs(module, [
-    new AOEShapeCone(6, 135.Degrees()),
-    new AOEShapeDonutSector(6, 12, 135.Degrees()),
-    new AOEShapeDonutSector(12, 18, 135.Degrees()),
-    new AOEShapeDonutSector(18, 27, 135.Degrees())])
+class HeavyImpact(BossModule module) : Components.ConcentricAOEs(module, [new AOEShapeCone(6, 135.Degrees()), new AOEShapeDonutSector(6, 12, 135.Degrees()), new AOEShapeDonutSector(12, 18, 135.Degrees()), new AOEShapeDonutSector(18, 27, 135.Degrees())])
 {
-    public override void Update()
-    {
-        Sequences.RemoveAll(s => s.NextActivation != default && s.NextActivation < WorldState.CurrentTime.AddSeconds(-1));
-    }
+    public override void Update() => Sequences.RemoveAll(s => s.NextActivation != default && s.NextActivation < WorldState.CurrentTime.AddSeconds(-1));
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -123,7 +116,8 @@ class HeavyImpact(BossModule module) : Components.ConcentricAOEs(module, [
             AID.HeavyImpact4 => 3,
             _ => -1
         };
-        AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.9f), spell.Rotation);
+        if (!AdvanceSequence(order, caster.Position, WorldState.FutureTime(1.9f), spell.Rotation))
+            ReportError($"Unexpected ring {order}");
     }
 }
 class SpiralThrust(BossModule module) : Components.StandardAOEs(module, AID.SpiralThrust, new AOEShapeRect(54.2f, 6));

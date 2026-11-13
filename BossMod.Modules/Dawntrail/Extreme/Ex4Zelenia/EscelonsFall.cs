@@ -12,12 +12,15 @@ class EscelonsFall : Components.GenericBaitAway
     }
 
     public bool Active => Order.Count > 0;
+    public int NumVolleys { get; private set; }
 
     private readonly List<Proximity> Order = [];
     private readonly List<Proximity> HintOrder = []; // not cleared, component should be reloaded instead
 
     private readonly DateTime[] Vulns = new DateTime[PartyState.MaxPartySize];
     private DateTime NextActivation; // 13.9s from boss cast, then every 3.1s
+    private bool VolleyPending;
+    private uint VolleySequence;
 
     public EscelonsFall(BossModule module) : base(module, AID.EscelonsFall)
     {
@@ -77,16 +80,27 @@ class EscelonsFall : Components.GenericBaitAway
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (spell.Action == WatchedAction)
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID is AID.EscelonsFallVisual or AID.EscelonsFallVisualRepeat && IsAfterVolleyMarker(spell.GlobalSequence))
         {
-            if (++NumCasts % 4 == 0 && Order.Count > 0)
+            VolleyPending = true;
+            VolleySequence = spell.GlobalSequence;
+        }
+        else if (spell.Action == WatchedAction)
+        {
+            ++NumCasts;
+            if (VolleyPending && Order.Count > 0 && IsAfterVolleyMarker(spell.GlobalSequence))
             {
+                VolleyPending = false;
+                ++NumVolleys;
                 Order.RemoveAt(0);
                 if (Order.Count > 0)
                     NextActivation = WorldState.FutureTime(3.1f);
             }
         }
     }
+
+    // Late hits from the previous volley must not consume a new marker.
+    private bool IsAfterVolleyMarker(uint sequence) => sequence == 0 || VolleySequence == 0 || unchecked((int)(sequence - VolleySequence)) > 0;
 }
 
 class PowerBreak(BossModule module) : Components.GroupedAOEs(module, [AID.PowerBreak1, AID.PowerBreak2], new AOEShapeRect(24, 32));

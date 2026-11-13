@@ -53,7 +53,7 @@ class ActivateOvoo(BossModule module) : BossComponent(module)
 {
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (actor.MountId == 117)
+        if (actor.MountId != 0)
             hints.WantDismount = true;
 
         var beingAttacked = false;

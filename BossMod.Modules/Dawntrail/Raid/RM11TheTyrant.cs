@@ -107,13 +107,8 @@ class CrownOfArcadia(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeRect rect = new(20, 6, 20);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -173,13 +168,8 @@ class Maelstrom(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnActorCreated(Actor actor)
     {
@@ -199,40 +189,84 @@ class Maelstrom(BossModule module) : Components.GenericAOEs(module)
 }
 class PowerfulGust(BossModule module) : Components.GenericAOEs(module)
 {
-    private readonly List<AOEInstance> _aoes = [];
+    private readonly List<(ulong caster, AOEInstance aoe)> _aoes = [];
     private static readonly AOEShapeCone cone = new(60f, 22.5f.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes.Take(8))
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes.Take(8))
+            yield return e.aoe with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID is AID.PowerfulGust)
         {
-            _aoes.Add(new(cone, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation));
+            _aoes.Add((caster.InstanceID, new(cone, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation)));
 
         }
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if (_aoes.Count > 0 && (AID)spell.Action.ID is AID.PowerfulGust)
+        if ((AID)spell.Action.ID is AID.PowerfulGust)
         {
-            _aoes.RemoveAt(0);
+            var index = _aoes.FindIndex(c => c.caster == caster.InstanceID);
+            if (index >= 0)
+                _aoes.RemoveAt(index);
         }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.PowerfulGust)
+            _aoes.RemoveAll(c => c.caster == caster.InstanceID);
     }
 }
 class OneAndOnly(BossModule module) : Components.RaidwideCast(module, AID.OneAndOnly);
 class CosmicKiss(BossModule module) : Components.CastTowers(module, AID.CosmicKiss, 4f);
 class MassiveMeteor(BossModule module) : Components.StackWithIcon(module, (uint)IconID.MassiveMeteorStack, AID.MassiveMeteor, 6, 0);
-class ForegoneFatality(BossModule module) : Components.TankbusterTether(module, AID.ForegoneFatality, (uint)TetherID.TankInterceptTether, 6f);
-class DoubleTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(module, AID.DoubleTyrannhilation1, 60f, false)
+class ForegoneFatality(BossModule module) : Components.TankbusterTether(module, AID.ForegoneFatality, (uint)TetherID.TankInterceptTether, 6f)
+{
+    private readonly List<(Actor Source, Actor Target)> _cometTethers = [];
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+        if (!Active && _cometTethers.Count > 0 && actor.Role == Role.Tank)
+            hints.Add("Grab the tether!");
+    }
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        foreach (var (source, target) in _cometTethers)
+        {
+            if (Arena.Config.ShowOutlinesAndShadows)
+                Arena.AddLine(source.Position, target.Position, 0xFF000000, 2);
+            Arena.AddLine(source.Position, target.Position, ArenaColor.Danger);
+        }
+    }
+
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == TID && (OID)source.OID == OID.TheTyrant2 && WorldState.Actors.Find(tether.Target) is { OID: (uint)OID.Comet } target)
+            _cometTethers.Add((source, target));
+        else
+            base.OnTethered(source, tether);
+    }
+
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
+    {
+        var targetID = tether.Target;
+        if (tether.ID != TID || _cometTethers.RemoveAll(t => t.Source == source && t.Target.InstanceID == targetID) == 0)
+            base.OnUntethered(source, tether);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        _cometTethers.RemoveAll(t => t.Source == actor || t.Target == actor);
+    }
+}
+abstract class Tyrannhilation(BossModule module, Enum aid) : Components.CastLineOfSightAOE(module, aid, 60f, false)
 {
     public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Comet).Where(a => !a.Position.InCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + a.HitboxRadius + 9));
 
@@ -242,29 +276,16 @@ class DoubleTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(mo
             Refresh();
     }
 }
-class HiddenTyrannhilation(BossModule module) : Components.CastLineOfSightAOE(module, AID.HiddenTyrannhilation, 60f, false)
-{
-    public override IEnumerable<Actor> BlockerActors() => Module.Enemies(OID.Comet).Where(a => !a.Position.InCircle(Module.PrimaryActor.Position, Module.PrimaryActor.HitboxRadius + a.HitboxRadius + 9));
-
-    public override void OnActorCreated(Actor actor)
-    {
-        if ((OID)actor.OID == OID.Comet)
-            Refresh();
-    }
-}
+class DoubleTyrannhilation(BossModule module) : Tyrannhilation(module, AID.DoubleTyrannhilation1);
+class HiddenTyrannhilation(BossModule module) : Tyrannhilation(module, AID.HiddenTyrannhilation);
 class Flatliner(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _aoes = [];
     private static readonly AOEShapeRect rect = new(20, 6, 20);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -332,13 +353,8 @@ class ArcadionAvalanche(BossModule module) : Components.GenericAOEs(module)
     private static readonly AOEShapeRect rect = new(40f, 20f);
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_aoes.Count > 0)
-        {
-            foreach (var e in _aoes)
-            {
-                yield return e with { Color = ArenaColor.AOE };
-            }
-        }
+        foreach (var e in _aoes)
+            yield return e with { Color = ArenaColor.AOE };
     }
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -416,5 +432,5 @@ class RM11TheTyrantStates : StateMachineBuilder
             .ActivateOnEnter<GreatWallOfFire>();
     }
 }
-[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1072, NameID = 14305)]
+[ModuleInfo(Contributors = "VeraNala, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1072, NameID = 14305)]
 public class RM11TheTyrant(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 20));

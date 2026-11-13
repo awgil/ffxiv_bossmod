@@ -307,24 +307,37 @@ class GuloolJaJaStates : StateMachineBuilder
             .DeactivateOnExit<SteeledStrike>();
 
         id += 0x10000;
-        BurningSun(id, 9.3f, false);
+        Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
+        {
+            [AID.BurningSunCast] = ((id >> 24) + 1, ForkBurningSun),
+            [AID.Doubling1] = ((id >> 24) + 2, id => FinalBlock(id, 0))
+        };
+        CastStartFork(id, fork, 9.3f, "Puddles -or- Doubling");
+    }
+
+    private void ForkBurningSun(uint id)
+    {
+        BurningSun(id, 0, false);
 
         id += 0x10000;
         DualBlows(id, 2.4f)
             .DeactivateOnExit<BurningSun>()
             .DeactivateOnExit<BurningSunPuddle>();
 
-        id += 0x10000;
-        Cast(id, AID.Doubling1, 8.7f, 3)
+        FinalBlock(id + 0x10000, 8.7f);
+    }
+
+    private void FinalBlock(uint id, float delay)
+    {
+        Cast(id, AID.Doubling1, delay, 3)
             .ActivateOnEnter<GloryBlaze>()
             .ActivateOnEnter<SteeledStrikeShade>();
         CoiledStrike(id + 0x10, 17.6f, bothCasts: false);
         ComponentCondition<SteeledStrikeShade>(id + 0x20, 4.9f, s => s.NumCasts > 0, "Cross 1")
+            .ActivateOnEnter<Thrill>()
             .DeactivateOnExit<SteeledStrikeShade>();
 
-        id += 0x10000;
-        Timeout(id, 9000f, "Towers + victory")
-            .ActivateOnEnter<Thrill>();
+        Timeout(id + 0x10000, 9000f, "Towers + victory");
     }
 }
 
