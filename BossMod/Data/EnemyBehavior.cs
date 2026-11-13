@@ -18,7 +18,7 @@ public static class EnemyBehavior
                 continue;
 
             var fields = line.Split('\t');
-            if (fields is not [var oidText, var name, var distanceText, var moveText])
+            if (fields is not [var oidText, var name, var distanceText])
             {
                 Service.PluginLog.Warning($"Error parsing EnemyBehavior: malformed line {line}");
                 continue;
@@ -34,19 +34,21 @@ public static class EnemyBehavior
                 continue;
             }
 
-            if (!float.TryParse(distanceText, out var distance))
+            float distance;
+            var canMove = true;
+
+            if (distanceText == "-")
+            {
+                distance = 0;
+                canMove = false;
+            }
+            else if (!float.TryParse(distanceText, out distance))
             {
                 Service.PluginLog.Warning($"invalid TankDistance value: {distanceText}");
                 continue;
             }
 
-            if (!bool.TryParse(moveText, out var move))
-            {
-                Service.PluginLog.Warning($"invalid CanMove value: {moveText}");
-                continue;
-            }
-
-            AllRecords.Add(oid, new(oid, name, distance, move));
+            AllRecords.Add(oid, new(oid, name, distance, canMove));
         }
     }
 
