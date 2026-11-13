@@ -35,7 +35,7 @@ public enum SID : uint
     GhostlyGuise = 3949, // none->player
 }
 
-class ImpactArenaChange(BossModule module) : BossComponent(module)
+class CrossArena(BossModule module) : BossComponent(module)
 {
     private bool _active;
     private GhostlyGuise? _ghost;
@@ -74,12 +74,9 @@ class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
 {
     private static readonly AOEShapeCircle _circle = new(3);
     private static readonly WPos[] _platforms = [new(137.5f, -443.5f), new(158.5f, -443.5f), new(137.5f, -422.5f), new(158.5f, -422.5f)];
-    private readonly AOEInstance[] _circles = new AOEInstance[4];
     private bool _activated;
     private bool _fleshbuster;
-    private DateTime _activation;
     private DateTime _fleshAct;
-    private bool _risky = true;
     private DistFn? _safeZones;
     private Ghostduster? _avoid;
     private IllIntentTethers? _seek;
@@ -90,30 +87,20 @@ class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
     {
         if (!_activated)
             yield break;
+        var (risky, activation) = PlatformState(slot);
+        foreach (var pos in _platforms)
+            yield return new(_circle, pos, default, activation, risky ? ArenaColor.AOE : ArenaColor.SafeFromAOE, Risky: risky);
+    }
+
+    private (bool Risky, DateTime Activation) PlatformState(int slot)
+    {
         _avoid ??= Module.FindComponent<Ghostduster>();
         _seek ??= Module.FindComponent<IllIntentTethers>();
         if (_avoid is { Spreads.Count: > 0 } a)
-        {
-            _risky = !Ghostly[slot];
-            _activation = a.Spreads[0].Activation;
-        }
-        else if (_fleshbuster)
-        {
-            _risky = Ghostly[slot];
-            _activation = _fleshAct;
-        }
-        else if (_seek is { Active: true })
-            _risky = Ghostly[slot];
-        else
-            _risky = true;
-
-        var color = _risky ? ArenaColor.AOE : ArenaColor.SafeFromAOE;
-        for (var i = 0; i < 4; ++i)
-        {
-            _circles[i].Color = color;
-            _circles[i].Activation = _activation;
-            yield return _circles[i];
-        }
+            return (!Ghostly[slot], a.Spreads[0].Activation);
+        if (_fleshbuster)
+            return (Ghostly[slot], _fleshAct);
+        return (_seek is not { Active: true } || Ghostly[slot], default);
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -125,7 +112,6 @@ class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
         for (var i = 0; i < 4; ++i)
         {
             var pos = _platforms[i];
-            _circles[i] = new(_circle, pos);
             zones.Add(ShapeDistance.InvertedCircle(pos, 3));
         }
         _safeZones = ShapeDistance.Intersection(zones);
@@ -170,8 +156,9 @@ class GhostlyGuise(BossModule module) : Components.GenericAOEs(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        if (!_risky && _safeZones != null)
-            hints.AddForbiddenZone(_safeZones, _activation);
+        var (risky, activation) = PlatformState(slot);
+        if (_activated && !risky && _safeZones != null)
+            hints.AddForbiddenZone(_safeZones, activation);
         else
             base.AddAIHints(slot, actor, assignment, hints);
     }
@@ -239,12 +226,9 @@ class Ghostcrusher(BossModule module) : Components.SimpleLineStack(module, 4, 80
 
 class Ghostduster(BossModule module) : Components.SpreadFromCastTargets(module, AID.Ghostduster, 8)
 {
-    private GhostlyGuise? _ghost;
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        _ghost ??= Module.FindComponent<GhostlyGuise>();
-        if (_ghost == null || !_ghost.Ghostly[slot])
+        if (!(Module.FindComponent<GhostlyGuise>()?.Ghostly[slot] ?? false))
             base.AddAIHints(slot, actor, assignment, hints);
     }
 }
@@ -254,17 +238,17 @@ class D073TraumereiStates : StateMachineBuilder
     public D073TraumereiStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<IllIntentTethers>()
-            .ActivateOnEnter<Ghostduster>()
-            .ActivateOnEnter<GhostlyGuise>()
-            .ActivateOnEnter<ImpactArenaChange>()
-            .ActivateOnEnter<Ghostcrusher>()
             .ActivateOnEnter<MaliciousMistRaidwide>()
             .ActivateOnEnter<Fleshbuster>()
-            .ActivateOnEnter<Impact>()
             .ActivateOnEnter<BitterRegret1>()
             .ActivateOnEnter<BitterRegret2>()
-            .ActivateOnEnter<BitterRegret3>();
+            .ActivateOnEnter<BitterRegret3>()
+            .ActivateOnEnter<Impact>()
+            .ActivateOnEnter<CrossArena>()
+            .ActivateOnEnter<GhostlyGuise>()
+            .ActivateOnEnter<IllIntentTethers>()
+            .ActivateOnEnter<Ghostduster>()
+            .ActivateOnEnter<Ghostcrusher>();
     }
 }
 

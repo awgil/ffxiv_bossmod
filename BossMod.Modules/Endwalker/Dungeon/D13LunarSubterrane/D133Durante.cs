@@ -46,7 +46,7 @@ class Voidzone(BossModule module) : BossComponent(module)
     }
 }
 
-class ArcaneEdge(BossModule module) : Components.RaidwideCast(module, AID.ArcaneEdge);
+class ArcaneEdge(BossModule module) : Components.SingleTargetCast(module, AID.ArcaneEdge);
 class OldMagic(BossModule module) : Components.RaidwideCast(module, AID.OldMagic);
 class Contrapasso(BossModule module) : Components.RaidwideCast(module, AID.Contrapasso);
 
@@ -90,10 +90,10 @@ class AntipodalAssault(BossModule module) : Components.GenericBaitAway(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.AntipodalAssaultMarker)
+        if ((AID)spell.Action.ID == AID.AntipodalAssaultMarker && WorldState.Actors.Find(spell.MainTargetID) is { } markedTarget)
         {
-            target = WorldState.Actors.Find(spell.MainTargetID);
-            CurrentBaits.Add(new(Module.PrimaryActor, target!, new AOEShapeRect(50, 4))); // the actual range is not 50, but just a charge of 8 width, but always goes until the edge of the arena, so we can simplify it
+            target = markedTarget;
+            CurrentBaits.Add(new(Module.PrimaryActor, target, new AOEShapeRect(50, 4))); // the actual range is not 50, but just a charge of 8 width, but always goes until the edge of the arena, so we can simplify it
         }
         if ((AID)spell.Action.ID == AID.AntipodalAssault2)
             CurrentBaits.Clear();

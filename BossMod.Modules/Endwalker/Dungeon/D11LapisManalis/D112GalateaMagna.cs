@@ -147,7 +147,7 @@ class GlassyEyed(BossModule module) : Components.GenericGaze(module)
     public override IEnumerable<Eye> ActiveEyes(int slot, Actor actor)
     {
         foreach (var a in _affected)
-            if (_affected.Count > 0 && WorldState.CurrentTime > _activation.AddSeconds(-10))
+            if (a != actor && WorldState.CurrentTime > _activation.AddSeconds(-10))
                 yield return new(a.Position, _activation);
     }
 

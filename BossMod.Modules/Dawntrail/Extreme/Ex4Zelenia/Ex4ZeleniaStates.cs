@@ -120,10 +120,10 @@ class Ex4ZeleniaStates : StateMachineBuilder
         CastStart(id, AID.EscelonsFallVisual, delay, "EF1 start")
             .ActivateOnEnter<EscelonsFall>();
 
-        ComponentCondition<EscelonsFall>(id + 2, 13.9f, e => e.NumCasts >= 4, "Baits 1");
-        ComponentCondition<EscelonsFall>(id + 4, 3.1f, e => e.NumCasts >= 8, "Baits 2");
-        ComponentCondition<EscelonsFall>(id + 6, 3.1f, e => e.NumCasts >= 12, "Baits 3");
-        ComponentCondition<EscelonsFall>(id + 8, 3.1f, e => e.NumCasts >= 16, "Baits 4")
+        ComponentCondition<EscelonsFall>(id + 2, 13.9f, e => e.NumVolleys >= 1, "Baits 1");
+        ComponentCondition<EscelonsFall>(id + 4, 3.1f, e => e.NumVolleys >= 2, "Baits 2");
+        ComponentCondition<EscelonsFall>(id + 6, 3.1f, e => e.NumVolleys >= 3, "Baits 3");
+        ComponentCondition<EscelonsFall>(id + 8, 3.1f, e => e.NumVolleys >= 4, "Baits 4")
             .DeactivateOnExit<EscelonsFall>();
     }
 
@@ -212,10 +212,10 @@ class Ex4ZeleniaStates : StateMachineBuilder
             .DeactivateOnExit<ShockAOEs>()
             .ExecOnEnter<EscelonsFall>(e => e.EnableHints = true);
 
-        ComponentCondition<EscelonsFall>(id + 0x22, 1.6f, e => e.NumCasts >= 4, "Baits 1");
-        ComponentCondition<EscelonsFall>(id + 0x24, 3.1f, e => e.NumCasts >= 8, "Baits 2");
-        ComponentCondition<EscelonsFall>(id + 0x26, 3.1f, e => e.NumCasts >= 12, "Baits 3");
-        ComponentCondition<EscelonsFall>(id + 0x28, 3.1f, e => e.NumCasts >= 16, "Baits 4")
+        ComponentCondition<EscelonsFall>(id + 0x22, 1.6f, e => e.NumVolleys >= 1, "Baits 1");
+        ComponentCondition<EscelonsFall>(id + 0x24, 3.1f, e => e.NumVolleys >= 2, "Baits 2");
+        ComponentCondition<EscelonsFall>(id + 0x26, 3.1f, e => e.NumVolleys >= 3, "Baits 3");
+        ComponentCondition<EscelonsFall>(id + 0x28, 3.1f, e => e.NumVolleys >= 4, "Baits 4")
             .DeactivateOnExit<EscelonsFall>();
 
         StockBreak(id + 0x30, 2.2f);
@@ -261,11 +261,11 @@ class Ex4ZeleniaStates : StateMachineBuilder
         ComponentCondition<PowerBreak>(id + 0x20, 10, p => p.NumCasts > 0, "Half-room cleave 1")
             .ExecOnExit<EscelonsFall>(e => e.EnableHints = true);
 
-        ComponentCondition<EscelonsFall>(id + 0x22, 3.9f, e => e.NumCasts >= 4, "Baits 1");
-        ComponentCondition<EscelonsFall>(id + 0x24, 3.1f, e => e.NumCasts >= 8, "Baits 2");
-        ComponentCondition<EscelonsFall>(id + 0x26, 3.1f, e => e.NumCasts >= 12, "Baits 3")
+        ComponentCondition<EscelonsFall>(id + 0x22, 3.9f, e => e.NumVolleys >= 1, "Baits 1");
+        ComponentCondition<EscelonsFall>(id + 0x24, 3.1f, e => e.NumVolleys >= 2, "Baits 2");
+        ComponentCondition<EscelonsFall>(id + 0x26, 3.1f, e => e.NumVolleys >= 3, "Baits 3")
             .ExecOnEnter<PowerBreak>(p => p.Risky = false);
-        ComponentCondition<EscelonsFall>(id + 0x28, 3.1f, e => e.NumCasts >= 16, "Baits 4")
+        ComponentCondition<EscelonsFall>(id + 0x28, 3.1f, e => e.NumVolleys >= 4, "Baits 4")
             .DeactivateOnExit<EscelonsFall>()
             .ExecOnExit<PowerBreak>(p => p.Risky = true);
 

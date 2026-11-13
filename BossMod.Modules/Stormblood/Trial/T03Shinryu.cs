@@ -295,7 +295,7 @@ class Fetters(BossModule module) : BossComponent(module)
 {
     public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
-        if (status.ID == (uint)SID.Fetters && Raid.FindSlot(actor.InstanceID) >= 0)
+        if ((SID)status.ID == SID.Fetters && Raid.TryFindSlot(actor, out _))
             Arena.Bounds = new ArenaBoundsSquare(30);
     }
 }

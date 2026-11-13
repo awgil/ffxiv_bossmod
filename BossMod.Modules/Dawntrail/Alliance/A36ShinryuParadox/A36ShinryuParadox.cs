@@ -410,7 +410,6 @@ class CosmicFlame(BossModule module) : Components.Exaflare(module, new AOEShapeC
 // [850, -832.5] dir [0, 0.1]  => [850, -820]
 class AtomicRay(BossModule module) : Components.GenericAOEs(module, AID.AtomicRay)
 {
-    readonly List<(Actor Caster, WPos StartPos, WDir StartMove)> _recorded = [];
     readonly List<(Actor Caster, WPos Predicted, DateTime Activation)> _predicted = [];
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
@@ -423,21 +422,16 @@ class AtomicRay(BossModule module) : Components.GenericAOEs(module, AID.AtomicRa
     {
         if (spell.Action == WatchedAction)
         {
+            var ix = _predicted.FindIndex(p => p.Caster == caster);
+            if (ix >= 0 && !_predicted[ix].Predicted.AlmostEqual(caster.Position, 1))
+                ReportError($"Orb {caster} casting at {caster.Position}, predicted {_predicted[ix].Predicted}");
             _predicted.RemoveAll(p => p.Caster == caster);
-            var ix = _recorded.FindIndex(p => p.Caster == caster);
-            if (ix >= 0)
-            {
-                var (p, s, m) = _recorded[ix];
-                _recorded.RemoveAt(ix);
-                ReportError($"{p} casting at {caster.Position}, starting was {s} going {m}");
-            }
         }
     }
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if ((IconID)iconID == IconID.Countdown)
         {
-            _recorded.Add((actor, actor.Position, actor.LastFrameMovement));
             var dt = WorldState.FutureTime(5.3f);
 
             // pepeW

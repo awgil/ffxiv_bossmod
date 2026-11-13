@@ -169,11 +169,8 @@ class FunkyFloor(BossModule module) : Components.GenericAOEs(module, AID.FunkyFl
         switch (state)
         {
             case 0x00020001:
-                _evenLit = true;
-                _activation = WorldState.FutureTime(2.5f);
-                break;
             case 0x00200010:
-                _evenLit = false;
+                _evenLit = state == 0x00020001;
                 _activation = WorldState.FutureTime(2.5f);
                 break;
             case 0x00080004:

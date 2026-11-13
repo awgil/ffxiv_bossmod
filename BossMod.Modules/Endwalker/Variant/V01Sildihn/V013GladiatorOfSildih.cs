@@ -1,4 +1,4 @@
-﻿namespace BossMod.Endwalker.Variant.V01Sildihn.V013GladiatorOfSildih;
+namespace BossMod.Endwalker.Variant.V01Sildihn.V013GladiatorOfSildih;
 
 public enum OID : uint
 {
@@ -6,6 +6,9 @@ public enum OID : uint
     Helper = 0x233C, // R0.500, x18, Helper type
     AntiqueBoulder = 0x39A3, // R1.800, x0 (spawn during fight)
     Regret = 0x39A1, // R1.000, x0 (spawn during fight)
+    HatefulVisage = 0x39A0, // R2.250, x0 (spawn during fight)
+    WhirlwindUpdraft = 0x39A2, // R2.000, x0 (spawn during fight)
+    WhirlwindSmall = 0x3AEC, // R1.330, x0 (spawn during fight)
 }
 
 public enum AID : uint
@@ -34,6 +37,15 @@ public enum AID : uint
     RackAndRuin = 30278, // Regret->location, 4.0s cast, range 40 width 5 rect
     SunderedRemainsCast = 30280, // Boss->self, 3.0s cast, single-target
     SunderedRemains = 30281, // Helper->self, 9.0s cast, range 10 circle
+    BitingWindUpdraft = 30285, // Helper->self, 4.0s cast, range 6 circle
+    BitingWindKnockup = 30286, // Helper->player, no cast, single-target
+    BitingWindAOE = 31222, // Helper->self, 4.0s cast, range 4 circle
+    BitingWind = 31223, // Helper->player, no cast, single-target, knockback 5 if walked into a small whirlwind
+    HatefulVisageCast = 30289, // Boss->self, 3.0s cast, single-target
+    GoldenFlame = 30290, // HatefulVisage->self, 8.0s cast, range 60 width 10 rect
+    SilverFlameFirstCW = 30291, // HatefulVisage->self, 8.0s cast, range 60 width 10 rect
+    SilverFlameFirstCCW = 30292, // HatefulVisage->self, 8.0s cast, range 60 width 10 rect
+    SilverFlameRest = 30293, // HatefulVisage->self, no cast, range 60 width 10 rect
 }
 
 class ShatteringSteel(BossModule module) : Components.CastLineOfSightAOE(module, AID.ShatteringSteel, 60, false)
@@ -87,6 +99,12 @@ class RingOfMight(BossModule module) : Components.GenericAOEs(module)
         if (Casters.Count > 1)
             hints.AddForbiddenZone(ShapeDistance.Donut(Casters[0].Caster.Position, ((AOEShapeCircle)Casters[0].Shape).Radius + 2, 60), Module.CastFinishAt(Casters[0].Caster.CastInfo));
     }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.RingOfMightInnerSmall or AID.RingOfMightInnerMedium or AID.RingOfMightInnerLarge or AID.RingOfMightOuterSmall or AID.RingOfMightOuterMedium or AID.RingOfMightOuterLarge)
+            Casters.RemoveAll(c => c.Caster == caster);
+    }
 }
 
 class RushOfMight(BossModule module) : Components.GenericAOEs(module)
@@ -124,8 +142,14 @@ class RushOfMight(BossModule module) : Components.GenericAOEs(module)
         if ((AID)spell.Action.ID is AID.RushOfMightForward or AID.RushOfMightBackward)
         {
             NumCasts++;
-            Casters.RemoveAt(0);
+            Casters.Remove(caster);
         }
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID is AID.RushOfMightForward or AID.RushOfMightBackward)
+            Casters.Remove(caster);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -144,24 +168,102 @@ class RackAndRuin(BossModule module) : Components.StandardAOEs(module, AID.RackA
 
 class SunderedRemains(BossModule module) : Components.StandardAOEs(module, AID.SunderedRemains, 10, 6);
 
+class GoldenFlame(BossModule module) : Components.StandardAOEs(module, AID.GoldenFlame, new AOEShapeRect(60, 5));
+class BitingWindUpdraft(BossModule module) : Components.StandardAOEs(module, AID.BitingWindUpdraft, new AOEShapeCircle(6));
+class BitingWindSmall(BossModule module) : Components.VoidzoneAtCastTarget(module, 4, AID.BitingWindAOE, OID.WhirlwindSmall, 0.3f);
+
+class BitingWindUpdraftVoidzone(BossModule module) : Components.GenericAOEs(module)
+{
+    private static readonly AOEShapeCircle _circle = new(6);
+    private WPos? _origin;
+    private DateTime _activation = DateTime.MaxValue;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_origin is not WPos origin)
+            yield break;
+        if (WorldState.CurrentTime > _activation)
+            yield return new(_circle, origin, default, _activation, ArenaColor.SafeFromAOE, Inverted: true);
+        else
+            yield return new(_circle, origin);
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        if (_origin != null && _activation != DateTime.MaxValue)
+            hints.Add(WorldState.CurrentTime < _activation ? "Prepare to walk into updraft!" : "Walk into updraft!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (_origin is not WPos origin)
+            return;
+        base.AddAIHints(slot, actor, assignment, hints);
+        if (_activation != DateTime.MaxValue && WorldState.CurrentTime < _activation)
+            hints.AddForbiddenZone(ShapeDistance.InvertedCircle(origin, 12), _activation);
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (_origin != null && (AID)spell.Action.ID == AID.ShatteringSteel)
+            _activation = Module.CastFinishAt(spell, -5);
+    }
+
+    public override void OnCastFinished(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.BitingWindUpdraft)
+            _origin = spell.LocXZ;
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        if ((OID)actor.OID == OID.WhirlwindUpdraft)
+        {
+            _origin = null;
+            _activation = DateTime.MaxValue;
+        }
+    }
+}
+
+class SilverFlame(BossModule module) : Components.GenericRotatingAOE(module)
+{
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        var aid = (AID)spell.Action.ID;
+        if (aid is AID.SilverFlameFirstCW or AID.SilverFlameFirstCCW)
+            Sequences.Add(new(new AOEShapeRect(60, 5), caster.Position, spell.Rotation, aid == AID.SilverFlameFirstCW ? -10.Degrees() : 10.Degrees(), Module.CastFinishAt(spell), 2, 5, 5));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if ((AID)spell.Action.ID is AID.SilverFlameFirstCW or AID.SilverFlameFirstCCW or AID.SilverFlameRest)
+            AdvanceSequence(caster.Position, spell.Rotation, WorldState.CurrentTime);
+    }
+}
+
 class V013GladiatorOfSildihStates : StateMachineBuilder
 {
     public V013GladiatorOfSildihStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<RingOfMight>()
-            .ActivateOnEnter<SculptorsPassion>()
             .ActivateOnEnter<FlashOfSteel1>()
             .ActivateOnEnter<FlashOfSteel2>()
-            .ActivateOnEnter<Landing>()
-            .ActivateOnEnter<ShatteringSteel>()
             .ActivateOnEnter<MightySmite>()
+            .ActivateOnEnter<SculptorsPassion>()
+            .ActivateOnEnter<RingOfMight>()
             .ActivateOnEnter<RushOfMight>()
+            .ActivateOnEnter<ShatteringSteel>()
+            .ActivateOnEnter<Landing>()
             .ActivateOnEnter<RackAndRuin>()
-            .ActivateOnEnter<SunderedRemains>();
+            .ActivateOnEnter<SunderedRemains>()
+            .ActivateOnEnter<GoldenFlame>()
+            .ActivateOnEnter<SilverFlame>()
+            .ActivateOnEnter<BitingWindSmall>()
+            .ActivateOnEnter<BitingWindUpdraft>()
+            .ActivateOnEnter<BitingWindUpdraftVoidzone>();
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 868, NameID = 11387)]
+[ModuleInfo(Incomplete = true, Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 868, NameID = 11387, SortOrder = 4)]
 public class V013GladiatorOfSildih(ModuleInit init) : BossModule(init, new(-35, -271), new ArenaBoundsSquare(19.5f));
 

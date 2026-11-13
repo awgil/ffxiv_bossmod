@@ -75,7 +75,7 @@ class CurtainCall(BossModule module) : Components.GenericLineOfSightAOE(module, 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if (spell.Action == WatchedAction)
-            Modify(null, Blockers);
+            Modify(null, [.. Blockers]); // Modify clears Blockers before copying its input.
     }
 }
 

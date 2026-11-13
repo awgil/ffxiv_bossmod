@@ -64,12 +64,9 @@ class DiscreteMagick6(BossModule module) : Components.GenericBaitAway(module, AI
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if (spell.Action == WatchedAction)
-        {
-            if (caster != null)
-                foreach (var p in WorldState.Party.WithoutSlot())
-                    CurrentBaits.Add(new Bait(caster, p, new AOEShapeRect(20, 3)));
-        }
+        if (spell.Action == WatchedAction && caster != null)
+            foreach (var p in WorldState.Party.WithoutSlot())
+                CurrentBaits.Add(new Bait(caster, p, new AOEShapeRect(20, 3)));
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {

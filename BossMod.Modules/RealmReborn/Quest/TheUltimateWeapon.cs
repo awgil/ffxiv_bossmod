@@ -21,6 +21,47 @@ public enum AID : uint
     AncientCross = 29756, // Lahabrea->self, 4.0s cast, range 6 circle
     BurstFlare = 29758, // Lahabrea->self, 5.0s cast, range 60 circle
     GripOfNight = 29337, // Boss->self, 6.0s cast, range 40 150-degree cone
+    DarkMeltdown = 29343, // Boss->self, 2.2s cast, scripted-death cutscene visual
+}
+
+public enum SID : uint
+{
+    InEvent = 2999,
+}
+
+class DarkMeltdown(BossModule module) : BossComponent(module)
+{
+    private ulong _expectedDeathTarget;
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID == AID.DarkMeltdown && Raid.Player() is { IsDead: false } player)
+            _expectedDeathTarget = player.InstanceID;
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (caster == Module.PrimaryActor && (AID)spell.Action.ID != AID.DarkMeltdown)
+            _expectedDeathTarget = 0;
+    }
+
+    public override void OnIsDeadChanged(Actor actor)
+    {
+        if (actor.InstanceID == _expectedDeathTarget && actor.IsDead)
+            _expectedDeathTarget = 0;
+    }
+
+    public override void OnStatusLose(Actor actor, in ActorStatus status)
+    {
+        if (actor.InstanceID == _expectedDeathTarget && (SID)status.ID == SID.InEvent)
+            _expectedDeathTarget = 0;
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor.InstanceID == _expectedDeathTarget && actor.FindStatus(SID.InEvent) != null)
+            hints.ScriptedDeath = true;
+    }
 }
 
 class BurstFlare(BossModule module) : Components.KnockbackFromCastTarget(module, AID.BurstFlare, 10)
@@ -118,6 +159,7 @@ class LahabreaStates : StateMachineBuilder
     public LahabreaStates(BossModule module) : base(module)
     {
         TrivialPhase()
+            .ActivateOnEnter<DarkMeltdown>()
             .ActivateOnEnter<DeathWall>()
             .ActivateOnEnter<DarkThunder>()
             .ActivateOnEnter<SeaOfPitch>()
@@ -135,5 +177,5 @@ class LahabreaStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70058, NameID = 2143)]
+[ModuleInfo(Contributors = "xan, Kagekazu", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70058, NameID = 2143)]
 public class Lahabrea(ModuleInit init) : BossModule(init, new(-704, 480), new ArenaBoundsCircle(20));

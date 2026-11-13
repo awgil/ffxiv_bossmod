@@ -62,7 +62,7 @@ class AdamantScales(BossModule module) : Components.InvincibleStatus(module, (ui
 {
     protected override IEnumerable<Actor> ForbiddenTargets(int slot, Actor actor) => base.ForbiddenTargets(slot, actor).Where(t => (OID)t.OID != OID.ScaleArmoredLeg);
 }
-class ScaleArmoredLeg(BossModule module) : Components.Adds(module, (uint)OID.ScaleArmoredLeg, 0, true);
+class ScaleArmoredLeg(BossModule module) : Components.Adds(module, (uint)OID.ScaleArmoredLeg, 1, true);
 
 class Ensnare(BossModule module) : Components.StandardAOEs(module, AID.Ensnare, 6);
 class SearingSwell(BossModule module) : Components.StandardAOEs(module, AID.SearingSwellAOE, new AOEShapeCone(40, 22.5f.Degrees()));

@@ -21,18 +21,28 @@ class SonicStorm(BossModule module) : Components.StandardAOEs(module, AID.SonicS
 
 class Typhoon(BossModule module) : Components.Exaflare(module, 3)
 {
+    private class MaelstromLine(Actor source) : Line
+    {
+        public readonly Actor Source = source;
+    }
+
+    private const float EndX = 30.4f;
+    private const float Step = 1.745f;
     private readonly IReadOnlyList<Actor> _maelstroms = module.Enemies(OID.MaelstromVisual);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var aoe in base.ActiveAOEs(slot, actor))
+            yield return aoe with { Origin = new(Math.Max(EndX, aoe.Origin.X), aoe.Origin.Z) };
+    }
 
     public override void Update()
     {
+        // The visual can disappear before the helper's final pulse at the wall.
+        Lines.RemoveAll(l => ((MaelstromLine)l).Source.IsDeadOrDestroyed && (l.ExplosionsLeft <= 0 || WorldState.CurrentTime > l.NextExplosion.AddSeconds(l.TimeToMove)));
         foreach (var m in _maelstroms)
-        {
-            var line = FindLine(m.Position.Z);
-            if (m.IsDead && line != null)
-                Lines.Remove(line);
-            else if (!m.IsDead && line == null)
-                Lines.Add(new() { Next = m.Position, Advance = new(-1.745f, 0), TimeToMove = 0.6f, ExplosionsLeft = 4, MaxShownExplosions = 4 });
-        }
+            if (!m.IsDeadOrDestroyed && !Lines.Any(l => ((MaelstromLine)l).Source == m))
+                Lines.Add(new MaelstromLine(m) { Next = m.Position, Advance = new(-Step, 0), TimeToMove = 0.6f, ExplosionsLeft = 4, MaxShownExplosions = 4 });
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -46,17 +56,22 @@ class Typhoon(BossModule module) : Components.Exaflare(module, 3)
                 return;
             }
 
-            if (line.MaxShownExplosions <= 4)
+            line.MaxShownExplosions = 10;
+            if (caster.Position.X > EndX + 0.1f)
             {
-                // first move
-                line.MaxShownExplosions = 10;
-                line.ExplosionsLeft = 15;
+                // Batched events can share a position; derive remaining movement from distance instead of counting them.
+                line.ExplosionsLeft = (int)MathF.Ceiling((caster.Position.X - EndX) / Step) + 2;
+            }
+            else if (line.Advance != default)
+            {
+                line.Advance = default;
+                line.ExplosionsLeft = 2;
             }
             AdvanceLine(line, caster.Position);
         }
     }
 
-    private Line? FindLine(float z) => Lines.Find(l => MathF.Abs(l.Next.Z - z) < 1);
+    private Line? FindLine(float z) => Lines.Find(l => l.ExplosionsLeft > 0 && MathF.Abs(l.Next.Z - z) < 1);
 }
 
 class D102KoshcheiStates : StateMachineBuilder

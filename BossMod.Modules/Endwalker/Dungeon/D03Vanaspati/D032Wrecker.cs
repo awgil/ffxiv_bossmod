@@ -58,7 +58,7 @@ class QueerBubble(BossModule module) : Components.GenericAOEs(module)
         if (Module.FindComponent<AetherSprayFire>()!.Active)
         {
             var forbiddenInverted = new List<DistFn>();
-            foreach (var a in _aoes)
+            foreach (var a in _aoes.Where(x => !x.IsDead))
                 forbiddenInverted.Add(ShapeDistance.InvertedCircle(a.Position, 2.5f));
             var activation = Module.CastFinishAt(Module.FindComponent<AetherSprayFire>()!.Casters[0].CastInfo);
             if (forbiddenInverted.Count > 0)

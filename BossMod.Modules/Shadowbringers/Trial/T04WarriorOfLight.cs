@@ -247,10 +247,12 @@ class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.M
         var pos = TowerPos(index);
         if (pos == default)
             return;
-        if (state == 0x00020001 && Towers.Count == 0)
-            _soaked.Reset();
         if (state == 0x00020001)
+        {
+            if (Towers.Count == 0)
+                _soaked.Reset();
             Towers.Add(new(pos, 4, 2, 5, activation: WorldState.FutureTime(10)));
+        }
         else if (state == 0x00080004)
             Towers.RemoveAll(t => t.Position.AlmostEqual(pos, 1));
     }
@@ -274,33 +276,23 @@ class TwincastTowers(BossModule module) : Components.GenericTowers(module, AID.M
 class SwordOfLight(BossModule module) : Components.GenericAOEs(module, AID.ShiningWave)
 {
     private readonly List<AOEInstance> _aoes = [];
-    private static readonly AOEShapeCone _shape = new(50, 26.5f.Degrees());
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
     public override void OnMapEffect(byte index, uint state)
     {
-        if (state != 0x00020001)
-            return;
-        var (pos, rot) = index switch
+        if (index is >= 0x14 and <= 0x17 && state == 0x00020001)
         {
-            0x14 => (new WPos(100, 80), default),
-            0x15 => (new WPos(120, 100), 270.Degrees()),
-            0x16 => (new WPos(100, 120), 180.Degrees()),
-            0x17 => (new WPos(80, 100), 90.Degrees()),
-            _ => default
-        };
-        if (pos != default)
-            _aoes.Add(new(_shape, pos, rot, WorldState.FutureTime(2.7f)));
+            var facing = (-90 * (index - 0x14)).Degrees();
+            _aoes.Add(new(new AOEShapeCone(50, 26.5f.Degrees()), Module.Center - 20 * facing.ToDirection(), facing, WorldState.FutureTime(2.7f)));
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.ShiningWave)
-        {
-            ++NumCasts;
-            _aoes.RemoveAll(a => a.Activation <= WorldState.CurrentTime);
-        }
+        base.OnEventCast(caster, spell);
+        if (spell.Action == WatchedAction)
+            _aoes.RemoveAll(w => w.Activation <= WorldState.CurrentTime);
     }
 }
 

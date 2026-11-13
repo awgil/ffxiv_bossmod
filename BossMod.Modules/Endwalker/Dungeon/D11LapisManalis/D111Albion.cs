@@ -57,6 +57,7 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
         (true, new WPos(44, -729), _rotM90, 0, default(DateTime), new List<Actor>()),
     ];
     private bool Newstampede => stampede1 == default;
+    private (bool, WPos, Angle, int, DateTime, List<Actor>) Stampede(int index) => stampedePositions[index] with { Item6 = [] };
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -78,44 +79,44 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
         {
             if (index == 0x21)
                 if (Newstampede)
-                    stampede1 = stampedePositions[0];
+                    stampede1 = Stampede(0);
                 else
-                    stampede2 = stampedePositions[0];
+                    stampede2 = Stampede(0);
             if (index == 0x25)
                 if (Newstampede)
-                    stampede1 = stampedePositions[1];
+                    stampede1 = Stampede(1);
                 else
-                    stampede2 = stampedePositions[1];
+                    stampede2 = Stampede(1);
             if (index == 0x22)
                 if (Newstampede)
-                    stampede1 = stampedePositions[2];
+                    stampede1 = Stampede(2);
                 else
-                    stampede2 = stampedePositions[2];
+                    stampede2 = Stampede(2);
             if (index == 0x26)
                 if (Newstampede)
-                    stampede1 = stampedePositions[3];
+                    stampede1 = Stampede(3);
                 else
-                    stampede2 = stampedePositions[3];
+                    stampede2 = Stampede(3);
             if (index == 0x23)
                 if (Newstampede)
-                    stampede1 = stampedePositions[4];
+                    stampede1 = Stampede(4);
                 else
-                    stampede2 = stampedePositions[4];
+                    stampede2 = Stampede(4);
             if (index == 0x27)
                 if (Newstampede)
-                    stampede1 = stampedePositions[5];
+                    stampede1 = Stampede(5);
                 else
-                    stampede2 = stampedePositions[5];
+                    stampede2 = Stampede(5);
             if (index == 0x24)
                 if (Newstampede)
-                    stampede1 = stampedePositions[6];
+                    stampede1 = Stampede(6);
                 else
-                    stampede2 = stampedePositions[6];
+                    stampede2 = Stampede(6);
             if (index == 0x28)
                 if (Newstampede)
-                    stampede1 = stampedePositions[7];
+                    stampede1 = Stampede(7);
                 else
-                    stampede2 = stampedePositions[7];
+                    stampede2 = Stampede(7);
         }
     }
 
@@ -153,7 +154,7 @@ class WildlifeCrossing(BossModule module) : Components.GenericAOEs(module)
             if (stampede1.count == 30) //sometimes stampedes only have 30 instead of 31 hits for some reason, so i take the lower value and add a 0.5s reset timer via update
                 stampede1.reset = WorldState.FutureTime(0.5f);
             if (stampede2.count == 30)
-                stampede1.reset = WorldState.FutureTime(0.5f);
+                stampede2.reset = WorldState.FutureTime(0.5f);
         }
     }
 }

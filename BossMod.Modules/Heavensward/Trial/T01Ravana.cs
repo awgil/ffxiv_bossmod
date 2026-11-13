@@ -181,9 +181,9 @@ class SwiftSlaughterCharges(BossModule module) : Components.GenericAOEs(module, 
 {
     private const float Length = 20;
     private const float HalfWidth = 3;
-    private readonly List<(Actor target, DateTime activation)> _charges = [];
+    private readonly List<(Actor target, DateTime activation, int order)> _charges = [];
 
-    private AOEInstance Charge((Actor target, DateTime activation) c)
+    private AOEInstance Charge((Actor target, DateTime activation, int order) c)
         => new(new AOEShapeRect(Length, HalfWidth), Arena.Center, Angle.FromDirection(c.target.Position - Arena.Center), c.activation);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _charges.Where(c => c.target != actor).Select(Charge);
@@ -193,7 +193,7 @@ class SwiftSlaughterCharges(BossModule module) : Components.GenericAOEs(module, 
         base.AddHints(slot, actor, hints);
         var order = _charges.FindIndex(c => c.target == actor);
         if (order >= 0)
-            hints.Add($"Charge #{order + 1 + NumCasts}: go to the edge, away from the raid!", Raid.WithoutSlot().Exclude(actor).Any(p => Charge(_charges[order]).Check(p.Position)));
+            hints.Add($"Charge #{_charges[order].order}: go to the edge, away from the raid!", Raid.WithoutSlot().Exclude(actor).Any(p => Charge(_charges[order]).Check(p.Position)));
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
@@ -219,7 +219,14 @@ class SwiftSlaughterCharges(BossModule module) : Components.GenericAOEs(module, 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
         if (iconID is >= (uint)IconID.SwiftSlaughter1 and <= (uint)IconID.SwiftSlaughter4)
-            _charges.Add((actor, WorldState.FutureTime(13.2f)));
+        {
+            var order = (int)(iconID - (uint)IconID.SwiftSlaughter1) + 1;
+            if (!_charges.Any(c => c.order == order))
+            {
+                _charges.Add((actor, WorldState.FutureTime(13.2f), order));
+                _charges.SortBy(c => c.order);
+            }
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -262,28 +269,6 @@ class RavanaSeeing(BossModule module) : Components.DirectionalParry(module, (uin
         };
         if (sides != Side.None)
             PredictParrySide(caster.InstanceID, sides);
-    }
-}
-
-abstract class RavanaBossOriginAOEs(BossModule module, Enum aid, AOEShape shape, float duration = 1.2f) : Components.GenericAOEs(module, aid)
-{
-    private readonly List<(WPos origin, Angle rot, DateTime expire)> _active = [];
-    protected abstract WPos Origin(Actor caster);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
-    {
-        var now = WorldState.CurrentTime;
-        _active.RemoveAll(a => a.expire <= now);
-        foreach (var a in _active)
-            yield return new(shape, a.origin, a.rot, a.expire);
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action != WatchedAction)
-            return;
-        var origin = Origin(caster);
-        _active.Add((origin, caster.Rotation, WorldState.FutureTime(duration)));
     }
 }
 

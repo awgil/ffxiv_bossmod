@@ -32,7 +32,7 @@ class MagitekMissile(BossModule module) : Components.SingleTargetInstant(module,
 {
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
-        if (status.ID == (uint)SID.Prey && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
+        if ((SID)status.ID == SID.Prey && Raid.TryFindSlot(actor, out var slot))
             Targets.Add((slot, status.ExpireAt));
     }
 }

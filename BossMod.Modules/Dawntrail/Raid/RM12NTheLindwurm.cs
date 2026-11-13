@@ -170,7 +170,7 @@ class Burst(BossModule module) : Components.GenericAOEs(module, AID.Burst)
         if (spell.Action == WatchedAction)
         {
             ++NumCasts;
-            AOEs.Clear();
+            AOEs.RemoveAll(a => a.Origin.AlmostEqual(spell.TargetXZ, 1));
         }
     }
 }
@@ -315,7 +315,22 @@ class DirectedGrotesquerie(BossModule module) : Components.GenericBaitAway(modul
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
         if ((SID)status.ID == SID.Direction && status.Extra is >= 0x408 and <= 0x40B)
-            CurrentBaits.Add(new(actor, actor, new AOEShapeCone(60, 15.Degrees(), ((status.Extra - 0x408) * -90f).Degrees()), status.ExpireAt));
+        {
+            var index = CurrentBaits.FindIndex(b => b.Target == actor);
+            // Direction is untimed; the mechanic status supplies the deadline.
+            var activation = actor.FindStatus(SID.DirectedGrotesquerie)?.ExpireAt ?? (index >= 0 ? CurrentBaits[index].Activation : default);
+            var bait = new Bait(actor, actor, new AOEShapeCone(60, 15.Degrees(), ((status.Extra - 0x408) * -90f).Degrees()), activation);
+            if (index >= 0)
+                CurrentBaits[index] = bait;
+            else
+                CurrentBaits.Add(bait);
+        }
+        else if ((SID)status.ID == SID.DirectedGrotesquerie)
+        {
+            for (var i = 0; i < CurrentBaits.Count; ++i)
+                if (CurrentBaits[i].Target == actor)
+                    CurrentBaits[i] = CurrentBaits[i] with { Activation = status.ExpireAt };
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -453,12 +468,8 @@ class ArenaChanges(BossModule module) : BossComponent(module)
         switch (state)
         {
             case 0x00020001:
-                _tiles = TilesA;
-                _middle = false;
-                _holes.Clear();
-                break;
             case 0x02000100:
-                _tiles = TilesB;
+                _tiles = state == 0x00020001 ? TilesA : TilesB;
                 _middle = false;
                 _holes.Clear();
                 break;
@@ -619,7 +630,7 @@ class RM12NTheLindwurmStates : StateMachineBuilder
 
     private void Burst(uint id, float delay)
     {
-        ComponentCondition<Burst>(id, delay, c => c.NumCasts > 0, "Circles")
+        ComponentCondition<Burst>(id, delay, c => c.NumCasts > 0 && c.AOEs.Count == 0, "Circles")
             .ActivateOnEnter<Burst>()
             .DeactivateOnExit<Burst>();
     }
@@ -709,7 +720,7 @@ class RM12NTheLindwurmStates : StateMachineBuilder
             .ActivateOnEnter<Burst>();
         ComponentCondition<FleshKnockback>(id + 0x10, 8.3f, c => c.NumCasts > 0, "Knockbacks")
             .DeactivateOnExit<FleshKnockback>();
-        ComponentCondition<Burst>(id + 0x20, 1.3f, c => c.NumCasts > 0, "Circles")
+        ComponentCondition<Burst>(id + 0x20, 1.3f, c => c.NumCasts > 0 && c.AOEs.Count == 0, "Circles")
             .DeactivateOnExit<Burst>();
         ComponentCondition<BurstingGrotesquerie>(id + 0x30, 5.7f, c => c.Done, "Spreads")
             .DeactivateOnExit<BurstingGrotesquerie>();
@@ -739,5 +750,5 @@ class RM12NTheLindwurmStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1074, NameID = 14378)]
+[ModuleInfo(Contributors = "Kagekazu, Nonu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1074, NameID = 14378)]
 public class RM12NTheLindwurm(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 15));

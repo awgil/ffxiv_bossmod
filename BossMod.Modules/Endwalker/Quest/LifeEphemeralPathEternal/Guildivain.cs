@@ -2,6 +2,19 @@
 
 class AetherstreamTether(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(50, 2), (uint)TetherID.Noulith)
 {
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == TID && WorldState.Actors.Find(tether.Target) is { } target)
+            CurrentBaits.Add(new(source, target, Shape));
+    }
+
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
+    {
+        var targetID = tether.Target;
+        if (tether.ID == TID)
+            CurrentBaits.RemoveAll(b => b.Source == source && b.Target.InstanceID == targetID);
+    }
+
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
         if ((AID)spell.Action.ID is AID.AetherstreamPlayer or AID.AetherstreamTank)

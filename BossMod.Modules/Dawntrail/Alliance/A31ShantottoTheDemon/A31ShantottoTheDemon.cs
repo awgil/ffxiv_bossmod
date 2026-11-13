@@ -278,7 +278,11 @@ class A31ShantottoTheDemonStates : StateMachineBuilder
             .ActivateOnEnter<FallingRubble2>()
             .ActivateOnEnter<FallingRubble3>()
             .ActivateOnEnter<FallingRubble4>()
-            .ActivateOnEnter<Winds>();
+            .ActivateOnEnter<Winds>()
+            // Victory leaves Shantotto alive at 1 HP while canceling pending mechanics.
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed
+                || Module.PrimaryActor.HPMP.CurHP == 0
+                || Module.PrimaryActor.HPMP.CurHP == 1 && !Module.PrimaryActor.IsTargetable;
     }
 
     void P1(uint id)

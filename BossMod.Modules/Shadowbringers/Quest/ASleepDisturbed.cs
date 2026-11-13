@@ -44,8 +44,31 @@ public enum TetherID : uint
 class TouchOfShadow(BossModule module) : Components.RaidwideCast(module, AID.TheTouchOfShadow);
 class MarrowOfFlame(BossModule module) : Components.SpreadFromCastTargets(module, AID.TheMarrowOfFlame, 8);
 class GraceOfCalamity(BossModule module) : Components.StackWithCastTargets(module, AID.TheGraceOfCalamity, 6);
-class BurningBeamNPC(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(40, 2), (uint)TetherID.NPCBaitAway);
-class BurningBeamPlayer(BossModule module) : Components.BaitAwayTethers(module, new AOEShapeRect(40, 2), (uint)TetherID.BaitAway);
+class BurningBeam(BossModule module, uint tetherID) : Components.BaitAwayTethers(module, new AOEShapeRect(40, 2), tetherID)
+{
+    public override void OnTethered(Actor source, in ActorTetherInfo tether)
+    {
+        if (tether.ID == TID && (OID)source.OID == OID.ThornHuaca
+            && WorldState.Actors.Find(tether.Target) is { } target && (OID)target.OID is OID.Uimet or OID.Cymet or OID.Almet or OID.Yshtola)
+            CurrentBaits.Add(new(source, target, Shape));
+        else
+            base.OnTethered(source, tether);
+    }
+
+    public override void OnUntethered(Actor source, in ActorTetherInfo tether)
+    {
+        var targetID = tether.Target;
+        if (tether.ID != TID || CurrentBaits.RemoveAll(b => b.Source == source && b.Target.InstanceID == targetID || b.Target == source && b.Source.InstanceID == targetID) == 0)
+            base.OnUntethered(source, tether);
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        CurrentBaits.RemoveAll(b => b.Source == actor || b.Target == actor);
+    }
+}
+class BurningBeamNPC(BossModule module) : BurningBeam(module, (uint)TetherID.NPCBaitAway);
+class BurningBeamPlayer(BossModule module) : BurningBeam(module, (uint)TetherID.BaitAway);
 class SoundOfHeat(BossModule module) : Components.StandardAOEs(module, AID.TheSoundOfHeat, new AOEShapeCone(60, 30.Degrees()));
 class DeceitOfPain(BossModule module) : Components.StandardAOEs(module, AID.TheDeceitOfPain, 14);
 class BalmOfDisgrace(BossModule module) : Components.StandardAOEs(module, AID.TheBalmOfDisgrace, new AOEShapeCircle(12));

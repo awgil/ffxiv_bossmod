@@ -125,6 +125,7 @@ class DimensionZero(BossModule module) : Components.IconLineStack(module, 4, 60,
 class EndlessChase(BossModule module) : Components.GenericChasingAOEs(module, AID.EndlessChaseRest)
 {
     private const float Distance = 2.9f;
+    private readonly Dictionary<ulong, Chaser> _chasers = [];
     private readonly Dictionary<ulong, Actor> _passes = [];
     private readonly List<Chaser> _pendingPass = [];
 
@@ -135,10 +136,14 @@ class EndlessChase(BossModule module) : Components.GenericChasingAOEs(module, AI
         switch ((TetherID)tether.ID)
         {
             case TetherID.NaughtHunts:
-                if (Chasers.Find(c => c.PrevPos.InCircle(source.Position, 5)) is { } existing)
+                if (_chasers.TryGetValue(source.InstanceID, out var existing))
                     existing.Target = target;
                 else
-                    Chasers.Add(new(new AOEShapeCircle(6), target, source.Position, 0, 25, WorldState.FutureTime(6), 0.7f, Distance));
+                {
+                    var chaser = new Chaser(new AOEShapeCircle(6), target, source.Position, 0, 25, WorldState.FutureTime(6), 0.7f, Distance);
+                    _chasers.Add(source.InstanceID, chaser);
+                    Chasers.Add(chaser);
+                }
                 break;
             case TetherID.NaughtHuntsPass:
                 _passes[source.InstanceID] = target;
@@ -148,10 +153,12 @@ class EndlessChase(BossModule module) : Components.GenericChasingAOEs(module, AI
 
     public override void OnActorDestroyed(Actor actor)
     {
-        if ((OID)actor.OID == OID.NaughtHuntChaser)
+        if (_chasers.Remove(actor.InstanceID, out var chaser))
         {
-            Chasers.Clear();
-            _pendingPass.Clear();
+            Chasers.Remove(chaser);
+            _pendingPass.Remove(chaser);
+            if (_chasers.Count == 0)
+                _passes.Clear();
         }
     }
 
@@ -160,10 +167,21 @@ class EndlessChase(BossModule module) : Components.GenericChasingAOEs(module, AI
         switch ((AID)spell.Action.ID)
         {
             case AID.EndlessChaseRest:
-                var chaser = Advance(spell.TargetXZ, Distance, WorldState.CurrentTime);
-                if (chaser == null)
+                ++NumCasts;
+                if (!_chasers.TryGetValue(caster.InstanceID, out var chaser))
+                {
                     ReportError($"unexpected chase cast at {spell.TargetXZ}");
-                else if (_pendingPass.Remove(chaser) && _passes.TryGetValue(chaser.Target.InstanceID, out var next))
+                    break;
+                }
+                if (--chaser.NumRemaining <= 0)
+                {
+                    OnActorDestroyed(caster);
+                    break;
+                }
+                chaser.PrevPos = spell.TargetXZ;
+                chaser.NextMoveDist = Distance;
+                chaser.NextActivation = WorldState.FutureTime(chaser.SecondsBetweenActivations);
+                if (_pendingPass.Remove(chaser) && _passes.TryGetValue(chaser.Target.InstanceID, out var next))
                     chaser.Target = next;
                 break;
             case AID.NaughtHuntsAnother:

@@ -37,16 +37,10 @@ public enum SID : uint
 class Launcher(BossModule module) : Components.RaidwideCast(module, AID.Launcher);
 class ExtremeCaution(BossModule module) : Components.StayMove(module, 3)
 {
-    public override void OnStatusGain(Actor actor, in ActorStatus status)
+    public override void Update()
     {
-        if (status.ID == (uint)SID.ExtremeCaution && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = new(Requirement.Stay, status.ExpireAt);
-    }
-
-    public override void OnStatusLose(Actor actor, in ActorStatus status)
-    {
-        if (status.ID == (uint)SID.ExtremeCaution && Raid.FindSlot(actor.InstanceID) is var slot && slot >= 0)
-            PlayerStates[slot] = default;
+        foreach (var (slot, player) in Raid.WithSlot())
+            PlayerStates[slot] = player.FindStatus(SID.ExtremeCaution) is { } caution ? new(Requirement.Stay, caution.ExpireAt) : default;
     }
 }
 class DiffractiveLaserVisual(BossModule module) : Components.StandardAOEs(module, AID.DiffractiveLaserVisual, 5);
@@ -60,13 +54,13 @@ class D172ArmoredWeaponStates : StateMachineBuilder
     public D172ArmoredWeaponStates(BossModule module) : base(module)
     {
         TrivialPhase()
-            .ActivateOnEnter<Launcher>()
-            .ActivateOnEnter<ExtremeCaution>()
-            .ActivateOnEnter<DiffractiveLaserVisual>()
+            .ActivateOnEnter<MagitekAdds>()
+            .ActivateOnEnter<AssaultCannon>()
             .ActivateOnEnter<DiffractiveLaser1>()
             .ActivateOnEnter<DiffractiveLaser2>()
-            .ActivateOnEnter<AssaultCannon>()
-            .ActivateOnEnter<MagitekAdds>();
+            .ActivateOnEnter<DiffractiveLaserVisual>()
+            .ActivateOnEnter<Launcher>()
+            .ActivateOnEnter<ExtremeCaution>();
     }
 }
 
