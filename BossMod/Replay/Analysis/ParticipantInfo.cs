@@ -143,16 +143,25 @@ class ParticipantInfo : CommonEnumInfo
             _data.Remove(curOID);
     }
 
+    string _subcontextName = "";
+
     private void DrawSubContextMenu(uint oid, ParticipantData data)
     {
+        if (_subcontextName.Length == 0)
+            _subcontextName = GuessName(oid, data);
+
         if (ImGui.MenuItem("Generate module stub (trivial states)"))
         {
             ImGui.SetClipboardText(AddBossModuleStub(new(), oid, data, false).ToString());
+            _subcontextName = "";
         }
         if (ImGui.MenuItem("Generate module stub (with state machine)"))
         {
             ImGui.SetClipboardText(AddBossModuleStub(new(), oid, data, true).ToString());
+            _subcontextName = "";
         }
+
+        ImGui.InputText("Name", ref _subcontextName);
     }
 
     private static bool IsIgnored(Replay.Participant p) => p.Type is ActorType.Player or ActorType.Pet or ActorType.Chocobo or ActorType.Area or ActorType.Treasure || p.WasAlly;
@@ -193,7 +202,7 @@ class ParticipantInfo : CommonEnumInfo
 
     private StringBuilder AddBossModuleStub(StringBuilder sb, uint oid, ParticipantData data, bool withStates)
     {
-        var name = GuessName(oid, data);
+        var name = _subcontextName.Length > 0 ? _subcontextName : GuessName(oid, data);
         sb.AppendLine("public enum OID : uint");
         sb.AppendLine("{");
         sb.AppendLine($"    Boss = 0x{oid:X},");
