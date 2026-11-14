@@ -282,7 +282,7 @@ public class MultiLineStack(BossModule module, float halfWidth, float fixedLengt
             {
                 var zones = group.Select(ShapeFn).ToList();
                 var x = ShapeDistance.Count(zones);
-                hints.AddForbiddenZone(Sdf.Discrete(p => VV.Equals(x(p), VInt.One).WithValue(VBool.AllBitsSet)), group.First().Activation);
+                hints.AddForbiddenZone(Sdf.Discrete(p => (~VV.Equals(x(p), VInt.One)).WithValue(VBool.AllBitsSet)), group.First().Activation);
             }
         }
     }

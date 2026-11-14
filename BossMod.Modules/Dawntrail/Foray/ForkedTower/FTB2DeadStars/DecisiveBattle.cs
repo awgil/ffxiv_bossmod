@@ -71,7 +71,7 @@ class DecisiveBattleAOE(BossModule module) : Components.GenericAOEs(module)
         {
             var active = _casters.Where(c => c != null).Select(c => c!).ToList();
             var shapes = ShapeDistance.Count([.. _casters.Where(c => c != null).Select(c => ShapeDistance.Circle(c!.Position, 35))]);
-            hints.AddForbiddenZone(Sdf.Discrete(p => VV.Equals(shapes(p), VInt.One).WithValue(VBool.AllBitsSet)), Module.CastFinishAt(active[0].CastInfo));
+            hints.AddForbiddenZone(Sdf.Discrete(p => (~VV.Equals(shapes(p), VInt.One)).WithValue(VBool.AllBitsSet)), Module.CastFinishAt(active[0].CastInfo));
         }
         else
             base.AddAIHints(slot, actor, assignment, hints);
