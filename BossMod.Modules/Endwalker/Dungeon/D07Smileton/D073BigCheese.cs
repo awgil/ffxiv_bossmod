@@ -21,7 +21,9 @@ public enum AID : uint
     DispenseExplosives = 27696, // Boss->self, 3.0s cast, single-target, visual
     ExcavationBombVisual = 27700, // ExcavationBombDispenser->self, no cast, single-target, places an excavation bomb
     ExplosivePower = 27697, // Boss->self, 3.0s cast, single-target, detonates excavation bombs
-    ViolentDischarge = 26450, // Boss->self, 5.0s cast, range 60 circle, TODO: not seen yet
+    ViolentDischarge = 26450, // Boss->self, 5.0s cast, range 60 circle, raidwide
+    LevelingMissile = 26452, // Boss->self, 5.0s cast, single-target, visual (spreads)
+    LevelingMissileAOE = 26453, // Helper->player, 5.0s cast, range 6 circle spread
     Excavated = 27698, // ExcavationBombDispenser->self, no cast, range 8 circle
 }
 
@@ -91,6 +93,8 @@ class ExcavationBombs(BossModule module) : Components.GenericAOEs(module, AID.Ex
 
 class Disassembler(BossModule module) : Components.GroupedAOEs(module, [AID.RightDisassembler, AID.LeftDisassembler], new AOEShapeRect(30, 5));
 class PiercingMissile(BossModule module) : Components.SingleTargetCast(module, AID.PiercingMissile);
+class ViolentDischarge(BossModule module) : Components.RaidwideCast(module, AID.ViolentDischarge);
+class LevelingMissile(BossModule module) : Components.SpreadFromCastTargets(module, AID.LevelingMissileAOE, 6);
 class ElectricArc(BossModule module) : Components.StackWithCastTargets(module, AID.ElectricArc, 8);
 
 class D073BigCheeseStates : StateMachineBuilder
@@ -102,7 +106,9 @@ class D073BigCheeseStates : StateMachineBuilder
             .ActivateOnEnter<ExcavationBombs>()
             .ActivateOnEnter<Disassembler>()
             .ActivateOnEnter<PiercingMissile>()
-            .ActivateOnEnter<ElectricArc>();
+            .ActivateOnEnter<ElectricArc>()
+            .ActivateOnEnter<ViolentDischarge>()
+            .ActivateOnEnter<LevelingMissile>();
     }
 }
 

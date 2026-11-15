@@ -23,7 +23,7 @@ public enum AID : uint
     OffMyLawnKnockback = 27742, // Helper->self, 5.0s cast, range 31 width 30 rect, knockback 8 forward
     TemperTemper = 26432, // Helper->player, 5.0s cast, range 5 circle spread
     TempersFlare = 26435, // Boss->self, 5.0s cast, range 60 circle, raidwide
-    HeartOnFireIV = 26434, // Boss->?, 5.0s cast, TODO: not seen yet
+    HeartOnFireIV = 26434, // Boss->player, 5.0s cast, single-target, tankbuster
 }
 
 public enum SID : uint
@@ -99,6 +99,7 @@ class Expressions(BossModule module) : Components.GenericAOEs(module)
 
 class OffMyLawn(BossModule module) : Components.KnockbackFromCastTarget(module, AID.OffMyLawnKnockback, 8, shape: new AOEShapeRect(31, 15), kind: Kind.DirForward, stopAtWall: true);
 class TemperTemper(BossModule module) : Components.SpreadFromCastTargets(module, AID.TemperTemper, 5);
+class HeartOnFireIV(BossModule module) : Components.SingleTargetCast(module, AID.HeartOnFireIV);
 class TempersFlare(BossModule module) : Components.RaidwideCast(module, AID.TempersFlare);
 
 class D071FaceStates : StateMachineBuilder
@@ -109,7 +110,8 @@ class D071FaceStates : StateMachineBuilder
             .ActivateOnEnter<Expressions>()
             .ActivateOnEnter<OffMyLawn>()
             .ActivateOnEnter<TemperTemper>()
-            .ActivateOnEnter<TempersFlare>();
+            .ActivateOnEnter<TempersFlare>()
+            .ActivateOnEnter<HeartOnFireIV>();
     }
 }
 

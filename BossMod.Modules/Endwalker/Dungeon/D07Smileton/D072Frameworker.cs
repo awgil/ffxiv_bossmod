@@ -18,11 +18,12 @@ public enum AID : uint
     PrintWorkers = 28092, // Boss->self, 3.0s cast, single-target, visual (tethers supporters)
     PrintWorkersVisual = 26443, // SmileySupporter->self, no cast, single-target, spawns printed workers
     OmnidimensionalOnslaught = 26440, // Boss->self, 5.0s cast, single-target, visual
-    SteelBeam = 26436, // ?->?, 5.0s cast, TODO: not seen yet, owner unconfirmed
+    SteelBeam = 26436, // Boss->player, 5.0s cast, single-target, tankbuster
     OmnidimensionalOnslaughtAOE = 26441, // Helper->self, 5.0s cast, range 40 45-degree cone, cardinals then intercardinals 2s later
 }
 
 class CircularSaw(BossModule module) : Components.RaidwideCast(module, AID.CircularSaw);
+class SteelBeam(BossModule module) : Components.SingleTargetCast(module, AID.SteelBeam);
 class LeapForward(BossModule module) : Components.GroupedAOEs(module, [AID.LeapForwardBoss, AID.LeapForwardWorker], new AOEShapeCircle(15));
 class OmnidimensionalOnslaught(BossModule module) : Components.StandardAOEs(module, AID.OmnidimensionalOnslaughtAOE, new AOEShapeCone(40, 22.5f.Degrees()), 4);
 
@@ -32,6 +33,7 @@ class D072FrameworkerStates : StateMachineBuilder
     {
         TrivialPhase()
             .ActivateOnEnter<CircularSaw>()
+            .ActivateOnEnter<SteelBeam>()
             .ActivateOnEnter<LeapForward>()
             .ActivateOnEnter<OmnidimensionalOnslaught>();
     }
