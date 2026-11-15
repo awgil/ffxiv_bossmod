@@ -2,106 +2,99 @@
 
 public enum OID : uint
 {
-    _Gen_Construct7 = 0x18D6, // R0.500, x1-24
     Boss = 0x225D, // R4.200, x1
-    _Gen_LooseCog = 0x225E, // R8.700, x0 (spawn during fight)
-    _Gen_ = 0xB84, // R0.500, x0 (spawn during fight)
-    _Gen_Missile = 0x225F, // R1.300, x0 (spawn during fight)
-    _Gen_Construct71 = 0x22A3, // R3.150, x0 (spawn during fight)
-    _Gen_Construct711 = 0x22A2, // R3.150, x0 (spawn during fight)
-    _Gen_Construct712 = 0x2260, // R3.150, x0 (spawn during fight)
+    Helper = 0x18D6, // R0.500, x1-24
+    LooseCog = 0x225E, // R8.700, x0 (spawn during fight)
+    UnkB84 = 0xB84, // R0.500, x0 (spawn during fight)
+    Missile = 0x225F, // R1.300, x0 (spawn during fight)
+    Construct711 = 0x22A2, // R3.150, x0 (spawn during fight)
+    Construct712 = 0x22A3, // R3.150, x0 (spawn during fight)
+    Construct713 = 0x2260, // R3.150, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->player, no cast, single-target
-    _Weaponskill_Destroy = 11354, // Boss->player, 5.0s cast, single-target
-    _Weaponskill_Ignite = 11367, // 18D6/player->players, no cast, range 10 circle
-    _Weaponskill_Accelerate = 11365, // Boss->players, 8.0s cast, range 6 circle
-    _Weaponskill_Pulverize = 11361, // Boss->self, 7.0s cast, range 15 circle
-    _Weaponskill_Pulverize1 = 11362, // 18D6/player->location, 4.0s cast, range 12 circle
-    _Weaponskill_Compress = 11356, // Boss->self, 2.5s cast, range 100+R width 7 rect
-    _Weaponskill_Triboelectricity = 11373, // 225E->self, no cast, range 8 circle
-    _Weaponskill_Ignite1 = 11366, // Boss->self, 3.0s cast, range 100+R width 20 rect
-    _Weaponskill_Lithobrake = 11368, // Boss->self, 5.0s cast, range 100 circle, "raidwide", doesn't apply any actioneffects
-    _Weaponskill_Lithobrake1 = 11550, // 18D6->self, 5.0s cast, range 100 circle, proximity
-    _Weaponskill_Dispose = 11359, // Boss->self, 7.0s cast, range 100+R ?-degree cone
-    _Weaponskill_Dispose1 = 11360, // Boss->self, no cast, range 100+R ?-degree cone
-    _Weaponskill_Incinerate = 11364, // Boss->self, 5.0s cast, range 100 circle
-    _Weaponskill_ComputationMode = 11351, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_Subtract = 11372, // Boss->self, 5.0s cast, range 100 circle
-    _Weaponskill_DivideByThree = 11466, // Boss->self, 10.0s cast, range 100 circle
-    _Weaponskill_DivideByFour = 11468, // Boss->self, 10.0s cast, range 100 circle
-    _Weaponskill_DivideByFive = 11469, // Boss->self, 10.0s cast, range 100 circle
-    _Weaponskill_Incinerate1 = 11464, // Boss->self, 10.0s cast, range 100 circle
-    _Weaponskill_TartarusMode = 11352, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_Tartarus = 11363, // Boss->18D6, no cast, range 100 circle
-    _Weaponskill_AnnihilationMode = 11353, // Boss->self, 10.0s cast, single-target
-    _Weaponskill_Destroy1 = 11377, // Boss->player, 5.0s cast, single-target
-    _Weaponskill_Compress1 = 11357, // Boss->self, 2.5s cast, range 100 width 7 cross
-    _Weaponskill_Incinerate2 = 11612, // Boss->self, 5.0s cast, range 100 circle
-    _Weaponskill_Indivisible = 11470, // Boss->self, 10.0s cast, range 100 circle
-    _Weaponskill_Incinerate3 = 11613, // Boss->self, 10.0s cast, range 100 circle
-    _Weaponskill_AccelerationBomb = 11556, // 22A3->self, 6.0s cast, single-target
-    _Weaponskill_Ferrofluid = 11555, // 2260->self, 6.0s cast, single-target
-    _Weaponskill_BallisticMissile = 11442, // 22A2->self, 6.0s cast, single-target
-    _Weaponskill_Magnetism = 11557, // _Gen_Construct7->self, no cast, range 100 circle
-    _Weaponskill_Explosion = 11375, // 225F->self, no cast, range 3 circle
+    AutoAttack = 872, // Boss->player, no cast, single-target
+    Destroy = 11354, // Boss->player, 5.0s cast, single-target
+    IgniteSpread = 11367, // 18D6/player->players, no cast, range 10 circle
+    Accelerate = 11365, // Boss->players, 8.0s cast, range 6 circle
+    PulverizeBoss = 11361, // Boss->self, 7.0s cast, range 15 circle
+    PulverizeBaited = 11362, // 18D6/player->location, 4.0s cast, range 12 circle
+    Compress = 11356, // Boss->self, 2.5s cast, range 100+R width 7 rect
+    Triboelectricity = 11373, // 225E->self, no cast, range 8 circle
+    IgniteRect = 11366, // Boss->self, 3.0s cast, range 100+R width 20 rect
+    LithobrakeVisual = 11368, // Boss->self, 5.0s cast, range 100 circle, "raidwide", doesn't apply any actioneffects
+    Lithobrake = 11550, // 18D6->self, 5.0s cast, range 100 circle, proximity
+    DisposeFirst = 11359, // Boss->self, 7.0s cast, range 100+R 60-degree cone
+    DisposeRest = 11360, // Boss->self, no cast, range 100+R 60-degree cone
+    IncinerateFast = 11364, // Boss->self, 5.0s cast, range 100 circle
+    ComputationMode = 11351, // Boss->self, 5.0s cast, single-target
+    Subtract = 11372, // Boss->self, 5.0s cast, range 100 circle
+    DivideByThree = 11466, // Boss->self, 10.0s cast, range 100 circle
+    DivideByFour = 11468, // Boss->self, 10.0s cast, range 100 circle
+    DivideByFive = 11469, // Boss->self, 10.0s cast, range 100 circle
+    Indivisible = 11470, // Boss->self, 10.0s cast, range 100 circle
+    IncinerateSlow = 11464, // Boss->self, 10.0s cast, range 100 circle
+    TartarusMode = 11352, // Boss->self, 5.0s cast, single-target
+    Tartarus = 11363, // Boss->18D6, no cast, range 100 circle
+    AccelerationBomb = 11556, // 22A3->self, 6.0s cast, single-target
+    Ferrofluid = 11555, // 2260->self, 6.0s cast, single-target
+    BallisticMissile = 11442, // 22A2->self, 6.0s cast, single-target
+    Magnetism = 11557, // _Gen_Construct7->self, no cast, range 100 circle
+    Explosion = 11375, // 225F->self, no cast, range 3 circle
+    AnnihilationMode = 11353, // Boss->self, 10.0s cast, single-target
+    EmpoweredDestroy = 11377, // Boss->player, 5.0s cast, single-target
+    EmpoweredCompress = 11357, // Boss->self, 2.5s cast, range 100 width 7 cross
+    EmpoweredIncinerateFast = 11612, // Boss->self, 5.0s cast, range 100 circle
+    EmpoweredIncinerateSlow = 11613, // Boss->self, 10.0s cast, range 100 circle
 }
 
 public enum SID : uint
 {
-    _Gen_DamageDown = 696, // Boss/225F->player, extra=0x0
-    _Gen_Hover = 1515, // none->_Gen_LooseCog, extra=0x1F4
-    _Gen_Weakness = 43, // none->player, extra=0x0
-    _Gen_Transcendent = 418, // none->player, extra=0x0
-    _Gen_ComputationMode = 1562, // Boss->_Gen_Construct7/Boss/player, extra=0x0
-    _Gen_HPPenalty = 1557, // Boss->player, extra=0x9
-    _Gen_HPBoost1 = 1558, // none->player, extra=0x0
-    _Gen_HPBoost2 = 1559, // none->player, extra=0x0
-    _Gen_HPBoost3 = 1560, // none->player, extra=0x0
-    _Gen_HPBoost4 = 1561, // none->player, extra=0x0
-    _Gen_ComputationBoost = 1565, // none->player, extra=0x1/0x2/0x3/0x4
-    _Gen_ComputationError = 1566, // none->player, extra=0x1/0x2
-    _Gen_TartarusMode = 1563, // Boss->Boss/_Gen_Construct7, extra=0x0
-    _Gen_DownForTheCount = 783, // Boss->player, extra=0xEC7
-    _Gen_Invincibility = 1570, // none->player, extra=0x0
-    _Gen_PositiveCharge = 698, // none->player, extra=0x0
-    _Gen_NegativeCharge = 699, // none->player, extra=0x0
-    _Gen_Stun = 149, // none->player, extra=0x0
-    _Gen_AccelerationBomb = 1384, // none->player, extra=0x0
-    _Gen_TheHeatOfBattle = 365, // none->player, extra=0xA/0xF
-    _Gen_ReducedRates = 364, // none->player, extra=0x1E
-    _Gen_PreferredWorldBonus = 1411, // none->player, extra=0x0
-    _Gen_MeatAndMead = 360, // none->player, extra=0xA
-    _Gen_AnnihilationMode = 1564, // Boss->player/Boss, extra=0x0
-    _Gen_Minimum = 438, // Boss->player, extra=0xF
+    Hover = 1515, // none->_Gen_LooseCog, extra=0x1F4
+    ComputationMode = 1562, // Boss->_Gen_Construct7/Boss/player, extra=0x0
+    HPPenalty = 1557, // Boss->player, extra=0x9
+    HPBoost1 = 1558, // none->player, extra=0x0
+    HPBoost2 = 1559, // none->player, extra=0x0
+    HPBoost3 = 1560, // none->player, extra=0x0
+    HPBoost4 = 1561, // none->player, extra=0x0
+    ComputationBoost = 1565, // none->player, extra=0x1/0x2/0x3/0x4
+    ComputationError = 1566, // none->player, extra=0x1/0x2
+    TartarusMode = 1563, // Boss->Boss/_Gen_Construct7, extra=0x0
+    DownForTheCount = 783, // Boss->player, extra=0xEC7
+    Invincibility = 1570, // none->player, extra=0x0
+    PositiveCharge = 698, // none->player, extra=0x0
+    NegativeCharge = 699, // none->player, extra=0x0
+    Stun = 149, // none->player, extra=0x0
+    AccelerationBomb = 1384, // none->player, extra=0x0
+    AnnihilationMode = 1564, // Boss->player/Boss, extra=0x0
+    Minimum = 438, // Boss->player, extra=0xF
 }
 
 public enum IconID : uint
 {
-    _Gen_Icon_tank_lockon02k1 = 218, // player->self
-    _Gen_Icon_m0489trg_c0c = 138, // player->self
-    _Gen_Icon_com_share2i = 100, // player->self
-    _Gen_Icon_m0489trg_a0c = 136, // player->self
-    _Gen_Icon_m0489trg_b0c = 137, // player->self
-    _Gen_Icon_m0272trg_a0c = 48, // player->self
-    _Gen_Icon_m0272trg_b0c = 49, // player->self
-    _Gen_Icon_m0328sp10trg0s = 75, // player->self
+    Tankbuster = 218, // player->self
+    Spread = 138, // player->self
+    Stack = 100, // player->self
+    Checkmark = 136, // player->self
+    X = 137, // player->self
+    Positive = 48, // player->self
+    Negative = 49, // player->self
+    AccelerationBomb = 75, // player->self
 }
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_magnet0c = 38, // player->player
+    Magnet = 38, // player->player
 }
 
-class Destroy(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_Destroy);
-class Ignite(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID._Gen_Icon_m0489trg_c0c, AID._Weaponskill_Ignite, 10, 5.1f);
-class Accelerate(BossModule module) : Components.StackWithCastTargets(module, AID._Weaponskill_Accelerate, 6);
-class Pulverize1(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Pulverize, 15);
-class Pulverize2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Pulverize1, 12);
-class Compress(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Compress, new AOEShapeRect(100, 3.5f));
-class IgnitePredict(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Ignite1)
+class Destroy(BossModule module) : Components.SingleTargetCast(module, AID.Destroy);
+class Ignite(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.Spread, AID.IgniteSpread, 10, 5.1f);
+class Accelerate(BossModule module) : Components.StackWithCastTargets(module, AID.Accelerate, 6);
+class Pulverize1(BossModule module) : Components.StandardAOEs(module, AID.PulverizeBoss, 15);
+class Pulverize2(BossModule module) : Components.StandardAOEs(module, AID.PulverizeBaited, 12);
+class Compress(BossModule module) : Components.StandardAOEs(module, AID.Compress, new AOEShapeRect(100, 3.5f));
+class IgnitePredict(BossModule module) : Components.GenericAOEs(module, AID.IgniteRect)
 {
     AOEInstance? _predicted;
 
@@ -119,9 +112,9 @@ class IgnitePredict(BossModule module) : Components.GenericAOEs(module, AID._Wea
             _predicted = null;
     }
 }
-class Ignite2(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Ignite1, new AOEShapeRect(100, 10));
-class Lithobrake(BossModule module) : Components.ProximityAOEs(module, AID._Weaponskill_Lithobrake1, 24);
-class Triboelectricity(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_Triboelectricity)
+class Ignite2(BossModule module) : Components.StandardAOEs(module, AID.IgniteRect, new AOEShapeRect(100, 10));
+class Lithobrake(BossModule module) : Components.ProximityAOEs(module, AID.Lithobrake, 24);
+class Triboelectricity(BossModule module) : Components.GenericAOEs(module, AID.Triboelectricity)
 {
     readonly List<(Actor Caster, int NumLeft, DateTime Next)> Cogs = [];
 
@@ -129,7 +122,7 @@ class Triboelectricity(BossModule module) : Components.GenericAOEs(module, AID._
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID == OID._Gen_LooseCog)
+        if ((OID)actor.OID == OID.LooseCog)
             Cogs.Add((actor, 4, WorldState.FutureTime(5)));
     }
 
@@ -153,7 +146,7 @@ class Dispose(BossModule module) : Components.GenericRotatingAOE(module)
 {
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Dispose)
+        if ((AID)spell.Action.ID == AID.DisposeFirst)
         {
             // rotation angle is unknown until second cast
             Sequences.Add(new()
@@ -185,12 +178,12 @@ class Dispose(BossModule module) : Components.GenericRotatingAOE(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_Dispose:
+            case AID.DisposeFirst:
                 for (var i = 0; i < Sequences.Count; i++)
                     AdvanceSequence(i, WorldState.CurrentTime);
                 break;
 
-            case AID._Weaponskill_Dispose1:
+            case AID.DisposeRest:
                 var index = Sequences.FindIndex(s => s.Origin.AlmostEqual(caster.Position, 1) && s.Rotation.AlmostEqual(spell.Rotation, 0.05f));
                 if (index >= 0)
                 {
@@ -207,18 +200,18 @@ class Dispose(BossModule module) : Components.GenericRotatingAOE(module)
     }
 }
 
-class IncinerateFast(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Incinerate);
-class IncinerateSlow(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Incinerate1);
+class IncinerateFast(BossModule module) : Components.RaidwideCast(module, AID.IncinerateFast);
+class IncinerateSlow(BossModule module) : Components.RaidwideCast(module, AID.IncinerateSlow);
 
-class TartarusMode(BossModule module) : Components.CastCounter(module, AID._Weaponskill_TartarusMode);
-class Tartarus(BossModule module) : Components.CastCounter(module, AID._Weaponskill_Tartarus);
+class TartarusMode(BossModule module) : Components.CastCounter(module, AID.TartarusMode);
+class Tartarus(BossModule module) : Components.CastCounter(module, AID.Tartarus);
 
-class IntermissionAdds(BossModule module) : Components.AddsMulti(module, [OID._Gen_Construct71, OID._Gen_Construct711, OID._Gen_Construct712]);
+class IntermissionAdds(BossModule module) : Components.AddsMulti(module, [OID.Construct712, OID.Construct711, OID.Construct713]);
 
-class EmpoweredDestroy(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_Destroy1);
-class EmpoweredCompress(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Compress1, new AOEShapeRect(100, 3.5f));
-class EmpoweredIncinerateFast(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Incinerate2);
-class EmpoweredIncinerateSlow(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_Incinerate3);
+class EmpoweredDestroy(BossModule module) : Components.SingleTargetCast(module, AID.EmpoweredDestroy);
+class EmpoweredCompress(BossModule module) : Components.StandardAOEs(module, AID.EmpoweredCompress, new AOEShapeRect(100, 3.5f));
+class EmpoweredIncinerateFast(BossModule module) : Components.RaidwideCast(module, AID.EmpoweredIncinerateFast);
+class EmpoweredIncinerateSlow(BossModule module) : Components.RaidwideCast(module, AID.EmpoweredIncinerateSlow);
 
 class A23Construct7States : StateMachineBuilder
 {

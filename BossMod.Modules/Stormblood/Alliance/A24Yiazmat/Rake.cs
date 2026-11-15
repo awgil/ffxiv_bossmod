@@ -6,7 +6,7 @@ class RakeLine(BossModule module) : Components.Exaflare(module, new AOEShapeCirc
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Rake3)
+        if ((AID)spell.Action.ID == AID.RakeLineFirst)
         {
             TotalCastsLeft = 10;
             AddLineFrom(spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell));
@@ -15,13 +15,13 @@ class RakeLine(BossModule module) : Components.Exaflare(module, new AOEShapeCirc
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_Rake3 && Lines.Count > 0)
+        if ((AID)spell.Action.ID == AID.RakeLineFirst && Lines.Count > 0)
         {
             AdvanceLine(Lines[0], Lines[0].Next);
             CleanupLines();
         }
 
-        if ((AID)spell.Action.ID == AID._Weaponskill_Rake5 && Lines.Count > 0)
+        if ((AID)spell.Action.ID == AID.RakeLineRest && Lines.Count > 0)
         {
             AdvanceLine(Lines[0], spell.TargetXZ);
             Lines[0].Rotation = Module.PrimaryActor.Rotation;
@@ -58,8 +58,8 @@ class RakeLine(BossModule module) : Components.Exaflare(module, new AOEShapeCirc
     {
         var diff = (IconID)iconID switch
         {
-            IconID._Gen_Icon_m0501_turning_left01i => 120.Degrees(),
-            IconID._Gen_Icon_m0501_turning_right01i => -120.Degrees(),
+            IconID.TurnLeft => 120.Degrees(),
+            IconID.TurnRight => -120.Degrees(),
             _ => default
         };
 

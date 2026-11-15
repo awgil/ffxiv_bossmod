@@ -3,64 +3,59 @@
 public enum OID : uint
 {
     Boss = 0x22A4, // R5.100, x2
-    _Gen_BeliasTheGigas = 0x18D6, // R0.500, x24, Helper type
-    _Gen_ = 0x22A6, // R1.500, x0 (spawn during fight)
-    _Gen_Gigas = 0x22A5, // R3.400, x0 (spawn during fight)
+    Helper = 0x18D6, // R0.500, x24, Helper type
+    Nail = 0x22A6, // R1.500, x0 (spawn during fight)
+    Gigas = 0x22A5, // R3.400, x0 (spawn during fight)
 }
 
 public enum AID : uint
 {
-    _AutoAttack_Attack = 872, // Boss->player, no cast, single-target
-    _Weaponskill_Fire = 11483, // Boss->player, 4.0s cast, single-target
-    _Weaponskill_FireIV = 11484, // Boss->self, 5.0s cast, range 90 circle
-    _Weaponskill_TimeEruption = 11486, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_TimeEruption1 = 11487, // 18D6->self, 5.0s cast, range 20 width 20 rect
-    _Weaponskill_TimeEruption2 = 11488, // 18D6->self, 8.0s cast, range 20 width 20 rect
-    _Weaponskill_CrimsonCyclone = 11490, // Boss->location, 5.0s cast, single-target
-    _Weaponskill_CrimsonCyclone1 = 11491, // 18D6->self, no cast, range 40+R width 20 rect
-    _Weaponskill_CrimsonCyclone2 = 11492, // 18D6->self, no cast, range 60+R width 20 rect
-    _Weaponskill_CrimsonCyclone3 = 11615, // Boss->self, no cast, range 70+R width 20 rect
-    _Weaponskill_TheHandOfTime = 11493, // Boss->self, 5.0s cast, single-target
-    _Weaponskill_Eruption = 11485, // 18D6->location, 3.0s cast, range 8 circle
-    _AutoAttack_Attack1 = 870, // 22A5->player, no cast, single-target
-    _Weaponskill_Hellfire = 11496, // Boss->self, no cast, range 60 circle
-    _Weaponskill_TimeBomb = 11494, // Boss->self, 3.0s cast, single-target
-    _Weaponskill_TimeBomb1 = 11495, // 18D6->self, 2.0s cast, range 60 90-degree cone
+    AutoAttack = 872, // Boss->player, no cast, single-target
+    Fire = 11483, // Boss->player, 4.0s cast, single-target
+    FireIV = 11484, // Boss->self, 5.0s cast, range 90 circle
+    TimeEruptionCast = 11486, // Boss->self, 3.0s cast, single-target
+    TimeEruptionFast = 11487, // 18D6->self, 5.0s cast, range 20 width 20 rect
+    TimeEruptionSlow = 11488, // 18D6->self, 8.0s cast, range 20 width 20 rect
+    CrimsonCycloneCast = 11490, // Boss->location, 5.0s cast, single-target
+    CrimsonCycloneShort = 11491, // 18D6->self, no cast, range 40+R width 20 rect
+    CrimsonCycloneMedium = 11492, // 18D6->self, no cast, range 60+R width 20 rect
+    CrimsonCycloneLong = 11615, // Boss->self, no cast, range 70+R width 20 rect
+    TheHandOfTime = 11493, // Boss->self, 5.0s cast, single-target
+    Eruption = 11485, // 18D6->location, 3.0s cast, range 8 circle
+    GigasAutos = 870, // 22A5->player, no cast, single-target
+    Hellfire = 11496, // Boss->self, no cast, range 60 circle
+    TimeBombCast = 11494, // Boss->self, 3.0s cast, single-target
+    TimeBombCone = 11495, // 18D6->self, 2.0s cast, range 60 90-degree cone
 }
 
 public enum SID : uint
 {
-    _Gen_Invincibility = 1570, // none->player, extra=0x0
-    _Gen_VulnerabilityUp = 202, // 18D6/Boss->player, extra=0x1/0x2/0x3/0x4
-    _Gen_Slow = 1509, // 18D6/Boss->player, extra=0x0
-    _Gen_Weakness = 43, // none->player, extra=0x0
-    _Gen_Transcendent = 418, // none->player, extra=0x0
-    _Gen_Slow1 = 1568, // none->player, extra=0x3/0x2/0x1
-    _Gen_Burns = 530, // none->player, extra=0x3/0x2/0x1
-    _Gen_VulnerabilityDown = 350, // none->22A5, extra=0x0
-    _Gen_TemporalDisplacement = 1119, // none->player, extra=0x0
-    _Gen_TemporalBarrier = 1571, // none->player, extra=0x0
-    _Gen_BrinkOfDeath = 44, // none->player, extra=0x0
+    Slow = 1509, // 18D6/Boss->player, extra=0x0
+    SlowPlus = 1568, // none->player, extra=0x3/0x2/0x1
+    Burns = 530, // none->player, extra=0x3/0x2/0x1
+    VulnerabilityDown = 350, // none->22A5, extra=0x0
+    TemporalDisplacement = 1119, // none->player, extra=0x0
+    TemporalBarrier = 1571, // none->player, extra=0x0
 }
 
 public enum IconID : uint
 {
-    _Gen_Icon_tank_lockon01i = 198, // player->self
-    _Gen_Icon_m0376trg_fire3_a0p = 97, // player->self
-    _Gen_Icon_m0406trg_a0n = 102, // player->self
+    Tankbuster = 198, // player->self
+    ChainImminent = 97, // player->self
+    FireTarget = 102, // player->self
 }
 
 public enum TetherID : uint
 {
-    _Gen_Tether_chn_fire001f = 5, // 22A6->player
-    _Gen_Tether_chn_m0480_hfchain1x = 78, // 22A6->player
-    _Gen_Tether_chn_subbly_mgc01f = 14, // 22A5->22A5
+    Nail = 5, // 22A6->player
+    FireSlow = 78, // 22A6->player
+    GigasGigas = 14, // 22A5->22A5
 }
 
-class Fire(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_Fire);
-class FireIV(BossModule module) : Components.RaidwideCast(module, AID._Weaponskill_FireIV);
+class Fire(BossModule module) : Components.SingleTargetCast(module, AID.Fire);
+class FireIV(BossModule module) : Components.RaidwideCast(module, AID.FireIV);
 
-class TimeEruption(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_TimeEruption1, AID._Weaponskill_TimeEruption2], new AOEShapeRect(20, 10))
+class TimeEruption(BossModule module) : Components.GroupedAOEs(module, [AID.TimeEruptionFast, AID.TimeEruptionSlow], new AOEShapeRect(20, 10))
 {
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).TakeSpan(a => a.Activation, TimeSpan.FromSeconds(1));
 
@@ -104,7 +99,7 @@ class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_CrimsonCyclone1 or AID._Weaponskill_CrimsonCyclone2 or AID._Weaponskill_CrimsonCyclone3 && _predicted.Count > 0)
+        if ((AID)spell.Action.ID is AID.CrimsonCycloneShort or AID.CrimsonCycloneMedium or AID.CrimsonCycloneLong && _predicted.Count > 0)
         {
             NumCasts++;
             _predicted.RemoveAt(0);
@@ -112,7 +107,7 @@ class CrimsonCyclone(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class Eruption(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Eruption, 8);
+class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption, 8);
 
 class HandOfTime(BossModule module) : BossComponent(module)
 {
@@ -123,13 +118,13 @@ class HandOfTime(BossModule module) : BossComponent(module)
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_fire001f && WorldState.Actors.Find(tether.Target) is { } target)
+        if ((TetherID)tether.ID == TetherID.Nail && WorldState.Actors.Find(tether.Target) is { } target)
             Tethers.Add((source, target));
     }
 
     public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_m0480_hfchain1x)
+        if ((TetherID)tether.ID == TetherID.FireSlow)
             Tethers.RemoveAll(t => t.Nail == source);
     }
 
@@ -179,19 +174,19 @@ class HandOfTime(BossModule module) : BossComponent(module)
     public override PlayerPriority CalcPriority(int pcSlot, Actor pc, int playerSlot, Actor player, ref uint customColor) => Tethers.Any(t => t.Player == player) ? PlayerPriority.Danger : PlayerPriority.Irrelevant;
 }
 
-class Gigas(BossModule module) : Components.Adds(module, (uint)OID._Gen_Gigas)
+class Gigas(BossModule module) : Components.Adds(module, (uint)OID.Gigas)
 {
     private readonly List<(Actor From, Actor To)> _tethered = [];
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == ObjectID))
-            target.Priority = target.Actor.FindStatus(SID._Gen_VulnerabilityDown) != null ? AIHints.Enemy.PriorityPointless : 0;
+            target.Priority = target.Actor.FindStatus(SID.VulnerabilityDown) != null ? AIHints.Enemy.PriorityPointless : 0;
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        foreach (var target in WorldState.Actors.Where(t => t.OID == ObjectID && t.TargetID == actor.InstanceID && t.FindStatus(SID._Gen_VulnerabilityDown) != null))
+        foreach (var target in WorldState.Actors.Where(t => t.OID == ObjectID && t.TargetID == actor.InstanceID && t.FindStatus(SID.VulnerabilityDown) != null))
             hints.Add("Separate adds!");
     }
 
@@ -209,19 +204,19 @@ class Gigas(BossModule module) : Components.Adds(module, (uint)OID._Gen_Gigas)
 
     public override void OnTethered(Actor source, in ActorTetherInfo tether)
     {
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_subbly_mgc01f && WorldState.Actors.Find(tether.Target) is { } target)
+        if ((TetherID)tether.ID == TetherID.GigasGigas && WorldState.Actors.Find(tether.Target) is { } target)
             _tethered.Add((source, target));
     }
 
     public override void OnUntethered(Actor source, in ActorTetherInfo tether)
     {
         var tt = tether.Target;
-        if ((TetherID)tether.ID == TetherID._Gen_Tether_chn_subbly_mgc01f)
+        if ((TetherID)tether.ID == TetherID.GigasGigas)
             _tethered.RemoveAll(t => t.From.InstanceID == source.InstanceID && t.To.InstanceID == tt);
     }
 }
 
-class Hellfire(BossModule module) : Components.RaidwideInstant(module, AID._Weaponskill_Hellfire, 10)
+class Hellfire(BossModule module) : Components.RaidwideInstant(module, AID.Hellfire, 10)
 {
     bool AddsPhase;
 
@@ -303,7 +298,7 @@ class TimeBomb(BossModule module) : BossComponent(module)
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID == AID._Weaponskill_TimeBomb1)
+        if ((AID)spell.Action.ID == AID.TimeBombCone)
         {
             Draw = false;
             Bombs.Clear();
@@ -312,7 +307,7 @@ class TimeBomb(BossModule module) : BossComponent(module)
     }
 }
 
-class TimeBombCast(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_TimeBomb1, new AOEShapeCone(60, 45.Degrees()));
+class TimeBombCast(BossModule module) : Components.StandardAOEs(module, AID.TimeBombCone, new AOEShapeCone(60, 45.Degrees()));
 
 class A22BeliasTheGigasStates : StateMachineBuilder
 {

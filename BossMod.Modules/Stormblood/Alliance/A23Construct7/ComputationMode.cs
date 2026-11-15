@@ -47,10 +47,10 @@ class ComputationMode(BossModule module) : BossComponent(module)
     {
         var id = (SID)status.ID switch
         {
-            SID._Gen_HPBoost1 => 1,
-            SID._Gen_HPBoost2 => 2,
-            SID._Gen_HPBoost3 => 3,
-            SID._Gen_HPBoost4 => 4,
+            SID.HPBoost1 => 1,
+            SID.HPBoost2 => 2,
+            SID.HPBoost3 => 3,
+            SID.HPBoost4 => 4,
             _ => 0
         };
         if (id > 0 && Raid.TryFindSlot(actor, out var slot))
@@ -59,7 +59,7 @@ class ComputationMode(BossModule module) : BossComponent(module)
 
     public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
-        if ((SID)status.ID is SID._Gen_HPBoost1 or SID._Gen_HPBoost2 or SID._Gen_HPBoost3 or SID._Gen_HPBoost4 && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID is SID.HPBoost1 or SID.HPBoost2 or SID.HPBoost3 or SID.HPBoost4 && Raid.TryFindSlot(actor, out var slot))
             HPBoost[slot] = 0;
     }
 
@@ -67,16 +67,16 @@ class ComputationMode(BossModule module) : BossComponent(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Weaponskill_DivideByThree:
+            case AID.DivideByThree:
                 _pred = new(3, Module.CastFinishAt(spell));
                 break;
-            case AID._Weaponskill_DivideByFour:
+            case AID.DivideByFour:
                 _pred = new(4, Module.CastFinishAt(spell));
                 break;
-            case AID._Weaponskill_DivideByFive:
+            case AID.DivideByFive:
                 _pred = new(5, Module.CastFinishAt(spell));
                 break;
-            case AID._Weaponskill_Indivisible:
+            case AID.Indivisible:
                 _pred = new(1, Module.CastFinishAt(spell));
                 break;
         }
@@ -84,7 +84,7 @@ class ComputationMode(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_DivideByFour or AID._Weaponskill_DivideByThree or AID._Weaponskill_DivideByFive or AID._Weaponskill_Indivisible)
+        if ((AID)spell.Action.ID is AID.DivideByFour or AID.DivideByThree or AID.DivideByFive or AID.Indivisible)
             _pred = null;
     }
 
