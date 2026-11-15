@@ -89,7 +89,7 @@ class CoherenceRay(BossModule module) : Components.SimpleLineStack(module, 3, 60
     }
 }
 
-class PredatorySight(BossModule module) : Components.StackTogether(module, (uint)IconID.PredatorySight, 4.9f, 3);
+class PredatorySight(BossModule module) : Components.StackTogether(module, (uint)IconID.PredatorySight, 4.9f, radius: 3);
 
 // TODO: distance is estimated, players near the landing spot ended 13-16y away
 class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Shockwave, 15);

@@ -116,7 +116,7 @@ public sealed class AkechiMCHPvP(RotationModuleManager manager, Actor player) : 
         AutoTarget = targeting == TargetingStrategy.Auto;
         ConeTarget = Retarget(GetBestTarget(primaryTarget, 12, Is12yConeTarget).Best?.Actor);
         if (targeting != TargetingStrategy.Manual)
-            GetPvPTarget(5, targeting == TargetingStrategy.FocusTargetsTarget);
+            GetPvPTarget(25, targeting == TargetingStrategy.FocusTargetsTarget);
         if (HasLOS(PrimaryTarget))
         {
             QueueLimitBreak(strategy);
