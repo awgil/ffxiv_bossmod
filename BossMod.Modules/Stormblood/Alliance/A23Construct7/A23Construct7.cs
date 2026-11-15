@@ -32,6 +32,7 @@ public enum AID : uint
     _Weaponskill_Subtract = 11372, // Boss->self, 5.0s cast, range 100 circle
     _Weaponskill_DivideByThree = 11466, // Boss->self, 10.0s cast, range 100 circle
     _Weaponskill_DivideByFour = 11468, // Boss->self, 10.0s cast, range 100 circle
+    _Weaponskill_DivideByFive = 11469, // Boss->self, 10.0s cast, range 100 circle
     _Weaponskill_Incinerate1 = 11464, // Boss->self, 10.0s cast, range 100 circle
     _Weaponskill_TartarusMode = 11352, // Boss->self, 5.0s cast, single-target
     _Weaponskill_Tartarus = 11363, // Boss->18D6, no cast, range 100 circle
@@ -56,9 +57,9 @@ public enum SID : uint
     _Gen_Transcendent = 418, // none->player, extra=0x0
     _Gen_ComputationMode = 1562, // Boss->_Gen_Construct7/Boss/player, extra=0x0
     _Gen_HPPenalty = 1557, // Boss->player, extra=0x9
-    _Gen_HPBoost3 = 1560, // none->player, extra=0x0
-    _Gen_HPBoost2 = 1559, // none->player, extra=0x0
     _Gen_HPBoost1 = 1558, // none->player, extra=0x0
+    _Gen_HPBoost2 = 1559, // none->player, extra=0x0
+    _Gen_HPBoost3 = 1560, // none->player, extra=0x0
     _Gen_HPBoost4 = 1561, // none->player, extra=0x0
     _Gen_ComputationBoost = 1565, // none->player, extra=0x1/0x2/0x3/0x4
     _Gen_ComputationError = 1566, // none->player, extra=0x1/0x2
@@ -153,6 +154,8 @@ class Dispose(BossModule module) : Components.GenericRotatingAOE(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID._Weaponskill_Dispose)
+        {
+            // rotation angle is unknown until second cast
             Sequences.Add(new()
             {
                 Shape = new AOEShapeCone(100, 30.Degrees()),
@@ -164,12 +167,43 @@ class Dispose(BossModule module) : Components.GenericRotatingAOE(module)
                 NumRemainingCasts = 6,
                 MaxShownAOEs = 3
             });
+            Sequences.Add(new()
+            {
+                Shape = new AOEShapeCone(100, 30.Degrees()),
+                Origin = spell.LocXZ,
+                Rotation = spell.Rotation,
+                Increment = -60.Degrees(),
+                NextActivation = Module.CastFinishAt(spell),
+                SecondsBetweenActivations = 1.2f,
+                NumRemainingCasts = 6,
+                MaxShownAOEs = 3
+            });
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_Dispose or AID._Weaponskill_Dispose1 && Sequences.Count > 0)
-            AdvanceSequence(0, WorldState.CurrentTime);
+        switch ((AID)spell.Action.ID)
+        {
+            case AID._Weaponskill_Dispose:
+                for (var i = 0; i < Sequences.Count; i++)
+                    AdvanceSequence(i, WorldState.CurrentTime);
+                break;
+
+            case AID._Weaponskill_Dispose1:
+                var index = Sequences.FindIndex(s => s.Origin.AlmostEqual(caster.Position, 1) && s.Rotation.AlmostEqual(spell.Rotation, 0.05f));
+                if (index >= 0)
+                {
+                    AdvanceSequence(index, WorldState.CurrentTime);
+                    if (Sequences.Count == 2)
+                    {
+                        var seq = Sequences[index];
+                        Sequences.Clear();
+                        Sequences.Add(seq);
+                    }
+                }
+                break;
+        }
     }
 }
 
@@ -206,12 +240,13 @@ class A23Construct7States : StateMachineBuilder
             .ActivateOnEnter<IncinerateFast>()
             .ActivateOnEnter<IncinerateSlow>()
             .ActivateOnEnter<ComputationMode>()
-            .Raw.Update = () => Module.FindComponent<Tartarus>() is { NumCasts: 1 } && Module.PrimaryActor.IsDestroyed;
+            .Raw.Update = () => Module.FindComponent<Tartarus>() is { NumCasts: 1 } && Module.PrimaryActor.IsDestroyed // standard phasing
+                || Module.PrimaryActor.IsDead; // unsync intermission skip
 
         SimplePhase(1, P2, "Intermission")
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
             .ActivateOnEnter<IntermissionAdds>()
-            .Raw.Update = () => Module.Enemies(OID.Boss).Any();
+            .Raw.Update = () => module.PrimaryActor.IsDead || Module.Enemies(OID.Boss).Any();
 
         DeathPhase(2, P3)
             .ActivateOnEnter<Ignite>()

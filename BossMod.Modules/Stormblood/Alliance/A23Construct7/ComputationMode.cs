@@ -51,7 +51,7 @@ class ComputationMode(BossModule module) : BossComponent(module)
             SID._Gen_HPBoost2 => 2,
             SID._Gen_HPBoost3 => 3,
             SID._Gen_HPBoost4 => 4,
-            _ => -1
+            _ => 0
         };
         if (id > 0 && Raid.TryFindSlot(actor, out var slot))
             HPBoost[slot] = id;
@@ -73,6 +73,9 @@ class ComputationMode(BossModule module) : BossComponent(module)
             case AID._Weaponskill_DivideByFour:
                 _pred = new(4, Module.CastFinishAt(spell));
                 break;
+            case AID._Weaponskill_DivideByFive:
+                _pred = new(5, Module.CastFinishAt(spell));
+                break;
             case AID._Weaponskill_Indivisible:
                 _pred = new(1, Module.CastFinishAt(spell));
                 break;
@@ -81,7 +84,7 @@ class ComputationMode(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Weaponskill_DivideByFour or AID._Weaponskill_DivideByThree or AID._Weaponskill_Indivisible)
+        if ((AID)spell.Action.ID is AID._Weaponskill_DivideByFour or AID._Weaponskill_DivideByThree or AID._Weaponskill_DivideByFive or AID._Weaponskill_Indivisible)
             _pred = null;
     }
 
@@ -96,6 +99,7 @@ class ComputationMode(BossModule module) : BossComponent(module)
             { Mod: 1 } => hpHere % 2 > 0 && hpHere % 3 > 0 && hpHere % 5 > 0,
             { Mod: 3 } => hpHere % 3 == 0,
             { Mod: 4 } => hpHere % 4 == 0,
+            { Mod: 5 } => hpHere % 5 == 0,
             _ => false,
         };
     }

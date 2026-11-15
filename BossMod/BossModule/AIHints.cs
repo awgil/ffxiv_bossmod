@@ -5,6 +5,8 @@ namespace BossMod;
 // information relevant for AI decision making process for a specific player
 public sealed class AIHints
 {
+    private static readonly AIHintsConfig _config = Service.Config.Get<AIHintsConfig>();
+
     public class Enemy
     {
         public const int PriorityPointless = -1; // attacking enemy won't improve your parse, but will give gauge and advance combo (e.g. boss locked to 1 HP, useless add in raid, etc)
@@ -25,9 +27,8 @@ public sealed class AIHints
                 {
                     _priority = value;
 
-                    // will be empty if tracing is off, ideally quicker than checking the config flag dozens of times every frame
-                    if (PrioHistory.Count > 0)
-                        PrioHistory.Add((_priority, new StackFrame(1, true).ToString()));
+                    if (_config.PriorityTracing)
+                        PrioHistory.Add((_priority, string.Join("", new StackTrace(1, true).GetFrames().Select(f => f.ToString()))));
                 }
             }
         }

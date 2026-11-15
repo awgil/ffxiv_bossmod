@@ -18,8 +18,10 @@ public enum AID : uint
     BrinyCannonadeCast = 11329, // Boss->self, 5.0s cast, single-target
     BrinyCannonadeSpread = 11333, // 18D6->players, no cast, range 6 circle
     BossTeleport = 11335, // Boss->location, no cast, ???
+    TsunamiCastBackward = 11336, // Boss->self, 3.0s cast, single-target
     TsunamiCastCCW = 11337, // Boss->self, 3.0s cast, single-target
     TsunamiCastForward = 11338, // Boss->self, 3.0s cast, single-target
+    TsunamiCastCW = 11339, // Boss->self, 3.0s cast, single-target
     TsunamiRaidwideKB = 11344, // 18D6->self, 5.0s cast, range 40 circle
     TsunamiHitKB = 11345, // 18D6->self, no cast, range 36+R ?-degree cone
     TsunamiHit = 11346, // 18D6->self, no cast, range 36+R ?-degree cone
@@ -68,11 +70,17 @@ class TsunamiVoidzone(BossModule module) : Components.GenericAOEs(module, AID.Ts
     {
         switch ((AID)spell.Action.ID)
         {
+            case AID.TsunamiCastCW:
+                _predicted = new(Shape, spell.LocXZ, spell.Rotation - 90.Degrees(), Module.CastFinishAt(spell, 8.1f));
+                break;
             case AID.TsunamiCastForward:
                 _predicted = new(Shape, spell.LocXZ, spell.Rotation, Module.CastFinishAt(spell, 8.1f));
                 break;
             case AID.TsunamiCastCCW:
                 _predicted = new(Shape, spell.LocXZ, spell.Rotation + 90.Degrees(), Module.CastFinishAt(spell, 8.1f));
+                break;
+            case AID.TsunamiCastBackward:
+                _predicted = new(Shape, spell.LocXZ, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, 8.1f));
                 break;
         }
     }
