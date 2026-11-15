@@ -111,8 +111,8 @@ class Eruption(BossModule module) : Components.StandardAOEs(module, AID.Eruption
 
 class HandOfTime(BossModule module) : BossComponent(module)
 {
-    // completely guessing the range of these, gotta do a bunch more runs to find out
-    const float StretchRadius = 12f;
+    // guess
+    const float StretchRadius = 16f;
 
     readonly List<(Actor Nail, Actor Player)> Tethers = [];
 
