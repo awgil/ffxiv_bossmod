@@ -51,6 +51,21 @@ class Mindhack(BossModule module) : Components.StatusDrivenForcedMarch(module, 2
 {
     public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
         => !Module.InBounds(pos) || Module.Components.OfType<Components.GenericAOEs>().Any(c => c.ActiveAOEs(slot, actor).Any(a => a.Check(pos)));
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (!State.TryGetValue(actor.InstanceID, out var state) || state.PendingMoves is not [var move, ..])
+            return;
+        var dist = MovementSpeed * move.duration;
+        var facings = new ArcList(actor.Position, dist);
+        for (var i = 0; i < 72; ++i)
+        {
+            var facing = (i * 5).Degrees().Normalized();
+            if (DestinationUnsafe(slot, actor, actor.Position + dist * (facing + move.dir).ToDirection()))
+                facings.ForbidArcByLength(facing, 2.6f.Degrees());
+        }
+        hints.AddForbiddenDirections(facings, move.activation);
+    }
 }
 
 class D083Stigma4States : StateMachineBuilder
@@ -70,4 +85,8 @@ class D083Stigma4States : StateMachineBuilder
 }
 
 [ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 784, NameID = 10404)]
-public class D083Stigma4(ModuleInit init) : BossModule(init, new(0, 2.5f), new ArenaBoundsSquare(20));
+public class D083Stigma4(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsSquare(20))
+{
+    protected override void CalculateModuleAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+        => hints.PrioritizeTargetsByOID([(uint)OID.OmegaFrame, (uint)OID.HybridDragon], 1);
+}

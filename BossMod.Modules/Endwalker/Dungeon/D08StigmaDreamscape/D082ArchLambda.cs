@@ -66,46 +66,90 @@ class AssaultCannon(BossModule module) : Components.GenericAOEs(module)
 class SniperCannon(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly Actor?[] _targets = new Actor?[4];
+    private WPos _start;
+    private WDir _step;
     private DateTime _activation;
-    private int _fired;
+    private DateTime _lastIcon;
 
     private static readonly AOEShapeRect _line = new(40, 3);
 
-    private static WPos Origin(int order) => new(0, -12 + 8 * order);
+    private WPos Origin(int order) => _start + _step * (7.5f + 8 * order);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        for (var i = _fired; i < _targets.Length; ++i)
+        if (_activation == default)
+            yield break;
+        for (var i = 0; i < _targets.Length; ++i)
             if (_targets[i] is { } t && t != actor)
                 yield return new(_line, Origin(i), Angle.FromDirection(t.Position - Origin(i)), _activation.AddSeconds(0.1f * i));
     }
 
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+        var own = Array.IndexOf(_targets, actor);
+        if (_activation != default && own >= 0 && Raid.WithoutSlot().Exclude(actor).InShape(_line, Origin(own), Angle.FromDirection(actor.Position - Origin(own))).Any())
+            hints.Add("Bait away from raid!");
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        var own = Array.IndexOf(_targets, actor);
+        if (_activation == default || own < 0)
+            return;
+        var origin = Origin(own);
+        foreach (var p in Raid.WithoutSlot().Exclude(actor))
+        {
+            var dist = (p.Position - origin).Length();
+            if (dist > _line.HalfWidth)
+                hints.AddForbiddenZone(ShapeDistance.Cone(origin, 100, Angle.FromDirection(p.Position - origin), Angle.Asin(_line.HalfWidth / dist)), _activation);
+        }
+    }
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (var i = _fired; i < _targets.Length; ++i)
-            if (_targets[i] == pc)
-                _line.Outline(Arena, Origin(i), Angle.FromDirection(pc.Position - Origin(i)), ArenaColor.Safe);
+        var own = Array.IndexOf(_targets, pc);
+        if (_activation != default && own >= 0)
+            _line.Outline(Arena, Origin(own), Angle.FromDirection(pc.Position - Origin(own)));
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (iconID is >= (uint)IconID.Sniper1 and <= (uint)IconID.Sniper4 && Raid.TryFindSlot(actor, out _))
-            _targets[iconID - (uint)IconID.Sniper1] = actor;
+        if (iconID is < (uint)IconID.Sniper1 or > (uint)IconID.Sniper4 || !Raid.TryFindSlot(actor, out _))
+            return;
+        if (WorldState.CurrentTime > _lastIcon.AddSeconds(5))
+        {
+            Array.Fill(_targets, null);
+            _activation = default;
+        }
+        _lastIcon = WorldState.CurrentTime;
+        _targets[iconID - (uint)IconID.Sniper1] = actor;
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.AutoMobileSniperCannon)
+        {
+            _start = caster.Position;
+            _step = (spell.LocXZ - caster.Position).Normalized();
             _activation = Module.CastFinishAt(spell, 0.3f);
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.SniperCannon && ++_fired >= _targets.Length)
-        {
-            Array.Fill(_targets, null);
-            _fired = 0;
-        }
+        if ((AID)spell.Action.ID != AID.SniperCannon)
+            return;
+        ++NumCasts;
+        var best = -1;
+        for (var i = 0; i < _targets.Length; ++i)
+            if (_targets[i] != null && (best < 0 || (Origin(i) - caster.Position).LengthSq() < (Origin(best) - caster.Position).LengthSq()))
+                best = i;
+        if (best >= 0)
+            _targets[best] = null;
+        if (Array.TrueForAll(_targets, t => t == null))
+            _activation = default;
     }
 }
 
