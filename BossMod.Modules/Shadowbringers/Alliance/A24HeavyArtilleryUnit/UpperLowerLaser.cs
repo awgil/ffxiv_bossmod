@@ -10,7 +10,7 @@ class LowerLaser(BossModule module) : Components.GenericAOEs(module, AID.LowerLa
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00100020)
         {
-            var angle = (MathF.Round(Angle.FromDirection(actor.Position - Arena.Center).Deg / 60f) * 60).Degrees();
+            var angle = (MathF.Round(Angle.FromDirection(actor.ActualPosition - Arena.Center).Deg / 60f) * 60).Degrees();
             _casters.Add((angle, WorldState.FutureTime(9.6f), 0));
         }
     }
@@ -50,7 +50,7 @@ class UpperLaser(BossModule module) : Components.GenericAOEs(module, AID.UpperLa
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00800100)
         {
-            var angle = (MathF.Round(Angle.FromDirection(actor.Position - Arena.Center).Deg / 60f) * 60).Degrees();
+            var angle = (MathF.Round(Angle.FromDirection(actor.ActualPosition - Arena.Center).Deg / 60f) * 60).Degrees();
             _casters.Add((angle, WorldState.FutureTime(9.6f), 0));
         }
     }

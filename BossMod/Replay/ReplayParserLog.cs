@@ -308,6 +308,8 @@ public sealed class ReplayParserLog : IDisposable
             [new("MOVE"u8)] = ParseActorMove,
             [new("ARO+"u8)] = () => ParseActorRotationRaw(true),
             [new("ARO-"u8)] = () => ParseActorRotationRaw(false),
+            [new("APO+"u8)] = () => ParseActorPositionRaw(true),
+            [new("APO-"u8)] = () => ParseActorPositionRaw(false),
             [new("ACSZ"u8)] = ParseActorSizeChange,
             [new("HP  "u8)] = ParseActorHPMP,
             [new("ATG+"u8)] = () => ParseActorTargetable(true),
@@ -616,6 +618,16 @@ public sealed class ReplayParserLog : IDisposable
         }
     }
 
+    private ActorState.OpRawPosition ParseActorPositionRaw(bool present)
+    {
+        var id = _input.ReadActorID();
+        Vector3? pos = null;
+
+        if (present)
+            pos = new(_input.ReadFloat(), _input.ReadFloat(), _input.ReadFloat());
+
+        return new(id, pos);
+    }
     private ActorState.OpRawRotation ParseActorRotationRaw(bool present) => new(_input.ReadActorID(), present ? _input.ReadFloat() : null);
     private ActorState.OpSizeChange ParseActorSizeChange() => new(_input.ReadActorID(), _input.ReadFloat());
     private ActorState.OpHPMP ParseActorHPMP() => new(_input.ReadActorID(), ReadActorHPMP());

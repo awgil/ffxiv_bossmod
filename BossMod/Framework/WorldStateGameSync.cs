@@ -357,6 +357,10 @@ sealed unsafe class WorldStateGameSync(
         var classID = chr != null ? (Class)chr->ClassJob : Class.None;
         var level = chr != null ? chr->Level : 0;
         var posRot = new Vector4(*obj->GetPosition(), obj->Rotation);
+        // TODO: there should be a smarter way to figure out whether this actor has a separate "layout position"
+        Vector3? posRaw = obj->Position;
+        if (posRaw == posRot.XYZ())
+            posRaw = null;
         float? rotRaw = Utils.ReadField<byte>(obj, 0x3F0) == 1 ? Utils.ReadField<float>(obj, 0x3C0) : null;
         var hpmp = new ActorHPMP();
         var inCombat = false;
@@ -413,6 +417,8 @@ sealed unsafe class WorldStateGameSync(
                 ws.Execute(new ActorState.OpAlly(act.InstanceID, friendly));
         }
 
+        if (act.RawPosition != posRaw)
+            ws.Execute(new ActorState.OpRawPosition(act.InstanceID, posRaw));
         if (act.RawRotation != rotRaw)
             ws.Execute(new ActorState.OpRawRotation(act.InstanceID, rotRaw));
         if (act.IsDead != isDead)
