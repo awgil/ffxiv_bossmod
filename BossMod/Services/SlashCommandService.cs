@@ -74,6 +74,44 @@ internal sealed class SlashCommandService(
             }
         });
 
+        _slashCmd.AddSubcommand("follow").SetComplexHandler("<name>/slot<N>", "set specified player or slot as target for the FollowSlot module", masterString =>
+        {
+            var ms = masterString.ToString();
+            var masterSlot = masterString.StartsWith("slot", StringComparison.OrdinalIgnoreCase) ? int.Parse(masterString[4..]) - 1 : Array.FindIndex(worldstateGlobal.Party.Members, m => worldstateGlobal.Actors.Find(m.InstanceId)?.Name == ms);
+            if (worldstateGlobal.Party[masterSlot] == null)
+            {
+                Service.ChatError($"Error: can't find {masterString} in our party");
+                return true;
+            }
+
+            var m = rotation.Presets.FirstOrDefault(p => p.Modules.Any(m => m.Type.FullName == "BossMod.Autorotation.MiscAI.FollowSlot"));
+            if (m == null)
+            {
+                Service.ChatMessage("FollowSlot isn't active, nothing to do.");
+                return true;
+            }
+
+            var mod = m.Modules.First(m => m.Type.FullName == "BossMod.Autorotation.MiscAI.FollowSlot");
+            mod.TransientSettings.Clear();
+            mod.TransientSettings.Add(new(default, 0, new StrategyValueInt() { Value = masterSlot }));
+            Service.ChatMessage($"Following slot {masterSlot}.");
+
+            return true;
+        });
+        _slashCmd.AddSubcommand("unfollow").SetSimpleHandler("reset FollowSlot module behavior to default", () =>
+        {
+            var m = rotation.Presets.FirstOrDefault(p => p.Modules.Any(m => m.Type.FullName == "BossMod.Autorotation.MiscAI.FollowSlot"));
+            if (m == null)
+            {
+                Service.ChatMessage("FollowSlot isn't active, nothing to do.");
+                return;
+            }
+
+            var mod = m.Modules.First(m => m.Type.FullName == "BossMod.Autorotation.MiscAI.FollowSlot");
+            mod.TransientSettings.Clear();
+            Service.ChatMessage("No longer following.");
+        });
+
         _slashCmd.AddSubcommand("helpme").SetSimpleHandler("gather diagnostic information", HelpMe);
 
         _slashCmd.Register();
