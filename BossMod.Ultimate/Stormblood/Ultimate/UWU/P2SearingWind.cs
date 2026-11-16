@@ -3,6 +3,7 @@
 class P2SearingWind(BossModule module) : Components.StrictUniformStackSpread(module, 0, 14, alwaysShowSpreads: true, includeDeadTargets: true)
 {
     private int NumCasts;
+    private bool DashCastStarted;
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -10,6 +11,9 @@ class P2SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
         {
             AddSpread(target, WorldState.FutureTime(8));
         }
+
+        if (NumCasts == 2 && (AID)spell.Action.ID == AID.CrimsonCyclone)
+            DashCastStarted = true;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -36,9 +40,25 @@ class P2SearingWind(BossModule module) : Components.StrictUniformStackSpread(mod
 
     public override (WPos, float)? GetSpreadDestination(int order, Actor target)
     {
-        if (order == 0 && NumCasts == 0 && Module.FindComponent<P2Nails>() is { RelativeNorth: var rel })
-            return (Arena.Center - rel.ToDirection() * 19, 1);
+        if (Module.FindComponent<P2Nails>() is { RelativeNorth: var rel, KilledOrder: var killOrder })
+        {
+            // cast 1: hide on opposite side of party so we don't hit baiters
+            if (order == 0 && NumCasts == 0)
+                return (Arena.Center - rel.ToDirection() * 19, 1);
 
+            // cast 3: prepare for nail dodge on opposite wall
+            if (NumCasts == 2)
+            {
+                // we should be away from the party once dashes start, so just dodge
+                if (DashCastStarted)
+                    return null;
+
+                var partyCardinal = (killOrder.Last() - Arena.Center).Normalized();
+                return (Arena.Center - partyCardinal * 19, 5);
+            }
+        }
+
+        // cast 2/3: spread on left and right of safe intercard to be in range of party
         if (NumCasts > 0 && Module.FindComponent<BossPositioning>() is { DesiredRotation: { } relNorth })
         {
             var spot = (relNorth + (order == 0 ? 80 : -80).Degrees()).ToDirection() * 19;

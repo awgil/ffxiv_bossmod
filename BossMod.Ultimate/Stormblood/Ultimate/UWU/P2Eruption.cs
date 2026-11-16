@@ -176,6 +176,10 @@ class P5Eruption(BossModule module) : P2Eruption(module, 3)
     {
         base.AddAIHints(slot, actor, assignment, hints);
 
+        // avoid the future laser from the boss, otherwise gaol'd player might get freed and then die instantly
+        if (MistralSongDone && Targets[slot])
+            hints.AddForbiddenZone(ShapeDistance.Rect(new(113.7f, 86.3f), new(113.7f, 120), 4), DateTime.MaxValue);
+
         if (MistralSongDone || actor.Role == Role.Tank || NumCastsStarted == 0)
             return;
 
@@ -185,8 +189,8 @@ class P5Eruption(BossModule module) : P2Eruption(module, 3)
             {
                 <= 3 => new(94, 94),
                 <= 6 => new(101, 96.5f),
-                <= 9 => new(110, 96.5f),
-                _ => new(110, 105.5f)
+                <= 9 => new(109.5f, 96.5f),
+                _ => new(109.5f, 105.5f)
             };
 
             hints.AddForbiddenZone(ShapeDistance.PrecisePosition(dest, new(0, 1), 0.5f, actor.Position, 0.1f));
