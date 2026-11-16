@@ -79,7 +79,7 @@ public abstract class HoHFloorModule(WorldState ws) : AutoClear(ws, 70)
                 HintDisabled.Add(actor);
                 break;
             case AID.TheDragonsVoice:
-                AddDonut(actor, 8, 30);
+                AddDonut(actor, 7.5f, 30);
                 HintDisabled.Add(actor);
                 break;
 

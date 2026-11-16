@@ -1,10 +1,11 @@
 ﻿namespace BossMod.Components;
 
-public class StackTogether(BossModule module, uint iconId, float activationDelay, float radius = 3) : BossComponent(module)
+public class StackTogether(BossModule module, uint iconId, float activationDelay, Enum? onSuccess = null, float radius = 3) : BossComponent(module)
 {
     private BitMask Targets;
     private DateTime Activation;
     public readonly uint Icon = iconId;
+    public readonly uint SpellId = onSuccess != null ? (uint)(object)onSuccess : 0;
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
@@ -16,14 +17,19 @@ public class StackTogether(BossModule module, uint iconId, float activationDelay
         }
     }
 
-    // this type of mechanic is usually only indicated by an icon (which has a fixed animation length) and we only get a cast event from the server if someone fails the mechanic, so we just have to make an educated guess of when the mechanic has resolved
+    // two common variants of this mechanic
+    // 1. icon appears, nothing happens if you resolve correctly, we just have to clear the mask after the deadline
+    // 2. icon appears, player takes minimal damage if resolved correctly
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action.ID == SpellId)
+            OnResolve();
+    }
+
     public override void Update()
     {
-        if (Activation != default && Activation < WorldState.CurrentTime)
-        {
-            Activation = default;
-            Targets.Reset();
-        }
+        if (Activation != default && Activation < WorldState.CurrentTime && SpellId == 0)
+            OnResolve();
     }
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
@@ -43,10 +49,19 @@ public class StackTogether(BossModule module, uint iconId, float activationDelay
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        if (Targets.Any() && SpellId > 0)
+            hints.PredictedDamage.Add(new(Targets, Activation, AIHints.PredictedDamageType.Shared));
+
         if (!Targets[slot])
             return;
 
         var otherTargets = ShapeDistance.Intersection([.. OtherTargets(slot, actor).Select(t => ShapeDistance.InvertedCircle(t.Position, radius))]);
         hints.AddForbiddenZone(otherTargets, Activation);
+    }
+
+    private void OnResolve()
+    {
+        Activation = default;
+        Targets.Reset();
     }
 }
