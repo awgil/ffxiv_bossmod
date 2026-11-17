@@ -18,7 +18,6 @@ jobs:
     with:
       plugin_id: 30
       build_command: publish
-      project_file: BossMod/BossMod.csproj
       testing: ${{ inputs.testing || github.ref == 'refs/heads/testing' }}
     secrets:
       publisher_key: ${{ secrets.PUBLISHER_KEY }}

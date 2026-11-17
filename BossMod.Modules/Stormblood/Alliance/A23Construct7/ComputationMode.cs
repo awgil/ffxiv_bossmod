@@ -96,7 +96,7 @@ class ComputationMode(BossModule module) : BossComponent(module)
 
         return _pred switch
         {
-            { Mod: 1 } => hpHere % 2 > 0 && hpHere % 3 > 0 && hpHere % 5 > 0,
+            { Mod: 1 } => hpHere > 1 && hpHere % 2 > 0 && hpHere % 3 > 0 && hpHere % 5 > 0,
             { Mod: 3 } => hpHere % 3 == 0,
             { Mod: 4 } => hpHere % 4 == 0,
             { Mod: 5 } => hpHere % 5 == 0,

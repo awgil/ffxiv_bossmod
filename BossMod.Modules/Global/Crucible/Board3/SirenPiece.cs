@@ -99,7 +99,10 @@ class CrawlingPiece(BossModule module) : Components.Adds(module, (uint)OID._Gen_
         foreach (var target in hints.PotentialTargets.Where(t => t.Actor.OID == (uint)OID._Gen_CrawlingPiece))
         {
             if (actor.FindStatus(SID._Gen_Bind) != null)
+            {
+                target.ShouldBeTargeted = true;
                 target.Priority = 1;
+            }
             else
             {
                 target.Priority = 0;
