@@ -574,17 +574,6 @@ sealed unsafe class WorldStateGameSync(
         var lb = LimitBreakController.Instance();
         if (ws.Party.LimitBreakCur != lb->CurrentUnits || ws.Party.LimitBreakMax != lb->BarUnits)
             ws.Execute(new PartyState.OpLimitBreakChange(lb->CurrentUnits, lb->BarUnits));
-
-        // update player's alliance letter (A-F)
-        var alliance = AllianceLetter.None;
-        if (group->IsAlliance)
-        {
-            var idx = group->GetAllianceGroupIndexBySlot(0);
-            if (idx <= (byte)AllianceLetter.F)
-                alliance = (AllianceLetter)idx;
-        }
-        if (ws.Party.Alliance != alliance)
-            ws.Execute(new PartyState.OpAllianceChange(alliance));
     }
 
     // returns player contentID
@@ -596,6 +585,8 @@ sealed unsafe class WorldStateGameSync(
         // - objecttable entry #0 is always a player; in playback mode, it contains POV object; however, sometimes that object can be non-existent (eg during zone transitions)
         // - group manager contains player's entry at arbitrary position; it can be set before player's object is created, and it's not present while solo
         var player = PartyState.EmptySlot;
+
+        var letter = group->IsAlliance ? (AllianceLetter)group->GetAllianceGroupIndexBySlot(0) : AllianceLetter.None;
 
         var pc = (Character*)GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
         if (pc != null && !pc->IsCharacter())
@@ -611,7 +602,7 @@ sealed unsafe class WorldStateGameSync(
             if (ui->PlayerState.IsLoaded)
             {
                 var inCutscene = condition[ConditionFlag.OccupiedInCutSceneEvent] || condition[ConditionFlag.WatchingCutscene78] || condition[ConditionFlag.Occupied33] || condition[ConditionFlag.BetweenAreas] || condition[ConditionFlag.OccupiedInQuestEvent];
-                player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene);
+                player = new(ui->PlayerState.ContentId, ui->PlayerState.EntityId, inCutscene, letter);
                 if (pc != null && (pc->ContentId != player.ContentId || pc->EntityId != player.InstanceId))
                     logger.Warning($"[WSG] Object #0 is valid ({pc->AccountId:X}.{pc->ContentId:X}, {pc->EntityId:X8} '{pc->NameString}') but different from playerstate ({player})");
             }
@@ -629,7 +620,7 @@ sealed unsafe class WorldStateGameSync(
             // in playback mode, the primary data source is object #0
             if (pc != null)
             {
-                player = new(pc->ContentId, pc->EntityId, false);
+                player = new(pc->ContentId, pc->EntityId, false, letter);
             }
             // else: just assume there's no player for now...
         }
@@ -645,6 +636,8 @@ sealed unsafe class WorldStateGameSync(
 
     private void UpdatePartyNormal(GroupManager.Group* group, ulong playerContentId)
     {
+        var letter = group->IsAlliance ? (AllianceLetter)group->GetAllianceGroupIndexBySlot(0) : AllianceLetter.None;
+
         // first iterate over previous members, search for match in game state, and reconcile differences - update or remove
         for (var i = PartyState.PlayerSlot + 1; i < PartyState.MaxPartySize; ++i)
         {
@@ -653,7 +646,7 @@ sealed unsafe class WorldStateGameSync(
             {
                 // slot was occupied by player => see if it's still in party; either update to current state or clear if it's no longer in party
                 var member = group->GetPartyMemberByContentId(m.ContentId);
-                UpdatePartySlot(i, BuildPartyMember(member));
+                UpdatePartySlot(i, BuildPartyMember(member, letter));
             }
             else if (m.InstanceId != 0)
             {
@@ -670,7 +663,7 @@ sealed unsafe class WorldStateGameSync(
         {
             var member = group->PartyMembers.GetPointer(i);
             if (member->ContentId != playerContentId && Array.FindIndex(ws.Party.Members, m => m.ContentId == member->ContentId) < 0)
-                AddPartyMember(BuildPartyMember(member));
+                AddPartyMember(BuildPartyMember(member, letter));
             // else: member is either a player (it was handled by a different function) or already exists in party state
         }
         // consider buddies as party members too
@@ -681,7 +674,7 @@ sealed unsafe class WorldStateGameSync(
             if (instanceID != InvalidEntityId && ws.Party.FindSlot(instanceID) < 0)
             {
                 var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(instanceID);
-                AddPartyMember(new(0, instanceID, false));
+                AddPartyMember(new(0, instanceID, false, letter));
             }
             // else: buddy is non-existent or already updated, skip
         }
@@ -694,10 +687,12 @@ sealed unsafe class WorldStateGameSync(
         var isNormalAlliance = group->IsAlliance && !group->IsSmallGroupAlliance;
         for (var i = PartyState.MaxPartySize; i < PartyState.MaxAllianceSize; ++i)
         {
+            var letter = group->IsAlliance ? (AllianceLetter)group->GetAllianceGroupIndexBySlot(i / 8) : AllianceLetter.None;
+
             var member = isNormalAlliance ? group->AllianceMembers.GetPointer(i - PartyState.MaxPartySize) : null;
             if (member != null && !member->IsValidAllianceMember())
                 member = null;
-            UpdatePartySlot(i, BuildPartyMember(member));
+            UpdatePartySlot(i, BuildPartyMember(member, letter));
         }
     }
 
@@ -724,7 +719,7 @@ sealed unsafe class WorldStateGameSync(
             {
                 var slot = FindFreePartySlot(PartyState.MaxAllianceSize, PartyState.MaxAllies);
                 if (slot > 0)
-                    UpdatePartySlot(slot, new PartyState.Member(0, actor.InstanceID, false));
+                    UpdatePartySlot(slot, new PartyState.Member(0, actor.InstanceID, false, AllianceLetter.None));
                 else
                     logger.Warning($"[WorldState] Failed to find empty slot for allied NPC {actor.InstanceID:X}");
             }
@@ -748,7 +743,7 @@ sealed unsafe class WorldStateGameSync(
         return -1;
     }
 
-    private PartyState.Member BuildPartyMember(PartyMember* m) => m != null ? new(m->ContentId, m->EntityId, (m->Flags & 0x10) != 0) : PartyState.EmptySlot;
+    private PartyState.Member BuildPartyMember(PartyMember* m, AllianceLetter letter) => m != null ? new(m->ContentId, m->EntityId, (m->Flags & 0x10) != 0, letter) : PartyState.EmptySlot;
 
     private void AddPartyMember(PartyState.Member m)
     {

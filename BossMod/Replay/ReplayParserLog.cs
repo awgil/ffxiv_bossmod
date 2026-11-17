@@ -716,13 +716,20 @@ public sealed class ReplayParserLog : IDisposable
         var cid = _input.ReadULong(true);
         var iid = _input.ReadULong(true);
         var cs = _version >= 15 && _input.ReadBool();
+        sbyte allianceLetter = -1;
         if (_version is >= 15 and < 31)
             _input.ReadString(); // member name, not stored here anymore (just look them up in worldstate)
-        return new(slot, new(cid, iid, cs));
+        if (_version >= 32)
+            allianceLetter = _input.ReadSByte();
+        return new(slot, new(cid, iid, cs, (AllianceLetter)allianceLetter));
     }
-    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), new(0, 0, false));
+    private PartyState.OpModify ParsePartyLeave() => new(_input.ReadInt(), PartyState.EmptySlot);
     private PartyState.OpLimitBreakChange ParsePartyLimitBreak() => new(_input.ReadInt(), _input.ReadInt());
-    private PartyState.OpAllianceChange ParsePartyAlliance() => new((AllianceLetter)_input.ReadInt());
+    private WorldState.Operation? ParsePartyAlliance()
+    {
+        _input.ReadInt(); // alliance letter was previously a global property that was determined by replay pov
+        return null;
+    }
 
     private ClientState.OpActionRequest ParseClientActionRequest()
     {

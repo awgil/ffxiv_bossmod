@@ -15,20 +15,21 @@ class DebugParty
         var ui = UIState.Instance();
         ImGui.TextUnformatted($"Num members: {gm->MemberCount}, alliance={(!gm->IsAlliance ? "no" : gm->IsSmallGroupAlliance ? "small-group" : "yes")}, has-helpers={ui->Buddy.DutyHelperInfo.HasHelpers}");
 
-        ImGui.BeginTable("party-custom", 7, ImGuiTableFlags.Resizable);
+        ImGui.BeginTable("party-custom", 8, ImGuiTableFlags.Resizable);
         ImGui.TableSetupColumn("Index");
         ImGui.TableSetupColumn("ContentId");
         ImGui.TableSetupColumn("EntityId");
         ImGui.TableSetupColumn("Name");
+        ImGui.TableSetupColumn("Alliance");
         ImGui.TableSetupColumn("Zone");
         ImGui.TableSetupColumn("World");
         ImGui.TableSetupColumn("Position");
         ImGui.TableHeadersRow();
         for (var i = 0; i < gm->MemberCount; ++i)
-            DrawPartyMember($"P{i}", ref gm->PartyMembers[i]);
+            DrawPartyMember("P", i, ref gm->PartyMembers[i], gm->GetAllianceGroupIndexBySlot(0));
         for (var i = 0; i < gm->AllianceMembers.Length; ++i)
             if (gm->AllianceMembers[i].IsValidAllianceMember())
-                DrawPartyMember($"A{i}", ref gm->AllianceMembers[i]);
+                DrawPartyMember("A", i, ref gm->AllianceMembers[i], gm->GetAllianceGroupIndexBySlot(1 + i / 8));
         for (var i = 0; i < ui->Buddy.DutyHelperInfo.ENpcIds.Length; ++i)
         {
             var id = ui->Buddy.DutyHelperInfo.DutyHelpers[i].EntityId;
@@ -49,22 +50,26 @@ class DebugParty
             ImGui.TableNextColumn();
             ImGui.TextUnformatted("---");
             ImGui.TableNextColumn();
+            ImGui.TextUnformatted("---");
+            ImGui.TableNextColumn();
             ImGui.TextUnformatted($"{Utils.Vec3String(obj->Position)}");
         }
         ImGui.EndTable();
     }
 
-    private unsafe void DrawPartyMember(string index, ref PartyMember member)
+    private unsafe void DrawPartyMember(string group, int index, ref PartyMember member, int agroup)
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(index);
+        ImGui.TextUnformatted($"{group}{index}");
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{member.AccountId:X}.{member.ContentId:X}");
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{member.EntityId:X}");
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(member.NameString);
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(((AllianceLetter)agroup).ToString());
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{member.TerritoryType}");
         ImGui.TableNextColumn();

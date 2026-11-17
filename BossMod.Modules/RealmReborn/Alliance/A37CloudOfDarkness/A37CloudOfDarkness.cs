@@ -130,7 +130,7 @@ class HyperchargedClouds(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        var mine = ActiveHexes.FirstOrDefault(h => HexAlliance(h.OID) == Raid.Alliance);
+        var mine = ActiveHexes.FirstOrDefault(h => HexAlliance(h.OID) == Raid.Members[slot].Alliance);
         if (mine != null)
             hints.GoalZones.Add(AIHints.GoalSingleTarget(mine.Position, HexRadius, 5));
 
@@ -140,7 +140,7 @@ class HyperchargedClouds(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        var myAlliance = Raid.Alliance;
+        var myAlliance = Raid.Members[pcSlot].Alliance;
         foreach (var hex in ActiveHexes)
             DrawHex(hex.Position, HexAlliance(hex.OID) == myAlliance ? ArenaColor.Safe : ArenaColor.Danger);
     }

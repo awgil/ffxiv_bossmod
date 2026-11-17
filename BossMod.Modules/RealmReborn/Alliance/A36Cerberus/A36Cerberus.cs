@@ -52,8 +52,8 @@ static class Belly
     public static bool InBelly(Actor actor) => actor.PosRot.Y < HeightThreshold;
     public static bool IsMini(Actor actor) => actor.FindStatus(SID.Minimum) != null;
 
-    public static bool WantsBelly(PartyState party, Actor actor)
-        => actor.Role is Role.Melee or Role.Ranged || party.Alliance == AllianceLetter.B; // A = all get in the belly, B = belly is where you should go, C = could you please get in the belly
+    public static bool WantsBelly(PartyState party, int slot)
+        => party[slot]?.Role is Role.Melee or Role.Ranged || party.Members[slot].Alliance == AllianceLetter.B; // A = all get in the belly, B = belly is where you should go, C = could you please get in the belly
 }
 
 class BellyArena(BossModule module) : BossComponent(module)
@@ -174,7 +174,7 @@ class Mini : Components.StandardAOEs
     {
         if (Belly.InBelly(actor))
             yield break;
-        var inverted = Belly.WantsBelly(Raid, actor) && !Belly.IsMini(actor);
+        var inverted = Belly.WantsBelly(Raid, slot) && !Belly.IsMini(actor);
         foreach (var aoe in base.ActiveAOEs(slot, actor))
             yield return aoe with { Inverted = inverted };
     }

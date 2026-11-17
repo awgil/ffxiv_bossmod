@@ -1,6 +1,6 @@
 ﻿namespace BossMod;
 
-public enum AllianceLetter : int
+public enum AllianceLetter : sbyte
 {
     None = -1,
     A = 0,
@@ -29,12 +29,12 @@ public sealed class PartyState
     public const int MaxAllianceSize = 24;
     public const int MaxAllies = 64;
 
-    public record struct Member(ulong ContentId, ulong InstanceId, bool InCutscene)
+    public record struct Member(ulong ContentId, ulong InstanceId, bool InCutscene, AllianceLetter Alliance)
     {
         // note that a valid member can have 0 contentid (eg buddy) or 0 instanceid (eg player in a different zone)
         public readonly bool IsValid() => ContentId != 0 || InstanceId != 0;
     }
-    public static readonly Member EmptySlot = new(0, 0, false);
+    public static readonly Member EmptySlot = new(0, 0, false, AllianceLetter.None);
 
     public readonly Member[] Members = Utils.MakeArray(MaxAllies, EmptySlot);
     private readonly Actor?[] _actors = new Actor?[MaxAllies]; // transient
@@ -46,8 +46,6 @@ public sealed class PartyState
     public int LimitBreakMax = 10000;
 
     public int LimitBreakLevel => LimitBreakMax > 0 ? LimitBreakCur / LimitBreakMax : 0;
-
-    public AllianceLetter Alliance = AllianceLetter.None;
 
     public PartyState(ActorState actorState)
     {
@@ -113,8 +111,6 @@ public sealed class PartyState
                 yield return new OpModify(i, Members[i]);
         if (LimitBreakCur != 0 || LimitBreakMax != 10000)
             yield return new OpLimitBreakChange(LimitBreakCur, LimitBreakMax);
-        if (Alliance != AllianceLetter.None)
-            yield return new OpAllianceChange(Alliance);
     }
 
     // implementation of operations
@@ -134,7 +130,7 @@ public sealed class PartyState
                 Service.Log($"[PartyState] Out-of-bounds slot {Slot}");
             }
         }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).EmitContentID(Member.ContentId).Emit(Member.InstanceId, "X8").Emit(Member.InCutscene);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).EmitContentID(Member.ContentId).Emit(Member.InstanceId, "X8").Emit(Member.InCutscene).Emit((sbyte)Member.Alliance);
     }
 
     public Event<OpLimitBreakChange> LimitBreakChanged = new();
@@ -147,16 +143,5 @@ public sealed class PartyState
             ws.Party.LimitBreakChanged.Fire(this);
         }
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("LB  "u8).Emit(Cur).Emit(Max);
-    }
-
-    public Event<OpAllianceChange> AllianceChanged = new();
-    public sealed record class OpAllianceChange(AllianceLetter Alliance) : WorldState.Operation
-    {
-        protected override void Exec(WorldState ws)
-        {
-            ws.Party.Alliance = Alliance;
-            ws.Party.AllianceChanged.Fire(this);
-        }
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ALGI"u8).Emit((int)Alliance);
     }
 }
