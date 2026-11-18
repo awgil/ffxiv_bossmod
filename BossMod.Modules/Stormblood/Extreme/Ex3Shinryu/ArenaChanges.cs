@@ -39,7 +39,7 @@ class ArenaChanges : BossComponent
         Arena.Bounds = new ArenaBoundsCustom(30, _p1.Clipper.Simplify(BuildTiles(), Clipper2Lib.FillRule.NonZero), MapResolution: 0.3f);
     }
 
-    // TODO: verify the width of the corner crossing between diagonal tiles
+    // intact tiles only: two tiles that meet at a corner stay apart, players hop that gap and the AI can't
     private PolygonClipper.Operand BuildTiles()
     {
         var shape = new PolygonClipper.Operand();
@@ -49,18 +49,6 @@ class ArenaChanges : BossComponent
             for (var col = 0; col < 3; ++col)
                 if (Whole(col, row))
                     shape.AddContour(CurveApprox.Rect(TileOffset(col, row), new WDir(0, 1), 10, 10));
-        for (var row = 0; row < 2; ++row)
-        {
-            for (var col = 0; col < 2; ++col)
-            {
-                var corner = new WDir(col * 20 - 10, row * 20 - 10);
-                bool a = Whole(col, row), b = Whole(col + 1, row), c = Whole(col, row + 1), d = Whole(col + 1, row + 1);
-                if (a && d && !b && !c)
-                    shape.AddContour(CurveApprox.Rect(corner, new WDir(1, 1).Normalized(), 1, 2));
-                else if (b && c && !a && !d)
-                    shape.AddContour(CurveApprox.Rect(corner, new WDir(-1, 1).Normalized(), 1, 2));
-            }
-        }
         return shape;
     }
 
