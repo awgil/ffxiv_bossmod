@@ -111,20 +111,6 @@ public class Map
         return Center + ax * LocalZDivRes.OrthoL() + az * LocalZDivRes;
     }
 
-    // block all pixels for which function returns value smaller than threshold ('inside' shape + extra cushion)
-    public void BlockPixelsInside(Sdf shape, float maxG)
-    {
-        MaxG = MathF.Max(MaxG, maxG);
-        foreach (var (x, y, center) in EnumeratePixels())
-        {
-            if (shape.Check(center))
-            {
-                ref var pixel = ref PixelMaxG[y * Width + x];
-                pixel = MathF.Min(pixel, maxG);
-            }
-        }
-    }
-
 #pragma warning disable IDE0060 // TODO: mark all pixels in radius as portal source
     public void AddPortal(WPos from, float radius, WPos to)
     {
@@ -134,24 +120,6 @@ public class Map
         Portals[a].Add(b);
     }
 #pragma warning restore IDE0060
-
-    public IEnumerable<(int x, int y, WPos center)> EnumeratePixels()
-    {
-        var rsq = Resolution * Resolution; // since we then multiply by _localZDivRes, end result is same as * res * rotation.ToDir()
-        var dx = LocalZDivRes.OrthoL() * rsq;
-        var dy = LocalZDivRes * rsq;
-        var cy = Center + (-Width / 2 + 0.5f) * dx + (-Height / 2 + 0.5f) * dy;
-        for (var y = 0; y < Height; y++)
-        {
-            var cx = cy;
-            for (var x = 0; x < Width; ++x)
-            {
-                yield return (x, y, cx);
-                cx += dx;
-            }
-            cy += dy;
-        }
-    }
 
     public IEnumerable<(int iCell, int x, int y, WPos point)> EnumerateGrid()
     {

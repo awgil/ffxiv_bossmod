@@ -120,8 +120,6 @@ class PathfindingTest : TestWindow
     {
         Map map = new(_mapResolution, new(_mapCenter), _mapHalfSize.X, _mapHalfSize.Y, _mapRotationDeg.Degrees());
 
-        var sg = Array.Empty<float>();
-        var sd = Array.Empty<uint>();
         var now = DateTime.MinValue;
         List<(Sdf containsFn, DateTime activation, ulong source)> zones = [];
         if (_blockCone)

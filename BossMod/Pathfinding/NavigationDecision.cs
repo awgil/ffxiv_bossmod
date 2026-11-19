@@ -54,7 +54,7 @@ public struct NavigationDecision
 
         var emergencyMode = false;
         var (pX, pZ) = ctx.Map.WorldToGrid(playerPosition);
-        if (pX >= 0 && pX < ctx.Map.Width && pZ >= 0 && pZ < ctx.Map.Height)
+        if (ctx.Map.InBounds(pX, pZ))
             emergencyMode = ctx.Map.PixelMaxG[ctx.Map.GridToIndex(pX, pZ)] == 0;
 
         if (hints.GoalZones.Count > 0 && !emergencyMode)
