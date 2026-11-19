@@ -354,7 +354,7 @@ class PrecisionDodge(BossModule module) : BossComponent(module)
                     break;
                 }
             }
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.Dodge), null, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(actor.PosRot.Y));
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.Dodge), WorldState.Actors.Find(actor.TargetID) ?? Module.PrimaryActor, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(actor.PosRot.Y));
         }
         if (!Module.PrimaryActor.IsTargetable)
             return;
