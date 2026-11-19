@@ -59,7 +59,7 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
         using var drawList = PctService.Draw();
         if (drawList != null)
         {
-            PctDxParams p(bool isLine, bool occluded) => new() { OcclusionTolerance = isLine ? 0.02f : 0.02f, OccludedAlpha = occluded && _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1 };
+            PctDxParams p(bool isLine, bool occluded) => new() { OcclusionTolerance = 0.2f, OccludedAlpha = occluded && _uiConfig.Occlude ? _uiConfig.OcclusionAlpha : 1 };
 
             foreach (var line in _lines)
                 drawList.AddLine(line.Start, line.End, 0, line.Color, line.Thickness, p(true, line.Occluded));
