@@ -25,6 +25,9 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         [Track("Communio", MinLevel = 90, Action = AID.Communio, UiPriority = 97)]
         public Track<CommunioStrategy> Communio;
 
+        [Track("Sacrificium", MinLevel = 92, Action = AID.Sacrificium, UiPriority = 96.5f)]
+        public Track<SacrificiumStrategy> Sacrificium;
+
         [Track("Perfectio", MinLevel = 100, Action = AID.Perfectio, UiPriority = 96)]
         public Track<PerfectioStrategy> Perfectio;
 
@@ -95,6 +98,18 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         Delay
     }
 
+    public enum SacrificiumStrategy
+    {
+        [Option("Use under Arcane Circle, otherwise before Enshroud ends", Targets = ActionTargets.Hostile)]
+        Automatic,
+        [Option("Use right before Communio", Targets = ActionTargets.Hostile)]
+        BeforeCommunio,
+        [Option("Use ASAP", Targets = ActionTargets.Hostile)]
+        Force,
+        [Option("Do not use")]
+        Delay
+    }
+
     public enum GluttonyStrategy
     {
         [Option("Use on cooldown")]
@@ -113,6 +128,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         Automatic,
         [Option("Only to avoid overcapping")]
         Overcap,
+        [Option("Use ASAP without overwriting procs", Targets = ActionTargets.Hostile)]
+        ForceSafe,
         [Option("Use ASAP", Targets = ActionTargets.Hostile)]
         Force,
         [Option("Do not use")]
@@ -281,6 +298,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private EnshroudStrategy EnshroudStrat;
     private GluttonyStrategy GluttonyStrat;
     private BloodStalkStrategy StalkStrat;
+    private DeathsDesignStrategy DDStrat;
     private bool WantEnshroud;
     private bool WorthBurst;
     private bool AvoidGluttonyDrift;
@@ -308,7 +326,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     private float SinceBurstEnd => MathF.Min(SinceUsed(AID.Perfectio), HoldingPerfectio ? SinceUsed(AID.Communio) : float.MaxValue);
     private bool InPostBurst => SinceBurstEnd < GCDLength * 8;
     private bool ConeAt(int minTargets) => !ForceST && UseAOE(AOEStrat, NumConeTargets, minTargets);
-    private bool ShroudOvercapping => Shroud >= 100 && !WantEnshroud;
+    private bool ShroudOvercapping => Shroud >= 100 && !WantEnshroud && EnshroudStrat != EnshroudStrategy.Delay;
     private bool ComboExpiring(float gcds) => ComboLeft > 0 && ComboLeft < GCDLength * gcds;
     private bool DDExpiring(float gcds) => TargetDDLeft < GCDLength * gcds;
     private bool GluttonyReady => Soul >= 50 && CanWeave(AID.Gluttony);
@@ -323,6 +341,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         EnshroudStrat = strategy.Enshroud.Value;
         GluttonyStrat = strategy.Gluttony.Value;
         StalkStrat = strategy.BloodStalk.Value;
+        DDStrat = strategy.DeathsDesign.Value;
         AOEStrat = strategy.AOE.Value;
 
         var gauge = World.Client.GetGauge<ReaperGauge>();
@@ -656,15 +675,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         if (!Enshrouded)
             return;
 
-        var communioAt = strategy.Communio.Value switch
-        {
-            CommunioStrategy.Automatic => 1,
-            CommunioStrategy.At2 => 2,
-            CommunioStrategy.At3 => 3,
-            CommunioStrategy.At4 => 4,
-            CommunioStrategy.ASAP => 5,
-            _ => 0
-        };
+        var communioAt = CommunioAt(strategy.Communio.Value);
         if (Lemure <= communioAt)
         {
             PushGCD(AID.Communio, ResolveTarget(strategy.Communio) ?? BestSplashTarget ?? target.Actor, 66, ScaledCastTime(AID.Communio));
@@ -677,6 +688,16 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
         else
             PushGCD(EnhancedCrossLeft > GCD ? AID.CrossReaping : AID.VoidReaping, target.Actor, 65);
     }
+
+    private static int CommunioAt(CommunioStrategy strategy) => strategy switch
+    {
+        CommunioStrategy.Automatic => 1,
+        CommunioStrategy.At2 => 2,
+        CommunioStrategy.At3 => 3,
+        CommunioStrategy.At4 => 4,
+        CommunioStrategy.ASAP => 5,
+        _ => 0
+    };
 
     private AID SliceAction => AOEMode && Unlocked(AID.SoulScythe) ? AID.SoulScythe : AID.SoulSlice;
     private bool SliceCapping => MaxChargesIn(SliceAction) <= GCD + GCDLength * 2;
@@ -775,13 +796,24 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             if (VoidShroud >= 2)
                 PushOGCD(ConeAOE && Unlocked(AID.LemuresScythe) ? AID.LemuresScythe : AID.LemuresSlice, ConeAOE ? BestConeTarget ?? target.Actor : target.Actor, 60);
 
-            if (OblatioLeft > 0 && (AOEMode ? Lemure <= 2 : Lemure <= 4) && (CircleLeft > 0 && !JustUsed(AID.ArcaneCircle, 2) || CircleIn > EnshroudLeft))
-                PushOGCD(AID.Sacrificium, BestSplashTarget ?? target.Actor, 61);
+            if (OblatioLeft > 0 && ShouldSacrificium(strategy))
+                PushOGCD(AID.Sacrificium, ResolveTarget(strategy.Sacrificium) ?? BestSplashTarget ?? target.Actor, strategy.Sacrificium.Value == SacrificiumStrategy.Force ? 69 : 61);
         }
 
         if (strategy.Crest.Value == CrestStrategy.Automatic && CanWeave(AID.ArcaneCrest) && DamageIncoming(3))
             PushOGCD(AID.ArcaneCrest, Player, 20);
     }
+
+    private bool ShouldSacrificium(in Strategy strategy) => strategy.Sacrificium.Value switch
+    {
+        SacrificiumStrategy.Force => true,
+        SacrificiumStrategy.BeforeCommunio => LastFreeWeaveBeforeCommunio(Math.Max(CommunioAt(strategy.Communio.Value), 1)),
+        SacrificiumStrategy.Automatic => (AOEMode ? Lemure <= 2 : Lemure <= 4) && (CircleLeft > 0 && !JustUsed(AID.ArcaneCircle, 2) || CircleIn > EnshroudLeft),
+        _ => false
+    };
+
+    // Enshroud GCDs leave one weave each; the slot right before Communio usually belongs to Lemure's Slice, whose Void Shroud is lost when Enshroud ends
+    private bool LastFreeWeaveBeforeCommunio(int communioAt) => Lemure <= communioAt || Lemure == communioAt + 1 && VoidShroud < 2;
 
     private void UseArcaneCircle(in Strategy strategy, Enemy target)
     {
@@ -884,6 +916,8 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
             return false;
         if (StalkStrat == BloodStalkStrategy.Force)
             return true;
+        if (StalkStrat == BloodStalkStrategy.ForceSafe)
+            return !SoulReaver;
         if (ShroudOvercapping || !InNormalRotation || ComboExpiring(3) || AvoidGluttonyDrift || TargetDDLeft <= GCD + GCDLength)
             return false;
         if (Soul < 100 && InPostBurst && !JustUsed(AID.Gluttony, GCDLength * 8))
@@ -981,7 +1015,7 @@ public sealed class KageRPR(RotationModuleManager manager, Actor player) : KageS
     {
         if (target == null)
             return 0;
-        if (target.ForbidDOTs || !Unlocked(AID.ShadowofDeath))
+        if (target.ForbidDOTs || !Unlocked(AID.ShadowofDeath) || DDStrat == DeathsDesignStrategy.Delay)
             return float.MaxValue;
         return StatusDetails(target.Actor, SID.DeathsDesign, Player.InstanceID, 60).Left;
     }
