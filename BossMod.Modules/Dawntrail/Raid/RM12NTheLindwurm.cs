@@ -371,6 +371,13 @@ class FleshKnockback(BossModule module) : Components.Knockback(module, AID.Shock
             yield return new(actor.Position, Distance, _activation[slot], null, actor.Rotation + (_back[slot] ? 180.Degrees() : default), Kind.DirForward);
     }
 
+    // AOEs resolving well after the push (e.g. Ravenous Reach ~9s later) can be walked out of; counting them forbids almost every facing
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
+    {
+        var deadline = slot < _activation.Length ? _activation[slot].AddSeconds(2) : DateTime.MaxValue;
+        return ShapeDistance.Union([.. Module.Components.OfType<Components.GenericAOEs>().SelectMany(a => a.ActiveAOEs(slot, actor)).Where(a => a.Activation <= deadline).Select(a => a.DistV)]).Discretize();
+    }
+
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (slot >= _activation.Length || _activation[slot] == default || IsImmune(slot, _activation[slot]))
