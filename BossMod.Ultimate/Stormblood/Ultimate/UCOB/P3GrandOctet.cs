@@ -296,7 +296,7 @@ class P3GrandOctetTower : P3MegaflareTower
 
         Towers.SortBy(t => (t.Position - twinBaiterPos).LengthSq());
 
-        var allowedPlayers = Raid.WithSlot().ExcludedFromMask(_stackTargets).OrderBy(s => _qmtOrder[s.Item1] >= 0 ? (ulong)_qmtOrder[s.Item1] : s.Item2.InstanceID).ToList();
+        var allowedPlayers = Raid.WithSlot(includeDead: true).ExcludedFromMask(_stackTargets).OrderBy(s => _qmtOrder[s.Item1] >= 0 ? (ulong)_qmtOrder[s.Item1] : s.Item2.InstanceID).ToList();
 
         var twinBait = allowedPlayers.FindIndex(p => go.BaitOrder[p.Item1] == 8);
         if (twinBait >= 0)

@@ -658,6 +658,8 @@ public static class ApplicationDelay
         Register(ClassShared.AID.Bloodbath, 0.62f);
         Register(ClassShared.AID.Braver, 2.23f);
         Register(ClassShared.AID.Bladedance, 3.28f);
+
+        Register(ClassShared.AID.HeavenlyShield, 0.4f);
     }
 
     static void Register<A>(A id, float delay) where A : Enum

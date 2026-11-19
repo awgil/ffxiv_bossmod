@@ -5,6 +5,8 @@ class P2Nails(BossModule module) : BossComponent(module)
 {
     readonly List<Actor> _nails = [];
 
+    public readonly List<WPos> KilledOrder = [];
+
     public Angle RelativeNorth { get; private set; }
 
     public bool Active => _nails.Any(n => n.IsTargetable);
@@ -48,5 +50,11 @@ class P2Nails(BossModule module) : BossComponent(module)
     {
         if ((OID)actor.OID == OID.InfernalNail)
             _nails.Remove(actor);
+    }
+
+    public override void OnIsDeadChanged(Actor actor)
+    {
+        if ((OID)actor.OID == OID.InfernalNail && actor.IsDead)
+            KilledOrder.Add(actor.Position);
     }
 }
