@@ -2,90 +2,118 @@ namespace BossMod.Endwalker.Dungeon.D07Smileton.D071Face;
 
 public enum OID : uint
 {
-    Boss = 0x34CF, // R12.500, x1
+    Boss = 0x34CF, // R10.000, x1
+    RelativelySmallFace = 0x34D0, // R1.000, x8
     Helper = 0x233C, // R0.500, Helper type
-    RelativelySmallFace = 0x34D0, // R3.060, x8
 }
 
 public enum AID : uint
 {
     AutoAttack = 26433, // Boss->player, no cast, single-target
-    LinesOfFire = 26421, // Boss->self, 3.0s cast, single-target, visual
+    LinesOfFire = 26421, // Boss->self, 3.0s cast, single-target, visual (tethers faces)
+    FrownyFace = 26422, // RelativelySmallFace->self, 7.0s cast, range 45 width 6 rect
+    SmileyFace = 26423, // RelativelySmallFace->self, 7.0s cast, range 45 width 6 rect
     MixedFeelings = 26424, // Helper->self, 7.0s cast, range 60 width 2 rect
-    FrownyFace = 26422, // RelativelySmallFace->self, 7.0s cast, range 45 width 6 rect, applies Frowny Face
-    SmileyFace = 26423, // RelativelySmallFace->self, 7.0s cast, range 45 width 6 rect, applies Smiley Face
-    UpsideDown = 26425, // Boss->self, 3.0s cast, single-target, outer faces swap colour
-    FaceVisual1 = 26426, // RelativelySmallFace->self, no cast, single-target
-    FaceVisual2 = 26427, // RelativelySmallFace->self, no cast, single-target
-    FaceVisual3 = 26428, // RelativelySmallFace->self, no cast, single-target
-    FaceVisual4 = 26429, // RelativelySmallFace->self, no cast, single-target
+    UpsideDown = 26425, // Boss->self, 3.0s cast, single-target, visual (faces flip)
+    FlipVisual1 = 26426, // RelativelySmallFace->self, no cast, single-target
+    FlipVisual2 = 26427, // RelativelySmallFace->self, no cast, single-target
+    FlipVisual3 = 26428, // RelativelySmallFace->self, no cast, single-target
+    FlipVisual4 = 26429, // RelativelySmallFace->self, no cast, single-target
     OffMyLawn = 26430, // Boss->self, 5.0s cast, single-target, visual
     OffMyLawnKnockback = 27742, // Helper->self, 5.0s cast, range 31 width 30 rect, knockback 8 forward
     TemperTemper = 26432, // Helper->player, 5.0s cast, range 5 circle spread
     TempersFlare = 26435, // Boss->self, 5.0s cast, range 60 circle, raidwide
+    HeartOnFireIV = 26434, // Boss->player, 5.0s cast, single-target, tankbuster
 }
 
 public enum SID : uint
 {
-    SmileyFace = 2763, // RelativelySmallFace->player, extra=0x1
-    FrownyFace = 2764, // RelativelySmallFace->player, extra=0x1/0x2
-    DownForTheCount = 783, // RelativelySmallFace->player, extra=0xEC7, two of the same face
+    SmileyFace = 2763, // RelativelySmallFace->player, extra=stacks
+    FrownyFace = 2764, // RelativelySmallFace->player, extra=stacks
+    DownForTheCount = 783, // RelativelySmallFace->player, extra=0xEC7, second hit of the same face
 }
 
-public enum TetherID : uint
+public enum IconID : uint
 {
-    Face = 169, // RelativelySmallFace->Boss
+    TemperTemper = 96, // player
 }
 
-class MixedFeelings(BossModule module) : Components.StandardAOEs(module, AID.MixedFeelings, new AOEShapeRect(60, 1));
-
-// TODO: unverified whether the face casts already use the swapped AID after Upside Down
-class FaceLines(BossModule module) : Components.GenericAOEs(module)
+class Expressions(BossModule module) : Components.GenericAOEs(module)
 {
-    private static readonly AOEShapeRect _shape = new(45, 3);
-    private readonly List<(Actor caster, bool smiley)> _casters = [];
+    private readonly List<(Actor caster, bool smiley)> _faces = [];
+    private readonly List<Actor> _gaps = [];
+
+    private static readonly AOEShapeRect _face = new(45, 3);
+    private static readonly AOEShapeRect _gap = new(60, 1);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        var hasSmiley = actor.FindStatus(SID.SmileyFace) != null;
-        var hasFrowny = actor.FindStatus(SID.FrownyFace) != null;
-        foreach (var (c, smiley) in _casters)
-        {
-            var risky = smiley ? hasSmiley : hasFrowny;
-            yield return new(_shape, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), risky ? 0 : ArenaColor.SafeFromAOE, risky);
-        }
+        var smiley = actor.FindStatus(SID.SmileyFace) != null;
+        var frowny = actor.FindStatus(SID.FrownyFace) != null;
+        foreach (var (c, isSmiley) in _faces)
+            if (isSmiley ? smiley : frowny)
+                yield return new(_face, c.CastInfo!.LocXZ, c.CastInfo.Rotation, Module.CastFinishAt(c.CastInfo));
+        foreach (var c in _gaps)
+            yield return new(_gap, c.CastInfo!.LocXZ, c.CastInfo.Rotation, Module.CastFinishAt(c.CastInfo));
+    }
+
+    public override void AddHints(int slot, Actor actor, TextHints hints)
+    {
+        base.AddHints(slot, actor, hints);
+        if (_faces.Count == 0)
+            return;
+        if (actor.FindStatus(SID.SmileyFace) != null)
+            hints.Add("Avoid smiley faces!", false);
+        else if (actor.FindStatus(SID.FrownyFace) != null)
+            hints.Add("Avoid frowny faces!", false);
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.SmileyFace or AID.FrownyFace)
-            _casters.Add((caster, (AID)spell.Action.ID == AID.SmileyFace));
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.SmileyFace:
+            case AID.FrownyFace:
+                _faces.Add((caster, (AID)spell.Action.ID == AID.SmileyFace));
+                break;
+            case AID.MixedFeelings:
+                _gaps.Add(caster);
+                break;
+        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
     {
-        if ((AID)spell.Action.ID is AID.SmileyFace or AID.FrownyFace)
-            _casters.RemoveAll(c => c.caster == caster);
+        switch ((AID)spell.Action.ID)
+        {
+            case AID.SmileyFace:
+            case AID.FrownyFace:
+                _faces.RemoveAll(f => f.caster == caster);
+                break;
+            case AID.MixedFeelings:
+                _gaps.Remove(caster);
+                break;
+        }
     }
 }
 
 class OffMyLawn(BossModule module) : Components.KnockbackFromCastTarget(module, AID.OffMyLawnKnockback, 8, shape: new AOEShapeRect(31, 15), kind: Kind.DirForward, stopAtWall: true);
 class TemperTemper(BossModule module) : Components.SpreadFromCastTargets(module, AID.TemperTemper, 5);
+class HeartOnFireIV(BossModule module) : Components.SingleTargetCast(module, AID.HeartOnFireIV);
 class TempersFlare(BossModule module) : Components.RaidwideCast(module, AID.TempersFlare);
 
 class D071FaceStates : StateMachineBuilder
 {
     public D071FaceStates(BossModule module) : base(module)
     {
-        // TODO: Heart on Fire IV tankbuster AID unknown
         TrivialPhase()
-            .ActivateOnEnter<MixedFeelings>()
-            .ActivateOnEnter<FaceLines>()
+            .ActivateOnEnter<Expressions>()
             .ActivateOnEnter<OffMyLawn>()
             .ActivateOnEnter<TemperTemper>()
-            .ActivateOnEnter<TempersFlare>();
+            .ActivateOnEnter<TempersFlare>()
+            .ActivateOnEnter<HeartOnFireIV>();
     }
 }
 
-[ModuleInfo(Incomplete = true, Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 794, NameID = 10331)]
-public class D071Face(ModuleInit init) : BossModule(init, new(-45, -20), new ArenaBoundsSquare(20));
+[ModuleInfo(Contributors = "Kagekazu", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 794, NameID = 10331)]
+public class D071Face(ModuleInit init) : BossModule(init, new(-45, -20), new ArenaBoundsSquare(15));

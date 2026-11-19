@@ -237,6 +237,14 @@ public enum AID : uint
     Water2InBlue = 46761,
     AquaVitaeKrile = 46762,
     ButterflyMotif = 46763,
+
+    // FF15 collab - Garuda
+    WarpStrike = 14597,
+
+    // FF16 collab - Memory of Embers
+    Dodge = 33997, // duty slot action; the game turns it into 33988 inside a dodge window
+    PrecisionStrike = 34515,
+    RisingFlames = 34790,
 }
 
 public enum TraitID : uint { }
@@ -505,11 +513,20 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.AquaVitaeKrile, instantAnimLock: 1.1f);
         d.RegisterSpell(AID.ButterflyMotif, instantAnimLock: 6.1f);
 
+        d.RegisterSpell(AID.WarpStrike);
+
+        d.RegisterSpell(AID.Dodge);
+        d.RegisterSpell(AID.PrecisionStrike);
+        d.RegisterSpell(AID.RisingFlames);
+
         Customize(d);
     }
 
     void Customize(ActionDefinitions d)
     {
         d.Spell(AID.RoughDivide)!.AllowExecute = ActionPredicate.AllowDashToTarget;
+        d.Spell(AID.RisingFlames)!.AllowExecute = ActionPredicate.AllowDashToTarget;
+        d.Spell(AID.PrecisionStrike)!.AllowExecute = ActionPredicate.AllowDashToTarget;
+        d.Spell(AID.Dodge)!.Range = 0; // the 10y range is to the ground point, the target can be anywhere
     }
 }

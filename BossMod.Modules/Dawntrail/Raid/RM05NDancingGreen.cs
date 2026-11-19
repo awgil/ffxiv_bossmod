@@ -247,91 +247,122 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
 
 class RideTheWaves(BossModule module) : Components.GenericAOEs(module, AID.RideTheWavesAOE)
 {
-    private readonly List<AOEInstance> _aoes = [];
-    private readonly List<int> _columns = [];
-    private int _wavesStarted;
-    private int _hits;
-
-    private static readonly AOEShapeRect _shape = new(15, 2.5f);
-
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
-
-    private int? SafeColumn(Actor actor, out DateTime activation)
+    private class Wave(int? column, DateTime firstHit)
     {
-        for (var w = 0; w < _columns.Count && w * 7 < _aoes.Count; ++w)
+        public readonly int? Column = column;
+        public uint RowState;
+        public int Dir;
+        public readonly List<int> Rows = [];
+        public DateTime LastRowSignal;
+        public DateTime NextHit = firstHit;
+    }
+
+    private readonly List<Wave> _waves = [];
+    private static readonly AOEShapeRect[] _segments = [.. Enumerable.Range(0, 9).Select(i => new AOEShapeRect(5 * i, 2.5f))];
+
+    private static float CellCenter(int cell) => 82.5f + 5 * cell;
+
+    private static int? Column(uint state) => state switch
+    {
+        0x04000400 => 1,
+        0x00020002 => 2,
+        0x00100010 => 3,
+        0x20002000 => 4,
+        0x40004000 => 5,
+        _ => null
+    };
+
+    private static IEnumerable<int> NextRows(Wave w)
+    {
+        foreach (var r in w.Rows)
+            if (r + w.Dir is >= 0 and < 8)
+                yield return r + w.Dir;
+        var start = w.Dir > 0 ? 0 : 7;
+        if (w.Rows.Count < 3 && w.Rows.Contains(start))
+            yield return start;
+    }
+
+    private static bool Passed(Wave w, int row)
+    {
+        if (w.Rows.Count == 0)
+            return false;
+        var next = NextRows(w).ToList();
+        return next.Count == 0 || (w.Dir > 0 ? next.Min() > row : next.Max() < row);
+    }
+
+    private Wave? WaveFor(Actor actor)
+    {
+        var row = Math.Clamp((int)((actor.Position.Z - Arena.Center.Z + 20) / 5), 0, 7);
+        return _waves.FirstOrDefault(w => !Passed(w, row));
+    }
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        foreach (var w in _waves)
         {
-            if (_aoes[w * 7].Origin.Z <= actor.Position.Z)
+            foreach (var r in NextRows(w))
             {
-                activation = _aoes[w * 7].Activation;
-                return _columns[w];
+                var z = CellCenter(r);
+                var left = w.Column ?? 8;
+                if (left > 0)
+                    yield return new(_segments[left], new(80, z), 90.Degrees(), w.NextHit);
+                if (w.Column is int c && c < 7)
+                    yield return new(_segments[7 - c], new(120, z), -90.Degrees(), w.NextHit);
             }
         }
-        activation = default;
-        return null;
+    }
+
+    public override void Update()
+    {
+        var now = WorldState.CurrentTime;
+        _waves.RemoveAll(w => now > (w.Rows.Count > 0 ? w.LastRowSignal.AddSeconds(3) : w.NextHit.AddSeconds(1)));
     }
 
     public override void OnMapEffect(byte index, uint state)
     {
-        if (index != 0x04)
-            return;
-        int? safe = state switch
+        if (index == 0x04)
         {
-            0x04000400 => 1,
-            0x00020002 or 0x08000800 => 2,
-            0x10001000 or 0x00100010 => 3,
-            0x20002000 or 0x00200020 => 4,
-            0x00400040 or 0x40004000 => 5,
-            0x80008000 => 6,
-            _ => null
-        };
-        if (state == 0x00080004)
-            ++_wavesStarted;
-        if (safe is int column)
-        {
-            _columns.Add(column);
-            for (var i = 0; i < 8; ++i)
-                if (i != column)
-                    _aoes.Add(new(_shape, new(82.5f + i * 5, 70), default, WorldState.FutureTime(3)));
+            if (state == 0x00080004)
+                return;
+            var column = Column(state);
+            if (column == null)
+                ReportError($"Unknown wave column state {state:X8}");
+            _waves.Add(new(column, WorldState.FutureTime(3.1f)));
         }
-    }
-
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        if (spell.Action != WatchedAction)
-            return;
-        ++NumCasts;
-        ++_hits;
-        if (_aoes.Count > 6 && _hits is 10 or 16)
+        else if (index is >= 0x05 and <= 0x0C && (state & 0xFFFF) == 0x0004)
         {
-            _aoes.RemoveRange(0, 7);
-            if (_columns.Count > 0)
-                _columns.RemoveAt(0);
-            --_wavesStarted;
+            var row = index - 0x05;
+            var w = _waves.Find(w => w.RowState == state) ?? _waves.Find(w => w.RowState == 0);
+            if (w == null)
+            {
+                ReportError($"Wave row {row} lit without a wave");
+                return;
+            }
+            if (w.RowState == 0)
+            {
+                w.RowState = state;
+                w.Dir = row == 7 ? -1 : 1;
+            }
+            if ((WorldState.CurrentTime - w.LastRowSignal).TotalSeconds > 1)
+                w.Rows.Clear();
+            w.Rows.Add(row);
+            w.LastRowSignal = WorldState.CurrentTime;
+            w.NextHit = WorldState.FutureTime(2.1f);
         }
-        if (_aoes.Count == 0)
-        {
-            _hits = 0;
-            _columns.Clear();
-            return;
-        }
-        var moving = Math.Min(_aoes.Count, _wavesStarted <= 1 ? 7 : 14);
-        var activation = WorldState.FutureTime(2);
-        for (var i = 0; i < moving; ++i)
-            _aoes[i] = _aoes[i] with { Origin = _aoes[i].Origin + new WDir(0, 5), Activation = activation };
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
         base.DrawArenaBackground(pcSlot, pc);
-        if (SafeColumn(pc, out _) is int column)
-            Arena.ZoneRect(new WPos(82.5f + column * 5, 80), new WDir(0, 1), 40, 0, 2.5f, ArenaColor.SafeFromAOE);
+        if (WaveFor(pc)?.Column is int c)
+            Arena.ZoneRect(new WPos(CellCenter(c), 80), new WDir(0, 1), 40, 0, 2.5f, ArenaColor.SafeFromAOE);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         base.AddAIHints(slot, actor, assignment, hints);
-        if (SafeColumn(actor, out var activation) is int column)
-            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(82.5f + column * 5, 80), new WDir(0, 1), 40, 0, 2.5f), activation);
+        if (WaveFor(actor) is { Column: int c } w)
+            hints.AddForbiddenZone(ShapeDistance.InvertedRect(new WPos(CellCenter(c), 80), new WDir(0, 1), 40, 0, 1.5f), w.NextHit);
     }
 }
 
