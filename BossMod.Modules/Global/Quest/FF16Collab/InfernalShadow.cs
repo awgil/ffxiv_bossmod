@@ -135,10 +135,6 @@ public enum AID : uint
     CliveAbility = 35097, // Clive->self, no cast, single-target
     CliveScarletCyclone = 35104, // Clive->self, no cast, range 6 circle
     ClivePrecisionStrike = 35100, // Clive->Boss/InfernalSword, no cast, single-target
-
-    Dodge = 33988, // duty action
-    PrecisionStrike = 34515, // duty action
-    RisingFlames = 34790, // duty action, 30s cooldown
 }
 
 public enum SID : uint
@@ -347,16 +343,24 @@ class PrecisionDodge(BossModule module) : BossComponent(module)
         if (window)
         {
             hints.ForceCancelCast = true;
-            var dest = actor.Position + 5 * (actor.Position - Module.PrimaryActor.Position).Normalized();
-            if (!Module.InBounds(dest))
-                dest = actor.Position + 5 * (Module.Center - actor.Position).Normalized();
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.Dodge), actor, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(actor.PosRot.Y));
+            var away = Angle.FromDirection(actor.Position - Module.PrimaryActor.Position);
+            var dest = actor.Position + 10 * (Module.Center - actor.Position).Normalized();
+            for (var i = 0; i < 16; ++i)
+            {
+                var candidate = actor.Position + 10 * (away + (i % 2 == 0 ? 1 : -1) * ((i + 1) / 2 * 22.5f).Degrees()).ToDirection();
+                if (ActionPredicate.IsDashSafe(actor.Position, candidate, hints))
+                {
+                    dest = candidate;
+                    break;
+                }
+            }
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.Dodge), null, ActionQueue.Priority.VeryHigh, targetPos: dest.ToVec3(actor.PosRot.Y));
         }
         if (!Module.PrimaryActor.IsTargetable)
             return;
         if (actor.FindStatus(SID.Precision) != null)
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.PrecisionStrike), Module.PrimaryActor, ActionQueue.Priority.High);
-        hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.RisingFlames), Module.PrimaryActor, ActionQueue.Priority.Medium);
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.PrecisionStrike), Module.PrimaryActor, ActionQueue.Priority.High);
+        hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.RisingFlames), Module.PrimaryActor, ActionQueue.Priority.Medium);
     }
 }
 
@@ -418,6 +422,9 @@ class InfernalShadowStates : StateMachineBuilder
 [ModuleInfo(Contributors = "Malediktus, Kagekazu", GroupType = BossModuleInfo.GroupType.Quest, GroupID = 70334, NameID = 12564)] // also: CFC 959
 public class InfernalShadow(ModuleInit init) : BossModule(init, new(0, 0), new ArenaBoundsCircle(20))
 {
+    // boss is untargetable during the Infernal Sword phase, so a plugin reload there would never re-activate the module
+    protected override bool CheckPull() => PrimaryActor.InCombat || Enemies(OID.InfernalSword).Any(s => s.IsTargetable);
+
     protected override void DrawEnemies(int pcSlot, Actor pc)
     {
         Arena.Actor(PrimaryActor, ArenaColor.Enemy);

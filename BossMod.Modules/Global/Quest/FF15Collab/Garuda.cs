@@ -29,7 +29,6 @@ public enum AID : uint
     WickedTornado = 14613, // Boss->self, 3.5s cast, range 8-20 donut
     MistralGaol = 14621, // Boss->self, 5.0s cast, range 6 circle, quick time event starts
     Microburst2 = 14624, // Boss->self, no cast, range 25 circle, quick time event failed (enrage)
-    warpstrike = 14597, //duty action for player
 }
 
 class GustFront(BossModule module) : Components.UniformStackSpread(module, 1.2f, 0)
@@ -71,7 +70,7 @@ class Microburst(BossModule module) : Components.StandardAOEs(module, AID.Microb
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (casting && actor.Position.AlmostEqual(Module.PrimaryActor.Position, 15))
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.warpstrike), Module.Enemies(OID.Monolith).FirstOrDefault()!, ActionQueue.Priority.High);
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.WarpStrike), Module.Enemies(OID.Monolith).FirstOrDefault()!, ActionQueue.Priority.High);
     }
 }
 
@@ -105,9 +104,9 @@ class MistralShriek(BossModule module) : Components.StandardAOEs(module, AID.Mis
     {
         base.AddAIHints(slot, actor, assignment, hints);
         if (casting)
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.warpstrike), Module.Enemies(OID.Monolith).FirstOrDefault(p => !p.Position.AlmostEqual(Module.PrimaryActor.Position, 5))!, ActionQueue.Priority.High);
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.WarpStrike), Module.Enemies(OID.Monolith).FirstOrDefault(p => !p.Position.AlmostEqual(Module.PrimaryActor.Position, 5))!, ActionQueue.Priority.High);
         if (WorldState.CurrentTime > done && WorldState.CurrentTime < done.AddSeconds(2))
-            hints.ActionsToExecute.Push(ActionID.MakeSpell(AID.warpstrike), Module.PrimaryActor, ActionQueue.Priority.High);
+            hints.ActionsToExecute.Push(ActionID.MakeSpell(Roleplay.AID.WarpStrike), Module.PrimaryActor, ActionQueue.Priority.High);
     }
 }
 
