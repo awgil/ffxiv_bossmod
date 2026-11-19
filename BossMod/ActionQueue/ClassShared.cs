@@ -71,6 +71,8 @@ public enum AID : uint
     DeflectVeryEasy = 18863,
     MegaPotion = 10229,
     Vril = 9345, // Lakshmi
+    HeavenlySword = 14414, // Orbonne B2
+    HeavenlyShield = 14415, // Orbonne B2
     AntiGravityGimbal = 9483, // O2N Catastrophe
     BlackPaint = 20304, // O6N Chadarnook
     Snort = 10270, // O6N Chadarnook
@@ -252,6 +254,8 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.DeflectVeryEasy);
         d.RegisterSpell(AID.MegaPotion);
         d.RegisterSpell(AID.Vril);
+        d.RegisterSpell(AID.HeavenlySword, instantAnimLock: 1.3f);
+        d.RegisterSpell(AID.HeavenlyShield, instantAnimLock: 0.5f);
         d.RegisterSpell(AID.AntiGravityGimbal);
         d.RegisterSpell(AID.BlackPaint);
         d.RegisterSpell(AID.Snort);

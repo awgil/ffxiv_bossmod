@@ -220,11 +220,10 @@ public sealed class RPR(RotationModuleManager manager, Actor player) : Attackxan
 
         if (CountdownRemaining > 0)
         {
-            if (CountdownRemaining > GetCastTime(AID.Harpe) + 2.55f && !Soulsow)
-                PushGCD(AID.Soulsow, Player, GCDPriority.Soulsow);
-
-            if (CountdownRemaining < GetCastTime(AID.Harpe))
+            if (CountdownRemaining < GetCastTime(AID.Harpe) + GetApplicationDelay(AID.Harpe))
                 PushGCD(AID.Harpe, primaryTarget);
+            else if (!Soulsow)
+                PushGCD(AID.Soulsow, Player, GCDPriority.Soulsow);
 
             OGCD(strategy, primaryTarget);
 
