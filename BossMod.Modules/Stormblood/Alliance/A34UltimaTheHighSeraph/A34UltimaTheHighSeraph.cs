@@ -14,6 +14,6 @@ class A34UltimaTheHighSeraphStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7657)]
-public class A34UltimaTheHighSeraph(ModuleInit init) : BossModule(init, new(600, -600), new ArenaBoundsSquare(29.5f));
+//[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7657)]
+//public class A34UltimaTheHighSeraph(ModuleInit init) : BossModule(init, new(600, -600), new ArenaBoundsSquare(29.5f));
 

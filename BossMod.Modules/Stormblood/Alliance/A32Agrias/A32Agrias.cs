@@ -1,4 +1,4 @@
-﻿
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
 namespace BossMod.Stormblood.Alliance.A32Agrias;
 
 public enum OID : uint
@@ -96,6 +96,7 @@ class DivineRuination(BossModule module) : Components.BaitAwayIcon(module, new A
     }
 }
 
+// intermission jail is r19.5 centered at (300, -50)
 class A32AgriasStates : StateMachineBuilder
 {
     public A32AgriasStates(BossModule module) : base(module)
@@ -118,6 +119,6 @@ class A32AgriasStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7931)]
-public class A32Agrias(ModuleInit init) : BossModule(init, new(600, -54), new ArenaBoundsCircle(29.5f));
+//[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7931)]
+//public class A32Agrias(ModuleInit init) : BossModule(init, new(600, -54), new ArenaBoundsCircle(29.5f));
 

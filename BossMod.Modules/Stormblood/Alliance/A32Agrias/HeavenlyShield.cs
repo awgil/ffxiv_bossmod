@@ -126,6 +126,8 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var shieldMode = false;
+
         foreach (var (source, radius, deadline) in DangerFor(actor))
         {
             if (!actor.Position.InCircle(source.Position, radius))
@@ -135,6 +137,8 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
 
                 continue;
             }
+
+            shieldMode = true;
 
             if (actor.FindStatus(SID.HeavenlyShield) != null)
             {
@@ -148,7 +152,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
             else if (ShieldBearer[slot])
             {
                 if (deadline < WorldState.FutureTime(PauseDuration + ApplicationDelay.Get(ClassShared.AID.HeavenlyShield)))
-                    hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeavenlyShield), actor, ActionQueue.Priority.High);
+                    hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeavenlyShield), actor, ActionQueue.Priority.VeryHigh);
             }
             else
             {
@@ -169,7 +173,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
                         hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeavenlySword), actor, ActionQueue.Priority.High, facingAngle: actor.AngleTo(h));
                 }
             }
-            else if (actor.Role is Role.Healer or Role.Ranged)
+            else if (actor.Role is Role.Healer or Role.Ranged && !shieldMode)
             {
                 var swords = ShapeDistance.Union([.. BuffPuddles.Where(p => p.Kind == 1).Select(p => ShapeDistance.Circle(p.Actor.Position, PuddleSize_TODO))]).Inverted();
                 hints.AddForbiddenZone(swords);

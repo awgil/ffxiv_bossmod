@@ -1,4 +1,5 @@
-﻿namespace BossMod.Stormblood.Alliance.A31Mustadio;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Stormblood.Alliance.A31Mustadio;
 
 public enum OID : uint
 {
@@ -173,6 +174,6 @@ class A31MustadioStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7919)]
-public class A31Mustadio(ModuleInit init) : BossModule(init, new(600, 290), new ArenaBoundsRect(29.5f, 29.5f, 45.Degrees(), 29.5f * MathF.Sqrt(2)));
+//[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7919)]
+//public class A31Mustadio(ModuleInit init) : BossModule(init, new(600, 290), new ArenaBoundsRect(29.5f, 29.5f, 45.Degrees(), 29.5f * MathF.Sqrt(2)));
 

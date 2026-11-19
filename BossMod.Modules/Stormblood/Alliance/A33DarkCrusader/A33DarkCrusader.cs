@@ -14,6 +14,6 @@ class A33DarkCrusaderStates : StateMachineBuilder
     }
 }
 
-[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7950)]
-public class A33DarkCrusader(ModuleInit init) : BossModule(init, new(-625.29f, -431.055f), new ArenaBoundsCircle(19.5f));
+//[ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7950)]
+//public class A33DarkCrusader(ModuleInit init) : BossModule(init, new(-625.29f, -431.055f), new ArenaBoundsCircle(19.5f));
 
