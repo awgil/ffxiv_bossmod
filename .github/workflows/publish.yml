@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    uses: xanunderscore/DynamisPublishAction/.github/workflows/dynamis.yml@master
+    uses: Jaksuhn/DynamisPublishAction/.github/workflows/dynamis.yml@master
     with:
       plugin_id: 30
       build_command: publish
