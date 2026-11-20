@@ -305,7 +305,7 @@ class TailSlapArena(BossModule module) : BossComponent(module)
     private static readonly ArenaBoundsSquare Phase3Base = new(30);
     private PolygonClipper.Operand _arena = new([.. CurveApprox.Rect(new WDir(0, 1), 30, 30)]);
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state != 0x00400080u || actor.OID != (uint)OID.Platform || actor.Position.AlmostEqual(default, 1f))
             return;

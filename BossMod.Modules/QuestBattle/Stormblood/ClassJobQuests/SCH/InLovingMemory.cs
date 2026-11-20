@@ -19,7 +19,7 @@ internal class InLovingMemory(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .WithInteract(0x1EA53D)
             .With(obj => {
-                obj.OnEventObjectStateChanged += (act, state) => obj.CompleteIf(act.OID == 0x1EA53D && state == 0x20);
+                obj.OnEventObjectAnimation += (act, _, _) => obj.CompleteIf(act.OID == 0x1EA53D && act.TimelineState == 0x20);
             }),
 
         new QuestObjective(ws)

@@ -88,7 +88,7 @@ class Dissipate(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBFC7)
             _orbs.Add((actor, WorldState.FutureTime(8.9f)));

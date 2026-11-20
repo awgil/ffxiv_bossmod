@@ -615,7 +615,7 @@ class LavaRect(BossModule module) : Components.GenericAOEs(module)
             _activation = Module.CastFinishAt(spell);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBF72)
         {

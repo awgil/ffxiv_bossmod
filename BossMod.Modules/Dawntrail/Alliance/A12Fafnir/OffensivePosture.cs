@@ -32,7 +32,7 @@ class DragonBreath(BossModule module) : Components.GenericAOEs(module, AID.Drago
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.DragonBreath && state == 0x00040008)
         {

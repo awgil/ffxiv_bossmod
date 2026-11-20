@@ -74,9 +74,9 @@ class ShieldHint(BossModule module) : BossComponent(module)
     private const float Radius = 7;
     private Actor? Shield;
 
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
-        if (actor.OID == 0x1EA9C7 && state == 2)
+        if (actor.OID == 0x1EA9C7 && actor.TimelineState == 2)
             Shield = actor;
     }
 

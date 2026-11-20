@@ -109,7 +109,7 @@ class BrokenFaith(BossModule module) : Components.GenericAOEs(module, AID.Broken
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.OrderBy(a => a.Activation).Take(4);
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID != (uint)OID.BrokenFaithObject)
             return;

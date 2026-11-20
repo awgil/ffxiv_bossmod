@@ -120,7 +120,7 @@ class IdyllicDreamElementalMeteor(BossModule module) : Components.GenericTowers(
         Arena.IconWorld(p, icon, col);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         Element? el = (OID)actor.OID switch
         {

@@ -47,7 +47,7 @@ class Heat(BossModule module) : Components.GenericAOEs(module) // borrowed this 
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008 && (OID)actor.OID == OID.TunnelHelper)
         {

@@ -87,7 +87,7 @@ class Properties(BossModule module) : BossComponent(module)
             Zones.Add(actor);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008)
             Zones.Remove(actor);

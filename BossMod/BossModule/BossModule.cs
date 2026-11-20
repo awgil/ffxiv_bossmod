@@ -121,12 +121,11 @@ public abstract class BossModule : IDisposable
             WorldState.Actors.IconAppeared.Subscribe(OnActorIcon),
             WorldState.Actors.VFXAppeared.Subscribe(OnActorVFX),
             WorldState.Actors.CastEvent.Subscribe(OnActorCastEvent),
-            WorldState.Actors.EventObjectStateChange.Subscribe(OnActorEState),
-            WorldState.Actors.EventObjectAnimation.Subscribe(OnActorEAnim),
             WorldState.Actors.PlayActionTimelineEvent.Subscribe(OnActorPlayActionTimelineEvent),
             WorldState.Actors.PlayActionTimelineSync.Subscribe(OnActorPlayActionTimelineSync),
             WorldState.Actors.EventNpcYell.Subscribe(OnActorNpcYell),
             WorldState.Actors.ModelStateChanged.Subscribe(OnActorModelStateChange),
+            WorldState.Actors.TimelineStateChanged.Subscribe(OnActorTimelineStateChange),
             WorldState.MapEffect.Subscribe(OnMapEffect),
             WorldState.LegacyMapEffect.Subscribe(OnLegacyMapEffect),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate)
@@ -651,17 +650,11 @@ public abstract class BossModule : IDisposable
                 comp.OnEventCast(actor, cast);
     }
 
-    private void OnActorEState(Actor actor, ushort state)
-    {
-        foreach (var comp in _components)
-            comp.OnActorEState(actor, state);
-    }
-
-    private void OnActorEAnim(Actor actor, ushort p1, ushort p2)
+    private void OnActorTimelineStateChange(Actor actor, ushort p1, ushort p2)
     {
         var state = ((uint)p1 << 16) | p2;
         foreach (var comp in _components)
-            comp.OnActorEAnim(actor, state);
+            comp.OnTimelineStateChange(actor, state);
     }
 
     private void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

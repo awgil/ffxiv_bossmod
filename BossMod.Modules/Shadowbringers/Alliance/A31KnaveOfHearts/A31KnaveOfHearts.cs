@@ -77,7 +77,7 @@ class Blocks(BossModule module) : Components.GenericAOEs(module, AID.BlockSpawn)
             _pendingBlocks.Add(caster);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1)
         {

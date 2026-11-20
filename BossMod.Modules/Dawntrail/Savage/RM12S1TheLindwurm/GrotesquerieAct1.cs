@@ -157,7 +157,7 @@ class BurstPre(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeCircle(12), c.Item1.Position, Activation: c.Item2, Risky: Risky));
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBF29 && state == 0x00100020)
             _casters.Add((actor, WorldState.FutureTime(6.7f)));

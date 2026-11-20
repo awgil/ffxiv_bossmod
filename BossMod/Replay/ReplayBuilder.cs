@@ -49,7 +49,7 @@ public sealed class ReplayBuilder : IDisposable
             _ws.Actors.IconAppeared.Subscribe(EventIcon),
             _ws.Actors.CastEvent.Subscribe(EventCast),
             _ws.Actors.EffectResult.Subscribe(EventConfirm),
-            _ws.Actors.EventObjectAnimation.Subscribe(EventObjectAnimation),
+            _ws.Actors.TimelineStateChanged.Subscribe(EventObjectAnimation),
             _ws.Actors.EventStateChanged.Subscribe(EventState),
             _ws.Actors.ModelStateChanged.Subscribe(ModelState),
             _ws.Actors.PlayActionTimelineEvent.Subscribe(PlayActionTimeline),

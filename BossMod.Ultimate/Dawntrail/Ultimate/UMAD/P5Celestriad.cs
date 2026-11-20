@@ -28,7 +28,7 @@ class P5Celestriad(BossModule module) : Components.GenericTowers(module)
 
     readonly List<TTower> _towers = [];
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00100020)
         {

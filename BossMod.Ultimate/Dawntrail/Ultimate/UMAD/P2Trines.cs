@@ -22,7 +22,7 @@ class P2Trine(BossModule module) : Components.GenericAOEs(module, AID.Trine)
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state != 0x00100020)
             return;

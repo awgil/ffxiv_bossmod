@@ -153,7 +153,7 @@ class Burst(BossModule module) : Components.GenericAOEs(module, AID.Burst)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.BurstBlob && state == 0x00100020)
             AOEs.Add(new(_shape, actor.Position, default, WorldState.FutureTime(6.6f)));

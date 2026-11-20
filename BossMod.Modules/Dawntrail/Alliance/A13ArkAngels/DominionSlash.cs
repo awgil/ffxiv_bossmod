@@ -8,7 +8,7 @@ class DominionSlash(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => AOEs;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.DominionSlashHelper && state == 0x00010002)
             AOEs.Add(new(_shape, actor.Position, default, WorldState.FutureTime(6.5f)));

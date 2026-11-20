@@ -99,7 +99,7 @@ class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID != (uint)OID.RootGrowth)
             return;
@@ -130,7 +130,7 @@ class MistRunePuddles(BossModule module) : Components.GenericTowers(module, dama
             Towers.Add(new(actor.Position, 3, 1, 8, activation: WorldState.FutureTime(11.2f)));
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.WaterPuddles && state == 0x01000200)
             Towers.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 1));
@@ -152,7 +152,7 @@ class WaterPuddles(BossModule module) : BossComponent(module)
             _puddles.Add(actor.Position);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.WaterPuddles && state == 0x00040008)
             _puddles.RemoveAll(p => p.AlmostEqual(actor.Position, 1));

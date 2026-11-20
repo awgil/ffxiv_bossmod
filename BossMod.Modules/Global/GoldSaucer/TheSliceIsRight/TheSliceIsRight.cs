@@ -84,7 +84,7 @@ class BambooSplits(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00010002) //bamboo gets activated, technically we could draw the AOEs before, but then we could see different sets overlap
         {

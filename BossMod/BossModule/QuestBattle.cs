@@ -72,7 +72,6 @@ public class QuestObjective(WorldState ws)
     public Action<Actor, ActorStatus>? OnStatusGain;
     public Action<Actor, ActorStatus>? OnStatusLose;
     public Action<Actor>? OnActorEventStateChanged;
-    public Action<Actor, ushort>? OnEventObjectStateChanged;
     public Action<Actor, ushort, ushort>? OnEventObjectAnimation;
     public Action<Actor>? OnActorCreated;
     public Action<Actor>? OnActorDestroyed;
@@ -274,8 +273,7 @@ public abstract class QuestBattle : ZoneModule
                 if (act.IsDead)
                     CurrentObjective?.OnActorKilled?.Invoke(act);
             }),
-            ws.Actors.EventObjectStateChange.Subscribe((act, u) => CurrentObjective?.OnEventObjectStateChanged?.Invoke(act, u)),
-            ws.Actors.EventObjectAnimation.Subscribe((act, p1, p2) => CurrentObjective?.OnEventObjectAnimation?.Invoke(act, p1, p2)),
+            ws.Actors.TimelineStateChanged.Subscribe((act, p1, p2) => CurrentObjective?.OnEventObjectAnimation?.Invoke(act, p1, p2)),
             ws.DirectorUpdate.Subscribe(op => CurrentObjective?.OnDirectorUpdate?.Invoke(op)),
             ws.MapEffect.Subscribe(op => CurrentObjective?.OnMapEffect?.Invoke(op)),
             ws.Actors.IsTargetableChanged.Subscribe(act => CurrentObjective?.OnActorTargetableChanged?.Invoke(act)),

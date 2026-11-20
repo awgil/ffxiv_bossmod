@@ -53,7 +53,7 @@ public class FadedMemories(WorldState ws) : QuestBattle(ws)
             .WithInteract(0x2F0D)
             .With(obj => {
                 // dunno which wall this is, it triggers right after you interact with elidibert
-                obj.OnEventObjectStateChanged += (act, state) => obj.CompleteIf(act.OID == 0x1EA1A1 && state == 2);
+                obj.OnEventObjectAnimation += (act, _, _) => obj.CompleteIf(act.OID == 0x1EA1A1 && act.TimelineState == 2);
             })
             .Named("Dialogue 3"),
 

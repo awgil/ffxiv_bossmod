@@ -114,14 +114,14 @@ class Platforms(BossModule module) : BossComponent(module)
             Arena.AddPolygon(PlatformPoly(i), ArenaColor.Enemy);
     }
 
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.Platform)
         {
             var i = Array.FindIndex(HexaPlatformCenters, c => actor.Position.InCircle(c, 2));
             if (i == -1)
                 i = HexaPlatformCenters.Length;
-            var active = state == 2;
+            var active = actor.TimelineState == 2;
             ActivePlatforms[i] = active;
             if (active)
                 ExplosionAt = WorldState.FutureTime(6);

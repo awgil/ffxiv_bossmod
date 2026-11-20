@@ -89,7 +89,7 @@ class RecreateStructure(BossModule module) : Components.GenericAOEs(module, AID.
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeRect(15, 80, 15), c.Actor.Position, c.Actor.Rotation, c.Activation));
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.RecreateStructure && state == 0x00010002)
             _casters.Add((actor, WorldState.FutureTime(9)));

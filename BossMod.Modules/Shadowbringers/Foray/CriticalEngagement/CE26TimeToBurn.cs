@@ -108,7 +108,7 @@ class TimeEruptionBombReproduce(BossModule module) : Components.GenericAOEs(modu
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.Clock)
             return;

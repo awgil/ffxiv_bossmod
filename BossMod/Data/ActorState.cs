@@ -54,6 +54,8 @@ public sealed class ActorState : IEnumerable<Actor>
                 yield return new OpModelState(act.InstanceID, act.ModelState);
             if (act.EventState != 0)
                 yield return new OpEventState(act.InstanceID, act.EventState);
+            if (act.TimelineState != 0)
+                yield return new OpTimelineStateChange(act.InstanceID, act.TimelineState, 0);
             if (act.TargetID != 0)
                 yield return new OpTarget(act.InstanceID, act.TargetID);
             if (act.MountId != 0)
@@ -588,20 +590,15 @@ public sealed class ActorState : IEnumerable<Actor>
         public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("VFX "u8).EmitActor(InstanceID).Emit(VfxID).EmitActor(TargetID);
     }
 
-    // TODO: this should be an actor field (?)
-    public Event<Actor, ushort> EventObjectStateChange = new();
-    public sealed record class OpEventObjectStateChange(ulong InstanceID, ushort State) : Operation(InstanceID)
+    public Event<Actor, ushort, ushort> TimelineStateChanged = new();
+    public sealed record class OpTimelineStateChange(ulong InstanceID, ushort State, ushort Mask) : Operation(InstanceID)
     {
-        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventObjectStateChange.Fire(actor, State);
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("ESTA"u8).EmitActor(InstanceID).Emit(State, "X4");
-    }
-
-    // TODO: this should be an actor field (?)
-    public Event<Actor, ushort, ushort> EventObjectAnimation = new();
-    public sealed record class OpEventObjectAnimation(ulong InstanceID, ushort Param1, ushort Param2) : Operation(InstanceID)
-    {
-        protected override void ExecActor(WorldState ws, Actor actor) => ws.Actors.EventObjectAnimation.Fire(actor, Param1, Param2);
-        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("EANM"u8).EmitActor(InstanceID).Emit(Param1, "X4").Emit(Param2, "X4");
+        protected override void ExecActor(WorldState ws, Actor actor)
+        {
+            actor.TimelineState = State;
+            ws.Actors.TimelineStateChanged.Fire(actor, State, Mask);
+        }
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("EANM"u8).EmitActor(InstanceID).Emit(State, "X4").Emit(Mask, "X4");
     }
 
     // TODO: this needs more reversing...

@@ -74,7 +74,7 @@ class SurgeOrbs(BossModule module) : BossComponent(module)
             _orbs.Remove(actor);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.SurgeOrb && state == 0x00040008)
             _orbs.Remove(actor);

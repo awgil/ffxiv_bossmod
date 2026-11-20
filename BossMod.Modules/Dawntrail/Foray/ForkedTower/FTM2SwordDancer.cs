@@ -142,7 +142,7 @@ class SwordDance(BossModule module) : Components.GenericAOEs(module, AID.SwordDa
             yield return _predicted[i] with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 };
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.SwordDance && state == 0x00010002)
             _predicted.Add(new(new AOEShapeRect(60, 10, 60), actor.Position, actor.Rotation, _predicted.Count > 0 ? _predicted[^1].Activation.AddSeconds(2.5f) : WorldState.FutureTime(8.9f)));

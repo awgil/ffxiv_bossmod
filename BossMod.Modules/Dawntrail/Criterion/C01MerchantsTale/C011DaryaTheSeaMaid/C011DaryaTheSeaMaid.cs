@@ -313,7 +313,7 @@ class SphereShatter(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky }).TakeSpan(p => p.Activation, TimeSpan.FromSeconds(2));
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00100020)
         {
@@ -384,7 +384,7 @@ class AquaSpearTile(BossModule module) : Components.GenericAOEs(module)
             _tiles.Add((actor, WorldState.CurrentTime));
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008)
             _tiles.RemoveAll(t => t.Actor == actor);

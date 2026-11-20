@@ -113,7 +113,7 @@ class RubyReflection(BossModule module) : Components.GenericAOEs(module)
                     yield return new(new AOEShapeRect(5, 5, 5), TileCenter(bit), default, _nextActivation);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EC045 && state == 0x00100020)
             SetRooms([BitMask.Build(0, 1, 4, 5), BitMask.Build(2, 3, 6, 7), BitMask.Build(8, 9, 12, 13), BitMask.Build(10, 11, 14, 15)]);

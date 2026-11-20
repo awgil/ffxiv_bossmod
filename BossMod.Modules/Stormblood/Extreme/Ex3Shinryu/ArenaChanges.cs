@@ -26,7 +26,7 @@ class ArenaChanges : BossComponent
         KeepOnPhaseChange = true;
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (!_p1Active || (OID)actor.OID != OID.Platform)
             return;

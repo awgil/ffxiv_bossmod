@@ -29,7 +29,7 @@ class DragonsGaze(BossModule module) : Components.GenericGaze(module)
             _casters.Remove(caster);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008 && (OID)actor.OID is >= OID.DragonEyeN and <= OID.DragonEyeNW)
         {

@@ -55,7 +55,7 @@ class Reflection(BossModule module) : Components.GenericAOEs(module)
             _aoe = null;
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         Angle? angle = state switch
         {

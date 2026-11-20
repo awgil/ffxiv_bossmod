@@ -168,13 +168,4 @@ class TwofoldLineBait(BossModule module) : Components.CastCounter(module, AID.Tw
     }
 }
 
-class TwofoldVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 9, AID.TwofoldTempestStack, OID.TwofoldVoidzone, 3.4f)
-{
-
-    // this is NOT the same as EventState
-    public override void OnActorEState(Actor actor, ushort state)
-    {
-        if (state == 4)
-            RemoveSource(actor);
-    }
-}
+class TwofoldVoidzone(BossModule module) : Components.VoidzoneAtCastTarget(module, 9, AID.TwofoldTempestStack, OID.TwofoldVoidzone, 3.4f, isDeactivated: a => a.TimelineState == 4);

@@ -184,7 +184,7 @@ class Paintings(BossModule module) : BossComponent(module)
 
     public override void OnActorDestroyed(Actor actor) => _orbSpawn.Remove(actor.InstanceID);
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID != (uint)OID.Canvas)
             return;
@@ -330,7 +330,7 @@ class BoulderShadow(BossModule module) : Components.GenericLineOfSightAOE(module
             _water = true;
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (_water && actor.OID == (uint)OID.Canvas && (actor.Position - Boulder).LengthSq() < 9)
             Modify(Painting, [(Boulder, Radius)]);

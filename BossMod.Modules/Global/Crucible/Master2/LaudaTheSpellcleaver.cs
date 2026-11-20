@@ -270,7 +270,7 @@ class CageOfMoltenMetalPre(BossModule module) : Components.GenericAOEs(module, A
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.CageOfMoltenMetal && state == 0x00010002)
             _predicted.Add(new(new AOEShapeCircle(12), actor.Position, default, WorldState.FutureTime(11.2f)));

@@ -18,7 +18,7 @@ class Intermission(BossModule module) : BossComponent(module)
 {
     public bool Active;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.ArenaFeatures && state is 0x00040008 or 0x00100020)
             Active = state == 0x00040008;

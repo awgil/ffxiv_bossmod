@@ -73,7 +73,7 @@ class IntoTheFire(BossModule module) : Components.GenericAOEs(module, AID.IntoTh
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state != 0x00010002)
             return;

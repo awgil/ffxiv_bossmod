@@ -6,7 +6,7 @@ public class HopeOnTheWaves(WorldState ws) : QuestBattle(ws)
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
         new QuestObjective(ws)
             .With(obj => {
-                obj.OnEventObjectStateChanged += (actor, state) => obj.CompleteIf(actor.OID == 0x1EA1A1 && state == 0x0008);
+                obj.OnEventObjectAnimation += (actor, _, _) => obj.CompleteIf(actor.OID == 0x1EA1A1 && actor.TimelineState == 0x0008);
             }),
 
         new QuestObjective(ws)

@@ -385,6 +385,7 @@ sealed unsafe class WorldStateGameSync(
         var forayInfoPtr = chr != null ? chr->GetForayInfo() : null;
         var forayInfo = forayInfoPtr == null ? default : new ActorForayInfo(forayInfoPtr->Level, forayInfoPtr->Element);
         var isOpenTreasure = obj->ObjectKind == ObjectKind.Treasure && ((Treasure*)obj)->Flags.HasFlag(Treasure.TreasureFlags.Opened);
+        var sharedTimelineState = obj->ObjectKind == ObjectKind.EventObj ? ((EventObject*)obj)->SharedTimelineState : (ushort)0;
 
         var visibility = targetable ? DetermineVisibility(obj) : Visibility.Unknown;
 
@@ -442,7 +443,12 @@ sealed unsafe class WorldStateGameSync(
         if (act.Visibility != visibility)
             ws.Execute(new ActorState.OpVisibility(act.InstanceID, visibility));
 
+        // EObjAnim is applied here
         DispatchActorEvents(act.InstanceID);
+
+        // timeline state can also be changed by EObjSetState actorcontrol (or it can be >1 on spawn)
+        if (act.TimelineState != sharedTimelineState)
+            ws.Execute(new ActorState.OpTimelineStateChange(act.InstanceID, sharedTimelineState, 0));
 
         var castInfo = chr != null ? chr->GetCastInfo() : null;
         if (castInfo != null)
@@ -1124,12 +1130,8 @@ sealed unsafe class WorldStateGameSync(
                 // note: this seems to clear tether only if existing matches p2
                 _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTether(actorID, default));
                 break;
-            case Network.ServerIPC.ActorControlCategory.EObjSetState:
-                // p2 is unused (seems to be director id?), p3==1 means housing (?) item instead of event obj, p4 is housing item id
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectStateChange(actorID, (ushort)p1));
-                break;
             case Network.ServerIPC.ActorControlCategory.EObjAnimation:
-                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpEventObjectAnimation(actorID, (ushort)p1, (ushort)p2));
+                _actorOps.GetOrAdd(actorID).Add(new ActorState.OpTimelineStateChange(actorID, (ushort)p1, (ushort)p2));
                 break;
             case Network.ServerIPC.ActorControlCategory.PlayActionTimeline:
                 _actorOps.GetOrAdd(actorID).Add(new ActorState.OpPlayActionTimelineEvent(actorID, (ushort)p1));

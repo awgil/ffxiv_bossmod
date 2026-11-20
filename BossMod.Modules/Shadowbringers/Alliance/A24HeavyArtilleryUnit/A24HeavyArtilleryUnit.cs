@@ -130,7 +130,7 @@ class Energy(BossModule module) : Components.Voidzone(module, 2, uint.MaxValue, 
 }
 class ChemicalBurn(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.ChemicalBurn && state == 0x00010002)
             Towers.Add(new(actor.Position, 3, maxSoakers: int.MaxValue, activation: WorldState.FutureTime(20)));

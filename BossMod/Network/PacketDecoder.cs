@@ -303,7 +303,7 @@ public abstract unsafe class PacketDecoder
         res.AddChild($"Kind={p->Kind}, u2={p->u2_state}, u3={p->u3}, u20={p->u20}, tail={p->u3C:X2} {p->u3E:X2}");
         res.AddChild($"LevelID={p->u_levelID}, GimmickID={p->u_gimmickID}, DutyID={p->DutyID}, FateID={p->FateID}");
         res.AddChild($"Pos={Utils.Vec3String(p->Position)}, Rot={IntToFloatAngle(p->Rotation)}deg, Scale={p->Scale:f3}");
-        res.AddChild($"Model={p->u_modelID}, EState={p->EventState}, EObjState={p->EventObjectState}");
+        res.AddChild($"TState={p->TimelineState}, EState={p->EventState}, EObjState={p->EventObjectState}");
         return res;
     }
 

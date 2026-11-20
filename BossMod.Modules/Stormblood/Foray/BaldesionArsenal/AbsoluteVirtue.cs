@@ -154,7 +154,7 @@ class Balls(BossModule module) : BossComponent(module)
             Towers.Add(actor);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID is OID.BrightHole or OID.DarkHole && state == 0x00040008)
             Towers.Remove(actor);

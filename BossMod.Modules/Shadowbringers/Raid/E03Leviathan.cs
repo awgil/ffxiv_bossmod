@@ -147,22 +147,15 @@ class MaelstromVoidZones(BossModule module) : Components.Voidzone(module, 8f, OI
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => voidZoneActors.Select(s => new AOEInstance(Shape, s.Position));
     public override void OnActorCreated(Actor actor)
     {
-        base.OnActorCreated(actor);
         if (actor.OID == (uint)OID.MaelstromVoidZone)
         {
             voidZoneActors.Add(actor);
         }
     }
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
-        base.OnActorEAnim(actor, state);
-        if (actor.OID == (uint)OID.MaelstromVoidZone)
-        {
-            if (state == 0x00040008)
-            {
-                voidZoneActors.Remove(actor);
-            }
-        }
+        if (actor.OID == (uint)OID.MaelstromVoidZone && actor.TimelineState == 4)
+            voidZoneActors.Remove(actor);
     }
     //make sure AI hints also clear void zones when they have animated.
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)

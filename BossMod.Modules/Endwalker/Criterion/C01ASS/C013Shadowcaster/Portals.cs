@@ -35,7 +35,7 @@ class PortalsAOE(BossModule module, AID aid, OID movedOID, float activationDelay
         return _origins.Select(o => new AOEInstance(_shape, o.pos, o.rot, o.activation));
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         var dest = Portals.DestinationForEAnim(actor, state);
         if (dest == null)
@@ -87,7 +87,7 @@ class PortalsWave(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Portal && state == 0x00100020)
         {

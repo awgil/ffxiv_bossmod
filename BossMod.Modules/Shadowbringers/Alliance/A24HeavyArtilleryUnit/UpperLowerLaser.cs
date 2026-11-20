@@ -6,7 +6,7 @@ class LowerLaser(BossModule module) : Components.GenericAOEs(module, AID.LowerLa
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeCone(30, 30.Degrees()), Arena.Center, c.rotation, c.activation, Color: ArenaColor.Danger));
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00100020)
         {
@@ -46,7 +46,7 @@ class UpperLaser(BossModule module) : Components.GenericAOEs(module, AID.UpperLa
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00800100)
         {

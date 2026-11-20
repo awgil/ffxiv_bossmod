@@ -17,7 +17,7 @@ class DoomPuddle : BossComponent
     private IEnumerable<Actor> ActivePads() => Module.Enemies(OID.JumpPadWest).Concat(Module.Enemies(OID.JumpPadEast)).Where(p => _activePads.Contains(p.InstanceID));
     private Actor? ClosestPad(Actor actor) => ActivePads().MinBy(p => (p.Position - actor.Position).LengthSq());
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID is OID.JumpPadWest or OID.JumpPadEast)
         {

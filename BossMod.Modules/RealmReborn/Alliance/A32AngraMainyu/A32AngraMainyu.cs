@@ -208,9 +208,9 @@ class Roulette(BossModule module) : Components.GenericAOEs(module, AID.Death)
         _litAt = _until = default;
     }
 
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
-        if (state != 0x8 || !PointerDir((OID)actor.OID, out var dir))
+        if (actor.TimelineState != 0x8 || !PointerDir((OID)actor.OID, out var dir))
             return;
         _lit = dir;
         _litAt = WorldState.CurrentTime;
@@ -303,9 +303,9 @@ class DoomPads(BossModule module) : BossComponent(module)
             _platformShape.Draw(Arena, _activePlatform, ArenaColor.SafeFromAOE);
     }
 
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
-        if (state == 0x4 && _platformOIDs.Contains((OID)actor.OID))
+        if (actor.TimelineState == 0x4 && _platformOIDs.Contains((OID)actor.OID))
             _activePlatform = actor;
     }
 

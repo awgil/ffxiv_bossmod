@@ -27,7 +27,7 @@ class Dissonance(BossModule module) : Components.CastCounterMulti(module, [AID.W
 {
     private readonly List<(Actor Ring, A34RedGirl.Shade Color, DateTime Activation)> _rings = [];
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         var color = (OID)actor.OID switch
         {

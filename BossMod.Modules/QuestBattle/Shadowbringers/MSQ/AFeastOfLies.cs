@@ -7,7 +7,7 @@ public class AFeastOfLies(WorldState ws) : QuestBattle(ws)
         new QuestObjective(ws)
             .WithConnection(new Vector3(0.02f, 5.96f, -56.50f))
             .With(obj => {
-                obj.OnEventObjectStateChanged += (act, state) => obj.CompleteIf(act.OID == 0x1EACEF && state == 2);
+                obj.OnEventObjectAnimation += (act, p1, p2) => obj.CompleteIf(act.OID == 0x1EACEF && p1 == 2);
             }),
 
         new QuestObjective(ws)

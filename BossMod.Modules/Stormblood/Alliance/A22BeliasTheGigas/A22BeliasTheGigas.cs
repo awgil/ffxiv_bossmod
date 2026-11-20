@@ -252,13 +252,13 @@ class TimeBomb(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         var ix = Bombs.FindIndex(b => b.Item1 == actor);
         if (ix >= 0)
         {
             Draw = true;
-            var turn = state switch
+            var turn = actor.TimelineState switch
             {
                 0x800 or 0x880 => 180.Degrees(),
                 0x810 => 90.Degrees(),

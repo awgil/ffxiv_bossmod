@@ -95,13 +95,13 @@ class MagitektSlashVoidzone(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes;
 
-    public override void OnActorEState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.FireslashVoidzone)
             return;
-        if (state == 0x001)
+        if (actor.TimelineState == 0x001)
             _aoes.Add(new(MagitektSlashRotation.Cone, D151MarkIIIBMagitekColossus.ArenaCenter, actor.Rotation));
-        else if (state == 0x004)
+        else if (actor.TimelineState == 0x004)
             _aoes.RemoveAll(x => x.Rotation == actor.Rotation);
     }
 }

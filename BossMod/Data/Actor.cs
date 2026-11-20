@@ -115,6 +115,7 @@ public sealed class Actor(ulong instanceID, uint oid, int spawnIndex, uint layou
     public ActorModelState ModelState;
     public ActorForayInfo ForayInfo;
     public byte EventState; // not sure about the field meaning...
+    public ushort TimelineState; // determines animation state for event objects
     public ulong OwnerID = ownerID; // uuid of owner, for pets and similar
     public ulong TargetID;
     public uint MountId; // ID of current mount, 0 if not mounted

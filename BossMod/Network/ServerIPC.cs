@@ -958,7 +958,7 @@ public unsafe struct SpawnObject
     public ushort FateID;
     public ushort EventState; // for common gameobject field
     public uint EventObjectState; // for eventobject-specific field
-    public uint u_modelID;
+    public uint TimelineState;
     public Vector3 Position;
     public ushort u3C;
     public ushort u3E;

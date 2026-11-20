@@ -62,7 +62,7 @@ class Orbs(BossModule module) : Components.GenericAOEs(module, default, "GTFO fr
             _orbs.Add(actor);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008)
             _orbs.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 4));
@@ -198,7 +198,7 @@ class Voidzone(BossModule module) : BossComponent(module)
 {
     private bool active;
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008)
         {

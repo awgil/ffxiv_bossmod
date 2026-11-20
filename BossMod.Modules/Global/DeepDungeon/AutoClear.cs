@@ -130,7 +130,7 @@ public abstract partial class AutoClear : ZoneModule
                 if (!op.IsAlly && op.IsDead)
                     Kills++;
             }),
-            ws.Actors.EventObjectAnimation.Subscribe(OnEObjAnim),
+            ws.Actors.TimelineStateChanged.Subscribe(OnEObjAnim),
             ws.DeepDungeon.MapDataChanged.Subscribe(op =>
             {
                 if (BetweenFloors && !PendingInitialize && op.Rooms.Any(r => r > 0))

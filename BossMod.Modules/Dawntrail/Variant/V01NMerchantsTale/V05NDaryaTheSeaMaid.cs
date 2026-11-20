@@ -238,7 +238,7 @@ class SunkenTreasure(BossModule module) : Components.GenericAOEs(module)
             _brokenOrbs.RemoveAll(x => x.orb == actor);
         }
     }
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID is OID.TreasureOrb)
         {

@@ -18,7 +18,7 @@ class MagicalInterference(BossModule module) : Components.GenericAOEs(module, AI
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.MagicalInterference && state == 0x00010002)
             _casters.Add((actor.Position, WorldState.FutureTime(8.1f)));

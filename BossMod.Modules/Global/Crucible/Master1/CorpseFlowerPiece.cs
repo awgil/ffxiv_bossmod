@@ -77,17 +77,14 @@ class BuddingThorns(BossModule module) : Components.GenericAOEs(module)
             Zones.Add((actor, 5));
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00100020)
             foreach (ref var z in Zones.AsSpan())
                 if (z.Item1 == actor)
                     z.Item2 = 10;
-    }
 
-    public override void OnActorEState(Actor actor, ushort state)
-    {
-        if (state == 4 && Zones.RemoveAll(z => z.Item1 == actor) > 0)
+        if (actor.TimelineState == 4 && Zones.RemoveAll(z => z.Item1 == actor) > 0)
         {
             Deadline = default;
             ForbiddenArcs.Forbidden.Clear();

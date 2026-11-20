@@ -215,7 +215,7 @@ class PoisonStones(BossModule module) : Components.GenericAOEs(module)
                 hints.AddForbiddenZone(new AOEShapeCircle(LeadRadius(s.activation)), s.stone.Position, default, DateTime.MaxValue);
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.TopazStone)
             return;

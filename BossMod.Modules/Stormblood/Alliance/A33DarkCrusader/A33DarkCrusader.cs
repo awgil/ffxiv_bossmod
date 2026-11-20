@@ -13,23 +13,20 @@ class DarkRite(BossModule module) : Components.GenericTowers(module, damageType:
         switch (actor.OID)
         {
             case 0x1EAA7B:
-                Service.Log($"{actor.TimelineState:X4}");
                 Towers.Add(new(actor.Position, 3, 2, 8, activation: WorldState.FutureTime(8.6f)));
                 break;
             case 0x1EAA7C:
-                Service.Log($"{actor.TimelineState:X4}");
                 Towers.Add(new(actor.Position, 3, 3, 8, activation: WorldState.FutureTime(8.6f)));
                 break;
             case 0x1EAA7D:
-                Service.Log($"{actor.TimelineState:X4}");
                 Towers.Add(new(actor.Position, 3, 4, 8, activation: WorldState.FutureTime(8.6f)));
                 break;
         }
     }
 
-    public override void OnActorTimelineState(Actor actor, ushort state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
-        switch ((actor.OID, state))
+        switch ((actor.OID, actor.TimelineState))
         {
             case (0x1EAA7B, 0x0040):
             case (0x1EAA7D, 0x0400):

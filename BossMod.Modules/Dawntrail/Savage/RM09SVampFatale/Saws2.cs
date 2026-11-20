@@ -192,7 +192,7 @@ class ElectroPuddle(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         var ix = _puddles.FindIndex(p => p.Actor.InstanceID == actor.InstanceID);
 

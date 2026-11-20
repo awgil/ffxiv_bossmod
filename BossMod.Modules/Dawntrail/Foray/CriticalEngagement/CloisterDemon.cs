@@ -73,7 +73,7 @@ class Seal(BossModule module) : Components.GenericTowers(module, damageType: AIH
             Towers.Add(new(actor.Position, 3, 4, int.MaxValue, activation: Module.CastFinishAt(Module.PrimaryActor.CastInfo, fallback: DateTime.MaxValue - TimeSpan.FromSeconds(100))));
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Seal && state == 0x00040008)
             Towers.RemoveAll(t => t.Position.AlmostEqual(actor.Position, 0.1f));

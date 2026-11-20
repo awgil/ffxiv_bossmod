@@ -110,7 +110,7 @@ class P1GravitasVitrophyre : Components.UniformStackSpread
 
 class P1GravitasPuddle(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.Gravitas, OID.Gravitas, 0.7f)
 {
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Gravitas && state == 0x00100020)
             RemoveSource(actor);
@@ -151,15 +151,12 @@ class P1GravitasPuddleSoak(BossModule module) : Components.CastCounter(module, A
         }
     }
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Gravitas && state == 0x00100020)
             Puddles.Add(actor);
-    }
 
-    public override void OnActorEState(Actor actor, ushort state)
-    {
-        if ((OID)actor.OID == OID.Gravitas && state == 4)
+        if ((OID)actor.OID == OID.Gravitas && actor.TimelineState == 4)
         {
             Puddles.Remove(actor);
             if (Puddles.Count == 0)
@@ -181,7 +178,7 @@ class P1GravitationalWaveIntemperateWill(BossModule module) : Components.Generic
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted).Select(w => w with { Risky = Risky });
 
-    public override void OnActorEAnim(Actor actor, uint state)
+    public override void OnTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBFBD && state == 0x00400080)
             _predicted = new(new AOEShapeCone(100, 90.Degrees()), Arena.Center, 90.Degrees(), WorldState.FutureTime(5.2f));
