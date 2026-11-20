@@ -972,7 +972,7 @@ public class HealerAI(RotationModuleManager manager, Actor player) : AIBase<Heal
         void UseThinAir()
         {
             if (thinair == 0 && Player.Class == Class.WHM)
-                UseGCD(BossMod.WHM.AID.ThinAir, Player, extraPriority: 3);
+                UseGCD(BossMod.WHM.AID.ThinAir, Player, extraPriority: swiftRaisePriority * 2);
         }
 
         switch (raise)

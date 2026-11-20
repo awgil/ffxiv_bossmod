@@ -195,9 +195,10 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         Standard = 500, // aka F4
         InstantWeave = 600, // if we want to use manafont/transpose ASAP (TODO: or utility actions?)
         High = 650, // anything more important than F4 filler (usually paradox, or F3 before paradox)
+        FlareStar = 660, // flare star
         DotRefresh = 700, // thunder refresh
         XenoCap = 750,
-        Max = 900, // flare star
+        Max = 900, // anything else
     }
 
     public enum InstantCastPriority
@@ -366,15 +367,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         else
             IcePhase(strategy, primaryTarget);
 
-        if (Polyglot > 0)
-        {
-            var prio = Polyglot < MaxPolyglot || CanFitGCD(NextPolyglot, 1) ? ForMove(InstantCastPriority.Polyglot) : GCDPriority.XenoCap;
-
-            if (NumAOETargets >= AOEBreakpoint)
-                PushGCD(AID.Foul, BestAOETarget, prio);
-
-            PushGCD(AID.Xenoglossy, primaryTarget, prio);
-        }
+        UsePoly(primaryTarget);
 
         if (strategy.Scathe.Value == ScatheStrategy.Allow)
             PushGCD(AID.Scathe, primaryTarget, GCDPriority.InstantMove - 50);
@@ -413,7 +406,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         }
 
         if (AstralSoul == 6)
-            PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.Max);
+            PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.FlareStar);
 
         if (Unlocked(AID.Fire4))
             StandardF4(strategy, primaryTarget);
@@ -488,7 +481,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
             PushGCD(AID.Blizzard2, BestAOETarget, GCDPriority.Standard);
 
         if (AstralSoul == 6)
-            PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.Max);
+            PushGCD(AID.FlareStar, BestAOETarget, GCDPriority.FlareStar);
 
         if (Unlocked(AID.Flare) && MP >= 800 && Fire > 0)
             PushGCD(AID.Flare, BestAOETarget, GCDPriority.Standard);
@@ -595,6 +588,26 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
     }
 
     private static GCDPriority Priomax(GCDPriority g1, GCDPriority g2) => g1 > g2 ? g1 : g2;
+
+    private void UsePoly(Enemy primaryTarget)
+    {
+        if (Polyglot == 0)
+            return;
+
+        // 72-79, foul is a dps gain but not instant, xeno doesn't exist
+        if (!Unlocked(TraitID.EnhancedFoul))
+        {
+            PushGCD(AID.Foul, BestAOETarget, GCDPriority.XenoCap);
+            return;
+        }
+
+        var prio = Polyglot < MaxPolyglot || CanFitGCD(NextPolyglot, 1) ? ForMove(InstantCastPriority.Polyglot) : GCDPriority.XenoCap;
+
+        if (NumAOETargets >= AOEBreakpoint)
+            PushGCD(AID.Foul, BestAOETarget, prio);
+
+        PushGCD(AID.Xenoglossy, primaryTarget, prio);
+    }
 
     private void T1(in Strategy strategy, GCDPriority prioForInstant = GCDPriority.InstantMove)
     {
