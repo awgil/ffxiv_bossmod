@@ -6,7 +6,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
     readonly List<(Actor Source, Actor? Target, float Radius, DateTime Deadline)> Danger = [];
     readonly List<Actor> SwordTargets = [];
 
-    const float PuddleSize_TODO = 5;
+    const float PuddleRadius = 4.8f;
     const float PauseDuration = 0.5f;
     const float HintAhead = 2f;
 
@@ -17,10 +17,10 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID._Spell_JudgmentBlade:
+            case AID.JudgmentBlade:
                 Danger.Add((caster, null, 100, Module.CastFinishAt(spell)));
                 break;
-            case AID._Weaponskill_MortalBlow:
+            case AID.MortalBlow:
                 Danger.Add((caster, null, 30, Module.CastFinishAt(spell)));
                 break;
         }
@@ -28,43 +28,50 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
 
     public override void OnActorCreated(Actor actor)
     {
-        if ((OID)actor.OID is OID._Gen_Halidom or OID._Gen_EmblazonedShield)
+        if ((OID)actor.OID is OID.Halidom or OID.EmblazonedShield or OID.TaintlessSoul)
             SwordTargets.Add(actor);
+
+        if (actor.OID == 0x1EA1A1 && actor.Position.AlmostEqual(new(300, -65), 1))
+            BuffPuddles.Add((actor, 1));
+    }
+
+    public override void OnActorDestroyed(Actor actor)
+    {
+        BuffPuddles.RemoveAll(p => p.Actor == actor);
+        SwordTargets.Remove(actor);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID._Spell_JudgmentBlade or AID._Weaponskill_MortalBlow)
+        if ((AID)spell.Action.ID is AID.JudgmentBlade or AID.MortalBlow)
             Danger.RemoveAll(p => p.Source == caster);
 
-        if ((AID)spell.Action.ID == AID._Spell_DivineRuination)
+        if ((AID)spell.Action.ID == AID.DivineRuination)
             Danger.RemoveAll(d => d.Source == Module.PrimaryActor && d.Target != null);
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if ((IconID)iconID == IconID._Gen_Icon_m0196trg_a0h)
+        if ((IconID)iconID == IconID.DivineRuination)
             Danger.Add((Module.PrimaryActor, actor, 100, WorldState.FutureTime(8.2f)));
     }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_Shieldbearer && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.Shieldbearer && Raid.TryFindSlot(actor, out var slot))
             ShieldBearer.Set(slot);
-        if ((SID)status.ID == SID._Gen_Swordbearer && Raid.TryFindSlot(actor, out var slot2))
+        if ((SID)status.ID == SID.Swordbearer && Raid.TryFindSlot(actor, out var slot2))
             SwordBearer.Set(slot2);
     }
 
     public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
-        if ((SID)status.ID == SID._Gen_Shieldbearer && Raid.TryFindSlot(actor, out var slot))
+        if ((SID)status.ID == SID.Shieldbearer && Raid.TryFindSlot(actor, out var slot))
             ShieldBearer.Clear(slot);
-        if ((SID)status.ID == SID._Gen_Swordbearer && Raid.TryFindSlot(actor, out var slot2))
+        if ((SID)status.ID == SID.Swordbearer && Raid.TryFindSlot(actor, out var slot2))
             SwordBearer.Clear(slot2);
     }
 
-    // sword layout IDs 76355E, 76355B
-    // shield layout IDs 763563, 763561
     public override void OnActorEAnim(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00010002)
@@ -156,7 +163,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
             }
             else
             {
-                var puddles = ShapeDistance.Union([.. BuffPuddles.Where(p => p.Kind == 0).Select(p => ShapeDistance.Circle(p.Actor.Position, PuddleSize_TODO))]).Inverted();
+                var puddles = ShapeDistance.Union([.. BuffPuddles.Where(p => p.Kind == 0).Select(p => ShapeDistance.Circle(p.Actor.Position, PuddleRadius))]).Inverted();
                 hints.AddForbiddenZone(puddles, deadline.AddSeconds(-1));
             }
         }
@@ -170,12 +177,12 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
                     hints.GoalZones.Add(AIHints.GoalSingleTarget(h.Position, h.HitboxRadius + 6, 3));
 
                     if (actor.DistanceToPoint(h.Position) <= h.HitboxRadius + 6)
-                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeavenlySword), actor, ActionQueue.Priority.High, facingAngle: actor.AngleTo(h));
+                        hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeavenlySword), actor, ActionQueue.Priority.VeryHigh, facingAngle: actor.AngleTo(h));
                 }
             }
-            else if (actor.Role is Role.Healer or Role.Ranged && !shieldMode)
+            else if (actor.Role is Role.Healer or Role.Ranged && !shieldMode || SwordTargets.Any(t => t.OID == (uint)OID.TaintlessSoul))
             {
-                var swords = ShapeDistance.Union([.. BuffPuddles.Where(p => p.Kind == 1).Select(p => ShapeDistance.Circle(p.Actor.Position, PuddleSize_TODO))]).Inverted();
+                var swords = ShapeDistance.Union([.. BuffPuddles.Where(p => p.Kind == 1).Select(p => ShapeDistance.Circle(p.Actor.Position, PuddleRadius))]).Inverted();
                 hints.AddForbiddenZone(swords);
             }
         }
