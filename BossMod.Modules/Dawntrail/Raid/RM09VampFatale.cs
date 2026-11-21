@@ -112,12 +112,12 @@ class HalfMoon(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.HalfMoonShort1 || (AID)spell.Action.ID is AID.HalfMoonShort2 || (AID)spell.Action.ID is AID.HalfMoonShort3 || (AID)spell.Action.ID is AID.HalfMoonShort4)
         {
-            _aoesShort.Add(new(cone, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation));
+            _aoesShort.Add(new(cone, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(spell)));
 
         }
         else if ((AID)spell.Action.ID is AID.HalfMoonLong1 || (AID)spell.Action.ID is AID.HalfMoonLong2 || (AID)spell.Action.ID is AID.HalfMoonLong3 || (AID)spell.Action.ID is AID.HalfMoonLong4)
         {
-            _aoesLong.Add(new(cone, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation));
+            _aoesLong.Add(new(cone, caster.CastInfo!.LocXZ, caster.CastInfo!.Rotation, Module.CastFinishAt(spell)));
         }
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -132,8 +132,62 @@ class HalfMoon(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class VampStomp(BossModule module) : Components.StandardAOEs(module, AID.VampStomp, 10f);
-class BlastBeat(BossModule module) : Components.StandardAOEs(module, AID.BlastBeat, 8f);
+class VampStomp(BossModule module) : Components.StandardAOEs(module, AID.VampStomp1, 10f);
+class BlastBeat(BossModule module) : Components.GenericAOEs(module, AID.BlastBeat)
+{
+    private readonly List<(Actor Actor, WPos Predicted, DateTime Activation)> _bats = [];
+    private static readonly AOEShapeCircle _shape = new(8);
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_bats.Count == 0)
+            yield break;
+        var first = _bats.Min(b => b.Activation);
+        var next = _bats.Where(b => b.Activation > first.AddSeconds(1)).Select(b => b.Activation).DefaultIfEmpty(DateTime.MaxValue).Min();
+        foreach (var b in _bats)
+        {
+            var current = b.Activation < first.AddSeconds(1);
+            if (current || b.Activation < next.AddSeconds(1))
+                yield return new(_shape, b.Predicted, default, b.Activation, current ? ArenaColor.Danger : ArenaColor.AOE, current);
+        }
+    }
+
+    public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
+    {
+        if ((OID)actor.OID == OID.VampetteFatale && id == 0x11D1)
+        {
+            var angleSign = actor.Rotation.ToDirection().OrthoL().Dot(actor.DirectionTo(Arena.Center)) > 0 ? 1 : -1;
+            var dir = actor.Position - Arena.Center;
+            var dist = dir.Length();
+            var ring = dist < 10 ? 0 : dist < 16 ? 1 : 2;
+            var predicted = Arena.Center + dir.Rotate(angleSign * (ring == 0 ? 88 : 90).Degrees());
+            _bats.Add((actor, predicted, WorldState.FutureTime(9.65f + 3.5f * ring)));
+        }
+    }
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            var i = _bats.FindIndex(b => b.Actor == caster);
+            if (i >= 0)
+                _bats[i] = _bats[i] with { Predicted = spell.LocXZ };
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            ++NumCasts;
+            _bats.RemoveAll(b => b.Actor == caster);
+        }
+    }
+
+    public override void OnActorDestroyed(Actor actor) => _bats.RemoveAll(b => b.Actor == actor);
+}
+class SadisticScreechRaidwide(BossModule module) : Components.RaidwideCastDelay(module, AID.SadisticScreech, AID.SadisticScreech1, 0.9f);
+class CrowdKill(BossModule module) : Components.RaidwideCastDelay(module, AID.CrowdKill, AID.CrowdKill1, 5.4f);
 class Hardcore(BossModule module) : Components.BaitAwayCast(module, AID.Hardcore1, new AOEShapeCircle(6), true);
 class HardcoreBig(BossModule module) : Components.BaitAwayCast(module, AID.Hardcore2, new AOEShapeCircle(15), true);
 class SadisticScreech(BossModule module) : Components.GenericAOEs(module)
@@ -155,8 +209,8 @@ class SadisticScreech(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.SadisticScreech)
         {
-            _aoes.Add(new(rect, Module.PrimaryActor.Position, 90.Degrees()));
-            _aoes.Add(new(rect, Module.PrimaryActor.Position, -90.Degrees()));
+            _aoes.Add(new(rect, Module.PrimaryActor.Position, 90.Degrees(), Module.CastFinishAt(spell)));
+            _aoes.Add(new(rect, Module.PrimaryActor.Position, -90.Degrees(), Module.CastFinishAt(spell)));
         }
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -195,14 +249,43 @@ class DeadWake(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.DeadWakeProgression)
         {
-            _aoes.Add(new(rect, caster.Position));
+            _aoes.Add(new(rect, caster.Position, default, Module.CastFinishAt(spell)));
         }
+    }
+    public override void OnIsDeadChanged(Actor actor)
+    {
+        if ((OID)actor.OID is OID.Coffinmaker && actor.IsDead)
+            _aoes.Clear();
     }
     public override void OnActorDestroyed(Actor actor)
     {
         if ((OID)actor.OID is OID.Coffinmaker)
         {
             _aoes.Clear();
+        }
+    }
+}
+class DeadWakeFloor(BossModule module) : Components.GenericAOEs(module)
+{
+    private float _edge;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
+    {
+        if (_edge > 0)
+            yield return new(new AOEShapeRect(_edge - 80, 10), new(100, 80));
+    }
+
+    public override void OnMapEffect(byte index, uint state)
+    {
+        if (index == 0x11)
+        {
+            _edge = state switch
+            {
+                0x00020001 => 90,
+                0x00200010 => 100,
+                0x00800040 => 110,
+                _ => 0
+            };
         }
     }
 }
@@ -228,15 +311,15 @@ class Coffinfiller(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.CoffinfillerLong)
         {
-            _aoes.Add((caster.InstanceID, new(rectLong, caster.Position)));
+            _aoes.Add((caster.InstanceID, new(rectLong, caster.Position, default, Module.CastFinishAt(spell))));
         }
         if ((AID)spell.Action.ID is AID.CoffinfillerMed)
         {
-            _aoes.Add((caster.InstanceID, new(rectMed, caster.Position)));
+            _aoes.Add((caster.InstanceID, new(rectMed, caster.Position, default, Module.CastFinishAt(spell))));
         }
         if ((AID)spell.Action.ID is AID.CoffinfillerShort)
         {
-            _aoes.Add((caster.InstanceID, new(rectShort, caster.Position)));
+            _aoes.Add((caster.InstanceID, new(rectShort, caster.Position, default, Module.CastFinishAt(spell))));
         }
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -247,6 +330,11 @@ class Coffinfiller(BossModule module) : Components.GenericAOEs(module)
             if (idx >= 0)
                 _aoes.RemoveAt(idx);
         }
+    }
+    public override void OnIsDeadChanged(Actor actor)
+    {
+        if ((OID)actor.OID is OID.Coffinmaker && actor.IsDead)
+            _aoes.Clear();
     }
     public override void OnActorDestroyed(Actor actor)
     {
@@ -275,7 +363,7 @@ class FinaleFatale(BossModule module) : Components.GenericAOEs(module)
     {
         if ((AID)spell.Action.ID is AID.FinaleFatale || (AID)spell.Action.ID is AID.FinaleFatale2)
         {
-            _aoes.Add(new(donut, Module.Center));
+            _aoes.Add(new(donut, Module.Center, default, Module.CastFinishAt(spell)));
         }
     }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -288,19 +376,20 @@ class FinaleFatale(BossModule module) : Components.GenericAOEs(module)
         }
     }
 }
-class InsatiableThirst(BossModule module) : Components.RaidwideCast(module, AID.InsatiableThirst)
+class InsatiableThirst(BossModule module) : Components.RaidwideCastDelay(module, AID.InsatiableThirst, AID.InsatiableThirst1, 3.4f)
 {
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
+        base.OnEventCast(caster, spell);
         if ((AID)spell.Action.ID is AID.InsatiableThirst)
-        {
             Arena.Bounds = new ArenaBoundsRect(20, 20);
-            NumCasts++;
-        }
     }
 }
 class Aetherletting(BossModule module) : Components.SpreadFromIcon(module, (uint)IconID.AetherlettingSpread, AID.Aetherletting1, 6, 0, true);
-class PulpingPulse(BossModule module) : Components.StandardAOEs(module, AID.PulpingPulse, 5);
+class PulpingPulse(BossModule module) : Components.StandardAOEs(module, AID.PulpingPulse, 5)
+{
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => base.ActiveAOEs(slot, actor).Select(a => a with { Activation = a.Activation.AddSeconds(0.3f) });
+}
 class AetherlettingCross(BossModule module) : Components.StandardAOEs(module, AID.AetherlettingCross, new AOEShapeCross(40, 3f));
 class BrutalRain(BossModule module) : Components.StackWithIcon(module, (uint)IconID.BrutalRainStack, AID.BrutalRain, 6, 6f)
 {
@@ -313,7 +402,7 @@ class BrutalRain(BossModule module) : Components.StackWithIcon(module, (uint)Ico
         }
     }
 }
-class Plummet(BossModule module) : Components.CastTowers(module, AID.Plummet, 3f, 1);
+class Plummet(BossModule module) : Components.CastTowers(module, AID.Plummet, 3f, 1, 8);
 class HazardDance(BossModule module) : Components.Voidzone(module, 2.5f, uint.MaxValue, moveHintLength: 15)
 {
     public override void OnActorCreated(Actor actor)
@@ -339,7 +428,10 @@ class RM09VampFataleStates : StateMachineBuilder
             .ActivateOnEnter<VampStomp>()
             .ActivateOnEnter<BlastBeat>()
             .ActivateOnEnter<SadisticScreech>()
+            .ActivateOnEnter<SadisticScreechRaidwide>()
+            .ActivateOnEnter<CrowdKill>()
             .ActivateOnEnter<DeadWake>()
+            .ActivateOnEnter<DeadWakeFloor>()
             .ActivateOnEnter<DeadWakeIcons>()
             .ActivateOnEnter<Coffinfiller>()
             .ActivateOnEnter<FinaleFatale>()
