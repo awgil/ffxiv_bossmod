@@ -180,6 +180,7 @@ class ArenaChanges(BossModule module) : BossComponent(module)
 
 class StampedingThunder(BossModule module) : Components.GenericAOEs(module, AID.StampedingThunderAOE)
 {
+    public bool Started;
     private AOEInstance? _aoe;
 
     private static readonly AOEShapeRect _shape = new(40, 15);
@@ -190,6 +191,9 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module, AID.
     {
         switch ((AID)spell.Action.ID)
         {
+            case AID.StampedingThunderStart:
+                Started = true;
+                break;
             case AID.StampedingThunderWest:
                 _aoe = new(_shape, new(95, 80), default, WorldState.FutureTime(2.3f));
                 break;
@@ -333,11 +337,26 @@ class RM04NWickedThunderStates : StateMachineBuilder
         Cannons(id + 0x60000, [AID.FourfoldBlast1, AID.FourfoldBlast2], 3.2f, 13.5f, 4);
         WickedBolt(id + 0x70000, 8.2f);
         BewitchingFlight(id + 0x80000, 13.8f);
-        WrathOfZeus(id + 0x90000, 8.3f);
-        ShadowsSabbath2(id + 0xA0000, 8.5f);
-        WrathOfZeus(id + 0xB0000, 4.1f);
-        WickedJolt(id + 0xC0000, 3.4f);
-        StampedingThunder(id + 0xD0000, 18.2f, 3);
+
+        Dictionary<bool, (uint seqID, Action<uint> buildState)> push = new()
+        {
+            [false] = ((id >> 24) + 1, ForkNoPush),
+            [true] = ((id >> 24) + 5, ForkPush)
+        };
+        ConditionFork(id + 0x90000, 8.3f, () => Module.PrimaryActor.CastInfo?.IsSpell(AID.WrathOfZeus) == true || StampedeStarted, () => StampedeStarted, push, "Raidwide -or- Stampede")
+            .ActivateOnEnter<StampedingThunder>()
+            .DeactivateOnExit<StampedingThunder>();
+    }
+
+    private bool StampedeStarted => Module.FindComponent<StampedingThunder>()?.Started == true;
+
+    private void ForkNoPush(uint id)
+    {
+        WrathOfZeus(id, 0);
+        ShadowsSabbath2(id + 0x10000, 8.5f);
+        WrathOfZeus(id + 0x20000, 4.1f);
+        WickedJolt(id + 0x30000, 3.4f);
+        StampedingThunder(id + 0x40000, 18.2f, 3);
 
         Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
         {
@@ -345,7 +364,15 @@ class RM04NWickedThunderStates : StateMachineBuilder
             [AID.FivefoldBlast2] = ((id >> 24) + 2, ForkCannons),
             [AID.WickedHypercannon1] = ((id >> 24) + 3, ForkHypercannon)
         };
-        CastStartFork(id + 0xE0000, fork, 4.1f, "Cannons -or- Hypercannon");
+        CastStartFork(id + 0x50000, fork, 4.1f, "Cannons -or- Hypercannon");
+    }
+
+    private void ForkPush(uint id)
+    {
+        StampedingThunder(id, 9.4f, 3);
+        Hypercannon1(id + 0x10000, 4.1f);
+        Hypercannon2(id + 0x20000, 10);
+        Enrage(id + 0x30000);
     }
 
     private void ForkCannons(uint id)
