@@ -146,7 +146,7 @@ class SkulkingOrders(BossModule module) : Components.GenericAOEs(module, AID.Cla
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeCone(50, 45.Degrees()), c.Caster.Position, c.Caster.Rotation, c.Activation)).Take(2);
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00100020)
             _casters.Add((actor, WorldState.FutureTime(_casters.Count < 2 ? 8.1f : 10.6f)));

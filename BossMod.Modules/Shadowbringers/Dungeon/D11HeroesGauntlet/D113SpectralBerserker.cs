@@ -2,7 +2,7 @@ namespace BossMod.Shadowbringers.Dungeon.D11HeroesGauntlet.D113SpectralBerserker
 
 public enum OID : uint
 {
-    Boss = 0x2EFD, // R3.000, x? 
+    Boss = 0x2EFD, // R3.000, x?
     Helper = 0x233C, // R0.500, x?, Helper type
     Rubble = 0x2EFE, // R2.500, x?
     RageVoidzone = 0x1EA1A1,
@@ -216,7 +216,7 @@ class WildHole(BossModule module) : Components.CastCounter(module, AID.WildRampa
     public bool Safe => UnsafeAt > WorldState.CurrentTime;
     public float HoleSize => Safe ? 7f : 8f; // 7.5 is too big to reliably dodge the rage and 7 is too small to stay out from the berzerk.
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         // two event objects get spawned at the exact same location for each hole, idk why
         if ((OID)actor.OID == OID.RageVoidzone && state == 0x00010002 && !_zones.Any(z => z.AlmostEqual(actor.Position, 1)))

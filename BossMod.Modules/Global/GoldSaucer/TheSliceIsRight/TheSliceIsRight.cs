@@ -29,7 +29,7 @@ public enum AID : uint
     Yoyimbodoesstuff9 = 19026, // 25AB->self, no cast, single-target
     Somethingoutsidethearena = 18338, // 2BC8->self, no cast, single-target
     BambooSplit = 18333, // 25AD->self, 0.7s cast, range 28 width 5 rect
-    BambooCircleFall = 18334, // 25AD->self, 0.7s cast, range 11 circle 
+    BambooCircleFall = 18334, // 25AD->self, 0.7s cast, range 11 circle
     BambooSpawn = 18327, // 25AD->self, no cast, range 3 circle
     FirstGilJump = 18335, // 25AC->location, 2.5s cast, width 7 rect charge
     NextGilJump = 18336, // 25AC->location, 1.5s cast, width 7 rect charge
@@ -84,7 +84,7 @@ class BambooSplits(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00010002) //bamboo gets activated, technically we could draw the AOEs before, but then we could see different sets overlap
         {

@@ -108,7 +108,7 @@ class Miasma(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (state != 0x00010002)
             return; // other states: 00080010 - start glowing, 00040020 - disappear

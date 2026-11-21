@@ -25,7 +25,7 @@ class P2HeavensfallPillar(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_aoe);
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.EventHelper)
             return;

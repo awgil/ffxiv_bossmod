@@ -78,7 +78,7 @@ class WoodsEmbrace(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBE4B)
         {
@@ -205,4 +205,3 @@ class D20ForgivenEmulationStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1033, NameID = 13973)]
 public class D20ForgivenEmulation(ModuleInit init) : BossModule(init, new(-300, -300), new ArenaBoundsCircle(14.5f));
-

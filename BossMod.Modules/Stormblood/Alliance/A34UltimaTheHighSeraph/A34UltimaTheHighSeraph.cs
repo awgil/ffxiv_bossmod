@@ -87,7 +87,7 @@ class Auralight(BossModule module) : BossComponent(module)
 {
     readonly List<(WPos, Angle, AOEShape)> Obstacles = [];
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         switch ((actor.LayoutID, state))
         {
@@ -174,7 +174,7 @@ class ControlTower(BossModule module) : BossComponent(module)
 {
     readonly List<Actor> Towers = [];
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.ControlTower && actor.TimelineState == 8)
             Towers.Add(actor);
@@ -204,7 +204,7 @@ class Towerfall(BossModule module) : Components.GenericAOEs(module, AID._Weapons
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.ControlTower && actor.TimelineState == 0x10)
             _predicted.Add(new(new AOEShapeRect(45, 5), actor.Position, actor.Rotation, WorldState.FutureTime(6.8f)));
@@ -229,7 +229,7 @@ class Hammerfall(BossModule module) : Components.GenericAOEs(module, AID._Weapon
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_predicted);
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.EarthHammer && actor.TimelineState == 8)
             _predicted = new(new AOEShapeCircle(25), actor.Position, default, WorldState.FutureTime(16.2f));
@@ -261,7 +261,7 @@ class GuardiansAegis(BossModule module) : BossComponent(module)
     const float Radius = 7;
     DateTime Activation;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.LayoutID == 0x7626B2)
         {

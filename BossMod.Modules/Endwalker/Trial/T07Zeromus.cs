@@ -607,7 +607,7 @@ class BlackHole(BossModule module) : BossComponent(module)
             Voidzone = actor;
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor == Voidzone)
         {

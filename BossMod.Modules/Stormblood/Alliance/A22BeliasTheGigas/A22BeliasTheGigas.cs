@@ -252,7 +252,7 @@ class TimeBomb(BossModule module) : BossComponent(module)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         var ix = Bombs.FindIndex(b => b.Item1 == actor);
         if (ix >= 0)
@@ -329,4 +329,3 @@ class A22BeliasTheGigasStates : StateMachineBuilder
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 550, NameID = 7223)]
 public class A22BeliasTheGigas(ModuleInit init) : BossModule(init, new(-200, -541), new ArenaBoundsSquare(29.5f));
-

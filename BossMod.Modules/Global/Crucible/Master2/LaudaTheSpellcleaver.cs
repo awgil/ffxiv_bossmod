@@ -270,7 +270,7 @@ class CageOfMoltenMetalPre(BossModule module) : Components.GenericAOEs(module, A
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.CageOfMoltenMetal && state == 0x00010002)
             _predicted.Add(new(new AOEShapeCircle(12), actor.Position, default, WorldState.FutureTime(11.2f)));
@@ -367,4 +367,3 @@ public class LaudaTheSpellcleaver(ModuleInit init) : BossModule(init, new(520, -
         return new(25, c.UnionAll(new(CurveApprox.Rect(new(10, 0), new(0, 20))), P(0, 22.5f), P(0, -22.5f), P(12.5f, 2.5f), P(-12.5f, -2.5f), P(12.5f, -7.5f), P(-12.5f, 7.5f)));
     }
 }
-

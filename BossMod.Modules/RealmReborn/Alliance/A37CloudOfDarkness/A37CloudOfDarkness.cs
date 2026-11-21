@@ -116,7 +116,7 @@ class HyperchargedClouds(BossModule module) : BossComponent(module)
 
     private IEnumerable<Actor> ActiveHexes => WorldState.Actors.Where(a => _active.Contains(a.InstanceID));
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (!_hexOIDs.Contains(actor.OID))
             return;

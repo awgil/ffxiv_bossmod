@@ -58,7 +58,7 @@ public class BossComponent(BossModule module)
     public virtual void OnEventCast(Actor caster, ActorCastEvent spell) { } // note: action is always a spell; not called for player spells
     public virtual void OnEventIcon(Actor actor, uint iconID, ulong targetID) { }
     public virtual void OnEventVFX(Actor actor, uint vfxID, ulong targetID) { }
-    public virtual void OnTimelineStateChange(Actor actor, uint state) { }
+    public virtual void OnActorTimelineStateChange(Actor actor, uint state) { }
     public virtual void OnActorPlayActionTimelineEvent(Actor actor, ushort id) { }
     public virtual void OnActorPlayActionTimelineSync(Actor actor, List<(ulong InstanceID, ushort ID)> events) { }
     public virtual void OnActorNpcYell(Actor actor, ushort id) { }

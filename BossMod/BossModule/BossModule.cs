@@ -654,7 +654,7 @@ public abstract class BossModule : IDisposable
     {
         var state = ((uint)p1 << 16) | p2;
         foreach (var comp in _components)
-            comp.OnTimelineStateChange(actor, state);
+            comp.OnActorTimelineStateChange(actor, state);
     }
 
     private void OnActorPlayActionTimelineEvent(Actor actor, ushort id)

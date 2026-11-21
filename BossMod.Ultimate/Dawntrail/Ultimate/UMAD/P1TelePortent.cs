@@ -359,7 +359,7 @@ class P1StatueGaze : Components.GenericGaze
             yield return new(_source.Value, _activation);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EBFBE && state == 0x00400080)
         {

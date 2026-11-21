@@ -164,7 +164,7 @@ class DuskbladeTower(BossModule module) : Components.GenericTowers(module)
 {
     DateTime Activation;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.DuskbladeTower && actor.TimelineState == 1)
             Towers.Add(new(actor.Position, 3, 3, 8, activation: Activation));

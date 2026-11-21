@@ -13,7 +13,7 @@ class EinSof(BossModule module) : Components.GenericAOEs(module, AID.EinSofAOE)
         return _active.Select(p => new AOEInstance(_shape, p.Position));
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         switch (state)
         {

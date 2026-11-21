@@ -145,7 +145,7 @@ class FlamingCyclone(BossModule module) : Components.StandardAOEs(module, AID.Fl
 class A74Degrees(BossModule module) : Components.BaitAwayCast(module, AID.A74Degrees, new AOEShapeDonut(4, 8), centerAtTarget: true, endsOnCastEvent: true);
 class Pyroplexy(BossModule module) : Components.GenericTowers(module)
 {
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.PyroplexyTower && state == 0x00010002)
             Towers.Add(new(actor.Position, 4, maxSoakers: int.MaxValue, activation: WorldState.FutureTime(8.2f)));

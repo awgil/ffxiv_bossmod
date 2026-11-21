@@ -219,7 +219,7 @@ class Border(BossModule module) : Components.GenericAOEs(module)
 
     private int FindPlatform(Actor act) => SidePlatforms.FindIndex(p => (OriginalCenter + p).AlmostEqual(act.Position, 1));
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1)
         {

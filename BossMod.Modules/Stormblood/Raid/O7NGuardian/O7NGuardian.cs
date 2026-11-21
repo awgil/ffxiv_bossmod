@@ -243,7 +243,7 @@ class Bombs(BossModule module) : BossComponent(module)
     private const float Radius = 2;
     private readonly Dictionary<ulong, float> _brightX = [];
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID != (uint)OID.Bomb)
             return;

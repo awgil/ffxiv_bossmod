@@ -86,7 +86,7 @@ class AetherialWard(BossModule module) : Components.DirectionalParry(module, (ui
 {
     Side _activeSides;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.AetherialWardShield && state == 0x00010002)
         {
@@ -181,4 +181,3 @@ class ClaretDragonStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14787)]
 public class ClaretDragon(ModuleInit init) : CEModule(init, new(-688, 150), new ArenaBoundsSquare(20));
-

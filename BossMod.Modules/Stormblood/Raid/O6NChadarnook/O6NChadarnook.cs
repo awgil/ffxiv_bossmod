@@ -184,7 +184,7 @@ class Paintings(BossModule module) : BossComponent(module)
 
     public override void OnActorDestroyed(Actor actor) => _orbSpawn.Remove(actor.InstanceID);
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID != (uint)OID.Canvas)
             return;
@@ -199,7 +199,7 @@ class Paintings(BossModule module) : BossComponent(module)
     {
         if (!_needed.Contains(element) || _brushed.Contains(element))
             return false;
-        // only need one person to be on typhoon 
+        // only need one person to be on typhoon
         return element != Element.Wind || !AllyOnWindMount(player);
     }
 
@@ -330,7 +330,7 @@ class BoulderShadow(BossModule module) : Components.GenericLineOfSightAOE(module
             _water = true;
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (_water && actor.OID == (uint)OID.Canvas && (actor.Position - Boulder).LengthSq() < 9)
             Modify(Painting, [(Boulder, Radius)]);

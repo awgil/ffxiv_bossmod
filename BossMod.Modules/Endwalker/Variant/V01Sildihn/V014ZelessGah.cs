@@ -229,7 +229,7 @@ class BallOfFire(BossModule module) : Components.GenericAOEs(module, AID.Burn)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.Portal)
             return;

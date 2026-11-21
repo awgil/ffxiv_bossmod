@@ -107,7 +107,7 @@ class JumpPads(BossModule module) : BossComponent(module)
 
     public static bool IsUpperPad(uint oid) => oid is >= (uint)OID.UpperPad1 and <= (uint)OID.UpperPad12;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (!IsUpperPad(actor.OID))
             return;

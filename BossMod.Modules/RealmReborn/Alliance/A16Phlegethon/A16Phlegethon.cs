@@ -78,7 +78,7 @@ class AncientFlareVoidzone(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1E8885 && state == 0x00110022)
             _activation = default;
@@ -95,7 +95,7 @@ class DynamicArenaBorder(BossModule module) : Components.GenericAOEs(module)
             yield return new(new AOEShapeDonut(32.45f, 100), Arena.Center);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1E8894)
         {

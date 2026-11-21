@@ -75,7 +75,7 @@ abstract class RubyGlowCommon(BossModule module, Enum? watchedAction = default) 
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID != OID.TopazStoneAny)
             return;
@@ -166,9 +166,9 @@ abstract class RubyGlowRecolor(BossModule module, int expectedMagicStones) : Rub
                 Arena.AddCircle(a.Position, _recolorRadius, ArenaColor.Safe);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
-        base.OnTimelineStateChange(actor, state);
+        base.OnActorTimelineStateChange(actor, state);
         switch (CurRecolorState)
         {
             case RecolorState.BeforeStones:

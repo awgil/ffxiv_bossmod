@@ -60,7 +60,7 @@ class FollowHien(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => Utils.ZeroOrOne(_destination).Select(p => new AOEInstance(new AOEShapeCircle(2), p, default, _deadline, Inverted: true));
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00010002)
         {

@@ -110,7 +110,7 @@ class VenomPuddle(BossModule module) : Components.GenericAOEs(module)
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.Venom)
         {
@@ -145,4 +145,3 @@ class PelekysStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14747)]
 public class Pelekys(ModuleInit init) : CEModule(init, new(-870, -560), new ArenaBoundsCircle(25));
-

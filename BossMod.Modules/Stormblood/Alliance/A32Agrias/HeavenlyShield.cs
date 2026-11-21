@@ -72,7 +72,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
             SwordBearer.Clear(slot2);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1 && state == 0x00010002)
         {
@@ -200,4 +200,3 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
         SwordTargets.RemoveAll(t => t.IsDeadOrDestroyed || t.PendingDead);
     }
 }
-

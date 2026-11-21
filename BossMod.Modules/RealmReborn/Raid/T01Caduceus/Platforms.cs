@@ -114,7 +114,7 @@ class Platforms(BossModule module) : BossComponent(module)
             Arena.AddPolygon(PlatformPoly(i), ArenaColor.Enemy);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.Platform)
         {

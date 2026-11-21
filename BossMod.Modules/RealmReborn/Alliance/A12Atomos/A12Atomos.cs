@@ -49,7 +49,7 @@ class Ring(BossModule module) : Components.GenericInvincible(module)
             yield return m.AtomosC;
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         var id = (OID)actor.OID switch
         {
@@ -87,7 +87,7 @@ class Pad(BossModule module) : BossComponent(module)
 
     // pad activate = 00400080
     // pad deactivate = 00040200
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         var ix = (int)actor.OID - (int)OID.PlatformA;
         if (state == 0x00400080)

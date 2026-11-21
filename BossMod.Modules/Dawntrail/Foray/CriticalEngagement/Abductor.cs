@@ -54,10 +54,10 @@ class Buffet(BossModule module) : Components.Knockback(module)
                 yield return new(Arena.Center, 24, src.Activation, Direction: src.Direction, Kind: Kind.DirForward);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00010002 && actor.OID == 0x1EBFA9)
-            // delay is usually 11.1 but for some reason there is >4s of variance 
+            // delay is usually 11.1 but for some reason there is >4s of variance
             _sources.Add((actor.Rotation, WorldState.FutureTime(15.1f), false));
     }
 

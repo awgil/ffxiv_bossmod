@@ -207,7 +207,7 @@ class ArcaneArmamentsPoison(BossModule module) : Components.GenericAOEs(module)
         _puddles.RemoveAll(p => p.Actor == actor);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID == OID.PoisonPuddle)
             _puddles.RemoveAll(p => p.Actor == actor);

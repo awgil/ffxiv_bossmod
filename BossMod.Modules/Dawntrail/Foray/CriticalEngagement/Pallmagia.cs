@@ -81,7 +81,7 @@ class EsotericInstruction(BossModule module) : Components.GenericAOEs(module)
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => draw ? _predicted.Select((p, i) => p.AOE with { Color = i == 0 ? ArenaColor.Danger : ArenaColor.AOE, Risky = i == 0 }).Take(2) : [];
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EC02A && state is 0x00100020 or 0x00010002)
         {
@@ -175,7 +175,7 @@ class Roulette(BossModule module) : Components.GenericAOEs(module)
             yield return new(new AOEShapeCircle(5), Arena.Center, default, _predicted[0].Activation);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if ((OID)actor.OID is OID.RouletteLarge or OID.RouletteSmall && state is 0x00040010 or 0x00040020)
         {
@@ -215,4 +215,3 @@ class PallmagiaStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1093, NameID = 14714)]
 public class Pallmagia(ModuleInit init) : CEModule(init, new(807, -562), new ArenaBoundsCircle(20));
-

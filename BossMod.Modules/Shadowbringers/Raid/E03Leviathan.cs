@@ -152,7 +152,7 @@ class MaelstromVoidZones(BossModule module) : Components.Voidzone(module, 8f, OI
             voidZoneActors.Add(actor);
         }
     }
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == (uint)OID.MaelstromVoidZone && actor.TimelineState == 4)
             voidZoneActors.Remove(actor);

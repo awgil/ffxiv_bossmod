@@ -87,7 +87,7 @@ class Properties(BossModule module) : BossComponent(module)
             Zones.Add(actor);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (state == 0x00040008)
             Zones.Remove(actor);
@@ -168,4 +168,3 @@ class StrixPieceStates : StateMachineBuilder
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1091, NameID = 14596)]
 public class StrixPiece(ModuleInit init) : BossModule(init, new(120, -420), new ArenaBoundsCircle(20));
-

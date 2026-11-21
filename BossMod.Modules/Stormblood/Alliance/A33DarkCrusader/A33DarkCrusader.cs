@@ -36,7 +36,7 @@ class DarkRite(BossModule module) : Components.GenericTowers(module, damageType:
         }
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         switch ((actor.OID, actor.TimelineState))
         {

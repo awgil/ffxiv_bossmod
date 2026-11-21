@@ -405,7 +405,7 @@ class JumpPads(BossModule module) : BossComponent(module)
 {
     private bool _up;
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID is not (uint)OID.CartJump and not (uint)OID.RoofJump)
             return;

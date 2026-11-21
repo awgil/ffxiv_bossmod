@@ -77,7 +77,7 @@ class Blocks(BossModule module) : Components.GenericAOEs(module, AID.BlockSpawn)
             _pendingBlocks.Add(caster);
     }
 
-    public override void OnTimelineStateChange(Actor actor, uint state)
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
         if (actor.OID == 0x1EA1A1)
         {
@@ -174,4 +174,3 @@ class A31KnaveOfHeartsStates : StateMachineBuilder
 
 [ModuleInfo(GroupType = BossModuleInfo.GroupType.CFC, GroupID = 779, NameID = 9955)]
 public class A31KnaveOfHearts(ModuleInit init) : BossModule(init, new(-800, -724.40625f), new ArenaBoundsSquare(30));
-
