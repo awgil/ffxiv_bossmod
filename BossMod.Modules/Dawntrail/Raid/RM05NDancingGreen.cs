@@ -103,6 +103,29 @@ class FullBeat(BossModule module) : Components.StackWithCastTargets(module, AID.
 class EighthBeats(BossModule module) : Components.SpreadFromCastTargets(module, AID.EighthBeatsAOE, 5);
 class Moonburn(BossModule module) : Components.GroupedAOEs(module, [AID.Moonburn1, AID.Moonburn2], new AOEShapeRect(40, 7.5f));
 
+static class HalfRoomSequence
+{
+    public static IEnumerable<Components.GenericAOEs.AOEInstance> NowAndNext(List<Components.GenericAOEs.AOEInstance> aoes)
+    {
+        if (aoes.Count == 0)
+            yield break;
+        yield return aoes[0] with { Color = ArenaColor.Danger };
+        if (aoes.Count > 1 && !aoes[1].Rotation.AlmostEqual(aoes[0].Rotation, 0.1f))
+            yield return aoes[1] with { Risky = false };
+    }
+
+    public static void StayNearLine(BossModule module, List<Components.GenericAOEs.AOEInstance> aoes, AIHints hints)
+    {
+        if (aoes.Count == 0)
+            return;
+        var dir = aoes[0].Rotation.ToDirection();
+        var center = module.Center;
+        hints.GoalZones.Add(p => (1 - VV.Clamp((dir.Dot(p - center).Abs() - 3.5f) * 0.1f, VFloat.Zero, VFloat.One)) * 2);
+        if (aoes.Count > 1 && !aoes[1].Rotation.AlmostEqual(aoes[0].Rotation, 0.1f))
+            hints.AddForbiddenZone(aoes[1].Shape, aoes[1].Origin, aoes[1].Rotation, aoes[1].Activation);
+    }
+}
+
 class SnapTwist(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<AOEInstance> _predicted = [];
@@ -113,7 +136,13 @@ class SnapTwist(BossModule module) : Components.GenericAOEs(module)
     private static readonly AID[] _bossCasts = [AID.TwoSnapTwist1, AID.TwoSnapTwist2, AID.TwoSnapTwist3, AID.TwoSnapTwist4, AID.TwoSnapTwist5, AID.TwoSnapTwist6, AID.TwoSnapTwist7, AID.TwoSnapTwist8,
         AID.FourSnapTwist1, AID.FourSnapTwist2, AID.FourSnapTwist3, AID.FourSnapTwist4, AID.FourSnapTwist5, AID.FourSnapTwist6, AID.FourSnapTwist7, AID.FourSnapTwist8];
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => (_aoes.Count > 0 ? _aoes : _predicted).Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => HalfRoomSequence.NowAndNext(_aoes.Count > 0 ? _aoes : _predicted);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        HalfRoomSequence.StayNearLine(Module, _aoes.Count > 0 ? _aoes : _predicted, hints);
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -121,7 +150,16 @@ class SnapTwist(BossModule module) : Components.GenericAOEs(module)
         if (_bossCasts.Contains(aid))
         {
             var four = aid is >= AID.FourSnapTwist3 and <= AID.FourSnapTwist8 or AID.FourSnapTwist1 or AID.FourSnapTwist2;
-            _predicted.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 1)));
+            if (four)
+            {
+                _predicted.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 1)));
+                _predicted.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 1.5f)));
+                _predicted.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 2)));
+            }
+            else
+            {
+                _predicted.Add(new(_shape, caster.Position, spell.Rotation, Module.CastFinishAt(spell, 1.4f)));
+            }
             _predicted.Add(new(_shape, caster.Position, spell.Rotation + 180.Degrees(), Module.CastFinishAt(spell, four ? 3.5f : 3.6f)));
         }
         else if (aid is AID.TwoSnapTwistFirst or AID.TwoSnapTwistLast or AID.FourSnapTwistFirst1 or AID.FourSnapTwistFirst2 or AID.FourSnapTwistFirst3 or AID.FourSnapTwistLast)
@@ -139,10 +177,17 @@ class SnapTwist(BossModule module) : Components.GenericAOEs(module)
         {
             if (aid is AID.TwoSnapTwistFirst or AID.TwoSnapTwistLast or AID.FourSnapTwistFirst3 or AID.FourSnapTwistLast)
                 ++NumCasts;
-            var index = _aoes.FindIndex(aoe => aoe.Rotation.AlmostEqual(spell.Rotation, 0.1f) && aoe.Activation <= WorldState.FutureTime(0.5f));
+            var index = _aoes.FindIndex(aoe => aoe.Rotation.AlmostEqual(spell.Rotation, 0.1f));
             if (index >= 0)
                 _aoes.RemoveAt(index);
         }
+    }
+
+    public override void Update()
+    {
+        var cutoff = WorldState.FutureTime(-1);
+        _aoes.RemoveAll(aoe => aoe.Activation < cutoff);
+        _predicted.RemoveAll(aoe => aoe.Activation < cutoff);
     }
 }
 
@@ -160,6 +205,12 @@ class FunkyFloor(BossModule module) : Components.GenericAOEs(module, AID.FunkyFl
         for (var row = 0; row < 8; ++row)
             for (var col = (row & 1) == (even ? 0 : 1) ? 0 : 1; col < 8; col += 2)
                 yield return new(_tile, Module.Center + new WDir(-17.5f + 5 * col, -17.5f + 5 * row), default, _activation);
+    }
+
+    public override void Update()
+    {
+        if (_evenLit != null && WorldState.CurrentTime > _activation.AddSeconds(2))
+            _evenLit = null;
     }
 
     public override void OnMapEffect(byte index, uint state)
@@ -188,10 +239,11 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
     private DateTime _activation;
     private DateTime _lastLit;
     private DateTime _lastResolve;
+    private int _checks;
 
     private static readonly AOEShapeCircle _shape = new(2.5f);
 
-    private IEnumerable<WPos> CurrentSpots => _lit.Count == 3 ? _lit.Select(p => Module.Center + (Module.Center - p)) : _lit;
+    private IEnumerable<WPos> CurrentSpots => _lit.Count == 3 && _checks % 2 == 0 ? _lit.Select(p => Module.Center + (Module.Center - p)) : _lit;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
@@ -228,18 +280,32 @@ class Spotlight(BossModule module) : Components.GenericAOEs(module)
         if ((OID)actor.OID != OID.Spotlight || id != 0x11DC)
             return;
         if (WorldState.CurrentTime > _lastLit.AddSeconds(1))
+        {
             _lit.Clear();
+            _checks = 0;
+        }
         _lastLit = WorldState.CurrentTime;
         _lit.Add(actor.Position);
     }
 
+    public override void Update()
+    {
+        if (_active && WorldState.CurrentTime > _activation.AddSeconds(2))
+            Resolve();
+    }
+
     public override void OnStatusLose(Actor actor, in ActorStatus status)
     {
-        if ((SID)status.ID != SID.BurnBabyBurn || !_active || WorldState.CurrentTime < _lastResolve.AddSeconds(2))
-            return;
+        if ((SID)status.ID == SID.BurnBabyBurn && _active && WorldState.CurrentTime >= _lastResolve.AddSeconds(2))
+            Resolve();
+    }
+
+    private void Resolve()
+    {
         _lastResolve = WorldState.CurrentTime;
         _active = false;
         ++NumCasts;
+        ++_checks;
         if (Raid.WithoutSlot().All(p => p.FindStatus(SID.BurnBabyBurn) == null))
             _lit.Clear();
     }
@@ -265,10 +331,11 @@ class RideTheWaves(BossModule module) : Components.GenericAOEs(module, AID.RideT
     private static int? Column(uint state) => state switch
     {
         0x04000400 => 1,
-        0x00020002 => 2,
-        0x00100010 => 3,
-        0x20002000 => 4,
-        0x40004000 => 5,
+        0x00020002 or 0x08000800 => 2,
+        0x00100010 or 0x10001000 => 3,
+        0x20002000 or 0x00200020 => 4,
+        0x40004000 or 0x00400040 => 5,
+        0x80008000 => 6,
         _ => null
     };
 
@@ -373,7 +440,13 @@ class LetsDance(BossModule module) : Components.GenericAOEs(module, AID.LetsDanc
 
     private static readonly AOEShapeRect _shape = new(25, 45);
 
-    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _aoes.Take(1);
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => HalfRoomSequence.NowAndNext(_aoes);
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        base.AddAIHints(slot, actor, assignment, hints);
+        HalfRoomSequence.StayNearLine(Module, _aoes, hints);
+    }
 
     public override void AddGlobalHints(GlobalHints hints)
     {
@@ -385,6 +458,9 @@ class LetsDance(BossModule module) : Components.GenericAOEs(module, AID.LetsDanc
     {
         switch ((AID)spell.Action.ID)
         {
+            case AID.ArcadyNightFever:
+                _frogs.Clear();
+                break;
             case AID.FrogDanceRight:
                 _frogs.Add(90.Degrees());
                 break;
@@ -408,6 +484,8 @@ class LetsDance(BossModule module) : Components.GenericAOEs(module, AID.LetsDanc
                 _aoes.RemoveAt(0);
         }
     }
+
+    public override void Update() => _aoes.RemoveAll(aoe => aoe.Activation < WorldState.FutureTime(-1));
 }
 
 class LetsPose(BossModule module) : BossComponent(module)
@@ -431,6 +509,15 @@ class LetsPose(BossModule module) : BossComponent(module)
     {
         if ((AID)spell.Action.ID is AID.LetsPose1 or AID.LetsPose2)
             _activation = Module.CastFinishAt(spell);
+    }
+
+    public override void Update()
+    {
+        if (_activation != default && WorldState.CurrentTime > _activation.AddSeconds(1))
+        {
+            _hitByDance.Reset();
+            _activation = default;
+        }
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)

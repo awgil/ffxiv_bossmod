@@ -24,7 +24,7 @@ public enum AID : uint
     AlleyOopInferno = 46470, // 4B53->self, 4.3+0.7s cast, single-target
     AlleyOopInferno1 = 46471, // 233C->player, 5.0s cast, range 5 circle
     CutbackBlaze = 46478, // 4B53->self, 4.3+0.7s cast, single-target
-    CutbackBlaze1 = 46479, // 233C->self, no cast, range 60 ?-degree cone
+    CutbackBlaze1 = 46479, // 233C->self, no cast, range 60 60-degree cone
     DiversDare = 46466, // 4B53->self, 5.0s cast, range 60 circle
 
     SickSwell = 46480, // 4B54->self, 3.0s cast, single-target
@@ -66,9 +66,9 @@ public enum AID : uint
     InsaneAir3 = 47253, // 4B53->self, 3.9+1.5s cast, single-target
 
     PlungingSnap = 46504, // 4B54->self, no cast, single-target
-    PlungingSnap1 = 46506, // 233C->self, no cast, range 60 ?-degree cone
+    PlungingSnap1 = 46506, // 233C->self, no cast, range 60 45-degree cone
     BlastingSnap = 46503, // 4B53->self, no cast, single-target
-    BlastingSnap1 = 46505, // 233C->self, no cast, range 60 ?-degree cone
+    BlastingSnap1 = 46505, // 233C->self, no cast, range 60 45-degree cone
 
 }
 public enum IconID : uint
@@ -97,10 +97,10 @@ public enum SID : uint
 class HotImpact(BossModule module) : Components.IconSharedTankbuster(module, (uint)IconID.HotImpactSharedTankbuster, AID.HotImpact, 6);
 class AlleyOopInferno(BossModule module) : Components.IconStackSpread(module, 0, (uint)IconID.AlleyOopInfernoSpread, null, AID.AlleyOopInferno1, 0, 5, 0);
 class AlleyOopInfernoVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.AlleyOopInferno1, OID.InfernoVoidzone, 0.9f);
-class CutbackBlaze(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 25.Degrees()), (uint)IconID.CutbackBlaze, AID.CutbackBlaze);
+class CutbackBlaze(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 30.Degrees()), (uint)IconID.CutbackBlaze, AID.CutbackBlaze1, 5.3f);
 class CutbackBlazeVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.CutbackBlaze, OID.CutbackBlazeVoidzone, 0.9f)
 {
-    public new AOEShapeCone Shape = new(60, 25.Degrees());
+    public new AOEShapeCone Shape = new(60, 30.Degrees());
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var z in Sources)
@@ -153,51 +153,66 @@ class AlleyOopMaelstrom2(BossModule module) : Components.StandardAOEs(module, AI
 
 class Watersnaking(BossModule module) : Components.RaidwideCast(module, AID.Watersnaking);
 class Firesnaking(BossModule module) : Components.RaidwideCast(module, AID.Firesnaking);
-class InsaneAir1(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60f, 15.Degrees()), 0)
+class InsaneAir(BossModule module) : Components.UntelegraphedBait(module)
 {
-    public override Actor? BaitSource(Actor target) => Module.Enemies(OID.DeepBlue).FirstOrDefault();
+    public static readonly AOEShapeCone Cone = new(60, 15.Degrees());
+
+    private readonly List<(WPos Origin, DateTime Activation)>[] _boards = [[], []];
+    private readonly BitMask[] _targets = new BitMask[2];
+
+    public override void OnMapEffect(byte index, uint state)
+    {
+        if (index is >= 0x0E and <= 0x16 && state is 0x00020001 or 0x02000100)
+        {
+            var ix = index - 0x0E;
+            _boards[state == 0x00020001 ? 0 : 1].Add((new(87 + ix % 3 * 13, 87 + ix / 3 * 13), WorldState.FutureTime(8.6f)));
+            UpdateBaits();
+        }
+    }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        if (BaitSource(actor) is var source && source != null)
+        var color = (IconID)iconID switch
         {
-            if (iconID is (uint)IconID.WaterSnakeBait1 or (uint)IconID.WaterSnakeBait2 or (uint)IconID.WaterSnakeBait3)
-            {
-                CurrentBaits.Add(new(source, WorldState.Actors.Find(targetID) ?? actor, Shape, WorldState.FutureTime(ActivationDelay)));
-            }
+            IconID.WaterSnakeBait1 or IconID.WaterSnakeBait3 => 0,
+            IconID.FireSnakeBait1 or IconID.FireSnakeBait3 => 1,
+            _ => -1
+        };
+        if (color >= 0 && Raid.TryFindSlot(actor.InstanceID, out var slot))
+        {
+            _targets[color].Set(slot);
+            UpdateBaits();
         }
     }
-    public override void OnEventCast(Actor caster, ActorCastEvent spell)
-    {
-        base.OnEventCast(caster, spell);
-        if ((AID)spell.Action.ID is AID.PlungingSnap or AID.PlungingSnap1)
-            CurrentBaits.Clear();
-    }
-}
-class InsaneAir2(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60f, 15.Degrees()), 0)
-{
-    public override Actor? BaitSource(Actor target) => Module.PrimaryActor;
 
-    public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
-    {
-        if (BaitSource(actor) is var source && source != null)
-        {
-            if (iconID is (uint)IconID.FireSnakeBait1 or (uint)IconID.FireSnakeBait2 or (uint)IconID.FireSnakeBait3)
-            {
-                CurrentBaits.Add(new(source, WorldState.Actors.Find(targetID) ?? actor, Shape, WorldState.FutureTime(ActivationDelay)));
-            }
-        }
-    }
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        base.OnEventCast(caster, spell);
-        if ((AID)spell.Action.ID is AID.BlastingSnap or AID.BlastingSnap1)
-            CurrentBaits.Clear();
+        var color = (AID)spell.Action.ID switch
+        {
+            AID.PlungingSnap1 => 0,
+            AID.BlastingSnap1 => 1,
+            _ => -1
+        };
+        if (color >= 0)
+        {
+            ++NumCasts;
+            _boards[color].RemoveAll(b => b.Origin.AlmostEqual(caster.Position, 1));
+            _targets[color].Reset();
+            UpdateBaits();
+        }
+    }
+
+    private void UpdateBaits()
+    {
+        CurrentBaits.Clear();
+        for (var color = 0; color < 2; ++color)
+            if (_boards[color].Count > 0 && _targets[color].Any())
+                CurrentBaits.Add(new(_boards[color][0].Origin, _targets[color], Cone, _boards[color][0].Activation, _targets[color].NumSetBits()));
     }
 }
 class BlastingSnapVoidzones(BossModule module) : Components.VoidzoneAtCastTarget(module, 5, AID.BlastingSnap, OID.BlastingSnapVoidzone, 0.9f)
 {
-    public new AOEShapeCone Shape = new(60, 15.Degrees());
+    public new AOEShapeCone Shape = InsaneAir.Cone;
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
         foreach (var z in Sources)
@@ -230,13 +245,12 @@ class RM10TheXtremesStates : StateMachineBuilder
             .ActivateOnEnter<AlleyOopMaelstrom2>()
             .ActivateOnEnter<Watersnaking>()
             .ActivateOnEnter<Firesnaking>()
-            .ActivateOnEnter<InsaneAir1>()
-            .ActivateOnEnter<InsaneAir2>()
+            .ActivateOnEnter<InsaneAir>()
             .ActivateOnEnter<BlastingSnapVoidzones>();
     }
 }
 
-[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1070, NameID = 14470)]
+[ModuleInfo(Contributors = "VeraNala", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 1070, NameID = 14370)]
 public class RM10TheXtremes(ModuleInit init) : BossModule(init, new(100, 100), new ArenaBoundsRect(20, 20))
 {
     protected override void DrawEnemies(int pcSlot, Actor pc)
