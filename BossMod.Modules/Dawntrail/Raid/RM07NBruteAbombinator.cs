@@ -226,18 +226,31 @@ class BrutalSmash(BossModule module) : Components.GenericSharedTankbuster(module
     }
 }
 
-class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, AID.QuarrySwamp, 60, false)
+class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, AID.QuarrySwamp, 60, false, 1)
 {
+    private const float MinBlockerDistance = 5;
+
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if (spell.Action == WatchedAction)
-            Modify(caster.Position, Module.Enemies(OID.BloomingAbomination).Select(b => (b.Position, b.HitboxRadius)), Module.CastFinishAt(spell));
+            Refresh(caster.Position, Module.CastFinishAt(spell));
     }
 
     public override void Update()
     {
         if (Origin != null)
-            Modify(Origin, Module.Enemies(OID.BloomingAbomination).Select(b => (b.Position, b.HitboxRadius)), NextExplosion);
+            Refresh(Origin, NextExplosion);
+    }
+
+    private void Refresh(WPos? origin, DateTime activation)
+    {
+        Modify(origin, Module.Enemies(OID.BloomingAbomination).Select(b => (b.Position, b.HitboxRadius)), activation);
+        for (var i = 0; i < Visibility.Count; ++i)
+        {
+            var (dist, dir, halfWidth) = Visibility[i];
+            if (dist < MinBlockerDistance)
+                Visibility[i] = (dist, dir, Angle.Asin(Math.Min(Blockers[i].Radius / MinBlockerDistance, 1)));
+        }
     }
 
     public override void OnCastFinished(Actor caster, ActorCastInfo spell)
@@ -249,12 +262,16 @@ class QuarrySwamp(BossModule module) : Components.GenericLineOfSightAOE(module, 
 
 class NeoBombarianSpecialKnockback(BossModule module) : Components.KnockbackFromCastTarget(module, AID.NeoBombarianSpecial, 58)
 {
-    public override PointTest DestinationUnsafe(int slot, Actor actor) => p =>
+    private static readonly WPos _spot = new(100, 83);
+
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => p => ~((VV.Abs(p.X - 100) < 11) & (p.Z > -18) & (p.Z < 28));
+    public override PointTest DestinationOutOfBounds(int slot, Actor actor) => PointTest.Never;
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
     {
-        var inSquare = (VV.Abs(p.X - 100) < 19.5f) & (VV.Abs(p.Z - 100) < 19.5f);
-        var inCorridor = (VV.Abs(p.X - 100) < 10) & (p.Z > -19.5f) & (p.Z < 25);
-        return ~inSquare & ~inCorridor;
-    };
+        if (Casters.Count > 0)
+            Arena.ZoneRect(_spot, new WDir(0, 1), 2, 2, 2, ArenaColor.SafeFromAOE);
+    }
 }
 
 class ArenaChanges(BossModule module) : BossComponent(module)
