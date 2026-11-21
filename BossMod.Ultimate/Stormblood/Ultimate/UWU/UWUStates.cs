@@ -207,12 +207,12 @@ class UWUStates : StateMachineBuilder
         ComponentCondition<P2CrimsonCyclone>(id, delay, comp => comp.CastsPredicted)
             .ActivateOnEnter<P2CrimsonCyclone>()
             .ActivateOnEnter<P2RadiantPlume>() // casts starts at the same time as charge (2.1s)
-            .ExecOnEnter<PartyPositioning>(p =>
-            {
-                p.DesiredPosition = (Module.Arena.Center, 1);
-            })
+            .ExecOnEnter<P2CrimsonCyclone>(p => p.Risky = false) // party should wait until plumes appear
+            .ExecOnEnter<PartyPositioning>(p => p.DesiredPosition = (Module.Arena.Center, 1))
             .DeactivateOnExit<P1FeatherRain>();
-        ComponentCondition<P2CrimsonCyclone>(id + 0x10, 5.1f, comp => comp.NumCasts > 0, "Charge")
+        ComponentCondition<P2RadiantPlume>(id + 1, 2, p => p.Casters.Count > 0)
+            .ExecOnExit<P2CrimsonCyclone>(p => p.Risky = true);
+        ComponentCondition<P2CrimsonCyclone>(id + 0x10, 3.1f, comp => comp.NumCasts > 0, "Charge")
             .DeactivateOnExit<P2CrimsonCyclone>();
         ComponentCondition<P2RadiantPlume>(id + 0x20, 1, comp => comp.NumCasts > 0, "Plumes")
             .DeactivateOnExit<P2RadiantPlume>();
@@ -300,7 +300,8 @@ class UWUStates : StateMachineBuilder
         // +1.7s: searing wind 5 (1st target) / 2 (2nd target)
 
         ActorTargetable(id + 0x2000, _module.Ifrit, false, 4.1f, "Disappear")
-            .SetHint(StateMachine.StateHint.DowntimeStart);
+            .SetHint(StateMachine.StateHint.DowntimeStart)
+            .ExecOnExit<PartyPositioning>(p => p.PrepP2Dash());
         ComponentCondition<P2CrimsonCyclone>(id + 0x2001, 2.3f, comp => comp.CastsPredicted)
             .ActivateOnEnter<P2CrimsonCyclone>();
         // +2.2s: PATE 1E43 on 4 ifrits

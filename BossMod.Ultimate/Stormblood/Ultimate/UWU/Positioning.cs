@@ -78,4 +78,14 @@ class PartyPositioning : BossComponent
 
         hints.GoalZones.Add(AIHints.GoalSingleTarget(boss.Position, boss.HitboxRadius + actor.HitboxRadius + 3, 0.1f));
     }
+
+    public void PrepP2Dash()
+    {
+        Boss = null;
+        if (Module.FindComponent<P2Nails>() is { KilledOrder: var o })
+        {
+            var partyCardinal = (o.Last() - Arena.Center).Normalized();
+            DesiredPosition = (Arena.Center + partyCardinal * 19, 3);
+        }
+    }
 }

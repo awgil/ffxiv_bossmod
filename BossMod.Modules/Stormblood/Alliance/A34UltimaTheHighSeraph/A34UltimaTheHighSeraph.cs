@@ -1,4 +1,5 @@
-﻿namespace BossMod.Stormblood.Alliance.A34UltimaTheHighSeraph;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+namespace BossMod.Stormblood.Alliance.A34UltimaTheHighSeraph;
 
 public enum OID : uint
 {

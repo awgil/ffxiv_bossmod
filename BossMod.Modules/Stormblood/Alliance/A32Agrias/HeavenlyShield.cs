@@ -7,7 +7,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
     readonly List<Actor> SwordTargets = [];
 
     const float PuddleRadius = 4.8f;
-    const float PauseDuration = 0.2f;
+    const float PauseDuration = 0.5f;
     const float HintAhead = 2f;
 
     BitMask ShieldBearer;

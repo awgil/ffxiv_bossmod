@@ -5,8 +5,9 @@
 // p2 second cast is two charges along both cardinals
 // p2 third cast is four staggered charges, with different patterns depending on whether awakening happened (TODO: we can predict that very early)
 // p4 predation is a single awakened charge along intercardinal
-class CrimsonCyclone(BossModule module, float predictionDelay, bool predictedRisky) : Components.GenericAOEs(module, AID.CrimsonCyclone)
+class CrimsonCyclone(BossModule module, float predictionDelay) : Components.GenericAOEs(module, AID.CrimsonCyclone)
 {
+    public bool Risky = true;
     private readonly float _predictionDelay = predictionDelay;
     private readonly List<(AOEShape shape, WPos pos, Angle rot, DateTime activation)> _predicted = []; // note: there could be 1/2/4 predicted normal charges and 0 or 2 'cross' charges
     private readonly List<Actor> _casters = [];
@@ -18,11 +19,10 @@ class CrimsonCyclone(BossModule module, float predictionDelay, bool predictedRis
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        if (_predicted.Count <= 2) // don't draw 4 predicted charges, it is pointless
-            foreach (var p in _predicted)
-                yield return new(p.shape, p.pos, p.rot, p.activation, Risky: predictedRisky);
+        foreach (var p in _predicted.Take(2))
+            yield return new(p.shape, p.pos, p.rot, p.activation, Risky: Risky);
         foreach (var c in _casters)
-            yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo));
+            yield return new(_shapeMain, c.Position, c.CastInfo!.Rotation, Module.CastFinishAt(c.CastInfo), Risky: Risky);
     }
 
     public override void OnActorPlayActionTimelineEvent(Actor actor, ushort id)
@@ -64,5 +64,5 @@ class CrimsonCyclone(BossModule module, float predictionDelay, bool predictedRis
     }
 }
 
-class P2CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 5.2f, false);
-class P4CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 8.1f, true);
+class P2CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 5.2f);
+class P4CrimsonCyclone(BossModule module) : CrimsonCyclone(module, 8.1f);

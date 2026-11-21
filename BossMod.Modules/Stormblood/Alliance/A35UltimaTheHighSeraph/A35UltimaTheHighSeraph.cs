@@ -1,3 +1,4 @@
+#pragma warning disable CA1707 // Identifiers should not contain underscores
 namespace BossMod.Stormblood.Alliance.A35UltimaTheHighSeraph;
 
 public enum OID : uint
@@ -64,11 +65,104 @@ public enum TetherID : uint
     _Gen_Tether_chn_teke01h = 84, // 25AE->player
 }
 
+class RayOfLight(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_RayOfLight)
+{
+    readonly List<AOEInstance> _predicted = [];
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted;
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Ability_EastwardMarch)
+            foreach (var actor in Module.Enemies(OID._Gen_Dominion).Where(d => d.ModelState.ModelState == 24))
+                _predicted.Add(new(new AOEShapeRect(70, 5), actor.Position + new WDir(10, 0), actor.Rotation, WorldState.FutureTime(9.1f)));
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            if (_predicted.Count > 0)
+                _predicted.RemoveAt(0);
+        }
+    }
+}
+class Redemption(BossModule module) : Components.SingleTargetCast(module, AID._Weaponskill_Redemption);
+class Plummet(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Plummet, new AOEShapeRect(15, 7.5f));
+
+class GrandCross(BossModule module) : Components.GenericAOEs(module, AID._Weaponskill_GrandCross1)
+{
+    readonly List<AOEInstance> _predicted = [];
+    DateTime Activation;
+    bool Risky;
+
+    public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _predicted.Select(p => p with { Risky = Risky });
+
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID._Weaponskill_Plummet)
+        {
+            if (Activation == default)
+                Activation = WorldState.FutureTime(13.8f);
+            var src = caster.Position;
+            if (_predicted.Count == 2)
+                Risky = true;
+            else
+                src += new WDir(15, 0);
+            _predicted.Add(new(new AOEShapeCross(60, 7.5f), src, default, Activation));
+        }
+
+        if (spell.Action == WatchedAction)
+        {
+            if (_predicted.Count == 3)
+                _predicted.RemoveAt(0);
+            _predicted.Add(new(new AOEShapeCross(60, 7.5f), spell.LocXZ, default, Module.CastFinishAt(spell)));
+        }
+    }
+
+    public override void OnEventCast(Actor caster, ActorCastEvent spell)
+    {
+        if (spell.Action == WatchedAction)
+        {
+            NumCasts++;
+            if (_predicted.Count > 0)
+                _predicted.RemoveAt(0);
+            if (_predicted.Count == 0)
+            {
+                Activation = default;
+                Risky = false;
+            }
+        }
+    }
+}
+
+class Penultima(BossModule module) : Components.GenericTowers(module, AID._Weaponskill_Penultima)
+{
+    public override void OnActorTimelineStateChange(Actor actor, uint state)
+    {
+        if (actor.OID == 0x1EAA53 && actor.TimelineState == 0x0040)
+            Towers.Add(new(TowerPosition(actor), 1, activation: WorldState.FutureTime(8.8f)));
+
+        if (actor.OID == 0x1EAA53 && actor.TimelineState == 4)
+            Towers.RemoveAll(t => t.Position.AlmostEqual(TowerPosition(actor), 1));
+    }
+
+    static WPos TowerPosition(Actor eventObj) => eventObj.ActualPosition + eventObj.Rotation.ToDirection() * 14;
+}
+class PD(BossModule module) : Components.DebugCasts(module, [AID._Weaponskill_Penultima], new AOEShapeCircle(1));
+
 class A35UltimaTheHighSeraphStates : StateMachineBuilder
 {
     public A35UltimaTheHighSeraphStates(BossModule module) : base(module)
     {
-        TrivialPhase();
+        TrivialPhase()
+            .ActivateOnEnter<RayOfLight>()
+            .ActivateOnEnter<Redemption>()
+            .ActivateOnEnter<Plummet>()
+            .ActivateOnEnter<GrandCross>()
+            .ActivateOnEnter<Penultima>()
+            .ActivateOnEnter<PD>();
     }
 }
 
