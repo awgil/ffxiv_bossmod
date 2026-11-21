@@ -24,7 +24,8 @@ public enum Keys
     PlanDatabase,
     PlanManifest,
     ConfigDirectory,
-    ReplayDirectory
+    ReplayDirectory,
+    BitmapDirectory
 }
 
 public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
@@ -49,6 +50,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
             .Keyed<FileInfo>(Keys.PlanManifest);
         containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.ResolveKeyed<DirectoryInfo>(Keys.ConfigDirectory).FullName, "replays")))
             .Keyed<DirectoryInfo>(Keys.ReplayDirectory);
+        containerBuilder.Register(ctx => new DirectoryInfo(Path.Join(ctx.ResolveKeyed<DirectoryInfo>(Keys.ConfigDirectory).FullName, "obstacles")))
+            .Keyed<DirectoryInfo>(Keys.BitmapDirectory);
 
         // lower level stuff
         containerBuilder.Register(ctx => new ReplayVisualization.GaugeVisualizer(ctx.Resolve<IUiBuilder>().FontAtlas)).SingleInstance();
@@ -103,6 +106,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
             Service.Camera = scope.Resolve<ICamera>();
             Service.Shadowcast = scope.Resolve<IShadowcast>();
+            Service.BitmapDirectory = scope.ResolveKeyed<DirectoryInfo>(Keys.BitmapDirectory);
 
             Service.WindowSystem = scope.Resolve<IWindowSystemFactory>().Create("vbm");
         });

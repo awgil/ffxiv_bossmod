@@ -597,7 +597,7 @@ public sealed class BLM(RotationModuleManager manager, Actor player) : Castxan<A
         // 72-79, foul is a dps gain but not instant, xeno doesn't exist
         if (!Unlocked(TraitID.EnhancedFoul))
         {
-            PushGCD(AID.Foul, BestAOETarget, GCDPriority.XenoCap);
+            PushGCD(AID.Foul, BestAOETarget, GCDPriority.FlareStar);
             return;
         }
 

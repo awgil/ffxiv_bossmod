@@ -1,10 +1,15 @@
 ﻿namespace BossMod.Stormblood.Alliance.A32Agrias;
 
-class Jail(BossModule module) : BossComponent(module)
+class Jail : BossComponent
 {
     BitMask Prisoners;
     static readonly WPos JailPos = new(300, -50);
     static readonly ArenaBoundsCircle JailBounds = new(29.5f);
+
+    public Jail(BossModule module) : base(module)
+    {
+        KeepOnPhaseChange = true;
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
@@ -37,6 +42,12 @@ class Jail(BossModule module) : BossComponent(module)
     {
         if ((SID)status.ID == SID.Doom && Raid.TryFindSlot(actor, out var slot))
             Prisoners.Clear(slot);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (Prisoners[slot] && actor.FindStatus(SID.Swordbearer) == null)
+            hints.GoalZones.Add(AIHints.GoalSingleTarget(new(300, -65), 5, 5));
     }
 }
 

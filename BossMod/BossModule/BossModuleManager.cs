@@ -41,6 +41,7 @@ public sealed class BossModuleManager : IDisposable
             WorldState.Actors.Added.Subscribe(ActorAdded),
             WorldState.DirectorUpdate.Subscribe(OnDirectorUpdate),
             WorldState.CurrentZoneChanged.Subscribe(OnZoneChange),
+            WorldState.SystemLogMessage.Subscribe(OnLogMessage),
             BossModuleRegistry.Modified.Subscribe(() =>
             {
                 ForceUnload("registry-update");
@@ -210,6 +211,14 @@ public sealed class BossModuleManager : IDisposable
     private void OnZoneChange(WorldState.OpZoneChange zc)
     {
         ForceUnload("ZoneInit");
+    }
+
+    private void OnLogMessage(WorldState.OpSystemLogMessage message)
+    {
+        // <place> is no longer sealed!
+        // TODO: this is a terrible idea, but it sure makes alliance raid modules simpler to write...
+        if (message.MessageId == 2014)
+            ForceUnload("Unseal");
     }
 
     private void ConfigChanged()

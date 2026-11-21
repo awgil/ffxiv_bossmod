@@ -114,10 +114,9 @@ class A32AgriasStates : StateMachineBuilder
             .ActivateOnEnter<HallowedBolt1>()
             .ActivateOnEnter<HallowedBolt2>()
             .ActivateOnEnter<DivineRuination>()
-            .Raw.Update = () => module.PrimaryActor is { HPMP.CurHP: 1, IsTargetable: false };
+            .Raw.Update = () => Module.PrimaryActor is { HPMP.CurHP: 1, IsTargetable: false };
     }
 }
 
 [ModuleInfo(Incomplete = true, GroupType = BossModuleInfo.GroupType.CFC, GroupID = 636, NameID = 7931)]
 public class A32Agrias(ModuleInit init) : BossModule(init, new(600, -54), new ArenaBoundsCircle(29.5f));
-

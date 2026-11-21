@@ -1,3 +1,4 @@
+using Autofac.Features.AttributeFilters;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -26,7 +27,7 @@ public sealed class ObstacleMapManager : IDisposable
     private (ObstacleMapDatabase.Entry entry, Bitmap data)? _tempMap;
     private Task? _generationTask;
 
-    public readonly DirectoryInfo UserRoot = new(Path.Join(Plugin.GetStorageDir(), "obstacles"));
+    public readonly DirectoryInfo UserRoot;
     public readonly FileInfo UserList;
 
     public readonly string SourceRoot;
@@ -39,8 +40,9 @@ public sealed class ObstacleMapManager : IDisposable
             ws.CurrentZoneChanged.Subscribe(op => LoadMaps(op.Zone, op.CFCID))
         );
 
-        UserList = new(Path.Join(UserRoot.FullName, "maplist.json"));
+        UserRoot = Service.BitmapDirectory;
         SourceRoot = _config.MapSourcePath;
+        UserList = new(Path.Join(UserRoot.FullName, "maplist.json"));
         Directory.CreateDirectory(UserRoot.FullName);
 
         ReloadDatabase();

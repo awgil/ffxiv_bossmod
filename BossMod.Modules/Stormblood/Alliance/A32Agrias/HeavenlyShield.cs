@@ -147,7 +147,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
 
             shieldMode = true;
 
-            if (actor.FindStatus(SID.HeavenlyShield) != null)
+            if (actor.FindStatus(SID.HeavenlyShield, DateTime.MaxValue) != null)
             {
                 if (deadline < WorldState.FutureTime(PauseDuration))
                 {
@@ -158,7 +158,12 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
             }
             else if (ShieldBearer[slot])
             {
-                if (deadline < WorldState.FutureTime(PauseDuration + ApplicationDelay.Get(ClassShared.AID.HeavenlyShield)))
+                var shieldDelay = PauseDuration + ApplicationDelay.Get(ClassShared.AID.HeavenlyShield);
+                var leeway = Math.Max(0, (float)(deadline - WorldState.CurrentTime).TotalSeconds - shieldDelay);
+
+                hints.MaxCastTime = leeway;
+
+                if (leeway == 0)
                     hints.ActionsToExecute.Push(ActionID.MakeSpell(ClassShared.AID.HeavenlyShield), actor, ActionQueue.Priority.VeryHigh);
             }
             else

@@ -21,7 +21,7 @@
     <Reference Include="TerraFX.Interop.Windows" Private="false" />
     <PackageReference Include="DalaMock.Host" Version="6.2.2" />
     <PackageReference Include="DalaMock.Shared" Version="6.2.2" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="11.0.0" />
     <PackageReference Include="Pictomancy" Version="1.0.10" />
 
     <ProjectReference Include="..\CodeAnalysis\CodeAnalysis.csproj">
