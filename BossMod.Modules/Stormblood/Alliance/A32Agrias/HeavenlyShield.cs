@@ -7,7 +7,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
     readonly List<Actor> SwordTargets = [];
 
     const float PuddleRadius = 4.8f;
-    const float PauseDuration = 0.5f;
+    const float PauseDuration = 0.2f;
     const float HintAhead = 2f;
 
     BitMask ShieldBearer;
@@ -134,6 +134,7 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         var shieldMode = false;
+        var shieldDelay = PauseDuration + ApplicationDelay.Get(ClassShared.AID.HeavenlyShield);
 
         foreach (var (source, radius, deadline) in DangerFor(actor))
         {
@@ -149,16 +150,14 @@ class HeavenlyShield(BossModule module) : BossComponent(module)
 
             if (actor.FindStatus(SID.HeavenlyShield, DateTime.MaxValue) != null)
             {
-                if (deadline < WorldState.FutureTime(PauseDuration))
+                if (deadline < WorldState.FutureTime(shieldDelay))
                 {
                     hints.AddSpecialMode(AIHints.SpecialMode.Pyretic, deadline);
-                    var toBoss = actor.AngleTo(Module.PrimaryActor);
-                    hints.ForbiddenDirections.Add((toBoss + 180.Degrees(), 135.Degrees(), deadline));
+                    hints.ForbiddenDirections.Add((source.AngleTo(actor), 135.Degrees(), deadline));
                 }
             }
             else if (ShieldBearer[slot])
             {
-                var shieldDelay = PauseDuration + ApplicationDelay.Get(ClassShared.AID.HeavenlyShield);
                 var leeway = Math.Max(0, (float)(deadline - WorldState.CurrentTime).TotalSeconds - shieldDelay);
 
                 hints.MaxCastTime = leeway;

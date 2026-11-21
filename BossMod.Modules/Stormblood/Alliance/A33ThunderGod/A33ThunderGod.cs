@@ -129,7 +129,7 @@ class CrushHelmVuln(BossModule module) : BossComponent(module)
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (TankbusterAt == default)
+        if (TankbusterAt == default || !actor.Class.CanEsuna())
             return;
 
         if (CleanseTargets.Any())

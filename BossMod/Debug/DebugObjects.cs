@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -15,6 +16,8 @@ public class DebugObjects
     private readonly UITree _tree = new();
     private bool _showCrap;
     private ulong _selectedID;
+    private string _eobjTimeline = "0000";
+    private string _eobjMask = "0000";
 
     public unsafe void DrawObjectTable()
     {
@@ -29,6 +32,8 @@ public class DebugObjects
                 continue;
             if (!_showCrap && obj.ObjectKind is Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion or Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Mount)
                 continue;
+
+            using var _ = ImRaii.PushId(obj.Address.ToString("X16"));
 
             var internalObj = Utils.GameObjectInternal(obj);
             var localID = internalObj->LayoutId;
@@ -46,10 +51,10 @@ public class DebugObjects
                 _tree.LeafNode($"'Actual' position: {*internalObj->GetPosition()}");
                 _tree.LeafNode($"Radius: {obj.HitboxRadius:f3}");
                 _tree.LeafNode($"Owner: {Utils.ObjectString(obj.OwnerId)}");
-                _tree.LeafNode($"BNpcBase/Name: {obj.BaseId:X}/{Utils.GameObjectInternal(obj)->GetNameId()}");
+                _tree.LeafNode($"BNpcBase/Name: {obj.BaseId:X}/{internalObj->GetNameId()}");
                 _tree.LeafNode($"Targetable: {obj.IsTargetable}");
                 _tree.LeafNode($"Is character: {internalObj->IsCharacter()}");
-                _tree.LeafNode($"Event state: {Utils.GameObjectInternal(obj)->EventState}");
+                _tree.LeafNode($"Event state: {internalObj->EventState}");
                 foreach (var n1 in _tree.Node("Event IDs"))
                 {
                     _tree.LeafNode($"Primary: {internalObj->EventId.Id:X}");
@@ -84,6 +89,17 @@ public class DebugObjects
                     {
                         _tree.LeafNode($"Foray level: {fi->Level}");
                         _tree.LeafNode($"Foray ele: {fi->Element}");
+                    }
+                }
+                if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.EventObj)
+                {
+                    var eobj = (EventObject*)internalObj;
+
+                    ImGui.InputText("Timeline", ref _eobjTimeline, maxLength: 4);
+                    ImGui.InputText("Mask", ref _eobjMask, maxLength: 4);
+                    if (ImGui.Button("Play animation") && uint.TryParse(_eobjTimeline, System.Globalization.NumberStyles.HexNumber, null, out var tl) && uint.TryParse(_eobjMask, System.Globalization.NumberStyles.HexNumber, null, out var tm))
+                    {
+                        eobj->PlayAnimation(tl, tm, 0);
                     }
                 }
             }

@@ -50,6 +50,8 @@ public enum AID : uint
     _Weaponskill_Eruption = 15479, // 2636->self, 3.0s cast, single-target
     _Weaponskill_Eruption1 = 15480, // Helper->location, 3.0s cast, range 8 circle
     _Weaponskill_ExtremeEdge = 14554, // 2637->self, 6.0s cast, range 60+R width 36 rect
+    _Weaponskill_ExtremeEdge1 = 14555, // _Gen_DemiHashmal->self, 6.0s cast, range 60+R width 36 rect
+
     _Weaponskill_UltimateIllusion = 14485, // Boss->self, 22.0s cast, single-target
     _Weaponskill_UltimateIllusion1 = 14486, // Helper->self, no cast, range 80 circle
     _Weaponskill_ = 14482, // Boss->self, no cast, single-target
@@ -89,19 +91,32 @@ class Auralight(BossModule module) : BossComponent(module)
 
     public override void OnActorTimelineStateChange(Actor actor, uint state)
     {
-        switch ((actor.LayoutID, state))
+        if (actor.LayoutID != 0x7626AE)
+            return;
+
+        switch ((actor.TimelineState, state & 0xFFFF))
         {
-            case (0x7626AE, 0x00010800):
-                Obstacles.Add((new(600, -630), -15.Degrees(), new AOEShapeRect(70, 4.5f)));
+            case (1, 0x0020):
                 Obstacles.Add((new(600, -630), -45.Degrees(), new AOEShapeRect(70, 4.5f)));
-                Obstacles.Add((new(600, -630), 45.Degrees(), new AOEShapeRect(70, 4.5f)));
-                break;
-            case (0x7626AE, 0x00010020):
                 Obstacles.Add((new(600, -630), 15.Degrees(), new AOEShapeRect(70, 4.5f)));
-                Obstacles.Add((new(600, -630), -45.Degrees(), new AOEShapeRect(70, 4.5f)));
                 Obstacles.Add((new(600, -630), 45.Degrees(), new AOEShapeRect(70, 4.5f)));
                 break;
-            case (0x7626AE, 0x00041000 or 0x00040040):
+            case (1, 0x0100):
+                Obstacles.Add((new(600, -630), -15.Degrees(), new AOEShapeRect(70, 4.5f)));
+                Obstacles.Add((new(600, -630), 15.Degrees(), new AOEShapeRect(70, 4.5f)));
+                Obstacles.Add((new(600, -630), 75.Degrees(), new AOEShapeRect(70, 4.5f)));
+                break;
+            case (1, 0x0800):
+                Obstacles.Add((new(600, -630), -45.Degrees(), new AOEShapeRect(70, 4.5f)));
+                Obstacles.Add((new(600, -630), -15.Degrees(), new AOEShapeRect(70, 4.5f)));
+                Obstacles.Add((new(600, -630), 45.Degrees(), new AOEShapeRect(70, 4.5f)));
+                break;
+            case (1, 0x4000):
+                Obstacles.Add((new(600, -630), -75.Degrees(), new AOEShapeRect(70, 4.5f)));
+                Obstacles.Add((new(600, -630), -45.Degrees(), new AOEShapeRect(70, 4.5f)));
+                Obstacles.Add((new(600, -630), 15.Degrees(), new AOEShapeRect(70, 4.5f)));
+                break;
+            case (4, _):
                 Obstacles.Clear();
                 break;
         }
@@ -254,7 +269,7 @@ class Hammerfall(BossModule module) : Components.GenericAOEs(module, AID._Weapon
 }
 
 class Eruption(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Eruption1, 8);
-class ExtremeEdge(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_ExtremeEdge, new AOEShapeRect(65, 18));
+class ExtremeEdge(BossModule module) : Components.GroupedAOEs(module, [AID._Weaponskill_ExtremeEdge, AID._Weaponskill_ExtremeEdge1], new AOEShapeRect(65, 18));
 
 class GuardiansAegis(BossModule module) : BossComponent(module)
 {
