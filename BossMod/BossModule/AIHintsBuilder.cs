@@ -19,7 +19,6 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge, bool IsLyingAboutTarget)> _activeAOEs = [];
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeGazes = [];
-    private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
     private bool AvoidGazes => _gazeConfig.Enabled2 && _gazeConfig.AvoidGazes;
 
@@ -30,7 +29,7 @@ public sealed class AIHintsBuilder : IDisposable
     // `mod` refers to the ParamModifier column
     // `???` means the status appears to have no attributes that distinguish it from other buffs unrelated to invincibility (this is why the list is incomplete, the majority of these have no useful data)
     // invincibility can also be purely serverside, e.g. garuda normal
-    private static readonly List<uint> InvincibleStatuses =
+    public static readonly List<uint> InvincibleStatuses =
     [
         151, // stoneskin f=12
         325, // invincibility ???
@@ -75,8 +74,6 @@ public sealed class AIHintsBuilder : IDisposable
         (
             ws.Actors.CastStarted.Subscribe(OnCastStarted),
             ws.Actors.CastFinished.Subscribe(OnCastFinished),
-            ws.Actors.StatusGain.Subscribe(OnStatusGain),
-            ws.Actors.StatusLose.Subscribe(OnStatusLose),
             ws.Client.ActiveFateChanged.Subscribe(_ => _activeFateBounds = null)
         );
     }
@@ -125,7 +122,7 @@ public sealed class AIHintsBuilder : IDisposable
                 continue;
 
             // determine default priority for the enemy
-            var (priority, reason) = actor.FateID > 0 && actor.FateID != allowedFateID ? (AIHints.Enemy.PriorityInvincible, $"fate {actor.FateID} != ${allowedFateID}") // fate mob in fate we are NOT a part of can't be damaged at all
+            var (priority, reason) = actor.FateID > 0 && actor.FateID != allowedFateID ? (AIHints.Enemy.PriorityInvincible, $"fate {actor.FateID} != {allowedFateID}") // fate mob in fate we are NOT a part of can't be damaged at all
                 : actor.Visibility == Visibility.Blocked ? (AIHints.Enemy.PriorityInvincible, "los failed") // blocked by terrain
                 : actor.PendingDead ? (AIHints.Enemy.PriorityPointless, "dying") // this mob is about to be dead, any attacks will likely ghost
                 : actor.AggroPlayer ? (0, "aggro table") // enemies in our enmity list can be attacked, regardless of who they are targeting (since they are keeping us in combat)
@@ -235,9 +232,6 @@ public sealed class AIHintsBuilder : IDisposable
             if (gaze.Shape.Check(player.Position, target, rot))
                 hints.ForbiddenDirections.Add((Angle.FromDirection(target - player.Position), 45.Degrees(), finishAt));
         }
-
-        foreach (var inv in _invincible)
-            hints.SetPriority(inv, AIHints.Enemy.PriorityInvincible);
     }
 
     private bool IsValidEnemy(Actor actor) => actor is { Type: ActorType.Enemy or ActorType.Helper, IsAlly: false };
@@ -281,18 +275,6 @@ public sealed class AIHintsBuilder : IDisposable
     {
         _activeAOEs.Remove(actor.InstanceID);
         _activeGazes.Remove(actor.InstanceID);
-    }
-
-    private void OnStatusGain(Actor actor, int index)
-    {
-        if (InvincibleStatuses.Contains(actor.Statuses[index].ID))
-            _invincible.Add(actor);
-    }
-
-    private void OnStatusLose(Actor actor, int index)
-    {
-        if (InvincibleStatuses.Contains(actor.Statuses[index].ID))
-            _invincible.Remove(actor);
     }
 
     private AOEShape? GuessShape(Lumina.Excel.Sheets.Action data, Actor actor)
