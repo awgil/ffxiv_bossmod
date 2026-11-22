@@ -1,6 +1,5 @@
 ﻿namespace BossMod.Stormblood.Ultimate.UWU;
 
-// TODO: kill priorities
 class P2Nails(BossModule module) : BossComponent(module)
 {
     readonly List<Actor> _nails = [];
@@ -30,18 +29,40 @@ class P2Nails(BossModule module) : BossComponent(module)
                 RelativeNorth = Angle.FromDirection(_nails.Where(n => _nails.InRadiusExcluding(n, 9).Any()).PositionCentroid() - Arena.Center);
                 pos.DesiredPosition = Arena.Center + RelativeNorth.ToDirection() * 4;
                 pos.DesiredRotation = RelativeNorth;
+
+                // standard strat (NA): kill in zigzag pattern starting relative SE
+                _nails.SortBy(n =>
+                {
+                    var dir = n.Position - Arena.Center;
+                    var isSouth = dir.Dot(RelativeNorth.ToDirection()) < 0;
+                    var isEast = dir.Dot(RelativeNorth.ToDirection().OrthoR()) > 0;
+                    return (isSouth ? 0 : 2) + (isEast ? 0 : 1);
+                });
             }
         }
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
+        var haveTarget = false;
         foreach (var n in _nails)
         {
+            if (n.PendingDead)
+                continue;
+
             if (hints.FindEnemy(n) is { } e)
             {
                 e.ForbidDOTs = true;
-                e.Priority = n.PendingHPRatio > 0.5f || n.FindStatus(1544)?.Extra >= 2 ? 1 : AIHints.Enemy.PriorityForbidden;
+
+                if (n.PendingHPRatio > 0.5f)
+                    e.Priority = 1;
+                else if (n.FindStatus(SID.NailDamageUp)?.Extra >= 2 && !haveTarget)
+                {
+                    haveTarget = true;
+                    e.Priority = 1;
+                }
+                else
+                    e.Priority = AIHints.Enemy.PriorityForbidden;
             }
         }
     }

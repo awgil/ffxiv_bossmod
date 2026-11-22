@@ -149,6 +149,7 @@ public enum SID : uint
 {
     InfernalFetters = 377, // none->player, extra=1-7
     SearingWind = 1578, // Ifrit->player, extra=0x0
+    NailDamageUp = 1544,
     ViscousAetheroplasm = 1532, // UltimaWeapon->player, extra=0x0
     ThermalLow = 1525, // SpinyPlume/Garuda->player, extra=1-2
     //ThermalHigh = 1526, // GarudaSister/Garuda->player, extra=0x0

@@ -27,6 +27,7 @@ class UWUStates : StateMachineBuilder
             .ActivateOnEnter<P3Geocrush2>()
             .ActivateOnEnter<P3Sludge>()
             .SetHint(StateMachine.PhaseHint.StartWithDowntime)
+            .OnEnter(() => _module.FindComponent<PartyPositioning>()?.DesiredPosition = null)
             .Raw.Update = () => _module.Titan() is { HPMP.CurHP: <= 1, IsTargetable: false };
         SimplePhase(3, Phase4LahabreaUltima, "P4: Lahabrea + Ultima")
             .ActivateOnEnter<P3WeightOfTheLand>()
@@ -204,16 +205,16 @@ class UWUStates : StateMachineBuilder
 
     private void P2CrimsonCycloneRadiantPlumeHellfire(uint id, float delay)
     {
-        ComponentCondition<P2CrimsonCyclone>(id, delay, comp => comp.CastsPredicted)
-            .ActivateOnEnter<P2CrimsonCyclone>()
+        ComponentCondition<P2CrimsonCyclone1>(id, delay, comp => comp.CastsPredicted)
+            .ActivateOnEnter<P2CrimsonCyclone1>()
             .ActivateOnEnter<P2RadiantPlume>() // casts starts at the same time as charge (2.1s)
-            .ExecOnEnter<P2CrimsonCyclone>(p => p.Risky = false) // party should wait until plumes appear
+            .ExecOnEnter<P2CrimsonCyclone1>(p => p.Risky = false) // wait for plumes to appear
             .ExecOnEnter<PartyPositioning>(p => p.DesiredPosition = (Module.Arena.Center, 1))
             .DeactivateOnExit<P1FeatherRain>();
         ComponentCondition<P2RadiantPlume>(id + 1, 2, p => p.Casters.Count > 0)
-            .ExecOnExit<P2CrimsonCyclone>(p => p.Risky = true);
-        ComponentCondition<P2CrimsonCyclone>(id + 0x10, 3.1f, comp => comp.NumCasts > 0, "Charge")
-            .DeactivateOnExit<P2CrimsonCyclone>();
+            .ExecOnExit<P2CrimsonCyclone1>(p => p.Risky = true);
+        ComponentCondition<P2CrimsonCyclone1>(id + 0x10, 3.1f, comp => comp.NumCasts > 0, "Charge")
+            .DeactivateOnExit<P2CrimsonCyclone1>();
         ComponentCondition<P2RadiantPlume>(id + 0x20, 1, comp => comp.NumCasts > 0, "Plumes")
             .DeactivateOnExit<P2RadiantPlume>();
 
@@ -282,13 +283,13 @@ class UWUStates : StateMachineBuilder
         ActorCastStart(id + 0x10, _module.Ifrit, AID.Eruption, 3.2f, true, "Eruption baits");
         ActorCastEnd(id + 0x21, _module.Ifrit, 2.5f, true);
         // +0.3s: searing wind 1
-        ComponentCondition<P2CrimsonCyclone>(id + 0x30, 2.5f, comp => comp.CastsPredicted)
-            .ActivateOnEnter<P2CrimsonCyclone>();
+        ComponentCondition<P2CrimsonCyclone1>(id + 0x30, 2.5f, comp => comp.CastsPredicted)
+            .ActivateOnEnter<P2CrimsonCyclone1>();
         // +3.8s: searing wind 2
         ComponentCondition<P2Eruption2>(id + 0x40, 4, comp => comp.NumCasts >= 8)
             .DeactivateOnExit<P2Eruption2>();
-        ComponentCondition<P2CrimsonCyclone>(id + 0x50, 1.0f, comp => comp.NumCasts > 0, "Charges")
-            .DeactivateOnExit<P2CrimsonCyclone>();
+        ComponentCondition<P2CrimsonCyclone1>(id + 0x50, 1.0f, comp => comp.NumCasts > 0, "Charges")
+            .DeactivateOnExit<P2CrimsonCyclone1>();
 
         ActorCast(id + 0x1000, _module.Ifrit, AID.InfernoHowl, 2.9f, 2, true, "Searing wind 2 start");
         // +0.0s: searing wind 3 (on first target only)
@@ -302,15 +303,16 @@ class UWUStates : StateMachineBuilder
         ActorTargetable(id + 0x2000, _module.Ifrit, false, 4.1f, "Disappear")
             .SetHint(StateMachine.StateHint.DowntimeStart)
             .ExecOnExit<PartyPositioning>(p => p.PrepP2Dash());
-        ComponentCondition<P2CrimsonCyclone>(id + 0x2001, 2.3f, comp => comp.CastsPredicted)
-            .ActivateOnEnter<P2CrimsonCyclone>();
+        ComponentCondition<P2CrimsonCyclone2>(id + 0x2001, 2.3f, comp => comp.CastsPredicted)
+            .ActivateOnEnter<P2CrimsonCyclone2>();
         // +2.2s: PATE 1E43 on 4 ifrits
         // +3.6s: searing wind 3 (2nd target)
         // +4.4s: first charge start (others are staggered by 1.4s); 3s cast duration, ~2.2s after awakened charge we get 2 'cross' charges
         // +9.6s: searing wind 4 (2nd target)
         // +15.6s: searing wind 5 (2nd target)
         ActorTargetable(id + 0x2100, _module.Ifrit, true, 13.5f, "Awakened charges + Reappear")
-            .DeactivateOnExit<P2CrimsonCyclone>()
+            .DeactivateOnExit<P2CrimsonCyclone2>()
+            .ExecOnExit<PartyPositioning>(p => p.DesiredPosition = null)
             .SetHint(StateMachine.StateHint.DowntimeEnd);
     }
 
