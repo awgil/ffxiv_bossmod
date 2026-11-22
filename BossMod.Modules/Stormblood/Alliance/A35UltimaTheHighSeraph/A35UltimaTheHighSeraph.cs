@@ -150,7 +150,14 @@ class Penultima(BossModule module) : Components.GenericTowers(module, AID._Weapo
 
     static WPos TowerPosition(Actor eventObj) => eventObj.ActualPosition + eventObj.Rotation.ToDirection() * 14;
 }
-class PD(BossModule module) : Components.DebugCasts(module, [AID._Weaponskill_Penultima], new AOEShapeCircle(1));
+
+class EmbraceSpawn(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Embrace1, 3);
+class EmbracePuddle(BossModule module) : Components.Voidzone(module, 7, OID._Gen_Dominion2);
+class HolyIVPuddle(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_HolyIV, 6);
+class HolyIVSpread(BossModule module) : Components.SpreadFromCastTargets(module, AID._Weaponskill_HolyIV2, 6);
+
+class Bombardment(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Bombardment, 6);
+class Holy(BossModule module) : Components.StandardAOEs(module, AID._Weaponskill_Holy, 2);
 
 class A35UltimaTheHighSeraphStates : StateMachineBuilder
 {
@@ -162,7 +169,12 @@ class A35UltimaTheHighSeraphStates : StateMachineBuilder
             .ActivateOnEnter<Plummet>()
             .ActivateOnEnter<GrandCross>()
             .ActivateOnEnter<Penultima>()
-            .ActivateOnEnter<PD>();
+            .ActivateOnEnter<EmbraceSpawn>()
+            .ActivateOnEnter<EmbracePuddle>()
+            .ActivateOnEnter<HolyIVPuddle>()
+            .ActivateOnEnter<HolyIVSpread>()
+            .ActivateOnEnter<Bombardment>()
+            .ActivateOnEnter<Holy>();
     }
 }
 
