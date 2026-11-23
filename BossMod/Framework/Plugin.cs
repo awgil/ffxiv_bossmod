@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Features.AttributeFilters;
+using BossMod.ActionTweaks.CustomCombos;
 using BossMod.Autorotation;
 using BossMod.Interfaces;
 using BossMod.Pathfinding;
@@ -116,6 +117,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<ComboHotbarService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
