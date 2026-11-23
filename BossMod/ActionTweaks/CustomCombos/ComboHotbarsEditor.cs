@@ -35,7 +35,7 @@ public sealed class ComboHotbarsEditor
         var m = RaptureHotbarModule.Instance();
         if (svc == null || m == null || !m->ModuleReady || (m->ActiveHotbarClassJobId & 0x80) != 0)
         {
-            ImGui.TextDisabled("Log in to set up combo hotbars.");
+            ImGui.TextDisabled("n/a: not logged in");
             return;
         }
 

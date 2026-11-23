@@ -8,7 +8,7 @@ namespace BossMod.ActionTweaks.CustomCombos;
 
 public sealed class CustomComboEditor
 {
-    private static string _actionSearch = ""; // only one picker can be open at a time
+    private static string _actionSearch = "";
     private static WorldState? _ws; // for showing actions as they look at player's level
     private static Class _displayJob; // class/job of the combo being drawn
     private string _importError = "";
@@ -21,7 +21,6 @@ public sealed class CustomComboEditor
 
         UIMisc.SectionHeader("Combos");
         ImGui.TextWrapped("A combo replaces an action on your hotbar: conditional actions are checked first, then the combo chain.");
-        ImGui.TextDisabled("Autorotation ignores custom combos.");
 
         if (ImGui.Button("New combo"))
         {
@@ -246,18 +245,15 @@ public sealed class CustomComboEditor
         ImGui.TextUnformatted("Use combo for preset: ");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
-        using (var combo = ImRaii.Combo("##preset", current?.Name ?? "<no preset for this job>"))
+        using var combo = ImRaii.Combo("##preset", current?.Name ?? "<no preset for this job>");
+        if (!combo)
+            return;
+        foreach (var p in tweak.SuggestionPresets(job))
         {
-            if (combo)
+            if (ImGui.Selectable(p.Name, p == current))
             {
-                foreach (var p in tweak.SuggestionPresets(job))
-                {
-                    if (ImGui.Selectable(p.Name, p == current))
-                    {
-                        config.AutorotationPreset = p.Name;
-                        config.Modified.Fire();
-                    }
-                }
+                config.AutorotationPreset = p.Name;
+                config.Modified.Fire();
             }
         }
     }
@@ -425,37 +421,35 @@ public sealed class CustomComboEditor
                 ImGui.SetNextItemWidth(-1);
                 ImGui.InputTextWithHint("##search", "Search by name or ID...", ref _actionSearch, 100);
 
-                using var list = ImRaii.Child("##actions", new(0, 400 * ImGuiHelpers.GlobalScale));
+                var autos = allowAutorotation ? CustomComboData.AutorotationActions.Where(a => _actionSearch.Length == 0 || CustomComboData.ActionName(a).Contains(_actionSearch, StringComparison.OrdinalIgnoreCase)).ToList() : [];
+                // show actions as they look on hotbar at current level (e.g. heated split shot)
+                var level = JobLevel(job);
+                var actions = CustomComboData.ActionsForClass(job)
+                    .Where(a => filter == null || filter(a.ID))
+                    .Select(a => (Base: a, Shown: CustomComboData.DisplayAction(a.ID, level)))
+                    .Select(e => (e.Base, e.Shown, Name: e.Shown == e.Base.ID ? e.Base.Name : CustomComboData.ActionName(e.Shown)))
+                    .Where(e => _actionSearch.Length == 0 || e.Name.Contains(_actionSearch, StringComparison.OrdinalIgnoreCase) || e.Shown.ToString().StartsWith(_actionSearch, StringComparison.Ordinal))
+                    .ToList();
+
+                var style = ImGui.GetStyle();
+                var contentHeight = Math.Max(1, autos.Count + actions.Count) * (iconSize.Y + style.ItemSpacing.Y) + (autos.Count > 0 ? style.ItemSpacing.Y + 1 : 0);
+                using var list = ImRaii.Child("##actions", new(0, Math.Min(400 * ImGuiHelpers.GlobalScale, contentHeight)));
                 if (list)
                 {
-                    if (allowAutorotation)
+                    foreach (var auto in autos)
                     {
-                        foreach (var auto in CustomComboData.AutorotationActions)
+                        if (DrawIconEntry(auto.ToString(), PickerIcon(auto), CustomComboData.ActionName(auto), auto == action, iconSize))
                         {
-                            var autoName = CustomComboData.ActionName(auto);
-                            if (_actionSearch.Length > 0 && !autoName.Contains(_actionSearch, StringComparison.OrdinalIgnoreCase))
-                                continue;
-                            var clicked = DrawIconEntry(auto.ToString(), PickerIcon(auto), autoName, auto == action, iconSize);
-                            if (clicked)
-                            {
-                                action = auto;
-                                modified = true;
-                                ImGui.CloseCurrentPopup();
-                            }
+                            action = auto;
+                            modified = true;
+                            ImGui.CloseCurrentPopup();
                         }
-                        ImGui.Separator();
                     }
+                    if (autos.Count > 0)
+                        ImGui.Separator();
 
-                    var level = JobLevel(job);
-                    foreach (var a in CustomComboData.ActionsForClass(job))
+                    foreach (var (a, shown, name) in actions)
                     {
-                        if (filter != null && !filter(a.ID))
-                            continue;
-                        // show actions as they look on hotbar at current level (e.g. heated split shot)
-                        var shown = CustomComboData.DisplayAction(a.ID, level);
-                        var name = shown == a.ID ? a.Name : CustomComboData.ActionName(shown);
-                        if (_actionSearch.Length > 0 && !name.Contains(_actionSearch, StringComparison.OrdinalIgnoreCase) && !shown.ToString().StartsWith(_actionSearch, StringComparison.Ordinal))
-                            continue;
                         var shownLevel = CustomComboData.ActionLevel(shown);
                         var clicked = DrawIconEntry(a.ID.ToString(), CustomComboData.ActionIcon(shown), name, a.ID == CustomComboData.Canonical(action), iconSize, $"lv{shownLevel}");
                         if (ImGui.IsItemHovered())
@@ -467,6 +461,8 @@ public sealed class CustomComboEditor
                             ImGui.CloseCurrentPopup();
                         }
                     }
+                    if (autos.Count + actions.Count == 0)
+                        ImGui.TextDisabled("(nothing found)");
                 }
             }
         }
@@ -533,20 +529,18 @@ public sealed class CustomComboEditor
                 ImGui.SetNextItemWidth(-1);
                 ImGui.InputTextWithHint("##search", "Search all statuses by name or ID...", ref _statusSearch, 100);
 
-                using var list = ImRaii.Child("##statuses", new(0, 400 * ImGuiHelpers.GlobalScale));
+                var current = _statusSearch.Length == 0 ? (source?.Statuses ?? []).Select(s => s.ID).Where(id => id != 0).Distinct().ToList() : null;
+                var maxHeight = 400 * ImGuiHelpers.GlobalScale;
+                var height = current != null ? Math.Min(maxHeight, ImGui.GetTextLineHeightWithSpacing() + Math.Max(1, current.Count) * (iconSize.Y + ImGui.GetStyle().ItemSpacing.Y)) : maxHeight;
+                using var list = ImRaii.Child("##statuses", new(0, height));
                 if (list)
                 {
-                    if (_statusSearch.Length == 0)
+                    if (current != null)
                     {
-                        // without search, offer statuses currently on player or target
                         ImGui.TextDisabled(onSelf ? "On you right now:" : "On your target right now:");
-                        var any = false;
-                        foreach (var id in (source?.Statuses ?? []).Select(s => s.ID).Where(id => id != 0).Distinct())
-                        {
-                            any = true;
+                        foreach (var id in current)
                             modified |= DrawStatusEntry(id, StatusName(id), StatusIcon(id), ref status, iconSize);
-                        }
-                        if (!any)
+                        if (current.Count == 0)
                             ImGui.TextDisabled("(nothing)");
                     }
                     else

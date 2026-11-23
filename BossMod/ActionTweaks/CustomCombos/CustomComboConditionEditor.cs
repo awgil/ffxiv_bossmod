@@ -36,7 +36,7 @@ public static class CustomComboConditionEditor
         };
         ImGui.GetWindowDrawList().AddCircleFilled(pos + new Vector2(size * 0.3f, size * 0.5f), size * 0.22f, color);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(state switch { true => "Currently true", false => "Currently false", null => "Log in to see the current state" });
+            ImGui.SetTooltip(state switch { true => "Currently true", false => "Currently false", null => "n/a" });
     }
 
     // returns true if modified
@@ -49,12 +49,7 @@ public static class CustomComboConditionEditor
             mode = CustomComboGroupMode.All;
 
         // nested groups show their mode on the group row
-        if (list.Count == 0)
-        {
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextDisabled(depth == 0 ? "always (no conditions)" : "always true (empty group)");
-        }
-        else if (depth == 0)
+        if (depth == 0)
         {
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted("when");
@@ -96,7 +91,7 @@ public static class CustomComboConditionEditor
                 modified = true;
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Add a nested group, e.g. 'any of: A, B' inside an 'all of' list");
+                ImGui.SetTooltip("Add a nested group");
         }
         return modified;
     }
@@ -112,7 +107,7 @@ public static class CustomComboConditionEditor
             modified = true;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(c.Negate ? "Inverted: passes when the condition is false. Click to stop inverting." : "Click to invert this condition");
+            ImGui.SetTooltip(c.Negate ? "Uninvert condition" : "Invert condition");
         ImGui.SameLine();
 
         if (c.Group != CustomComboGroupMode.None)
@@ -457,9 +452,9 @@ public static class CustomComboConditionEditor
         CustomComboConditionType.CanLateWeave => "Can late-weave",
         CustomComboConditionType.CombatTime => "Time in combat",
         CustomComboConditionType.StatusOnSelf => "Status on me",
-        CustomComboConditionType.PlayerHP => "My HP",
-        CustomComboConditionType.PlayerMP => "My MP",
-        CustomComboConditionType.PlayerLevel => "My level",
+        CustomComboConditionType.PlayerHP => "HP",
+        CustomComboConditionType.PlayerMP => "MP",
+        CustomComboConditionType.PlayerLevel => "Level",
         CustomComboConditionType.InCombat => "In combat",
         CustomComboConditionType.Moving => "Moving",
         CustomComboConditionType.PetPresent => "Pet summoned",
@@ -482,22 +477,22 @@ public static class CustomComboConditionEditor
 
     private static string TypeDescription(CustomComboConditionType type) => type switch
     {
-        CustomComboConditionType.ActionUsable => "Unlocked, off cooldown (GCDs count as ready while the GCD rolls) and usable right now: enough MP/gauge, required buff or proc active, etc.\nThis is usually what you want.",
+        CustomComboConditionType.ActionUsable => "Unlocked, off cooldown (GCDs count as ready while the GCD rolls) and usable right now: enough MP/gauge, required buff or proc active, etc.",
         CustomComboConditionType.ActionReady => "Only checks the action's own cooldown, ignoring resources and procs.",
         CustomComboConditionType.UsedRecently => "You used the action within the last few seconds.",
-        CustomComboConditionType.CanWeave => "There's room for an oGCD before the next GCD without clipping. Use this for oGCDs on GCD buttons.",
+        CustomComboConditionType.CanWeave => "There's room for an oGCD before the next GCD without clipping.",
         CustomComboConditionType.CanLateWeave => "Second half of the GCD window, for oGCDs that should be weaved late.",
-        CustomComboConditionType.Gauge => "Compare one of your job gauge values, e.g. Heat >= 50.",
-        CustomComboConditionType.InBossFight => "A bossmod boss module is active for the current fight.",
-        CustomComboConditionType.RaidwideIncoming => "The active bossmod module predicts raidwide damage on you soon.",
-        CustomComboConditionType.TankbusterIncoming => "The active bossmod module predicts a tankbuster on you soon.",
+        CustomComboConditionType.Gauge => "Compare one of your job gauge values.",
+        CustomComboConditionType.InBossFight => "A boss module is active for the current fight.",
+        CustomComboConditionType.RaidwideIncoming => "The active bossmod module predicts upcoming raidwide.",
+        CustomComboConditionType.TankbusterIncoming => "The active bossmod module predicts an upcoming tankbuster.",
         _ => TypeLabel(type)
     };
 
     // one-line summary, shown when collapsed
     public static string StepSummary(CustomComboStep step)
     {
-        var action = step.Action != 0 ? CustomComboEditor.ActionName(step.Action) : "<pick action>";
+        var action = step.Action != 0 ? CustomComboEditor.ActionName(step.Action) : "<none>";
         var conds = step.Conditions.Count == 0 ? "always" : $"when {ListSummary(step.Conditions, step.Match)}";
         var res = $"{action}: {conds}";
         return res.Length > 120 ? res[..117] + "..." : res;
