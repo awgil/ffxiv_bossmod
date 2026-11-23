@@ -21,9 +21,6 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     public const int NumSlots = 16;
     public const int NumNormalBars = 10;
 
-    // for config UI
-    public static ComboHotbarService? Current { get; private set; }
-
     private readonly CustomComboConfig _comboConfig = configRoot.Get<CustomComboConfig>();
     public ComboHotbarsConfig Config => _comboConfig.Hotbars;
     public readonly List<string> Messages = []; // user-visible notices, e.g. pending additions that couldn't be placed
@@ -63,11 +60,10 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
         _reassignGearsetIdHook = new("48 89 5C 24 10 48 89 6C 24 18 48 89 74 24 20 57 41 54 41 55 41 56 41 57 48 83 EC 20 44 8B EA 45 8B E0 48 8D 91 8C 23 01 00", ReassignGearsetIdDetour);
         _copyHotbarHook = new("40 55 56 41 55 41 56 41 57 48 83 EC 20 44 8B 7C 24 70 45 8B F1", CopyHotbarDetour);
 
-        clientState.ClassJobChanged += (_) => ApplyAll();
+        clientState.ClassJobChanged += OnClassJobChanged;
         clientState.Login += ApplyAll;
         gameConfig.UiConfigChanged += OnUiConfigChanged;
         _configSubscription = _comboConfig.Modified.Subscribe(OnConfigModified);
-        Current = this;
 
         _ = Service.Framework.Run(() =>
         {
@@ -81,9 +77,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
 
     public void Dispose()
     {
-        if (Current == this)
-            Current = null;
-        clientState.ClassJobChanged -= (_) => ApplyAll();
+        clientState.ClassJobChanged -= OnClassJobChanged;
         clientState.Login -= ApplyAll;
         gameConfig.UiConfigChanged -= OnUiConfigChanged;
         _configSubscription?.Dispose();
@@ -218,6 +212,8 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
         else
             RestoreAll();
     }
+
+    private void OnClassJobChanged(uint classJobId) => ApplyAll();
 
     private void OnUiConfigChanged(object? sender, ConfigChangeEvent e)
     {

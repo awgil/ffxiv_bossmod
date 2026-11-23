@@ -5,10 +5,7 @@ namespace BossMod.ActionTweaks.CustomCombos;
 public sealed record class CustomComboContext(
     Func<uint, uint> AdjustOriginal, // unhooked GetAdjustedActionId
     Func<uint, uint> ActionStatus, // action status, ignoring recast & target; 0 means usable
-    Func<bool> IsMoving,
-    Func<bool?, ActionQueue.Entry> Recommend, // private autorot suggestion (null = any, true = gcd, false = ogcd)
-    Func<Class, List<Autorotation.Preset>> PresetsForClass,
-    Func<Class, Autorotation.Preset?> SuggestionPreset);
+    Func<bool?, ActionQueue.Entry> Recommend); // private autorot suggestion (null = any, true = gcd, false = ogcd)
 
 // note: all comparisons use base actions (see CustomComboData.Canonical), so trait upgrades behave like their base action
 public sealed class CustomComboTweak : IDisposable
@@ -17,13 +14,13 @@ public sealed class CustomComboTweak : IDisposable
     private const float WeaveAnimLock = 0.6f;
     private const float QueueWindow = 0.5f;
 
-    public static CustomComboTweak? Current { get; private set; }
-
     private readonly WorldState _ws;
     private readonly AIHints _hints;
     private readonly BossModuleManager _bossmods;
-    private readonly CustomComboContext _ctx;
-    private readonly CustomComboConfig _config = Service.Config.Get<CustomComboConfig>();
+    private readonly AutorotationSuggestions _suggestions;
+    private readonly MovementOverride _movement;
+    private readonly CustomComboConfig _config;
+    private CustomComboContext _ctx = new(a => a, _ => 0, _ => default); // until connected, nothing is replaced anyway
     private readonly Dictionary<uint, (uint Action, Actor? Target)> _cache = []; // trigger -> replacement and its target, valid for a single frame
     private readonly Dictionary<uint, ActionQueue.Entry> _recommendations = []; // valid for a single frame
     private uint _cacheFrame = uint.MaxValue;
@@ -34,22 +31,20 @@ public sealed class CustomComboTweak : IDisposable
 
     public bool Enabled => _config.Enabled;
 
-    public CustomComboTweak(WorldState ws, AIHints hints, BossModuleManager bossmods, CustomComboContext ctx)
+    public CustomComboTweak(WorldState ws, AIHints hints, BossModuleManager bossmods, AutorotationSuggestions suggestions, MovementOverride movement, ConfigRoot configRoot)
     {
         _ws = ws;
         _hints = hints;
         _bossmods = bossmods;
-        _ctx = ctx;
+        _suggestions = suggestions;
+        _movement = movement;
+        _config = configRoot.Get<CustomComboConfig>();
         _castSubscription = ws.Actors.CastEvent.Subscribe(OnCastEvent);
-        Current = this;
     }
 
-    public void Dispose()
-    {
-        _castSubscription.Dispose();
-        if (Current == this)
-            Current = null;
-    }
+    public void Dispose() => _castSubscription.Dispose();
+
+    public void Connect(CustomComboContext ctx) => _ctx = ctx;
 
     // returns replacement spell id (before game adjustment), or 0 if action should not be replaced
     public uint Resolve(uint trigger) => ResolveWithTarget(trigger).Action;
@@ -80,8 +75,8 @@ public sealed class CustomComboTweak : IDisposable
     public bool WantsSuggestions(Actor player)
         => _config.Enabled && _config.Combos.Any(c => c.Enabled && (c.Job == Class.None || c.Job == player.Class) && c.Steps.Any(s => s.Enabled && CustomComboData.IsAutorotation(s.Action)));
 
-    public List<Autorotation.Preset> SuggestionPresets(Class cls) => _ctx.PresetsForClass(cls);
-    public Autorotation.Preset? SuggestionPreset(Class cls) => _ctx.SuggestionPreset(cls);
+    public List<Autorotation.Preset> SuggestionPresets(Class cls) => _suggestions.PresetsForClass(cls);
+    public Autorotation.Preset? SuggestionPreset(Class cls) => _suggestions.ResolvePreset(_config.AutorotationPreset, cls);
 
     public uint PreviewRecommendation(uint autoAction)
     {
@@ -281,7 +276,7 @@ public sealed class CustomComboTweak : IDisposable
             CustomComboConditionType.PlayerMP => Compare(player.HPMP.CurMP, c.Compare, c.Value),
             CustomComboConditionType.PlayerLevel => player.Level >= c.Value,
             CustomComboConditionType.InCombat => player.InCombat,
-            CustomComboConditionType.Moving => _ctx.IsMoving(),
+            CustomComboConditionType.Moving => _movement.IsMoving(),
             CustomComboConditionType.PetPresent => _ws.Actors.Any(a => a.OwnerID == player.InstanceID && a.Type == ActorType.Pet && !a.IsDead),
 
             CustomComboConditionType.Gauge => CustomComboGauge.Read(_ws, player.Class, c.Field) is { } v && Compare(v, c.Compare, c.Value),

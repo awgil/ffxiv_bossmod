@@ -99,7 +99,7 @@ public static class CustomComboConditionEditor
     private static (bool modified, bool delete) DrawConditionItem(CustomComboCondition c, Context ctx, int depth)
     {
         var modified = false;
-        LiveDot(CustomComboTweak.Current?.EvaluateLive(c));
+        LiveDot(Service.CustomCombos?.EvaluateLive(c));
         ImGui.SameLine();
         if (UIMisc.ToggleButton("NOT###negate", c.Negate, 0xff3030b0))
         {

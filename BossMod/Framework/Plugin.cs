@@ -104,6 +104,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
 
             Service.Camera = scope.Resolve<ICamera>();
             Service.Shadowcast = scope.Resolve<IShadowcast>();
+            Service.CustomCombos = scope.ResolveOptional<CustomComboTweak>();
+            Service.ComboHotbars = scope.ResolveOptional<ComboHotbarService>();
 
             Service.WindowSystem = scope.Resolve<IWindowSystemFactory>().Create("vbm");
         });
@@ -117,6 +119,8 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud)
         containerBuilder.Register(ctx => ctx.Resolve<IDalamudPluginInterface>().ConfigDirectory).Keyed<DirectoryInfo>(Keys.ConfigDirectory);
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<ActionManagerEx>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<AutorotationSuggestions>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<CustomComboTweak>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<ComboHotbarService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<MovementOverride>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();

@@ -56,6 +56,8 @@ public sealed class Service
     public static GaugeVisualizer GaugeVisualizer = null!;
     public static ICamera Camera = null!;
     public static IShadowcast Shadowcast = null!;
+    public static ActionTweaks.CustomCombos.CustomComboTweak? CustomCombos;
+    public static ActionTweaks.CustomCombos.ComboHotbarService? ComboHotbars;
 #pragma warning restore CA2211
 
     //public static SharpDX.Direct3D11.Device? Device = null;

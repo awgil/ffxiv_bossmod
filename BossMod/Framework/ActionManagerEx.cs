@@ -42,8 +42,8 @@ public sealed unsafe class ActionManagerEx(
     IPluginLog logger,
     ICondition condition,
     ConfigRoot configRoot,
-    BossModuleManager bossmods,
-    Autorotation.RotationDatabase rotationDb
+    CustomComboTweak customCombos,
+    AutorotationSuggestions suggestions
 ) : IAmex, IHostedService, IDisposable
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
@@ -73,9 +73,7 @@ public sealed unsafe class ActionManagerEx(
     private readonly SmartRotationTweak _smartRotationTweak = new(ws, hints);
     private readonly OutOfCombatActionsTweak _oocActionsTweak = new(ws);
     private readonly AutoAutosTweak _autoAutosTweak = new(ws, hints);
-    private CustomComboTweak? _customComboTweak;
     private readonly CustomComboConfig _customComboConfig = configRoot.Get<CustomComboConfig>();
-    private AutorotationSuggestions? _suggestions;
     private readonly ActionQueue _recommendationQueue = new();
     private int _suppressCustomCombos; // while >0, custom combos are not applied
 
@@ -106,14 +104,10 @@ public sealed unsafe class ActionManagerEx(
 
         logger.Debug($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
         _getAdjustedActionIdHook = new(ActionManager.Addresses.GetAdjustedActionId, GetAdjustedActionIdDetour);
-        _suggestions = new(ws, hints, rotationDb, bossmods);
-        _customComboTweak = new(ws, hints, bossmods, new(
+        customCombos.Connect(new(
             GetAdjustedActionID,
             spellId => GetActionStatus(new(ActionType.Spell, spellId), 0xE0000000, false, false),
-            movement.IsMoving,
-            GetRecommendation,
-            _suggestions.PresetsForClass,
-            cls => _suggestions.ResolvePreset(_customComboConfig.AutorotationPreset, cls)));
+            GetRecommendation));
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
@@ -141,9 +135,7 @@ public sealed unsafe class ActionManagerEx(
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
-        _customComboTweak?.RestoreHotbars();
-        _customComboTweak?.Dispose();
-        _suggestions?.Dispose();
+        customCombos.RestoreHotbars(); // needs the adjust hook, so before it's disposed
         _getAdjustedActionIdHook.Dispose();
         _oocActionsTweak.Dispose();
     }
@@ -165,10 +157,10 @@ public sealed unsafe class ActionManagerEx(
         _oocActionsTweak.FillActions(player, hints);
 
         // suggestions for custom combos, regardless of whether autorotation is enabled
-        if (_customComboTweak?.WantsSuggestions(player) ?? false)
-            _suggestions?.Update(_customComboConfig.AutorotationPreset, _animLockTweak.DelayEstimate, movement.IsMoving());
+        if (customCombos.WantsSuggestions(player))
+            suggestions.Update(_customComboConfig.AutorotationPreset, _animLockTweak.DelayEstimate, movement.IsMoving());
         else
-            _suggestions?.Clear();
+            suggestions.Clear();
 
         AutoQueue = hints.ActionsToExecute.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, hints, _animLockTweak.DelayEstimate, _dismountTweak.AutoDismountEnabled);
         if (AutoQueue.Delay > 0)
@@ -188,10 +180,10 @@ public sealed unsafe class ActionManagerEx(
     public ActionQueue.Entry GetRecommendation(bool? gcd)
     {
         var player = ws.Party.Player();
-        if (player == null || _suggestions == null)
+        if (player == null)
             return default;
         _recommendationQueue.Clear();
-        foreach (var e in _suggestions.Hints.ActionsToExecute.Entries)
+        foreach (var e in suggestions.Hints.ActionsToExecute.Entries)
         {
             if (e.Action.Type != ActionType.Spell) // combos can only replace spells
                 continue;
@@ -199,7 +191,7 @@ public sealed unsafe class ActionManagerEx(
                 continue;
             _recommendationQueue.Entries.Add(e);
         }
-        return _recommendationQueue.Entries.Count > 0 ? _recommendationQueue.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, _suggestions.Hints, _animLockTweak.DelayEstimate, _dismountTweak.AutoDismountEnabled) : default;
+        return _recommendationQueue.Entries.Count > 0 ? _recommendationQueue.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, suggestions.Hints, _animLockTweak.DelayEstimate, _dismountTweak.AutoDismountEnabled) : default;
     }
 
     public Vector3? GetWorldPosUnderCursor()
@@ -514,7 +506,7 @@ public sealed unsafe class ActionManagerEx(
         {
             --_suppressCustomCombos;
         }
-        _customComboTweak?.Update();
+        customCombos.Update();
     }
 
     private void UpdateDetourImpl(ActionManager* self)
@@ -610,9 +602,9 @@ public sealed unsafe class ActionManagerEx(
     private bool UseActionDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, uint extraParam, ActionManager.UseActionMode mode, uint comboRouteId, bool* outOptAreaTargeted)
     {
         // apply custom combos once, on user press; queued actions were replaced when pressed
-        if (actionType == CSActionType.Action && mode != ActionManager.UseActionMode.Queue && _suppressCustomCombos == 0 && _customComboTweak != null && _customComboTweak.Enabled)
+        if (actionType == CSActionType.Action && mode != ActionManager.UseActionMode.Queue && _suppressCustomCombos == 0 && customCombos.Enabled)
         {
-            actionId = _customComboTweak.Apply(actionId, out var comboTarget);
+            actionId = customCombos.Apply(actionId, out var comboTarget);
             if (comboTarget != null)
                 targetId = comboTarget.InstanceID; // e.g. autorot suggestion
         }
@@ -668,9 +660,9 @@ public sealed unsafe class ActionManagerEx(
 
     private uint GetAdjustedActionIdDetour(ActionManager* self, uint actionId)
     {
-        if (_suppressCustomCombos == 0 && _customComboTweak != null && _customComboTweak.Enabled)
+        if (_suppressCustomCombos == 0 && customCombos.Enabled)
         {
-            var repl = _customComboTweak.Resolve(actionId);
+            var repl = customCombos.Resolve(actionId);
             if (repl != 0)
                 return _getAdjustedActionIdHook.Original(self, repl);
         }

@@ -141,7 +141,7 @@ public sealed class CustomComboEditor
     private static void DrawPreviewIcon(CustomCombo combo)
     {
         var size = new Vector2(ImGui.GetFrameHeight());
-        var action = CustomComboTweak.Current?.PreviewLive(combo) ?? 0;
+        var action = Service.CustomCombos?.PreviewLive(combo) ?? 0;
         UIMisc.Image(action != 0 ? Service.Texture?.GetFromGameIcon(CustomComboData.ActionIcon(action)) : null, size);
         if (ImGui.IsItemHovered() && action != 0)
             ImGui.SetTooltip($"Right now this button shows {CustomComboData.ActionName(action)}");
@@ -236,7 +236,7 @@ public sealed class CustomComboEditor
 
     private static void DrawSuggestionPreset(Class job)
     {
-        var tweak = CustomComboTweak.Current;
+        var tweak = Service.CustomCombos;
         if (tweak == null || job == Class.None)
             return;
         var config = Service.Config.Get<CustomComboConfig>();
@@ -286,7 +286,7 @@ public sealed class CustomComboEditor
             if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled) && step.Conditions.Count > 0)
                 ImGui.SetTooltip("Hold shift to delete");
             ImGui.SameLine();
-            CustomComboConditionEditor.LiveDot(CustomComboTweak.Current?.EvaluateLive(step));
+            CustomComboConditionEditor.LiveDot(Service.CustomCombos?.EvaluateLive(step));
             ImGui.SameLine();
             UIMisc.Image(step.Action != 0 ? Service.Texture?.GetFromGameIcon(PickerIcon(step.Action)) : null, new(ImGui.GetFrameHeight()));
             ImGui.SameLine();
@@ -397,7 +397,7 @@ public sealed class CustomComboEditor
 
     // autorotation actions show current suggestion
     private static uint PickerIcon(uint action)
-        => CustomComboData.IsAutorotation(action) ? CustomComboData.ActionIcon(CustomComboTweak.Current?.PreviewRecommendation(action) ?? 0) : CustomComboData.ActionIcon(DisplayAction(action));
+        => CustomComboData.IsAutorotation(action) ? CustomComboData.ActionIcon(Service.CustomCombos?.PreviewRecommendation(action) ?? 0) : CustomComboData.ActionIcon(DisplayAction(action));
 
     internal static bool DrawActionPicker(string label, ref uint action, Class job, string? placeholder = null, float width = 220, Func<uint, bool>? filter = null, bool allowAutorotation = false)
     {

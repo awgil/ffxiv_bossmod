@@ -31,7 +31,7 @@ public sealed class ComboHotbarsEditor
 
         ImGui.TextDisabled("Click a slot to make it a combo slot. Combo slots are saved internally to vbm while keeping your vanilla layouts.");
 
-        var svc = ComboHotbarService.Current;
+        var svc = Service.ComboHotbars;
         var m = RaptureHotbarModule.Instance();
         if (svc == null || m == null || !m->ModuleReady || (m->ActiveHotbarClassJobId & 0x80) != 0)
         {
