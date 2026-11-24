@@ -121,11 +121,10 @@ class Floor(BossModule module) : Components.GenericAOEs(module, AID.MouserAOE)
     private readonly List<AOEInstance> _jumps = [];
 
     public static readonly AOEShapeRect CellShape = new(5, 5, 5);
+    private static readonly ArenaBoundsSquare _square = new(20);
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor)
     {
-        foreach (var i in DestroyedCells.SetBits())
-            yield return new(CellShape, CellCenter(i));
         if (_jumps.Count == 0)
             yield break;
         var deadline = _jumps[0].Activation.AddSeconds(2.5f);
@@ -135,10 +134,16 @@ class Floor(BossModule module) : Components.GenericAOEs(module, AID.MouserAOE)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        for (var x = -10; x <= 10; x += 10)
-            Arena.AddLine(Module.Center + new WDir(x, -20), Module.Center + new WDir(x, 20), ArenaColor.Border);
-        for (var z = -10; z <= 10; z += 10)
-            Arena.AddLine(Module.Center + new WDir(-20, z), Module.Center + new WDir(20, z), ArenaColor.Border);
+        for (var i = 0; i < 16; ++i)
+        {
+            if (DestroyedCells[i])
+                continue;
+            var c = CellCenter(i);
+            if ((i & 3) < 3 && !DestroyedCells[i + 1])
+                Arena.AddLine(c + new WDir(5, -5), c + new WDir(5, 5), ArenaColor.Border);
+            if (i < 12 && !DestroyedCells[i + 4])
+                Arena.AddLine(c + new WDir(-5, 5), c + new WDir(5, 5), ArenaColor.Border);
+        }
     }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
@@ -168,6 +173,7 @@ class Floor(BossModule module) : Components.GenericAOEs(module, AID.MouserAOE)
         if (index > 15)
             return;
 
+        var prev = DestroyedCells;
         switch (state)
         {
             case 0x00020001:
@@ -185,10 +191,21 @@ class Floor(BossModule module) : Components.GenericAOEs(module, AID.MouserAOE)
                 DestroyedCells.Clear(index);
                 break;
         }
+        if (DestroyedCells != prev)
+            UpdateBounds();
     }
 
-    public bool Unsafe(WPos pos) => !Module.InBounds(pos) || DestroyedCells[CellIndex(pos)];
-    public bool NotIntact(WPos pos) => !Module.InBounds(pos) || DamagedCells[CellIndex(pos)] || DestroyedCells[CellIndex(pos)];
+    private void UpdateBounds()
+    {
+        if (DestroyedCells.None())
+        {
+            Arena.Bounds = _square;
+            return;
+        }
+        var cells = Enumerable.Range(0, 16).Where(i => !DestroyedCells[i]).Select(i => new PolygonClipper.Operand(CurveApprox.Rect(CellCenter(i) - Module.Center, new WDir(5, 0), new WDir(0, 5)))).ToList();
+        if (cells.Count > 0)
+            Arena.Bounds = new ArenaBoundsCustom(20, _square.Clipper.UnionAll(cells[0], [.. cells.Skip(1)]));
+    }
 
     public WPos CellCenter(int index) => Module.Center + new WDir(-15 + 10 * (index & 3), -15 + 10 * (index >> 2));
 
@@ -390,8 +407,27 @@ class ElevateAndEviscerate(BossModule module) : Components.Knockback(module, ign
             yield return new(Caster.Position, Distance, Activation);
     }
 
-    // FIXME(knockback)
-    //public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.NotIntact(pos) ?? !Module.InBounds(pos);
+    private readonly Floor? _floor = module.FindComponent<Floor>();
+
+    public override PointTest DestinationUnsafe(int slot, Actor actor)
+    {
+        var res = base.DestinationUnsafe(slot, actor);
+        if (_floor is { } floor && floor.DamagedCells.Any())
+            res |= ShapeDistance.Union([.. floor.DamagedCells.SetBits().Select(i => ShapeDistance.Rect(floor.CellCenter(i), new WDir(0, 1), 5, 5, 5))]).Discretize();
+        return res;
+    }
+
+    public override void DrawArenaBackground(int pcSlot, Actor pc)
+    {
+        if (_floor == null || Caster == null || pc != Target)
+            return;
+        var off = Landing - Module.Center;
+        if (Math.Abs(off.X) > 20 || Math.Abs(off.Z) > 20)
+            return;
+        var cell = _floor.CellIndex(Landing);
+        var deadly = _floor.DamagedCells[cell] || _floor.DestroyedCells[cell];
+        Arena.ZoneRect(_floor.CellCenter(cell), new WDir(0, 1), 5, 5, 5, deadly ? ArenaColor.Danger : ArenaColor.SafeFromAOE);
+    }
 
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
@@ -462,11 +498,7 @@ class ElevateAndEviscerateImpact(BossModule module) : Components.GenericAOEs(mod
     }
 }
 
-class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ShockwaveAOE, 18)
-{
-    // FIXME(knockback)
-    //public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => _floor?.Unsafe(pos) ?? !Module.InBounds(pos);
-}
+class Shockwave(BossModule module) : Components.KnockbackFromCastTarget(module, AID.ShockwaveAOE, 18);
 
 class PredaceousPounce(BossModule module) : Components.GenericAOEs(module)
 {
