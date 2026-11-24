@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LocalCS>false</LocalCS>
+    <LocalCS>true</LocalCS>
     <LocalDalamock>false</LocalDalamock>
   </PropertyGroup>
 

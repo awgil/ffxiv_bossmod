@@ -1,5 +1,6 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace BossMod.Interfaces;
 
@@ -61,6 +62,7 @@ internal sealed class HintExecutor(WorldState ws, MovementOverride movementOverr
         }
 
         HandleFateSync();
+        HandleQTE();
     }
 
     private unsafe void SetTarget(Actor? target, FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject** targetPtr)
@@ -129,5 +131,40 @@ internal sealed class HintExecutor(WorldState ws, MovementOverride movementOverr
             Service.Log($"[ExecHints] Unexpected actor: expected {actor.InstanceID:X} at #{actor.SpawnIndex}, but found {obj->EntityId:X}");
 
         return obj;
+    }
+
+    // "QTE" is a UI-less addon that handles communicating with the content director; it spawns one of a few different sub-addons based on what kind of gimmick it is
+    // we could simply trigger the director event immediately (or send the "QTE solved" event immediately) when the mechanic starts, but in these cases the UI would continue ticking down until time expires and you "fail", which would be confusing
+    // additionally, QTEKeep is meant to stay active for a fixed amount of time, so resolving it immediately (e.g. seat of sacrifice) would be obviously suspicious behavior
+    // so instead we'll do some ui tricks that result in the same outcome as a successful mash
+    // TODO: if we can find something to hook we can avoid iterating the entire unit list every frame, i feel like that's not a great idea (but GetAddonByName is already a linear search so it's not that much worse)
+    private unsafe void HandleQTE()
+    {
+        var units = RaptureAtkUnitManager.Instance()->AllLoadedUnitsList;
+        for (var i = 0; i < units.Count; i++)
+        {
+            var entry = units.Entries[i].Value;
+            if (entry == null || !entry->IsReady || !entry->IsVisible)
+                continue;
+
+            if (MemoryExtensions.StartsWith(entry->Name, "_QTEMash"u8))
+            {
+                var mash = (AddonQTEMash*)entry;
+                if (mash->State != 2)
+                {
+                    // just for visuals :3
+                    mash->ProgressBar->SetGaugeValue(mash->ProgressBar->MaxValue, 0, true);
+                    // sets internal state variable to 2 (= success), which triggers QTE (parent addon) success callback on next draw; also does ui teardown
+                    mash->Complete();
+                }
+            }
+            // _QTEKeep, _QTEKeepTime
+            else if (MemoryExtensions.StartsWith(entry->Name, "_QTEKeep"u8))
+            {
+                ((AddonQTEKeep*)entry)->Progress = 100;
+            }
+
+            // TODO: other variants?
+        }
     }
 }

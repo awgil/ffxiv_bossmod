@@ -103,8 +103,8 @@ public sealed class Camera(IDalamudPluginInterface dalamud) : ICamera, IDisposab
 
     public void AddLine(Vector3 start, Vector3 end, uint color, float thickness = 1, bool occluded = true)
     {
-        if ((end.X, end.Z) == (start.X, start.Z) && end.Y != start.Y)
-            Service.PluginLog.Warning($"Line {start} -> {end} is purely vertical, pictomancy doesn't like this");
+        //if ((end.X, end.Z) == (start.X, start.Z) && end.Y != start.Y)
+        //    Service.PluginLog.Warning($"Line {start} -> {end} is purely vertical, pictomancy doesn't like this");
 
         _lines.Add(new(start, end, color, thickness, occluded));
     }

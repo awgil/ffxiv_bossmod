@@ -6,11 +6,8 @@ namespace BossMod;
 
 public sealed unsafe class DebugAddon : IDisposable
 {
-    delegate nint AddonReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, ulong* inputData);
-    delegate void* AgentReceiveEventDelegate(AgentInterface* self, void* eventData, AtkValue* values, int valueCount, ulong eventKind);
-
-    private readonly Dictionary<nint, HookAddress<AddonReceiveEventDelegate>> _rcvAddonHooks = [];
-    private readonly Dictionary<nint, HookAddress<AgentReceiveEventDelegate>> _rcvAgentHooks = [];
+    private readonly Dictionary<nint, HookAddress<AtkEventListener.Delegates.ReceiveEvent>> _rcvAddonHooks = [];
+    private readonly Dictionary<nint, HookAddress<AgentInterface.Delegates.ReceiveEvent>> _rcvAgentHooks = [];
     private readonly Dictionary<string, nint> _addonRcvs = [];
     private readonly Dictionary<uint, nint> _agentRcvs = [];
     private string _newHook = "";
@@ -56,11 +53,11 @@ public sealed unsafe class DebugAddon : IDisposable
                 if (!_rcvAddonHooks.ContainsKey(address))
                 {
                     var name = _newHook;
-                    HookAddress<AddonReceiveEventDelegate> hook = null!;
+                    HookAddress<AtkEventListener.Delegates.ReceiveEvent> hook = null!;
                     _rcvAddonHooks[address] = hook = new(address, (self, eventType, eventParam, eventData, inputData) =>
                     {
                         Service.Log($"RCV: listener={name} {(nint)self:X}, type={eventType}, param={eventParam}, input={inputData[0]:X16} {inputData[1]:X16} {inputData[2]:X16}");
-                        return hook.Original(self, eventType, eventParam, eventData, inputData);
+                        //hook.Original(self, eventType, eventParam, eventData, inputData);
                     });
                 }
             }
@@ -74,7 +71,7 @@ public sealed unsafe class DebugAddon : IDisposable
                 _agentRcvs[agentId] = address;
                 if (!_rcvAgentHooks.ContainsKey(address))
                 {
-                    HookAddress<AgentReceiveEventDelegate> hook = null!;
+                    HookAddress<AgentInterface.Delegates.ReceiveEvent> hook = null!;
                     _rcvAgentHooks[address] = hook = new(address, (self, eventData, values, valueCount, eventKind) =>
                     {
                         Service.Log($"RCV: listener={agentId} {(nint)self:X}, kind={eventKind}, values={AtkValuesString(values, valueCount)}");
@@ -85,7 +82,7 @@ public sealed unsafe class DebugAddon : IDisposable
         }
     }
 
-    private string AtkValuesString(AtkValue* values, int count)
+    private string AtkValuesString(AtkValue* values, uint count)
     {
         var res = "[";
         for (var i = 0; i < count; ++i)
