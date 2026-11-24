@@ -202,23 +202,28 @@ class Interactables(BossModule module) : BossComponent(module)
 
 class DeckArena(BossModule module) : BossComponent(module)
 {
-    private static readonly WPos[] _deck = [
-        new(-17.5f, -18), new(-12.5f, -18), new(-11.5f, -14.5f), new(-10, -13.5f), new(-8, -12.5f), new(-4.5f, -11.5f), new(-4, -7.5f), new(-3.5f, -6),
-        new(-0.5f, -3.5f), new(-0.5f, -1.5f), new(-2.5f, 0), new(-3.5f, 1.5f), new(-1, 4.5f), new(0, 6.5f), new(-2, 10), new(-8, 12),
-        new(-10, 14), new(-11.5f, 14.5f), new(-11.5f, 18.5f), new(-17, 19.5f), new(-19, 18), new(-22, 16), new(-24, 13.5f), new(-26.5f, 11),
-        new(-27, 7.5f), new(-28, 5), new(-28, 1.5f), new(-26.5f, 0), new(-26.5f, -7), new(-25.5f, -11.5f), new(-21, -12.5f), new(-20.5f, -14.5f),
-        new(-19, -15.5f)];
-    private static readonly WPos[] _shell = [new(-6, -10.5f), new(9.5f, -10.5f), new(9.5f, 1.5f), new(-6, 1.5f)];
-
-    public static readonly WPos Center = new(-10, 0);
-    public static readonly ArenaBoundsCustom DeckBounds = new(22, new(Rel(_deck)));
-    public static readonly ArenaBoundsCustom ShellBounds = new(22, DeckBounds.Clipper.Union(new(Rel(_deck)), new(Rel(_shell))));
-
-    private static List<WDir> Rel(WPos[] points) => [.. points.Select(p => p - Center)];
+    public static readonly WPos Center = new(-9, -3.5f);
+    public static readonly ArenaBoundsCustom DeckBounds = new(28, new([new RelPolygonWithHoles([
+        new(-5.14f, -16), new(-1.56f, -16), new(-1.28f, -13.78f), new(2.45f, -11.2f), new(5.31f, -10.43f), new(6.47f, -8.7f), new(6.93f, -6.36f), new(7.44f, -6.15f),
+        new(8.55f, -5.4f), new(8.9f, -4.1f), new(9.6f, -3.5f), new(10.5f, -2.4f), new(10.7f, -1.5f), new(10.6f, 0.5f), new(10.3f, 1.6f), new(10, 3.55f), new(7.22f, 15.44f), new(4.59f, 19.91f),
+        new(2.48f, 20.7f), new(-2.07f, 24.24f), new(-7.32f, 24.5f), new(-12.81f, 22.67f), new(-13.5f, 21.75f), new(-15.88f, 21.75f), new(-19.71f, 19.56f), new(-20.22f, 16.17f),
+        new(-22.25f, 12.38f), new(-22.25f, 9.54f), new(-21.76f, 9.06f), new(-22.01f, 5.66f), new(-21.01f, 3.42f), new(-21.26f, 1.49f), new(-20.48f, -3.13f), new(-19.19f, -6.5f),
+        new(-18.23f, -7.68f), new(-17.99f, -10.67f), new(-16.85f, -12.37f), new(-13.59f, -14.28f), new(-12.48f, -14.05f), new(-11.57f, -15.43f), new(-6.97f, -16.78f)])]));
+    public static readonly ArenaBoundsCustom ShellBounds = new(28, new([new RelPolygonWithHoles([
+        new(13.11f, -19.5f), new(17.84f, -19.5f), new(20.15f, -18.63f), new(20.94f, -16.25f), new(19.59f, -16.25f), new(19.45f, -15.92f), new(21.37f, -15.71f), new(22.11f, -13.5f),
+        new(21, -12.75f), new(22.25f, -12.75f), new(22.25f, -10.89f), new(15.92f, -12.89f), new(16.14f, -12.36f), new(19.4f, -10.49f), new(23.09f, -10.21f), new(23.8f, -7.9f), new(23.4f, -6.3f),
+        new(23.05f, -5.15f), new(22.29f, -4.14f), new(23, -1.57f), new(23, 1), new(21.86f, 1), new(22.75f, 2.35f), new(22.75f, 3.67f), new(21.25f, 3.92f),
+        new(22.06f, 5.16f), new(20.95f, 8.49f), new(18.43f, 11.84f), new(17.06f, 11.38f), new(16.78f, 9.73f), new(16.01f, 8.96f), new(14.62f, 8.68f), new(14.39f, 8),
+        new(13.61f, 8), new(13.36f, 7), new(13.01f, 7), new(11.75f, 5.1f), new(11.08f, 4.89f), new(10.74f, 3.53f), new(11.21f, -0.52f), new(10.54f, -0.9f),
+        new(10.78f, 1.25f), new(10, 1.77f), new(10, 3.55f), new(7.22f, 15.44f), new(4.59f, 19.91f), new(2.48f, 20.7f), new(-2.07f, 24.24f), new(-7.32f, 24.5f),
+        new(-12.81f, 22.67f), new(-13.5f, 21.75f), new(-15.88f, 21.75f), new(-19.71f, 19.56f), new(-20.22f, 16.17f), new(-22.25f, 12.38f), new(-22.25f, 9.54f), new(-21.76f, 9.06f),
+        new(-22.01f, 5.66f), new(-21.01f, 3.42f), new(-21.26f, 1.49f), new(-20.48f, -3.13f), new(-19.19f, -6.5f), new(-18.23f, -7.68f), new(-17.99f, -10.67f), new(-16.85f, -12.37f),
+        new(-13.59f, -14.28f), new(-12.48f, -14.05f), new(-11.57f, -15.43f), new(-6.97f, -16.78f), new(-5.14f, -16), new(-1.56f, -16), new(-1.28f, -13.78f), new(2.45f, -11.2f),
+        new(4.25f, -10.71f), new(4.25f, -11.65f), new(10.56f, -20.63f), new(6.47f, -8.7f), new(6.93f, -6.36f), new(7.44f, -6.15f), new(7.02f, -8.07f), new(5.92f, -10.05f), new(5.51f, -10.11f)], [76])]));
 
     public override void Update()
     {
-        var shellUp = Module.Enemies(OID.Dragonkiller).Any(d => d.Tether.ID != 0);
+        var shellUp = Module.Enemies(OID.ChitinCarapace).Any(s => s.IsTargetable) || Module.Enemies(OID.Corona).Any(s => s.IsTargetable);
         var bounds = shellUp ? ShellBounds : DeckBounds;
         if (!ReferenceEquals(Arena.Bounds, bounds))
             Arena.Bounds = bounds;
