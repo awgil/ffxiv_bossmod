@@ -77,6 +77,7 @@ public enum AID : uint
     BlackPaint = 20304, // O6N Chadarnook
     Snort = 10270, // O6N Chadarnook
     OmegaJammer = 12911,  // O11N Omega
+    ImpPunch = 3139, // The Dragon's Neck
 
     // Variant actions
     VariantCure1 = 29729, // available in sil'dih
@@ -260,6 +261,7 @@ public sealed class Definitions : Defs
         d.RegisterSpell(AID.BlackPaint);
         d.RegisterSpell(AID.Snort);
         d.RegisterSpell(AID.OmegaJammer);
+        d.RegisterSpell(AID.ImpPunch);
 
         // variant actions
         d.RegisterSpell(AID.VariantCure1);
