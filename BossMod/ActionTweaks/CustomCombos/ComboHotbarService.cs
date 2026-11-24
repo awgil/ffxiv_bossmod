@@ -8,13 +8,6 @@ using System.Threading.Tasks;
 
 namespace BossMod.ActionTweaks.CustomCombos;
 
-// shows a user-defined layout on top of normal hotbars, without ever saving it into game's hotbar data
-// the game keeps working hotbars (displayed & executed) and saved hotbars (written to HOTBAR.DAT and server); the layout is only written to working hotbars
-// everything is event driven:
-// - working -> saved always goes through WriteSavedSlot; for covered slots, edits go into the layout (unlocked) or are deferred (locked)
-// - saved -> working (job change, login, LoadSavedHotbar, macro & gearset updates) is followed by reapplying the layout
-// - hotbar copy into covered slots is treated as a layout edit
-// not handled: GC change & materia migration (rare, fixed on next reapply)
 public sealed unsafe class ComboHotbarService(IClientState clientState, IGameConfig gameConfig, ConfigRoot configRoot) : IHostedService, IDisposable
 {
     public const int NumBars = 18;
@@ -55,7 +48,6 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
         _deleteMacroSlotsHook = new(RaptureHotbarModule.Addresses.DeleteMacroSlots, DeleteMacroSlotsDetour);
         _reloadGearsetSlotsHook = new(RaptureHotbarModule.Addresses.ReloadGearsetSlots, ReloadGearsetSlotsDetour);
         _deleteGearsetSlotsHook = new(RaptureHotbarModule.Addresses.DeleteGearsetSlots, DeleteGearsetSlotsDetour);
-        // ReadFile is a virtual function of UserFileEvent, which hotbar module inherits at offset 0
         _readFileHook = new(((nint*)*(nint*)RaptureHotbarModule.Instance())[1], ReadFileDetour);
         _reassignGearsetIdHook = new("48 89 5C 24 10 48 89 6C 24 18 48 89 74 24 20 57 41 54 41 55 41 56 41 57 48 83 EC 20 44 8B EA 45 8B E0 48 8D 91 8C 23 01 00", ReassignGearsetIdDetour);
         _copyHotbarHook = new("40 55 56 41 55 41 56 41 57 48 83 EC 20 44 8B 7C 24 70 45 8B F1", CopyHotbarDetour);
@@ -344,9 +336,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     // copies a whole bar from one saved hotbar to another; copies into covered slots are edits of the layout (regardless of lock)
     private void CopyHotbarDetour(RaptureHotbarModule* self, int srcJob, int srcBar, int dstJob, uint dstBar)
     {
-        var covered = CanApply(self) && dstJob is >= 0 and < 0x46 && srcJob is >= 0 and < 0x46 && dstBar < NumBars && srcBar is >= 0 and < NumBars
-            ? Config.BarSlots((uint)dstJob, dstBar).ToList()
-            : [];
+        var covered = CanApply(self) && dstJob is >= 0 and < 0x46 && srcJob is >= 0 and < 0x46 && dstBar < NumBars && srcBar is >= 0 and < NumBars ? Config.BarSlots((uint)dstJob, dstBar).ToList() : [];
         if (covered.Count == 0)
         {
             _copyHotbarHook!.Original(self, srcJob, srcBar, dstJob, dstBar);

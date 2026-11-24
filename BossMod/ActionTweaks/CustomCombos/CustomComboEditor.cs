@@ -349,8 +349,6 @@ public sealed class CustomComboEditor
     {
         var size = new Vector2(ImGui.GetFrameHeight());
         UIMisc.Image(job != Class.None ? Service.Texture?.GetFromGameIcon(JobIcon(job)) : null, size);
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(JobName(job));
     }
 
     private static List<(string Label, List<Class> Classes)> GetJobGroups()
