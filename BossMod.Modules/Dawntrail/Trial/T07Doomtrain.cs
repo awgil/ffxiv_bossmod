@@ -119,6 +119,7 @@ class CarGeometry : BossComponent
     public AOEShape AirShape { get; private set; } = new AOEShapeRect(0, 0, 0);
     private List<(WPos from, WPos to)> _portals = [];
     private List<(WPos center, float halfWidth, float halfLength)> _platforms = [];
+    private List<WPos> _crates = [];
     public IEnumerable<WPos> Portals => _portals.Select(p => p.from);
 
     private PolygonClipper Clipper => Arena.Bounds.Clipper;
@@ -134,19 +135,28 @@ class CarGeometry : BossComponent
             AirShape.Outline(Arena, Arena.Center, default, ArenaColor.Border);
     }
 
+    private const float PortalRadius = 0.5f;
+
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
         foreach (var p in Portals)
-            Arena.AddCircle(p, 1, ArenaColor.Safe);
+            Arena.AddCircle(p, PortalRadius, ArenaColor.Safe);
     }
 
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
-        hints.Portals.AddRange(_portals.Select(p => (p.from, 1f, p.to)));
+        hints.Portals.AddRange(_portals.Select(p => (p.from, PortalRadius, p.to)));
         if (actor.PosRot.Y < 4)
             foreach (var (c, hw, hl) in _platforms)
                 hints.TemporaryObstacles.Add(Shapes.RectOutline(c, hl, hw));
+        foreach (var c in _crates)
+            hints.TemporaryObstacles.Add(Shapes.RectOutline(c, CrateHalfSize, CrateHalfSize));
+        if (!NeedPads)
+            foreach (var p in Portals)
+                hints.AddForbiddenZone(ShapeDistance.Circle(p, 2.5f));
     }
+
+    private bool NeedPads => (Module.FindComponent<HeadOnEmission>()?.GoUp ?? false) || (Module.FindComponent<LevinSignal>()?.Pending ?? false);
 
     private void SetPlain(WPos center)
     {
@@ -156,13 +166,17 @@ class CarGeometry : BossComponent
         AirShape = new AOEShapeRect(0, 0, 0);
         _portals = [];
         _platforms = [];
+        _crates = [];
     }
+
+    public static readonly WDir[] Car2Crates = [new(2.5f, -2.5f), new(-2.5f, 7.5f)];
+    public const float CrateHalfSize = 2.5f;
 
     private void Car2()
     {
         var rect = CurveApprox.Rect(new WDir(10, 0), new WDir(0, CarHeight));
-        var crate1 = CurveApprox.Rect(new WDir(2.5f, -2.5f), new WDir(2.5f, 0), new WDir(0, 2.5f));
-        var crate2 = CurveApprox.Rect(new WDir(-2.5f, 7.5f), new WDir(2.5f, 0), new WDir(0, 2.5f));
+        var crate1 = CurveApprox.Rect(Car2Crates[0], new WDir(CrateHalfSize, 0), new WDir(0, CrateHalfSize));
+        var crate2 = CurveApprox.Rect(Car2Crates[1], new WDir(CrateHalfSize, 0), new WDir(0, CrateHalfSize));
         var poly = Clipper.Difference(new(rect), new(crate1));
         poly = Clipper.Difference(new(poly), new(crate2));
         Arena.Bounds = new ArenaBoundsCustom(CarHeight, poly);
@@ -171,11 +185,12 @@ class CarGeometry : BossComponent
         AirShape = new AOEShapeRect(0, 0, 0);
         _portals = [];
         _platforms = [];
+        _crates = [.. Car2Crates.Select(o => Arena.Center + o)];
     }
 
-    private void Car3() => SetPlatforms(new(100, 200), [(new(-7.5f, 5), 2.5f, 10.1f), (new(7.5f, 5), 2.5f, 10.1f)], [(new(-3.9f, 4.9f), new(-7.6f, 4.9f)), (new(4.1f, 4.9f), new(7.6f, 4.9f))]);
+    private void Car3() => SetPlatforms(new(100, 200), [(new(-7.5f, 5), 2.5f, 10.1f), (new(7.5f, 5), 2.5f, 10.1f)], [(new(-3.3f, 4.9f), new(-7.6f, 4.9f)), (new(3.3f, 4.9f), new(7.6f, 4.9f))]);
 
-    private void Car5() => SetPlatforms(new(100, 300), [(new(-7.5f, 10), 2.5f, 5), (new(7.5f, 0), 2.5f, 5)], [(new(-3.9f, 10), new(-7.6f, 10)), (new(4.1f, 0), new(7.6f, 0))]);
+    private void Car5() => SetPlatforms(new(100, 300), [(new(-7.5f, 10), 2.5f, 5), (new(7.5f, 0), 2.5f, 5)], [(new(-3.3f, 10), new(-7.6f, 10)), (new(3.3f, 0), new(7.6f, 0))]);
 
     private void SetPlatforms(WPos center, (WDir offset, float halfWidth, float halfLength)[] platforms, (WDir from, WDir to)[] portals)
     {
@@ -192,6 +207,7 @@ class CarGeometry : BossComponent
         GroundShape = new AOEShapeCustom(Clipper.Difference(new(rect), new(air!)));
         _platforms = [.. platforms.Select(p => (center + p.offset, p.halfWidth, p.halfLength))];
         _portals = [.. portals.Select(p => (center + p.from, center + p.to))];
+        _crates = [];
     }
 
     public void MultiCar4()
@@ -206,6 +222,7 @@ class CarGeometry : BossComponent
 class LevinSignal(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly List<(Actor Caster, DateTime Activation, float Length, float Offset)> _casters = [];
+    public bool Pending => _casters.Count > 0;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casters.Select(c => new AOEInstance(new AOEShapeRect(c.Length, 2.5f), c.Caster.Position + new WDir(0, c.Offset), default, c.Activation));
 
@@ -295,10 +312,29 @@ class LightningBurst(BossModule module) : Components.BaitAwayIcon(module, new AO
 
 class LightningExpress(BossModule module) : Components.KnockbackFromCastTarget(module, AID.LightningExpress, 30, kind: Kind.DirForward, stopAtWall: true);
 
-class Windpipe(BossModule module) : Components.KnockbackFromCastTarget(module, AID.WindpipeVisual, 20, kind: Kind.DirForward, stopAtWall: true)
+class Windpipe(BossModule module) : Components.KnockbackFromCastTarget(module, AID.Windpipe, 19, kind: Kind.DirForward, stopAtWall: true)
 {
-    public override IEnumerable<Source> Sources(int slot, Actor actor) => base.Sources(slot, actor).Select(src => src with { Direction = src.Direction + 180.Degrees() });
-    public override PointTest DestinationUnsafe(int slot, Actor actor) => pos => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 10), 10);
+    public override IEnumerable<Source> Sources(int slot, Actor actor) => Casters.Select(c => new Source(c.Position, Distance, Module.CastFinishAt(c.CastInfo!), Shape, c.CastInfo!.Rotation + 180.Degrees(), KnockbackKind));
+    public override PointTest DestinationUnsafe(int slot, Actor actor) => pos => pos.InRect(Arena.Center - new WDir(0, 15), new WDir(0, 8), 10);
+
+    private const float CrateMargin = 0.75f;
+    private readonly CarGeometry? _car = module.FindComponent<CarGeometry>();
+
+    public override VFloat CalculateDistance(WVec position, WVec direction)
+    {
+        var dist = position.Z - (Arena.Center.Z - CarGeometry.CarHeight) - 0.1f;
+        if (_car?.Car == 2)
+        {
+            foreach (var offset in CarGeometry.Car2Crates)
+            {
+                var crate = Arena.Center + offset;
+                var gap = position.Z - (crate.Z + CarGeometry.CrateHalfSize) - 0.1f;
+                var covered = ((position.X - crate.X).Abs() < CarGeometry.CrateHalfSize - CrateMargin) & (gap >= VFloat.Zero);
+                dist = VV.ConditionalSelect(covered, VV.Min(dist, gap), dist);
+            }
+        }
+        return VV.Max(dist, VFloat.Zero);
+    }
 }
 
 class Blastpipe(BossModule module) : Components.GenericAOEs(module, AID.Blastpipe)
@@ -331,6 +367,7 @@ class HeadOnEmission(BossModule module) : Components.GenericAOEs(module)
 {
     private readonly CarGeometry _car = module.FindComponent<CarGeometry>()!;
     private readonly List<(bool Air, DateTime Activation)> _casts = [];
+    public bool GoUp => _casts.Count > 0 && !_casts[0].Air;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => _casts.Take(1).Select(c => new AOEInstance(c.Air ? _car.AirShape : _car.GroundShape, Arena.Center, default, c.Activation));
 
@@ -524,7 +561,7 @@ class DerailmentSiege(BossModule module) : Components.GenericTowers(module)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.DerailmentSiegeFinal)
-            Towers.Add(new(caster.Position, 5, maxSoakers: 8, activation: Module.CastFinishAt(spell)));
+            Towers.Add(new(caster.Position, 5, minSoakers: Raid.WithoutSlot().Count(), maxSoakers: 8, activation: Module.CastFinishAt(spell)));
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -582,12 +619,13 @@ class T07DoomtrainStates : StateMachineBuilder
     public T07DoomtrainStates(BossModule module) : base(module)
     {
         DeathPhase(0, SinglePhase)
-            .ActivateOnEnter<CarGeometry>();
+            .ActivateOnEnter<CarGeometry>()
+            .ActivateOnEnter<LightningBurst>();
     }
 
     private void SinglePhase(uint id)
     {
-        Car1(id, 10);
+        Car1(id, 8.2f);
         Car2(id + 0x10000, 5.7f);
         Car3(id + 0x20000, 5.8f);
         Car4(id + 0x30000, 5.8f);
@@ -658,19 +696,22 @@ class T07DoomtrainStates : StateMachineBuilder
         ComponentCondition<AetherSurge>(id + 0x20, 10.7f, a => a.NumCasts >= 4, "Cones 1", 2);
         ComponentCondition<AetherialRay>(id + 0x21, 1.8f, a => a.NumCasts >= 1, "Tank cone 1")
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<AetherSurge>(id + 0x30, 8.7f, a => a.NumCasts >= 8, "Cones 2");
-        ComponentCondition<AetherialRay>(id + 0x31, 1.8f, a => a.NumCasts >= 2, "Tank cone 2")
+        ComponentCondition<AetherSurge>(id + 0x30, 7.5f, a => a.NumCasts >= 8, "Cones 2", 2);
+        ComponentCondition<AetherialRay>(id + 0x31, 1.6f, a => a.NumCasts >= 2, "Tank cone 2")
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<AetherSurge>(id + 0x40, 7.3f, a => a.NumCasts >= 12, "Cones 3")
-            .DeactivateOnExit<AetherSurge>();
-        ComponentCondition<AetherialRay>(id + 0x41, 1.8f, a => a.NumCasts >= 3, "Tank cone 3")
-            .DeactivateOnExit<AetherialRay>()
+        ComponentCondition<AetherSurge>(id + 0x40, 10.5f, a => a.NumCasts >= 12 || OrbDead(), "Cones 3", 4);
+        ComponentCondition<AetherialRay>(id + 0x41, 1.6f, a => a.NumCasts >= 3 || OrbDead(), "Tank cone 3", 3)
             .SetHint(StateMachine.StateHint.Tankbuster);
-        ComponentCondition<RunawayTrain>(id + 0x50, 23.9f, r => r.NumCasts > 0, "Raidwide")
+        Condition(id + 0x48, 3, OrbDead, "Orb dies", 30)
+            .DeactivateOnExit<AetherSurge>()
+            .DeactivateOnExit<AetherialRay>();
+        ComponentCondition<RunawayTrain>(id + 0x50, 19.5f, r => r.NumCasts > 0, "Raidwide")
             .DeactivateOnExit<RunawayTrain>()
             .ExecOnExit<CarGeometry>(c => c.Car = 4)
             .SetHint(StateMachine.StateHint.Raidwide);
     }
+
+    private bool OrbDead() => Module.Enemies(OID.AetherIntermission).All(a => a.IsDeadOrDestroyed);
 
     private void Car4Return(uint id, float delay)
     {
@@ -696,33 +737,39 @@ class T07DoomtrainStates : StateMachineBuilder
 
     private void Car5(uint id, float delay)
     {
-        Hails(id, delay, 17.1f, 11.1f);
-        Cast(id + 0x10, AID.TurretCrossing, 4.3f, 2.7f)
+        Hails(id, delay, 14.1f, 14.1f);
+        Car5Loop(id + 0x10, 4.3f, 2);
+        Car5Loop(id + 0x10000, 4.3f, 4);
+        Car5Loop(id + 0x20000, 4.3f, 6);
+        SimpleState(id + 0xFF0000, 10000, "???");
+    }
+
+    private void Car5Loop(uint id, float delay, int headOns)
+    {
+        Cast(id, AID.TurretCrossing, delay, 2.7f)
             .ActivateOnEnter<Electray>();
-        HeadOn(id + 0x20, 2.3f, 3);
-        ComponentCondition<Electray>(id + 0x30, 3.3f, e => e.NumCasts >= 6, "Lasers");
-        HeadOn(id + 0x40, 3.1f, 4);
-        ComponentCondition<Electray>(id + 0x50, 3.2f, e => e.NumCasts >= 12, "Lasers");
-        ExpressOrWindpipe(id + 0x60, 3.1f);
-        ComponentCondition<Electray>(id + 0x68, 5.2f, e => e.NumCasts >= 18, "Lasers")
+        HeadOn(id + 0x10, 2.3f, headOns + 1);
+        ComponentCondition<Electray>(id + 0x20, 3.3f, e => e.NumCasts >= 6, "Lasers");
+        HeadOn(id + 0x30, 3.1f, headOns + 2);
+        ComponentCondition<Electray>(id + 0x40, 3.2f, e => e.NumCasts >= 12, "Lasers");
+        ExpressOrWindpipe(id + 0x50, 3.1f);
+        ComponentCondition<Electray>(id + 0x58, 5.2f, e => e.NumCasts >= 18, "Lasers")
             .DeactivateOnExit<Electray>();
-        Cast(id + 0x70, AID.BatteringArmsVisual, 5.2f, 5.7f)
+        Cast(id + 0x60, AID.BatteringArmsVisual, 5.2f, 5.7f)
             .ActivateOnEnter<DerailmentSiege>();
-        ComponentCondition<DerailmentSiege>(id + 0x80, 4.2f, d => d.NumCasts >= 4, "Tower")
+        ComponentCondition<DerailmentSiege>(id + 0x70, 4.2f, d => d.NumCasts >= 4, "Tower")
             .DeactivateOnExit<DerailmentSiege>()
             .SetHint(StateMachine.StateHint.Raidwide);
-        Tankbusters(id + 0x90, 2.2f);
-        Hails(id + 0xA0, 7.8f, 14.1f, 14.1f);
-        // TODO: timeline after the last Arcane Revelation + enrage unseen (both kills ended before it)
-        SimpleState(id + 0xFF0000, 10000, "???");
+        Tankbusters(id + 0x80, 2.2f);
+        Hails(id + 0x90, 7.8f, 14.1f, 14.1f);
     }
 
     private State Tankbusters(uint id, float delay)
     {
+        var before = 0;
         var start = Cast(id, AID.LightningBurstVisual, delay, 4.7f)
-            .ActivateOnEnter<LightningBurst>();
-        ComponentCondition<LightningBurst>(id + 2, 0.6f, l => l.NumCasts > 0, "Tankbusters")
-            .DeactivateOnExit<LightningBurst>()
+            .OnEnter(() => before = Module.FindComponent<LightningBurst>()?.NumCasts ?? 0);
+        ComponentCondition<LightningBurst>(id + 2, 0.6f, l => l.NumCasts > before, "Tankbusters")
             .SetHint(StateMachine.StateHint.Tankbuster);
         return start;
     }
