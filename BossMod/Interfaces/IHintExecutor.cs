@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Event;
+﻿using BossMod.ClassShared;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
@@ -140,6 +141,9 @@ internal sealed class HintExecutor(WorldState ws, MovementOverride movementOverr
     // TODO: if we can find something to hook we can avoid iterating the entire unit list every frame, i feel like that's not a great idea (but GetAddonByName is already a linear search so it's not that much worse)
     private unsafe void HandleQTE()
     {
+        if (!Service.Config.Get<SharedActionsConfig>().AutoQTE)
+            return;
+
         var units = RaptureAtkUnitManager.Instance()->AllLoadedUnitsList;
         for (var i = 0; i < units.Count; i++)
         {

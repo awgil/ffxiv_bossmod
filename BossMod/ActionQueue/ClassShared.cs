@@ -2,11 +2,14 @@ using BossMod.Data;
 
 namespace BossMod.ClassShared;
 
-[ConfigDisplay(Name = "Cross-class actions", Parent = typeof(ActionTweaksConfig), Order = -5)]
+[ConfigDisplay(Name = "Miscellaneous settings", Parent = typeof(ActionTweaksConfig), Order = -5)]
 public sealed class SharedActionsConfig : ConfigNode
 {
     [PropertyDisplay("Align dash actions with camera direction (Lost Swift, Occult Featherfoot, etc)")]
     public bool AlignDashToCamera = false;
+
+    [PropertyDisplay("Automatically complete QTEs", since: "7.5.8.9")]
+    public bool AutoQTE = true;
 }
 
 public enum AID : uint
