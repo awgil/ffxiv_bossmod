@@ -26,7 +26,6 @@ class EnchantedMoulinet(BossModule module) : Components.StandardAOEs(module, AID
 
 class FireBurst(BossModule module) : Components.StandardAOEs(module, AID.FireBurst, 10)
 {
-    // latched: a killed Voidfire is destroyed ~9s later, before the rest burst; until one dies there is no safe spot
     public bool GapOpen;
 
     public override IEnumerable<AOEInstance> ActiveAOEs(int slot, Actor actor) => GapOpen ? base.ActiveAOEs(slot, actor) : [];
@@ -67,7 +66,6 @@ public class Lambard(ModuleInit init) : BossModule(init, new(392, -353), new Are
 
         if (actor.Class != Class.RDM || hints.ForbiddenZones.Any(z => z.shape.Check(actor.Position)))
             return;
-        // rotation GCDs sit above High, so a heal at High never goes out
         if (actor.HPMP.CurHP < actor.HPMP.MaxHP * 3 / 10)
             hints.ActionsToExecute.Push(ActionID.MakeSpell(BossMod.RDM.AID.Vercure), actor, ActionQueue.Priority.VeryHigh);
         else if (arya != null && arya.HPMP.CurHP < arya.HPMP.MaxHP / 2)

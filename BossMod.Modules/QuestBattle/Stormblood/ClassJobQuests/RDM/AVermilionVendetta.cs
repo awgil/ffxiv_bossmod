@@ -20,7 +20,6 @@ internal class AVermilionVendetta(WorldState ws) : QuestBattle(ws)
             .Named("Follow X'rhun and defeat Fear Gorta")
             .Hints((player, hints) =>
             {
-                // waves spawn targetable but asleep (EventState 1) and wake once X'rhun walks up to them
                 foreach (var e in hints.PotentialTargets)
                     if (e.Actor.EventState == 0 && Hostiles.Contains(e.Actor.OID))
                         e.Priority = Math.Max(e.Priority, 0);
