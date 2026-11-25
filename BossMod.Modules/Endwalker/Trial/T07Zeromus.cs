@@ -896,8 +896,7 @@ class T07ZeromusStates : StateMachineBuilder
     {
         Cast(id, AID.VoidBio, delay, 5, "Bubbles spawn")
             .ActivateOnEnter<VoidBio>();
-        VisceralWhirl(id + 0x100, 6.1f)
-            .DeactivateOnExit<VoidBio>();
+        VisceralWhirl(id + 0x100, 6.1f);
     }
 
     private void BigBang(uint id, float delay)
@@ -905,6 +904,7 @@ class T07ZeromusStates : StateMachineBuilder
         Cast(id, AID.BigBang, delay, 10, "Raidwide")
             .ActivateOnEnter<BigBangPuddle>()
             .ActivateOnEnter<AccelerationBomb>()
+            .DeactivateOnExit<VoidBio>()
             .DeactivateOnExit<BigBangPuddle>()
             .SetHint(StateMachine.StateHint.Raidwide);
         VisceralWhirl(id + 0x100, 10.2f)

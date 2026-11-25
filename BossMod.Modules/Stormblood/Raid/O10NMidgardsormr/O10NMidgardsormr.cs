@@ -57,7 +57,7 @@ public enum IconID : uint
 
 public enum SID : uint
 {
-    ThinIce = 911, // extra/10 = slide distance
+    ThinIce = 911, // player, every slide is 15y (extra is 96, not the distance)
 }
 
 class AmbientAether(BossModule module) : Components.GenericAOEs(module)
@@ -108,33 +108,28 @@ class AmbientAether(BossModule module) : Components.GenericAOEs(module)
 }
 
 class EarthShaker(BossModule module) : Components.BaitAwayIcon(module, new AOEShapeCone(60, 15.Degrees()), (uint)IconID.EarthShaker, AID.EarthShaker, 4.2f);
-class AkhMorn(BossModule module) : Components.StackWithCastTargets(module, AID.AkhMorn, 6)
+class AkhMorn(BossModule module) : Components.UniformStackSpread(module, 6, 0, stackHits: 4)
 {
-    private int _left;
+    public override void OnCastStarted(Actor caster, ActorCastInfo spell)
+    {
+        if ((AID)spell.Action.ID == AID.AkhMorn && WorldState.Actors.Find(spell.TargetID) is { } target)
+            AddStack(target, Module.CastFinishAt(spell));
+    }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        switch ((AID)spell.Action.ID)
-        {
-            case AID.AkhMorn:
-                _left = 3;
-                break;
-            case AID.AkhMornRepeat:
-                if (--_left > 0)
-                    break;
-                Stacks.Clear();
-                return;
-            default:
-                base.OnEventCast(caster, spell);
-                return;
-        }
+        if ((AID)spell.Action.ID is not (AID.AkhMorn or AID.AkhMornRepeat) || Stacks.Count == 0)
+            return;
 
+        var delay = (AID)spell.Action.ID == AID.AkhMorn ? 2.1f : 1.1f;
         for (var i = 0; i < Stacks.Count; ++i)
         {
             var stack = Stacks[i];
-            stack.Activation = WorldState.FutureTime(1.1f);
+            stack.Hits--;
+            stack.Activation = WorldState.FutureTime(delay);
             Stacks[i] = stack;
         }
+        Stacks.RemoveAll(s => s.Hits <= 0);
     }
 }
 class Thunderstorm(BossModule module) : Components.SpreadFromCastTargets(module, AID.Thunderstorm, 5);
@@ -263,9 +258,9 @@ class AkhRhai(BossModule module) : Components.GenericAOEs(module)
     }
 }
 
-class ThinIce(BossModule module) : Components.Knockback(module, ignoreImmunes: true)
+class ThinIce(BossModule module) : Components.Knockback(module, ignoreImmunes: true, stopAtWall: true)
 {
-    private static float SlideDistance(Actor actor) => actor.FindStatus((uint)SID.ThinIce) is { } status ? status.Extra / 10f : 0;
+    private static float SlideDistance(Actor actor) => actor.FindStatus((uint)SID.ThinIce) != null ? 15 : 0;
 
     public override IEnumerable<Source> Sources(int slot, Actor actor)
     {
@@ -276,10 +271,31 @@ class ThinIce(BossModule module) : Components.Knockback(module, ignoreImmunes: t
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
-        if (SlideDistance(actor) <= 0)
+        var dist = SlideDistance(actor);
+        if (dist > 0)
+            hints.Add($"Thin ice: any step slides you {dist:f0}y, stand still!", false);
+    }
+
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        var dist = SlideDistance(actor);
+        if (dist <= 0)
             return;
-        hints.Add("Slippery floor", false);
-        base.AddHints(slot, actor, hints);
+
+        var isUnsafe = DestinationUnsafe(slot, actor);
+        if (!isUnsafe.CallOnce(actor.Position))
+        {
+            hints.AddSpecialMode(AIHints.SpecialMode.PyreticMove, WorldState.CurrentTime);
+            return;
+        }
+
+        var from = new WVec(actor.Position);
+        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        {
+            var dir = (p - from).Normalized();
+            var land = from + dir * VV.Min(VV.Create(dist), CalculateDistance(from, dir));
+            return isUnsafe(WVec.Select((p - from).LengthSq() < 1f, from, land));
+        }), WorldState.CurrentTime);
     }
 }
 
