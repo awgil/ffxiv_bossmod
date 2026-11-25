@@ -144,9 +144,16 @@ class WitchHunt(BossModule module) : Components.GenericAOEs(module, AID.WitchHun
     }
 }
 
-class ArenaChanges(BossModule module) : BossComponent(module)
+class StampedeStarts(BossModule module) : Components.CastCounter(module, AID.StampedingThunderStart);
+
+class ArenaChanges : BossComponent
 {
     public int NumChanges;
+
+    public ArenaChanges(BossModule module) : base(module)
+    {
+        KeepOnPhaseChange = true;
+    }
 
     private static readonly ArenaBoundsRect _strip = new(5, 20);
     private static readonly ArenaBoundsSquare _full = new(20);
@@ -180,7 +187,6 @@ class ArenaChanges(BossModule module) : BossComponent(module)
 
 class StampedingThunder(BossModule module) : Components.GenericAOEs(module, AID.StampedingThunderAOE)
 {
-    public bool Started;
     private AOEInstance? _aoe;
 
     private static readonly AOEShapeRect _shape = new(40, 15);
@@ -191,9 +197,6 @@ class StampedingThunder(BossModule module) : Components.GenericAOEs(module, AID.
     {
         switch ((AID)spell.Action.ID)
         {
-            case AID.StampedingThunderStart:
-                Started = true;
-                break;
             case AID.StampedingThunderWest:
                 _aoe = new(_shape, new(95, 80), default, WorldState.FutureTime(2.3f));
                 break;
@@ -321,12 +324,16 @@ class RM04NWickedThunderStates : StateMachineBuilder
 {
     public RM04NWickedThunderStates(BossModule module) : base(module)
     {
-        DeathPhase(0, SinglePhase)
+        SimplePhase(0, Phase1, "Until final stampede")
             .ActivateOnEnter<ArenaChanges>()
+            .ActivateOnEnter<StampedeStarts>()
+            .ActivateOnEnter<Thunderslam>()
+            .Raw.Update = () => Module.PrimaryActor.IsDeadOrDestroyed || Module.FindComponent<StampedeStarts>()?.NumCasts >= 2;
+        DeathPhase(1, Phase2)
             .ActivateOnEnter<Thunderslam>();
     }
 
-    private void SinglePhase(uint id)
+    private void Phase1(uint id)
     {
         WrathOfZeus(id, 6.1f);
         SidewiseSpark(id + 0x10000, 6.2f);
@@ -337,26 +344,19 @@ class RM04NWickedThunderStates : StateMachineBuilder
         Cannons(id + 0x60000, [AID.FourfoldBlast1, AID.FourfoldBlast2], 3.2f, 13.5f, 4);
         WickedBolt(id + 0x70000, 8.2f);
         BewitchingFlight(id + 0x80000, 13.8f);
-
-        Dictionary<bool, (uint seqID, Action<uint> buildState)> push = new()
-        {
-            [false] = ((id >> 24) + 1, ForkNoPush),
-            [true] = ((id >> 24) + 5, ForkPush)
-        };
-        ConditionFork(id + 0x90000, 8.3f, () => Module.PrimaryActor.CastInfo?.IsSpell(AID.WrathOfZeus) == true || StampedeStarted, () => StampedeStarted, push, "Raidwide -or- Stampede")
-            .ActivateOnEnter<StampedingThunder>()
-            .DeactivateOnExit<StampedingThunder>();
+        WrathOfZeus(id + 0x90000, 8.3f);
+        ShadowsSabbath2(id + 0xA0000, 8.5f);
+        WrathOfZeus(id + 0xB0000, 4.1f);
+        WickedJolt(id + 0xC0000, 3.4f);
     }
 
-    private bool StampedeStarted => Module.FindComponent<StampedingThunder>()?.Started == true;
-
-    private void ForkNoPush(uint id)
+    private void Phase2(uint id)
     {
-        WrathOfZeus(id, 0);
-        ShadowsSabbath2(id + 0x10000, 8.5f);
-        WrathOfZeus(id + 0x20000, 4.1f);
-        WickedJolt(id + 0x30000, 3.4f);
-        StampedingThunder(id + 0x40000, 18.2f, 3);
+        ComponentCondition<StampedingThunder>(id, 9.4f, c => c.NumCasts > 0, "Stampede")
+            .ActivateOnEnter<StampedingThunder>();
+        ComponentCondition<ArenaChanges>(id + 0x10, 7.1f, c => c.NumChanges >= 3, "Platform breaks")
+            .DeactivateOnExit<StampedingThunder>()
+            .OnExit(() => Module.ClearComponents(c => c is ReplicaSidewiseSpark));
 
         Dictionary<AID, (uint seqID, Action<uint> buildState)> fork = new()
         {
@@ -364,15 +364,7 @@ class RM04NWickedThunderStates : StateMachineBuilder
             [AID.FivefoldBlast2] = ((id >> 24) + 2, ForkCannons),
             [AID.WickedHypercannon1] = ((id >> 24) + 3, ForkHypercannon)
         };
-        CastStartFork(id + 0x50000, fork, 4.1f, "Cannons -or- Hypercannon");
-    }
-
-    private void ForkPush(uint id)
-    {
-        StampedingThunder(id, 9.4f, 3);
-        Hypercannon1(id + 0x10000, 4.1f);
-        Hypercannon2(id + 0x20000, 10);
-        Enrage(id + 0x30000);
+        CastStartFork(id + 0x20, fork, 4.1f, "Cannons -or- Hypercannon");
     }
 
     private void ForkCannons(uint id)
@@ -458,6 +450,7 @@ class RM04NWickedThunderStates : StateMachineBuilder
     {
         CastMulti(id, [AID.ShadowsSabbath1, AID.ShadowsSabbath2], delay, 3)
             .ActivateOnEnter<ReplicaSidewiseSpark>()
+            .ExecOnEnter<ReplicaSidewiseSpark>(c => c.KeepOnPhaseChange = true)
             .ActivateOnEnter<SidewiseSpark>();
         ComponentCondition<ReplicaSidewiseSpark>(id + 0x10, 9.2f, c => c.NumCasts >= 1, "Replica cleave 1");
         CastStartMulti(id + 0x20, [AID.SidewiseSpark1, AID.SidewiseSpark2, AID.SidewiseSpark3, AID.SidewiseSpark4], 1.2f);
