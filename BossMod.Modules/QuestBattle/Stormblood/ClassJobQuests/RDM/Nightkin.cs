@@ -2,7 +2,7 @@
 
 namespace BossMod.QuestBattle.Stormblood.ClassJobQuests.RDM;
 
-[ZoneModuleInfo(461)] // Territory 676, QuestBattle 166 (JobRdm650_02585).
+[ZoneModuleInfo(461)]
 internal class Nightkin(WorldState ws) : QuestBattle(ws)
 {
     public override List<QuestObjective> DefineObjectives(WorldState ws) => [
@@ -18,7 +18,7 @@ internal class Nightkin(WorldState ws) : QuestBattle(ws)
 
         new QuestObjective(ws)
             .Named("Wait for voidsphere")
-            .With(obj => obj.Update += () => obj.CompleteIf(ws.Actors.Any(a => a.OID == 7075))),
+            .With(obj => obj.Update += () => obj.CompleteIf(ws.Actors.Any(a => a.OID == 7075 || a.OID == 2007939 && a.LayoutID == 6828555))),
 
         MoveAndWaitForCombatEnd(ws, new(368.9174f, -39.0174f, -67.61273f)),
         SearchBooks(ws, 6828555, new(376.36014f, -39f, -60.74992f))
