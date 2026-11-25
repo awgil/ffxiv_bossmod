@@ -27,7 +27,6 @@ class Voidsphere(BossModule module) : Components.GenericAOEs(module, AID.VoidSpa
 }
 
 class MagicBurst(BossModule module) : Components.StandardAOEs(module, AID.MagicBurst, 15);
-// TODO: cast was cancelled by the fight ending in all 4 runs; shape copied from the Great Gubal Library Bibliotaph
 class DeepDarkness(BossModule module) : Components.StandardAOEs(module, AID.DeepDarkness, new AOEShapeDonut(11.5f, 25));
 
 class EverlivingBibliotaphStates : StateMachineBuilder
