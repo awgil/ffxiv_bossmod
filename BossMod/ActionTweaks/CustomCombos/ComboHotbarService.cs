@@ -9,9 +9,7 @@ namespace BossMod.ActionTweaks.CustomCombos;
 
 public sealed unsafe class ComboHotbarService(IClientState clientState, IGameConfig gameConfig, ConfigRoot configRoot) : IHostedService, IDisposable
 {
-    public const int NumBars = 18;
-    public const int NumSlots = 16;
-    public const int NumNormalBars = 10;
+    public const int NormalBarSlots = 12;
 
     private readonly CustomComboConfig _comboConfig = configRoot.Get<CustomComboConfig>();
     public ComboHotbarsConfig Config => _comboConfig.Hotbars;
@@ -92,7 +90,15 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     public static bool IsReady(RaptureHotbarModule* m) => m != null && m->ModuleReady && (m->ActiveHotbarClassJobId & 0x80) == 0 && (!m->PvPHotbarsActive || m->GetPvPSavedHotbarIndexForClassJobId(m->ActiveHotbarClassJobId) >= 0);
     public static uint EffectiveJob(RaptureHotbarModule* m, uint bar) => SavedIndex(m, m->IsHotbarShared(bar) ? 0u : m->ActiveHotbarClassJobId, m->PvPHotbarsActive);
     private static uint SavedIndex(RaptureHotbarModule* m, uint job, bool pvp) => pvp ? (uint)m->GetPvPSavedHotbarIndexForClassJobId(job) : job;
-    public bool IsLocked(uint bar) => gameConfig.TryGet(bar < NumNormalBars ? UiConfigOption.HotbarLock : UiConfigOption.HotbarCrossLock, out uint v) && v != 0;
+    public static bool IsCrossBar(RaptureHotbarModule* m, uint bar) => bar >= m->StandardHotbars.Length;
+    public static uint NumSlots(RaptureHotbarModule* m, uint bar) => IsCrossBar(m, bar) ? (uint)m->Hotbars[(int)bar].Slots.Length : NormalBarSlots;
+    private static bool IsValidSlot(RaptureHotbarModule* m, uint bar, uint slot) => bar < m->Hotbars.Length && slot < NumSlots(m, bar);
+
+    public bool IsLocked(uint bar)
+    {
+        var m = RaptureHotbarModule.Instance();
+        return gameConfig.TryGet(m != null && IsCrossBar(m, bar) ? UiConfigOption.HotbarCrossLock : UiConfigOption.HotbarLock, out uint v) && v != 0;
+    }
 
     // start covering a slot with its current content
     public void CoverSlot(uint bar, uint slot)
@@ -123,7 +129,10 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
 
     public void CoverBar(uint bar)
     {
-        for (var slot = 0u; slot < NumSlots; ++slot)
+        var m = RaptureHotbarModule.Instance();
+        if (m == null || !m->ModuleReady)
+            return;
+        for (var slot = 0u; slot < NumSlots(m, bar); ++slot)
             CoverSlot(bar, slot);
     }
 
@@ -145,7 +154,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
         var m = RaptureHotbarModule.Instance();
         if (!CanApply(m))
             return;
-        for (var bar = 0u; bar < NumBars; ++bar)
+        for (var bar = 0u; bar < m->Hotbars.Length; ++bar)
             ApplyBar(m, bar);
     }
 
@@ -173,7 +182,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
         var m = RaptureHotbarModule.Instance();
         if (!IsReady(m))
             return;
-        for (var bar = 0u; bar < NumBars; ++bar)
+        for (var bar = 0u; bar < m->Hotbars.Length; ++bar)
             if (Config.HasBar(EffectiveJob(m, bar), bar))
                 _loadSavedHotbarHook.Original(m, m->ActiveHotbarClassJobId, bar);
     }
@@ -245,7 +254,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
 
     private void WriteSavedSlotDetour(RaptureHotbarModule* self, uint classJobId, uint hotbarId, uint slotId, RaptureHotbarModule.HotbarSlot* slotSource, bool ignoreSharedHotbars, bool isPvpSlot)
     {
-        if (isPvpSlot == self->PvPHotbarsActive && hotbarId < NumBars && slotId < NumSlots && slotSource != null && CanApply(self))
+        if (isPvpSlot == self->PvPHotbarsActive && IsValidSlot(self, hotbarId, slotId) && slotSource != null && CanApply(self))
         {
             // same shared-hotbar resolution as the game
             var job = SavedIndex(self, !ignoreSharedHotbars && self->IsHotbarShared(hotbarId) ? 0u : classJobId, isPvpSlot);
@@ -274,7 +283,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     private void LoadSavedHotbarDetour(RaptureHotbarModule* self, uint classJobId, uint hotbarId)
     {
         _loadSavedHotbarHook.Original(self, classJobId, hotbarId);
-        if (hotbarId < NumBars && classJobId == self->ActiveHotbarClassJobId && CanApply(self))
+        if (hotbarId < self->Hotbars.Length && classJobId == self->ActiveHotbarClassJobId && CanApply(self))
             ApplyBar(self, hotbarId);
     }
 
@@ -331,7 +340,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     // copies a whole bar from one saved hotbar to another; copies into covered slots are edits of the layout (regardless of lock)
     private void CopyHotbarDetour(RaptureHotbarModule* self, int srcJob, int srcBar, int dstJob, uint dstBar)
     {
-        var covered = CanApply(self) && dstJob is >= 0 and < 0x46 && srcJob is >= 0 and < 0x46 && dstBar < NumBars && srcBar is >= 0 and < NumBars ? Config.BarSlots((uint)dstJob, dstBar).ToList() : [];
+        var covered = CanApply(self) && dstJob is >= 0 and < 0x46 && srcJob is >= 0 and < 0x46 && dstBar < self->Hotbars.Length && srcBar >= 0 && srcBar < self->Hotbars.Length ? Config.BarSlots((uint)dstJob, dstBar).ToList() : [];
         if (covered.Count == 0)
         {
             _copyHotbarHook!.Original(self, srcJob, srcBar, dstJob, dstBar);

@@ -43,21 +43,22 @@ public sealed class ComboHotbarsEditor
         DrawPending(root, svc);
 
         var iconSize = new Vector2(32 * ImGuiHelpers.GlobalScale);
-        for (var bar = 0u; bar < ComboHotbarService.NumBars; ++bar)
+        for (var bar = 0u; bar < m->Hotbars.Length; ++bar)
         {
             using var id = ImRaii.PushId((int)bar);
             var job = ComboHotbarService.EffectiveJob(m, bar);
             var covered = config.BarSlots(job, bar).Count();
 
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(bar < ComboHotbarService.NumNormalBars ? $"Hotbar {bar + 1}" : $"Cross hotbar {bar - ComboHotbarService.NumNormalBars + 1}");
+            ImGui.TextUnformatted(ComboHotbarService.IsCrossBar(m, bar) ? $"Cross hotbar {bar - m->StandardHotbars.Length + 1}" : $"Hotbar {bar + 1}");
             if (m->IsHotbarShared(bar))
             {
                 ImGui.SameLine();
                 ImGui.TextDisabled("(shared)");
             }
             ImGui.SameLine(150 * ImGuiHelpers.GlobalScale);
-            if (covered < ComboHotbarService.NumSlots)
+            var numSlots = ComboHotbarService.NumSlots(m, bar);
+            if (covered < numSlots)
             {
                 if (ImGui.Button("Cover all"))
                     svc.CoverBar(bar);
@@ -72,7 +73,7 @@ public sealed class ComboHotbarsEditor
             }
             ImGui.NewLine();
 
-            for (var slot = 0u; slot < ComboHotbarService.NumSlots; ++slot)
+            for (var slot = 0u; slot < numSlots; ++slot)
             {
                 if (slot > 0)
                     ImGui.SameLine(0, slot % 4 == 0 ? 8 * ImGuiHelpers.GlobalScale : 2 * ImGuiHelpers.GlobalScale);
