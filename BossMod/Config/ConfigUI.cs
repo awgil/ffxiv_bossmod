@@ -39,6 +39,7 @@ public sealed partial class ConfigUI : IDisposable
     private readonly ConfigRoot _root;
     private readonly WorldState _ws;
     private readonly UIPresetDatabaseEditor? _presets;
+    private readonly ActionTweaks.CustomCombos.CustomComboTab _combos;
     private readonly RotationDatabase? _rotationDB;
 
     private readonly List<List<string>> _filterNodes = [];
@@ -52,11 +53,13 @@ public sealed partial class ConfigUI : IDisposable
         _mv = new(rotationDB?.Plans, ws);
         _presets = rotationDB != null ? new(rotationDB) : null;
         _rotationDB = rotationDB;
+        _combos = new(ws);
 
         _tabs.Add("About", _about.Draw);
         _tabs.Add("Settings", DrawSettings);
         _tabs.Add("Supported Bosses", () => _mv.Draw(_tree, _ws));
         _tabs.Add("Autorotation Presets", () => _presets?.Draw());
+        _tabs.Add(ActionTweaks.CustomCombos.CustomComboTab.Name, _combos.Draw, () => _combos.Visible);
 
         _subscriptions = new(BossModuleRegistry.Modified.ExecuteAndSubscribe(RebuildTree));
     }

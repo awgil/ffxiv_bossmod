@@ -1,4 +1,5 @@
-﻿using BossMod.Services;
+﻿using BossMod.ActionTweaks.CustomCombos;
+using BossMod.Services;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -32,6 +33,7 @@ namespace BossMod;
 //    ground-targeted actions can't be queued, making using them efficiently tricky
 //    this feature allows queueing them, plus provides options to execute them automatically either at target's position or at cursor's position
 // 7. auto cancel cast utility
+// 8. custom combos (action replacement on hotbars)
 // TODO: should not be public!
 public sealed unsafe class ActionManagerEx(
     WorldState ws,
@@ -39,7 +41,9 @@ public sealed unsafe class ActionManagerEx(
     MovementOverride movement,
     IPluginLog logger,
     ICondition condition,
-    ConfigRoot configRoot
+    ConfigRoot configRoot,
+    CustomComboTweak customCombos,
+    AutorotationSuggestions suggestions
 ) : IAmex, IHostedService, IDisposable
 {
     public ActionID CastSpell => new(ActionType.Spell, _inst->CastSpellId);
@@ -69,12 +73,16 @@ public sealed unsafe class ActionManagerEx(
     private readonly SmartRotationTweak _smartRotationTweak = new(ws, hints);
     private readonly OutOfCombatActionsTweak _oocActionsTweak = new(ws);
     private readonly AutoAutosTweak _autoAutosTweak = new(ws, hints);
+    private readonly CustomComboConfig _customComboConfig = configRoot.Get<CustomComboConfig>();
+    private readonly ActionQueue _recommendationQueue = new();
+    private int _suppressCustomCombos; // while >0, custom combos are not applied
 
     private DateTime _nextAllowedExecuteCommand;
 
 #nullable disable
     private HookAddress<ActionManager.Delegates.Update> _updateHook;
     private HookAddress<ActionManager.Delegates.UseAction> _useActionHook;
+    private HookAddress<ActionManager.Delegates.GetAdjustedActionId> _getAdjustedActionIdHook;
     private HookAddress<ActionManager.Delegates.UseActionLocation> _useActionLocationHook;
     private HookAddress<PublicContentBozja.Delegates.UseFromHolster> _useBozjaFromHolsterDirectorHook;
     private HookAddress<InstanceContentDeepDungeon.Delegates.UsePomander> _usePomanderHook;
@@ -95,6 +103,11 @@ public sealed unsafe class ActionManagerEx(
         _inst = ActionManager.Instance();
 
         logger.Debug($"[AMEx] ActionManager singleton address = 0x{(ulong)_inst:X}");
+        _getAdjustedActionIdHook = new(ActionManager.Addresses.GetAdjustedActionId, GetAdjustedActionIdDetour);
+        customCombos.Connect(new(
+            GetAdjustedActionID,
+            spellId => GetActionStatus(new(ActionType.Spell, spellId), 0xE0000000, false, false),
+            GetRecommendation));
         _updateHook = new(ActionManager.Addresses.Update, UpdateDetour);
         _useActionHook = new(ActionManager.Addresses.UseAction, UseActionDetour);
         _useActionLocationHook = new(ActionManager.Addresses.UseActionLocation, UseActionLocationDetour);
@@ -122,6 +135,8 @@ public sealed unsafe class ActionManagerEx(
         _useActionLocationHook.Dispose();
         _useActionHook.Dispose();
         _updateHook.Dispose();
+        customCombos.RestoreHotbars(); // needs the adjust hook, so before it's disposed
+        _getAdjustedActionIdHook.Dispose();
         _oocActionsTweak.Dispose();
     }
 
@@ -140,6 +155,13 @@ public sealed unsafe class ActionManagerEx(
             return;
 
         _oocActionsTweak.FillActions(player, hints);
+
+        // suggestions for custom combos, regardless of whether autorotation is enabled
+        if (customCombos.WantsSuggestions(player))
+            suggestions.Update(_customComboConfig, _animLockTweak.DelayEstimate, movement.IsMoving());
+        else
+            suggestions.Clear();
+
         AutoQueue = hints.ActionsToExecute.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, hints, _animLockTweak.DelayEstimate, _dismountTweak.AutoDismountEnabled);
         if (AutoQueue.Delay > 0)
             AutoQueue = default;
@@ -152,6 +174,24 @@ public sealed unsafe class ActionManagerEx(
             if (hints.FindEnemy(AutoQueue.Target)?.Priority == AIHints.Enemy.PriorityForbidden)
                 AutoQueue = default; // or if selected target is forbidden
         }
+    }
+
+    // best action private autorotation would use; gcd: null = any, true = gcds only, false = ogcds only
+    public ActionQueue.Entry GetRecommendation(bool? gcd)
+    {
+        var player = ws.Party.Player();
+        if (player == null)
+            return default;
+        _recommendationQueue.Clear();
+        foreach (var e in suggestions.Hints.ActionsToExecute.Entries)
+        {
+            if (e.Action.Type != ActionType.Spell) // combos can only replace spells
+                continue;
+            if (gcd != null && (ActionDefinitions.Instance[e.Action]?.IsGCD ?? false) != gcd.Value)
+                continue;
+            _recommendationQueue.Entries.Add(e);
+        }
+        return _recommendationQueue.Entries.Count > 0 ? _recommendationQueue.FindBest(ws, player, ws.Client.Cooldowns, EffectiveAnimationLock, suggestions.Hints, _animLockTweak.DelayEstimate, _dismountTweak.AutoDismountEnabled) : default;
     }
 
     public Vector3? GetWorldPosUnderCursor()
@@ -244,7 +284,8 @@ public sealed unsafe class ActionManagerEx(
     }
     public ClientState.DutyAction[] GetDutyActions() => [GetDutyAction(0), GetDutyAction(1), GetDutyAction(2), GetDutyAction(3), GetDutyAction(4)];
 
-    public uint GetAdjustedActionID(uint actionID) => _inst->GetAdjustedActionId(actionID);
+    // note: this bypasses custom combos, so that autorotation sees real actions
+    public uint GetAdjustedActionID(uint actionID) => _getAdjustedActionIdHook != null ? _getAdjustedActionIdHook.Original(_inst, actionID) : _inst->GetAdjustedActionId(actionID);
     public ActionID AdjustAction(ActionID action) => action.Type == ActionType.Spell ? new(ActionType.Spell, GetAdjustedActionID(action.ID)) : action;
 
     public uint GetSpellIdForAction(ActionID action) => ActionManager.GetSpellIdForAction((CSActionType)action.Type, action.ID);
@@ -258,7 +299,15 @@ public sealed unsafe class ActionManagerEx(
         if (action.Type is ActionType.Pomander or ActionType.Magicite)
             return 0;
 
-        return _inst->GetActionStatus((CSActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
+        ++_suppressCustomCombos;
+        try
+        {
+            return _inst->GetActionStatus((CSActionType)action.Type, action.ID, target, checkRecastActive, checkCastingActive, outOptExtraInfo);
+        }
+        finally
+        {
+            --_suppressCustomCombos;
+        }
     }
 
     // returns time in ms
@@ -337,6 +386,19 @@ public sealed unsafe class ActionManagerEx(
 
     // skips queueing etc
     private bool ExecuteAction(ActionID action, ulong targetId, Vector3 targetPos)
+    {
+        ++_suppressCustomCombos;
+        try
+        {
+            return ExecuteActionImpl(action, targetId, targetPos);
+        }
+        finally
+        {
+            --_suppressCustomCombos;
+        }
+    }
+
+    private bool ExecuteActionImpl(ActionID action, ulong targetId, Vector3 targetPos)
     {
         switch (action.Type)
         {
@@ -434,6 +496,21 @@ public sealed unsafe class ActionManagerEx(
 
     private void UpdateDetour(ActionManager* self)
     {
+        // actions executed during update shouldn't be replaced
+        ++_suppressCustomCombos;
+        try
+        {
+            UpdateDetourImpl(self);
+        }
+        finally
+        {
+            --_suppressCustomCombos;
+        }
+        customCombos.Update();
+    }
+
+    private void UpdateDetourImpl(ActionManager* self)
+    {
         var fwk = Framework.Instance();
         var dt = fwk->GameSpeedMultiplier * fwk->FrameDeltaTime;
         var imminentAction = _inst->ActionQueued ? QueuedAction : AutoQueue.Action;
@@ -524,6 +601,17 @@ public sealed unsafe class ActionManagerEx(
     // note: targetId is usually your current primary target (or 0xE0000000 if you don't target anyone), unless you do something like /ac XXX <f> etc
     private bool UseActionDetour(ActionManager* self, CSActionType actionType, uint actionId, ulong targetId, uint extraParam, ActionManager.UseActionMode mode, uint comboRouteId, bool* outOptAreaTargeted)
     {
+        // apply custom combos once, on user press; queued actions were replaced when pressed
+        if (actionType == CSActionType.Action && mode != ActionManager.UseActionMode.Queue && _suppressCustomCombos == 0 && customCombos.Enabled)
+        {
+            var replaced = customCombos.Apply(actionId, out var comboTarget);
+            if (replaced != actionId)
+                comboRouteId = 0; // pvp combo button pressed, but we're using something else
+            actionId = replaced;
+            if (comboTarget != null)
+                targetId = comboTarget.InstanceID; // e.g. autorot suggestion
+        }
+
         var action = new ActionID((ActionType)actionType, actionId);
         //Service.Log($"[AMEx] UA: {action} @ {targetId:X}: {extraParam} {mode} {comboRouteId}");
         action = NormalizeActionForQueue(action);
@@ -554,7 +642,16 @@ public sealed unsafe class ActionManagerEx(
             return false;
 
         var areaTargeted = false;
-        var res = _useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, &areaTargeted);
+        bool res;
+        ++_suppressCustomCombos; // already replaced above
+        try
+        {
+            res = _useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, &areaTargeted);
+        }
+        finally
+        {
+            --_suppressCustomCombos;
+        }
         if (outOptAreaTargeted != null)
             *outOptAreaTargeted = areaTargeted;
         if (areaTargeted && Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtCursor)
@@ -562,6 +659,17 @@ public sealed unsafe class ActionManagerEx(
         if (areaTargeted && Config.GTMode == ActionTweaksConfig.GroundTargetingMode.AtTarget)
             self->AreaTargetingExecuteAtObject = targetId;
         return res;
+    }
+
+    private uint GetAdjustedActionIdDetour(ActionManager* self, uint actionId)
+    {
+        if (_suppressCustomCombos == 0 && customCombos.Enabled)
+        {
+            var repl = customCombos.Resolve(actionId);
+            if (repl != 0)
+                return _getAdjustedActionIdHook.Original(self, repl);
+        }
+        return _getAdjustedActionIdHook.Original(self, actionId);
     }
 
     private ulong AutotargetNative()

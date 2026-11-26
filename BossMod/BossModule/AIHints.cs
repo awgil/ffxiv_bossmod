@@ -239,6 +239,52 @@ public sealed class AIHints
         ShouldLeaveDuty = false;
     }
 
+    // copy everything except actions to execute (which are cleared); keep in sync with Clear
+    public void CopyFrom(AIHints other)
+    {
+        PathfindMapCenter = other.PathfindMapCenter;
+        PathfindMapBounds = other.PathfindMapBounds;
+        PathfindMapObstacles = other.PathfindMapObstacles;
+        Array.Copy(other.Enemies, Enemies, Enemies.Length);
+        PotentialTargets.Clear();
+        PotentialTargets.AddRange(other.PotentialTargets);
+        HighestPotentialTargetPriority = other.HighestPotentialTargetPriority;
+        ForcedTarget = other.ForcedTarget;
+        ForcedFocusTarget = other.ForcedFocusTarget;
+        ForcedMovement = other.ForcedMovement;
+        SpinDirection = other.SpinDirection;
+        InteractWithTarget = other.InteractWithTarget;
+        ForbiddenZones.Clear();
+        ForbiddenZones.AddRange(other.ForbiddenZones);
+        GoalZones.Clear();
+        GoalZones.AddRange(other.GoalZones);
+        Voidzones.Clear();
+        Voidzones.AddRange(other.Voidzones);
+        TemporaryObstacles.Clear();
+        TemporaryObstacles.AddRange(other.TemporaryObstacles);
+        Portals.Clear();
+        Portals.AddRange(other.Portals);
+        RecommendedPositional = other.RecommendedPositional;
+        ForbiddenDirections.Clear();
+        ForbiddenDirections.AddRange(other.ForbiddenDirections);
+        ImminentSpecialMode = other.ImminentSpecialMode;
+        MisdirectionThreshold = other.MisdirectionThreshold;
+        PredictedDamage.Clear();
+        PredictedDamage.AddRange(other.PredictedDamage);
+        ShouldCleanse = other.ShouldCleanse;
+        MaxCastTime = other.MaxCastTime;
+        ForceCancelCast = other.ForceCancelCast;
+        ActionsToExecute.Clear();
+        StatusesToCancel.Clear();
+        StatusesToCancel.AddRange(other.StatusesToCancel);
+        ScriptedDeath = other.ScriptedDeath;
+        WantJump = other.WantJump;
+        WantDismount = other.WantDismount;
+        AllowDash = other.AllowDash;
+        WantFateSync = other.WantFateSync;
+        ShouldLeaveDuty = other.ShouldLeaveDuty;
+    }
+
     public void PrioritizeTargetsByOID(uint oid, int priority = 0)
     {
         foreach (var h in PotentialTargets)
