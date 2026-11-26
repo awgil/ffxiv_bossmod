@@ -13,8 +13,8 @@ public sealed class ComboHotbarSlot
 
 public sealed class ComboHotbarsConfig
 {
-    public bool Enabled = false;
-    public bool ShowVanilla = false; // temporarily show normal hotbars
+    public bool Enabled;
+    public bool ShowVanilla; // temporarily show normal hotbars
     public List<ComboHotbarSlot> Slots = []; // only these slots are covered, the rest show normal hotbars
     public List<ComboHotbarSlot> Pending = []; // additions made by the game while hotbars were locked, applied on unlock
 

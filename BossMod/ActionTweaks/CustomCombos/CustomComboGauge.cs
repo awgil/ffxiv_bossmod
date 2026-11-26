@@ -13,12 +13,12 @@ public sealed record class CustomComboGaugeField(string Key, string Label, Custo
 {
     public float Max { get; init; } // upper bound for number inputs, 0 if unbounded
     public string Unit { get; init; } = "";
-    public (string Label, int Value)[] Options { get; init; } = [];
+    public IReadOnlyList<(string Label, int Value)> Options { get; init; } = [];
 
     public string Format(float value) => Kind switch
     {
         CustomComboGaugeKind.Bool => value != 0 ? "yes" : "no",
-        CustomComboGaugeKind.Choice => Array.Find(Options, o => o.Value == (int)value).Label ?? value.ToString(),
+        CustomComboGaugeKind.Choice => Options.FirstOrDefault(o => o.Value == (int)value).Label ?? value.ToString(),
         _ => $"{value:0.#}{Unit}"
     };
 }

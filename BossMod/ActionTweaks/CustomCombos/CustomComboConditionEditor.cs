@@ -408,7 +408,7 @@ public static class CustomComboConditionEditor
     private static (CustomComboCompare, float) DefaultComparison(CustomComboGaugeField f) => f.Kind switch
     {
         CustomComboGaugeKind.Bool => (CustomComboCompare.Equal, 1),
-        CustomComboGaugeKind.Choice => (CustomComboCompare.Equal, f.Options.Length > 1 ? f.Options[1].Value : 0),
+        CustomComboGaugeKind.Choice => (CustomComboCompare.Equal, f.Options.Count > 1 ? f.Options[1].Value : 0),
         _ => (CustomComboCompare.GreaterEqual, f.Max > 0 ? f.Max / 2 : 0)
     };
 
@@ -572,7 +572,7 @@ public static class CustomComboConditionEditor
             CustomComboConditionType.TargetHP => $"target HP {cmp}%",
             CustomComboConditionType.TargetInActionRange => $"in range of {a}",
             CustomComboConditionType.TargetDistance => $"distance {cmp}y",
-            CustomComboConditionType.Positional => $"at {c.Positional.ToString().ToLowerInvariant()}",
+            CustomComboConditionType.Positional => $"at {c.Positional.ToString().ToUpperInvariant()}",
             CustomComboConditionType.TargetInterruptible => "target cast interruptible",
             CustomComboConditionType.EnemiesNearPlayer => $"{Math.Max(1, c.Count)}+ enemies near me",
             CustomComboConditionType.EnemiesNearTarget => $"{Math.Max(1, c.Count)}+ enemies near target",
@@ -675,13 +675,13 @@ public static class CustomComboConditionEditor
     {
         var modified = false;
         ImGui.SetNextItemWidth(80 * ImGuiHelpers.GlobalScale);
-        using (var combo = ImRaii.Combo("##pos", positional.ToString().ToLowerInvariant()))
+        using (var combo = ImRaii.Combo("##pos", positional.ToString().ToUpperInvariant()))
         {
             if (combo)
             {
                 foreach (var p in (Positional[])[Positional.Rear, Positional.Flank, Positional.Front])
                 {
-                    if (ImGui.Selectable(p.ToString().ToLowerInvariant(), p == positional))
+                    if (ImGui.Selectable(p.ToString().ToUpperInvariant(), p == positional))
                     {
                         positional = p;
                         modified = true;
