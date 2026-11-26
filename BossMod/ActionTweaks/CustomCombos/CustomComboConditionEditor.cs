@@ -20,7 +20,7 @@ public static class CustomComboConditionEditor
         ("Job gauge", [CustomComboConditionType.Gauge]),
         ("Target", [CustomComboConditionType.HasTarget, CustomComboConditionType.StatusOnTarget, CustomComboConditionType.TargetHP, CustomComboConditionType.TargetInActionRange, CustomComboConditionType.TargetDistance, CustomComboConditionType.Positional, CustomComboConditionType.TargetInterruptible]),
         ("Enemies & encounter", [CustomComboConditionType.EnemiesNearPlayer, CustomComboConditionType.EnemiesNearTarget, CustomComboConditionType.InBossFight, CustomComboConditionType.RaidwideIncoming, CustomComboConditionType.TankbusterIncoming]),
-        ("Party", [CustomComboConditionType.PartyMembersBelowHP, CustomComboConditionType.PartyAverageHP]),
+        ("Party", [CustomComboConditionType.PartyMembersBelowHP, CustomComboConditionType.PartyAverageHP, CustomComboConditionType.PartyInCombat]),
     ];
 
     public static void LiveDot(bool? state)
@@ -314,6 +314,9 @@ public static class CustomComboConditionEditor
                 m |= Float("##v", ref c.Value);
                 Text("%");
                 break;
+            case CustomComboConditionType.PartyInCombat:
+                Text("anyone in combat");
+                break;
 
             default:
                 Text($"unknown condition {c.Type}");
@@ -500,6 +503,7 @@ public static class CustomComboConditionEditor
         CustomComboConditionType.TankbusterIncoming => "Tankbuster incoming",
         CustomComboConditionType.PartyMembersBelowHP => "Party members below HP",
         CustomComboConditionType.PartyAverageHP => "Party average HP",
+        CustomComboConditionType.PartyInCombat => "Anyone in party in combat",
         _ => type.ToString()
     };
 
@@ -577,6 +581,7 @@ public static class CustomComboConditionEditor
             CustomComboConditionType.TankbusterIncoming => $"tankbuster within {c.Value:0.##}s",
             CustomComboConditionType.PartyMembersBelowHP => $"{Math.Max(1, c.Count)}+ party below {c.Value:0.##}%",
             CustomComboConditionType.PartyAverageHP => $"party HP {cmp}%",
+            CustomComboConditionType.PartyInCombat => "party in combat",
             _ => c.Type.ToString()
         };
     }

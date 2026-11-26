@@ -296,6 +296,7 @@ public sealed class CustomComboTweak : IDisposable
 
             CustomComboConditionType.PartyMembersBelowHP => _ws.Party.WithoutSlot(excludeAlliance: true).Count(p => p.HPMP.MaxHP > 0 && p.HPRatio * 100 < c.Value) >= Math.Max(1, c.Count),
             CustomComboConditionType.PartyAverageHP => PartyAverageHP() is { } avg && Compare(avg, c.Compare, c.Value),
+            CustomComboConditionType.PartyInCombat => _ws.Party.WithoutSlot(excludeAlliance: true).Any(p => p.InCombat),
 
             CustomComboConditionType.ChargesComparedTo => Compare(ExactCharges(player, c.ID), c.Compare, ExactCharges(player, c.OtherID)),
             CustomComboConditionType.TargetInterruptible => target?.CastInfo is { Interruptible: true } cast && cast.RemainingTime > 0,

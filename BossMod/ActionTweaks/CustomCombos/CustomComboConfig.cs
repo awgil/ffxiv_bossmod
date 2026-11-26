@@ -53,6 +53,7 @@ public enum CustomComboConditionType
     ChargesComparedTo = 30, // charges of ID (including partial ones) compared to charges of OtherID
     TargetInterruptible = 31, // current target is casting something that can be interrupted
     StatusComparedTo = 32, // time left on status ID on self compared to status OtherID (0 if missing)
+    PartyInCombat = 33, // any party member (including player) is in combat
 }
 
 public enum CustomComboCompare { Less, LessEqual, Equal, GreaterEqual, Greater }
