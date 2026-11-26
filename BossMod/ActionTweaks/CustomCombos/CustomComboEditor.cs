@@ -2,143 +2,17 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using System.Text.Json;
 
 namespace BossMod.ActionTweaks.CustomCombos;
 
-public sealed class CustomComboEditor
+public static class CustomComboEditor
 {
     private static string _actionSearch = "";
     private static WorldState? _ws; // for showing actions as they look at player's level
     private static Class _displayJob; // class/job of the combo being drawn
-    private string _importError = "";
+    private static bool _readOnly;
 
-    public void Draw(CustomComboConfig config, WorldState ws)
-    {
-        _ws = ws;
-        var player = ws.Party.Player();
-        var modified = false;
-
-        UIMisc.SectionHeader("Combos");
-        ImGui.TextWrapped("A combo replaces an action on your hotbar: conditional actions are checked first, then the combo chain.");
-
-        if (ImGui.Button("New combo"))
-        {
-            config.Combos.Add(new() { Name = "New combo", Job = player?.Class ?? Class.None });
-            modified = true;
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("New autorotation combo"))
-        {
-            config.Combos.Add(new()
-            {
-                Name = "Autorotation",
-                Job = player?.Class ?? Class.None,
-                Steps =
-                [
-                    new() { Action = CustomComboData.AutorotationNextOGCD, Conditions = [new() { Type = CustomComboConditionType.CanWeave, Value = 0.6f }] },
-                    new() { Action = CustomComboData.AutorotationNextGCD },
-                ]
-            });
-            modified = true;
-        }
-        ImGui.SameLine();
-        modified |= DrawNewFromChain(config, player);
-        ImGui.SameLine();
-        if (ImGui.Button("Import from clipboard"))
-            modified |= Import(config);
-        if (_importError.Length > 0)
-        {
-            ImGui.SameLine();
-            ImGui.TextColored(0xff4c4cff, _importError);
-        }
-
-        var remove = -1;
-        (int A, int B) swap = (-1, -1);
-        // grouped by class/job, in job picker order
-        var jobOrder = GetJobGroups().SelectMany(g => g.Classes).Prepend(Class.None).ToList();
-        foreach (var group in config.Combos.Select((c, i) => (Combo: c, Index: i)).GroupBy(e => e.Combo.Job).OrderBy(g => jobOrder.IndexOf(g.Key) is var o && o < 0 ? int.MaxValue : o))
-        {
-            using var jobId = ImRaii.PushId((int)group.Key);
-            DrawJobIcon(group.Key);
-            ImGui.SameLine();
-            var flags = group.Key == Class.None || group.Key == player?.Class ? ImGuiTreeNodeFlags.DefaultOpen : ImGuiTreeNodeFlags.None;
-            using var jobNode = ImRaii.TreeNode($"{JobName(group.Key)} ({group.Count()})###job", flags);
-            if (!jobNode)
-                continue;
-
-            var entries = group.ToList();
-            for (var k = 0; k < entries.Count; ++k)
-            {
-                var (combo, i) = entries[k];
-                using var id = ImRaii.PushId(i);
-
-                modified |= ImGui.Checkbox("##enabled", ref combo.Enabled);
-                ImGui.SameLine();
-                if (UIMisc.IconButton(FontAwesomeIcon.ArrowUp, "up") && k > 0)
-                    swap = (entries[k - 1].Index, i);
-                ImGui.SameLine();
-                if (UIMisc.IconButton(FontAwesomeIcon.ArrowDown, "down") && k + 1 < entries.Count)
-                    swap = (i, entries[k + 1].Index);
-                ImGui.SameLine();
-                if (UIMisc.IconButton(FontAwesomeIcon.FileExport, "export"))
-                    ImGui.SetClipboardText(JsonSerializer.Serialize(combo, Serialization.BuildSerializationOptions()));
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Copy to clipboard");
-                ImGui.SameLine();
-                using (ImRaii.Disabled(!ImGui.GetIO().KeyShift))
-                    if (UIMisc.IconButton(FontAwesomeIcon.Trash, "delete"))
-                        remove = i;
-                if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-                    ImGui.SetTooltip("Hold shift to delete");
-                ImGui.SameLine();
-                DrawPreviewIcon(combo);
-                ImGui.SameLine();
-
-                _displayJob = combo.Job;
-                using var node = ImRaii.TreeNode($"{combo.Name} ({ActionName(combo.Trigger)})###combo");
-                if (node)
-                    modified |= DrawCombo(combo, player, ws);
-            }
-        }
-
-        if (remove >= 0)
-        {
-            config.Combos.RemoveAt(remove);
-            modified = true;
-        }
-        if (swap.A >= 0)
-        {
-            (config.Combos[swap.A], config.Combos[swap.B]) = (config.Combos[swap.B], config.Combos[swap.A]);
-            modified = true;
-        }
-
-        if (modified)
-            config.Modified.Fire();
-    }
-
-    private bool Import(CustomComboConfig config)
-    {
-        try
-        {
-            var combo = JsonSerializer.Deserialize<CustomCombo>(ImGui.GetClipboardText(), Serialization.BuildSerializationOptions());
-            if (combo == null)
-            {
-                _importError = "Clipboard does not contain a combo";
-                return false;
-            }
-            config.Combos.Add(combo);
-            _importError = "";
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _importError = $"Failed to import: {ex.Message}";
-            return false;
-        }
-    }
-
-    private static void DrawPreviewIcon(CustomCombo combo)
+    internal static void DrawPreviewIcon(CustomCombo combo)
     {
         var size = new Vector2(ImGui.GetFrameHeight());
         var action = Service.CustomCombos?.PreviewLive(combo) ?? 0;
@@ -147,17 +21,29 @@ public sealed class CustomComboEditor
             ImGui.SetTooltip($"Right now this button shows {CustomComboData.ActionName(action)}");
     }
 
-    private static bool DrawCombo(CustomCombo combo, Actor? player, WorldState ws)
-    {
-        var modified = false;
+    internal static uint TriggerIcon(CustomCombo combo, WorldState ws)
+        => CustomComboData.ActionIcon(CustomComboData.DisplayAction(CustomComboData.Canonical(combo.Trigger), combo.Job != Class.None ? ws.Client.ClassJobLevel(combo.Job) : 0));
 
+    // read only still allows picking the autorotation preset, since that's a global setting
+    internal static bool DrawCombo(CustomCombo combo, WorldState ws, bool readOnly)
+    {
+        _ws = ws;
+        _readOnly = readOnly;
+        _displayJob = combo.Job;
+        var player = ws.Party.Player();
+        var gaugeJob = combo.Job != Class.None ? combo.Job : player?.Class ?? Class.None;
+        if (combo.Steps.Any(s => CustomComboData.IsAutorotation(s.Action)))
+            DrawSuggestionPreset(gaugeJob);
+
+        using var disabled = ImRaii.Disabled(readOnly);
+        var modified = false;
         ImGui.SetNextItemWidth(250);
         modified |= ImGui.InputText("Name", ref combo.Name, 256);
         modified |= DrawJobPicker(ref combo.Job);
         modified |= DrawActionPicker("Replaced action", ref combo.Trigger, combo.Job);
 
         _displayJob = combo.Job;
-        var ctx = new CustomComboConditionEditor.Context(combo.Job, combo.Job != Class.None ? combo.Job : player?.Class ?? Class.None, player, ws);
+        var ctx = new CustomComboConditionEditor.Context(combo.Job, gaugeJob, player, ws);
         modified |= DrawSequence(combo);
         modified |= DrawOverrides(combo, ctx);
         if (combo.Sequence.Count == 0)
@@ -262,8 +148,6 @@ public sealed class CustomComboEditor
     {
         var modified = false;
         UIMisc.SectionHeader("Conditional actions");
-        if (combo.Steps.Any(s => CustomComboData.IsAutorotation(s.Action)))
-            DrawSuggestionPreset(ctx.GaugeJob);
 
         var removeStep = -1;
         var swapStep = -1;
@@ -292,6 +176,8 @@ public sealed class CustomComboEditor
             ImGui.SameLine();
 
             var dim = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), !step.Enabled);
+            if (_readOnly)
+                ImGui.SetNextItemOpen(true); // disabled tree nodes can't be expanded
             using var node = ImRaii.TreeNode($"{CustomComboConditionEditor.StepSummary(step)}###step");
             dim.Dispose();
             if (node)
@@ -337,7 +223,7 @@ public sealed class CustomComboEditor
     private static List<(uint ID, string Name, uint Icon)>? _statuses;
 
     private static uint JobIcon(Class job) => job == Class.None ? 0 : 62100u + (uint)job;
-    private static string JobName(Class job)
+    internal static string JobName(Class job)
     {
         if (job == Class.None)
             return "Any class/job";
@@ -351,7 +237,7 @@ public sealed class CustomComboEditor
         UIMisc.Image(job != Class.None ? Service.Texture?.GetFromGameIcon(JobIcon(job)) : null, size);
     }
 
-    private static List<(string Label, List<Class> Classes)> GetJobGroups()
+    internal static List<(string Label, List<Class> Classes)> GetJobGroups()
     {
         if (_jobGroups != null)
             return _jobGroups;
@@ -559,47 +445,4 @@ public sealed class CustomComboEditor
     internal static string ActionName(uint id) => id == 0 ? "<none>" : CustomComboData.ActionName(DisplayAction(id));
     internal static string StatusName(uint id) => id == 0 ? "<none>" : Service.LuminaRow<Lumina.Excel.Sheets.Status>(id)?.Name.ToString() ?? $"#{id}";
     private static uint StatusIcon(uint id) => Service.LuminaRow<Lumina.Excel.Sheets.Status>(id)?.Icon ?? 0;
-
-    private static bool DrawNewFromChain(CustomComboConfig config, Actor? player)
-    {
-        var job = player?.Class ?? Class.None;
-        var chains = CustomComboData.ChainsForClass(job);
-        var modified = false;
-        ImGui.SetNextItemWidth(250);
-        using (ImRaii.Disabled(chains.Count == 0))
-        {
-            using var combo = ImRaii.Combo("##fromchain", "New from native combo...", ImGuiComboFlags.HeightLargest);
-            if (combo)
-            {
-                var iconSize = new Vector2(ImGui.GetFrameHeight());
-                for (var i = 0; i < chains.Count; ++i)
-                {
-                    var chain = chains[i];
-                    var pos = ImGui.GetCursorPos();
-                    if (ImGui.Selectable($"###chain{i}", false, ImGuiSelectableFlags.None, new(0, iconSize.Y)))
-                    {
-                        config.Combos.Add(CustomComboData.BuildComboFromChain(chain, job));
-                        modified = true;
-                    }
-                    ImGui.SetCursorPos(pos);
-                    for (var k = 0; k < chain.Actions.Count; ++k)
-                    {
-                        if (k > 0)
-                        {
-                            ImGui.SameLine();
-                            ImGui.TextDisabled(">");
-                            ImGui.SameLine();
-                        }
-                        UIMisc.Image(Service.Texture?.GetFromGameIcon(CustomComboData.ActionIcon(chain.Actions[k])), iconSize);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip(CustomComboData.ActionName(chain.Actions[k]));
-                    }
-                    ImGui.SameLine();
-                    ImGui.SetCursorPosY(pos.Y + 0.5f * (iconSize.Y - ImGui.GetTextLineHeight()));
-                    ImGui.TextUnformatted(string.Join(" > ", chain.Actions.Select(CustomComboData.ActionName)));
-                }
-            }
-        }
-        return modified;
-    }
 }

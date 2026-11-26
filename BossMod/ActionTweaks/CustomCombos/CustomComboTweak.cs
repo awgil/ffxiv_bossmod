@@ -73,7 +73,7 @@ public sealed class CustomComboTweak : IDisposable
     }
 
     public bool WantsSuggestions(Actor player)
-        => _config.Enabled && _config.Combos.Any(c => c.Enabled && (c.Job == Class.None || c.Job == player.Class) && c.Steps.Any(s => s.Enabled && CustomComboData.IsAutorotation(s.Action)));
+        => _config.Enabled && CustomComboPresets.ActiveCombos(_config, player.Class).Any(c => c.Steps.Any(s => s.Enabled && CustomComboData.IsAutorotation(s.Action)));
 
     public List<Autorotation.Preset> SuggestionPresets(Class cls) => _suggestions.PresetsForClass(cls);
     public Autorotation.Preset? SuggestionPreset(Class cls) => _suggestions.ResolvePreset(_config.AutorotationPreset, cls);
@@ -190,9 +190,9 @@ public sealed class CustomComboTweak : IDisposable
             return default;
 
         var baseTrigger = CustomComboData.Canonical(trigger);
-        foreach (var combo in _config.Combos)
+        foreach (var combo in CustomComboPresets.ActiveCombos(_config, player.Class))
         {
-            if (!combo.Enabled || CustomComboData.Canonical(combo.Trigger) != baseTrigger || combo.Job != Class.None && combo.Job != player.Class)
+            if (CustomComboData.Canonical(combo.Trigger) != baseTrigger)
                 continue;
             var res = EvaluateCombo(player, combo);
             return res.Action == baseTrigger ? default : res; // first matching combo wins, even if nothing in it applies

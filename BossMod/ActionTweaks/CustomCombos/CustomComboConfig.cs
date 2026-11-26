@@ -106,16 +106,14 @@ public sealed class CustomComboConfig : ConfigNode
     public string AutorotationPreset = ""; // for autorotation suggestions; empty = first preset for the class
 
     public List<CustomCombo> Combos = [];
+    public HashSet<string> Presets = []; // keys of enabled presets
     public ComboHotbarsConfig Hotbars = new();
 
-    [JsonIgnore]
-    private readonly CustomComboEditor _editor = new();
     [JsonIgnore]
     private readonly ComboHotbarsEditor _hotbarsEditor = new();
 
     public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
-        _editor.Draw(this, ws);
         _hotbarsEditor.Draw(this);
     }
 }
