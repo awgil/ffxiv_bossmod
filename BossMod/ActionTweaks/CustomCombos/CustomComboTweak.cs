@@ -297,6 +297,10 @@ public sealed class CustomComboTweak : IDisposable
             CustomComboConditionType.PartyMembersBelowHP => _ws.Party.WithoutSlot(excludeAlliance: true).Count(p => p.HPMP.MaxHP > 0 && p.HPRatio * 100 < c.Value) >= Math.Max(1, c.Count),
             CustomComboConditionType.PartyAverageHP => PartyAverageHP() is { } avg && Compare(avg, c.Compare, c.Value),
 
+            CustomComboConditionType.ChargesComparedTo => Compare(ExactCharges(player, c.ID), c.Compare, ExactCharges(player, c.OtherID)),
+            CustomComboConditionType.TargetInterruptible => target?.CastInfo is { Interruptible: true } cast && cast.RemainingTime > 0,
+            CustomComboConditionType.StatusComparedTo => Compare(StatusLeft(player, c.ID, c.OnlySelf), c.Compare, StatusLeft(player, c.OtherID, c.OnlySelf)),
+
             _ => false
         };
     }
@@ -338,8 +342,13 @@ public sealed class CustomComboTweak : IDisposable
         return Math.Max(main, extra);
     }
 
-    private int Charges(Actor player, uint action)
+    private int Charges(Actor player, uint action) => (int)ExactCharges(player, action);
+
+    // fractional part is the progress of the charge that's recharging; 0 for locked actions
+    private float ExactCharges(Actor player, uint action)
     {
+        if (action == 0 || !IsUnlocked(player, CustomComboData.Canonical(action)))
+            return 0;
         var def = CurrentDefinition(action);
         if (def == null || def.MainCooldownGroup < 0)
             return 1;
@@ -351,7 +360,7 @@ public sealed class CustomComboTweak : IDisposable
             return 1;
         // when first charge is used, total is set to cd*max-at-cap and elapsed to cd*(max-at-level - 1), so elapsed/single-charge-cd is the current charge count
         var singleCharge = cd.Total / Math.Max(1, def.MaxChargesAtCap());
-        return Math.Min(maxAtLevel, (int)((cd.Elapsed + 0.001f) / singleCharge));
+        return Math.Min(maxAtLevel, (cd.Elapsed + 0.001f) / singleCharge);
     }
 
     private float GCDRemaining => _ws.Client.Cooldowns[ActionDefinitions.GCDGroup].Remaining;
@@ -376,15 +385,17 @@ public sealed class CustomComboTweak : IDisposable
 
     private bool HasStatus(Actor player, Actor target, CustomComboCondition c)
     {
-        // statuses that were just applied but not yet confirmed by server are treated as having full duration, to avoid double-casting
-        var pendingExpiration = DateTime.MaxValue;
-        var status = c.OnlySelf ? target.FindStatus(c.ID, player.InstanceID, pendingExpiration) : target.FindStatus(c.ID, pendingExpiration);
-        if (status == null)
-            return false;
-        var s = status.Value;
-        var remaining = s.ExpireAt == default || s.ExpireAt == DateTime.MaxValue ? float.MaxValue : (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds;
-        return remaining > c.Value && (c.Count <= 0 || s.Extra >= c.Count);
+        var status = FindStatus(player, target, c.ID, c.OnlySelf);
+        return status != null && Remaining(status.Value) > c.Value && (c.Count <= 0 || status.Value.Extra >= c.Count);
     }
+
+    private float StatusLeft(Actor player, uint id, bool onlySelf) => FindStatus(player, player, id, onlySelf) is { } s ? Remaining(s) : 0;
+
+    // statuses that were just applied but not yet confirmed by server are treated as having full duration, to avoid double-casting
+    private static ActorStatus? FindStatus(Actor player, Actor target, uint id, bool onlySelf)
+        => onlySelf ? target.FindStatus(id, player.InstanceID, DateTime.MaxValue) : target.FindStatus(id, DateTime.MaxValue);
+
+    private float Remaining(ActorStatus s) => s.ExpireAt == default || s.ExpireAt == DateTime.MaxValue ? float.MaxValue : (float)(s.ExpireAt - _ws.CurrentTime).TotalSeconds;
 
     private bool InRange(Actor player, Actor target, uint action)
     {

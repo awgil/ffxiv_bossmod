@@ -14,11 +14,11 @@ public static class CustomComboConditionEditor
 
     private static readonly (string Category, CustomComboConditionType[] Types)[] Categories =
     [
-        ("Action", [CustomComboConditionType.ActionUsable, CustomComboConditionType.ActionReady, CustomComboConditionType.ActionCharges, CustomComboConditionType.UsedRecently]),
+        ("Action", [CustomComboConditionType.ActionUsable, CustomComboConditionType.ActionReady, CustomComboConditionType.ActionCharges, CustomComboConditionType.ChargesComparedTo, CustomComboConditionType.UsedRecently]),
         ("Combo & timing", [CustomComboConditionType.LastComboAction, CustomComboConditionType.ComboTimeRemaining, CustomComboConditionType.CanWeave, CustomComboConditionType.CanLateWeave, CustomComboConditionType.CombatTime]),
-        ("Me", [CustomComboConditionType.StatusOnSelf, CustomComboConditionType.PlayerHP, CustomComboConditionType.PlayerMP, CustomComboConditionType.PlayerLevel, CustomComboConditionType.InCombat, CustomComboConditionType.Moving, CustomComboConditionType.PetPresent]),
+        ("Me", [CustomComboConditionType.StatusOnSelf, CustomComboConditionType.StatusComparedTo,CustomComboConditionType.PlayerHP, CustomComboConditionType.PlayerMP, CustomComboConditionType.PlayerLevel, CustomComboConditionType.InCombat, CustomComboConditionType.Moving, CustomComboConditionType.PetPresent]),
         ("Job gauge", [CustomComboConditionType.Gauge]),
-        ("Target", [CustomComboConditionType.HasTarget, CustomComboConditionType.StatusOnTarget, CustomComboConditionType.TargetHP, CustomComboConditionType.TargetInActionRange, CustomComboConditionType.TargetDistance, CustomComboConditionType.Positional]),
+        ("Target", [CustomComboConditionType.HasTarget, CustomComboConditionType.StatusOnTarget, CustomComboConditionType.TargetHP, CustomComboConditionType.TargetInActionRange, CustomComboConditionType.TargetDistance, CustomComboConditionType.Positional, CustomComboConditionType.TargetInterruptible]),
         ("Enemies & encounter", [CustomComboConditionType.EnemiesNearPlayer, CustomComboConditionType.EnemiesNearTarget, CustomComboConditionType.InBossFight, CustomComboConditionType.RaidwideIncoming, CustomComboConditionType.TankbusterIncoming]),
         ("Party", [CustomComboConditionType.PartyMembersBelowHP, CustomComboConditionType.PartyAverageHP]),
     ];
@@ -157,6 +157,14 @@ public static class CustomComboConditionEditor
                 m |= Int("##n", ref c.Count);
                 Text("charges");
                 break;
+            case CustomComboConditionType.ChargesComparedTo:
+                Text("charges of");
+                m |= Action(ref c.ID, ctx);
+                m |= Compare(ref c.Compare);
+                Text("charges of");
+                using (ImRaii.PushId("other"))
+                    m |= Action(ref c.OtherID, ctx);
+                break;
             case CustomComboConditionType.UsedRecently:
                 m |= Action(ref c.ID, ctx);
                 Text("was used in the last");
@@ -200,6 +208,18 @@ public static class CustomComboConditionEditor
                 Text("s left, at least");
                 m |= Int("##n", ref c.Count);
                 Text("stacks,");
+                m |= ImGui.Checkbox("applied by me", ref c.OnlySelf);
+                ImGui.SameLine();
+                break;
+            case CustomComboConditionType.StatusComparedTo:
+                Text("time left on my");
+                m |= CustomComboEditor.DrawStatusPicker(ref c.ID, ctx.Player, true);
+                ImGui.SameLine();
+                m |= Compare(ref c.Compare);
+                Text("my");
+                using (ImRaii.PushId("other"))
+                    m |= CustomComboEditor.DrawStatusPicker(ref c.OtherID, ctx.Player, true);
+                ImGui.SameLine();
                 m |= ImGui.Checkbox("applied by me", ref c.OnlySelf);
                 ImGui.SameLine();
                 break;
@@ -254,6 +274,9 @@ public static class CustomComboConditionEditor
             case CustomComboConditionType.Positional:
                 Text("I'm at the target's");
                 m |= DrawPositional(ref c.Positional);
+                break;
+            case CustomComboConditionType.TargetInterruptible:
+                Text("target is casting something interruptible");
                 break;
 
             case CustomComboConditionType.EnemiesNearPlayer:
@@ -416,6 +439,8 @@ public static class CustomComboConditionEditor
         (c.Compare, c.Value, c.Count) = type switch
         {
             CustomComboConditionType.ActionCharges => (CustomComboCompare.GreaterEqual, 0, 1),
+            CustomComboConditionType.ChargesComparedTo => (CustomComboCompare.Greater, 0, 0),
+            CustomComboConditionType.StatusComparedTo => (CustomComboCompare.Less, 0, 0),
             CustomComboConditionType.UsedRecently => (CustomComboCompare.GreaterEqual, 3, 0),
             CustomComboConditionType.ComboTimeRemaining => (CustomComboCompare.Less, 5, 0),
             CustomComboConditionType.CanWeave => (CustomComboCompare.GreaterEqual, 0.6f, 0),
@@ -445,6 +470,7 @@ public static class CustomComboConditionEditor
         CustomComboConditionType.ActionUsable => "Action is usable",
         CustomComboConditionType.ActionReady => "Action is off cooldown",
         CustomComboConditionType.ActionCharges => "Action has charges",
+        CustomComboConditionType.ChargesComparedTo => "Compare charges of two actions",
         CustomComboConditionType.UsedRecently => "Action was used recently",
         CustomComboConditionType.LastComboAction => "Last combo action",
         CustomComboConditionType.ComboTimeRemaining => "Combo time left",
@@ -452,6 +478,7 @@ public static class CustomComboConditionEditor
         CustomComboConditionType.CanLateWeave => "Can late-weave",
         CustomComboConditionType.CombatTime => "Time in combat",
         CustomComboConditionType.StatusOnSelf => "Status on me",
+        CustomComboConditionType.StatusComparedTo => "Compare time left on two of my statuses",
         CustomComboConditionType.PlayerHP => "HP",
         CustomComboConditionType.PlayerMP => "MP",
         CustomComboConditionType.PlayerLevel => "Level",
@@ -465,6 +492,7 @@ public static class CustomComboConditionEditor
         CustomComboConditionType.TargetInActionRange => "Target in range of action",
         CustomComboConditionType.TargetDistance => "Distance to target",
         CustomComboConditionType.Positional => "Positional (rear/flank)",
+        CustomComboConditionType.TargetInterruptible => "Target cast is interruptible",
         CustomComboConditionType.EnemiesNearPlayer => "Enemies near me",
         CustomComboConditionType.EnemiesNearTarget => "Enemies near target",
         CustomComboConditionType.InBossFight => "In boss fight",
@@ -479,6 +507,8 @@ public static class CustomComboConditionEditor
     {
         CustomComboConditionType.ActionUsable => "Unlocked, off cooldown (GCDs count as ready while the GCD rolls) and usable right now: enough MP/gauge, required buff or proc active, etc.",
         CustomComboConditionType.ActionReady => "Only checks the action's own cooldown, ignoring resources and procs.",
+        CustomComboConditionType.ChargesComparedTo => "Partially recharged charges count too, so e.g. 1.5 charges beats 1.2. Useful for picking whichever of two actions is closer to overcapping.",
+        CustomComboConditionType.StatusComparedTo => "A missing status counts as 0s left. Useful for refreshing whichever of two buffs runs out first.",
         CustomComboConditionType.UsedRecently => "You used the action within the last few seconds.",
         CustomComboConditionType.CanWeave => "There's room for an oGCD before the next GCD without clipping.",
         CustomComboConditionType.CanLateWeave => "Second half of the GCD window, for oGCDs that should be weaved late.",
@@ -517,6 +547,7 @@ public static class CustomComboConditionEditor
             CustomComboConditionType.ActionUsable => $"{a} usable",
             CustomComboConditionType.ActionReady => c.Value > 0 ? $"{a} ready within {c.Value:0.##}s" : $"{a} off cooldown",
             CustomComboConditionType.ActionCharges => $"{a} has {Math.Max(1, c.Count)}+ charges",
+            CustomComboConditionType.ChargesComparedTo => $"{a} charges {CompareSymbol(c.Compare)} {(c.OtherID != 0 ? CustomComboEditor.ActionName(c.OtherID) : "?")} charges",
             CustomComboConditionType.UsedRecently => $"{a} used in last {c.Value:0.##}s",
             CustomComboConditionType.LastComboAction => $"after {a}",
             CustomComboConditionType.ComboTimeRemaining => $"combo time {cmp}s",
@@ -524,6 +555,7 @@ public static class CustomComboConditionEditor
             CustomComboConditionType.CanLateWeave => "can late-weave",
             CustomComboConditionType.CombatTime => $"combat time {cmp}s",
             CustomComboConditionType.StatusOnSelf => $"I have {st}",
+            CustomComboConditionType.StatusComparedTo => $"{st} {CompareSymbol(c.Compare)} {(c.OtherID != 0 ? CustomComboEditor.StatusName(c.OtherID) : "?")}",
             CustomComboConditionType.PlayerHP => $"my HP {cmp}%",
             CustomComboConditionType.PlayerMP => $"my MP {cmp}",
             CustomComboConditionType.PlayerLevel => $"level {c.Value:0}+",
@@ -537,6 +569,7 @@ public static class CustomComboConditionEditor
             CustomComboConditionType.TargetInActionRange => $"in range of {a}",
             CustomComboConditionType.TargetDistance => $"distance {cmp}y",
             CustomComboConditionType.Positional => $"at {c.Positional.ToString().ToLowerInvariant()}",
+            CustomComboConditionType.TargetInterruptible => "target cast interruptible",
             CustomComboConditionType.EnemiesNearPlayer => $"{Math.Max(1, c.Count)}+ enemies near me",
             CustomComboConditionType.EnemiesNearTarget => $"{Math.Max(1, c.Count)}+ enemies near target",
             CustomComboConditionType.InBossFight => "boss fight",

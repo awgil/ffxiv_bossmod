@@ -49,6 +49,10 @@ public enum CustomComboConditionType
     // party
     PartyMembersBelowHP = 28, // at least Count party members (including player) are below Value percent HP
     PartyAverageHP = 29, // average HP percent of party compared to Value
+
+    ChargesComparedTo = 30, // charges of ID (including partial ones) compared to charges of OtherID
+    TargetInterruptible = 31, // current target is casting something that can be interrupted
+    StatusComparedTo = 32, // time left on status ID on self compared to status OtherID (0 if missing)
 }
 
 public enum CustomComboCompare { Less, LessEqual, Equal, GreaterEqual, Greater }
@@ -70,6 +74,7 @@ public sealed class CustomComboCondition
     public CustomComboConditionType Type;
     public bool Negate;
     public uint ID; // action or status id, depending on type
+    public uint OtherID; // for comparisons: the action or status to compare against
     public float Value; // seconds, percent, level, radius or gauge value, depending on type
     public int Count; // charges, stacks or count, depending on type
     public bool OnlySelf = true; // for status conditions: only consider statuses applied by the player
