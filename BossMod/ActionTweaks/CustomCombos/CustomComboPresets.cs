@@ -45,9 +45,10 @@ public static class CustomComboPresets
     // replaces lowest level damaging gcd
     private static CustomComboPreset? Autorotation(Class job, bool pvp)
     {
-        if (job == Class.None || pvp && !RotationModuleRegistry.Modules.Values.Any(m => m.Definition.PvP != PvPCompatibility.None && m.Definition.Classes[(int)job]))
+        if (job == Class.None || pvp && !RotationModuleRegistry.Modules.Values.Any(m => AutorotationSuggestions.IsRotation(m.Definition, job, true)))
             return null;
-        var trigger = CustomComboData.ActionsForClass(job, pvp).FirstOrDefault(a => IsDamageGCD(a.ID)).ID;
+        var actions = CustomComboData.ActionsForClass(job, pvp).Where(a => IsDamageGCD(a.ID)).ToList();
+        var trigger = actions.FirstOrDefault(a => CustomComboData.IsPvPRouteStart(a.ID), actions.FirstOrDefault()).ID;
         if (trigger == 0)
             return null;
         return new($"{KeyPrefix(job, pvp)}auto", "Uses the autorotation preset's next oGCD when it can be woven, otherwise its next GCD", new()

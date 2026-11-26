@@ -604,7 +604,10 @@ public sealed unsafe class ActionManagerEx(
         // apply custom combos once, on user press; queued actions were replaced when pressed
         if (actionType == CSActionType.Action && mode != ActionManager.UseActionMode.Queue && _suppressCustomCombos == 0 && customCombos.Enabled)
         {
-            actionId = customCombos.Apply(actionId, out var comboTarget);
+            var replaced = customCombos.Apply(actionId, out var comboTarget);
+            if (replaced != actionId)
+                comboRouteId = 0; // pvp combo button pressed, but we're using something else
+            actionId = replaced;
             if (comboTarget != null)
                 targetId = comboTarget.InstanceID; // e.g. autorot suggestion
         }

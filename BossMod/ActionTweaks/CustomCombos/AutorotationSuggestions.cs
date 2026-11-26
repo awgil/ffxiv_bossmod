@@ -22,10 +22,17 @@ public sealed class AutorotationSuggestions : IDisposable
 
     public void Dispose() => _manager.Dispose();
 
-    // configured preset, or first preset for the class; pvp and normal presets are separate, since modules only run in one of them
-    public Preset? ResolvePreset(string name, Class cls, bool pvp) => (name.Length > 0 ? _db.Presets.FindPresetByName(name) : null) ?? PresetsForClass(cls, pvp).FirstOrDefault();
-    public List<Preset> PresetsForClass(Class cls, bool pvp)
-        => [.. _db.Presets.PresetsForClass(cls).Where(p => p.Modules.Any(m => m.Definition.Classes[(int)cls] && m.Definition.PvP != (pvp ? PvPCompatibility.None : PvPCompatibility.PvPOnly)))];
+    public Preset? ResolvePreset(string name, Class cls, bool pvp)
+    {
+        if (name.Length > 0 && _db.Presets.FindPresetByName(name) is { } named)
+            return named;
+        var presets = PresetsForClass(cls, pvp);
+        return presets.FirstOrDefault(p => p.Modules.Any(m => IsRotation(m.Definition, cls, pvp))) ?? presets.FirstOrDefault();
+    }
+
+    public List<Preset> PresetsForClass(Class cls, bool pvp) => [.. _db.Presets.PresetsForClass(cls).Where(p => p.Modules.Any(m => Compatible(m.Definition, cls, pvp)))];
+    private static bool Compatible(RotationModuleDefinition def, Class cls, bool pvp) => def.Classes[(int)cls] && def.PvP == (pvp ? PvPCompatibility.PvPOnly : PvPCompatibility.None);
+    public static bool IsRotation(RotationModuleDefinition def, Class cls, bool pvp) => Compatible(def, cls, pvp) && def.Classes.NumSetBits() <= 2; // to exclude utility modules
 
     public void Update(CustomComboConfig config, float animLockDelay, bool isMoving)
     {

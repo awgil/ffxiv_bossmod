@@ -26,15 +26,16 @@ public static class CustomComboData
     private static Dictionary<uint, List<uint>>? _upgradesOfBase;
 
     private static Dictionary<uint, uint> UpgradeToBase => field ??= BuildUpgradeMap();
+    private static Dictionary<uint, (uint Start, string Name)> PvPRoutes => field ??= BuildPvPRoutes(); // any step of a pvp combo button -> its first action
 
-    // get the base action
     public static uint Canonical(uint action)
     {
         for (var i = 0; i < 8 && UpgradeToBase.TryGetValue(action, out var b); ++i)
             action = b;
-        return action;
+        return PvPRoutes.TryGetValue(action, out var route) ? route.Start : action;
     }
 
+    public static bool IsPvPRouteStart(uint action) => PvPRoutes.TryGetValue(action, out var route) && route.Start == action;
     public static bool IsUpgrade(uint action) => UpgradeToBase.ContainsKey(action);
 
     // highest trait upgrade of a base action available at given level
@@ -86,13 +87,13 @@ public static class CustomComboData
         list = [];
         foreach (var row in Service.LuminaSheet<Lumina.Excel.Sheets.Action>())
         {
-            if (!row.IsPlayerAction || row.IsPvP != pvp || !pvp && row.ClassJobLevel == 0 || row.Name.IsEmpty || IsUpgrade(row.RowId))
+            if (!(row.IsPlayerAction || pvp && IsPvPRouteStart(row.RowId)) || row.IsPvP != pvp || !pvp && row.ClassJobLevel == 0 || row.Name.IsEmpty || IsUpgrade(row.RowId))
                 continue;
             var allowed = ActionDefinitions.Instance.SpellAllowedClasses(row);
             if (job != Class.None ? !allowed[(int)job] : allowed.Raw == 0)
                 continue;
             var upgrades = upgradeNames.TryGetValue(row.RowId, out var names) ? string.Join(" / ", names) : "";
-            list.Add(new(row.RowId, row.Name.ToString(), row.ClassJobLevel, row.Icon, upgrades));
+            list.Add(new(row.RowId, LuminaActionName(row.RowId), row.ClassJobLevel, row.Icon, upgrades));
         }
         list.Sort((a, b) => a.Level != b.Level ? a.Level.CompareTo(b.Level) : a.ID.CompareTo(b.ID));
         _actionsPerClass[(job, pvp)] = list;
@@ -147,9 +148,23 @@ public static class CustomComboData
         AutorotationNextOGCD => "Autorotation: next oGCD",
         _ => LuminaActionName(id)
     };
-    private static string LuminaActionName(uint id) => Service.LuminaRow<Lumina.Excel.Sheets.Action>(id)?.Name.ToString() ?? $"#{id}";
+    private static string LuminaActionName(uint id) => IsPvPRouteStart(id) ? PvPRoutes[id].Name : Service.LuminaRow<Lumina.Excel.Sheets.Action>(id)?.Name.ToString() ?? $"#{id}";
     public static uint ActionIcon(uint id) => Service.LuminaRow<Lumina.Excel.Sheets.Action>(id)?.Icon ?? 0;
     public static int ActionLevel(uint id) => Service.LuminaRow<Lumina.Excel.Sheets.Action>(id)?.ClassJobLevel ?? 0;
+
+    private static Dictionary<uint, (uint Start, string Name)> BuildPvPRoutes()
+    {
+        Dictionary<uint, (uint, string)> res = [];
+        foreach (var row in Service.LuminaSheet<Lumina.Excel.Sheets.ActionComboRoute>())
+        {
+            var actions = row.Action.Select(a => a.RowId).Where(id => id != 0).ToList();
+            if (actions.Count < 2 || !(Service.LuminaRow<Lumina.Excel.Sheets.Action>(actions[0])?.IsPvP ?? false))
+                continue;
+            foreach (var a in actions)
+                res.TryAdd(a, (actions[0], row.Name.ToString()));
+        }
+        return res;
+    }
 
     private static Dictionary<uint, uint> BuildUpgradeMap()
     {
