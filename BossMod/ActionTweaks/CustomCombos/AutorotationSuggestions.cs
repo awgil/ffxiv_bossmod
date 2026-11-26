@@ -22,15 +22,15 @@ public sealed class AutorotationSuggestions : IDisposable
 
     public void Dispose() => _manager.Dispose();
 
-    // configured preset, or first preset for the class
-    public Preset? ResolvePreset(string name, Class cls) => (name.Length > 0 ? _db.Presets.FindPresetByName(name) : null) ?? _db.Presets.PresetsForClass(cls).FirstOrDefault();
-    public List<Preset> PresetsForClass(Class cls) => _db.Presets.PresetsForClass(cls);
+    // configured preset, or first preset for the class; pvp and normal presets are separate, since modules only run in one of them
+    public Preset? ResolvePreset(string name, Class cls, bool pvp) => (name.Length > 0 ? _db.Presets.FindPresetByName(name) : null) ?? PresetsForClass(cls, pvp).FirstOrDefault();
+    public List<Preset> PresetsForClass(Class cls, bool pvp)
+        => [.. _db.Presets.PresetsForClass(cls).Where(p => p.Modules.Any(m => m.Definition.Classes[(int)cls] && m.Definition.PvP != (pvp ? PvPCompatibility.None : PvPCompatibility.PvPOnly)))];
 
-    // call every frame while suggestions are needed, after real hints are filled
-    public void Update(string presetName, float animLockDelay, bool isMoving)
+    public void Update(CustomComboConfig config, float animLockDelay, bool isMoving)
     {
         var player = _ws.Party.Player();
-        var preset = player != null ? ResolvePreset(presetName, player.Class) : null;
+        var preset = player != null ? ResolvePreset(config.SuggestionPreset(_ws.IsPvPArea), player.Class, _ws.IsPvPArea) : null;
         if (preset == null)
         {
             if (_preset != null)

@@ -11,6 +11,7 @@ public static class CustomComboEditor
     private static WorldState? _ws; // for showing actions as they look at player's level
     private static Class _displayJob; // class/job of the combo being drawn
     private static bool _readOnly;
+    private static bool _pvp; // of the combo being drawn
 
     internal static void DrawPreviewIcon(CustomCombo combo)
     {
@@ -29,6 +30,7 @@ public static class CustomComboEditor
     {
         _ws = ws;
         _readOnly = readOnly;
+        _pvp = combo.PvP;
         _displayJob = combo.Job;
         var player = ws.Party.Player();
         var gaugeJob = combo.Job != Class.None ? combo.Job : player?.Class ?? Class.None;
@@ -39,12 +41,13 @@ public static class CustomComboEditor
         var modified = false;
         ImGui.SetNextItemWidth(250);
         modified |= ImGui.InputText("Name", ref combo.Name, 256);
-        modified |= DrawJobPicker(ref combo.Job);
+        modified |= DrawJobPicker(ref combo.Job, combo.PvP);
         modified |= DrawActionPicker("Replaced action", ref combo.Trigger, combo.Job);
 
         _displayJob = combo.Job;
         var ctx = new CustomComboConditionEditor.Context(combo.Job, gaugeJob, player, ws);
-        modified |= DrawSequence(combo);
+        if (!combo.PvP || combo.Sequence.Count > 0) // game does pvp combos on its own
+            modified |= DrawSequence(combo);
         modified |= DrawOverrides(combo, ctx);
         if (combo.Sequence.Count == 0)
             ImGui.TextDisabled($"Otherwise: {ActionName(combo.Trigger)}");
@@ -101,7 +104,7 @@ public static class CustomComboEditor
 
         var last = combo.Sequence.Count > 0 ? combo.Sequence[^1] : 0;
         var addFilter = SequenceFilter(combo.Job, last);
-        if (CustomComboData.ActionsForClass(combo.Job).Any(a => addFilter(a.ID)))
+        if (CustomComboData.ActionsForClass(combo.Job, _pvp).Any(a => addFilter(a.ID)))
         {
             uint added = 0;
             if (DrawActionPicker("##add", ref added, combo.Job, combo.Sequence.Count == 0 ? "Start with..." : "then...", filter: addFilter) && added != 0)
@@ -115,7 +118,7 @@ public static class CustomComboEditor
 
     // first step: any combo action; later steps: actions continuing the combo from previous step
     private static Func<uint, bool> SequenceFilter(Class job, uint prev)
-        => prev == 0 ? a => CustomComboData.IsComboAction(job, a) : a => CustomComboData.ContinuesCombo(prev, a);
+        => prev == 0 ? a => CustomComboData.IsComboAction(job, _pvp, a) : a => CustomComboData.ContinuesCombo(prev, a);
 
     private static int JobLevel(Class job) => job != Class.None ? _ws?.Client.ClassJobLevel(job) ?? 0 : 0;
     private static uint DisplayAction(uint action) => CustomComboData.DisplayAction(CustomComboData.Canonical(action), JobLevel(_displayJob));
@@ -126,7 +129,7 @@ public static class CustomComboEditor
         if (tweak == null || job == Class.None)
             return;
         var config = Service.Config.Get<CustomComboConfig>();
-        var current = tweak.SuggestionPreset(job);
+        var current = tweak.SuggestionPreset(job, _pvp);
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("Use combo for preset: ");
         ImGui.SameLine();
@@ -134,11 +137,11 @@ public static class CustomComboEditor
         using var combo = ImRaii.Combo("##preset", current?.Name ?? "<no preset for this job>");
         if (!combo)
             return;
-        foreach (var p in tweak.SuggestionPresets(job))
+        foreach (var p in tweak.SuggestionPresets(job, _pvp))
         {
             if (ImGui.Selectable(p.Name, p == current))
             {
-                config.AutorotationPreset = p.Name;
+                config.SuggestionPreset(_pvp) = p.Name;
                 config.Modified.Fire();
             }
         }
@@ -237,7 +240,11 @@ public static class CustomComboEditor
         UIMisc.Image(job != Class.None ? Service.Texture?.GetFromGameIcon(JobIcon(job)) : null, size);
     }
 
-    internal static List<(string Label, List<Class> Classes)> GetJobGroups()
+    // in pvp, only jobs that have pvp actions
+    internal static IEnumerable<(string Label, List<Class> Classes)> GetJobGroups(bool pvp)
+        => pvp ? GetJobGroups().Select(g => (g.Label, g.Classes.Where(c => CustomComboData.ActionsForClass(c, true).Count > 0).ToList())) : GetJobGroups();
+
+    private static List<(string Label, List<Class> Classes)> GetJobGroups()
     {
         if (_jobGroups != null)
             return _jobGroups;
@@ -249,7 +256,7 @@ public static class CustomComboEditor
         return _jobGroups;
     }
 
-    internal static bool DrawJobPicker(ref Class job)
+    internal static bool DrawJobPicker(ref Class job, bool pvp)
     {
         var modified = false;
         var iconSize = new Vector2(ImGui.GetFrameHeight());
@@ -262,7 +269,7 @@ public static class CustomComboEditor
             {
                 if (DrawIconEntry("any", 0, JobName(Class.None), job == Class.None, iconSize))
                     (job, modified) = (Class.None, true);
-                foreach (var (label, classes) in GetJobGroups())
+                foreach (var (label, classes) in GetJobGroups(pvp))
                 {
                     if (classes.Count == 0)
                         continue;
@@ -308,7 +315,7 @@ public static class CustomComboEditor
                 var autos = allowAutorotation ? CustomComboData.AutorotationActions.Where(a => _actionSearch.Length == 0 || CustomComboData.ActionName(a).Contains(_actionSearch, StringComparison.OrdinalIgnoreCase)).ToList() : [];
                 // show actions as they look on hotbar at current level (e.g. heated split shot)
                 var level = JobLevel(job);
-                var actions = CustomComboData.ActionsForClass(job)
+                var actions = CustomComboData.ActionsForClass(job, _pvp)
                     .Where(a => filter == null || filter(a.ID))
                     .Select(a => (Base: a, Shown: CustomComboData.DisplayAction(a.ID, level)))
                     .Select(e => (e.Base, e.Shown, Name: e.Shown == e.Base.ID ? e.Base.Name : CustomComboData.ActionName(e.Shown)))
@@ -335,9 +342,9 @@ public static class CustomComboEditor
                     foreach (var (a, shown, name) in actions)
                     {
                         var shownLevel = CustomComboData.ActionLevel(shown);
-                        var clicked = DrawIconEntry(a.ID.ToString(), CustomComboData.ActionIcon(shown), name, a.ID == CustomComboData.Canonical(action), iconSize, $"lv{shownLevel}");
+                        var clicked = DrawIconEntry(a.ID.ToString(), CustomComboData.ActionIcon(shown), name, a.ID == CustomComboData.Canonical(action), iconSize, _pvp ? null : $"lv{shownLevel}");
                         if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip(shown != a.ID ? $"{name}\nLevel {shownLevel} · ID {shown}\nUpgraded from {a.Name} (level {a.Level})" : $"{name}\nLevel {a.Level} · ID {a.ID}");
+                            ImGui.SetTooltip(_pvp ? $"{name}\nID {a.ID}" : shown != a.ID ? $"{name}\nLevel {shownLevel} · ID {shown}\nUpgraded from {a.Name} (level {a.Level})" : $"{name}\nLevel {a.Level} · ID {a.ID}");
                         if (clicked)
                         {
                             action = a.ID;

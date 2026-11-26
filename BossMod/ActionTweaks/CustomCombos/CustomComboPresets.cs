@@ -1,3 +1,5 @@
+using BossMod.Autorotation;
+
 namespace BossMod.ActionTweaks.CustomCombos;
 
 // read-only combo that can be toggled on, or copied into user's combos to edit it
@@ -5,51 +7,54 @@ public sealed record class CustomComboPreset(string Key, string? Description, Cu
 
 public static class CustomComboPresets
 {
-    private static readonly Dictionary<Class, List<CustomComboPreset>> _presets = [];
+    private static readonly Dictionary<(Class, bool), List<CustomComboPreset>> _presets = [];
 
-    public static string KeyPrefix(Class job) => $"{job}:";
+    public static string KeyPrefix(Class job, bool pvp) => pvp ? $"pvp:{job}:" : $"{job}:";
 
-    public static List<CustomComboPreset> ForClass(Class job)
+    public static List<CustomComboPreset> ForClass(Class job, bool pvp)
     {
-        if (_presets.TryGetValue(job, out var list))
+        if (_presets.TryGetValue((job, pvp), out var list))
             return list;
 
         list = [];
-        if (Autorotation(job) is { } auto)
+        if (Autorotation(job, pvp) is { } auto)
             list.Add(auto);
-        foreach (var chain in CustomComboData.ChainsForClass(job))
-            list.Add(new($"{KeyPrefix(job)}native:{chain.Actions[^1]}", null, CustomComboData.BuildComboFromChain(chain, job)));
-        list.AddRange(AllBranches(job));
-        list.AddRange(Handwritten().Where(p => p.Combo.Job == job));
-        _presets[job] = list;
+        if (!pvp)
+        {
+            foreach (var chain in CustomComboData.ChainsForClass(job))
+                list.Add(new($"{KeyPrefix(job, false)}native:{chain.Actions[^1]}", null, CustomComboData.BuildComboFromChain(chain, job)));
+            list.AddRange(AllBranches(job));
+            list.AddRange(Handwritten().Where(p => p.Combo.Job == job));
+        }
+        _presets[(job, pvp)] = list;
         return list;
     }
 
-    // user combos checked first, then anything else enabled
-    public static IEnumerable<CustomCombo> ActiveCombos(CustomComboConfig config, Class job)
+    public static IEnumerable<CustomCombo> ActiveCombos(CustomComboConfig config, Class job, bool pvp)
     {
         foreach (var c in config.Combos)
-            if (c.Enabled && (c.Job == Class.None || c.Job == job))
+            if (c.Enabled && c.PvP == pvp && (c.Job == Class.None || c.Job == job))
                 yield return c;
         if (config.Presets.Count == 0)
             yield break;
-        foreach (var p in ForClass(Class.None).Concat(ForClass(job)))
+        foreach (var p in ForClass(Class.None, pvp).Concat(ForClass(job, pvp)))
             if (config.Presets.Contains(p.Key))
                 yield return p.Combo;
     }
 
     // replaces lowest level damaging gcd
-    private static CustomComboPreset? Autorotation(Class job)
+    private static CustomComboPreset? Autorotation(Class job, bool pvp)
     {
-        if (job == Class.None)
+        if (job == Class.None || pvp && !RotationModuleRegistry.Modules.Values.Any(m => m.Definition.PvP != PvPCompatibility.None && m.Definition.Classes[(int)job]))
             return null;
-        var trigger = CustomComboData.ActionsForClass(job).FirstOrDefault(a => IsDamageGCD(a.ID)).ID;
+        var trigger = CustomComboData.ActionsForClass(job, pvp).FirstOrDefault(a => IsDamageGCD(a.ID)).ID;
         if (trigger == 0)
             return null;
-        return new($"{KeyPrefix(job)}auto", "Uses the autorotation preset's next oGCD when it can be woven, otherwise its next GCD", new()
+        return new($"{KeyPrefix(job, pvp)}auto", "Uses the autorotation preset's next oGCD when it can be woven, otherwise its next GCD", new()
         {
             Name = "Autorotation",
             Job = job,
+            PvP = pvp,
             Trigger = trigger,
             Steps =
             [
@@ -139,7 +144,7 @@ public static class CustomComboPresets
             visit(group.Key, 0, true);
 
             var name = CustomComboData.ActionName(group.Key);
-            yield return new($"{KeyPrefix(job)}branches:{group.Key}", $"Replaces {name} with all branches of the combo", new()
+            yield return new($"{KeyPrefix(job, false)}branches:{group.Key}", $"Replaces {name} with all branches of the combo", new()
             {
                 Name = $"{name} full branched combo",
                 Job = job,
@@ -241,7 +246,7 @@ public static class CustomComboPresets
             trigger, Step((uint)SGE.AID.Rhizomata, GaugeIs("addersgall", CustomComboCompare.Equal, 0), Usable((uint)SGE.AID.Rhizomata)));
 
     private static CustomComboPreset Preset(Class job, string id, string name, string description, uint trigger, params CustomComboStep[] steps)
-        => new($"{KeyPrefix(job)}{id}", description, new() { Name = name, Job = job, Trigger = trigger, Steps = [.. steps] });
+        => new($"{KeyPrefix(job, false)}{id}", description, new() { Name = name, Job = job, Trigger = trigger, Steps = [.. steps] });
 
     private static CustomComboPreset WithSequence(CustomComboPreset preset, params uint[] sequence)
     {

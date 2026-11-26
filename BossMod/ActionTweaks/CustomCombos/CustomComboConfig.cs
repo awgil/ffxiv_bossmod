@@ -97,6 +97,7 @@ public sealed class CustomCombo
     public string Name = "";
     public bool Enabled = true;
     public Class Job = Class.None; // None = any class/job
+    public bool PvP;
     public uint Trigger;
     public List<CustomComboStep> Steps = []; // checked top to bottom before the sequence
     public List<uint> Sequence = []; // combo chain in execution order, e.g. mch's split shot -> slug shot -> clean shot
@@ -109,10 +110,13 @@ public sealed class CustomComboConfig : ConfigNode
     public bool Enabled = false;
 
     public string AutorotationPreset = ""; // for autorotation suggestions; empty = first preset for the class
+    public string AutorotationPresetPvP = "";
 
     public List<CustomCombo> Combos = [];
     public HashSet<string> Presets = []; // keys of enabled presets
     public ComboHotbarsConfig Hotbars = new();
+
+    public ref string SuggestionPreset(bool pvp) => ref pvp ? ref AutorotationPresetPvP : ref AutorotationPreset;
 
     [JsonIgnore]
     private readonly ComboHotbarsEditor _hotbarsEditor = new();

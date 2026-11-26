@@ -1,7 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 namespace BossMod.ActionTweaks.CustomCombos;
@@ -33,11 +32,13 @@ public sealed class ComboHotbarsEditor
 
         var svc = Service.ComboHotbars;
         var m = RaptureHotbarModule.Instance();
-        if (svc == null || m == null || !m->ModuleReady || (m->ActiveHotbarClassJobId & 0x80) != 0)
+        if (svc == null || !ComboHotbarService.IsReady(m))
         {
             ImGui.TextDisabled("n/a: not logged in");
             return;
         }
+        if (m->PvPHotbarsActive)
+            ImGui.TextUnformatted("Showing PvP hotbars");
 
         DrawPending(root, svc);
 
@@ -50,7 +51,7 @@ public sealed class ComboHotbarsEditor
 
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted(bar < ComboHotbarService.NumNormalBars ? $"Hotbar {bar + 1}" : $"Cross hotbar {bar - ComboHotbarService.NumNormalBars + 1}");
-            if (job == 0)
+            if (m->IsHotbarShared(bar))
             {
                 ImGui.SameLine();
                 ImGui.TextDisabled("(shared)");

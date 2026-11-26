@@ -73,10 +73,10 @@ public sealed class CustomComboTweak : IDisposable
     }
 
     public bool WantsSuggestions(Actor player)
-        => _config.Enabled && CustomComboPresets.ActiveCombos(_config, player.Class).Any(c => c.Steps.Any(s => s.Enabled && CustomComboData.IsAutorotation(s.Action)));
+        => _config.Enabled && CustomComboPresets.ActiveCombos(_config, player.Class, _ws.IsPvPArea).Any(c => c.Steps.Any(s => s.Enabled && CustomComboData.IsAutorotation(s.Action)));
 
-    public List<Autorotation.Preset> SuggestionPresets(Class cls) => _suggestions.PresetsForClass(cls);
-    public Autorotation.Preset? SuggestionPreset(Class cls) => _suggestions.ResolvePreset(_config.AutorotationPreset, cls);
+    public List<Autorotation.Preset> SuggestionPresets(Class cls, bool pvp) => _suggestions.PresetsForClass(cls, pvp);
+    public Autorotation.Preset? SuggestionPreset(Class cls, bool pvp) => _suggestions.ResolvePreset(_config.SuggestionPreset(pvp), cls, pvp);
 
     public uint PreviewRecommendation(uint autoAction)
     {
@@ -190,7 +190,7 @@ public sealed class CustomComboTweak : IDisposable
             return default;
 
         var baseTrigger = CustomComboData.Canonical(trigger);
-        foreach (var combo in CustomComboPresets.ActiveCombos(_config, player.Class))
+        foreach (var combo in CustomComboPresets.ActiveCombos(_config, player.Class, _ws.IsPvPArea))
         {
             if (CustomComboData.Canonical(combo.Trigger) != baseTrigger)
                 continue;

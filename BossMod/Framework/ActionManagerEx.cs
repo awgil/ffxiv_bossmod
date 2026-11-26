@@ -158,7 +158,7 @@ public sealed unsafe class ActionManagerEx(
 
         // suggestions for custom combos, regardless of whether autorotation is enabled
         if (customCombos.WantsSuggestions(player))
-            suggestions.Update(_customComboConfig.AutorotationPreset, _animLockTweak.DelayEstimate, movement.IsMoving());
+            suggestions.Update(_customComboConfig, _animLockTweak.DelayEstimate, movement.IsMoving());
         else
             suggestions.Clear();
 

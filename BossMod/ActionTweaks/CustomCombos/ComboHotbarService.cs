@@ -1,6 +1,5 @@
 using Dalamud.Game.Config;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
@@ -16,7 +15,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
 
     private readonly CustomComboConfig _comboConfig = configRoot.Get<CustomComboConfig>();
     public ComboHotbarsConfig Config => _comboConfig.Hotbars;
-    public readonly List<string> Messages = []; // user-visible notices, e.g. pending additions that couldn't be placed
+    public readonly List<string> Messages = []; // pending additions that couldn't be placed
 
     private bool _wasActive;
     private EventSubscription? _configSubscription;
@@ -89,14 +88,10 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     }
 
     public bool IsActive => Config.Enabled && !Config.ShowVanilla;
-
-    // note: pvp has its own hotbars
-    // todo: pvp hotbars
-    public bool CanApply(RaptureHotbarModule* m) => IsActive && m != null && m->ModuleReady && (m->ActiveHotbarClassJobId & 0x80) == 0 && !GameMain.IsInPvPArea();
-
-    // saved hotbar index the game uses for a bar of the current job
-    public static uint EffectiveJob(RaptureHotbarModule* m, uint bar) => m->IsHotbarShared(bar) ? 0u : m->ActiveHotbarClassJobId;
-
+    public bool CanApply(RaptureHotbarModule* m) => IsActive && IsReady(m);
+    public static bool IsReady(RaptureHotbarModule* m) => m != null && m->ModuleReady && (m->ActiveHotbarClassJobId & 0x80) == 0 && (!m->PvPHotbarsActive || m->GetPvPSavedHotbarIndexForClassJobId(m->ActiveHotbarClassJobId) >= 0);
+    public static uint EffectiveJob(RaptureHotbarModule* m, uint bar) => SavedIndex(m, m->IsHotbarShared(bar) ? 0u : m->ActiveHotbarClassJobId, m->PvPHotbarsActive);
+    private static uint SavedIndex(RaptureHotbarModule* m, uint job, bool pvp) => pvp ? (uint)m->GetPvPSavedHotbarIndexForClassJobId(job) : job;
     public bool IsLocked(uint bar) => gameConfig.TryGet(bar < NumNormalBars ? UiConfigOption.HotbarLock : UiConfigOption.HotbarCrossLock, out uint v) && v != 0;
 
     // start covering a slot with its current content
@@ -176,7 +171,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     private void RestoreAll()
     {
         var m = RaptureHotbarModule.Instance();
-        if (m == null || !m->ModuleReady || (m->ActiveHotbarClassJobId & 0x80) != 0 || GameMain.IsInPvPArea())
+        if (!IsReady(m))
             return;
         for (var bar = 0u; bar < NumBars; ++bar)
             if (Config.HasBar(EffectiveJob(m, bar), bar))
@@ -186,7 +181,7 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
     // reload normal hotbar, then reapply whatever is still covered
     private void RefreshBar(RaptureHotbarModule* m, uint bar)
     {
-        if (GameMain.IsInPvPArea() || (m->ActiveHotbarClassJobId & 0x80) != 0)
+        if (!IsReady(m))
             return;
         _loadSavedHotbarHook.Original(m, m->ActiveHotbarClassJobId, bar);
         if (CanApply(m))
@@ -250,10 +245,10 @@ public sealed unsafe class ComboHotbarService(IClientState clientState, IGameCon
 
     private void WriteSavedSlotDetour(RaptureHotbarModule* self, uint classJobId, uint hotbarId, uint slotId, RaptureHotbarModule.HotbarSlot* slotSource, bool ignoreSharedHotbars, bool isPvpSlot)
     {
-        if (!isPvpSlot && hotbarId < NumBars && slotId < NumSlots && slotSource != null && CanApply(self))
+        if (isPvpSlot == self->PvPHotbarsActive && hotbarId < NumBars && slotId < NumSlots && slotSource != null && CanApply(self))
         {
             // same shared-hotbar resolution as the game
-            var job = !ignoreSharedHotbars && self->IsHotbarShared(hotbarId) ? 0u : classJobId;
+            var job = SavedIndex(self, !ignoreSharedHotbars && self->IsHotbarShared(hotbarId) ? 0u : classJobId, isPvpSlot);
             if (Config.Find(job, hotbarId, slotId) is { } covered)
             {
                 if (!IsLocked(hotbarId))

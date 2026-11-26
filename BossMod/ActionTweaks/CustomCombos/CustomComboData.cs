@@ -20,9 +20,9 @@ public static class CustomComboData
     public readonly record struct ComboChain(List<uint> Actions); // base actions linked by Action.ActionCombo, starter to finisher
 
     private const int ReplaceTypeTrait = 3; // permanent trait upgrade (e.g. split shot -> heated split shot); others are temp
-    private static readonly Dictionary<Class, List<ActionEntry>> _actionsPerClass = [];
-    private static readonly Dictionary<Class, List<ComboChain>> _chainsPerClass = [];
-    private static readonly Dictionary<Class, Dictionary<uint, uint>> _comboParentsPerClass = []; // combo action -> action that has to precede it
+    private static readonly Dictionary<(Class, bool), List<ActionEntry>> _actionsPerClass = [];
+    private static readonly Dictionary<(Class, bool), List<ComboChain>> _chainsPerClass = [];
+    private static readonly Dictionary<(Class, bool), Dictionary<uint, uint>> _comboParentsPerClass = []; // combo action -> action that has to precede it
     private static Dictionary<uint, List<uint>>? _upgradesOfBase;
 
     private static Dictionary<uint, uint> UpgradeToBase => field ??= BuildUpgradeMap();
@@ -50,18 +50,18 @@ public static class CustomComboData
     }
 
     // base actions that start or continue a game combo
-    public static bool IsComboAction(Class job, uint action)
+    public static bool IsComboAction(Class job, bool pvp, uint action)
     {
-        var parents = ComboParents(job);
+        var parents = ComboParents(job, pvp);
         action = Canonical(action);
         return parents.ContainsKey(action) || parents.ContainsValue(action);
     }
 
-    private static Dictionary<uint, uint> ComboParents(Class job)
+    private static Dictionary<uint, uint> ComboParents(Class job, bool pvp)
     {
-        if (_comboParentsPerClass.TryGetValue(job, out var parents))
+        if (_comboParentsPerClass.TryGetValue((job, pvp), out var parents))
             return parents;
-        var actions = ActionsForClass(job).Select(a => a.ID).ToHashSet();
+        var actions = ActionsForClass(job, pvp).Select(a => a.ID).ToHashSet();
         parents = [];
         foreach (var id in actions)
         {
@@ -69,14 +69,13 @@ public static class CustomComboData
             if (prev != 0 && prev != id && actions.Contains(prev))
                 parents[id] = prev;
         }
-        _comboParentsPerClass[job] = parents;
+        _comboParentsPerClass[(job, pvp)] = parents;
         return parents;
     }
 
-    // non-pvp player actions of the class/job (any, if None), with trait upgrades merged into base actions
-    public static List<ActionEntry> ActionsForClass(Class job)
+    public static List<ActionEntry> ActionsForClass(Class job, bool pvp = false)
     {
-        if (_actionsPerClass.TryGetValue(job, out var list))
+        if (_actionsPerClass.TryGetValue((job, pvp), out var list))
             return list;
 
         Dictionary<uint, List<string>> upgradeNames = [];
@@ -87,7 +86,7 @@ public static class CustomComboData
         list = [];
         foreach (var row in Service.LuminaSheet<Lumina.Excel.Sheets.Action>())
         {
-            if (!row.IsPlayerAction || row.IsPvP || row.ClassJobLevel == 0 || row.Name.IsEmpty || IsUpgrade(row.RowId))
+            if (!row.IsPlayerAction || row.IsPvP != pvp || !pvp && row.ClassJobLevel == 0 || row.Name.IsEmpty || IsUpgrade(row.RowId))
                 continue;
             var allowed = ActionDefinitions.Instance.SpellAllowedClasses(row);
             if (job != Class.None ? !allowed[(int)job] : allowed.Raw == 0)
@@ -96,19 +95,19 @@ public static class CustomComboData
             list.Add(new(row.RowId, row.Name.ToString(), row.ClassJobLevel, row.Icon, upgrades));
         }
         list.Sort((a, b) => a.Level != b.Level ? a.Level.CompareTo(b.Level) : a.ID.CompareTo(b.ID));
-        _actionsPerClass[job] = list;
+        _actionsPerClass[(job, pvp)] = list;
         return list;
     }
 
-    public static List<ComboChain> ChainsForClass(Class job)
+    public static List<ComboChain> ChainsForClass(Class job, bool pvp = false)
     {
-        if (_chainsPerClass.TryGetValue(job, out var chains))
+        if (_chainsPerClass.TryGetValue((job, pvp), out var chains))
             return chains;
 
         chains = [];
         if (job != Class.None)
         {
-            var parent = ComboParents(job);
+            var parent = ComboParents(job, pvp);
             var hasChildren = parent.Values.ToHashSet();
             foreach (var finisher in parent.Keys.Where(a => !hasChildren.Contains(a)))
             {
@@ -120,7 +119,7 @@ public static class CustomComboData
             }
             chains.Sort((a, b) => ActionLevel(a.Actions[0]) != ActionLevel(b.Actions[0]) ? ActionLevel(a.Actions[0]).CompareTo(ActionLevel(b.Actions[0])) : ActionLevel(a.Actions[^1]).CompareTo(ActionLevel(b.Actions[^1])));
         }
-        _chainsPerClass[job] = chains;
+        _chainsPerClass[(job, pvp)] = chains;
         return chains;
     }
 

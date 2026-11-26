@@ -15,12 +15,14 @@ public sealed class CustomComboTab(WorldState ws)
     private CustomComboPreset? _selectedPreset;
     private bool _revealSelected;
     private string _importError = "";
+    private bool? _pvp;
 
     public bool Visible => _config.Enabled;
 
     public void Draw()
     {
-        if (_selected != null && _selectedPreset == null && !_config.Combos.Contains(_selected))
+        _pvp ??= ws.IsPvPArea;
+        if (_selected != null && (_selected.PvP != _pvp || _selectedPreset == null && !_config.Combos.Contains(_selected)))
             _selected = null;
 
         var modified = DrawToolbar();
@@ -44,11 +46,17 @@ public sealed class CustomComboTab(WorldState ws)
     private bool DrawToolbar()
     {
         var modified = false;
-        UIMisc.HelpMarker("A combo replaces an action on your hotbar: its conditional actions are checked first, then its combo chain.");
+        UIMisc.HelpMarker("A combo replaces an action on your hotbar: its conditional actions are checked first, then its combo chain.\nPvP combos are separate, they only work in PvP.");
+        ImGui.SameLine();
+        if (ImGui.RadioButton("PvE", _pvp == false))
+            _pvp = false;
+        ImGui.SameLine();
+        if (ImGui.RadioButton("PvP", _pvp == true))
+            _pvp = true;
         ImGui.SameLine();
         if (ImGui.Button("New"))
         {
-            Add(new() { Name = "New combo", Job = ws.Party.Player()?.Class ?? Class.None });
+            Add(new() { Name = "New combo", Job = ws.Party.Player()?.Class ?? Class.None, PvP = _pvp == true });
             modified = true;
         }
         ImGui.SameLine();
@@ -92,10 +100,10 @@ public sealed class CustomComboTab(WorldState ws)
 
         var modified = false;
         var player = ws.Party.Player();
-        var byJob = _config.Combos.Select((c, i) => (Combo: c, Index: i)).ToLookup(e => e.Combo.Job);
+        var byJob = _config.Combos.Select((c, i) => (Combo: c, Index: i)).Where(e => e.Combo.PvP == _pvp).ToLookup(e => e.Combo.Job);
         if (byJob[Class.None].Any())
             modified |= DrawJob(Class.None, [.. byJob[Class.None]], player);
-        foreach (var (label, classes) in CustomComboEditor.GetJobGroups())
+        foreach (var (label, classes) in CustomComboEditor.GetJobGroups(_pvp == true))
         {
             if (classes.Count == 0)
                 continue;
@@ -111,7 +119,8 @@ public sealed class CustomComboTab(WorldState ws)
     private bool DrawJob(Class job, List<(CustomCombo Combo, int Index)> combos, Actor? player)
     {
         using var id = ImRaii.PushId((int)job);
-        var prefix = CustomComboPresets.KeyPrefix(job);
+        var pvp = _pvp == true;
+        var prefix = CustomComboPresets.KeyPrefix(job, pvp);
         var count = combos.Count + _config.Presets.Count(k => k.StartsWith(prefix, StringComparison.Ordinal));
         CustomComboEditor.DrawJobIcon(job);
         ImGui.SameLine();
@@ -149,7 +158,7 @@ public sealed class CustomComboTab(WorldState ws)
 
         if (job == Class.None)
             return modified;
-        var presets = CustomComboPresets.ForClass(job);
+        var presets = CustomComboPresets.ForClass(job, pvp);
         if (presets.Count > 0)
             ImGui.TextDisabled("Presets");
         foreach (var preset in presets)
@@ -227,6 +236,7 @@ public sealed class CustomComboTab(WorldState ws)
     private void Add(CustomCombo combo)
     {
         _config.Combos.Add(combo);
+        _pvp = combo.PvP;
         Select(combo, null);
         _revealSelected = true;
     }
@@ -262,7 +272,7 @@ public sealed class CustomComboTab(WorldState ws)
     private string? ShadowedBy(CustomComboPreset preset)
     {
         var trigger = CustomComboData.Canonical(preset.Combo.Trigger);
-        foreach (var combo in CustomComboPresets.ActiveCombos(_config, preset.Combo.Job))
+        foreach (var combo in CustomComboPresets.ActiveCombos(_config, preset.Combo.Job, preset.Combo.PvP))
         {
             if (combo == preset.Combo)
                 return null;
